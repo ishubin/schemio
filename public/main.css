@@ -1,0 +1,17 @@
+body {
+    font-family: Roboto,sans-serif;
+}
+
+
+/******************* Panel *********************/
+.panel {
+    margin: 1px;
+    padding: 0px;
+    background: #424346;
+    color: #dddddd;
+}
+.panel-caption {
+    padding: 2px;
+    font-size: 9pt;
+    font-weight: bold;
+}
