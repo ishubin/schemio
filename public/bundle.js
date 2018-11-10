@@ -1425,7 +1425,7 @@ module.exports = Cancel;
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_SvgEditor_vue__ = __webpack_require__(53);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__apiClient_js__ = __webpack_require__(57);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__apiClient_js__ = __webpack_require__(59);
 //
 //
 //
@@ -1462,6 +1462,7 @@ module.exports = Cancel;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__states_StateDragging_js__ = __webpack_require__(56);
 //
 //
 //
@@ -1496,6 +1497,10 @@ module.exports = Cancel;
 //
 //
 //
+//
+
+
+const STATE_DRAGGING = new __WEBPACK_IMPORTED_MODULE_0__states_StateDragging_js__["a" /* default */]();
 
 /* harmony default export */ __webpack_exports__["a"] = ({
     props: ['width', 'height', 'scheme', 'offsetX', 'offsetY', 'zoom'],
@@ -1503,20 +1508,48 @@ module.exports = Cancel;
         this._offsetX = parseInt(this.offsetX);
         this._offsetY = parseInt(this.offsetY);
         this._zoom = parseFloat(this.zoom);
+        this.switchStateDragging();
     },
     data() {
+        console.log('data');
         return {
+            state: STATE_DRAGGING,
             _offsetX: 0,
             _offsetY: 0,
             _zoom: 1.0
         };
     },
     methods: {
-        mouseMove() {},
+        mouseCoordsFromEvent(event) {
+            //TODO Optimize it to make more effective
+            var rect = this.$refs.svgDomElement.getBoundingClientRect(),
+                targetOffsetX = rect.left + document.body.scrollLeft,
+                targetOffsetY = rect.top + document.body.scrollTop,
+                offsetX = event.clientX - targetOffsetX,
+                offsetY = event.clientY - targetOffsetY;
 
-        mouseDown() {},
+            return {
+                x: Math.round(offsetX),
+                y: Math.round(offsetY)
+            };
+        },
+        mouseMove(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseMove(coords.x, coords.y, event);
+        },
+        mouseDown(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseDown(coords.x, coords.y, event);
+        },
+        mouseUp(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseUp(coords.x, coords.y, event);
+        },
 
-        mouseUp() {},
+        switchStateDragging() {
+            this.state = STATE_DRAGGING;
+            this.state.init(this);
+        },
 
         _x(x) {
             return x * this._zoom + this._offsetX;
@@ -16590,7 +16623,7 @@ if (false) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_SchemeEditorView_vue__ = __webpack_require__(14);
 /* unused harmony namespace reexport */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_61583cac_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SchemeEditorView_vue__ = __webpack_require__(58);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_61583cac_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SchemeEditorView_vue__ = __webpack_require__(60);
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
@@ -16686,7 +16719,7 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_SvgEditor_vue__ = __webpack_require__(15);
 /* unused harmony namespace reexport */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_4fd9632c_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SvgEditor_vue__ = __webpack_require__(56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_4fd9632c_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SvgEditor_vue__ = __webpack_require__(58);
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
@@ -16780,12 +16813,78 @@ exports.push([module.i, "\n#svg_plot {\n    background: #111;\n}\n", ""]);
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__State_js__ = __webpack_require__(57);
+
+
+class StateDragging extends __WEBPACK_IMPORTED_MODULE_0__State_js__["a" /* default */] {
+    constructor() {
+        super();
+        this.editor = null;
+        this.initialClickPoint = null;
+        this.originalOffset = { x: 0, y: 0 };
+        this.originalZoom = 1.0;
+    }
+    init(editor) {
+        this.editor = editor;
+    }
+
+    mouseDown(x, y, event) {
+        this.initialClickPoint = { x, y };
+        this.originalOffset = { x: this.editor._offsetX, y: this.editor._offsetY };
+        this.originalZoom = this.editor._zoom;
+    }
+
+    mouseUp(x, y, event) {
+        this.drag(x, y);
+        this.initialClickPoint = null;
+    }
+
+    mouseMove(x, y, event) {
+        if (this.initialClickPoint) {
+            this.drag(x, y);
+        }
+    }
+
+    drag(x, y) {
+        this.editor._offsetX = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
+        this.editor._offsetY = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
+        this.editor.$forceUpdate();
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (StateDragging);
+
+/***/ }),
+/* 57 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+class State {
+    constructor() {
+        this.editor = null;
+    }
+    init(editor) {
+        this.editor = editor;
+    }
+
+    mouseDown(x, y, event) {}
+    mouseUp(x, y, event) {}
+    mouseMove(x, y, event) {}
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (State);
+
+/***/ }),
+/* 58 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", {}, [
-    _vm._v("\n    svg editor\n    "),
+    _vm._v("\n    svg editor\n\n    "),
     _c("div", [
       _c(
         "svg",
@@ -16851,7 +16950,7 @@ if (false) {
 }
 
 /***/ }),
-/* 57 */
+/* 59 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -16870,7 +16969,7 @@ if (false) {
 });
 
 /***/ }),
-/* 58 */
+/* 60 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

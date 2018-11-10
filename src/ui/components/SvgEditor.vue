@@ -1,6 +1,7 @@
 <template lang="html">
     <div class="">
         svg editor
+
         <div>
             <svg id="svg_plot" ref="svgDomElement"
                 v-bind:width="width+'px'"
@@ -33,31 +34,56 @@
 </template>
 
 <script>
+import StateDragging from './states/StateDragging.js';
+const STATE_DRAGGING = new StateDragging();
+
 export default {
     props: ['width', 'height', 'scheme', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
         this._offsetX = parseInt(this.offsetX);
         this._offsetY = parseInt(this.offsetY);
         this._zoom = parseFloat(this.zoom);
+        this.switchStateDragging();
     },
     data() {
+        console.log('data');
         return {
+            state: STATE_DRAGGING,
             _offsetX: 0,
             _offsetY: 0,
             _zoom: 1.0
         };
     },
     methods: {
-        mouseMove() {
+        mouseCoordsFromEvent(event) {
+            //TODO Optimize it to make more effective
+            var rect    = this.$refs.svgDomElement.getBoundingClientRect(),
+                targetOffsetX = rect.left + document.body.scrollLeft,
+                targetOffsetY = rect.top + document.body.scrollTop,
+                offsetX = event.clientX - targetOffsetX,
+                offsetY  = event.clientY - targetOffsetY;
 
+            return {
+                x: Math.round(offsetX),
+                y: Math.round(offsetY)
+            }
+        },
+        mouseMove(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseMove(coords.x, coords.y, event);
+        },
+        mouseDown(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseDown(coords.x, coords.y, event);
+        },
+        mouseUp(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            this.state.mouseUp(coords.x, coords.y, event);
         },
 
-        mouseDown() {
-
-        },
-
-        mouseUp() {
-
+        switchStateDragging() {
+            this.state = STATE_DRAGGING;
+            this.state.init(this);
         },
 
         _x(x) { return x * this._zoom + this._offsetX; },
