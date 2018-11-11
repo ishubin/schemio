@@ -9,13 +9,17 @@ class StateDragging extends State {
     constructor() {
         super();
         this.editor = null;
+        this.schemeContainer = null;
         this.state = NOTHING;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
         this.originalZoom = 1.0;
+
+        this.lastHoveredItem = null;
     }
     init(editor) {
         this.editor = editor;
+        this.schemeContainer = editor.schemeContainer;
     }
 
     mouseDown(x, y, event){
@@ -36,7 +40,27 @@ class StateDragging extends State {
         if (this.state === DRAG_SCREEN && this.initialClickPoint) {
             this.dragScreen(x, y);
         } else if (this.state === NOTHING) {
+            this.handleItemHover(x, y);
+        }
+    }
 
+    handleItemHover(x, y) {
+        var p = this.editor.toLocalPoint(x, y);
+        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
+        if (hoveredItem) {
+            if (this.lastHoveredItem) {
+                this.lastHoveredItem.hovered = false;
+            } else {
+                this.lastHoveredItem = hoveredItem;
+            }
+            hoveredItem.hovered = true;
+            this.editor.$forceUpdate();
+        } else {
+            if (this.lastHoveredItem) {
+                this.lastHoveredItem.hovered = false;
+                this.lastHoveredItem = null;
+                this.editor.$forceUpdate();
+            }
         }
     }
 

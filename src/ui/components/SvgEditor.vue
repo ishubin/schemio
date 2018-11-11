@@ -1,7 +1,6 @@
 <template lang="html">
     <div class="">
         svg editor
-                <div v-for="item in schemeContainer.getItems()">{{item}}</div>
         <div>
             <svg id="svg_plot" ref="svgDomElement"
                 v-bind:width="width+'px'"
@@ -17,7 +16,7 @@
                         v-bind:width="_z(item.area.w)"
                         v-bind:height="_z(item.area.h)"
                         style="opacity: 1.0; stroke-width: 3; stroke: #fff;"
-                        v-bind:style="{fill: 'none'}"/>
+                        v-bind:style="{fill: item.hovered ? 'rgba(255, 255, 255, 0.3)': 'none'}"/>
                         <text
                             v-bind:x="_x(item.area.x + 4)"
                             v-bind:y="_y(item.area.y + 14)"
@@ -88,6 +87,13 @@ export default {
         _x(x) { return x * this.vZoom + this.vOffsetX; },
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; },
+
+        toLocalPoint(mouseX, mouseY) {
+            return {
+                x: (mouseX - this.vOffsetX) / this.vZoom,
+                y: (mouseY - this.vOffsetY) / this.vZoom
+            };
+        },
     }
 }
 </script>
