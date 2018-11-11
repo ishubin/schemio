@@ -16,7 +16,7 @@
                         v-bind:width="_z(item.area.w)"
                         v-bind:height="_z(item.area.h)"
                         style="opacity: 1.0; stroke-width: 3; stroke: #fff;"
-                        v-bind:style="{fill: item.hovered ? 'rgba(255, 255, 255, 0.3)': 'none'}"/>
+                        v-bind:style="{fill: _itemFill(item)}"/>
                         <text
                             v-bind:x="_x(item.area.x + 4)"
                             v-bind:y="_y(item.area.y + 14)"
@@ -87,6 +87,17 @@ export default {
         _x(x) { return x * this.vZoom + this.vOffsetX; },
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; },
+
+        _itemFill(item) {
+            if (item.selected) {
+                return 'rgba(255, 255, 255, 0.9)'
+            } else if (item.hovered) {
+                return 'rgba(255, 255, 255, 0.2)'
+            }
+
+            return 'none;'
+        },
+
 
         toLocalPoint(mouseX, mouseY) {
             return {

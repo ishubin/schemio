@@ -5,6 +5,7 @@ This state works as dragging the screen, zooming, selecting elements and draggin
 */
 const NOTHING = 0;
 const DRAG_SCREEN = 1;
+const DRAG_ITEM = 2;
 class StateDragging extends State {
     constructor() {
         super();
@@ -23,6 +24,18 @@ class StateDragging extends State {
     }
 
     mouseDown(x, y, event){
+        var p = this.editor.toLocalPoint(x, y);
+        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
+        if (hoveredItem) {
+            this.state = DRAG_ITEM;
+            this.schemeContainer.selectItem(hoveredItem, false);
+            this.editor.$forceUpdate();
+        } else {
+            this.initScreenDrag(x, y);
+        }
+    }
+
+    initScreenDrag(x, y) {
         this.state = DRAG_SCREEN;
         this.initialClickPoint = {x, y};
         this.originalOffset = {x: this.editor.vOffsetX, y: this.editor.vOffsetY};
@@ -31,6 +44,7 @@ class StateDragging extends State {
 
     mouseUp(x, y, event) {
         if (this.state === DRAG_SCREEN) {
+            this.state = NOTHING;
             this.dragScreen(x, y);
             this.initialClickPoint = null;
         }
