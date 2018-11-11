@@ -1,7 +1,7 @@
 <template lang="html">
     <div class="">
         svg editor
-
+                <div v-for="item in schemeContainer.getItems()">{{item}}</div>
         <div>
             <svg id="svg_plot" ref="svgDomElement"
                 v-bind:width="width+'px'"
@@ -10,7 +10,7 @@
                 v-on:mousedown="mouseDown"
                 v-on:mouseup="mouseUp">
 
-                <g v-for="item in scheme.items">
+                <g v-for="item in schemeContainer.getItems()">
                     <rect
                         v-bind:x="_x(item.area.x)"
                         v-bind:y="_y(item.area.y)"
@@ -38,20 +38,19 @@ import StateDragging from './states/StateDragging.js';
 const STATE_DRAGGING = new StateDragging();
 
 export default {
-    props: ['width', 'height', 'scheme', 'offsetX', 'offsetY', 'zoom'],
+    props: ['width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
-        this._offsetX = parseInt(this.offsetX);
-        this._offsetY = parseInt(this.offsetY);
-        this._zoom = parseFloat(this.zoom);
+        this.vOffsetX = parseInt(this.offsetX);
+        this.vOffsetY = parseInt(this.offsetY);
+        this.vZoom = parseFloat(this.zoom);
         this.switchStateDragging();
     },
     data() {
-        console.log('data');
         return {
             state: STATE_DRAGGING,
-            _offsetX: 0,
-            _offsetY: 0,
-            _zoom: 1.0
+            vOffsetX: null,
+            vOffsetY: null,
+            vZoom: null
         };
     },
     methods: {
@@ -86,9 +85,9 @@ export default {
             this.state.init(this);
         },
 
-        _x(x) { return x * this._zoom + this._offsetX; },
-        _y(y) { return y * this._zoom + this._offsetY; },
-        _z(v) { return v * this._zoom; },
+        _x(x) { return x * this.vZoom + this.vOffsetX; },
+        _y(y) { return y * this.vZoom + this.vOffsetY; },
+        _z(v) { return v * this.vZoom; },
     }
 }
 </script>

@@ -1426,6 +1426,7 @@ module.exports = Cancel;
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_SvgEditor_vue__ = __webpack_require__(53);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__apiClient_js__ = __webpack_require__(59);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__scheme_SchemeContainer_js__ = __webpack_require__(60);
 //
 //
 //
@@ -1438,6 +1439,7 @@ module.exports = Cancel;
 //
 //
 //
+
 
 
 
@@ -1447,12 +1449,12 @@ module.exports = Cancel;
 
     mounted() {
         __WEBPACK_IMPORTED_MODULE_1__apiClient_js__["a" /* default */].loadScheme().then(scheme => {
-            this.scheme = scheme;
+            this.schemeContainer = new __WEBPACK_IMPORTED_MODULE_2__scheme_SchemeContainer_js__["a" /* default */](scheme);
         });
     },
     data() {
         return {
-            scheme: {}
+            schemeContainer: null
         };
     }
 });
@@ -1503,20 +1505,19 @@ module.exports = Cancel;
 const STATE_DRAGGING = new __WEBPACK_IMPORTED_MODULE_0__states_StateDragging_js__["a" /* default */]();
 
 /* harmony default export */ __webpack_exports__["a"] = ({
-    props: ['width', 'height', 'scheme', 'offsetX', 'offsetY', 'zoom'],
+    props: ['width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
-        this._offsetX = parseInt(this.offsetX);
-        this._offsetY = parseInt(this.offsetY);
-        this._zoom = parseFloat(this.zoom);
+        this.vOffsetX = parseInt(this.offsetX);
+        this.vOffsetY = parseInt(this.offsetY);
+        this.vZoom = parseFloat(this.zoom);
         this.switchStateDragging();
     },
     data() {
-        console.log('data');
         return {
             state: STATE_DRAGGING,
-            _offsetX: 0,
-            _offsetY: 0,
-            _zoom: 1.0
+            vOffsetX: null,
+            vOffsetY: null,
+            vZoom: null
         };
     },
     methods: {
@@ -1552,13 +1553,13 @@ const STATE_DRAGGING = new __WEBPACK_IMPORTED_MODULE_0__states_StateDragging_js_
         },
 
         _x(x) {
-            return x * this._zoom + this._offsetX;
+            return x * this.vZoom + this.vOffsetX;
         },
         _y(y) {
-            return y * this._zoom + this._offsetY;
+            return y * this.vZoom + this.vOffsetY;
         },
         _z(v) {
-            return v * this._zoom;
+            return v * this.vZoom;
         }
     }
 });
@@ -16623,7 +16624,7 @@ if (false) {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__babel_loader_node_modules_vue_loader_lib_selector_type_script_index_0_SchemeEditorView_vue__ = __webpack_require__(14);
 /* unused harmony namespace reexport */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_61583cac_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SchemeEditorView_vue__ = __webpack_require__(60);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__node_modules_vue_loader_lib_template_compiler_index_id_data_v_61583cac_hasScoped_false_buble_transforms_node_modules_vue_loader_lib_selector_type_template_index_0_SchemeEditorView_vue__ = __webpack_require__(61);
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
@@ -16707,7 +16708,7 @@ exports = module.exports = __webpack_require__(2)(false);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
@@ -16816,10 +16817,16 @@ exports.push([module.i, "\n#svg_plot {\n    background: #111;\n}\n", ""]);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__State_js__ = __webpack_require__(57);
 
 
+/*
+This state works as dragging the screen, zooming, selecting elements and dragging selected elements
+*/
+const NOTHING = 0;
+const DRAG_SCREEN = 1;
 class StateDragging extends __WEBPACK_IMPORTED_MODULE_0__State_js__["a" /* default */] {
     constructor() {
         super();
         this.editor = null;
+        this.state = NOTHING;
         this.initialClickPoint = null;
         this.originalOffset = { x: 0, y: 0 };
         this.originalZoom = 1.0;
@@ -16829,25 +16836,28 @@ class StateDragging extends __WEBPACK_IMPORTED_MODULE_0__State_js__["a" /* defau
     }
 
     mouseDown(x, y, event) {
+        this.state = DRAG_SCREEN;
         this.initialClickPoint = { x, y };
-        this.originalOffset = { x: this.editor._offsetX, y: this.editor._offsetY };
-        this.originalZoom = this.editor._zoom;
+        this.originalOffset = { x: this.editor.vOffsetX, y: this.editor.vOffsetY };
+        this.originalZoom = this.editor.vZoom;
     }
 
     mouseUp(x, y, event) {
-        this.drag(x, y);
-        this.initialClickPoint = null;
-    }
-
-    mouseMove(x, y, event) {
-        if (this.initialClickPoint) {
-            this.drag(x, y);
+        if (this.state === DRAG_SCREEN) {
+            this.dragScreen(x, y);
+            this.initialClickPoint = null;
         }
     }
 
-    drag(x, y) {
-        this.editor._offsetX = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
-        this.editor._offsetY = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
+    mouseMove(x, y, event) {
+        if (this.state === DRAG_SCREEN && this.initialClickPoint) {
+            this.dragScreen(x, y);
+        } else if (this.state === NOTHING) {}
+    }
+
+    dragScreen(x, y) {
+        this.editor.vOffsetX = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
+        this.editor.vOffsetY = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
         this.editor.$forceUpdate();
     }
 }
@@ -16883,60 +16893,69 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c("div", {}, [
-    _vm._v("\n    svg editor\n\n    "),
-    _c("div", [
-      _c(
-        "svg",
-        {
-          ref: "svgDomElement",
-          attrs: {
-            id: "svg_plot",
-            width: _vm.width + "px",
-            height: _vm.height + "px"
+  return _c(
+    "div",
+    {},
+    [
+      _vm._v("\n    svg editor\n            "),
+      _vm._l(_vm.schemeContainer.getItems(), function(item) {
+        return _c("div", [_vm._v(_vm._s(item))])
+      }),
+      _vm._v(" "),
+      _c("div", [
+        _c(
+          "svg",
+          {
+            ref: "svgDomElement",
+            attrs: {
+              id: "svg_plot",
+              width: _vm.width + "px",
+              height: _vm.height + "px"
+            },
+            on: {
+              mousemove: _vm.mouseMove,
+              mousedown: _vm.mouseDown,
+              mouseup: _vm.mouseUp
+            }
           },
-          on: {
-            mousemove: _vm.mouseMove,
-            mousedown: _vm.mouseDown,
-            mouseup: _vm.mouseUp
-          }
-        },
-        _vm._l(_vm.scheme.items, function(item) {
-          return _c("g", [
-            _c("rect", {
-              staticStyle: {
-                opacity: "1.0",
-                "stroke-width": "3",
-                stroke: "#fff"
-              },
-              style: { fill: "none" },
-              attrs: {
-                x: _vm._x(item.area.x),
-                y: _vm._y(item.area.y),
-                width: _vm._z(item.area.w),
-                height: _vm._z(item.area.h)
-              }
-            }),
-            _vm._v(" "),
-            _c(
-              "text",
-              {
+          _vm._l(_vm.schemeContainer.getItems(), function(item) {
+            return _c("g", [
+              _c("rect", {
+                staticStyle: {
+                  opacity: "1.0",
+                  "stroke-width": "3",
+                  stroke: "#fff"
+                },
+                style: { fill: "none" },
                 attrs: {
-                  x: _vm._x(item.area.x + 4),
-                  y: _vm._y(item.area.y + 14),
-                  fill: "#ffffff",
-                  "font-weight": "bold",
-                  "font-family": "helvetica",
-                  "font-size": Math.floor(_vm._z(15)) + "px"
+                  x: _vm._x(item.area.x),
+                  y: _vm._y(item.area.y),
+                  width: _vm._z(item.area.w),
+                  height: _vm._z(item.area.h)
                 }
-              },
-              [_vm._v(_vm._s(item.name))]
-            )
-          ])
-        })
-      )
-    ])
-  ])
+              }),
+              _vm._v(" "),
+              _c(
+                "text",
+                {
+                  attrs: {
+                    x: _vm._x(item.area.x + 4),
+                    y: _vm._y(item.area.y + 14),
+                    fill: "#ffffff",
+                    "font-weight": "bold",
+                    "font-family": "helvetica",
+                    "font-size": Math.floor(_vm._z(15)) + "px"
+                  }
+                },
+                [_vm._v(_vm._s(item.name))]
+              )
+            ])
+          })
+        )
+      ])
+    ],
+    2
+  )
 }
 var staticRenderFns = []
 render._withStripped = true
@@ -16973,6 +16992,27 @@ if (false) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+
+/*
+Providing access to scheme elements and provides modifiers for it
+*/
+class SchemeContainer {
+    constructor(scheme) {
+        this.scheme = scheme;
+    }
+
+    getItems() {
+        return this.scheme.items;
+    }
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (SchemeContainer);
+
+/***/ }),
+/* 61 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 var render = function() {
   var _vm = this
   var _h = _vm.$createElement
@@ -16980,22 +17020,24 @@ var render = function() {
   return _c("div", { staticClass: "scheme-editor-view" }, [
     _vm._m(0),
     _vm._v(" "),
-    _c(
-      "div",
-      [
-        _c("svg-editor", {
-          attrs: {
-            scheme: _vm.scheme,
-            width: "800",
-            height: "500",
-            offsetX: "20",
-            offsetY: "20",
-            zoom: "1.0"
-          }
-        })
-      ],
-      1
-    )
+    _vm.schemeContainer
+      ? _c(
+          "div",
+          [
+            _c("svg-editor", {
+              attrs: {
+                schemeContainer: _vm.schemeContainer,
+                width: "800",
+                height: "500",
+                offsetX: "20",
+                offsetY: "20",
+                zoom: "1.0"
+              }
+            })
+          ],
+          1
+        )
+      : _vm._e()
   ])
 }
 var staticRenderFns = [
