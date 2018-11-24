@@ -7,6 +7,17 @@ class SchemeContainer {
     constructor(scheme) {
         this.scheme = scheme;
         this.selectedItems = [];
+        this.areaSortedItems = this.createAreaSortedItems();
+    }
+
+    createAreaSortedItems() {
+        var sortedItems = [].concat(this.scheme.items);
+        sortedItems.sort((a,b) => {
+            var areaA = a.area.w * a.area.h,
+                areaB = b.area.w * b.area.h;
+            return areaA - areaB;
+        });
+        return sortedItems;
     }
 
     getItems() {
@@ -14,7 +25,7 @@ class SchemeContainer {
     }
 
     findHoveredItem(x, y) {
-        return _.find(this.scheme.items, item => myMath.isPointInArea(x, y, item.area));
+        return _.find(this.areaSortedItems, item => myMath.isPointInArea(x, y, item.area));
     }
 
     selectItem(item, inclusive) {

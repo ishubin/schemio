@@ -10,21 +10,27 @@
                 v-on:mouseup="mouseUp">
 
                 <g v-for="item in schemeContainer.getItems()">
-                    <rect
-                        v-bind:x="_x(item.area.x)"
-                        v-bind:y="_y(item.area.y)"
-                        v-bind:width="_z(item.area.w)"
-                        v-bind:height="_z(item.area.h)"
-                        style="opacity: 1.0; stroke-width: 3; stroke: #fff;"
-                        v-bind:style="{fill: _itemFill(item)}"/>
-                        <text
-                            v-bind:x="_x(item.area.x + 4)"
-                            v-bind:y="_y(item.area.y + 14)"
-                            fill="#ffffff"
-                            font-weight="bold"
-                            font-family="helvetica"
-                            v-bind:font-size="Math.floor(_z(15)) + 'px'"
-                            >{{item.name}}</text>
+                    <g v-if="item.type === 'image'">
+                        <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
+                    </g>
+                    <g v-if="item.type === 'component'">
+                        <rect
+                            :x="_x(item.area.x)"
+                            :y="_y(item.area.y)"
+                            :width="_z(item.area.w)"
+                            :height="_z(item.area.h)"
+                            class="component"
+                            :class="{selected: item.selected, hovered: item.hovered}"
+                        />
+                            <text
+                                v-bind:x="_x(item.area.x + 4)"
+                                v-bind:y="_y(item.area.y + 14)"
+                                fill="#ffffff"
+                                font-weight="bold"
+                                font-family="helvetica"
+                                v-bind:font-size="Math.floor(_z(15)) + 'px'"
+                                >{{item.name}}</text>
+                    </g>
                 </g>
 
             </svg>
@@ -54,8 +60,7 @@ export default {
     },
     methods: {
         mouseCoordsFromEvent(event) {
-            //TODO Optimize it to make more effective
-            var rect    = this.$refs.svgDomElement.getBoundingClientRect(),
+            var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 targetOffsetX = rect.left + document.body.scrollLeft,
                 targetOffsetY = rect.top + document.body.scrollTop,
                 offsetX = event.clientX - targetOffsetX,
@@ -94,7 +99,6 @@ export default {
             } else if (item.hovered) {
                 return 'rgba(255, 255, 255, 0.2)'
             }
-
             return 'none;'
         },
 

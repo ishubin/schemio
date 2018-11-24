@@ -15,3 +15,15 @@ body {
     font-size: 9pt;
     font-weight: bold;
 }
+
+
+svg rect.component {
+    stroke-width: 3;
+    stroke: #fff;
+}
+svg rect.component.hovered {
+    fill: rgba(255, 255, 255, 0.2);
+}
+svg rect.component.selected {
+    fill: rgba(255, 255, 255, 0.9);
+}

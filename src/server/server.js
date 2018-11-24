@@ -15,7 +15,7 @@ app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)
 })
 
-var port = process.env.PORT || 4000;
+var port = process.env.PORT || 4010;
 app.set('port', port);
 var server = app.listen(port, () => {
     console.log('Listening on port ' + port);

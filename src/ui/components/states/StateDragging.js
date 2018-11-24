@@ -24,8 +24,9 @@ class StateDragging extends State {
     }
 
     mouseDown(x, y, event){
+        console.log('Dragging: mouseDown', x, y, this.state);
         var p = this.editor.toLocalPoint(x, y);
-        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
+        var hoveredItem = null; //this.schemeContainer.findHoveredItem(p.x, p.y);
         if (hoveredItem) {
             this.state = DRAG_ITEM;
             this.schemeContainer.selectItem(hoveredItem, false);
@@ -58,22 +59,27 @@ class StateDragging extends State {
         }
     }
 
+    unhoverLastHoveredItem() {
+        this.lastHoveredItem.hovered = false;
+        this.lastHoveredItem = null;
+        this.editor.$forceUpdate();
+    }
+
     handleItemHover(x, y) {
         var p = this.editor.toLocalPoint(x, y);
         var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
         if (hoveredItem) {
-            if (this.lastHoveredItem) {
-                this.lastHoveredItem.hovered = false;
-            } else {
+            if (this.lastHoveredItem !== hoveredItem) {
+                if (this.lastHoveredItem) {
+                    this.unhoverLastHoveredItem();
+                }
                 this.lastHoveredItem = hoveredItem;
+                this.lastHoveredItem.hovered = true;
+                this.editor.$forceUpdate();
             }
-            hoveredItem.hovered = true;
-            this.editor.$forceUpdate();
         } else {
             if (this.lastHoveredItem) {
-                this.lastHoveredItem.hovered = false;
-                this.lastHoveredItem = null;
-                this.editor.$forceUpdate();
+                this.unhoverLastHoveredItem();
             }
         }
     }
