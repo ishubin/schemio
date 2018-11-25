@@ -35,16 +35,18 @@
                 </g>
 
                 <g v-for="link in selectedItemLinks">
-                    <circle :cx="_x(link.x)" :cy="_y(link.y)" r="10" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
-                    <text
-                        :x="_x(link.x) - _z(5)"
-                        :y="_y(link.y) + _z(5)"
-                        fill="#ff0000"
-                        font-weight="bold"
-                        font-family="helvetica"
-                        font-size="12px"
-                        >{{link.title}}</text>
-
+                    <a :xlink:href="link.url"
+	  target="_blank">
+                        <circle :cx="_x(link.x)" :cy="_y(link.y)" r="10" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
+                        <text
+                            :x="_x(link.x) - _z(5)"
+                            :y="_y(link.y) + _z(5)"
+                            fill="#ff0000"
+                            font-weight="bold"
+                            font-family="helvetica"
+                            font-size="12px"
+                            >{{link.title}}</text>
+                    </a>
                 </g>
 
             </svg>
@@ -122,6 +124,10 @@ export default {
 
         onDeselectAllItems(item) {
             this.$emit('deselect-items');
+
+            if (this.selectedItemLinks.length > 0) {
+                this.selectedItemLinks = [];
+            }
         },
 
         startLinksAnimation() {
