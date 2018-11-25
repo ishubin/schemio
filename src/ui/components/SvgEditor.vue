@@ -34,6 +34,19 @@
                     </g>
                 </g>
 
+                <g v-for="link in selectedItemLinks">
+                    <circle :cx="_x(link.x)" :cy="_y(link.y)" r="10" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
+                    <text
+                        :x="_x(link.x) - _z(5)"
+                        :y="_y(link.y) + _z(5)"
+                        fill="#ff0000"
+                        font-weight="bold"
+                        font-family="helvetica"
+                        font-size="12px"
+                        >{{link.title}}</text>
+
+                </g>
+
             </svg>
         </div>
     </div>
@@ -56,7 +69,18 @@ export default {
             state: STATE_DRAGGING,
             vOffsetX: null,
             vOffsetY: null,
-            vZoom: null
+            vZoom: null,
+
+            selectedItemLinks: [],
+
+            animations: {
+                linksAppear: {
+                    timer: null,
+                    frame: 0,
+                    totalFrames: 30,
+                    intervalMs: 5
+                }
+            }
         };
     },
     methods: {
@@ -92,10 +116,63 @@ export default {
 
         onSelectItem(item) {
             this.$emit('select-item', item);
+            this.selectedItemLinks = this.generateItemLinks(item);
+            this.startLinksAnimation();
         },
 
         onDeselectAllItems(item) {
             this.$emit('deselect-items');
+        },
+
+        startLinksAnimation() {
+            this.animations.linksAppear.timer = null;
+            this.animations.linksAppear.frame = 0;
+
+            this.animations.linksAppear.timer = setInterval(() => {
+                this.animations.linksAppear.frame += 1;
+
+                if (this.animations.linksAppear.frame >= this.animations.linksAppear.totalFrames) {
+                    clearInterval(this.animations.linksAppear.timer);
+                }
+
+                var t = this.animations.linksAppear.frame / this.animations.linksAppear.totalFrames;
+
+                _.forEach(this.selectedItemLinks, link => {
+                    link.x = link.startX * (1.0 - t) + link.destinationX * t;
+                    link.y = link.startY * (1.0 - t) + link.destinationY * t;
+                });
+           }, this.animations.linksAppear.intervalMs);
+        },
+
+        generateItemLinks(item) {
+            var links = [];
+            if (item.links && item.links.length > 0) {
+                var fullAngle = 2 * Math.PI;
+                var stepAngle = (2 * Math.PI) / item.links.length;
+
+                var cx = item.area.w / 2 + item.area.x;
+                var cy = item.area.h / 2 + item.area.y;
+                var radius = (item.area.w + item.area.h) / 2;
+
+                var index = 0;
+                _.forEach(item.links, link => {
+                    var svgLink = {
+                        url: link.url,
+                        title: link.title.substr(0, 1).toUpperCase(),
+                        x: cx,
+                        y: cy,
+                        startX: cx,
+                        startY: cy,
+                        destinationX: cx + radius * Math.cos(index * stepAngle),
+                        destinationY: cy + radius * Math.sin(index * stepAngle)
+                    };
+
+                    links.push(svgLink);
+                    index += 1;
+                });
+            }
+
+            return links;
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },
