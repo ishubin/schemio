@@ -32,12 +32,13 @@ export default {
     components: {SvgEditor, ItemProperties},
 
     mounted() {
-        apiClient.loadScheme().then(scheme => {
+        apiClient.loadScheme(this.schemeId).then(scheme => {
             this.schemeContainer = new SchemeContainer(scheme);
         });
     },
     data() {
         return {
+            schemeId: this.$route.params.schemeId,
             schemeContainer: null,
             svgWidth: window.innerWidth,
             svgHeight: 600,
