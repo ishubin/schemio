@@ -37,15 +37,16 @@
                 <g v-for="link in selectedItemLinks">
                     <a :xlink:href="link.url"
 	  target="_blank">
-                        <circle :cx="_x(link.x)" :cy="_y(link.y)" r="10" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
+                        <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
                         <text
                             :x="_x(link.x) - _z(5)"
                             :y="_y(link.y) + _z(5)"
                             fill="#ff0000"
                             font-weight="bold"
                             font-family="helvetica"
-                            font-size="12px"
-                            >{{link.title}}</text>
+                            :font-size="Math.floor(_z(13)) + 'px'"
+                            :title="link.title"
+                            >{{link.shortTitle}}</text>
                     </a>
                 </g>
 
@@ -158,19 +159,20 @@ export default {
 
                 var cx = item.area.w / 2 + item.area.x;
                 var cy = item.area.h / 2 + item.area.y;
-                var radius = (item.area.w + item.area.h) / 2;
+                var radius = Math.max(50, (item.area.w + item.area.h) / 2);
 
                 var index = 0;
                 _.forEach(item.links, link => {
                     var svgLink = {
                         url: link.url,
-                        title: link.title.substr(0, 1).toUpperCase(),
+                        shortTitle: link.title.substr(0, 1).toUpperCase(),
+                        title: link.title,
                         x: cx,
                         y: cy,
                         startX: cx,
                         startY: cy,
-                        destinationX: cx + radius * Math.cos(index * stepAngle),
-                        destinationY: cy + radius * Math.sin(index * stepAngle)
+                        destinationX: cx + radius * Math.cos(index * stepAngle - Math.PI/2),
+                        destinationY: cy + radius * Math.sin(index * stepAngle - Math.PI/2)
                     };
 
                     links.push(svgLink);
