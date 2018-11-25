@@ -15,7 +15,7 @@
                   </div>
                    <div class="modal-footer">
                        <div class="modal-controls">
-                           <span class="btn btn-primary" v-on:click="submitLink()">Create</span>
+                           <span class="btn btn-primary" v-on:click="submitLink()">{{submitTitle}}</span>
                            <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
                        </div>
                    </div>
@@ -32,6 +32,7 @@ export default {
     data() {
         return {
             popupTitle: this.edit ? 'Edit Link' : 'Create Link',
+            submitTitle: this.edit ? 'Update' : 'Create',
             editTitle: this.title,
             editUrl: this.url
         }
