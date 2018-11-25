@@ -29,6 +29,18 @@ class SchemeContainer {
     }
 
     selectItem(item, inclusive) {
+        if (inclusive) {
+            this.selectItemInclusive();
+        } else {
+            this.deselectAllItems();
+            item.selected = true;
+            this.selectedItems.push(item);
+        }
+
+        console.log('Selected items', this.selectedItems);
+    }
+
+    selectItemInclusive(item) {
         var isAlreadyIn = false;
         var i = 0;
         for (; i < this.selectedItems.length; i++) {
@@ -45,8 +57,13 @@ class SchemeContainer {
             item.selected = false;
             this.selectedItems.splice(i, 1);
         }
+    }
 
-        console.log(this.selectedItems);
+    deselectAllItems() {
+        _.forEach(this.selectedItems, item => {
+            item.selected = false;
+        });
+        this.selectedItems = [];
     }
 }
 

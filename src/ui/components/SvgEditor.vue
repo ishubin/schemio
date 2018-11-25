@@ -20,15 +20,16 @@
                             :width="_z(item.area.w)"
                             :height="_z(item.area.h)"
                             class="component"
-                            :class="{selected: item.selected, hovered: item.hovered}"
+                            :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
                         />
                             <text
-                                v-bind:x="_x(item.area.x + 4)"
-                                v-bind:y="_y(item.area.y + 14)"
+                                v-if="!item.invisible"
+                                :x="_x(item.area.x + 4)"
+                                :y="_y(item.area.y + 14)"
                                 fill="#ffffff"
                                 font-weight="bold"
                                 font-family="helvetica"
-                                v-bind:font-size="Math.floor(_z(15)) + 'px'"
+                                :font-size="Math.floor(_z(15)) + 'px'"
                                 >{{item.name}}</text>
                     </g>
                 </g>
@@ -89,6 +90,14 @@ export default {
             this.state.init(this);
         },
 
+        onSelectItem(item) {
+            this.$emit('select-item', item);
+        },
+
+        onDeselectAllItems(item) {
+            this.$emit('deselect-items');
+        },
+
         _x(x) { return x * this.vZoom + this.vOffsetX; },
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; },
@@ -101,7 +110,6 @@ export default {
             }
             return 'none;'
         },
-
 
         toLocalPoint(mouseX, mouseY) {
             return {

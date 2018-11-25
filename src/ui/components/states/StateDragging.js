@@ -26,10 +26,11 @@ class StateDragging extends State {
     mouseDown(x, y, event){
         console.log('Dragging: mouseDown', x, y, this.state);
         var p = this.editor.toLocalPoint(x, y);
-        var hoveredItem = null; //this.schemeContainer.findHoveredItem(p.x, p.y);
-        if (hoveredItem) {
-            this.state = DRAG_ITEM;
+        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
+        if (hoveredItem && hoveredItem.type !== 'image') {
+            //this.state = DRAG_ITEM;
             this.schemeContainer.selectItem(hoveredItem, false);
+            this.editor.onSelectItem(hoveredItem);
             this.editor.$forceUpdate();
         } else {
             this.initScreenDrag(x, y);
@@ -45,6 +46,10 @@ class StateDragging extends State {
 
     mouseUp(x, y, event) {
         if (this.state === DRAG_SCREEN) {
+            if (Math.abs(x - this.initialClickPoint.x) + Math.abs(y - this.initialClickPoint.y) < 3) {
+                this.schemeContainer.deselectAllItems();
+                this.editor.onDeselectAllItems();
+            }
             this.state = NOTHING;
             this.dragScreen(x, y);
             this.initialClickPoint = null;

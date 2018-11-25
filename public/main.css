@@ -1,5 +1,6 @@
 body {
     font-family: Roboto,sans-serif;
+    marign: 0;
 }
 
 
@@ -17,13 +18,37 @@ body {
 }
 
 
+.scheme-middle-container {
+    position: relative;
+    width: 100%;
+}
+.scheme-middle-container .side-panel {
+    padding: 10px;
+    height: 96%;
+    width: 500px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #f0f0f0;
+    border-left: 3px solid #999;
+}
+
+
 svg rect.component {
     stroke-width: 3;
     stroke: #fff;
+}
+svg rect.component.invisible {
+    stroke-width: 3;
+    stroke: none;
+    fill: none;
 }
 svg rect.component.hovered {
     fill: rgba(255, 255, 255, 0.2);
 }
 svg rect.component.selected {
-    fill: rgba(255, 255, 255, 0.9);
+    fill: rgba(255, 255, 255, 0.6);
+}
+svg rect.component.hovered.invisible {
+    fill: rgba(255, 255, 255, 0.3);
 }
