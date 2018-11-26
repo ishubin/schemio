@@ -1,4 +1,5 @@
 import State from './State.js';
+import EventBus from '../EventBus.js';
 
 /*
 This state works as dragging the screen, zooming, selecting elements and dragging selected elements
@@ -23,8 +24,7 @@ class StateDragging extends State {
     itemMouseDown(item, x, y, event) {
         if (item.type !== 'image') {
             this.schemeContainer.selectItem(item, false);
-            this.editor.onSelectItem(item);
-            this.editor.$forceUpdate();
+            EventBus.$emit(EventBus.ITEM_SELECTED, item);
             return false;
         }
         return true;

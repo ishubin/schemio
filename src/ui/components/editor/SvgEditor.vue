@@ -93,6 +93,10 @@ export default {
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, () => {
             this.cancelCurrentState();
         });
+        EventBus.$on(EventBus.ITEM_SELECTED, item => {
+            this.onSelectItem(item);
+            this.$forceUpdate();
+        });
     },
     data() {
         return {
