@@ -20,6 +20,10 @@ class SchemeContainer {
         return sortedItems;
     }
 
+    addItem(item) {
+        this.scheme.items.push(item);
+    }
+
     getItems() {
         return this.scheme.items;
     }

@@ -68,6 +68,7 @@
 
 <script>
 import StateDragging from './states/StateDragging.js';
+import StateCreateComponent from './states/StateCreateComponent.js';
 import EventBus from './EventBus.js';
 
 
@@ -80,14 +81,24 @@ export default {
         this.switchStateDragging();
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, component => {
-            console.log('I am going to start creating component', component);
-            this.switchStateCreateComponent();
+            this.switchStateCreateComponent(component);
+        });
+
+        EventBus.$on('keyPressEscape', () => {
+            this.state.cancel();
+        });
+        EventBus.$on(EventBus.REDRAW, () => {
+            this.$forceUpdate();
+        });
+        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, () => {
+            this.cancelCurrentState();
         });
     },
     data() {
         return {
             states: {
-                dragging: new StateDragging(this)
+                dragging: new StateDragging(this),
+                createComponent: new StateCreateComponent(this)
             },
             state: null,
             previousState: null,
@@ -123,35 +134,45 @@ export default {
         },
         mouseMove(event) {
             var coords = this.mouseCoordsFromEvent(event);
-            this.handleItemHover(coords.x, coords.y);
-            this.state.mouseMove(coords.x, coords.y, event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            if (this.state.shouldHandleItemHover()) {
+                this.handleItemHover(p.x, p.y);
+            }
+            this.state.mouseMove(p.x, p.y, coords.x, coords.y, event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
-            var itemAtCursor = this.findItemAtCursor(coords.x, coords.y);
-            if (itemAtCursor) {
-                if (!this.state.itemMouseDown(itemAtCursor, coords.x, coords.y, event)) {
-                    // it didn't return true, so interrupting everything
-                    return;
+            var p = this.toLocalPoint(coords.x, coords.y);
+
+            if (this.state.shouldHandleItemMouseDown()) {
+                var itemAtCursor = this.findItemAtCursor(p.x, p.y);
+                if (itemAtCursor) {
+                    if (!this.state.itemMouseDown(itemAtCursor, p.x, p.y, event)) {
+                        // it didn't return true, so interrupting everything
+                        return;
+                    }
                 }
             }
-            this.state.mouseDown(coords.x, coords.y, event);
+            this.state.mouseDown(p.x, p.y, coords.x, coords.y, event);
         },
         mouseUp(event) {
             var coords = this.mouseCoordsFromEvent(event);
-            var itemAtCursor = this.findItemAtCursor(coords.x, coords.y);
-            if (itemAtCursor) {
-                if (!this.state.itemMouseUp(itemAtCursor, coords.x, coords.y, event)) {
-                    // it didn't return true, so interrupting everything
-                    return;
+            var p = this.toLocalPoint(coords.x, coords.y);
+
+            if (this.state.shouldHandleItemMouseUp()) {
+                var itemAtCursor = this.findItemAtCursor(p.x, p.y);
+                if (itemAtCursor) {
+                    if (!this.state.itemMouseUp(itemAtCursor, p.x, p.y, event)) {
+                        // it didn't return true, so interrupting everything
+                        return;
+                    }
                 }
             }
-            this.state.mouseUp(coords.x, coords.y, event);
+            this.state.mouseUp(p.x, p.y, coords.x, coords.y, event);
         },
 
         findItemAtCursor(x, y) {
-            var p = this.toLocalPoint(x, y);
-            return this.schemeContainer.findHoveredItem(p.x, p.y);
+            return this.schemeContainer.findHoveredItem(x, y);
         },
 
         handleItemHover(x, y) {
@@ -177,14 +198,23 @@ export default {
             }
         },
 
+        cancelCurrentState() {
+            if (this.previousState) {
+                this.state = this.previousState;
+                this.previousState = null;
+            } else {
+                this.state = this.state.dragging;
+            }
+        },
         switchStateDragging() {
             this.state = this.states.dragging;
             this.state.reset();
         },
-        switchStateCreateComponent() {
-            //this.previousState = this.state;
-            //this.state = STATE_CREATE_COMPONENT;
-            //this.state.init(this);
+        switchStateCreateComponent(component) {
+            this.previousState = this.state;
+            this.state = this.states.createComponent;
+            this.state.reset();
+            this.state.setComponent(component);
         },
 
         onSelectItem(item) {

@@ -5,9 +5,17 @@ class State {
 
     reset() {}
 
-    mouseDown(x, y, event) {}
-    mouseUp(x, y, event) {}
-    mouseMove(x, y, event) {}
+    // invoked when user cancels the state (e.g. press Esc key)
+    cancel() {}
+
+    mouseDown(localX, localY, originalX, originalY, event) {}
+    mouseUp(localX, localY, originalX, originalY, event) {}
+    mouseMove(localX, localY, originalX, originalY, event) {}
+
+    shouldHandleItemHover() {return true;}
+    shouldHandleItemMouseDown() {return true;}
+    shouldHandleItemMouseUp() {return true;}
+
     itemHovered(item) {}
     itemLostFocus(item) {}
 

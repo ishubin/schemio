@@ -131,6 +131,7 @@ transition: opacity .3s ease;
     padding: 2px;
 }
 ul.button-group {
+    display: inline-block;
     margin: 0;
     padding: 0;
     list-style: none;

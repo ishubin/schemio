@@ -16,8 +16,8 @@ class StateDragging extends State {
         this.originalZoom = 1.0;
     }
 
-    mouseDown(x, y, event){
-        this.initScreenDrag(x, y);
+    mouseDown(x, y, mx, my, event){
+        this.initScreenDrag(mx, my);
     }
 
     itemMouseDown(item, x, y, event) {
@@ -37,21 +37,21 @@ class StateDragging extends State {
         this.originalZoom = this.editor.vZoom;
     }
 
-    mouseUp(x, y, event) {
+    mouseUp(x, y, mx, my, event) {
         if (this.state === DRAG_SCREEN) {
-            if (Math.abs(x - this.initialClickPoint.x) + Math.abs(y - this.initialClickPoint.y) < 3) {
+            if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 this.schemeContainer.deselectAllItems();
                 this.editor.onDeselectAllItems();
             }
             this.state = NOTHING;
-            this.dragScreen(x, y);
+            this.dragScreen(mx, my);
             this.initialClickPoint = null;
         }
     }
 
-    mouseMove(x, y, event) {
+    mouseMove(x, y, mx, my, event) {
         if (this.state === DRAG_SCREEN && this.initialClickPoint) {
-            this.dragScreen(x, y);
+            this.dragScreen(mx, my);
         }
     }
 
