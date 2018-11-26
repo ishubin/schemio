@@ -15,8 +15,6 @@ class StateDragging extends State {
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
         this.originalZoom = 1.0;
-
-        this.lastHoveredItem = null;
     }
     init(editor) {
         this.editor = editor;
@@ -24,17 +22,17 @@ class StateDragging extends State {
     }
 
     mouseDown(x, y, event){
-        console.log('Dragging: mouseDown', x, y, this.state);
-        var p = this.editor.toLocalPoint(x, y);
-        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
-        if (hoveredItem && hoveredItem.type !== 'image') {
-            //this.state = DRAG_ITEM;
-            this.schemeContainer.selectItem(hoveredItem, false);
-            this.editor.onSelectItem(hoveredItem);
+        this.initScreenDrag(x, y);
+    }
+
+    itemMouseDown(item, x, y, event) {
+        if (item.type !== 'image') {
+            this.schemeContainer.selectItem(item, false);
+            this.editor.onSelectItem(item);
             this.editor.$forceUpdate();
-        } else {
-            this.initScreenDrag(x, y);
+            return false;
         }
+        return true;
     }
 
     initScreenDrag(x, y) {
@@ -59,35 +57,9 @@ class StateDragging extends State {
     mouseMove(x, y, event) {
         if (this.state === DRAG_SCREEN && this.initialClickPoint) {
             this.dragScreen(x, y);
-        } else if (this.state === NOTHING) {
-            this.handleItemHover(x, y);
         }
     }
 
-    unhoverLastHoveredItem() {
-        this.lastHoveredItem.hovered = false;
-        this.lastHoveredItem = null;
-        this.editor.$forceUpdate();
-    }
-
-    handleItemHover(x, y) {
-        var p = this.editor.toLocalPoint(x, y);
-        var hoveredItem = this.schemeContainer.findHoveredItem(p.x, p.y);
-        if (hoveredItem) {
-            if (this.lastHoveredItem !== hoveredItem) {
-                if (this.lastHoveredItem) {
-                    this.unhoverLastHoveredItem();
-                }
-                this.lastHoveredItem = hoveredItem;
-                this.lastHoveredItem.hovered = true;
-                this.editor.$forceUpdate();
-            }
-        } else {
-            if (this.lastHoveredItem) {
-                this.unhoverLastHoveredItem();
-            }
-        }
-    }
 
     dragScreen(x, y) {
         this.editor.vOffsetX = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);

@@ -86,6 +86,7 @@ export default {
             vZoom: null,
 
             selectedItemLinks: [],
+            lastHoveredItem: null,
 
             animations: {
                 linksAppear: {
@@ -112,15 +113,58 @@ export default {
         },
         mouseMove(event) {
             var coords = this.mouseCoordsFromEvent(event);
+            this.handleItemHover(coords.x, coords.y);
             this.state.mouseMove(coords.x, coords.y, event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
+            var itemAtCursor = this.findItemAtCursor(coords.x, coords.y);
+            if (itemAtCursor) {
+                if (!this.state.itemMouseDown(itemAtCursor, coords.x, coords.y, event)) {
+                    // it didn't return true, so interrupting everything
+                    return;
+                }
+            }
             this.state.mouseDown(coords.x, coords.y, event);
         },
         mouseUp(event) {
             var coords = this.mouseCoordsFromEvent(event);
+            var itemAtCursor = this.findItemAtCursor(coords.x, coords.y);
+            if (itemAtCursor) {
+                if (!this.state.itemMouseUp(itemAtCursor, coords.x, coords.y, event)) {
+                    // it didn't return true, so interrupting everything
+                    return;
+                }
+            }
             this.state.mouseUp(coords.x, coords.y, event);
+        },
+
+        findItemAtCursor(x, y) {
+            var p = this.toLocalPoint(x, y);
+            return this.schemeContainer.findHoveredItem(p.x, p.y);
+        },
+
+        handleItemHover(x, y) {
+            var hoveredItem = this.findItemAtCursor(x, y);
+            if (hoveredItem) {
+                if (this.lastHoveredItem !== hoveredItem) {
+                    if (this.lastHoveredItem) {
+                        this.lastHoveredItem.hovered = false;
+                        this.state.itemLostFocus(this.lastHoveredItem);
+                    }
+                    this.lastHoveredItem = hoveredItem;
+                    hoveredItem.hovered = true;
+                    this.state.itemHovered(hoveredItem);
+                    this.$forceUpdate();
+                }
+            } else {
+                if (this.lastHoveredItem) {
+                    this.lastHoveredItem.hovered = false;
+                    this.state.itemLostFocus(this.lastHoveredItem);
+                    this.lastHoveredItem = null;
+                    this.$forceUpdate();
+                }
+            }
         },
 
         switchStateDragging() {
@@ -213,6 +257,10 @@ export default {
                 y: (mouseY - this.vOffsetY) / this.vZoom
             };
         },
+    },
+    watch: {
+        mode(newMode) {
+        }
     }
 }
 </script>
