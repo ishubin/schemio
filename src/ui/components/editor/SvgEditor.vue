@@ -68,7 +68,8 @@
 
 <script>
 import StateDragging from './states/StateDragging.js';
-const STATE_DRAGGING = new StateDragging();
+import EventBus from './EventBus.js';
+
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
@@ -77,10 +78,19 @@ export default {
         this.vOffsetY = parseInt(this.offsetY);
         this.vZoom = parseFloat(this.zoom);
         this.switchStateDragging();
+
+        EventBus.$on(EventBus.START_CREATING_COMPONENT, component => {
+            console.log('I am going to start creating component', component);
+            this.switchStateCreateComponent();
+        });
     },
     data() {
         return {
-            state: STATE_DRAGGING,
+            states: {
+                dragging: new StateDragging(this)
+            },
+            state: null,
+            previousState: null,
             vOffsetX: null,
             vOffsetY: null,
             vZoom: null,
@@ -168,8 +178,13 @@ export default {
         },
 
         switchStateDragging() {
-            this.state = STATE_DRAGGING;
-            this.state.init(this);
+            this.state = this.states.dragging;
+            this.state.reset();
+        },
+        switchStateCreateComponent() {
+            //this.previousState = this.state;
+            //this.state = STATE_CREATE_COMPONENT;
+            //this.state.init(this);
         },
 
         onSelectItem(item) {

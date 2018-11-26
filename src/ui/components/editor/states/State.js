@@ -1,10 +1,9 @@
 class State {
-    constructor() {
-        this.editor = null;
-    }
-    init(editor) {
+    constructor(editor) {
         this.editor = editor;
     }
+
+    reset() {}
 
     mouseDown(x, y, event) {}
     mouseUp(x, y, event) {}

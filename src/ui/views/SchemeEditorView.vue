@@ -13,6 +13,11 @@
                             >{{knownMode | capitalize}}</span>
                     </li>
                 </ul>
+                <ul class="button-group">
+                    <li>
+                        <span class="toggle-button" @click="onCreateComponentClick()">Create</span>
+                    </li>
+                </ul>
             </div>
             <div class="scheme-container">
                 <div v-if="schemeContainer">
@@ -34,7 +39,8 @@
 </template>
 
 <script>
-import SvgEditor from '../components/SvgEditor.vue';
+import SvgEditor from '../components/editor/SvgEditor.vue';
+import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
@@ -67,6 +73,21 @@ export default {
         },
         toggleMode(mode) {
             this.mode = mode;
+        },
+        onCreateComponentClick() {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                type: 'component',
+                area: {
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0
+                },
+                name: '',
+                description: '',
+                invisible: false,
+                links: []
+            });
         }
     },
     filters: {
