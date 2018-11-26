@@ -35,7 +35,7 @@ body {
 
 
 svg rect.component {
-    stroke-width: 3;
+    stroke-width: 1;
     stroke: #fff;
     cursor: pointer;
     cursor: hand;
@@ -53,6 +53,12 @@ svg rect.component.selected {
 }
 svg rect.component.hovered.invisible {
     fill: rgba(255, 255, 255, 0.3);
+}
+
+svg rect.boundary-box {
+    stroke-width: 1;
+    stroke: #faa;
+    fill: none;
 }
 
 .modal-mask {
@@ -116,4 +122,39 @@ transition: opacity .3s ease;
 .modal-leave-active .modal-container {
     -webkit-transform: scale(1.1);
     transform: scale(1.1);
+}
+
+
+
+.scheme-editor-top-panel {
+    background: #5c696f;
+    padding: 2px;
+}
+ul.button-group {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+ul.button-group li {
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+ul.button-group li span.toggle-button {
+    padding: 2px 5px 2px 5px;
+    border: 1px solid #5c696f;
+    color: #fff;
+    cursor: pointer;
+    cursor: hand;
+}
+ul.button-group li span.toggle-button.toggled {
+    padding: 2px 5px 2px 5px;
+    border: 1px solid #a8bac3;
+    color: #111;
+    cursor: pointer;
+    cursor: hand;
+}
+ul.button-group li span.toggle-button:hover {
+    border: 1px solid #455055;
+    background: #505e65;
 }

@@ -36,8 +36,6 @@ class SchemeContainer {
             item.selected = true;
             this.selectedItems.push(item);
         }
-
-        console.log('Selected items', this.selectedItems);
     }
 
     selectItemInclusive(item) {

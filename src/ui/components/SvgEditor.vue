@@ -32,6 +32,17 @@
                                 :font-size="Math.floor(_z(15)) + 'px'"
                                 >{{item.name}}</text>
                     </g>
+                    <g v-if="mode === 'edit'">
+                        <!-- Drawing boundary edit box -->
+                        <rect
+                            :x="_x(item.area.x)"
+                            :y="_y(item.area.y)"
+                            :width="_z(item.area.w)"
+                            :height="_z(item.area.h)"
+                            class="boundary-box"
+                            :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
+                        />
+                    </g>
                 </g>
 
                 <g v-for="link in selectedItemLinks">
@@ -60,7 +71,7 @@ import StateDragging from './states/StateDragging.js';
 const STATE_DRAGGING = new StateDragging();
 
 export default {
-    props: ['width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

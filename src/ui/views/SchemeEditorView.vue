@@ -4,10 +4,21 @@
             <h1>scheme editor</h1>
         </div>
         <div class="scheme-middle-container">
+            <div class="scheme-editor-top-panel">
+                <ul class="button-group">
+                    <li v-for="knownMode in knownModes">
+                        <span class="toggle-button"
+                            :class="{toggled: mode === knownMode}"
+                            @click="toggleMode(knownMode)"
+                            >{{knownMode | capitalize}}</span>
+                    </li>
+                </ul>
+            </div>
             <div class="scheme-container">
                 <div v-if="schemeContainer">
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" zoom="1.0"
+                        :mode="mode"
                         @select-item="onSelectItem"
                         @deselect-items="onDeselectAllItems"
                         ></svg-editor>
@@ -42,7 +53,9 @@ export default {
             schemeContainer: null,
             svgWidth: window.innerWidth,
             svgHeight: 600,
-            selectedItem: null
+            selectedItem: null,
+            mode: 'view',
+            knownModes: ['view', 'edit']
         }
     },
     methods: {
@@ -51,6 +64,14 @@ export default {
         },
         onDeselectAllItems() {
             this.selectedItem = null;
+        },
+        toggleMode(mode) {
+            this.mode = mode;
+        }
+    },
+    filters: {
+        capitalize(value) {
+            return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
         }
     }
 }
