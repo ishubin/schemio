@@ -15,6 +15,10 @@ export default class StateCreateComponent extends State {
         this.addedToScheme = false;
     }
 
+    shouldHandleItemHover() {
+        return false;
+    }
+
     setComponent(component) {
         this.component = component;
     }
@@ -40,6 +44,7 @@ export default class StateCreateComponent extends State {
     mouseUp(x, y, mx, my, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
+            EventBus.$emit(EventBus.ITEM_SELECTED, this.component);
         }
         this.cancel();
     }

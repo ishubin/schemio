@@ -104,7 +104,6 @@ export default {
                 createComponent: new StateCreateComponent(this)
             },
             state: null,
-            previousState: null,
             vOffsetX: null,
             vOffsetY: null,
             vZoom: null,
@@ -202,19 +201,13 @@ export default {
         },
 
         cancelCurrentState() {
-            if (this.previousState) {
-                this.state = this.previousState;
-                this.previousState = null;
-            } else {
-                this.state = this.state.dragging;
-            }
+            this.state = this.states.dragging;
         },
         switchStateDragging() {
             this.state = this.states.dragging;
             this.state.reset();
         },
         switchStateCreateComponent(component) {
-            this.previousState = this.state;
             this.state = this.states.createComponent;
             this.state.reset();
             this.state.setComponent(component);
@@ -262,7 +255,7 @@ export default {
 
                 var cx = item.area.w / 2 + item.area.x;
                 var cy = item.area.h / 2 + item.area.y;
-                var radius = Math.max(50, (item.area.w + item.area.h) / 2);
+                var radius = Math.min(50, (item.area.w + item.area.h) / 2);
 
                 var index = 0;
                 _.forEach(item.links, link => {

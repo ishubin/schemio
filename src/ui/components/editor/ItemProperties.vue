@@ -1,6 +1,14 @@
 <template lang="html">
     <div class="">
-        <h3>{{item.name}}</h3>
+        <div class="top-panel">
+            <span class="link" @click="edit = !edit">Edit</span>
+        </div>
+        <div v-if="!edit">
+            <h3>{{item.name}}</h3>
+        </div>
+        <div v-else>
+            <input type="text" v-model="item.name"/>
+        </div>
 
         <h5>Links</h5>
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
@@ -13,7 +21,12 @@
         <span class="link" v-on:click="addLink()">+ add link</span>
 
         <h5>Description</h5>
-        <p class="description">{{item.description}}</p>
+        <div v-if="!edit">
+            <p class="description">{{item.description}}</p>
+        </div>
+        <div v-else>
+            <textarea rows="20" cols="80" v-model="item.description"></textarea>
+        </div>
 
         <link-edit-popup v-if="editLinkData"
             :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url"
@@ -24,12 +37,14 @@
 
 <script>
 import LinkEditPopup from './LinkEditPopup.vue';
+import EventBus from './EventBus.js';
 
 export default {
     props: ['item'],
     components: {LinkEditPopup},
     data() {
         return {
+            edit: false,
             editLinkData: null
         };
     },
@@ -66,7 +81,15 @@ export default {
             }
             this.$emit('link-update');
         }
-    }
+    },
+    watch: {
+       item: {
+           handler: function(newValue) {
+               EventBus.$emit(EventBus.REDRAW);
+           },
+           deep: true
+       }
+   }
 }
 </script>
 
