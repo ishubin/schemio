@@ -82,7 +82,7 @@ export default {
                     w: 0,
                     h: 0
                 },
-                name: '',
+                name: 'Unnamed',
                 description: '',
                 invisible: false,
                 links: []
