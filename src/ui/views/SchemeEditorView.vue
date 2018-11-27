@@ -24,8 +24,6 @@
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" zoom="1.0"
                         :mode="mode"
-                        @select-item="onSelectItem"
-                        @deselect-items="onDeselectAllItems"
                         ></svg-editor>
                 </div>
             </div>
@@ -52,6 +50,13 @@ export default {
         apiClient.loadScheme(this.schemeId).then(scheme => {
             this.schemeContainer = new SchemeContainer(scheme);
         });
+
+        EventBus.$on(EventBus.ITEM_SELECTED, item => {
+            this.selectedItem = item;
+        });
+        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, item => {
+            this.selectedItem = null;
+        });
     },
     data() {
         return {
@@ -65,12 +70,6 @@ export default {
         }
     },
     methods: {
-        onSelectItem(item) {
-            this.selectedItem = item;
-        },
-        onDeselectAllItems() {
-            this.selectedItem = null;
-        },
         toggleMode(mode) {
             this.mode = mode;
         },

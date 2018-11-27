@@ -95,7 +95,6 @@ export default {
         });
         EventBus.$on(EventBus.ITEM_SELECTED, item => {
             this.onSelectItem(item);
-            this.$forceUpdate();
         });
     },
     data() {
@@ -222,13 +221,13 @@ export default {
         },
 
         onSelectItem(item) {
-            this.$emit('select-item', item);
             this.selectedItemLinks = this.generateItemLinks(item);
             this.startLinksAnimation();
+            this.$forceUpdate();
         },
 
         onDeselectAllItems(item) {
-            this.$emit('deselect-items');
+            EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
 
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];

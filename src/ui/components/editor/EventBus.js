@@ -5,7 +5,8 @@ const EventBus = new Vue({
             START_CREATING_COMPONENT: 'start-creating-component',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             REDRAW: 'redraw',
-            ITEM_SELECTED: 'item-selected'
+            ITEM_SELECTED: 'item-selected',
+            ALL_ITEMS_DESELECTED: 'all-items-deselected',
         };
     }
 });
