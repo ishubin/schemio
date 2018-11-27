@@ -1,68 +1,65 @@
 <template lang="html">
-    <div class="">
-        svg editor
-        <div>
-            <svg id="svg_plot" ref="svgDomElement"
-                v-bind:width="width+'px'"
-                v-bind:height="height+'px'"
-                v-on:mousemove="mouseMove"
-                v-on:mousedown="mouseDown"
-                v-on:mouseup="mouseUp">
+    <div class="svg-editor">
+        <svg id="svg_plot" ref="svgDomElement"
+            :width="width+'px'"
+            :height="height+'px'"
+            @mousemove="mouseMove"
+            @mousedown="mouseDown"
+            @mouseup="mouseUp">
 
-                <g v-for="item in schemeContainer.getItems()">
-                    <g v-if="item.type === 'image'">
-                        <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
-                    </g>
-                    <g v-if="item.type === 'component'">
-                        <rect
-                            :x="_x(item.area.x)"
-                            :y="_y(item.area.y)"
-                            :width="_z(item.area.w)"
-                            :height="_z(item.area.h)"
-                            class="component"
-                            :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
-                        />
-                            <text
-                                v-if="!item.invisible"
-                                :x="_x(item.area.x + 4)"
-                                :y="_y(item.area.y + 14)"
-                                fill="#ffffff"
-                                font-weight="bold"
-                                font-family="helvetica"
-                                :font-size="Math.floor(_z(15)) + 'px'"
-                                >{{item.name}}</text>
-                    </g>
-                    <g v-if="mode === 'edit'">
-                        <!-- Drawing boundary edit box -->
-                        <rect
-                            :x="_x(item.area.x)"
-                            :y="_y(item.area.y)"
-                            :width="_z(item.area.w)"
-                            :height="_z(item.area.h)"
-                            class="boundary-box"
-                            :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
-                        />
-                    </g>
+            <g v-for="item in schemeContainer.getItems()">
+                <g v-if="item.type === 'image'">
+                    <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
                 </g>
-
-                <g v-for="link in selectedItemLinks">
-                    <a :xlink:href="link.url"
-	  target="_blank">
-                        <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
+                <g v-if="item.type === 'component'">
+                    <rect
+                        :x="_x(item.area.x)"
+                        :y="_y(item.area.y)"
+                        :width="_z(item.area.w)"
+                        :height="_z(item.area.h)"
+                        class="component"
+                        :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
+                    />
                         <text
-                            :x="_x(link.x) - _z(5)"
-                            :y="_y(link.y) + _z(5)"
-                            fill="#ff0000"
+                            v-if="!item.invisible"
+                            :x="_x(item.area.x + 4)"
+                            :y="_y(item.area.y + 14)"
+                            fill="#ffffff"
                             font-weight="bold"
                             font-family="helvetica"
-                            :font-size="Math.floor(_z(13)) + 'px'"
-                            :title="link.title"
-                            >{{link.shortTitle}}</text>
-                    </a>
+                            :font-size="Math.floor(_z(15)) + 'px'"
+                            >{{item.name}}</text>
                 </g>
+                <g v-if="mode === 'edit'">
+                    <!-- Drawing boundary edit box -->
+                    <rect
+                        :x="_x(item.area.x)"
+                        :y="_y(item.area.y)"
+                        :width="_z(item.area.w)"
+                        :height="_z(item.area.h)"
+                        class="boundary-box"
+                        :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
+                    />
+                </g>
+            </g>
 
-            </svg>
-        </div>
+            <g v-for="link in selectedItemLinks">
+                <a :xlink:href="link.url"
+  target="_blank">
+                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
+                    <text
+                        :x="_x(link.x) - _z(5)"
+                        :y="_y(link.y) + _z(5)"
+                        fill="#ff0000"
+                        font-weight="bold"
+                        font-family="helvetica"
+                        :font-size="Math.floor(_z(13)) + 'px'"
+                        :title="link.title"
+                        >{{link.shortTitle}}</text>
+                </a>
+            </g>
+
+        </svg>
     </div>
 </template>
 
@@ -214,9 +211,11 @@ export default {
         },
 
         onSelectItem(item) {
-            this.selectedItemLinks = this.generateItemLinks(item);
-            this.startLinksAnimation();
-            this.$forceUpdate();
+            if (this.mode === 'view') {
+                this.selectedItemLinks = this.generateItemLinks(item);
+                this.startLinksAnimation();
+                this.$forceUpdate();
+            }
         },
 
         onDeselectAllItems(item) {

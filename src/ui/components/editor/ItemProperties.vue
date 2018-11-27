@@ -10,6 +10,11 @@
             <input type="text" v-model="item.name"/>
         </div>
 
+        <div v-if="edit">
+            <input type="checkbox" v-model="item.invisible" id="chk-item-properties-invisible"/><label for="chk-item-properties-invisible"> Invisible</label>
+        </div>
+
+
         <h5>Links</h5>
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
         <ul class="links">
