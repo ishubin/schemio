@@ -285,24 +285,7 @@ export default {
         _z(v) { return v * this.vZoom; },
 
         provideBoundingBoxDraggers(item) {
-            var s = 5;
-            return [{
-                x: item.area.x, y: item.area.y, s: s
-            },{
-                x: item.area.x + item.area.w, y: item.area.y, s: s
-            },{
-                x: item.area.x + item.area.w, y: item.area.y + item.area.h, s: s
-            },{
-                x: item.area.x, y: item.area.y + item.area.h, s: s
-            }, {
-                x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y, s: s
-            },{
-                x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y + item.area.h, s: s
-            },{
-                x: item.area.x + item.area.w, y: item.area.y + Math.floor(item.area.h / 2), s: s
-            },{
-                x: item.area.x, y: item.area.y + Math.floor(item.area.h / 2), s: s
-            }];
+            return this.schemeContainer.provideBoundingBoxDraggers(item);
         },
         toLocalPoint(mouseX, mouseY) {
             return {

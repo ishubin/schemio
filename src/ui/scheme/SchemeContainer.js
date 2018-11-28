@@ -21,6 +21,10 @@ class SchemeContainer {
         return this.sortedItemsIndex = sortedItems;
     }
 
+    getSelectedItems() {
+        return this.selectedItems;
+    }
+
     addItem(item) {
         this.scheme.items.push(item);
         this.reindexItems();
@@ -68,6 +72,28 @@ class SchemeContainer {
             item.selected = false;
         });
         this.selectedItems = [];
+    }
+
+
+    provideBoundingBoxDraggers(item) {
+        var s = 5;
+        return [{
+            x: item.area.x, y: item.area.y, s: s, edges: ['top', 'left']
+        },{
+            x: item.area.x + item.area.w, y: item.area.y, s: s, edges: ['top', 'right']
+        },{
+            x: item.area.x + item.area.w, y: item.area.y + item.area.h, s: s, edges: ['bottom', 'right']
+        },{
+            x: item.area.x, y: item.area.y + item.area.h, s: s, edges: ['bottom', 'left']
+        }, {
+            x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y, s: s, edges: ['top']
+        },{
+            x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y + item.area.h, s: s, edges: ['bottom']
+        },{
+            x: item.area.x + item.area.w, y: item.area.y + Math.floor(item.area.h / 2), s: s, edges: ['right']
+        },{
+            x: item.area.x, y: item.area.y + Math.floor(item.area.h / 2), s: s, edges: ['left']
+        }];
     }
 }
 

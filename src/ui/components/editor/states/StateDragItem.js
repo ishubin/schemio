@@ -8,22 +8,38 @@ export default class StateDragItem extends State {
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;
         this.selectedItem = null;
-        this.itemOriginalPoint = {x: 0, y: 0};
+        this.itemOriginalArea = {x: 0, y: 0, w: 0, h: 0};
     }
 
     reset() {
         this.startedDragging = false;
         this.selectedItem = null;
+        this.dragger = null;
     }
 
     mouseDown(x, y, mx, my, item, event) {
+        var selectedItems = this.schemeContainer.getSelectedItems();
+        if (selectedItems && selectedItems.length > 0) {
+            var dragger = this.findDraggerAtPoint(selectedItems, x, y, mx, my);
+            if (dragger) {
+                console.log('Found dragger', dragger.dragger.edges);
+                this.dragger = dragger;
+                this.startedDragging = true;
+                this.originalPoint.x = x;
+                this.originalPoint.y = y;
+                return;
+            }
+        }
+        // proceed initiating item drag if dragger wasn't found
         if (item) {
             this.selectedItem = item;
             this.startedDragging = true;
             this.originalPoint.x = x;
             this.originalPoint.y = y;
-            this.itemOriginalPoint.x = item.area.x;
-            this.itemOriginalPoint.y = item.area.y;
+            this.itemOriginalArea.x = item.area.x;
+            this.itemOriginalArea.y = item.area.y;
+            this.itemOriginalArea.w = item.area.w;
+            this.itemOriginalArea.h = item.area.h;
 
             if (!item.selected) {
                 this.schemeContainer.selectItem(item, false);
@@ -33,20 +49,55 @@ export default class StateDragItem extends State {
     }
 
     mouseMove(x, y, mx, my, item, event) {
-        if (this.startedDragging && this.selectedItem) {
+        if (this.startedDragging && this.dragger) {
+            this.dragByDragger(x, y);
+        } else if (this.startedDragging && this.selectedItem) {
             this.dragItem(x, y);
         }
     }
 
     mouseUp(x, y, mx, my, item, event) {
-        this.startedDragging = false;
+
+        this.reset();
     }
 
     dragItem(x, y) {
         var dx = x - this.originalPoint.x;
         var dy = y - this.originalPoint.y;
-        this.selectedItem.area.x = this.itemOriginalPoint.x + dx;
-        this.selectedItem.area.y = this.itemOriginalPoint.y + dy;
+        this.selectedItem.area.x = this.itemOriginalArea.x + dx;
+        this.selectedItem.area.y = this.itemOriginalArea.y + dy;
         EventBus.$emit(EventBus.REDRAW);
+    }
+
+    dragByDragger(x, y) {
+        _.forEach(this.dragger.dragger.edges, edge => {
+            if (edge === 'top') {
+                var dy = y - this.dragger.dragger.y;
+                this.dragger.item.area.y = this.itemOriginalArea.x + dy;
+                this.dragger.item.area.h = this.itemOriginalArea.h - dy;
+            }
+        });
+    }
+
+    findDraggerAtPoint(items, x, y, mx, my) {
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+
+            var draggers = this.schemeContainer.provideBoundingBoxDraggers(item);
+
+            for (var j = 0; j < draggers.length; j++) {
+                var dragger = draggers[j];
+                var draggerMX = this.editor._x(dragger.x);
+                var draggerMY = this.editor._y(dragger.y);
+
+                if (Math.abs(mx - draggerMX) <= dragger.s
+                    && Math.abs(my - draggerMY) <= dragger.s) {
+                    return {
+                        item, dragger
+                    };
+                }
+            }
+        }
+        return null;
     }
 }
