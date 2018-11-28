@@ -76,6 +76,7 @@ class SchemeContainer {
 
 
     provideBoundingBoxDraggers(item) {
+        // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
         var s = 5;
         return [{
             x: item.area.x, y: item.area.y, s: s, edges: ['top', 'left']

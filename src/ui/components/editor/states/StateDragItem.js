@@ -17,29 +17,30 @@ export default class StateDragItem extends State {
         this.dragger = null;
     }
 
+    initDraggingForItem(item, x, y) {
+        this.originalPoint.x = x;
+        this.originalPoint.y = y;
+        this.itemOriginalArea.x = item.area.x;
+        this.itemOriginalArea.y = item.area.y;
+        this.itemOriginalArea.w = item.area.w;
+        this.itemOriginalArea.h = item.area.h;
+        this.startedDragging = true;
+    }
+
     mouseDown(x, y, mx, my, item, event) {
         var selectedItems = this.schemeContainer.getSelectedItems();
         if (selectedItems && selectedItems.length > 0) {
             var dragger = this.findDraggerAtPoint(selectedItems, x, y, mx, my);
             if (dragger) {
-                console.log('Found dragger', dragger.dragger.edges);
                 this.dragger = dragger;
-                this.startedDragging = true;
-                this.originalPoint.x = x;
-                this.originalPoint.y = y;
+                this.initDraggingForItem(dragger.item, x, y);
                 return;
             }
         }
         // proceed initiating item drag if dragger wasn't found
         if (item) {
             this.selectedItem = item;
-            this.startedDragging = true;
-            this.originalPoint.x = x;
-            this.originalPoint.y = y;
-            this.itemOriginalArea.x = item.area.x;
-            this.itemOriginalArea.y = item.area.y;
-            this.itemOriginalArea.w = item.area.w;
-            this.itemOriginalArea.h = item.area.h;
+            this.initDraggingForItem(item, x, y);
 
             if (!item.selected) {
                 this.schemeContainer.selectItem(item, false);
@@ -73,8 +74,18 @@ export default class StateDragItem extends State {
         _.forEach(this.dragger.dragger.edges, edge => {
             if (edge === 'top') {
                 var dy = y - this.dragger.dragger.y;
-                this.dragger.item.area.y = this.itemOriginalArea.x + dy;
+                this.dragger.item.area.y = this.itemOriginalArea.y + dy;
                 this.dragger.item.area.h = this.itemOriginalArea.h - dy;
+            } else if (edge === 'bottom') {
+                var dy = y - this.dragger.dragger.y;
+                this.dragger.item.area.h = this.itemOriginalArea.h + dy;
+            } else if (edge === 'left') {
+                var dx = x - this.dragger.dragger.x;
+                this.dragger.item.area.x = this.itemOriginalArea.x + dx;
+                this.dragger.item.area.w = this.itemOriginalArea.w - dx;
+            } else if (edge === 'right') {
+                var dx = x - this.dragger.dragger.x;
+                this.dragger.item.area.w = this.itemOriginalArea.w + dx;
             }
         });
     }
