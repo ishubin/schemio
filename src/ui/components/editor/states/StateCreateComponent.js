@@ -28,20 +28,20 @@ export default class StateCreateComponent extends State {
         EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
     }
 
-    mouseDown(x, y, mx, my, event) {
+    mouseDown(x, y, mx, my, item, event) {
         this.originalPoint = {x, y};
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
         EventBus.$emit(EventBus.REDRAW);
     }
 
-    mouseMove(x, y, mx, my, event) {
+    mouseMove(x, y, mx, my, item, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
         }
     }
 
-    mouseUp(x, y, mx, my, event) {
+    mouseUp(x, y, mx, my, item, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
             EventBus.$emit(EventBus.ITEM_SELECTED, this.component);

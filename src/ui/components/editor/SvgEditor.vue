@@ -32,14 +32,23 @@
                 </g>
                 <g v-if="mode === 'edit'">
                     <!-- Drawing boundary edit box -->
-                    <rect
+                    <rect class="boundary-box"
                         :x="_x(item.area.x)"
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
-                        class="boundary-box"
                         :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
                     />
+                    <g v-if="item.selected">
+                        <rect class="boundary-box-dragger"
+                            v-for="dragger in provideBoundingBoxDraggers(item)"
+                            :x="_x(dragger.x) - dragger.s"
+                            :y="_y(dragger.y) - dragger.s"
+                            :width="dragger.s * 2"
+                            :height="dragger.s * 2"
+                        />
+                    </g>
+
                 </g>
             </g>
 
@@ -65,6 +74,7 @@
 
 <script>
 import StateDragging from './states/StateDragging.js';
+import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
 import EventBus from './EventBus.js';
 
@@ -98,7 +108,8 @@ export default {
         return {
             states: {
                 dragging: new StateDragging(this),
-                createComponent: new StateCreateComponent(this)
+                createComponent: new StateCreateComponent(this),
+                dragItem: new StateDragItem(this)
             },
             state: null,
             vOffsetX: null,
@@ -134,40 +145,26 @@ export default {
         mouseMove(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
+            var itemAtCursor = null;
+
             if (this.state.shouldHandleItemHover()) {
-                this.handleItemHover(p.x, p.y);
+                itemAtCursor = this.findItemAtCursor(p.x, p.y);
             }
-            this.state.mouseMove(p.x, p.y, coords.x, coords.y, event);
+            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
-            if (this.state.shouldHandleItemMouseDown()) {
-                var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-                if (itemAtCursor) {
-                    if (!this.state.itemMouseDown(itemAtCursor, p.x, p.y, event)) {
-                        // it didn't return true, so interrupting everything
-                        return;
-                    }
-                }
-            }
-            this.state.mouseDown(p.x, p.y, coords.x, coords.y, event);
+            var itemAtCursor = this.findItemAtCursor(p.x, p.y);
+            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
         },
         mouseUp(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
-            if (this.state.shouldHandleItemMouseUp()) {
-                var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-                if (itemAtCursor) {
-                    if (!this.state.itemMouseUp(itemAtCursor, p.x, p.y, event)) {
-                        // it didn't return true, so interrupting everything
-                        return;
-                    }
-                }
-            }
-            this.state.mouseUp(p.x, p.y, coords.x, coords.y, event);
+            var itemAtCursor = this.findItemAtCursor(p.x, p.y);
+            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
         },
 
         findItemAtCursor(x, y) {
@@ -199,9 +196,14 @@ export default {
 
         cancelCurrentState() {
             this.state = this.states.dragging;
+            this.state.reset();
         },
         switchStateDragging() {
             this.state = this.states.dragging;
+            this.state.reset();
+        },
+        switchStateDragItem() {
+            this.state = this.states.dragItem;
             this.state.reset();
         },
         switchStateCreateComponent(component) {
@@ -214,8 +216,8 @@ export default {
             if (this.mode === 'view') {
                 this.selectedItemLinks = this.generateItemLinks(item);
                 this.startLinksAnimation();
-                this.$forceUpdate();
             }
+            this.$forceUpdate();
         },
 
         onDeselectAllItems(item) {
@@ -282,15 +284,26 @@ export default {
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; },
 
-        _itemFill(item) {
-            if (item.selected) {
-                return 'rgba(255, 255, 255, 0.9)'
-            } else if (item.hovered) {
-                return 'rgba(255, 255, 255, 0.2)'
-            }
-            return 'none;'
+        provideBoundingBoxDraggers(item) {
+            var s = 5;
+            return [{
+                x: item.area.x, y: item.area.y, s: s
+            },{
+                x: item.area.x + item.area.w, y: item.area.y, s: s
+            },{
+                x: item.area.x + item.area.w, y: item.area.y + item.area.h, s: s
+            },{
+                x: item.area.x, y: item.area.y + item.area.h, s: s
+            }, {
+                x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y, s: s
+            },{
+                x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y + item.area.h, s: s
+            },{
+                x: item.area.x + item.area.w, y: item.area.y + Math.floor(item.area.h / 2), s: s
+            },{
+                x: item.area.x, y: item.area.y + Math.floor(item.area.h / 2), s: s
+            }];
         },
-
         toLocalPoint(mouseX, mouseY) {
             return {
                 x: (mouseX - this.vOffsetX) / this.vZoom,
@@ -300,6 +313,11 @@ export default {
     },
     watch: {
         mode(newMode) {
+            if (newMode === 'edit') {
+                this.switchStateDragItem();
+            } else if (newMode === 'view') {
+                this.switchStateDragging();
+            }
         }
     }
 }
