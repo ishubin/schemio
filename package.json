@@ -20,18 +20,19 @@
     "babel-runtime": "^6.25.0",
     "css-loader": "^0.28.4",
     "file-loader": "^0.11.2",
+    "shortid": "^2.2.14",
     "vue": "^2.5.17",
     "vue-router": "^2.7.0",
     "vue-axios": "^2.0.2",
     "vue-loader": "^13.0.2",
     "vue-template-compiler": "^2.4.2",
     "webpack": "^3.4.1",
-    "webpack-dev-server": "^2.6.1"
+    "webpack-dev-server": "^3.1.6"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "fs-extra": "^5.0.0",
-    "nodemon": "^1.14.11"
+    "nodemon": "^1.18.7"
   }
 }

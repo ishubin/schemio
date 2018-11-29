@@ -43,6 +43,7 @@ import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
+import shortid from 'shortid';
 
 export default {
     components: {SvgEditor, ItemProperties},
@@ -77,6 +78,7 @@ export default {
         },
         onCreateComponentClick() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
                 type: 'component',
                 area: {
                     x: 0,
@@ -94,11 +96,6 @@ export default {
     filters: {
         capitalize(value) {
             return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
-        }
-    },
-    watch: {
-        zoom(newValue) {
-            //EventBus.$emit(EventBus.REDRAW);
         }
     }
 }
