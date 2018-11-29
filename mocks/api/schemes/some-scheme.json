@@ -22,7 +22,7 @@
         "h": 60
       },
       "name": "Nginx",
-      "description": "load balancer for frontends",
+      "description": "load balancer for __frontends__ and __backends__",
       "invisible": true,
       "links": [
         {

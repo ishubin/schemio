@@ -56,16 +56,16 @@
                 <a :xlink:href="link.url"
   target="_blank">
                     <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
-                    <text
-                        :x="_x(link.x) - _z(5)"
-                        :y="_y(link.y) + _z(5)"
-                        fill="#ff0000"
-                        font-weight="bold"
-                        font-family="helvetica"
-                        :font-size="Math.floor(_z(13)) + 'px'"
-                        :title="link.title"
-                        >{{link.shortTitle}}</text>
                 </a>
+                <text
+                    :x="_x(link.x) + 20 - _z(5)"
+                    :y="_y(link.y) + _z(5)"
+                    fill="#ff0000"
+                    font-weight="normal"
+                    font-family="helvetica"
+                    font-size="10px"
+                    :title="link.title"
+                    >{{link.title}}</text>
             </g>
 
         </svg>

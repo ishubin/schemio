@@ -27,7 +27,7 @@
 
         <h5>Description</h5>
         <div v-if="!edit">
-            <p class="description">{{item.description}}</p>
+            <vue-markdown>{{item.description}}</vue-markdown>
         </div>
         <div v-else>
             <textarea rows="20" cols="80" v-model="item.description"></textarea>
@@ -43,10 +43,11 @@
 <script>
 import LinkEditPopup from './LinkEditPopup.vue';
 import EventBus from './EventBus.js';
+import VueMarkdown from 'vue-markdown';
 
 export default {
     props: ['item'],
-    components: {LinkEditPopup},
+    components: {LinkEditPopup, VueMarkdown},
     data() {
         return {
             edit: false,

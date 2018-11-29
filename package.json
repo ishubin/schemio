@@ -26,6 +26,7 @@
     "vue-axios": "^2.0.2",
     "vue-loader": "^13.0.2",
     "vue-template-compiler": "^2.4.2",
+    "vue-markdown": "2.2.4",
     "webpack": "^3.4.1",
     "webpack-dev-server": "^3.1.6"
   },
