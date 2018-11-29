@@ -1,8 +1,5 @@
 <template lang="html">
-    <div class="scheme-editor-view">
-        <div>
-            <h1>scheme editor</h1>
-        </div>
+    <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
                 <ul class="button-group">
@@ -29,7 +26,9 @@
                 </div>
             </div>
             <div v-if="selectedItem" class="side-panel">
-                <item-properties :item="selectedItem" />
+                <div class="wrapper">
+                    <item-properties :item="selectedItem" />
+                </div>
             </div>
 
         </div>
@@ -65,7 +64,7 @@ export default {
             schemeId: this.$route.params.schemeId,
             schemeContainer: null,
             svgWidth: window.innerWidth,
-            svgHeight: 600,
+            svgHeight: window.innerHeight,
             selectedItem: null,
             zoom: 100,
             mode: 'view',

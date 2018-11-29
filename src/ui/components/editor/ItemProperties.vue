@@ -1,5 +1,5 @@
 <template lang="html">
-    <div class="">
+    <div class="item-properties">
         <div class="top-panel">
             <span class="link" @click="edit = !edit">Edit</span>
         </div>

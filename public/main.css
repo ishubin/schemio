@@ -1,6 +1,7 @@
 body {
     font-family: Roboto,sans-serif;
-    marign: 0;
+    margin: 0;
+    padding: 0;
 }
 
 
@@ -21,19 +22,31 @@ body {
 .scheme-middle-container {
     position: relative;
     width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
 }
 .scheme-middle-container .side-panel {
-    padding: 10px;
-    height: 96%;
+    z-index: 101;
+    height: 100%;
     width: 500px;
     position: absolute;
     top: 0;
     right: 0;
     background: #f0f0f0;
     border-left: 3px solid #999;
+    overflow: auto;
+}
+.scheme-middle-container .side-panel > .wrapper {
+    padding: 10px;
 }
 
 
+.svg-editor svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
 svg rect.component {
     stroke-width: 1;
     stroke: #fff;
@@ -74,6 +87,30 @@ svg rect.boundary-box-dragger {
 svg rect.boundary-box-dragger:hover {
     opacity: 0.5;
 }
+
+/**********************/
+/*      Item link    */
+svg .item-link .item-link-icon {
+    fill: #ff0000;
+    font-weight: bold;
+    font-family: helvetica;
+}
+svg .item-link .item-link-full-title {
+    display: none;
+    font-size: 12px;
+    font-weight: normal;
+    font-family: helvetica;
+    fill: #ff0000;
+}
+svg .item-link:hover .item-link-full-title {
+    display: block;
+}
+
+
+
+
+
+
 
 .modal-mask {
     position: fixed;
@@ -141,8 +178,12 @@ svg rect.boundary-box-dragger:hover {
 
 
 .scheme-editor-top-panel {
+    position: fixed;
+    top: 0;
+    width: 100%;
     background: #5c696f;
     padding: 2px;
+    z-index: 100;
 }
 ul.button-group {
     display: inline-block;
