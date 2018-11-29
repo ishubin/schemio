@@ -51,7 +51,7 @@ export default class StateDragItem extends State {
 
     mouseMove(x, y, mx, my, item, event) {
         if (this.startedDragging && this.dragger) {
-            this.dragByDragger(x, y);
+            this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
         } else if (this.startedDragging && this.selectedItem) {
             this.dragItem(x, y);
         }
@@ -70,24 +70,34 @@ export default class StateDragItem extends State {
         EventBus.$emit(EventBus.REDRAW);
     }
 
-    dragByDragger(x, y) {
-        _.forEach(this.dragger.dragger.edges, edge => {
+    dragByDragger(item, dragger, x, y) {
+        var nx = item.area.x;
+        var ny = item.area.y;
+        var nw = item.area.w;
+        var nh = item.area.h;
+        _.forEach(dragger.edges, edge => {
             if (edge === 'top') {
-                var dy = y - this.dragger.dragger.y;
-                this.dragger.item.area.y = this.itemOriginalArea.y + dy;
-                this.dragger.item.area.h = this.itemOriginalArea.h - dy;
+                var dy = y - dragger.y;
+                ny = this.itemOriginalArea.y + dy;
+                nh = this.itemOriginalArea.h - dy;
             } else if (edge === 'bottom') {
-                var dy = y - this.dragger.dragger.y;
-                this.dragger.item.area.h = this.itemOriginalArea.h + dy;
+                var dy = y - dragger.y;
+                nh = this.itemOriginalArea.h + dy;
             } else if (edge === 'left') {
-                var dx = x - this.dragger.dragger.x;
-                this.dragger.item.area.x = this.itemOriginalArea.x + dx;
-                this.dragger.item.area.w = this.itemOriginalArea.w - dx;
+                var dx = x - dragger.x;
+                nx = this.itemOriginalArea.x + dx;
+                nw = this.itemOriginalArea.w - dx;
             } else if (edge === 'right') {
-                var dx = x - this.dragger.dragger.x;
-                this.dragger.item.area.w = this.itemOriginalArea.w + dx;
+                var dx = x - dragger.x;
+                nw = this.itemOriginalArea.w + dx;
             }
         });
+        if (nw > 0 && nh > 0) {
+            item.area.x = nx;
+            item.area.y = ny;
+            item.area.w = nw;
+            item.area.h = nh;
+        }
     }
 
     findDraggerAtPoint(items, x, y, mx, my) {
