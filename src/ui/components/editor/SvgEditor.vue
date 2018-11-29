@@ -301,13 +301,16 @@ export default {
             } else if (newMode === 'view') {
                 this.switchStateDragging();
             }
+        },
+        zoom(newZoom) {
+            var value = parseFloat(newZoom);
+            if (value > 0.05) {
+                this.vZoom = value;
+            }
         }
     }
 }
 </script>
 
 <style lang="css">
-#svg_plot {
-    background: #111;
-}
 </style>

@@ -18,11 +18,12 @@
                         <span class="toggle-button" @click="onCreateComponentClick()">Create</span>
                     </li>
                 </ul>
+                <input type="text" v-model="zoom"/>
             </div>
             <div class="scheme-container">
                 <div v-if="schemeContainer">
                     <svg-editor
-                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" zoom="1.0"
+                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" :zoom="zoom / 100.0"
                         :mode="mode"
                         ></svg-editor>
                 </div>
@@ -65,6 +66,7 @@ export default {
             svgWidth: window.innerWidth,
             svgHeight: 600,
             selectedItem: null,
+            zoom: 100,
             mode: 'view',
             knownModes: ['view', 'edit']
         }
@@ -92,6 +94,11 @@ export default {
     filters: {
         capitalize(value) {
             return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
+        }
+    },
+    watch: {
+        zoom(newValue) {
+            //EventBus.$emit(EventBus.REDRAW);
         }
     }
 }
