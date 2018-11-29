@@ -1,6 +1,7 @@
 class State {
     constructor(editor) {
         this.editor = editor;
+        this.name = '';
     }
 
     reset() {}

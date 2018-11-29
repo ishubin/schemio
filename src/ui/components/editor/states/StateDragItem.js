@@ -4,6 +4,7 @@ import EventBus from '../EventBus.js';
 export default class StateDragItem extends State {
     constructor(editor) {
         super(editor);
+        this.name = 'drag-item';
         this.schemeContainer = editor.schemeContainer;
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;

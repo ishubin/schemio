@@ -3,6 +3,7 @@
         <svg id="svg_plot" ref="svgDomElement"
             :width="width+'px'"
             :height="height+'px'"
+            :class="['mode-' + mode, 'state-' + (state != null ? state.name: 'unknown')]"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp">
@@ -11,14 +12,13 @@
                 <g v-if="item.type === 'image'">
                     <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
                 </g>
-                <g v-if="item.type === 'component'">
+                <g v-if="item.type === 'component'" class="component"
+                    :class="{selected: item.selected, invisible: item.invisible}">
                     <rect
                         :x="_x(item.area.x)"
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
-                        class="component"
-                        :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
                     />
                         <text
                             v-if="!item.invisible"

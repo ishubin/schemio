@@ -4,6 +4,7 @@ import EventBus from '../EventBus.js';
 export default class StateCreateComponent extends State {
     constructor(editor) {
         super(editor);
+        this.name = 'create-component';
         this.component = null;
         this.addedToScheme = false;
         this.originalPoint = null;

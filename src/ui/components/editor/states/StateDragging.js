@@ -4,9 +4,11 @@ import EventBus from '../EventBus.js';
 /*
 This state works as dragging the screen, zooming, selecting elements
 */
+//TODO: Rename into StateInteract
 class StateDragging extends State {
     constructor(editor) {
         super(editor);
+        this.name = 'interact';
         this.schemeContainer = editor.schemeContainer;
         this.startedDragging = false;
         this.initialClickPoint = null;

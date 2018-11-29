@@ -47,32 +47,27 @@ body {
     top: 0;
     left: 0;
 }
-svg rect.component {
+svg .component rect {
     stroke-width: 1;
     stroke: #fff;
     cursor: pointer;
     cursor: hand;
 }
-svg rect.component.invisible {
+svg .component.invisible rect {
     stroke-width: 3;
     stroke: none;
-    fill: none;
+    fill: #fff;
+    opacity: 0;
 }
-svg rect.component.hovered {
-    opacity: 0.8;
-}
-svg rect.component.selected {
+svg .component.selected rect {
     opacity: 0.7;
 }
 
-svg rect.component.invisible.selected {
+svg .component.invisible.selected rect {
     fill: rgba(255, 255, 255, 0.6);
     opacity: 1.0;
 }
-svg rect.component.invisible.hovered {
-    fill: rgba(255, 255, 255, 0.3);
-    opacity: 1.0;
-}
+
 
 svg rect.boundary-box {
     stroke-width: 1;
@@ -107,6 +102,18 @@ svg .item-link:hover .item-link-full-title {
 }
 
 
+/*********************************/
+/*  Hover states in view mode and interacting state */
+
+svg.mode-view.state-interact .component.invisible:hover rect {
+    fill: rgba(255, 255, 255, 0.3);
+    opacity: 1.0;
+    cursor: pointer;
+}
+svg.mode-view.state-interact .component:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
 
 
 
