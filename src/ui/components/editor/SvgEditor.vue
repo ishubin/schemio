@@ -8,12 +8,13 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp">
 
-            <g v-for="item in schemeContainer.getItems()">
-                <g v-if="item.type === 'image'">
+            <g v-for="item in schemeContainer.getItems()" class="item-container"
+                :class="['item-type-' + item.type, item.selected ? 'selected': '']"
+                >
+                <g v-if="item.type === 'image'" class="item-graphics">
                     <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
                 </g>
-                <g v-if="item.type === 'component'" class="component"
-                    :class="{selected: item.selected, invisible: item.invisible}">
+                <g v-if="item.type === 'component'" class="item-graphics">
                     <rect
                         :x="_x(item.area.x)"
                         :y="_y(item.area.y)"
@@ -21,7 +22,6 @@
                         :height="_z(item.area.h)"
                     />
                         <text
-                            v-if="!item.invisible"
                             :x="_x(item.area.x + 4)"
                             :y="_y(item.area.y + 14)"
                             fill="#ffffff"
@@ -30,6 +30,17 @@
                             :font-size="Math.floor(_z(15)) + 'px'"
                             >{{item.name}}</text>
                 </g>
+
+                <g v-if="item.type === 'overlay'" class="item-graphics">
+                    <rect
+                        :x="_x(item.area.x)"
+                        :y="_y(item.area.y)"
+                        :width="_z(item.area.w)"
+                        :height="_z(item.area.h)"
+                        :fill="item.background && item.background.color ? item.background.color : '#fff'"
+                    />
+                </g>
+
                 <g v-if="mode === 'edit'">
                     <!-- Drawing boundary edit box -->
                     <rect class="boundary-box"
@@ -37,7 +48,6 @@
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
-                        :class="{selected: item.selected, hovered: item.hovered, invisible: item.invisible}"
                     />
                     <g v-if="item.selected">
                         <rect class="boundary-box-dragger"

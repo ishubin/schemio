@@ -33,32 +33,27 @@ body {
     top: 0;
     left: 0;
 }
-svg .component rect {
+svg .item-container.item-type-component .item-graphics rect {
     stroke-width: 1;
     stroke: #fff;
     cursor: pointer;
     cursor: hand;
 }
-svg .component.invisible rect {
-    stroke-width: 3;
-    stroke: none;
-    fill: #fff;
-    opacity: 0;
-}
-svg .component.selected rect {
+svg .item-container.item-type-component.selected .item-graphics rect {
     opacity: 0.7;
 }
-
-svg .component.invisible.selected rect {
-    fill: rgba(255, 255, 255, 0.6);
-    opacity: 1.0;
+svg .item-container.item-type-overlay .item-graphics rect {
+    stroke-width: 3;
+    stroke: none;
+    opacity: 0;
 }
-
-
+svg .item-container.item-type-overlay.selected .item-graphics rect {
+    opacity: 0.5;
+}
 svg rect.boundary-box {
     stroke-width: 1;
     stroke: #faa;
-    fill: none;
+    fill: rgba(255, 255, 255, 0.01);
 }
 svg rect.boundary-box-dragger {
     stroke: none;
@@ -68,6 +63,9 @@ svg rect.boundary-box-dragger {
 svg rect.boundary-box-dragger:hover {
     opacity: 0.5;
 }
+
+
+
 
 /**********************/
 /*      Item link    */
@@ -90,13 +88,11 @@ svg .item-link:hover .item-link-full-title {
 
 /*********************************/
 /*  Hover states in view mode and interacting state */
-
-svg.mode-view.state-interact .component.invisible:hover rect {
-    fill: rgba(255, 255, 255, 0.3);
-    opacity: 1.0;
+svg.mode-view.state-interact .item-container.item-type-overlay:hover .item-graphics rect {
+    opacity: 0.2;
     cursor: pointer;
 }
-svg.mode-view.state-interact .component:hover {
+svg.mode-view.state-interact .item-container.item-type-component:hover .item-graphics rect {
     opacity: 0.8;
     cursor: pointer;
 }
@@ -105,6 +101,8 @@ svg.mode-view.state-interact .component:hover {
 
 
 
+
+/* Modal */
 .modal-mask {
     position: fixed;
     z-index: 9998;
@@ -116,10 +114,6 @@ svg.mode-view.state-interact .component:hover {
     display: table;
     transition: opacity .3s ease;
 }
-
-
-/* Modal */
-
 .modal-wrapper {
     display: table-cell;
     vertical-align: middle;
@@ -239,4 +233,20 @@ ul.button-group li span.toggle-button:hover {
 .item-properties textarea {
     width: 100%;
     min-height: 500px;
+}
+.property-row {
+    position: relative;
+}
+.property-row .property-label {
+    font-size: 12px;
+}
+.property-row .property-textfield {
+    position: absolute;
+    right: 5px;
+    width: 100px;
+    height: 12px;
+    font-size: 12px;
+    border-radius: 1px;
+    background: #f0f0f0;
+    border: 1px solid #bbb;
 }

@@ -14,7 +14,10 @@
       "description": ""
     },
     {
-      "type": "component",
+      "type": "overlay",
+      "background": {
+          "color": "#f4a"
+      },
       "area": {
         "x": 300,
         "y": 180,
@@ -23,7 +26,6 @@
       },
       "name": "Nginx",
       "description": "load balancer for __frontends__ and __backends__",
-      "invisible": true,
       "links": [
         {
           "icon": "kibana",

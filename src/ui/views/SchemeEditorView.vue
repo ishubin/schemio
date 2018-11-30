@@ -87,7 +87,6 @@ export default {
                 },
                 name: 'Unnamed',
                 description: '',
-                invisible: false,
                 links: []
             });
         }

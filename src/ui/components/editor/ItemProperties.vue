@@ -8,9 +8,13 @@
         </div>
 
         <div v-if="mode === 'edit'">
-            <input type="checkbox" v-model="item.invisible" id="chk-item-properties-invisible"/><label for="chk-item-properties-invisible"> Invisible</label>
-        </div>
+            <h5 class="section">General</h5>
 
+            <div class="property-row" v-if="item.background && item.background.color">
+                <span class="property-label">Background:</span>
+                <input class="property-textfield" type="text" v-model="item.background.color"/>
+            </div>
+        </div>
 
         <h5 class="section">Links</h5>
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
