@@ -26,20 +26,6 @@ body {
     padding: 0;
     margin: 0;
 }
-.scheme-middle-container .side-panel {
-    z-index: 101;
-    height: 100%;
-    width: 500px;
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: #f0f0f0;
-    border-left: 3px solid #999;
-    overflow: auto;
-}
-.scheme-middle-container .side-panel > .wrapper {
-    padding: 10px;
-}
 
 
 .svg-editor svg {
@@ -220,4 +206,36 @@ ul.button-group li span.toggle-button.toggled {
 ul.button-group li span.toggle-button:hover {
     border: 1px solid #455055;
     background: #505e65;
+}
+
+
+
+
+/***************************/
+/*   Item Properties       */
+/***************************/
+.scheme-middle-container .side-panel {
+    z-index: 101;
+    height: 100%;
+    width: 500px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #fff;
+    overflow: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.scheme-middle-container .side-panel > .wrapper {
+    margin: 10px;
+}
+.item-properties h5 {
+    border-bottom: 2px solid #aed3de;
+    color: #31b1d9;
+    font-size: 14px;
+    margin: 10px 0 5px 0;
+    padding-bottom: 4px;
+}
+.item-properties textarea {
+    width: 100%;
+    min-height: 500px;
 }

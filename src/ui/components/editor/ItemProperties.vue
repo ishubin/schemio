@@ -1,16 +1,13 @@
 <template lang="html">
     <div class="item-properties">
-        <div class="top-panel">
-            <span class="link" @click="edit = !edit">Edit</span>
-        </div>
-        <div v-if="!edit">
+        <div v-if="mode !== 'edit'">
             <h3>{{item.name}}</h3>
         </div>
         <div v-else>
             <input type="text" v-model="item.name"/>
         </div>
 
-        <div v-if="edit">
+        <div v-if="mode === 'edit'">
             <input type="checkbox" v-model="item.invisible" id="chk-item-properties-invisible"/><label for="chk-item-properties-invisible"> Invisible</label>
         </div>
 
@@ -26,11 +23,11 @@
         <span class="link" v-on:click="addLink()">+ add link</span>
 
         <h5>Description</h5>
-        <div v-if="!edit">
+        <div v-if="mode !== 'edit'">
             <vue-markdown>{{item.description}}</vue-markdown>
         </div>
         <div v-else>
-            <textarea rows="20" cols="80" v-model="item.description"></textarea>
+            <textarea v-model="item.description"></textarea>
         </div>
 
         <link-edit-popup v-if="editLinkData"
@@ -46,11 +43,10 @@ import EventBus from './EventBus.js';
 import VueMarkdown from 'vue-markdown';
 
 export default {
-    props: ['item'],
+    props: ['item', 'mode'],
     components: {LinkEditPopup, VueMarkdown},
     data() {
         return {
-            edit: false,
             editLinkData: null
         };
     },

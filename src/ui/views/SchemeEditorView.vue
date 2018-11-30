@@ -27,7 +27,7 @@
             </div>
             <div v-if="selectedItem" class="side-panel">
                 <div class="wrapper">
-                    <item-properties :item="selectedItem" />
+                    <item-properties :item="selectedItem" :mode="mode"/>
                 </div>
             </div>
 
