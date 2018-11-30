@@ -250,3 +250,21 @@ ul.button-group li span.toggle-button:hover {
     background: #f0f0f0;
     border: 1px solid #bbb;
 }
+.property-row .color-picker {
+    position: absolute;
+    top: 0;
+    right: 5px;
+}
+.property-row .color-picker .vc-chrome {
+    top: 20px;
+    right: 0;
+    position: absolute;
+}
+.color-picker-toggle-button {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 1px;
+    cursor: pointer;
+    border: 1px solid #999;
+}

@@ -12,7 +12,8 @@
 
             <div class="property-row" v-if="item.background && item.background.color">
                 <span class="property-label">Background:</span>
-                <input class="property-textfield" type="text" v-model="item.background.color"/>
+                <!-- <input class="property-textfield" type="text" v-model="item.background.color"/> -->
+                <color-picker :color="item.background.color" @input="item.background.color = arguments[0]"></color-picker>
             </div>
         </div>
 
@@ -45,12 +46,15 @@
 import LinkEditPopup from './LinkEditPopup.vue';
 import EventBus from './EventBus.js';
 import VueMarkdown from 'vue-markdown';
+import ColorPicker from './ColorPicker.vue';
 
 export default {
     props: ['item', 'mode'],
-    components: {LinkEditPopup, VueMarkdown},
+    components: {LinkEditPopup, VueMarkdown, ColorPicker},
     data() {
         return {
+            backgroundColor: {hex: '#ffffff'},
+            toggleBackgroundColor: false,
             editLinkData: null
         };
     },
