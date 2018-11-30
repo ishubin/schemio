@@ -217,7 +217,7 @@ ul.button-group li span.toggle-button:hover {
 .scheme-middle-container .side-panel {
     z-index: 101;
     height: 100%;
-    width: 500px;
+    width: 600px;
     position: absolute;
     top: 0;
     right: 0;
@@ -228,8 +228,9 @@ ul.button-group li span.toggle-button:hover {
 .scheme-middle-container .side-panel > .wrapper {
     margin: 10px;
 }
-.item-properties h5 {
+.item-properties h5.section {
     border-bottom: 2px solid #aed3de;
+    font-weight: normal;
     color: #31b1d9;
     font-size: 14px;
     margin: 10px 0 5px 0;

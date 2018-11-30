@@ -12,7 +12,7 @@
         </div>
 
 
-        <h5>Links</h5>
+        <h5 class="section">Links</h5>
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
         <ul class="links">
             <li v-for="(link, linkId) in item.links">
@@ -22,7 +22,7 @@
         </ul>
         <span class="link" v-on:click="addLink()">+ add link</span>
 
-        <h5>Description</h5>
+        <h5 class="section">Description</h5>
         <div v-if="mode !== 'edit'">
             <vue-markdown>{{item.description}}</vue-markdown>
         </div>
