@@ -10,9 +10,13 @@
         <div v-if="mode === 'edit'">
             <h5 class="section">General</h5>
 
-            <div class="property-row" v-if="item.background && item.background.color">
+            <div class="property-row" v-if="item.style.background && item.style.background.color">
                 <span class="property-label">Background:</span>
-                <color-picker :color="item.background.color" @input="item.background.color = arguments[0]"></color-picker>
+                <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>
+            </div>
+            <div class="property-row" v-if="item.style.text && item.style.text.color">
+                <span class="property-label">Text color:</span>
+                <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]"></color-picker>
             </div>
         </div>
 
@@ -94,6 +98,7 @@ export default {
     watch: {
        item: {
            handler: function(newValue) {
+               this.$forceUpdate();
                EventBus.$emit(EventBus.REDRAW);
            },
            deep: true

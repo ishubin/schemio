@@ -20,14 +20,13 @@
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
+                        :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
                     />
                         <text
                             :x="_x(item.area.x + 4)"
                             :y="_y(item.area.y + 14)"
-                            fill="#ffffff"
-                            font-weight="bold"
-                            font-family="helvetica"
                             :font-size="Math.floor(_z(15)) + 'px'"
+                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
                             >{{item.name}}</text>
                 </g>
 
@@ -37,7 +36,7 @@
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
-                        :fill="item.background && item.background.color ? item.background.color : '#fff'"
+                        :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
                     />
                 </g>
 

@@ -26,6 +26,13 @@ export default {
             this.pickerColor = color.hex;
             this.$emit('input', color.hex);
         }
+    },
+    watch: {
+        color(newColor) {
+            this.pickerColor = newColor;
+            this.chromePickerColor.hex = newColor;
+            this.$forceUpdate();
+        }
     }
 }
 </script>

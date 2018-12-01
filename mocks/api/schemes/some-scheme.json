@@ -9,14 +9,18 @@
         "w": 711,
         "h": 550
       },
+      "style": {
+      },
       "url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Elasticsearch_Cluster_August_2014.png",
       "name": "background-image-1",
       "description": ""
     },
     {
       "type": "overlay",
-      "background": {
-          "color": "#f4a"
+      "style": {
+          "background": {
+              "color": "#f4a"
+          }
       },
       "area": {
         "x": 300,
@@ -46,6 +50,14 @@
         "y": 100,
         "w": 100,
         "h": 30
+      },
+      "style": {
+          "background": {
+              "color": "#b8e0ee"
+          },
+          "text": {
+              "color": "#000"
+          }
       },
       "name": "backend #1",
       "description": ""
