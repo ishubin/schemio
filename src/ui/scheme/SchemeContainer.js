@@ -25,6 +25,13 @@ class SchemeContainer {
         return this.selectedItems;
     }
 
+    deleteSelectedItems() {
+        if (this.selectedItems && this.selectedItems.length > 0) {
+            _.remove(this.scheme.items, item => _.includes(this.selectedItems, item));
+            this.reindexItems();
+        }
+    }
+
     addItem(item) {
         this.scheme.items.push(item);
         this.reindexItems();

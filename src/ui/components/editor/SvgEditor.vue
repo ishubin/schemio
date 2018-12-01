@@ -105,6 +105,10 @@ export default {
         EventBus.$on(EventBus.KEY_PRESS, (key) => {
             if (key === EventBus.KEY.ESCAPE) {
                 this.state.cancel();
+            } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
+                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+                this.schemeContainer.deleteSelectedItems();
+                EventBus.$emit(EventBus.REDRAW);
             }
         });
         EventBus.$on(EventBus.REDRAW, () => {
@@ -235,7 +239,10 @@ export default {
 
         onDeselectAllItems(item) {
             EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+            this.removeDrawnLinks();
+        },
 
+        removeDrawnLinks() {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
             }
@@ -313,6 +320,7 @@ export default {
     watch: {
         mode(newMode) {
             if (newMode === 'edit') {
+                this.removeDrawnLinks();
                 this.switchStateDragItem();
             } else if (newMode === 'view') {
                 this.switchStateDragging();

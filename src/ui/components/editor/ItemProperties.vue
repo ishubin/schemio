@@ -12,7 +12,6 @@
 
             <div class="property-row" v-if="item.background && item.background.color">
                 <span class="property-label">Background:</span>
-                <!-- <input class="property-textfield" type="text" v-model="item.background.color"/> -->
                 <color-picker :color="item.background.color" @input="item.background.color = arguments[0]"></color-picker>
             </div>
         </div>
