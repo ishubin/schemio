@@ -8,6 +8,7 @@ class SchemeContainer {
         this.scheme = scheme;
         this.selectedItems = [];
         this.sortedItemsIndex = null;
+        this.activeBoundaryBox = null;
         this.reindexItems();
     }
 
@@ -43,6 +44,10 @@ class SchemeContainer {
 
     findHoveredItem(x, y) {
         return _.find(this.sortedItemsIndex, item => myMath.isPointInArea(x, y, item.area));
+    }
+
+    setActiveBoundaryBox(area) {
+        this.activeBoundaryBox = area;
     }
 
     selectItem(item, inclusive) {

@@ -11,9 +11,8 @@
                     </li>
                 </ul>
                 <ul class="button-group">
-                    <li>
-                        <span class="toggle-button" @click="onCreateComponentClick()">Create</span>
-                    </li>
+                    <li> <span class="toggle-button" @click="onCreateComponentClick()">Create</span> </li>
+                    <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
                 </ul>
                 <input type="text" v-model="zoom"/>
             </div>
@@ -75,21 +74,35 @@ export default {
         toggleMode(mode) {
             this.mode = mode;
         },
+
         onCreateComponentClick() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'component',
-                area: {
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {
+                    background: { color: '#b8e0ee' },
+                    text: { color: '#0d3847' }
                 },
                 name: 'Unnamed',
                 description: '',
                 links: []
             });
-        }
+        },
+
+        onCreateOverlayClick() {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'overlay',
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {
+                    background: { color: '#b8e0ee' },
+                },
+                name: 'Unnamed',
+                description: '',
+                links: []
+            });
+        },
     },
     filters: {
         capitalize(value) {

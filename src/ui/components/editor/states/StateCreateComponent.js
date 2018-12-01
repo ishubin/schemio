@@ -33,6 +33,7 @@ export default class StateCreateComponent extends State {
         this.originalPoint = {x, y};
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
+        this.schemeContainer.setActiveBoundaryBox(this.component.area);
         EventBus.$emit(EventBus.REDRAW);
     }
 
@@ -45,6 +46,8 @@ export default class StateCreateComponent extends State {
     mouseUp(x, y, mx, my, item, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
+            this.schemeContainer.setActiveBoundaryBox(null);
+            this.schemeContainer.selectItem(this.component);
             EventBus.$emit(EventBus.ITEM_SELECTED, this.component);
         }
         this.cancel();

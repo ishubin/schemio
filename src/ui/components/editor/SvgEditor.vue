@@ -78,6 +78,16 @@
                 </a>
             </g>
 
+            <g v-if="schemeContainer.activeBoundaryBox">
+                <!-- Drawing boundary edit box -->
+                <rect class="boundary-box"
+                    :x="_x(schemeContainer.activeBoundaryBox.x)"
+                    :y="_y(schemeContainer.activeBoundaryBox.y)"
+                    :width="_z(schemeContainer.activeBoundaryBox.w)"
+                    :height="_z(schemeContainer.activeBoundaryBox.h)"
+                />
+            </g>
+
         </svg>
     </div>
 </template>
