@@ -2,8 +2,63 @@ body {
     font-family: Roboto,sans-serif;
     margin: 0;
     padding: 0;
+    color: #222;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+h5 {
+    margin-top: 12px;
+    margin-bottom: 7px;
+    color: #333;
+}
+
+.content-wrapper {
+    margin: 10px;
+}
+
+/******************* Buttons *******************/
+.btn {
+    display: inline-block;
+    padding: 5px 10px 5px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    background: #f0f0f0;
+    border: 1px solid #777;
+    color: #222;
+}
+.btn:hover {
+    background: #80aed7;
+    color: #fff;
+    border: 1px solid #2b90b5;
+}
+.btn.btn-primary {
+    background: #2b90b5;
+    color: #fff;
+    border: 1px solid #2b90b5;
+}
+.btn.btn-primary:hover {
+    background: #80aed7;
+    color: #fff;
+    border: 1px solid #2b90b5;
+}
+/***********************************************/
+/******************** Textfields *******************/
+input.textfield, textarea.textfield {
+    display: block;
+    width: 100%;
+    color: #444;
+    border-radius: 2px;
+    padding: 5px 10px 5px 10px;
+    background: #fff;
+    font-size: 16px;
+    border: 1px solid #999;
+}
+textarea.textfield {
+    height: 150px;
+}
 
 /******************* Panel *********************/
 .panel {
@@ -126,20 +181,22 @@ svg.state-create-component {
 }
 .modal-container {
     margin: 0px auto;
+    width: 600px;
     padding: 20px 30px;
-    background-color: #222;
+    background-color: #efefef;
     border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     transition: all .3s ease;
 }
 .modal-header h3 {
     margin-top: 0;
-    color: #d6c47e;
+    color: #2f4752;
 }
 .modal-header h6 {
     font-weight: bold;
 }
 .modal-body {
+    position: relative;
     margin: 20px 0;
     max-height: 550px;
     overflow: auto;

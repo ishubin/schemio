@@ -13,6 +13,7 @@ app.use(express.static('public'))
 var cwd = process.cwd();
 
 app.get('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.getScheme);
+app.post('/api/schemes', [jsonBodyParser], apiSchemes.createScheme);
 
 app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)

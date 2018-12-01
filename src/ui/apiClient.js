@@ -14,5 +14,11 @@ export default {
             });
             return scheme;
         });
+    },
+
+    createNewScheme(scheme) {
+        return axios.post(`/api/schemes`, scheme).then(response => {
+            return response.data;
+        });
     }
 }

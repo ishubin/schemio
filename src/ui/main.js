@@ -23,7 +23,7 @@ function _route(name, path, component) {
 
 const routes = [
     _route('Home', '/', HomeView),
-    _route('SchemeEditorView', '/scheme/:schemeId', SchemeEditorView)
+    _route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView)
 ];
 
 

@@ -1,5 +1,6 @@
 const SchemeStorage     = require('./SchemeStorage.js');
 const fs                = require('fs-extra');
+const shortid           = require('shortid');
 
 
 class LocalSchemeStorage extends SchemeStorage {
@@ -11,6 +12,13 @@ class LocalSchemeStorage extends SchemeStorage {
 
     getScheme(schemeId) {
         return fs.readJson(`${this.storagePath}/schemes/${schemeId}.json`);
+    }
+
+    createScheme(scheme) {
+        scheme.id = shortid.generate();
+        return fs.writeJson(`${this.storagePath}/schemes/${scheme.id}.json`, scheme).then(() => {
+            return scheme;
+        });
     }
 }
 
