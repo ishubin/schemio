@@ -1,11 +1,13 @@
-const fs        = require('fs-extra');
-
+const schemeStorage = require('../storage/storageProvider.js').provideStorage();
 
 module.exports = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
-        fs.readJson(`mocks/api/schemes/${schemeId}.json`).then(scheme => {
+        schemeStorage.getScheme(schemeId).then(scheme => {
             res.json(scheme);
+        }).catch( err => {
+            res.status(404);
+            res.json({error: 'Not found'});
         });
     }
 };
