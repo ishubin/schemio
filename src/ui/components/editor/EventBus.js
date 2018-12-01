@@ -7,21 +7,27 @@ const EventBus = new Vue({
             REDRAW: 'redraw',
             ITEM_SELECTED: 'item-selected',
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
+            KEY_PRESS: 'key-press',
+            KEY: {
+                ESCAPE: 'escape',
+                DELETE: 'delete'
+            }
         };
     }
 });
 
-
-document.onkeydown = function(evt) {
-    evt = evt || window.event;
-    var isEscape = false;
-    if ("key" in evt) {
-        isEscape = (evt.key == "Escape" || evt.key == "Esc");
-    } else {
-        isEscape = (evt.keyCode == 27);
+function identifyKeyPress(event) {
+    if (event.key == "Escape" || event.key == "Esc" || event.keyCode == 27) {
+        return EventBus.KEY.ESCAPE;
     }
-    if (isEscape) {
-        EventBus.$emit('keyPressEscape');
+    return null;
+}
+
+document.onkeydown = function(event) {
+    event = event || window.event;
+    var key = identifyKeyPress(event);
+    if (key) {
+        EventBus.$emit(EventBus.KEY_PRESS, key);
     }
 }
 export default EventBus;

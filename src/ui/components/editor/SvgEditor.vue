@@ -102,8 +102,10 @@ export default {
             this.switchStateCreateComponent(component);
         });
 
-        EventBus.$on('keyPressEscape', () => {
-            this.state.cancel();
+        EventBus.$on(EventBus.KEY_PRESS, (key) => {
+            if (key === EventBus.KEY.ESCAPE) {
+                this.state.cancel();
+            }
         });
         EventBus.$on(EventBus.REDRAW, () => {
             this.$forceUpdate();

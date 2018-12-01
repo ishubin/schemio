@@ -98,6 +98,12 @@ svg.mode-view.state-interact .item-container.item-type-component:hover .item-gra
 }
 
 
+/**************************************/
+/* Hover state in create component state */
+svg.state-create-component {
+    cursor: crosshair;
+}
+
 
 
 
