@@ -23,7 +23,7 @@
                         :mode="mode"
                         ></svg-editor>
                 </div>
-                <h2 class="scheme-name-header">{{schemeContainer.scheme.name}}</h2>
+                <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
             </div>
             <div v-if="selectedItem" class="side-panel">
                 <div class="wrapper">

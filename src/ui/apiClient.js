@@ -7,9 +7,13 @@ export default {
         return axios.get(`/api/schemes/${schemeId}`).then(response => {
             var scheme = response.data;
 
+            //TODO move this to server
             _.forEach(scheme.items, item => {
                 if (!item.hasOwnProperty('id')) {
                     item.id = shortid.generate();
+                }
+                if (!item.hasOwnProperty('tags')) {
+                    item.tags = [];
                 }
             });
             return scheme;

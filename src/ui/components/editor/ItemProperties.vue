@@ -4,7 +4,7 @@
             <h3>{{item.name}}</h3>
         </div>
         <div v-else>
-            <input type="text" v-model="item.name"/>
+            <input class="textfield" type="text" v-model="item.name"/>
         </div>
 
         <div v-if="mode === 'edit'">
@@ -30,6 +30,13 @@
         </ul>
         <span class="link" v-on:click="addLink()">+ add link</span>
 
+        <h5 class="section">Tags</h5>
+        <vue-tags-input v-model="itemTag"
+            :tags="itemTags"
+            :autocomplete-items="filteredItemTags"
+            @tags-changed="onItemTagChange"
+            ></vue-tags-input>
+
         <h5 class="section">Description</h5>
         <div v-if="mode !== 'edit'">
             <vue-markdown>{{item.description}}</vue-markdown>
@@ -50,15 +57,20 @@ import LinkEditPopup from './LinkEditPopup.vue';
 import EventBus from './EventBus.js';
 import VueMarkdown from 'vue-markdown';
 import ColorPicker from './ColorPicker.vue';
+import VueTagsInput from '@johmun/vue-tags-input';
+import _ from 'lodash';
+
 
 export default {
     props: ['item', 'mode'],
-    components: {LinkEditPopup, VueMarkdown, ColorPicker},
+    components: {LinkEditPopup, VueMarkdown, ColorPicker, VueTagsInput},
     data() {
         return {
             backgroundColor: {hex: '#ffffff'},
             toggleBackgroundColor: false,
-            editLinkData: null
+            editLinkData: null,
+            itemTag: '',
+            existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },
     methods: {
@@ -93,6 +105,17 @@ export default {
                 });
             }
             this.$emit('link-update');
+        },
+        onItemTagChange(newTags) {
+            this.item.tags = _.map(newTags, tag => tag.text);
+        }
+    },
+    computed: {
+        filteredItemTags() {
+            return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
+        },
+        itemTags() {
+            return _.map(this.item.tags, tag => {return {text: tag}});
         }
     },
     watch: {

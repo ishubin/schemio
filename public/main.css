@@ -293,7 +293,7 @@ ul.button-group li span.toggle-button:hover {
     position: absolute;
     top: 0;
     right: 0;
-    background: #fff;
+    background: #f4f4f4;
     overflow: auto;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
@@ -345,4 +345,12 @@ ul.button-group li span.toggle-button:hover {
     border-radius: 1px;
     cursor: pointer;
     border: 1px solid #999;
+}
+
+
+
+/******************** Tags Input **********************/
+.vue-tags-input {
+    max-width: none !important;
+    width: 100% !important;
 }
