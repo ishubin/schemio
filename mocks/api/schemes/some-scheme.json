@@ -1,5 +1,6 @@
 {
   "name": "Blah",
+  "tags": [],
   "items": [
     {
       "type": "image",
@@ -30,6 +31,7 @@
       },
       "name": "Nginx",
       "description": "load balancer for __frontends__ and __backends__",
+      "tags": ["Load Balancer", "Nginx", "HTTP"],
       "links": [
         {
           "icon": "kibana",

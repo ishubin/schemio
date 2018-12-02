@@ -20,6 +20,19 @@ class LocalSchemeStorage extends SchemeStorage {
             return scheme;
         });
     }
+
+    saveScheme(schemeId, scheme) {
+        var path = `${this.storagePath}/schemes/${schemeId}.json`;
+        return fs.pathExists(path).then(exists => {
+            if (exists) {
+                return fs.writeJson(path, scheme).then(() => {
+                    return scheme;
+                });
+            } else {
+                throw new Error('Scheme was not created previously');
+            }
+        });
+    }
 }
 
 module.exports = LocalSchemeStorage;

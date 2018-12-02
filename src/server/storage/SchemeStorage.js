@@ -8,6 +8,11 @@ class SchemeStorage {
     createScheme(scheme) {
         return Promise.resolve(null);
     }
+
+
+    saveScheme(schemeId, scheme) {
+        return  Promise.resolve(null);
+    }
 }
 
 module.exports = SchemeStorage;

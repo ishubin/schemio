@@ -18,5 +18,15 @@ module.exports = {
             res.status(500);
             res.json({error: 'Error creating scheme'});
         });
+    },
+
+    saveScheme(req, res) {
+        var schemeId = req.params.schemeId;
+        schemeStorage.saveScheme(schemeId, req.body).then(scheme => {
+            res.json(scheme);
+        }).catch( err => {
+            res.status(500);
+            res.json({error: `Error saving scheme ${schemeId}`});
+        });
     }
 };

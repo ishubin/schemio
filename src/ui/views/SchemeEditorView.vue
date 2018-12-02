@@ -16,7 +16,9 @@
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
+                <span class="btn btn-secondary" @click="saveScheme()">Save</span>
             </div>
+
             <div class="scheme-container">
                 <div v-if="schemeContainer">
                     <svg-editor
@@ -80,6 +82,10 @@ export default {
     methods: {
         toggleMode(mode) {
             this.mode = mode;
+        },
+
+        saveScheme() {
+            apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme);
         },
 
         onCreateComponentClick() {

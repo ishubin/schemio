@@ -24,5 +24,15 @@ export default {
         return axios.post(`/api/schemes`, scheme).then(response => {
             return response.data;
         });
+    },
+
+    saveScheme(schemeId, scheme) {
+        if (schemeId && schemeId.trim().length > 0) {
+            return axios.put(`/api/schemes/${schemeId}`, scheme).then(response => {
+                return 'saved';
+            });
+        } else {
+            return Promise.resolve(null);
+        }
     }
 }
