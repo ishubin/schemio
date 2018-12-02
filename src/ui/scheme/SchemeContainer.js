@@ -9,6 +9,7 @@ class SchemeContainer {
         this.selectedItems = [];
         this.sortedItemsIndex = null;
         this.activeBoundaryBox = null;
+        this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.reindexItems();
     }
 
@@ -19,6 +20,30 @@ class SchemeContainer {
                 areaB = b.area.w * b.area.h;
             return areaA - areaB;
         });
+
+        if (sortedItems.length > 0) {
+            this.schemeBoundaryBox.x = sortedItems[0].area.x;
+            this.schemeBoundaryBox.y = sortedItems[0].area.y;
+            this.schemeBoundaryBox.w = sortedItems[0].area.w;
+            this.schemeBoundaryBox.h = sortedItems[0].area.h;
+
+            _.forEach(sortedItems, item => {
+                if (this.schemeBoundaryBox.x > item.area.x) {
+                    this.schemeBoundaryBox.x = item.area.x;
+                }
+                if (this.schemeBoundaryBox.x + this.schemeBoundaryBox.w < item.area.x + item.area.w) {
+                    this.schemeBoundaryBox.w = item.area.x + item.area.w - this.schemeBoundaryBox.x;
+                }
+                if (this.schemeBoundaryBox.y > item.area.y) {
+                    this.schemeBoundaryBox.y = item.area.y;
+                }
+                if (this.schemeBoundaryBox.y + this.schemeBoundaryBox.h < item.area.y + item.area.h) {
+                    this.schemeBoundaryBox.h = item.area.y + item.area.h - this.schemeBoundaryBox.y;
+                }
+            });
+        } else {
+            this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
+        }
         return this.sortedItemsIndex = sortedItems;
     }
 

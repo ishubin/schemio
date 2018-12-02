@@ -9,10 +9,13 @@ body {
     box-sizing: border-box;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    color: #333;
+}
+
 h5 {
     margin-top: 12px;
     margin-bottom: 7px;
-    color: #333;
 }
 
 .content-wrapper {
@@ -82,6 +85,18 @@ textarea.textfield {
     margin: 0;
 }
 
+
+
+
+.scheme-name-header {
+    position: fixed;
+    top: 50px;
+    left: 20px;
+    margin: 0;
+    text-shadow: 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #fff;
+}
+
+/********************* Svg editor *******************/
 
 .svg-editor svg {
     position: fixed;
