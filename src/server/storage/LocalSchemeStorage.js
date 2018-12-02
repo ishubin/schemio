@@ -93,10 +93,12 @@ class LocalSchemeStorage extends SchemeStorage {
         if (!schemeInIndex) {
             this.indices.schemes.push({
                 schemeId: schemeId,
-                name: scheme.name
+                name: scheme.name,
+                tags: scheme.tags
             });
         } else {
             schemeInIndex.name = scheme.name;
+            schemeInIndex.tags = scheme.tags;
         }
 
         //TODO optimize tags reindexing
