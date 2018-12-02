@@ -60,15 +60,16 @@ class LocalSchemeStorage extends SchemeStorage {
 
     runReindexJob() {
         if (!this.isReindexing) {
-            this.reindexing = true;
+            this.isReindexing = true;
             try {
                 if (this.schemeQueueForIndex.length > 0) {
                     this.reindex();
                 }
             } catch(err) {
+                console.error('Error during reindexing', err);
             }
 
-            this.reindexing = false;
+            this.isReindexing = false;
         }
     }
 
@@ -97,6 +98,11 @@ class LocalSchemeStorage extends SchemeStorage {
         } else {
             schemeInIndex.name = scheme.name;
         }
+
+        //TODO optimize tags reindexing
+        _.forEach(scheme.items, item => {
+            this.reindexTags(item.tags);
+        });
     }
 
     reindexTags(tags) {
