@@ -70,6 +70,8 @@ export default {
             toggleBackgroundColor: false,
             editLinkData: null,
             itemTag: '',
+
+            //TODO move into indexed tags
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },

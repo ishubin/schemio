@@ -72,6 +72,7 @@ export default {
             apiClient.createNewScheme({
                 name: this.newSchemePopup.name,
                 description: this.newSchemePopup.description,
+                tags: [],
                 items
             }).then(scheme => {
                 window.location.href = `/schemes/${scheme.id}`;
