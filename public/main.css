@@ -50,7 +50,7 @@ h5 {
 /***********************************************/
 /******************** Textfields *******************/
 input.textfield, textarea.textfield {
-    display: block;
+    display: inline-block;
     width: 100%;
     color: #444;
     border-radius: 2px;
@@ -134,6 +134,11 @@ svg rect.boundary-box-dragger:hover {
     opacity: 0.5;
 }
 
+svg rect.item-search-highlight {
+    stroke-width: 2;
+    stroke: #faa;
+    fill: rgba(212, 184, 101, 0.1);
+}
 
 
 

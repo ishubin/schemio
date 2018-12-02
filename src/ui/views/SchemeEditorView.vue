@@ -14,13 +14,15 @@
                     <li> <span class="toggle-button" @click="onCreateComponentClick()">Create</span> </li>
                     <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
                 </ul>
-                <input type="text" v-model="zoom"/>
+                <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
+                <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
             </div>
             <div class="scheme-container">
                 <div v-if="schemeContainer">
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" :zoom="zoom / 100.0"
                         :mode="mode"
+                        :itemHighlights="searchHighlights"
                         ></svg-editor>
                 </div>
                 <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
@@ -63,12 +65,14 @@ export default {
         return {
             schemeId: this.$route.params.schemeId,
             schemeContainer: null,
+            searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             selectedItem: null,
             zoom: 100,
             mode: 'view',
-            knownModes: ['view', 'edit']
+            knownModes: ['view', 'edit'],
+            searchHighlights: []
         }
     },
     methods: {
@@ -108,6 +112,29 @@ export default {
     filters: {
         capitalize(value) {
             return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
+        }
+    },
+    watch: {
+        searchKeyword(keyword) {
+            keyword = keyword.trim().toLowerCase();
+            if (keyword.length > 0) {
+                this.searchHighlights = _.chain(this.schemeContainer.getItems()).filter(item => {
+                    var name = item.name || '';
+                    if (name.toLowerCase().indexOf(keyword) >= 0) {
+                        return true;
+                    } else {
+                        //search in tags
+                        if (item.tags && item.tags.length > 0) {
+                            if (_.find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }).map(item => item.area).value();
+            } else {
+                this.searchHighlights = [];
+            }
         }
     }
 }

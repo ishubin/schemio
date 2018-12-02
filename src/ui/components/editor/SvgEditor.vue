@@ -78,6 +78,16 @@
                 </a>
             </g>
 
+            <g v-for="area in itemHighlights">
+                <!-- Drawing boundary edit box -->
+                <rect class="item-search-highlight"
+                    :x="_x(area.x) - 5"
+                    :y="_y(area.y) - 5"
+                    :width="_z(area.w) + 10"
+                    :height="_z(area.h) + 10"
+                />
+            </g>
+
             <g v-if="schemeContainer.activeBoundaryBox">
                 <!-- Drawing boundary edit box -->
                 <rect class="boundary-box"
@@ -100,7 +110,7 @@ import EventBus from './EventBus.js';
 
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
