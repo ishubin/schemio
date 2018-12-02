@@ -27,9 +27,10 @@
                 </div>
                 <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
             </div>
-            <div v-if="selectedItem" class="side-panel">
+            <div class="side-panel" v-if="selectedItem || mode === 'edit'">
                 <div class="wrapper">
-                    <item-properties :item="selectedItem" :mode="mode"/>
+                    <item-properties v-if="selectedItem" :item="selectedItem" :mode="mode"/>
+                    <scheme-properties v-else :schemeContainer="schemeContainer"></scheme-properties>
                 </div>
             </div>
 
@@ -44,10 +45,11 @@ import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
+import SchemeProperties from '../components/editor/SchemeProperties.vue';
 import shortid from 'shortid';
 
 export default {
-    components: {SvgEditor, ItemProperties},
+    components: {SvgEditor, ItemProperties, SchemeProperties},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
