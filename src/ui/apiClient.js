@@ -34,5 +34,11 @@ export default {
         } else {
             return Promise.resolve(null);
         }
+    },
+
+    findSchemes() {
+        return axios.get(`/api/schemes`).then(response => {
+            return response.data;
+        });
     }
 }

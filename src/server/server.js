@@ -12,6 +12,7 @@ app.use(express.static('public'))
 
 var cwd = process.cwd();
 
+app.get('/api/schemes', [jsonBodyParser], apiSchemes.findSchemes);
 app.get('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.getScheme);
 app.post('/api/schemes', [jsonBodyParser], apiSchemes.createScheme);
 app.put('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.saveScheme);

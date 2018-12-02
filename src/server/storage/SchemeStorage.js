@@ -1,4 +1,5 @@
 
+
 class SchemeStorage {
 
     getScheme(schemeId) {
@@ -9,9 +10,12 @@ class SchemeStorage {
         return Promise.resolve(null);
     }
 
-
     saveScheme(schemeId, scheme) {
         return  Promise.resolve(null);
+    }
+
+    findSchemes(searchQuery) {
+        return Promise.resolve(null);
     }
 }
 

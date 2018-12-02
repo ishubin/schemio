@@ -57,6 +57,21 @@ class LocalSchemeStorage extends SchemeStorage {
         });
     }
 
+    findSchemes(searchQuery) {
+        var limit = 25;
+
+        var foundItems = _.filter(this.indices.schemes, scheme => {
+            //TODO implement search query handling
+            return true;
+        });
+
+        return Promise.resolve({
+            results: _.take(foundItems, limit),
+            total: foundItems.length,
+            offset: 0
+        });
+    }
+
 
     runReindexJob() {
         if (!this.isReindexing) {
@@ -83,6 +98,8 @@ class LocalSchemeStorage extends SchemeStorage {
             this.reindexTags(scheme.scheme.tags);
             counter += 1;
         }
+
+        this.indices.schemes.sort((a,b) => a.name < b.name ? 1: -1);
 
         fs.writeJson(`${this.storagePath}/index/schemes.json`, this.indices.schemes);
         fs.writeJson(`${this.storagePath}/index/tags.json`, this.indices.tags);

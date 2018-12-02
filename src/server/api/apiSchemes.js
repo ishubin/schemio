@@ -28,5 +28,14 @@ module.exports = {
             res.status(500);
             res.json({error: `Error saving scheme ${schemeId}`});
         });
+    },
+
+    findSchemes(req, res) {
+        schemeStorage.findSchemes({}).then(searchResult => {
+            res.json(searchResult);
+        }).catch( err => {
+            res.status(500);
+            res.json({error: 'Could not find schemes'});
+        });
     }
 };

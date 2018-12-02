@@ -1,8 +1,15 @@
 <template lang="html">
     <div class="content-wrapper">
-        <h1>Home view</h1>
-
+        <h1>Schemio</h1>
         <span class="btn" @click="openNewSchemePopup">New Scheme</span>
+
+
+        <div v-if="searchResult">
+            <div v-for="scheme in searchResult.results">
+                <a :href="'/schemes/' + scheme.schemeId">{{scheme.name}}</a>
+                <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
+            </div>
+        </div>
 
         <transition name="modal" v-if="newSchemePopup.show">
            <div class="modal-mask">
@@ -40,8 +47,14 @@
 import apiClient from '../apiClient.js';
 
 export default {
+    mounted() {
+        apiClient.findSchemes().then(searchResponse => {
+            this.searchResult = searchResponse;
+        });
+    },
     data() {
         return {
+            searchResult: null,
             newSchemePopup: {
                 title: '',
                 description: '',
