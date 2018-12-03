@@ -30,6 +30,16 @@
                             >{{item.name}}</text>
                 </g>
 
+                <comment-item v-if="item.type === 'comment'"
+                    :x="_x(item.area.x)"
+                    :y="_y(item.area.y)"
+                    :width="_z(item.area.w)"
+                    :height="_z(item.area.h)"
+                    :item-style="item.style"
+                    :text="item.description"
+                    :fontsize="_z(15)"
+                    ></comment-item>
+
                 <g v-if="item.type === 'overlay'" class="item-graphics">
                     <rect
                         :x="_x(item.area.x)"
@@ -107,10 +117,12 @@ import StateDragging from './states/StateDragging.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
 import EventBus from './EventBus.js';
+import CommentItem from './items/CommentItem.vue';
 
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
+    components: {CommentItem},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

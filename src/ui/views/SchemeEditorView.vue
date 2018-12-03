@@ -13,6 +13,7 @@
                 <ul class="button-group">
                     <li> <span class="toggle-button" @click="onCreateComponentClick()">Create</span> </li>
                     <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
+                    <li> <span class="toggle-button" @click="onCreateCommentClick()">Comment</span> </li>
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
@@ -113,6 +114,21 @@ export default {
                 },
                 name: 'Unnamed',
                 description: '',
+                links: []
+            });
+        },
+
+        onCreateCommentClick() {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'comment',
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {
+                    background: { color: '#ccc' },
+                    text: {color: '#666'}
+                },
+                name: '',
+                description: 'Leave a comment ...',
                 links: []
             });
         },
