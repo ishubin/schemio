@@ -1,6 +1,8 @@
 const schemeStorage = require('../storage/storageProvider.js').provideStorage();
+const _             = require('lodash');
 
-module.exports = {
+
+const ApiSchemes = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
         schemeStorage.getScheme(schemeId).then(scheme => {
@@ -22,7 +24,8 @@ module.exports = {
 
     saveScheme(req, res) {
         var schemeId = req.params.schemeId;
-        schemeStorage.saveScheme(schemeId, req.body).then(scheme => {
+        var requestScheme = ApiSchemes.sanitizeScheme(req.body);
+        schemeStorage.saveScheme(schemeId, requestScheme).then(scheme => {
             res.json(scheme);
         }).catch( err => {
             res.status(500);
@@ -39,5 +42,19 @@ module.exports = {
             res.status(500);
             res.json({error: 'Could not find schemes'});
         });
+    },
+
+    sanitizeScheme(scheme) {
+        if (scheme.items) {
+            _.forEach(scheme.items, item => {
+                if (item.hasOwnProperty('meta')) {
+                    delete item['meta'];
+                }
+            });
+        }
+        return scheme;
     }
-};
+
+}
+
+module.exports = ApiSchemes;

@@ -9,7 +9,7 @@
             @mouseup="mouseUp">
 
             <g v-for="item in schemeContainer.getItems()" class="item-container"
-                :class="['item-type-' + item.type, item.selected ? 'selected': '']"
+                :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
                 >
                 <g v-if="item.type === 'image'" class="item-graphics">
                     <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
@@ -58,7 +58,7 @@
                         :width="_z(item.area.w)"
                         :height="_z(item.area.h)"
                     />
-                    <g v-if="item.selected">
+                    <g v-if="item.meta.selected">
                         <rect class="boundary-box-dragger"
                             v-for="dragger in provideBoundingBoxDraggers(item)"
                             :x="_x(dragger.x) - dragger.s"

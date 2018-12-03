@@ -59,6 +59,9 @@ class SchemeContainer {
     }
 
     addItem(item) {
+        if (!item.hasOwnProperty('meta')) {
+            item.meta = {};
+        }
         this.scheme.items.push(item);
         this.reindexItems();
     }
@@ -80,7 +83,7 @@ class SchemeContainer {
             this.selectItemInclusive();
         } else {
             this.deselectAllItems();
-            item.selected = true;
+            item.meta.selected = true;
             this.selectedItems.push(item);
         }
     }
@@ -97,16 +100,16 @@ class SchemeContainer {
 
         if (!isAlreadyIn) {
             this.selectedItems.push(item);
-            item.selected = true;
+            item.meta.selected = true;
         } else {
-            item.selected = false;
+            item.meta.selected = false;
             this.selectedItems.splice(i, 1);
         }
     }
 
     deselectAllItems() {
         _.forEach(this.selectedItems, item => {
-            item.selected = false;
+            item.meta.selected = false;
         });
         this.selectedItems = [];
     }

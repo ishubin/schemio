@@ -9,6 +9,7 @@ export default {
 
             //TODO move this to server
             _.forEach(scheme.items, item => {
+                item.meta = {};
                 if (!item.hasOwnProperty('id')) {
                     item.id = shortid.generate();
                 }
