@@ -13,11 +13,7 @@
                 :font-size="Math.floor(fontsize) + 'px'"
                 :fill="itemStyle.text && itemStyle.text.color ? itemStyle.text.color : '#000'"
                 >
-                <!-- <tspan :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">some text line</tspan>
-                <tspan :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">another text line</tspan>
-                <tspan :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">line 3</tspan>
-                <tspan :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">line 4</tspan> -->
-                <tspan v-for="line in lines" :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{line}}</tspan>
+                <tspan v-for="line in svgLines" :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{line}}</tspan>
             </text>
     </g>
 
@@ -33,34 +29,45 @@ export default {
     },
     data() {
         return {
-            lines: [],
-            words: []
+            svgLines: [],
+            wordsInLines: []
         };
     },
     methods: {
         breakWords(text) {
-            this.words = text.split(/\s+/);
+            var lines = text.split('\n');
+            this.wordsInLines = [];
+
+            _.forEach(lines, line => {
+                this.wordsInLines.push(line.split(/\s+/));
+            })
             this.buildLines(this.width);
         },
 
         buildLines(width) {
             var lines = [];
-            lines.push('');
-            var id = 0;
-            _.forEach(this.words, word => {
-                if ((word.length + lines[id].length) * this.fontsize / 2 > width) {
-                    if (lines[id].length > 0 ) {
-                        id += 1;
+            var id = -1;
+            _.forEach(this.wordsInLines, words => {
+                id += 1;
+                lines[id] = '';
+                _.forEach(words, word => {
+                    if ((word.length + 1 + lines[id].length) * this.fontsize / 2 > width) {
+                        if (lines[id].length > 0 ) {
+                            id += 1;
+                        }
+                        lines[id] = word;
+                    } else {
+                        if (lines[id].length > 0) {
+                            lines[id] += ' ';
+                        }
+                        lines[id] += word;
                     }
-                    lines[id] = word;
-                } else {
-                    if (lines[id].length > 0) {
-                        lines[id] += ' ';
-                    }
-                    lines[id] += word;
+                });
+                if (lines[id].length === 0) {
+                    lines[id] = ' ';
                 }
             });
-            this.lines = lines;
+            this.svgLines = lines;
         }
     },
     watch: {
