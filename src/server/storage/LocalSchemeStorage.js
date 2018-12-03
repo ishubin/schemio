@@ -14,7 +14,6 @@ class LocalSchemeStorage extends SchemeStorage {
             setInterval(() => {
                 this.runReindexJob()
             }, 1000);
-            //TODO implement indexing local storage
         }
 
         this.schemeQueueForIndex = [];
@@ -58,7 +57,7 @@ class LocalSchemeStorage extends SchemeStorage {
     }
 
     findSchemes(searchQuery) {
-        var limit = 25;
+        var resultsPerPage = 25;
 
         var foundItems = _.filter(this.indices.schemes, scheme => {
             //TODO implement search query handling
@@ -66,9 +65,10 @@ class LocalSchemeStorage extends SchemeStorage {
         });
 
         return Promise.resolve({
-            results: _.take(foundItems, limit),
+            results: foundItems.slice(searchQuery.offset, searchQuery.offset + resultsPerPage),
             total: foundItems.length,
-            offset: 0
+            resultsPerPage: resultsPerPage,
+            offset: searchQuery.offset
         });
     }
 

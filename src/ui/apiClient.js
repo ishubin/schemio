@@ -36,8 +36,8 @@ export default {
         }
     },
 
-    findSchemes() {
-        return axios.get(`/api/schemes`).then(response => {
+    findSchemes(offset) {
+        return axios.get(`/api/schemes?offset=${offset}`).then(response => {
             return response.data;
         });
     }

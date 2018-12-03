@@ -31,7 +31,9 @@ module.exports = {
     },
 
     findSchemes(req, res) {
-        schemeStorage.findSchemes({}).then(searchResult => {
+        schemeStorage.findSchemes({
+            offset: req.query.offset || 0
+        }).then(searchResult => {
             res.json(searchResult);
         }).catch( err => {
             res.status(500);

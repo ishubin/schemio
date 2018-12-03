@@ -63,6 +63,36 @@ textarea.textfield {
     height: 150px;
 }
 
+
+/******************* Pagination *********************/
+ul.pagination {
+    list-style: none;
+    display: block;
+    margin: 20px 0px;
+    padding: 0;
+}
+ul.pagination li {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+ul.pagination li a {
+    display: inline-block;
+    border: 1px solid #aaa;
+    background: #fff;
+    color: #666;
+    padding: 3px 7px 3px 7px;
+}
+ul.pagination li.active a {
+    display: inline-block;
+    border: 1px solid #aaa;
+    background: #6fb8f4;
+    color: #fff;
+}
+
+
+
+
 /******************* Panel *********************/
 .panel {
     margin: 1px;

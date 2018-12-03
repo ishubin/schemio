@@ -5,6 +5,17 @@
 
 
         <div v-if="searchResult">
+            <paginate
+                v-model="currentPage"
+                :page-count="totalPages"
+                :page-range="3"
+                :margin-pages="2"
+                :click-handler="selectSearchPage"
+                :prev-text="'<'"
+                :next-text="'>'"
+                :container-class="'pagination'"
+                :page-class="'page-item'">
+            </paginate>
             <div v-for="scheme in searchResult.results">
                 <a :href="'/schemes/' + scheme.schemeId">{{scheme.name}}</a>
                 <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
@@ -45,16 +56,18 @@
 
 <script>
 import apiClient from '../apiClient.js';
+import Paginate from 'vuejs-paginate';
 
 export default {
+    components: {Paginate},
     mounted() {
-        apiClient.findSchemes().then(searchResponse => {
-            this.searchResult = searchResponse;
-        });
+        this.reloadSchemes();
     },
     data() {
         return {
             searchResult: null,
+            currentPage: 1,
+            totalPages: 0,
             newSchemePopup: {
                 title: '',
                 description: '',
@@ -64,6 +77,21 @@ export default {
         }
     },
     methods: {
+        selectSearchPage(page) {
+            this.reloadSchemes();
+        },
+
+        reloadSchemes() {
+            var offset = 0;
+            if (this.searchResult) {
+                offset = (this.currentPage - 1) * this.searchResult.resultsPerPage;
+            }
+            apiClient.findSchemes(offset).then(searchResponse => {
+                this.searchResult = searchResponse;
+                this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
+            });
+        },
+
         openNewSchemePopup() {
             this.newSchemePopup.name = '';
             this.newSchemePopup.description = '';
