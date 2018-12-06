@@ -22,11 +22,26 @@ class LocalSchemeStorage extends SchemeStorage {
             tags: [],
             schemes: []
         };
-        fs.readJson(`${this.storagePath}/index/schemes.json`).then(schemes => {
-            this.indices.schemes = schemes;
-        });
-        fs.readJson(`${this.storagePath}/index/tags.json`).then(tags => {
-            this.indices.tags = tags;
+
+        this.initializeStorage();
+    }
+
+    initializeStorage() {
+        Promise.all([fs.ensureDir(`${this.storagePath}/index`), fs.ensureDir(`${this.storagePath}/schemes`)]).then(() => {
+            return fs.readJson(`${this.storagePath}/index/schemes.json`).then(schemes => {
+                this.indices.schemes = schemes;
+            }).catch(err => {
+                this.indices.schemes = [];
+            });
+        }).then(() => {
+            return fs.readJson(`${this.storagePath}/index/tags.json`).then(tags => {
+                this.indices.tags = tags;
+            }).catch(err => {
+                this.indices.tags = [];
+            });
+        }).catch(err => {
+            console.error(`Issues with storage: ${this.storagePath}`, err);
+            process.exit(1);
         });
     }
 
@@ -99,7 +114,7 @@ class LocalSchemeStorage extends SchemeStorage {
             counter += 1;
         }
 
-        this.indices.schemes.sort((a,b) => a.name < b.name ? 1: -1);
+        this.indices.schemes.sort((a,b) => a.name > b.name ? 1: -1);
 
         fs.writeJson(`${this.storagePath}/index/schemes.json`, this.indices.schemes);
         fs.writeJson(`${this.storagePath}/index/tags.json`, this.indices.tags);
