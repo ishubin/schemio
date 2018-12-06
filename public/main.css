@@ -371,6 +371,7 @@ ul.button-group li span.toggle-button:hover {
     position: relative;
 }
 .property-row .property-label {
+    padding-left: 25px;
     font-size: 12px;
 }
 .property-row .property-textfield {
@@ -385,8 +386,8 @@ ul.button-group li span.toggle-button:hover {
 }
 .property-row .color-picker {
     position: absolute;
-    top: 0;
-    right: 5px;
+    top: 2px;
+    left: 5px;
 }
 .property-row .color-picker .vc-chrome {
     top: 20px;

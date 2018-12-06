@@ -19,17 +19,6 @@
             <textarea v-model="item.description"></textarea>
         </panel>
 
-        <panel name="Style">
-            <div class="property-row" v-if="item.style.background && item.style.background.color">
-                <span class="property-label">Background:</span>
-                <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>
-            </div>
-            <div class="property-row" v-if="item.style.text && item.style.text.color">
-                <span class="property-label">Text color:</span>
-                <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]"></color-picker>
-            </div>
-        </panel>
-
         <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component'">
             <div v-if="!item.links || item.links.length === 0">There are no links</div>
 
@@ -42,7 +31,16 @@
             <span class="link" v-on:click="addLink()">+ add link</span>
         </panel>
 
-
+        <panel name="Style">
+            <div class="property-row" v-if="item.style.background && item.style.background.color">
+                <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>
+                <span class="property-label">Background</span>
+            </div>
+            <div class="property-row" v-if="item.style.text && item.style.text.color">
+                <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]"></color-picker>
+                <span class="property-label">Text color</span>
+            </div>
+        </panel>
 
         <link-edit-popup v-if="editLinkData"
             :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url"
