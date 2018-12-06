@@ -30,10 +30,15 @@
                 </div>
                 <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
             </div>
-            <div class="side-panel" v-if="selectedItem || mode === 'edit'">
+
+            <div class="side-panel" v-if="selectedItem && mode === 'edit'">
                 <div class="wrapper">
-                    <item-properties v-if="selectedItem" :item="selectedItem" :mode="mode"/>
-                    <scheme-properties v-else :schemeContainer="schemeContainer"></scheme-properties>
+                    <item-properties :item="selectedItem" :mode="mode"/>
+                </div>
+            </div>
+            <div class="side-panel" v-if="!selectedItem && mode === 'edit'">
+                <div class="wrapper">
+                    <scheme-properties :schemeContainer="schemeContainer"></scheme-properties>
                 </div>
             </div>
 

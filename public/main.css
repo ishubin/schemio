@@ -93,19 +93,6 @@ ul.pagination li.active a {
 
 
 
-/******************* Panel *********************/
-.panel {
-    margin: 1px;
-    padding: 0px;
-    background: #424346;
-    color: #dddddd;
-}
-.panel-caption {
-    padding: 2px;
-    font-size: 9pt;
-    font-weight: bold;
-}
-
 
 .scheme-middle-container {
     position: relative;
@@ -341,17 +328,44 @@ ul.button-group li span.toggle-button:hover {
 .scheme-middle-container .side-panel > .wrapper {
     margin: 10px;
 }
-.item-properties h5.section {
-    border-bottom: 2px solid #aed3de;
-    font-weight: normal;
-    color: #31b1d9;
-    font-size: 14px;
-    margin: 10px 0 5px 0;
-    padding-bottom: 4px;
+
+
+/******************* Panel *********************/
+.panel {
+    border-top: 2px solid #d3e5eb;
+    margin: 2px;
+    padding-top: 2px;
 }
+.panel-title {
+    position: relative;
+    display: block;
+    font-weight: normal;
+    color: #11a1cf;
+    font-size: 14px;
+    padding-bottom: 4px;
+    padding-left: 15px;
+    cursor: pointer;
+}
+.panel-title:before {
+    position: absolute;
+    display: inline-block;
+    font-size: 10px;
+    left: 2px;
+    top: 2px;
+}
+.panel-title.panel-expanded:before {
+    content: '\25BC';
+}
+.panel-title.panel-collapsed:before {
+    content: '\25BA';
+}
+.panel-title:hover {
+    background: #e0edf1;
+}
+
 .item-properties textarea {
     width: 100%;
-    min-height: 500px;
+    min-height: 150px;
 }
 .property-row {
     position: relative;
