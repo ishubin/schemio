@@ -45,6 +45,10 @@
                 <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]"></color-picker>
                 <span class="property-label">Text color</span>
             </div>
+            <div class="property-row" v-if="item.style.stroke && item.style.stroke.color">
+                <color-picker :color="item.style.stroke.color" @input="item.style.stroke.color = arguments[0]"></color-picker>
+                <span class="property-label">Stroke color</span>
+            </div>
         </panel>
 
         <link-edit-popup v-if="editLinkData"

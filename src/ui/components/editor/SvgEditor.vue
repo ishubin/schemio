@@ -33,6 +33,7 @@
                 <comment-item v-if="item.type === 'comment'"
                     :x="_x(item.area.x)"
                     :y="_y(item.area.y)"
+                    :scale="_z(1)"
                     :width="_z(item.area.w)"
                     :height="_z(item.area.h)"
                     :item-style="item.style"

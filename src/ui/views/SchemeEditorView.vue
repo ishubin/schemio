@@ -136,7 +136,8 @@ export default {
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
                     background: { color: '#ccc' },
-                    text: {color: '#666'}
+                    text: {color: '#666'},
+                    stroke: {color: '#fff'}
                 },
                 name: '',
                 description: 'Leave a comment ...',

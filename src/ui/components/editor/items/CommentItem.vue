@@ -1,20 +1,17 @@
 <template lang="html">
     <g class="item-graphics">
-        <rect
-            :x="x"
-            :y="y"
-            :width="width"
-            :height="height"
-            :fill="itemStyle.background && itemStyle.background.color ? itemStyle.background.color : '#fff'"
-        />
-            <text
-                :x="x + Math.floor(fontsize / 2)"
-                :y="y + fontsize"
-                :font-size="Math.floor(fontsize) + 'px'"
-                :fill="itemStyle.text && itemStyle.text.color ? itemStyle.text.color : '#000'"
-                >
-                <tspan v-for="line in svgLines" :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{line}}</tspan>
-            </text>
+        <polygon :points="points" style="stroke-width:1" :fill="backgroundColor" :stroke="strokeColor"/>
+        <line :x1="x + delta" :y1="y" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
+        <line :x1="x" :y1="y + delta" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
+
+        <text
+            :x="x + Math.floor(fontsize / 2)"
+            :y="y + fontsize"
+            :font-size="Math.floor(fontsize) + 'px'"
+            :fill="itemStyle.text && itemStyle.text.color ? itemStyle.text.color : '#000'"
+            >
+            <tspan v-for="line in svgLines" :x="x + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{line}}</tspan>
+        </text>
     </g>
 
 </template>
@@ -23,7 +20,7 @@
 import _ from 'lodash';
 
 export default {
-    props: ['x', 'y', 'width', 'height', 'itemStyle', 'text', 'fontsize'],
+    props: ['x', 'y', 'scale', 'width', 'height', 'itemStyle', 'text', 'fontsize'],
     mounted() {
         this.breakWords(this.text);
     },
@@ -76,6 +73,23 @@ export default {
         },
         width(newWidth) {
             this.buildLines(newWidth);
+        }
+    },
+    computed: {
+        points() {
+            var text = '';
+            var d = 10 * this.scale;
+            text+= `${this.x+d},${this.y} ${this.x+this.width},${this.y} ${this.x+this.width},${this.y+this.height} ${this.x},${this.y+this.height} ${this.x},${this.y+d}`;
+            return text;
+        },
+        delta() {
+            return 10 * this.scale;
+        },
+        backgroundColor() {
+            return this.itemStyle.background && this.itemStyle.background.color ? this.itemStyle.background.color : '#fff';
+        },
+        strokeColor() {
+            return this.itemStyle.stroke && this.itemStyle.stroke.color ? this.itemStyle.stroke.color : '#fff';
         }
     }
 }
