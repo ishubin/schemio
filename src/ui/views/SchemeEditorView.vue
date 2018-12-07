@@ -11,7 +11,7 @@
                     </li>
                 </ul>
                 <ul class="button-group">
-                    <li> <span class="toggle-button" @click="onCreateComponentClick()">Create</span> </li>
+                    <li> <span class="toggle-button" @click="onCreateComponentClick()">Component</span> </li>
                     <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
                     <li> <span class="toggle-button" @click="onCreateCommentClick()">Comment</span> </li>
                 </ul>

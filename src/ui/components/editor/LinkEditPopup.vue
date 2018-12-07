@@ -1,33 +1,18 @@
 <template lang="html">
-    <transition name="modal">
-       <div class="modal-mask">
-           <div class="modal-wrapper">
-               <div class="modal-container">
-                   <div class="modal-header">
-                       <h3>{{popupTitle}}</h3>
-                   </div>
-                   <div class="modal-body">
-                       <h5>Title</h5>
-                       <input type="text" v-model:value="editTitle"/>
+    <modal :title="popupTitle" :primary-button="submitTitle" @primary-submit="submitLink()" @close="$emit('close')">
+       <h5>Title</h5>
+       <input type="text" class="textfield" v-model:value="editTitle"/>
 
-                       <h5>URL</h5>
-                       <input type="text" v-model:value="editUrl"/>
-                  </div>
-                   <div class="modal-footer">
-                       <div class="modal-controls">
-                           <span class="btn btn-primary" v-on:click="submitLink()">{{submitTitle}}</span>
-                           <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </div>
-   </transition>
+       <h5>URL</h5>
+       <input type="text" class="textfield" v-model:value="editUrl"/>
+    </modal>
 </template>
 
 <script>
+import Modal from '../Modal.vue';
 export default {
     props: ['edit', 'title', 'url'],
+    components : {Modal},
 
     data() {
         return {
