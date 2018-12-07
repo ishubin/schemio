@@ -1,9 +1,9 @@
 <template lang="html">
     <div class="item-properties">
         <panel name="General">
-            <div  v-if="item.type !== 'comment'" v-model="item.name">
+            <div  v-if="item.type !== 'comment'">
                 <h5>Name</h5>
-                <input class="textfield" type="text"/>
+                <input class="textfield" type="text" v-model="item.name"/>
             </div>
 
             <div v-if="item.type === 'overlay' || item.type === 'component'">
@@ -19,19 +19,24 @@
             <textarea v-model="item.description"></textarea>
         </panel>
 
+        <panel name="Image" v-if="item.type === 'image'">
+            <h5>Image URL</h5>
+            <input class="textfield" type="text" v-model="item.url"/>
+        </panel>
+
         <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component'">
             <div v-if="!item.links || item.links.length === 0">There are no links</div>
 
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
                     <a class="link" :href="link.url" target="_blank">{{link.title}}</a>
-                    <span class="link" @click="editLink(linkId, link)">Edit</span>
+                    <span class="link delete-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
                 </li>
             </ul>
-            <span class="link" v-on:click="addLink()">+ add link</span>
+            <span class="link" v-on:click="addLink()"><i class="fas fa-link"></i> add link</span>
         </panel>
 
-        <panel name="Style">
+        <panel name="Style" v-if="item.type !== 'image'">
             <div class="property-row" v-if="item.style.background && item.style.background.color">
                 <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>
                 <span class="property-label">Background</span>

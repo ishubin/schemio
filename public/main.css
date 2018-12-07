@@ -22,6 +22,16 @@ h5 {
     margin: 10px;
 }
 
+
+.link {
+    text-decoration: none;
+    color: #248bab;
+    cursor: pointer;
+}
+.link:hover {
+    text-decoration: underline;
+}
+
 /******************* Buttons *******************/
 .btn {
     display: inline-block;
@@ -401,6 +411,23 @@ ul.button-group li span.toggle-button:hover {
     border-radius: 1px;
     cursor: pointer;
     border: 1px solid #999;
+}
+
+
+/************* Links in Item Properties ***************/
+.item-properties ul.links {
+    padding-left: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.item-properties ul.links li {
+    position: relative;
+}
+.item-properties ul.links .delete-link {
+    opacity: 0.1;
+}
+.item-properties ul.links .delete-link:hover {
+    opacity: 1.0;
 }
 
 

@@ -1,7 +1,7 @@
 <template lang="html">
     <div class="content-wrapper">
         <h1>Schemio</h1>
-        <span class="btn" @click="openNewSchemePopup">New Scheme</span>
+        <span class="btn" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
 
 
         <div v-if="searchResult">
