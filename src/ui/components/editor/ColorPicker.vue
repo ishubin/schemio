@@ -4,7 +4,17 @@
             :style="{'background': pickerColor}"
             @click="toggleColorPicker = !toggleColorPicker"
             ></span>
-        <chrome-picker v-model="chromePickerColor" v-if="toggleColorPicker" @input="updateColor"></chrome-picker>
+
+
+        <transition name="modal" v-if="toggleColorPicker">
+            <div class="modal-mask modal-mask-transparent" @click="toggleColorPicker = false">
+                <div class="modal-wrapper">
+                    <div class="modal-container" style="width: 200px; padding: 0;">
+                        <chrome-picker v-model="chromePickerColor" @input="updateColor"></chrome-picker>
+                    </div>
+                </div>
+           </div>
+       </transition>
     </div>
 </template>
 
