@@ -14,6 +14,7 @@
                     <li> <span class="toggle-button" @click="onCreateComponentClick()">Component</span> </li>
                     <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
                     <li> <span class="toggle-button" @click="onCreateCommentClick()">Comment</span> </li>
+                    <li> <span class="toggle-button" @click="onCreateImageClick()">Image</span> </li>
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
@@ -43,6 +44,8 @@
             </div>
 
         </div>
+
+        <create-image-modal v-if="showCreateImageModal" @close="showCreateImageModal = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
     </div>
 
 </template>
@@ -54,10 +57,11 @@ import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
+import CreateImageModal from '../components/editor/CreateImageModal.vue';
 import shortid from 'shortid';
 
 export default {
-    components: {SvgEditor, ItemProperties, SchemeProperties},
+    components: {SvgEditor, ItemProperties, SchemeProperties, CreateImageModal},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
@@ -82,7 +86,9 @@ export default {
             zoom: 100,
             mode: 'view',
             knownModes: ['view', 'edit'],
-            searchHighlights: []
+            searchHighlights: [],
+
+            showCreateImageModal: false
         }
     },
     methods: {
@@ -137,6 +143,22 @@ export default {
                 links: []
             });
         },
+
+        onCreateImageClick() {
+            this.showCreateImageModal = true;
+        },
+
+        startCreatingImage(imageUrl) {
+            this.showCreateImageModal = false;
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'image',
+                url: imageUrl,
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                name: 'image',
+                description: ''
+            });
+        }
     },
     filters: {
         capitalize(value) {
