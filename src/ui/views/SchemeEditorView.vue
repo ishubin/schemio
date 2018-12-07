@@ -32,17 +32,26 @@
                 <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
             </div>
 
-            <div class="side-panel" v-if="selectedItem && mode === 'edit'">
-                <div class="wrapper">
-                    <item-properties :item="selectedItem" :mode="mode"/>
-                </div>
-            </div>
-            <div class="side-panel" v-if="!selectedItem && mode === 'edit'">
-                <div class="wrapper">
-                    <scheme-properties :schemeContainer="schemeContainer"></scheme-properties>
-                </div>
-            </div>
+            <div class="side-panel">
+                <ul class="tabs">
+                    <li v-for="tab in tabs">
+                        <span class="tab"
+                            :class="{active: currentTab === tab.name, disabled: tab.disabled}"
+                            @click="currentTab = tab.name"
+                            >{{tab.name}}</span>
+                    </li>
+                </ul>
 
+                <div class="wrapper">
+                    <scheme-properties :schemeContainer="schemeContainer" v-if="currentTab === 'Scheme' && schemeContainer"></scheme-properties>
+                    <div v-if="currentTab === 'Item'">
+                        <item-properties :item="selectedItem" :mode="mode" v-if="selectedItem"/>
+                        <p v-else>
+                            No item selected
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <create-image-modal v-if="showCreateImageModal" @close="showCreateImageModal = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
@@ -88,7 +97,16 @@ export default {
             knownModes: ['view', 'edit'],
             searchHighlights: [],
 
-            showCreateImageModal: false
+            showCreateImageModal: false,
+
+            currentTab: 'Scheme',
+            tabs: [{
+                name: 'Scheme'
+            }, {
+                name: 'Create'
+            }, {
+                name: 'Item'
+            }]
         }
     },
     methods: {

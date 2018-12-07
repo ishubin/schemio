@@ -32,6 +32,41 @@ h5 {
     text-decoration: underline;
 }
 
+/******************** Tabs *********************/
+ul.tabs {
+    list-style: none;
+    margin: 10px 2px;
+    padding: 0;
+    border-bottom:2px solid #117d9e;
+}
+ul.tabs li {
+    display: inline;
+}
+ul.tabs li .tab {
+    display: inline-block;
+    padding: 5px 10px;
+    border: 1px solid #c8d4d7;
+    border-radius: 3px 3px 0 0;
+    background: #fff;
+    color: #555;
+    cursor: pointer;
+}
+ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
+    color: #fff;
+    background: #117d9e;
+    border: 1px solid #117d9e;
+    cursor: default;
+}
+ul.tabs li .tab:hover {
+    background: #c3e9f5;
+}
+ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
+    border: 1px solid #c8d4d7;
+    background: #eee;
+    color: #aaa;
+    cursor: default;
+}
+
 /******************* Buttons *******************/
 .btn {
     display: inline-block;
