@@ -410,6 +410,9 @@ ul.button-group li span.toggle-button:hover {
     cursor: pointer;
     border: 1px solid #999;
 }
+.color-picker .vc-chrome {
+    box-shadow: none;
+}
 
 
 /************* Links in Item Properties ***************/
