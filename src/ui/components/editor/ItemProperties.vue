@@ -52,7 +52,7 @@
         </panel>
 
         <link-edit-popup v-if="editLinkData"
-            :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url"
+            :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url" :type="editLinkData.type"
             @submit-link="onLinkSubmit"
             @close="editLinkData = null"/>
     </div>
@@ -88,7 +88,8 @@ export default {
                 linkId: -1,
                 edit: false,
                 title: '',
-                url: ''
+                url: '',
+                type: ''
             };
         },
         editLink(linkId, link) {
@@ -96,21 +97,23 @@ export default {
                 linkId: linkId,
                 edit: true,
                 title: link.title,
-                url: link.url
+                url: link.url,
+                type: link.type
             };
         },
         onLinkSubmit(link) {
             if (this.editLinkData.linkId >= 0) {
                 this.item.links[this.editLinkData.linkId].title = link.title;
                 this.item.links[this.editLinkData.linkId].url = link.url;
+                this.item.links[this.editLinkData.linkId].type = link.type;
             } else {
                 if (!this.item.links) {
                     this.item.links = [];
                 }
                 this.item.links.push({
-                    type: '',
                     title: link.title,
-                    url: link.url
+                    url: link.url,
+                    type: link.type
                 });
             }
             this.$emit('link-update');

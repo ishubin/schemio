@@ -35,7 +35,8 @@ const ApiSchemes = {
 
     findSchemes(req, res) {
         schemeStorage.findSchemes({
-            offset: req.query.offset || 0
+            offset: req.query.offset || 0,
+            query: req.query.q ? req.query.q.trim() : null
         }).then(searchResult => {
             res.json(searchResult);
         }).catch( err => {

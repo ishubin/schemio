@@ -2,7 +2,7 @@
     <transition name="modal">
        <div class="modal-mask">
            <div class="modal-wrapper">
-               <div class="modal-container">
+               <div class="modal-container" :style="{width: width + 'px'}">
                    <div class="modal-header">
                        <h3>{{title}}</h3>
                    </div>
@@ -25,6 +25,10 @@
 export default {
     props: {
         title: String,
+        width: {
+            type: Number,
+            default: 600
+        },
         primaryButton: {
             type: String,
             default: null

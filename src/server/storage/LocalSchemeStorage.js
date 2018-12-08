@@ -75,7 +75,9 @@ class LocalSchemeStorage extends SchemeStorage {
         var resultsPerPage = 25;
 
         var foundItems = _.filter(this.indices.schemes, scheme => {
-            //TODO implement search query handling
+            if (searchQuery.query && searchQuery.query.length > 0) {
+                return scheme.name.toLowerCase().indexOf(searchQuery.query.toLowerCase()) >= 0;
+            }
             return true;
         });
 

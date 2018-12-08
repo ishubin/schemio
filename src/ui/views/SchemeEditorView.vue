@@ -79,9 +79,13 @@ export default {
 
         EventBus.$on(EventBus.ITEM_SELECTED, item => {
             this.selectedItem = item;
+            this.currentTab = 'Item';
+            this.tabs[2].disabled = false;
         });
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, item => {
             this.selectedItem = null;
+            this.currentTab = 'Scheme';
+            this.tabs[2].disabled = true;
         });
     },
     data() {
@@ -105,7 +109,8 @@ export default {
             }, {
                 name: 'Create'
             }, {
-                name: 'Item'
+                name: 'Item',
+                disabled: true
             }]
         }
     },

@@ -86,7 +86,7 @@ export default {
             if (this.searchResult) {
                 offset = (this.currentPage - 1) * this.searchResult.resultsPerPage;
             }
-            apiClient.findSchemes(offset).then(searchResponse => {
+            apiClient.findSchemes('', offset).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
             });

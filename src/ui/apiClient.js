@@ -37,8 +37,9 @@ export default {
         }
     },
 
-    findSchemes(offset) {
-        return axios.get(`/api/schemes?offset=${offset}`).then(response => {
+    findSchemes(query, offset) {
+        var encodedQuery = encodeURIComponent(query);
+        return axios.get(`/api/schemes?offset=${offset}&q=${encodedQuery}`).then(response => {
             return response.data;
         });
     }
