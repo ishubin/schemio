@@ -340,13 +340,13 @@ export default {
 
         getFontAwesomeSymbolForLink(link) {
             if (link.type === 'logs') {
-                return '\uf056';
+                return '\uf550';
             } else if (link.type === 'graphs') {
-                return '\uf058';
+                return '\uf201';
             } else if (link.type === 'scheme') {
-                return '\uf052';
+                return '\uf542';
             }
-            return '\uf083';
+            return '\uf0c1';
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },
