@@ -26,14 +26,21 @@
 
         <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component'">
             <div v-if="!item.links || item.links.length === 0">There are no links</div>
-
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
-                    <a class="link" :href="link.url" target="_blank">{{link.title}}</a>
+                    <a class="link" :href="link.url" target="_blank">
+                       <i v-if="link.type === 'graphs'" class="fas fa-chart-line"></i>
+                       <i v-if="link.type === 'logs'" class="fas fa-stream"></i>
+                       <i v-if="link.type === 'scheme'" class="fas fa-project-diagram"></i>
+                       <i v-if="link.type === 'default'" class="fas fa-link"></i>
+
+                        {{link.title}}
+                    </a>
                     <span class="link delete-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
+                    <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-cross"></i></span>
                 </li>
             </ul>
-            <span class="link" v-on:click="addLink()"><i class="fas fa-link"></i> add link</span>
+            <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
         </panel>
 
         <panel name="Style" v-if="item.type !== 'image'">
@@ -91,6 +98,9 @@ export default {
                 url: '',
                 type: ''
             };
+        },
+        deleteLink(linkId) {
+            this.item.links.splice(linkId, 1);
         },
         editLink(linkId, link) {
             this.editLinkData = {

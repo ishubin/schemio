@@ -74,9 +74,10 @@
 
             <g v-for="link in selectedItemLinks">
                 <a class="item-link" :xlink:href="link.url" target="_blank">
-                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="red" stroke-width="3" fill="rgba(255, 0, 0, 0.2)" />
-                    <text class="item-link-icon"
-                        :x="_x(link.x) - _z(5)"
+                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="rgba(255, 0, 0, 0.25)" stroke-width="2" fill="rgba(255, 0, 0, 0.1)" />
+
+                    <text class="item-link-icon" :class="['link-icon-' + link.type]"
+                        :x="_x(link.x) - _z(6)"
                         :y="_y(link.y) + _z(5)"
                         :font-size="Math.floor(_z(13)) + 'px'"
                         :title="link.title"
@@ -317,7 +318,9 @@ export default {
                 _.forEach(item.links, link => {
                     var svgLink = {
                         url: link.url,
-                        shortTitle: link.title.substr(0, 1).toUpperCase(),
+                        type: link.type,
+                        //shortTitle: link.title.substr(0, 1).toUpperCase(),
+                        shortTitle: this.getFontAwesomeSymbolForLink(link),
                         title: link.title,
                         x: cx,
                         y: cy,
@@ -333,6 +336,17 @@ export default {
             }
 
             return links;
+        },
+
+        getFontAwesomeSymbolForLink(link) {
+            if (link.type === 'logs') {
+                return '\uf056';
+            } else if (link.type === 'graphs') {
+                return '\uf058';
+            } else if (link.type === 'scheme') {
+                return '\uf052';
+            }
+            return '\uf083';
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },

@@ -215,7 +215,8 @@ svg rect.item-search-highlight {
 svg .item-link .item-link-icon {
     fill: #ff0000;
     font-weight: bold;
-    font-family: helvetica;
+    font-size: 12px;
+    font-family: "Font Awesome 5 Free";
 }
 svg .item-link .item-link-full-title {
     display: none;
@@ -226,6 +227,8 @@ svg .item-link .item-link-full-title {
 }
 svg .item-link:hover .item-link-full-title {
     display: block;
+    text-shadow: 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #fff, 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
+    z-index: 5;
 }
 
 
@@ -451,12 +454,16 @@ ul.button-group li span.toggle-button:hover {
 
 /************* Links in Item Properties ***************/
 .item-properties ul.links {
-    padding-left: 10px;
+    list-style: none;
+    padding-left: 20px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
 .item-properties ul.links li {
     position: relative;
+}
+.item-properties ul.links li i.fas {
+    font-size: 12px;
 }
 .item-properties ul.links .delete-link {
     opacity: 0.1;

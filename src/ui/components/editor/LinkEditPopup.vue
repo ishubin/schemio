@@ -27,14 +27,6 @@
            <input type="text" class="textfield" v-model:value="editUrl"/>
        </div>
 
-       <!--
-       <i class="fas fa-chart-line"></i>
-       <i class="fas fa-list"></i>
-       <i class="fas fa-stream"></i>
-       <i class="far fa-file-alt"></i>
-       <i class="fas fa-project-diagram"></i>
-       -->
-
        <scheme-search-modal v-if="showSchemeSearchModal" @close="showSchemeSearchModal = false" @selected-scheme="onSchemeSelect(arguments[0])"></scheme-search-modal>
     </modal>
 </template>
