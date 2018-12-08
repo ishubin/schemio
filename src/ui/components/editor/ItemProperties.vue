@@ -36,7 +36,7 @@
 
                         {{link.title}}
                     </a>
-                    <span class="link delete-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
+                    <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
                     <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-cross"></i></span>
                 </li>
             </ul>

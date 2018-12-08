@@ -462,13 +462,24 @@ ul.button-group li span.toggle-button:hover {
 .item-properties ul.links li {
     position: relative;
 }
+.item-properties ul.links a {
+    color: #555;
+}
 .item-properties ul.links li i.fas {
     font-size: 12px;
 }
 .item-properties ul.links .delete-link {
     opacity: 0.1;
+    color: #f0905a;
 }
 .item-properties ul.links .delete-link:hover {
+    opacity: 1.0;
+}
+.item-properties ul.links .edit-link {
+    opacity: 0.1;
+    color: #555;
+}
+.item-properties ul.links .edit-link:hover {
     opacity: 1.0;
 }
 
