@@ -3,6 +3,7 @@ const EventBus = new Vue({
     data() {
         return {
             START_CREATING_COMPONENT: 'start-creating-component',
+            PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             REDRAW: 'redraw',
             ITEM_SELECTED: 'item-selected',

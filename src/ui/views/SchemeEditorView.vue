@@ -83,6 +83,10 @@ export default {
             this.currentTab = 'Scheme';
             this.tabs[2].disabled = true;
         });
+
+        EventBus.$on(EventBus.PLACE_ITEM, item => {
+            this.schemeContainer.addItem(item);
+        });
     },
     data() {
         return {

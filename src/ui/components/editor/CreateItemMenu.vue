@@ -18,19 +18,27 @@
         </div>
 
         <create-image-modal v-if="showCreateImageModal" @close="showCreateImageModal = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
+
+        <modal title="Error" v-if="errorMessage" @close='errorMessage = null'>
+            {{errorMessage}}
+        </modal>
+
     </div>
 </template>
 
 <script>
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
+import Modal from '../Modal.vue';
 import shortid from 'shortid';
 
 export default {
-    components: {CreateImageModal},
+    components: {CreateImageModal, Modal},
     data() {
         return {
-            showCreateImageModal: false
+            showCreateImageModal: false,
+
+            errorMessage: null
         }
     },
     methods: {
@@ -84,7 +92,26 @@ export default {
         },
 
         startCreatingImage(imageUrl) {
-            this.showCreateImageModal = false;
+            var img = new Image();
+            img.onload = function () {
+                if (this.width > 1 && this.height > 1) {
+                    EventBus.$emit(EventBus.PLACE_ITEM, {
+                        id: shortid.generate(),
+                        type: 'image',
+                        url: imageUrl,
+                        area: { x: 0, y: 0, w: this.width, h: this.height },
+                        name: 'image',
+                        description: ''
+                    });
+                }
+                this.showCreateImageModal = false;
+            };
+            img.onerror = () => {
+                this.errorMessage = 'Could not load image. Check if the path is correct';
+            };
+            img.src = imageUrl;
+
+            /*this.showCreateImageModal = false;
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'image',
@@ -92,7 +119,7 @@ export default {
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 name: 'image',
                 description: ''
-            });
+            });*/
         }
     }
 }
