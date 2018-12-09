@@ -9,6 +9,7 @@ const EventBus = new Vue({
             ITEM_SELECTED: 'item-selected',
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
             KEY_PRESS: 'key-press',
+            BRING_TO_VIEW: 'bring-to-view',
             KEY: {
                 ESCAPE: 'escape',
                 DELETE: 'delete'

@@ -14,7 +14,7 @@
                     </li>
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
-                <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
+                <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                 <span class="btn btn-secondary" @click="saveScheme()">Save</span>
             </div>
 
@@ -121,6 +121,21 @@ export default {
             apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme);
         },
 
+        toggleSearchedItems() {
+            if (this.searchHighlights && this.searchHighlights.length > 0) {
+                var area = {x: 0, y: 0, w: 0, h: 0};
+
+                _.forEach(this.searchHighlights, a => {
+                    area.x += a.x + a.w /2;
+                    area.y += a.y + a.h /2;
+                });
+
+                area.x = area.x / this.searchHighlights.length;
+                area.y = area.y / this.searchHighlights.length;
+
+                EventBus.$emit(EventBus.BRING_TO_VIEW, area);
+            }
+        }
     },
     filters: {
         capitalize(value) {

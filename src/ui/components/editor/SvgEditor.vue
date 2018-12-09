@@ -153,6 +153,10 @@ export default {
         EventBus.$on(EventBus.ITEM_SELECTED, item => {
             this.onSelectItem(item);
         });
+        EventBus.$on(EventBus.BRING_TO_VIEW, area => {
+            //TODO calculate this properly
+            this.startBringToViewAnimation(area.x, area.y, 1.0);
+        });
     },
     data() {
         return {
@@ -175,6 +179,13 @@ export default {
                     timer: null,
                     frame: 0,
                     totalFrames: 30,
+                    intervalMs: 5
+                },
+
+                bringToView: {
+                    timer: null,
+                    frame: 0,
+                    totalFrames: 25,
                     intervalMs: 5
                 }
             }
@@ -280,6 +291,32 @@ export default {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
             }
+        },
+
+        startBringToViewAnimation(x, y, z) {
+            if (this.animations.bringToView.timer) {
+                clearInterval(this.animations.bringToView.timer);
+            }
+            this.animations.bringToView.timer = null;
+            this.animations.bringToView.frame = 0;
+
+            var originalX = this.vOffsetX;
+            var originalY = this.vOffsetY;
+            var originalZoom = this.vZoom;
+
+            this.animations.bringToView.timer = setInterval(() => {
+                this.animations.bringToView.frame += 1;
+
+                if (this.animations.bringToView.frame >= this.animations.bringToView.totalFrames) {
+                    clearInterval(this.animations.bringToView.timer);
+                } else  {
+                    var t = this.animations.bringToView.frame / this.animations.bringToView.totalFrames;
+
+                    this.vOffsetX = originalX * (1.0 - t) + x * t;
+                    this.vOffsetY = originalY * (1.0 - t) + y * t;
+                    this.vZoom = originalZoom * (1.0 - t) + z * t;
+                }
+           }, this.animations.linksAppear.intervalMs);
         },
 
         startLinksAnimation() {

@@ -226,7 +226,7 @@ svg .item-link .item-link-icon {
 svg .item-link .item-link-full-title {
     display: none;
     font-size: 12px;
-    font-weight: normal;
+    font-weight: bold;
     font-family: helvetica;
     fill: #ff0000;
 }
@@ -351,6 +351,7 @@ ul.button-group li .toggle-button {
     color: #111;
     cursor: pointer;
     cursor: hand;
+    border-radius: 2px;
 }
 ul.button-group li .toggle-button.toggled {
     padding: 2px 5px 2px 5px;
