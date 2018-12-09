@@ -89,6 +89,10 @@ class LocalSchemeStorage extends SchemeStorage {
         });
     }
 
+    getTags() {
+        return fs.readJson(`${this.storagePath}/index/tags.json`);
+    }
+
 
     runReindexJob() {
         if (!this.isReindexing) {

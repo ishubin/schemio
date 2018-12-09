@@ -17,6 +17,10 @@ class SchemeStorage {
     findSchemes(searchQuery) {
         return Promise.resolve(null);
     }
+
+    getTags() {
+        return Promise.resolve(null);
+    }
 }
 
 module.exports = SchemeStorage;

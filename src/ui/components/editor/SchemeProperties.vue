@@ -19,14 +19,21 @@
 
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
+import apiClient from '../../apiClient.js';
 
 export default {
     props: ['schemeContainer'],
     components: {VueTagsInput},
+    mounted() {
+        apiClient.getTags().then(tags => {
+            this.existingSchemeTags = _.map(tags, tag => {
+                return {text: tag};
+            });
+        });
+    },
     data() {
         return {
             schemeTag: '',
-            //TODO move into indexed tags
             existingSchemeTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}]
         }
     },

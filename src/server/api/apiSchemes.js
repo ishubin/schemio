@@ -45,6 +45,15 @@ const ApiSchemes = {
         });
     },
 
+    getTags(req, res) {
+        schemeStorage.getTags().then(tags => {
+            res.json(tags);
+        }).catch( err => {
+            res.status(500);
+            res.json({error: 'Could not get tags'});
+        });
+    },
+
     sanitizeScheme(scheme) {
         if (scheme.items) {
             _.forEach(scheme.items, item => {

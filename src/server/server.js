@@ -16,6 +16,7 @@ app.get('/api/schemes', [jsonBodyParser], apiSchemes.findSchemes);
 app.get('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.getScheme);
 app.post('/api/schemes', [jsonBodyParser], apiSchemes.createScheme);
 app.put('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.saveScheme);
+app.get('/api/tags', [jsonBodyParser], apiSchemes.getTags);
 
 app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)

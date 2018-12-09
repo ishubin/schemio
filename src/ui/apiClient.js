@@ -42,5 +42,11 @@ export default {
         return axios.get(`/api/schemes?offset=${offset}&q=${encodedQuery}`).then(response => {
             return response.data;
         });
+    },
+
+    getTags() {
+        return axios.get('/api/tags').then(response => {
+            return response.data;
+        });
     }
 }

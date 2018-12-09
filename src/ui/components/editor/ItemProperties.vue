@@ -71,12 +71,20 @@ import EventBus from './EventBus.js';
 import ColorPicker from './ColorPicker.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import Panel from './Panel.vue';
+import apiClient from '../../apiClient.js';
 import _ from 'lodash';
 
 
 export default {
     props: ['item'],
     components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel},
+    mounted() {
+        apiClient.getTags().then(tags => {
+            this.existingItemTags = _.map(tags, tag => {
+                return {text: tag};
+            });
+        });
+    },
     data() {
         return {
             backgroundColor: {hex: '#ffffff'},
@@ -84,7 +92,6 @@ export default {
             editLinkData: null,
             itemTag: '',
 
-            //TODO move into indexed tags
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },
