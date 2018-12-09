@@ -212,8 +212,13 @@ svg rect.item-search-highlight {
 
 /**********************/
 /*      Item link    */
+svg .item-link circle {
+    /*stroke: #752929;*/
+    stroke-width: 2;
+    /*fill: #752929;*/
+}
 svg .item-link .item-link-icon {
-    fill: #ff0000;
+    fill: #fff;
     font-weight: bold;
     font-size: 12px;
     font-family: "Font Awesome 5 Free";

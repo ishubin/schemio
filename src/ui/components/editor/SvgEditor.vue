@@ -72,9 +72,9 @@
                 </g>
             </g>
 
-            <g v-for="link in selectedItemLinks">
+            <g v-for="link, linkIndex in selectedItemLinks">
                 <a class="item-link" :xlink:href="link.url" target="_blank">
-                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(10)" stroke="rgba(255, 0, 0, 0.25)" stroke-width="2" fill="rgba(255, 0, 0, 0.1)" />
+                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(12)" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
 
                     <text class="item-link-icon" :class="['link-icon-' + link.type]"
                         :x="_x(link.x) - _z(6)"
@@ -161,6 +161,7 @@ export default {
                 createComponent: new StateCreateComponent(this),
                 dragItem: new StateDragItem(this)
             },
+            linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
             vOffsetX: null,
             vOffsetY: null,
