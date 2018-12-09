@@ -4,17 +4,14 @@
             <div class="scheme-editor-top-panel">
                 <ul class="button-group">
                     <li v-for="knownMode in knownModes">
-                        <span class="toggle-button"
-                            :class="{toggled: mode === knownMode}"
+                        <span class="toggle-button editor-mode"
+                            :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
                             @click="toggleMode(knownMode)"
-                            >{{knownMode | capitalize}}</span>
+                            >
+                            <i class="fas fa-eye" v-if="knownMode === 'view'"></i>
+                            <i class="fas fa-pen-square" v-if="knownMode === 'edit'"></i>
+                        </span>
                     </li>
-                </ul>
-                <ul class="button-group">
-                    <li> <span class="toggle-button" @click="onCreateComponentClick()">Component</span> </li>
-                    <li> <span class="toggle-button" @click="onCreateOverlayClick()">Overlay</span> </li>
-                    <li> <span class="toggle-button" @click="onCreateCommentClick()">Comment</span> </li>
-                    <li> <span class="toggle-button" @click="onCreateImageClick()">Image</span> </li>
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."/>
@@ -50,11 +47,11 @@
                             No item selected
                         </p>
                     </div>
+                    <create-item-menu v-if="currentTab === 'Create'"></create-item-menu>
                 </div>
             </div>
         </div>
 
-        <create-image-modal v-if="showCreateImageModal" @close="showCreateImageModal = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
     </div>
 
 </template>
@@ -66,11 +63,10 @@ import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
-import CreateImageModal from '../components/editor/CreateImageModal.vue';
-import shortid from 'shortid';
+import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, SchemeProperties, CreateImageModal},
+    components: {SvgEditor, ItemProperties, SchemeProperties, CreateItemMenu},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
@@ -101,8 +97,6 @@ export default {
             knownModes: ['view', 'edit'],
             searchHighlights: [],
 
-            showCreateImageModal: false,
-
             currentTab: 'Scheme',
             tabs: [{
                 name: 'Scheme'
@@ -123,66 +117,6 @@ export default {
             apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme);
         },
 
-        onCreateComponentClick() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                type: 'component',
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    background: { color: '#b8e0ee' },
-                    text: { color: '#0d3847' }
-                },
-                name: 'Unnamed',
-                description: '',
-                links: []
-            });
-        },
-
-        onCreateOverlayClick() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                type: 'overlay',
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    background: { color: '#b8e0ee' },
-                },
-                name: 'Unnamed',
-                description: '',
-                links: []
-            });
-        },
-
-        onCreateCommentClick() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                type: 'comment',
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    background: { color: '#ccc' },
-                    text: {color: '#666'},
-                    stroke: {color: '#fff'}
-                },
-                name: '',
-                description: 'Leave a comment ...',
-                links: []
-            });
-        },
-
-        onCreateImageClick() {
-            this.showCreateImageModal = true;
-        },
-
-        startCreatingImage(imageUrl) {
-            this.showCreateImageModal = false;
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                type: 'image',
-                url: imageUrl,
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                name: 'image',
-                description: ''
-            });
-        }
     },
     filters: {
         capitalize(value) {
