@@ -37,7 +37,7 @@
                         {{link.title}}
                     </a>
                     <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
-                    <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-cross"></i></span>
+                    <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-times"></i></span>
                 </li>
             </ul>
             <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
