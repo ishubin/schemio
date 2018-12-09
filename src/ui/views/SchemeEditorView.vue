@@ -40,10 +40,15 @@
                 </ul>
 
                 <div class="wrapper">
-                    <scheme-properties :schemeContainer="schemeContainer" v-if="currentTab === 'Scheme' && schemeContainer"></scheme-properties>
+                    <div v-if="currentTab === 'Scheme' && schemeContainer">
+                        <scheme-properties v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
+                        <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
+                    </div>
                     <div v-if="currentTab === 'Item'">
-                        <item-properties :item="selectedItem" :mode="mode" v-if="selectedItem"/>
-                        <p v-else>
+                        <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"/>
+                        <item-details :item="selectedItem" v-if="selectedItem && mode !== 'edit'"/>
+
+                        <p v-if="!selectedItem">
                             No item selected
                         </p>
                     </div>
@@ -62,11 +67,13 @@ import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
+import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
+import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, SchemeProperties, CreateItemMenu},
+    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
@@ -86,6 +93,9 @@ export default {
 
         EventBus.$on(EventBus.PLACE_ITEM, item => {
             this.schemeContainer.addItem(item);
+        });
+        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
+            this.mode = 'edit';
         });
     },
     data() {

@@ -512,9 +512,6 @@ ul.button-group li .toggle-button:hover {
     cursor: pointer;
     border-radius: 10px;
 }
-.item-menu .item-container:hover {
-    background: #daf0f9;
-}
 .item-menu .item-container i.fas {
     display: block;
     width: 100%;
@@ -529,4 +526,10 @@ ul.button-group li .toggle-button:hover {
     text-align: center;
     font-size: 16px;
     color: #045e85;
+}
+.item-menu .item-container:hover {
+    background: #25a7de;
+}
+.item-menu .item-container:hover i.fas, .item-menu .item-container:hover span {
+    color: #fff;
 }

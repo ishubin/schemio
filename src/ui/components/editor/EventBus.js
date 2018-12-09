@@ -10,6 +10,7 @@ const EventBus = new Vue({
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
             KEY_PRESS: 'key-press',
             BRING_TO_VIEW: 'bring-to-view',
+            SWITCH_MODE_TO_EDIT: 'switch-mode-edit',
             KEY: {
                 ESCAPE: 'escape',
                 DELETE: 'delete'

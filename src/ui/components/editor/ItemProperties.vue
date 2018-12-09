@@ -68,7 +68,6 @@
 <script>
 import LinkEditPopup from './LinkEditPopup.vue';
 import EventBus from './EventBus.js';
-import VueMarkdown from 'vue-markdown';
 import ColorPicker from './ColorPicker.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import Panel from './Panel.vue';
@@ -76,8 +75,8 @@ import _ from 'lodash';
 
 
 export default {
-    props: ['item', 'mode'],
-    components: {LinkEditPopup, VueMarkdown, ColorPicker, VueTagsInput, Panel},
+    props: ['item'],
+    components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel},
     data() {
         return {
             backgroundColor: {hex: '#ffffff'},

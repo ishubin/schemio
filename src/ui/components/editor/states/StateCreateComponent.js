@@ -49,6 +49,7 @@ export default class StateCreateComponent extends State {
             this.schemeContainer.setActiveBoundaryBox(null);
             this.schemeContainer.selectItem(this.component);
             EventBus.$emit(EventBus.ITEM_SELECTED, this.component);
+            EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
         }
         this.cancel();
     }
