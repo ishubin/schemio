@@ -71,6 +71,9 @@
 
                 </g>
             </g>
+            <g v-for="connector in schemeContainer.connectors">
+                <path :d="connectorToSvgPath(connector)" stroke="#555" stroke-width="3" fill="none" />
+            </g>
 
             <g v-for="link, linkIndex in selectedItemLinks">
                 <a class="item-link" :xlink:href="link.url" target="_blank">
@@ -156,6 +159,13 @@ export default {
         EventBus.$on(EventBus.BRING_TO_VIEW, area => {
             //TODO calculate this properly
             this.startBringToViewAnimation(area.x, area.y, 1.0);
+        });
+
+        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
+            this.switchStateDragItem();
+        });
+        EventBus.$on(EventBus.REBUILD_CONNECTORS, () => {
+            this.schemeContainer.buildConnectors();
         });
     },
     data() {
@@ -257,7 +267,11 @@ export default {
         },
 
         cancelCurrentState() {
-            this.state = this.states.dragging;
+            if (this.mode === 'edit') {
+                this.state = this.states.dragging;
+            } else {
+                this.state = this.states.dragItem;
+            }
             this.state.reset();
         },
         switchStateDragging() {
@@ -400,6 +414,15 @@ export default {
                 y: (mouseY - this.vOffsetY) / this.vZoom
             };
         },
+
+        connectorToSvgPath(connector) {
+            var path = `M ${this._x(connector.points[0].x)} ${this._y(connector.points[0].y)}`
+
+            for (var i = 1; i < connector.points.length; i++) {
+                path += ` L ${this._x(connector.points[i].x)} ${this._y(connector.points[i].y)}`
+            }
+            return path;
+        }
     },
     watch: {
         mode(newMode) {

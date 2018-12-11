@@ -50,8 +50,10 @@ export default class StateCreateComponent extends State {
             this.schemeContainer.selectItem(this.component);
             EventBus.$emit(EventBus.ITEM_SELECTED, this.component);
             EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
+            this.reset();
+        } else {
+            this.cancel();
         }
-        this.cancel();
     }
 
     updateComponentArea(x, y) {

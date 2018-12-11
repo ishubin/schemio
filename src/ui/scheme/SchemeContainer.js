@@ -10,6 +10,8 @@ class SchemeContainer {
         this.sortedItemsIndex = null;
         this.activeBoundaryBox = null;
         this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
+        this.itemMap = {};
+        this.connectors = [];
         this.reindexItems();
     }
 
@@ -21,6 +23,8 @@ class SchemeContainer {
             return areaA - areaB;
         });
 
+        //TODO optimize itemMap to not reconstruct it with every change
+        this.itemMap = {};
         if (sortedItems.length > 0) {
             this.schemeBoundaryBox.x = sortedItems[0].area.x;
             this.schemeBoundaryBox.y = sortedItems[0].area.y;
@@ -28,6 +32,10 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = sortedItems[0].area.h;
 
             _.forEach(sortedItems, item => {
+                if (item.id) {
+                    this.itemMap[item.id] = item;
+                }
+
                 if (this.schemeBoundaryBox.x > item.area.x) {
                     this.schemeBoundaryBox.x = item.area.x;
                 }
@@ -44,7 +52,108 @@ class SchemeContainer {
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         }
-        return this.sortedItemsIndex = sortedItems;
+
+        this.buildConnectors();
+        this.sortedItemsIndex = sortedItems;
+    }
+
+    buildConnectors() {
+        //TODO optimize connectors and only rebuild the ones that were affected
+        this.connectors = [];
+        if (this.scheme.connectors) {
+            _.forEach(this.scheme.connectors, schemeConnector => {
+                var connector = this.buildConnector(schemeConnector);
+                if (connector) {
+                    this.connectors.push(connector);
+                }
+            });
+        }
+    }
+
+    buildConnector(schemeConnector) {
+        var sourceItem = this.itemMap[schemeConnector.sourceId];
+        var destinationItem = this.itemMap[schemeConnector.destinationId];
+        if (!sourceItem || !destinationItem) {
+            return null;
+        }
+
+        var sourceEdge = null, destinationEdge  = null;
+        if (schemeConnector.reroutes && schemeConnector.reroutes.length > 0) {
+            sourceEdge = this.identifyConnectorEdge(sourceItem.area, schemeConnector.reroutes[0]);
+            destinationEdge = this.identifyConnectorEdge(destinationItem.area, schemeConnector.reroutes[schemeConnector.reroutes.length - 1]);
+        } else {
+            sourceEdge = this.identifyConnectorEdge(sourceItem.area, {
+                x: destinationItem.area.x + destinationItem.area.w /2,
+                y: destinationItem.area.y + destinationItem.area.h /2,
+            });
+            destinationEdge = this.identifyConnectorEdge(destinationItem.area, {
+                x: sourceItem.area.x + sourceItem.area.w /2,
+                y: sourceItem.area.y + sourceItem.area.h /2,
+            });
+        }
+
+        // sourceEdge = this.identifyConnectorEdge(sourceItem.area, {
+        //     x: destinationItem.area.x + destinationItem.area.w /2,
+        //     y: destinationItem.area.y + destinationItem.area.h /2,
+        // });
+        // destinationEdge = this.identifyConnectorEdge(destinationItem.area, {
+        //     x: sourceItem.area.x + sourceItem.area.w /2,
+        //     y: sourceItem.area.y + sourceItem.area.h /2,
+        // });
+
+
+        var points = [{
+            x: (sourceEdge.x1 + sourceEdge.x2) / 2,
+            y: (sourceEdge.y1 + sourceEdge.y2) / 2
+        }];
+
+        if (schemeConnector.reroutes) {
+            points = points.concat(schemeConnector.reroutes);
+        }
+        points.push({
+            x: (destinationEdge.x1 + destinationEdge.x2) / 2,
+            y: (destinationEdge.y1 + destinationEdge.y2) / 2
+        });
+
+        return {
+            points: points
+        };
+    }
+
+    identifyConnectorEdge(area, point) {
+        var lines = [
+            {x1: area.x, y1: area.y, x2: area.x - 100, y2: area.y - 100}, //top-left
+            {x1: area.x + area.w, y1: area.y, x2: area.x + area.w + 100, y2: area.y - 100}, //top-right
+            {x1: area.x + area.w, y1: area.y + area.h, x2: area.x + area.w + 100, y2: area.y + area.h + 100}, //bottom-right
+            {x1: area.x, y1: area.y + area.h, x2: area.x - 100, y2: area.y + area.h + 100} //bottom-left
+        ];
+
+        var pointPlacements = _.map(lines, line => {
+            return myMath.findPointPlacementToLine(line, point) >= 0 ? 1: 0;
+        });
+
+        var placementId = Math.max(0, _.findIndex(pointPlacements, (side, index) => {
+            return side - pointPlacements[(index + 1 ) % pointPlacements.length] < 0;
+        }));
+
+        if (placementId === 0) {
+            return {
+                x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y
+            };
+        } else if (placementId === 1) {
+            return {
+                x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h
+            };
+        } else if (placementId === 2) {
+            return {
+                x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h
+            };
+        } else {
+            return {
+                x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h
+            };
+        }
+
     }
 
     getSelectedItems() {

@@ -59,7 +59,7 @@ export default class StateDragItem extends State {
     }
 
     mouseUp(x, y, mx, my, item, event) {
-
+        EventBus.$emit(EventBus.REBUILD_CONNECTORS);
         this.reset();
     }
 
