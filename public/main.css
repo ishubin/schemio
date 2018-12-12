@@ -533,3 +533,12 @@ ul.button-group li .toggle-button:hover {
 .item-menu .item-container:hover i.fas, .item-menu .item-container:hover span {
     color: #fff;
 }
+
+
+/******************** Connectors *********************/
+svg.mode-edit .item-connector:hover {
+    cursor: pointer;
+}
+svg.mode-edit .item-connector.selected {
+    stroke: #55f;
+}

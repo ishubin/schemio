@@ -71,8 +71,8 @@
 
                 </g>
             </g>
-            <g v-for="connector in schemeContainer.connectors">
-                <path :d="connectorToSvgPath(connector)" stroke="#555" stroke-width="3" fill="none" />
+            <g v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta">
+                <path :d="connectorToSvgPath(connector)" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none" @pointerenter="connectorEntered(connector)" @pointerleave="connectorLeave(connector)"/>
             </g>
 
             <g v-for="link, linkIndex in selectedItemLinks">
@@ -213,7 +213,9 @@ export default {
                     totalFrames: 25,
                     intervalMs: 5
                 }
-            }
+            },
+
+            hoveredConnector: null
         };
     },
     methods: {
@@ -237,24 +239,25 @@ export default {
             if (this.state.shouldHandleItemHover()) {
                 itemAtCursor = this.findItemAtCursor(p.x, p.y);
             }
-            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
+            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
             var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
+            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
         },
         mouseUp(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
             var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, event);
+            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
         },
 
         findItemAtCursor(x, y) {
+            //OPTIMIZE remove this and instead use pointerenter and pointerleave events in svg
             return this.schemeContainer.findHoveredItem(x, y);
         },
 
@@ -436,13 +439,23 @@ export default {
         },
 
         connectorToSvgPath(connector) {
-            var path = `M ${this._x(connector.points[0].x)} ${this._y(connector.points[0].y)}`
+            var path = `M ${this._x(connector.meta.points[0].x)} ${this._y(connector.meta.points[0].y)}`
 
-            for (var i = 1; i < connector.points.length; i++) {
-                path += ` L ${this._x(connector.points[i].x)} ${this._y(connector.points[i].y)}`
+            for (var i = 1; i < connector.meta.points.length; i++) {
+                path += ` L ${this._x(connector.meta.points[i].x)} ${this._y(connector.meta.points[i].y)}`
             }
             return path;
-        }
+        },
+
+        connectorEntered(connector) {
+            if (this.hoveredConnector !== connector) {
+                this.hoveredConnector = connector;
+            }
+        },
+
+        connectorLeave(connector) {
+            this.hoveredConnector = null;
+        },
     },
     watch: {
         mode(newMode) {

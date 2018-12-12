@@ -84,11 +84,29 @@ export default {
             this.selectedItem = item;
             this.currentTab = 'Item';
             this.tabs[2].disabled = false;
+            this.tabs[3].disabled = true;
+        });
+        EventBus.$on(EventBus.CONNECTOR_SELECTED, connector => {
+            this.selectedConnector = connector;
+            this.currentTab = 'Connection';
+            this.selectedItem = null;
+            this.tabs[2].disabled = true;
+            this.tabs[3].disabled = false;
+            this.schemeContainer.deselectAllItems();
         });
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, item => {
             this.selectedItem = null;
-            this.currentTab = 'Scheme';
+            if (this.currentTab === 'Item') {
+                this.currentTab = 'Scheme';
+            }
             this.tabs[2].disabled = true;
+        });
+        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, item => {
+            this.selectedConnector = null;
+            if (this.currentTab === 'Connection') {
+                this.currentTab = 'Scheme';
+            }
+            this.tabs[3].disabled = true;
         });
 
         EventBus.$on(EventBus.PLACE_ITEM, item => {
@@ -106,6 +124,7 @@ export default {
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             selectedItem: null,
+            selectedConnector: null,
             zoom: 100,
             mode: 'view',
             knownModes: ['view', 'edit'],
@@ -118,6 +137,9 @@ export default {
                 name: 'Create'
             }, {
                 name: 'Item',
+                disabled: true
+            }, {
+                name: 'Connection',
                 disabled: true
             }]
         }

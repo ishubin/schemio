@@ -14,9 +14,9 @@ class State {
         EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
     }
 
-    mouseDown(localX, localY, originalX, originalY, item, event) {}
-    mouseUp(localX, localY, originalX, originalY, item, event) {}
-    mouseMove(localX, localY, originalX, originalY, item, event) {}
+    mouseDown(localX, localY, originalX, originalY, item, connector, event) {}
+    mouseUp(localX, localY, originalX, originalY, item, connector, event) {}
+    mouseMove(localX, localY, originalX, originalY, item, connector, event) {}
 
     shouldHandleItemHover() {return true;}
     shouldHandleItemMouseDown() {return true;}

@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import myMath from '../myMath.js';
+import shortid from 'shortid';
 /*
 Providing access to scheme elements and provides modifiers for it
 */
@@ -7,11 +8,11 @@ class SchemeContainer {
     constructor(scheme) {
         this.scheme = scheme;
         this.selectedItems = [];
+        this.selectedConnectors = [];
         this.sortedItemsIndex = null;
         this.activeBoundaryBox = null;
         this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.itemMap = {};
-        this.connectors = [];
         this.reindexItems();
     }
 
@@ -59,13 +60,9 @@ class SchemeContainer {
 
     buildConnectors() {
         //TODO optimize connectors and only rebuild the ones that were affected
-        this.connectors = [];
         if (this.scheme.connectors) {
             _.forEach(this.scheme.connectors, schemeConnector => {
-                var connector = this.buildConnector(schemeConnector);
-                if (connector) {
-                    this.connectors.push(connector);
-                }
+                this.buildConnector(schemeConnector);
             });
         }
     }
@@ -105,9 +102,10 @@ class SchemeContainer {
             y: (destinationEdge.y1 + destinationEdge.y2) / 2
         });
 
-        return {
-            points: points
-        };
+        if (!schemeConnector.meta) {
+            schemeConnector.meta = {};
+        }
+        schemeConnector.meta.points = points;
     }
 
     identifyConnectorEdge(area, point) {
@@ -159,15 +157,13 @@ class SchemeContainer {
 
             if (!alreadyExistingConnection) {
                 var schemeConnector = {
+                    id: shortid.generate(),
                     sourceId: sourceItem.id,
                     destinationId: destinationItem.id
                 };
                 this.scheme.connectors.push(schemeConnector);
 
-                var connector = this.buildConnector(schemeConnector);
-                if (connector) {
-                    this.connectors.push(connector);
-                }
+                this.buildConnector(schemeConnector);
             }
         }
     }
@@ -201,6 +197,27 @@ class SchemeContainer {
 
     setActiveBoundaryBox(area) {
         this.activeBoundaryBox = area;
+    }
+
+    selectConnector(connector, inclusive) {
+        // only select connector that do have meta, otherwise it would be imposible to click them
+        if (inclusive) {
+            throw new Error('not supported yet');
+        } else {
+            this.deselectAllConnectors();
+
+            if (connector.meta) {
+                connector.meta.selected = true;
+                this.selectedConnectors.push(connector);
+            }
+        }
+    }
+
+    deselectAllConnectors() {
+        _.forEach(this.selectedConnectors, connector => {
+            connector.meta.selected = false;
+        });
+        this.selectedConnectors = [];
     }
 
     selectItem(item, inclusive) {

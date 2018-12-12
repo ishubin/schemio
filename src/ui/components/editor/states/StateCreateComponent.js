@@ -24,20 +24,20 @@ export default class StateCreateComponent extends State {
         this.component = component;
     }
 
-    mouseDown(x, y, mx, my, item, event) {
+    mouseDown(x, y, mx, my, item, connector, event) {
         this.originalPoint = {x, y};
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.component.area);
     }
 
-    mouseMove(x, y, mx, my, item, event) {
+    mouseMove(x, y, mx, my, item, connector, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
         }
     }
 
-    mouseUp(x, y, mx, my, item, event) {
+    mouseUp(x, y, mx, my, item, connector, event) {
         if (this.addedToScheme) {
             this.updateComponentArea(x, y);
             this.schemeContainer.setActiveBoundaryBox(null);

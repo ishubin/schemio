@@ -10,12 +10,14 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
         this.selectedItem = null;
         this.itemOriginalArea = {x: 0, y: 0, w: 0, h: 0};
+        this.hasDraggedItems = false;
     }
 
     reset() {
         this.startedDragging = false;
         this.selectedItem = null;
         this.dragger = null;
+        this.hasDraggedItems = false;
     }
 
     initDraggingForItem(item, x, y) {
@@ -28,7 +30,7 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
     }
 
-    mouseDown(x, y, mx, my, item, event) {
+    mouseDown(x, y, mx, my, item, connector, event) {
         var selectedItems = this.schemeContainer.getSelectedItems();
         if (selectedItems && selectedItems.length > 0) {
             var dragger = this.findDraggerAtPoint(selectedItems, x, y, mx, my);
@@ -38,19 +40,27 @@ export default class StateDragItem extends State {
                 return;
             }
         }
-        // proceed initiating item drag if dragger wasn't found
-        if (item) {
+        // proceed initiating item or connector drag if dragger wasn't found
+        if (connector) {
+            this.schemeContainer.selectConnector(connector, false);
+            this.schemeContainer.deselectAllItems();
+            EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED, connector);
+            EventBus.$emit(EventBus.CONNECTOR_SELECTED, connector);
+            EventBus.$emit(EventBus.REDRAW);
+        } else if (item) {
             this.selectedItem = item;
             this.initDraggingForItem(item, x, y);
 
             if (!item.selected) {
                 this.schemeContainer.selectItem(item, false);
+                this.schemeContainer.deselectAllConnectors();
                 EventBus.$emit(EventBus.ITEM_SELECTED, item);
+                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, item);
             }
         }
     }
 
-    mouseMove(x, y, mx, my, item, event) {
+    mouseMove(x, y, mx, my, item, connector, event) {
         if (this.startedDragging && this.dragger) {
             this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
         } else if (this.startedDragging && this.selectedItem) {
@@ -58,17 +68,25 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseUp(x, y, mx, my, item, event) {
-        EventBus.$emit(EventBus.REBUILD_CONNECTORS);
+    mouseUp(x, y, mx, my, item, connector, event) {
+        if (this.hasDraggedItems) {
+            EventBus.$emit(EventBus.REBUILD_CONNECTORS);
+        }
         this.reset();
     }
 
     dragItem(x, y) {
         var dx = x - this.originalPoint.x;
         var dy = y - this.originalPoint.y;
-        this.selectedItem.area.x = this.itemOriginalArea.x + dx;
-        this.selectedItem.area.y = this.itemOriginalArea.y + dy;
-        EventBus.$emit(EventBus.REDRAW);
+
+        if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+            this.selectedItem.area.x = this.itemOriginalArea.x + dx;
+            this.selectedItem.area.y = this.itemOriginalArea.y + dy;
+            EventBus.$emit(EventBus.REDRAW);
+            this.hasDraggedItems = true;
+        } else {
+            this.hasDraggedItems = false;
+        }
     }
 
     dragByDragger(item, dragger, x, y) {
@@ -76,23 +94,35 @@ export default class StateDragItem extends State {
         var ny = item.area.y;
         var nw = item.area.w;
         var nh = item.area.h;
+
+        var change = 0;
+
         _.forEach(dragger.edges, edge => {
             if (edge === 'top') {
                 var dy = y - dragger.y;
+                change += Math.abs(dy);
                 ny = this.itemOriginalArea.y + dy;
                 nh = this.itemOriginalArea.h - dy;
             } else if (edge === 'bottom') {
                 var dy = y - dragger.y;
+                change += Math.abs(dy);
                 nh = this.itemOriginalArea.h + dy;
             } else if (edge === 'left') {
                 var dx = x - dragger.x;
+                change += Math.abs(dx);
                 nx = this.itemOriginalArea.x + dx;
                 nw = this.itemOriginalArea.w - dx;
             } else if (edge === 'right') {
                 var dx = x - dragger.x;
+                change += Math.abs(dx);
                 nw = this.itemOriginalArea.w + dx;
             }
         });
+        if (change > 0) {
+            this.hasDraggedItems = true;
+        } else {
+            this.hasDraggedItems = false;
+        }
         if (nw > 0 && nh > 0) {
             item.area.x = nx;
             item.area.y = ny;

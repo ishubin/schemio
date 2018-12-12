@@ -20,7 +20,7 @@ class StateDragging extends State {
         this.startedDragging = false;
     }
 
-    mouseDown(x, y, mx, my, item, event){
+    mouseDown(x, y, mx, my, item, connector, event){
         if (item && (item.type === 'component' || item.type === 'overlay')) {
             this.schemeContainer.selectItem(item, false);
             EventBus.$emit(EventBus.ITEM_SELECTED, item);
@@ -36,7 +36,7 @@ class StateDragging extends State {
         this.originalZoom = this.editor.vZoom;
     }
 
-    mouseUp(x, y, mx, my, item, event) {
+    mouseUp(x, y, mx, my, item, connector, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 this.schemeContainer.deselectAllItems();
@@ -48,7 +48,7 @@ class StateDragging extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, item, event) {
+    mouseMove(x, y, mx, my, item, connector, event) {
         if (this.startedDragging && this.initialClickPoint) {
             this.dragScreen(mx, my);
         }

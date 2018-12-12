@@ -9,6 +9,8 @@ const EventBus = new Vue({
             REDRAW: 'redraw',
             ITEM_SELECTED: 'item-selected',
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
+            CONNECTOR_SELECTED: 'connector-selected',
+            ALL_CONNECTORS_DESELECTED: 'all-connectors-deselected',
             KEY_PRESS: 'key-press',
             BRING_TO_VIEW: 'bring-to-view',
             SWITCH_MODE_TO_EDIT: 'switch-mode-edit',
