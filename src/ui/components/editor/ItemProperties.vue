@@ -42,6 +42,9 @@
             </ul>
             <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
         </panel>
+        <panel name="Connections" v-if="item.type === 'overlay' || item.type === 'component'">
+            <span class="btn btn-secondary" v-on:click="connectItem()"><i class="fas fa-sitemap"></i> Connect</span>
+        </panel>
 
         <panel name="Style" v-if="item.type !== 'image'">
             <div class="property-row" v-if="item.style.background && item.style.background.color">
@@ -136,6 +139,10 @@ export default {
         },
         onItemTagChange(newTags) {
             this.item.tags = _.map(newTags, tag => tag.text);
+        },
+
+        connectItem() {
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, this.item);
         }
     },
     computed: {

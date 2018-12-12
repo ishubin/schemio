@@ -1,3 +1,5 @@
+import EventBus from '../EventBus.js';
+
 class State {
     constructor(editor) {
         this.editor = editor;
@@ -7,7 +9,10 @@ class State {
     reset() {}
 
     // invoked when user cancels the state (e.g. press Esc key)
-    cancel() {}
+    cancel() {
+        this.reset();
+        EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+    }
 
     mouseDown(localX, localY, originalX, originalY, item, event) {}
     mouseUp(localX, localY, originalX, originalY, item, event) {}

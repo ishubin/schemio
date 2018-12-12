@@ -24,17 +24,11 @@ export default class StateCreateComponent extends State {
         this.component = component;
     }
 
-    cancel() {
-        this.reset();
-        EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
-    }
-
     mouseDown(x, y, mx, my, item, event) {
         this.originalPoint = {x, y};
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.component.area);
-        EventBus.$emit(EventBus.REDRAW);
     }
 
     mouseMove(x, y, mx, my, item, event) {
@@ -72,6 +66,5 @@ export default class StateCreateComponent extends State {
             this.component.area.h = this.originalPoint.y - y;
             this.component.area.y = y;
         }
-        EventBus.$emit(EventBus.REDRAW);
     }
 }

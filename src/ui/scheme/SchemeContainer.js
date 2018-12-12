@@ -92,16 +92,6 @@ class SchemeContainer {
             });
         }
 
-        // sourceEdge = this.identifyConnectorEdge(sourceItem.area, {
-        //     x: destinationItem.area.x + destinationItem.area.w /2,
-        //     y: destinationItem.area.y + destinationItem.area.h /2,
-        // });
-        // destinationEdge = this.identifyConnectorEdge(destinationItem.area, {
-        //     x: sourceItem.area.x + sourceItem.area.w /2,
-        //     y: sourceItem.area.y + sourceItem.area.h /2,
-        // });
-
-
         var points = [{
             x: (sourceEdge.x1 + sourceEdge.x2) / 2,
             y: (sourceEdge.y1 + sourceEdge.y2) / 2
@@ -154,6 +144,32 @@ class SchemeContainer {
             };
         }
 
+    }
+
+    connectItems(sourceItem, destinationItem) {
+        if (sourceItem !== destinationItem && sourceItem.id && destinationItem.id) {
+            if (!this.scheme.connectors) {
+                this.scheme.connectors = [];
+            }
+
+            var alreadyExistingConnection = _.find(this.scheme.connectors, c => {
+                return (c.sourceId === sourceItem.id && c.destinationId === destinationItem.id)
+                    || (c.sourceId === destinationItem.id && c.destinationId === sourceItem.id);
+            });
+
+            if (!alreadyExistingConnection) {
+                var schemeConnector = {
+                    sourceId: sourceItem.id,
+                    destinationId: destinationItem.id
+                };
+                this.scheme.connectors.push(schemeConnector);
+
+                var connector = this.buildConnector(schemeConnector);
+                if (connector) {
+                    this.connectors.push(connector);
+                }
+            }
+        }
     }
 
     getSelectedItems() {

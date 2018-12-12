@@ -103,6 +103,16 @@
                 />
             </g>
 
+
+            <g v-if="state && state.name === 'connecting'">
+                <rect v-if="state.hoveredItem" class="item-search-highlight"
+                    :x="_x(state.hoveredItem.area.x) - 5"
+                    :y="_y(state.hoveredItem.area.y) - 5"
+                    :width="_z(state.hoveredItem.area.w) + 10"
+                    :height="_z(state.hoveredItem.area.h) + 10"
+                />
+            </g>
+
             <g v-if="schemeContainer.activeBoundaryBox">
                 <!-- Drawing boundary edit box -->
                 <rect class="boundary-box"
@@ -121,6 +131,7 @@
 import StateDragging from './states/StateDragging.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
+import StateConnecting from './states/StateConnecting.js';
 import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
 
@@ -136,6 +147,9 @@ export default {
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, component => {
             this.switchStateCreateComponent(component);
+        });
+        EventBus.$on(EventBus.START_CONNECTING_ITEM, item => {
+            this.switchStateConnecting(item);
         });
 
         EventBus.$on(EventBus.KEY_PRESS, (key) => {
@@ -173,7 +187,8 @@ export default {
             states: {
                 dragging: new StateDragging(this),
                 createComponent: new StateCreateComponent(this),
-                dragItem: new StateDragItem(this)
+                dragItem: new StateDragItem(this),
+                connecting: new StateConnecting(this)
             },
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
@@ -286,6 +301,11 @@ export default {
             this.state = this.states.createComponent;
             this.state.reset();
             this.state.setComponent(component);
+        },
+        switchStateConnecting(item) {
+            this.state = this.states.connecting;
+            this.state.reset();
+            this.state.setSourceItem(item);
         },
 
         onSelectItem(item) {
