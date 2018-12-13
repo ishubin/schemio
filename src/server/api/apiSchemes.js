@@ -62,6 +62,13 @@ const ApiSchemes = {
                 }
             });
         }
+        if (scheme.connectors) {
+            _.forEach(scheme.connectors, connector => {
+                if (connector.hasOwnProperty('meta')) {
+                    delete connector['meta'];
+                }
+            });
+        }
         return scheme;
     }
 

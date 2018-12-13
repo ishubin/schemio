@@ -159,7 +159,8 @@ class SchemeContainer {
                 var schemeConnector = {
                     id: shortid.generate(),
                     sourceId: sourceItem.id,
-                    destinationId: destinationItem.id
+                    destinationId: destinationItem.id,
+                    reroutes: []
                 };
                 this.scheme.connectors.push(schemeConnector);
 

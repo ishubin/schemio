@@ -536,7 +536,11 @@ ul.button-group li .toggle-button:hover {
 
 
 /******************** Connectors *********************/
-svg.mode-edit .item-connector:hover {
+svg.mode-edit .item-connector-hover-area {
+    stroke: rgba(0,0,0,0.0);
+    opacity: 0.0;
+}
+svg.mode-edit .item-connector-hover-area:hover {
     cursor: pointer;
 }
 svg.mode-edit .item-connector.selected {

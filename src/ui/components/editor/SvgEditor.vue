@@ -71,9 +71,24 @@
 
                 </g>
             </g>
+            <!--
             <g v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta">
-                <path :d="connectorToSvgPath(connector)" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none" @pointerenter="connectorEntered(connector)" @pointerleave="connectorLeave(connector)"/>
+                <path :d="connectorToSvgPath(connector)" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
+                <path :d="connectorToSvgPath(connector)" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="connectorEntered(connector)" @pointerleave="connectorLeave(connector)"/>
+
+                <g v-if="connector.style && connector.style.source && connector.style.source.type">
+                    <circle v-if="connector.style.source.type === 'circle'" :cx="_x(connector.meta.points[0].x)" :cy="_y(connector.meta.points[0].y)" :r="_z(connector.style.source.size)" fill="black"/>
+                </g>
             </g>
+        -->
+            <connector-svg  v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta"
+                :connector="connector"
+                :zoom="vZoom"
+                :offsetX="vOffsetX"
+                :offsetY="vOffsetY"
+                v-on:connector-enter="connectorEntered(connector)"
+                v-on:connector-leave="connectorLeave(connector)"
+                ></connector-svg>
 
             <g v-for="link, linkIndex in selectedItemLinks">
                 <a class="item-link" :xlink:href="link.url" target="_blank">
@@ -134,11 +149,12 @@ import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
 import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
+import ConnectorSvg from './items/ConnectorSvg.vue';
 
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
-    components: {CommentItem},
+    components: {CommentItem, ConnectorSvg},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

@@ -53,6 +53,7 @@
                         </p>
                     </div>
                     <create-item-menu v-if="currentTab === 'Create'"></create-item-menu>
+                    <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                 </div>
             </div>
         </div>
@@ -69,11 +70,12 @@ import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/ItemProperties.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
+import ConnectionProperties from '../components/editor/ConnectionProperties.vue';
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu},
+    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
