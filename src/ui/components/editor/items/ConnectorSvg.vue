@@ -3,8 +3,8 @@
         <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
         <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="$emit('connector-enter')" @pointerleave="$emit('connector-leave')"/>
 
-        <g v-if="connector.style && connector.style.source && connector.style.source.type">
-            <circle v-if="connector.style.source.type === 'circle'" :cx="_x(connector.meta.points[0].x)" :cy="_y(connector.meta.points[0].y)" :r="_z(connector.style.source.size)" fill="black"/>
+        <g v-for="end in ends">
+            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" fill="black"/>
         </g>
     </g>
 </template>
@@ -18,6 +18,17 @@ export default {
         _y(y) { return y * this.zoom + this.offsetY; },
         _z(v) { return v * this.zoom; },
 
+        createEnd(x, y, px, py, endStyle) {
+            if (endStyle.type === 'circle') {
+                return {
+                    type: 'circle',
+                    x: x,
+                    y: y,
+                    r: this.connector.style.source.size
+                };
+            }
+            return null;
+        }
     },
     computed: {
         svgPath() {
@@ -27,6 +38,27 @@ export default {
                 path += ` L ${this._x(this.connector.meta.points[i].x)} ${this._y(this.connector.meta.points[i].y)}`
             }
             return path;
+        },
+        ends() {
+            var ends = [];
+            if (this.connector.meta && this.connector.meta.points.length > 0 && this.connector.style) {
+                var points = this.connector.meta.points;
+
+                if (this.connector.style.source) {
+                    var end = this.createEnd(points[0].x, points[0].y, points[1].x, points[1].y, this.connector.style.source);
+                    if (end) {
+                        ends.push(end);
+                    }
+                }
+                if (this.connector.style.destination) {
+                    var end = this.createEnd(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, this.connector.style.destination);
+                    if (end) {
+                        ends.push(end);
+                    }
+                }
+            }
+
+            return ends;
         }
     }
 }
