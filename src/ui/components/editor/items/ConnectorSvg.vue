@@ -5,6 +5,8 @@
 
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" fill="black"/>
+            <path v-if="end.type === 'arrow'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
+
         </g>
     </g>
 </template>
@@ -26,6 +28,30 @@ export default {
                     y: y,
                     r: this.connector.style.source.size
                 };
+            } else if (endStyle.type === 'arrow') {
+                return this.createArrowEnd(x, y, px, py, endStyle);
+            }
+            return null;
+        },
+
+        createArrowEnd(x, y, px, py, endStyle) {
+            var Vx = px - x, Vy = py - y;
+            var V = Vx * Vx + Vy * Vy;
+            if (V !== 0) {
+                V = Math.sqrt(V);
+                Vx = Vx/V;
+                Vy = Vy/V;
+
+                var size = this._z(endStyle.size);
+                var Pax = this._x(x + (Vx * 2 - Vy) * size);
+                var Pay = this._y(y + (Vy * 2 + Vx) * size);
+                var Pbx = this._x(x + (Vx * 2 + Vy) * size);
+                var Pby = this._y(y + (Vy * 2 - Vx) * size);
+                var path = `M ${Pax} ${Pay} L ${this._x(x)} ${this._y(y)} L ${Pbx} ${Pby}`;
+                return {
+                    type: 'arrow',
+                    path: path
+                }
             }
             return null;
         }
