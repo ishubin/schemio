@@ -7,6 +7,7 @@ const EventBus = new Vue({
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             REDRAW: 'redraw',
+            REDRAW_CONNECTOR: 'redraw-connector',
             ITEM_SELECTED: 'item-selected',
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
             CONNECTOR_SELECTED: 'connector-selected',

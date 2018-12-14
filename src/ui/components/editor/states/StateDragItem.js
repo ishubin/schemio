@@ -46,7 +46,7 @@ export default class StateDragItem extends State {
             this.schemeContainer.deselectAllItems();
             EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED, connector);
             EventBus.$emit(EventBus.CONNECTOR_SELECTED, connector);
-            EventBus.$emit(EventBus.REDRAW);
+            EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
         } else if (item) {
             this.selectedItem = item;
             this.initDraggingForItem(item, x, y);

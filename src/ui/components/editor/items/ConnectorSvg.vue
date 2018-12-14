@@ -12,9 +12,18 @@
 </template>
 
 <script>
+import EventBus from '../EventBus.js';
+
 export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom'],
 
+    mounted() {
+        EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {
+            if (this.connector.id === connector.id) {
+                this.$forceUpdate();
+            }
+        });
+    },
     methods: {
         _x(x) { return x * this.zoom + this.offsetX; },
         _y(y) { return y * this.zoom + this.offsetY; },
