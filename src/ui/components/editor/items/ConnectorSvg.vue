@@ -1,11 +1,11 @@
 <template lang="html">
     <g>
-        <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
+        <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" stroke-width="3" fill="none"/>
         <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="$emit('connector-enter')" @pointerleave="$emit('connector-leave')"/>
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" fill="black"/>
-            <path v-if="end.type === 'arrow'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
+            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color"/>
+            <path v-if="end.type === 'path'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" stroke-width="3" :fill="end.fill"/>
 
         </g>
     </g>
@@ -38,12 +38,14 @@ export default {
                     r: this.connector.style.source.size
                 };
             } else if (endStyle.type === 'arrow') {
-                return this.createArrowEnd(x, y, px, py, endStyle);
+                return this.createArrowEnd(x, y, px, py, endStyle, false);
+            } else if (endStyle.type === 'triangle') {
+                return this.createArrowEnd(x, y, px, py, endStyle, true);
             }
             return null;
         },
 
-        createArrowEnd(x, y, px, py, endStyle) {
+        createArrowEnd(x, y, px, py, endStyle, close) {
             var Vx = px - x, Vy = py - y;
             var V = Vx * Vx + Vy * Vy;
             if (V !== 0) {
@@ -57,9 +59,13 @@ export default {
                 var Pbx = this._x(x + (Vx * 2 + Vy) * size);
                 var Pby = this._y(y + (Vy * 2 - Vx) * size);
                 var path = `M ${Pax} ${Pay} L ${this._x(x)} ${this._y(y)} L ${Pbx} ${Pby}`;
+                if (close) {
+                    path += ' z';
+                }
                 return {
-                    type: 'arrow',
-                    path: path
+                    type: 'path',
+                    path: path,
+                    fill: close ? '#fff' : 'none'
                 }
             }
             return null;

@@ -90,7 +90,6 @@ export default {
     },
     data() {
         return {
-            backgroundColor: {hex: '#ffffff'},
             toggleBackgroundColor: false,
             editLinkData: null,
             itemTag: '',

@@ -68,6 +68,7 @@ class SchemeContainer {
     }
 
     buildConnector(schemeConnector) {
+        this.enrichConnectorWithDefaultStyle(schemeConnector);
         var sourceItem = this.itemMap[schemeConnector.sourceId];
         var destinationItem = this.itemMap[schemeConnector.destinationId];
         if (!sourceItem || !destinationItem) {
@@ -106,6 +107,15 @@ class SchemeContainer {
             schemeConnector.meta = {};
         }
         schemeConnector.meta.points = points;
+    }
+
+    enrichConnectorWithDefaultStyle(connector) {
+        if (!connector.style) {
+            connector.style = {};
+        }
+        if (!connector.style.color) {
+            connector.style.color = '#333';
+        }
     }
 
     identifyConnectorEdge(area, point) {
