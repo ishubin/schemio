@@ -164,7 +164,8 @@ export default {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
-                this.schemeContainer.deleteSelectedItems();
+                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
+                this.schemeContainer.deleteSelectedItemsAndConnectors();
                 EventBus.$emit(EventBus.REDRAW);
             }
         });

@@ -16,7 +16,7 @@
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                 <span class="btn btn-secondary" @click="saveScheme()">Save</span>
-                <ul class="button-group" v-if="selectedItem">
+                <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                     <li>
                         <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem)">F</span>
                         <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem)">B</span>

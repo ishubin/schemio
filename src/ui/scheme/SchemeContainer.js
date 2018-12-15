@@ -218,10 +218,28 @@ class SchemeContainer {
         return this.selectedItems;
     }
 
-    deleteSelectedItems() {
+    deleteSelectedItemsAndConnectors() {
+        var removed = 0;
         if (this.selectedItems && this.selectedItems.length > 0) {
+            _.forEach(this.selectedItems, item => {
+                this.removeConnectorsForItem(item);
+            });
+
             _.remove(this.scheme.items, item => _.includes(this.selectedItems, item));
+            removed += 1;
+        }
+        if (this.selectedConnectors && this.selectedConnectors.length > 0) {
+            _.remove(this.scheme.connectors, connector => _.includes(this.selectedConnectors, connector));
+            removed += 1;
+        }
+        if (removed > 0) {
             this.reindexItems();
+        }
+    }
+
+    removeConnectorsForItem(item) {
+        if (item.meta && item.meta.connectorsMap) {
+            _.remove(this.scheme.connectors, connector => item.meta.connectorsMap.hasOwnProperty(connector.id));
         }
     }
 
