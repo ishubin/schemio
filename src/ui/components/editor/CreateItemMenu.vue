@@ -92,6 +92,7 @@ export default {
         },
 
         startCreatingImage(imageUrl) {
+            this.showCreateImageModal = false;
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
@@ -110,16 +111,6 @@ export default {
                 this.errorMessage = 'Could not load image. Check if the path is correct';
             };
             img.src = imageUrl;
-
-            /*this.showCreateImageModal = false;
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                type: 'image',
-                url: imageUrl,
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                name: 'image',
-                description: ''
-            });*/
         }
     }
 }

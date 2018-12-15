@@ -546,3 +546,40 @@ svg.mode-edit .item-connector-hover-area:hover {
 svg.mode-edit .item-connector.selected {
     stroke: #55f;
 }
+
+
+/*************** File upload **********************/
+.file-upload-button {
+    position: relative;
+    overflow: hidden;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    background: #bbb;
+    border-radius: 2px;
+    border: 1px solid #333;
+    cursor: pointer;
+}
+.file-upload-button input[type='file']{
+    position: absolute;
+    cursor: pointer;
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+    left: -20px;
+    top: -20px;
+}
+.file-upload-button .icon{
+    font-size: 20px;
+}
+.image-preview {
+    display: block;
+    height: 200px;
+}
+.image-preview img {
+    max-width: 400px;
+    max-height: 200px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
