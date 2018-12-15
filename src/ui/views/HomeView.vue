@@ -25,7 +25,7 @@
         <transition name="modal" v-if="newSchemePopup.show">
            <div class="modal-mask">
                <div class="modal-wrapper">
-                   <div class="modal-container">
+                   <div class="modal-container" style="width: 600px;">
                        <div class="modal-header">
                            <h3>New Scheme</h3>
                        </div>
@@ -39,7 +39,21 @@
                            </p>
 
                            <h5>Scheme Image URL</h5>
-                           <input class="textfield" type="text" v-model="newSchemePopup.imageUrl" placeholder="Image URL"/>
+                           <table width="100%">
+                               <tbody>
+                                    <tr>
+                                        <td>
+                                           <input class="textfield" type="text" v-model="newSchemePopup.imageUrl" placeholder="Image URL"/>
+                                        </td>
+                                        <td width="34px">
+                                            <div class="file-upload-button">
+                                                <i class="fas fa-file-upload icon"></i>
+                                                <input type="file" @change="uploadImage"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                       </div>
                        <div class="modal-footer">
                            <div class="modal-controls">
@@ -99,25 +113,39 @@ export default {
         },
 
         submitNewScheme() {
-            var items = [];
-            if (this.newSchemePopup.imageUrl.trim().length > 0) {
-                items.push({
-                    type: "image",
-                    area: { x: 0, y: 0, w: 1000, h: 1000 },
-                    style: { },
-                    url: this.newSchemePopup.imageUrl.trim(),
-                    name: "background-image",
-                    description: ""
+            var name = this.newSchemePopup.name.trim();
+            if (name.length > 0) {
+                var items = [];
+                if (this.newSchemePopup.imageUrl.trim().length > 0) {
+                    items.push({
+                        type: "image",
+                        area: { x: 0, y: 0, w: 1000, h: 1000 },
+                        style: { },
+                        url: this.newSchemePopup.imageUrl.trim(),
+                        name: "background-image",
+                        description: ""
+                    });
+                }
+                apiClient.createNewScheme({
+                    name: name,
+                    description: this.newSchemePopup.description,
+                    tags: [],
+                    items
+                }).then(scheme => {
+                    window.location.href = `/schemes/${scheme.id}`;
                 });
             }
-            apiClient.createNewScheme({
-                name: this.newSchemePopup.name,
-                description: this.newSchemePopup.description,
-                tags: [],
-                items
-            }).then(scheme => {
-                window.location.href = `/schemes/${scheme.id}`;
-            });
+        },
+
+        uploadImage(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var form = new FormData();
+                form.append('image', file, file.name);
+                axios.post('/api/images', form).then(response => {
+                    this.newSchemePopup.imageUrl = response.data.path;
+                });
+            }
         }
     }
 }
