@@ -42,7 +42,7 @@ export default {
                     type: 'circle',
                     x: x,
                     y: y,
-                    r: this.connector.style.source.size
+                    r: endStyle.size
                 };
             } else if (endStyle.type === 'arrow') {
                 return this.createArrowEnd(x, y, px, py, endStyle, false);
