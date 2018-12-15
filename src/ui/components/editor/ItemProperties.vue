@@ -21,7 +21,22 @@
 
         <panel name="Image" v-if="item.type === 'image'">
             <h5>Image URL</h5>
-            <input class="textfield" type="text" v-model="item.url"/>
+
+            <table width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <input class="textfield" type="text" v-model="item.url"/>
+                        </td>
+                        <td width="34px">
+                            <div class="file-upload-button">
+                                <i class="fas fa-file-upload icon"></i>
+                                <input type="file" @change="uploadImage"/>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </panel>
 
         <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component'">
@@ -142,6 +157,20 @@ export default {
 
         connectItem() {
             EventBus.$emit(EventBus.START_CONNECTING_ITEM, this.item);
+        },
+
+        uploadImage(event) {
+            var file = event.target.files[0];
+            if (file) {
+                var form = new FormData();
+                form.append('image', file, file.name);
+                axios.post('/api/images', form).then(response => {
+                    if (this.item) {
+                        this.item.url = response.data.path;
+                    }
+                });
+            }
+
         }
     },
     computed: {
