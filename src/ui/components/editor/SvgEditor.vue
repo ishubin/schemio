@@ -71,17 +71,8 @@
 
                 </g>
             </g>
-            <!--
-            <g v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta">
-                <path :d="connectorToSvgPath(connector)" class="item-connector" :class="{selected: connector.meta.selected}" stroke="#555" stroke-width="3" fill="none"/>
-                <path :d="connectorToSvgPath(connector)" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="connectorEntered(connector)" @pointerleave="connectorLeave(connector)"/>
-
-                <g v-if="connector.style && connector.style.source && connector.style.source.type">
-                    <circle v-if="connector.style.source.type === 'circle'" :cx="_x(connector.meta.points[0].x)" :cy="_y(connector.meta.points[0].y)" :r="_z(connector.style.source.size)" fill="black"/>
-                </g>
-            </g>
-        -->
             <connector-svg  v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta"
+                :key="connector.id"
                 :connector="connector"
                 :zoom="vZoom"
                 :offsetX="vOffsetX"

@@ -9,7 +9,6 @@ class SchemeContainer {
         this.scheme = scheme;
         this.selectedItems = [];
         this.selectedConnectors = [];
-        this.sortedItemsIndex = null;
         this.activeBoundaryBox = null;
         this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.itemMap = {};
@@ -17,22 +16,16 @@ class SchemeContainer {
     }
 
     reindexItems() {
-        var sortedItems = [].concat(this.scheme.items);
-        sortedItems.sort((a,b) => {
-            var areaA = a.area.w * a.area.h,
-                areaB = b.area.w * b.area.h;
-            return areaA - areaB;
-        });
-
         //TODO optimize itemMap to not reconstruct it with every change
         this.itemMap = {};
-        if (sortedItems.length > 0) {
-            this.schemeBoundaryBox.x = sortedItems[0].area.x;
-            this.schemeBoundaryBox.y = sortedItems[0].area.y;
-            this.schemeBoundaryBox.w = sortedItems[0].area.w;
-            this.schemeBoundaryBox.h = sortedItems[0].area.h;
+        var items = this.scheme.items;
+        if (items.length > 0) {
+            this.schemeBoundaryBox.x = items[0].area.x;
+            this.schemeBoundaryBox.y = items[0].area.y;
+            this.schemeBoundaryBox.w = items[0].area.w;
+            this.schemeBoundaryBox.h = items[0].area.h;
 
-            _.forEach(sortedItems, item => {
+            _.forEach(items, item => {
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }
@@ -55,7 +48,6 @@ class SchemeContainer {
         }
 
         this.buildConnectors();
-        this.sortedItemsIndex = sortedItems;
     }
 
     buildConnectors() {
@@ -246,7 +238,7 @@ class SchemeContainer {
     }
 
     findHoveredItem(x, y) {
-        return _.find(this.sortedItemsIndex, item => myMath.isPointInArea(x, y, item.area));
+        return _.findLast(this.scheme.items, item => myMath.isPointInArea(x, y, item.area));
     }
 
     setActiveBoundaryBox(area) {
@@ -313,6 +305,21 @@ class SchemeContainer {
         this.selectedItems = [];
     }
 
+    bringToBack(item) {
+        var i = _.findIndex(this.scheme.items, schemeItem => schemeItem.id === item.id);
+        if (i > 0) {
+            var element = this.scheme.items.splice(i, 1)[0];
+            this.scheme.items.unshift(element);
+        }
+    }
+
+    bringToFront(item) {
+        var i = _.findIndex(this.scheme.items, schemeItem => schemeItem.id === item.id);
+        if (i >= 0) {
+            var element = this.scheme.items.splice(i, 1)[0];
+            this.scheme.items.push(element);
+        }
+    }
 
     provideBoundingBoxDraggers(item) {
         // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
