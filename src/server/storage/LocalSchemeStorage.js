@@ -10,11 +10,9 @@ class LocalSchemeStorage extends SchemeStorage {
         this.storagePath = process.env.LOCAL_SCHEME_STORAGE_PATH || 'local-storage';
         console.log('Local scheme storage: ' + this.storagePath);
 
-        if (process.env.LOCAL_SCHEME_STORAGE_PATH) {
-            setInterval(() => {
-                this.runReindexJob()
-            }, 1000);
-        }
+        setInterval(() => {
+            this.runReindexJob()
+        }, 1000);
 
         this.schemeQueueForIndex = [];
         this.isReindexing = false;
@@ -164,6 +162,7 @@ class LocalSchemeStorage extends SchemeStorage {
                 });
             }
         } catch(ex) {
+            console.error(ex);
         }
     }
 }
