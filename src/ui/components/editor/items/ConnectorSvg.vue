@@ -127,38 +127,6 @@ export default {
         zoom(value) {
             this.recompute()
         }
-    },
-    computed: {
-        /*
-        svgPath() {
-            var path = `M ${this._x(this.connector.meta.points[0].x)} ${this._y(this.connector.meta.points[0].y)}`
-
-            for (var i = 1; i < this.connector.meta.points.length; i++) {
-                path += ` L ${this._x(this.connector.meta.points[i].x)} ${this._y(this.connector.meta.points[i].y)}`
-            }
-            return path;
-        },
-        ends() {
-            var ends = [];
-            if (this.connector.meta && this.connector.meta.points.length > 0 && this.connector.style) {
-                var points = this.connector.meta.points;
-
-                if (this.connector.style.source) {
-                    var end = this.createEnd(points[0].x, points[0].y, points[1].x, points[1].y, this.connector.style.source);
-                    if (end) {
-                        ends.push(end);
-                    }
-                }
-                if (this.connector.style.destination) {
-                    var end = this.createEnd(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, this.connector.style.destination);
-                    if (end) {
-                        ends.push(end);
-                    }
-                }
-            }
-
-            return ends;
-        }*/
     }
 }
 </script>

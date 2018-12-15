@@ -120,7 +120,7 @@ export default class StateDragItem extends State {
         });
         if (change > 0) {
             this.hasDraggedItems = true;
-            this.rebuildItemConnectors(this.selectedItem);
+            this.rebuildItemConnectors(item);
         } else {
             this.hasDraggedItems = false;
         }
