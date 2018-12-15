@@ -59,26 +59,40 @@ class SchemeContainer {
     }
 
     buildConnectors() {
-        //TODO optimize connectors and only rebuild the ones that were affected
         if (this.scheme.connectors) {
-            _.forEach(this.scheme.connectors, schemeConnector => {
-                this.buildConnector(schemeConnector);
+            _.forEach(this.scheme.connectors, connector => {
+                this.buildConnector(connector);
             });
         }
     }
 
-    buildConnector(schemeConnector) {
-        this.enrichConnectorWithDefaultStyle(schemeConnector);
-        var sourceItem = this.itemMap[schemeConnector.sourceId];
-        var destinationItem = this.itemMap[schemeConnector.destinationId];
-        if (!sourceItem || !destinationItem) {
-            return null;
+    reindexConnector(connector, item) {
+        if (!item.meta) {
+            item.meta = {};
         }
 
+        if (!item.meta.connectorsMap) {
+            item.meta.connectorsMap = {};
+        }
+
+        item.meta.connectorsMap[connector.id] = connector;
+    }
+
+    buildConnector(connector) {
+        this.enrichConnectorWithDefaultStyle(connector);
+        var sourceItem = this.itemMap[connector.sourceId];
+        var destinationItem = this.itemMap[connector.destinationId];
+        if (!sourceItem || !destinationItem) {
+            return;
+        }
+
+        this.reindexConnector(connector, sourceItem);
+        this.reindexConnector(connector, destinationItem);
+
         var sourceEdge = null, destinationEdge  = null;
-        if (schemeConnector.reroutes && schemeConnector.reroutes.length > 0) {
-            sourceEdge = this.identifyConnectorEdge(sourceItem.area, schemeConnector.reroutes[0]);
-            destinationEdge = this.identifyConnectorEdge(destinationItem.area, schemeConnector.reroutes[schemeConnector.reroutes.length - 1]);
+        if (connector.reroutes && connector.reroutes.length > 0) {
+            sourceEdge = this.identifyConnectorEdge(sourceItem.area, connector.reroutes[0]);
+            destinationEdge = this.identifyConnectorEdge(destinationItem.area, connector.reroutes[connector.reroutes.length - 1]);
         } else {
             sourceEdge = this.identifyConnectorEdge(sourceItem.area, {
                 x: destinationItem.area.x + destinationItem.area.w /2,
@@ -95,18 +109,18 @@ class SchemeContainer {
             y: (sourceEdge.y1 + sourceEdge.y2) / 2
         }];
 
-        if (schemeConnector.reroutes) {
-            points = points.concat(schemeConnector.reroutes);
+        if (connector.reroutes) {
+            points = points.concat(connector.reroutes);
         }
         points.push({
             x: (destinationEdge.x1 + destinationEdge.x2) / 2,
             y: (destinationEdge.y1 + destinationEdge.y2) / 2
         });
 
-        if (!schemeConnector.meta) {
-            schemeConnector.meta = {};
+        if (!connector.meta) {
+            connector.meta = {};
         }
-        schemeConnector.meta.points = points;
+        connector.meta.points = points;
     }
 
     enrichConnectorWithDefaultStyle(connector) {
@@ -166,15 +180,15 @@ class SchemeContainer {
             });
 
             if (!alreadyExistingConnection) {
-                var schemeConnector = {
+                var connector = {
                     id: shortid.generate(),
                     sourceId: sourceItem.id,
                     destinationId: destinationItem.id,
                     reroutes: []
                 };
-                this.scheme.connectors.push(schemeConnector);
+                this.scheme.connectors.push(connector);
 
-                this.buildConnector(schemeConnector);
+                this.buildConnector(connector);
             }
         }
     }

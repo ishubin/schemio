@@ -20,9 +20,16 @@ export default {
     mounted() {
         EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {
             if (this.connector.id === connector.id) {
+                this.recompute();
                 this.$forceUpdate();
             }
         });
+    },
+    data() {
+        return {
+            svgPath: this.computeSvgPath(this.connector.meta.points),
+            ends: this.computeEnds(this.connector)
+        };
     },
     methods: {
         _x(x) { return x * this.zoom + this.offsetX; },
@@ -69,9 +76,60 @@ export default {
                 }
             }
             return null;
+        },
+        computeSvgPath(points) {
+            var path = `M ${this._x(points[0].x)} ${this._y(points[0].y)}`
+
+            for (var i = 1; i < points.length; i++) {
+                path += ` L ${this._x(points[i].x)} ${this._y(points[i].y)}`
+            }
+            return path;
+        },
+        computeEnds(connector) {
+            var ends = [];
+            if (connector.meta && connector.meta.points.length > 0 && connector.style) {
+                var points = connector.meta.points;
+
+                if (connector.style.source) {
+                    var end = this.createEnd(points[0].x, points[0].y, points[1].x, points[1].y, connector.style.source);
+                    if (end) {
+                        ends.push(end);
+                    }
+                }
+                if (connector.style.destination) {
+                    var end = this.createEnd(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, connector.style.destination);
+                    if (end) {
+                        ends.push(end);
+                    }
+                }
+            }
+            return ends;
+        },
+        recompute() {
+            this.svgPath = this.computeSvgPath(this.connector.meta.points);
+            this.ends = this.computeEnds(this.connector);
+        }
+    },
+    watch: {
+        connector: {
+            deep: true,
+            handler(connector) {
+                this.svgPath = this.computeSvgPath(connector.meta.points);
+                this.ends = this.computeEnds(connector);
+            }
+        },
+        offsetX(value) {
+            this.recompute()
+        },
+        offsetY(value) {
+            this.recompute()
+        },
+        zoom(value) {
+            this.recompute()
         }
     },
     computed: {
+        /*
         svgPath() {
             var path = `M ${this._x(this.connector.meta.points[0].x)} ${this._y(this.connector.meta.points[0].y)}`
 
@@ -100,7 +158,7 @@ export default {
             }
 
             return ends;
-        }
+        }*/
     }
 }
 </script>

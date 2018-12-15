@@ -1,5 +1,6 @@
 import State from './State.js';
 import EventBus from '../EventBus.js';
+import _ from 'lodash';
 
 export default class StateDragItem extends State {
     constructor(editor) {
@@ -69,9 +70,6 @@ export default class StateDragItem extends State {
     }
 
     mouseUp(x, y, mx, my, item, connector, event) {
-        if (this.hasDraggedItems) {
-            EventBus.$emit(EventBus.REBUILD_CONNECTORS);
-        }
         this.reset();
     }
 
@@ -82,6 +80,8 @@ export default class StateDragItem extends State {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             this.selectedItem.area.x = this.itemOriginalArea.x + dx;
             this.selectedItem.area.y = this.itemOriginalArea.y + dy;
+
+            this.rebuildItemConnectors(this.selectedItem);
             EventBus.$emit(EventBus.REDRAW);
             this.hasDraggedItems = true;
         } else {
@@ -120,6 +120,7 @@ export default class StateDragItem extends State {
         });
         if (change > 0) {
             this.hasDraggedItems = true;
+            this.rebuildItemConnectors(this.selectedItem);
         } else {
             this.hasDraggedItems = false;
         }
@@ -128,6 +129,15 @@ export default class StateDragItem extends State {
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+        }
+    }
+
+    rebuildItemConnectors(item) {
+        if (item.meta && item.meta.connectorsMap) {
+            _.forEach(item.meta.connectorsMap, (connector, connectorId) => {
+                this.schemeContainer.buildConnector(connector);
+                EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
+            });
         }
     }
 
