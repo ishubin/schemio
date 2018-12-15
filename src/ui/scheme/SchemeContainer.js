@@ -210,7 +210,7 @@ class SchemeContainer {
                             size: 5
                         },
                         destination: {
-                            type: 'empty',
+                            type: 'arrow',
                             size: 5
                         }
                     }
@@ -260,7 +260,7 @@ class SchemeContainer {
         } else {
             this.deselectAllConnectors();
 
-            if (connector.meta) {
+            if (connector.meta && !connector.meta.selected) {
                 connector.meta.selected = true;
                 this.selectedConnectors.push(connector);
             }
@@ -279,8 +279,11 @@ class SchemeContainer {
             this.selectItemInclusive();
         } else {
             this.deselectAllItems();
-            item.meta.selected = true;
-            this.selectedItems.push(item);
+
+            if (!item.meta.selected) {
+                item.meta.selected = true;
+                this.selectedItems.push(item);
+            }
         }
     }
 

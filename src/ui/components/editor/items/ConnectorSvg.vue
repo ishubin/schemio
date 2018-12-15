@@ -19,10 +19,16 @@ export default {
 
     mounted() {
         EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {
-            if (this.connector.id === connector.id) {
-                this.recompute();
-                this.$forceUpdate();
+            if (connector) {
+                if (this.connector.id !== connector.id) {
+                    return;
+                }
             }
+            this.recompute();
+            this.$forceUpdate();
+        });
+        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, () => {
+            this.$forceUpdate();
         });
     },
     data() {
