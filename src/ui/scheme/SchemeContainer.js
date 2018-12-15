@@ -130,6 +130,24 @@ class SchemeContainer {
         if (!connector.style.color) {
             connector.style.color = '#333';
         }
+        if (!connector.style.destination) {
+            connector.style.destination = {};
+        }
+        if (!connector.style.destination.type) {
+            connector.style.destination.type = 'empty';
+        }
+        if (!connector.style.destination.size) {
+            connector.style.destination.size = 5;
+        }
+        if (!connector.style.source) {
+            connector.style.source = {};
+        }
+        if (!connector.style.source.type) {
+            connector.style.source.type = 'empty';
+        }
+        if (!connector.style.source.size) {
+            connector.style.source.size = 5;
+        }
     }
 
     identifyConnectorEdge(area, point) {
@@ -184,7 +202,18 @@ class SchemeContainer {
                     id: shortid.generate(),
                     sourceId: sourceItem.id,
                     destinationId: destinationItem.id,
-                    reroutes: []
+                    reroutes: [],
+                    style: {
+                        color: '#333',
+                        source: {
+                            type: 'empty',
+                            size: 5
+                        },
+                        destination: {
+                            type: 'empty',
+                            size: 5
+                        }
+                    }
                 };
                 this.scheme.connectors.push(connector);
 
