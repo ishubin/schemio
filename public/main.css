@@ -178,6 +178,13 @@ svg .item-container.item-type-component .item-graphics rect {
 svg .item-container.item-type-component.selected .item-graphics rect {
     opacity: 0.7;
 }
+svg .item-container.item-type-shape .item-graphics image {
+    cursor: pointer;
+    cursor: hand;
+}
+svg .item-container.item-type-shape.selected .item-graphics image {
+    opacity: 0.7;
+}
 svg .item-container.item-type-overlay .item-graphics rect {
     stroke-width: 3;
     stroke: none;
@@ -245,6 +252,10 @@ svg.mode-view.state-interact .item-container.item-type-overlay:hover .item-graph
     cursor: pointer;
 }
 svg.mode-view.state-interact .item-container.item-type-component:hover .item-graphics rect {
+    opacity: 0.8;
+    cursor: pointer;
+}
+svg.mode-view.state-interact .item-container.item-type-shape:hover .item-graphics image {
     opacity: 0.8;
     cursor: pointer;
 }
@@ -519,6 +530,12 @@ ul.button-group li .toggle-button:hover {
     text-align: center;
     color: #0885ba;
     font-size: 56px;
+}
+.item-menu .item-container img {
+    display: block;
+    width: 100%;
+    max-height: 100px;
+    text-align: center;
 }
 .item-menu .item-container span {
     margin-top: 10px;

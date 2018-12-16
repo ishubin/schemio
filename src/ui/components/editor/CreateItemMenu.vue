@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="create-item-menu">
-        <div class="item-menu">
+        <div class="item-menu" v-if="menu === 'main'">
             <div class="item-container" @click="clickComponent">
                 <i class="fab fa-elementor"></i>
                 <span>Component</span>
@@ -11,6 +11,11 @@
                 <span>Overlay</span>
             </div>
 
+            <div class="item-container" @click="menu = 'shape'">
+                <i class="fas fa-shapes"></i>
+                <span>Shape</span>
+            </div>
+
             <div class="item-container" @click="clickImage">
                 <i class="fas fa-image"></i>
                 <span>Image</span>
@@ -19,6 +24,18 @@
             <div class="item-container" @click="clickComment">
                 <i class="fas fa-comment-alt"></i>
                 <span>Comment</span>
+            </div>
+        </div>
+        <div class="item-menu" v-if="menu === 'shape'">
+            <div>
+                <span class="link" @click="menu = 'main'">&lt; Back</span>
+            </div>
+
+            <div class="item-container"
+                v-for="shape in shapes"
+                @click="clickShape(shape)">
+                <img width="60px" height="60px" :src="'/shapes/'+shape+'.svg'"/>
+                <span>shape</span>
             </div>
         </div>
 
@@ -36,13 +53,20 @@ import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
+import apiClient from '../../apiClient.js';
 
 export default {
     components: {CreateImageModal, Modal},
+    mounted() {
+        apiClient.getShapes().then(shapes => {
+            this.shapes = shapes;
+        });
+    },
     data() {
         return {
             showCreateImageModal: false,
-
+            menu: 'main',
+            shapes: [],
             errorMessage: null
         }
     },
@@ -86,6 +110,20 @@ export default {
                 },
                 name: '',
                 description: 'Leave a comment ...',
+                links: []
+            });
+        },
+
+        clickShape(shape) {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'shape',
+                shape: shape,
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {},
+                properties: '',
+                name: 'Unnamed',
+                description: '',
                 links: []
             });
         },

@@ -6,7 +6,7 @@
                 <input class="textfield" type="text" v-model="item.name"/>
             </div>
 
-            <div v-if="item.type === 'overlay' || item.type === 'component'">
+            <div v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape'">
                 <h5>Tags</h5>
                 <vue-tags-input v-model="itemTag"
                     :tags="itemTags"
@@ -39,7 +39,7 @@
             </table>
         </panel>
 
-        <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component'">
+        <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape' ">
             <div v-if="!item.links || item.links.length === 0">There are no links</div>
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
@@ -57,7 +57,7 @@
             </ul>
             <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
         </panel>
-        <panel name="Connections" v-if="item.type === 'overlay' || item.type === 'component'">
+        <panel name="Connections" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape'">
             <span class="btn btn-secondary" v-on:click="connectItem()"><i class="fas fa-sitemap"></i> Connect</span>
         </panel>
 

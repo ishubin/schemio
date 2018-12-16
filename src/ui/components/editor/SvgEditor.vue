@@ -44,6 +44,21 @@
                     />
                 </g>
 
+                <g v-if="item.type === 'shape'" class="item-graphics">
+                    <image
+                        :x="_x(item.area.x)"
+                        :y="_y(item.area.y)"
+                        :width="_z(item.area.w)"
+                        :height="_z(item.area.h)"
+                        :xlink:href="'/shapes/'+item.shape+'.svg'"/>
+                    <text
+                        :x="_x(item.area.x + item.area.w/2) - _z(15 * item.name.length / (2 * 2))"
+                        :y="_y(item.area.y + item.area.h + 20)"
+                        :font-size="Math.floor(_z(15)) + 'px'"
+                        :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
+                        >{{item.name}}</text>
+                </g>
+
                 <g v-if="mode === 'edit'">
                     <!-- Drawing boundary edit box -->
                     <rect class="boundary-box"
@@ -121,6 +136,8 @@
                     :height="_z(schemeContainer.activeBoundaryBox.h)"
                 />
             </g>
+
+
 
         </svg>
     </div>

@@ -21,7 +21,7 @@ class StateDragging extends State {
     }
 
     mouseDown(x, y, mx, my, item, connector, event){
-        if (item && (item.type === 'component' || item.type === 'overlay')) {
+        if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
             this.schemeContainer.selectItem(item, false);
             EventBus.$emit(EventBus.ITEM_SELECTED, item);
         } else {

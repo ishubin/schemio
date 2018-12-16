@@ -1,5 +1,18 @@
 const schemeStorage = require('../storage/storageProvider.js').provideStorage();
 const _             = require('lodash');
+const fs            = require('fs-extra');
+
+
+const shapes        = [];
+fs.readdirSync('public/shapes').forEach(fileName => {
+    var i = fileName.indexOf('.');
+    if (i > 0) {
+        shapes.push(fileName.substring(0, i));
+    } else {
+        shapes.push(fileName);
+    }
+});
+
 
 
 const ApiSchemes = {
@@ -52,6 +65,10 @@ const ApiSchemes = {
             res.status(500);
             res.json({error: 'Could not get tags'});
         });
+    },
+
+    getShapes(req, res) {
+        res.json(shapes);
     },
 
     sanitizeScheme(scheme) {

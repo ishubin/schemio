@@ -48,5 +48,11 @@ export default {
         return axios.get('/api/tags').then(response => {
             return response.data;
         });
+    },
+
+    getShapes() {
+        return axios('/api/shapes').then(response => {
+            return response.data;
+        });
     }
 }

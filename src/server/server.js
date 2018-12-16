@@ -17,6 +17,7 @@ app.get('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.getScheme);
 app.post('/api/schemes', [jsonBodyParser], apiSchemes.createScheme);
 app.put('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.saveScheme);
 app.get('/api/tags', [jsonBodyParser], apiSchemes.getTags);
+app.get('/api/shapes', [jsonBodyParser], apiSchemes.getShapes);
 app.post('/api/images', apiImages.uploadImage);
 app.get('/api/images/:fileName', apiImages.getImage);
 
