@@ -68,25 +68,25 @@
 
         <panel name="Style" v-if="item.type !== 'image'">
             <div class="property-row" v-if="item.style.background && item.style.background.color">
-                <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>
+                <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Background</span>
             </div>
             <div class="property-row" v-if="item.style.text && item.style.text.color">
-                <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]"></color-picker>
+                <color-picker :color="item.style.text.color" @input="item.style.text.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Text color</span>
             </div>
             <div class="property-row" v-if="item.style.stroke && item.style.stroke.color">
-                <color-picker :color="item.style.stroke.color" @input="item.style.stroke.color = arguments[0]"></color-picker>
+                <color-picker :color="item.style.stroke.color" @input="item.style.stroke.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Stroke color</span>
             </div>
 
             <div v-if="item.type === 'component'">
                 <div class="property-row">
-                    <color-picker :color="item.style.properties.background.color" @input="item.style.properties.background.color = arguments[0]"></color-picker>
+                    <color-picker :color="item.style.properties.background.color" @input="item.style.properties.background.color = arguments[0]; redrawItem();"></color-picker>
                     <span class="property-label">Properties background</span>
                 </div>
                 <div class="property-row">
-                    <color-picker :color="item.style.properties.text.color" @input="item.style.properties.text.color = arguments[0]"></color-picker>
+                    <color-picker :color="item.style.properties.text.color" @input="item.style.properties.text.color = arguments[0]; redrawItem();"></color-picker>
                     <span class="property-label">Properties text</span>
                 </div>
 
@@ -191,7 +191,10 @@ export default {
                     }
                 });
             }
+        },
 
+        redrawItem() {
+            EventBus.$emit(EventBus.REDRAW_ITEM, this.item);
         }
     },
     computed: {
