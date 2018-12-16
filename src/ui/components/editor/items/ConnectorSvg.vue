@@ -1,12 +1,11 @@
 <template lang="html">
     <g>
-        <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" stroke-width="3" fill="none"/>
+        <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" :stroke-width="connector.style.width" fill="none"/>
         <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="$emit('connector-enter')" @pointerleave="$emit('connector-leave')"/>
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color"/>
-            <path v-if="end.type === 'path'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" stroke-width="3" :fill="end.fill"/>
-
+            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
+            <path v-if="end.type === 'path'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color"  :stroke-width="connector.style.width" :fill="end.fill"/>
         </g>
     </g>
 </template>

@@ -19,6 +19,11 @@
             <color-picker :color="connector.style.color" @input="connector.style.color = arguments[0]"></color-picker>
             <span class="property-label">Color</span>
         </div>
+
+        <div class="property-row">
+            <span class="property-label">Stoke size</span>
+            <input type="text" v-model="connector.style.width"/>
+        </div>
     </div>
 </template>
 
