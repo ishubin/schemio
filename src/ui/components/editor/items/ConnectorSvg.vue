@@ -1,11 +1,25 @@
 <template lang="html">
     <g>
-        <path :d="svgPath" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color" :stroke-width="connector.style.width" fill="none"/>
+        <path :d="svgPath" class="item-connector"
+            :class="{selected: connector.meta.selected}"
+            :stroke="connector.style.color"
+            :stroke-width="connector.style.width" fill="none"
+            :stroke-dasharray="strokeDashArray"
+            stroke-linejoin="round"
+        />
         <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="$emit('connector-enter')" @pointerleave="$emit('connector-leave')"/>
 
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
-            <path v-if="end.type === 'path'" :d="end.path" class="item-connector" :class="{selected: connector.meta.selected}" :stroke="connector.style.color"  :stroke-width="connector.style.width" :fill="end.fill"/>
+            <path v-if="end.type === 'path'"
+                :d="end.path"
+                class="item-connector"
+                :class="{selected: connector.meta.selected}"
+                :stroke="connector.style.color"
+                :stroke-width="connector.style.width"
+                :fill="end.fill"
+                stroke-linejoin="round"
+            />
         </g>
     </g>
 </template>
@@ -131,6 +145,17 @@ export default {
         },
         zoom(value) {
             this.recompute()
+        }
+    },
+    computed:{
+        strokeDashArray() {
+            var w = this.connector.style.width;
+            if (this.connector.style.pattern === 'dotted') {
+                return  w + ' ' + (w * 2);
+            } else if (this.connector.style.pattern === 'dashed') {
+                return (w * 4) + ' ' + (w * 4);
+            }
+            return '';
         }
     }
 }

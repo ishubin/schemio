@@ -24,12 +24,18 @@
             <span class="property-label">Stoke size</span>
             <input type="text" v-model="connector.style.width"/>
         </div>
+
+        <div class="property-row">
+            <span class="property-label">Pattern</span>
+            <select type="text" v-model="connector.style.pattern">
+                <option v-for="pattern in knownPatterns">{{pattern}}</option>
+            </select>
+        </div>
     </div>
 </template>
 
 <script>
 import ColorPicker from './ColorPicker.vue';
-import EventBus from './EventBus.js';
 
 export default {
     props: ['connector'],
@@ -37,7 +43,9 @@ export default {
     components: {ColorPicker},
     data() {
         var data =  {
-            knownEndStyleTypes: ['empty', 'arrow', 'triangle', 'circle']
+            knownEndStyleTypes: ['empty', 'arrow', 'triangle', 'circle'],
+
+            knownPatterns: ['line', 'dotted', 'dashed']
         };
 
         return data;

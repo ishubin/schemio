@@ -50,9 +50,20 @@
 
 <script>
 import _ from 'lodash';
+import EventBus from '../EventBus.js';
 
 export default {
     props: ['item', 'offsetX', 'offsetY', 'zoom'],
+    mounted() {
+        EventBus.$on(EventBus.REDRAW_ITEM, item => {
+            if (item) {
+                if (this.item.id !== item.id) {
+                    return;
+                }
+            }
+            this.$forceUpdate();
+        });
+    },
     methods: {
         _x(x) { return x * this.zoom + this.offsetX; },
         _y(y) { return y * this.zoom + this.offsetY; },
@@ -60,15 +71,19 @@ export default {
     },
     computed: {
         properties() {
-            var properties = this.item.properties || '';
-            return _.chain(properties.split('\n')).map(p => {
-                var v = p.trim();
-                if (v.length > 0) {
-                    return v;
-                } else {
-                    return ' ';
-                }
-            }).value();
+            if (this.item.properties.trim().length > 0) {
+                var properties = this.item.properties || '';
+                return _.chain(properties.split('\n')).map(p => {
+                    var v = p.trim();
+                    if (v.length > 0) {
+                        return v;
+                    } else {
+                        return ' ';
+                    }
+                }).value();
+            } else {
+                return [];
+            }
         },
         fontsize() {
             return this._z(12);

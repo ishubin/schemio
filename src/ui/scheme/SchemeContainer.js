@@ -148,6 +148,7 @@ class SchemeContainer {
             style: {
                 color: '#333',
                 width: 1,
+                pattern: 'line',
                 destination: {
                     type: 'arrow',
                     size: 5
