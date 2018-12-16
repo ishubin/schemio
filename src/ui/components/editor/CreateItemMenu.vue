@@ -1,6 +1,11 @@
 <template lang="html">
     <div class="create-item-menu">
         <div class="item-menu">
+            <div class="item-container" @click="clickComponent">
+                <i class="fab fa-elementor"></i>
+                <span>Component</span>
+            </div>
+
             <div class="item-container" @click="clickOverlay">
                 <i class="fas fa-layer-group"></i>
                 <span>Overlay</span>
@@ -48,9 +53,10 @@ export default {
                 type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
-                    background: { color: '#b8e0ee' },
-                    text: { color: '#0d3847' }
+                    background: { color: '#e7f5fa' },
+                    text: { color: '#373737' }
                 },
+                properties: '',
                 name: 'Unnamed',
                 description: '',
                 links: []

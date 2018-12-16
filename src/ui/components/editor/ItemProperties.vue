@@ -61,6 +61,11 @@
             <span class="btn btn-secondary" v-on:click="connectItem()"><i class="fas fa-sitemap"></i> Connect</span>
         </panel>
 
+        <panel name="Properties" v-if="item.type === 'component'">
+            <p>You can write one property per line</p>
+            <textarea v-model="item.properties"></textarea>
+        </panel>
+
         <panel name="Style" v-if="item.type !== 'image'">
             <div class="property-row" v-if="item.style.background && item.style.background.color">
                 <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]"></color-picker>

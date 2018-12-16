@@ -209,6 +209,9 @@ svg rect.item-search-highlight {
 }
 
 
+svg .item-container.item-type-component .item-caption {
+    font-weight: bold;
+}
 
 /**********************/
 /*      Item link    */
@@ -512,7 +515,7 @@ ul.button-group li .toggle-button:hover {
     cursor: pointer;
     border-radius: 10px;
 }
-.item-menu .item-container i.fas {
+.item-menu .item-container i {
     display: block;
     width: 100%;
     text-align: center;
@@ -524,7 +527,7 @@ ul.button-group li .toggle-button:hover {
     display: block;
     width: 100%;
     text-align: center;
-    font-size: 16px;
+    font-size: 12px;
     color: #045e85;
 }
 .item-menu .item-container:hover {

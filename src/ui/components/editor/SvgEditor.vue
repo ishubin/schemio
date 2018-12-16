@@ -14,21 +14,14 @@
                 <g v-if="item.type === 'image'" class="item-graphics">
                     <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
                 </g>
-                <g v-if="item.type === 'component'" class="item-graphics">
-                    <rect
-                        :x="_x(item.area.x)"
-                        :y="_y(item.area.y)"
-                        :width="_z(item.area.w)"
-                        :height="_z(item.area.h)"
-                        :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
-                    />
-                        <text
-                            :x="_x(item.area.x + 4)"
-                            :y="_y(item.area.y + 14)"
-                            :font-size="Math.floor(_z(15)) + 'px'"
-                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
-                            >{{item.name}}</text>
-                </g>
+
+                <component-item v-if="item.type === 'component'"
+                    :key="item.id"
+                    :item="item"
+                    :zoom="vZoom"
+                    :offsetX="vOffsetX"
+                    :offsetY="vOffsetY"
+                    ></component-item>
 
                 <comment-item v-if="item.type === 'comment'"
                     :x="_x(item.area.x)"
@@ -140,12 +133,13 @@ import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
 import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
+import ComponentItem from './items/ComponentItem.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
-    components: {CommentItem, ConnectorSvg},
+    components: {CommentItem, ConnectorSvg, ComponentItem},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
