@@ -17,7 +17,7 @@ export default class StateConnecting extends State {
     }
 
     mouseMove(x, y, mx, my, item, connector, event) {
-        if (item && (item.type === 'component' || item.type === 'overlay')) {
+        if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
             this.hoveredItem = item;
         } else {
             this.hoveredItem = null;
@@ -25,7 +25,7 @@ export default class StateConnecting extends State {
     }
 
     mouseDown(x, y, mx, my, item, connector, event) {
-        if (item && (item.type === 'component' || item.type === 'overlay')) {
+        if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
             if (this.sourceItem && this.sourceItem !== item) {
                 this.schemeContainer.connectItems(this.sourceItem, item);
                 this.reset();

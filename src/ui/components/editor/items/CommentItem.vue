@@ -48,7 +48,7 @@ export default {
                 id += 1;
                 lines[id] = '';
                 _.forEach(words, word => {
-                    if ((word.length + 1 + lines[id].length) * this.fontsize / 2 > width) {
+                    if ((word.length + 1 + lines[id].length) * this.fontsize / 1.6 > width) {
                         if (lines[id].length > 0 ) {
                             id += 1;
                         }

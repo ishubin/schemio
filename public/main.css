@@ -171,6 +171,9 @@ ul.pagination li.active a {
     -ms-user-select: none;
     user-select: none;
 }
+svg text {
+    font-family: "Lucida Console", monospace;
+}
 svg .item-container.item-type-component .item-graphics rect {
     cursor: pointer;
     cursor: hand;

@@ -245,10 +245,12 @@ class SchemeContainer {
             });
 
             _.remove(this.scheme.items, item => _.includes(this.selectedItems, item));
+            this.selectedItems = [];
             removed += 1;
         }
         if (this.selectedConnectors && this.selectedConnectors.length > 0) {
             _.remove(this.scheme.connectors, connector => _.includes(this.selectedConnectors, connector));
+            this.selectedConnectors = [];
             removed += 1;
         }
         if (removed > 0) {

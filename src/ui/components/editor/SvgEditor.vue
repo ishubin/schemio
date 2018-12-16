@@ -52,7 +52,7 @@
                         :height="_z(item.area.h)"
                         :xlink:href="'/shapes/'+item.shape+'.svg'"/>
                     <text
-                        :x="_x(item.area.x + item.area.w/2) - _z(15 * item.name.length / (2 * 2))"
+                        :x="_x(item.area.x + item.area.w/2) - _z(15 * item.name.length / (1.75 * 2))"
                         :y="_y(item.area.y + item.area.h + 20)"
                         :font-size="Math.floor(_z(15)) + 'px'"
                         :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
@@ -177,6 +177,7 @@ export default {
                 EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
+                this.hoveredConnector = false;
                 EventBus.$emit(EventBus.REDRAW);
             }
         });
