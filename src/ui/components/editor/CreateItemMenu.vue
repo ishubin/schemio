@@ -52,10 +52,7 @@ export default {
                 id: shortid.generate(),
                 type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    background: { color: '#e7f5fa' },
-                    text: { color: '#373737' }
-                },
+                style: {},
                 properties: '',
                 name: 'Unnamed',
                 description: '',

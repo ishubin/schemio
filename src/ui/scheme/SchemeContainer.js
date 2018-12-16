@@ -26,6 +26,7 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = items[0].area.h;
 
             _.forEach(items, item => {
+                this.enrichItemWithDefaultStyles(item);
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }
@@ -48,6 +49,33 @@ class SchemeContainer {
         }
 
         this.buildConnectors();
+    }
+
+    enrichItemWithDefaultStyles(item) {
+        if (item.type === 'component') {
+            this.extendObject(item, {
+                style: {
+                    background: {
+                        color: '#ddd'
+                    },
+                    text: {
+                        color: '#333'
+                    },
+                    properties: {
+                        background: {
+                            color: '#eee'
+                        },
+                        text: {
+                            color: '#888'
+                        }
+                    },
+                    stroke: {
+                        color: '#666',
+                        size: 1
+                    }
+                }
+            });
+        }
     }
 
     buildConnectors() {
@@ -359,6 +387,18 @@ class SchemeContainer {
         },{
             x: item.area.x, y: item.area.y + Math.floor(item.area.h / 2), s: s, edges: ['left']
         }];
+    }
+
+    extendObject(originalObject, overrideObject) {
+        _.forEach(overrideObject, (value, key) => {
+            if (!originalObject.hasOwnProperty(key)) {
+                originalObject[key] = value;
+            } else {
+                if (typeof value === 'object') {
+                    this.extendObject(originalObject[key], value);
+                }
+            }
+        }) ;
     }
 }
 

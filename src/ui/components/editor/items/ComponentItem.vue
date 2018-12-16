@@ -5,6 +5,7 @@
             :y="_y(item.area.y)"
             :width="_z(item.area.w)"
             :height="_z(item.area.h)"
+            stroke-width="0"
             :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
         />
         <rect v-if="properties.length > 0"
@@ -12,6 +13,7 @@
             :y="_y(item.area.y) + _z(30)"
             :width="_z(item.area.w)"
             :height="_z(item.area.h) - _z(30)"
+            stroke-width="0"
             :fill="item.style.properties && item.style.properties.background && item.style.properties.background.color ? item.style.properties.background.color : '#fef'"
         />
             <text
@@ -25,12 +27,24 @@
             <text v-if="properties.length > 0"
                 class="item-property"
                 :x="_x(item.area.x + 4)"
-                :y="_y(item.area.y + 28)"
+                :y="_y(item.area.y + 32)"
                 :font-size="Math.floor(fontsize) + 'px'"
                 :fill="item.style.properties && item.style.properties.text && item.style.properties.text.color ? item.style.properties.text.color : '#666'"
                 >
                 <tspan v-for="property in properties" :x="_x(item.area.x) + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{property}}</tspan>
             </text>
+        <g v-if="item.style.stroke.size > 0">
+            <rect
+                :x="_x(item.area.x)"
+                :y="_y(item.area.y)"
+                :width="_z(item.area.w)"
+                :height="_z(item.area.h)"
+                :stroke="item.style.stroke.color"
+                :stroke-width="item.style.stroke.size + 'px'"
+                fill="none"
+            />
+            <path :d="propertiesSeparatorPath" v-if="properties.length > 0" stroke-width="1px" :stroke="item.style.stroke.color"/>
+        </g>
     </g>
 </template>
 
@@ -58,6 +72,12 @@ export default {
         },
         fontsize() {
             return this._z(12);
+        },
+        propertiesSeparatorPath() {
+            var x1 = this._x(this.item.area.x);
+            var x2 = this._x(this.item.area.x + this.item.area.w);
+            var y = this._y(this.item.area.y) + this._z(30);
+            return `M ${x1} ${y} L ${x2} ${y}`;
         }
     }
 }

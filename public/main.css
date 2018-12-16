@@ -172,8 +172,6 @@ ul.pagination li.active a {
     user-select: none;
 }
 svg .item-container.item-type-component .item-graphics rect {
-    stroke-width: 1;
-    stroke: #fff;
     cursor: pointer;
     cursor: hand;
 }

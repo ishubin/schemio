@@ -79,6 +79,22 @@
                 <color-picker :color="item.style.stroke.color" @input="item.style.stroke.color = arguments[0]"></color-picker>
                 <span class="property-label">Stroke color</span>
             </div>
+
+            <div v-if="item.type === 'component'">
+                <div class="property-row">
+                    <color-picker :color="item.style.properties.background.color" @input="item.style.properties.background.color = arguments[0]"></color-picker>
+                    <span class="property-label">Properties background</span>
+                </div>
+                <div class="property-row">
+                    <color-picker :color="item.style.properties.text.color" @input="item.style.properties.text.color = arguments[0]"></color-picker>
+                    <span class="property-label">Properties text</span>
+                </div>
+
+                <div class="property-row">
+                    <span class="property-label">Stroke size: </span>
+                    <input type="text" v-model="item.style.stroke.size"/>
+                </div>
+            </div>
         </panel>
 
         <link-edit-popup v-if="editLinkData"
