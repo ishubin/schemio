@@ -6,14 +6,19 @@
                 <span>Component</span>
             </div>
 
+            <div class="item-container" @click="clickEllipse">
+                <i class="fas fa-circle"></i>
+                <span>Ellipse</span>
+            </div>
+
             <div class="item-container" @click="clickOverlay">
                 <i class="fas fa-layer-group"></i>
                 <span>Overlay</span>
             </div>
 
             <div class="item-container" @click="menu = 'shape'">
-                <i class="fas fa-shapes"></i>
-                <span>Shape</span>
+                <i class="fas fa-database"></i>
+                <span>Icons</span>
             </div>
 
             <div class="item-container" @click="clickImage">
@@ -35,7 +40,7 @@
                 v-for="shape in shapes"
                 @click="clickShape(shape)">
                 <img width="60px" height="60px" :src="'/shapes/'+shape+'.svg'"/>
-                <span>shape</span>
+                <span>{{shape}}</span>
             </div>
         </div>
 
@@ -76,7 +81,24 @@ export default {
                 id: shortid.generate(),
                 type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {},
+                style: {
+                    shape: 'component'
+                },
+                properties: '',
+                name: 'Unnamed',
+                description: '',
+                links: []
+            });
+        },
+
+        clickEllipse() {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'component',
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {
+                    shape: 'ellipse'
+                },
                 properties: '',
                 name: 'Unnamed',
                 description: '',

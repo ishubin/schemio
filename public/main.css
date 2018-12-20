@@ -551,7 +551,7 @@ ul.button-group li .toggle-button:hover {
 .item-menu .item-container:hover {
     background: #25a7de;
 }
-.item-menu .item-container:hover i.fas, .item-menu .item-container:hover span {
+.item-menu .item-container:hover i, .item-menu .item-container:hover span {
     color: #fff;
 }
 
