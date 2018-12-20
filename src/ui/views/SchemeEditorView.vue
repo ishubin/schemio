@@ -162,17 +162,30 @@ export default {
 
         toggleSearchedItems() {
             if (this.searchHighlights && this.searchHighlights.length > 0) {
-                var area = {x: 0, y: 0, w: 0, h: 0};
+                var area = null;
 
                 _.forEach(this.searchHighlights, a => {
-                    area.x += a.x + a.w /2;
-                    area.y += a.y + a.h /2;
+                    if (!area) {
+                        area = {x: a.x, y: a.y, w: a.w, h: a.h};
+                    } else {
+                        if (area.x > a.x) {
+                            area.x = a.x;
+                        }
+                        if (area.y > a.y) {
+                            area.y = a.y;
+                        }
+                        if (area.x + area.w < a.x + a.w) {
+                            area.w = a.x + a.w - area.x;
+                        }
+                        if (area.y + area.h < a.y + a.h) {
+                            area.h = a.y + a.h - area.y;
+                        }
+                    }
                 });
 
-                area.x = area.x / this.searchHighlights.length;
-                area.y = area.y / this.searchHighlights.length;
-
-                EventBus.$emit(EventBus.BRING_TO_VIEW, area);
+                if (area) {
+                    EventBus.$emit(EventBus.BRING_TO_VIEW, area);
+                }
             }
         }
     },

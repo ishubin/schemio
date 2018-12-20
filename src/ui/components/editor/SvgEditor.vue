@@ -196,8 +196,9 @@ export default {
             this.onSelectItem(item);
         });
         EventBus.$on(EventBus.BRING_TO_VIEW, area => {
-            //TODO calculate this properly
-            this.startBringToViewAnimation(area.x, area.y, 1.0);
+            var Xo = (this.width - 400)/2 - (area.x + area.w/2);
+            var Yo = (this.height)/2 - (area.y + area.h/2);
+            this.startBringToViewAnimation(Xo, Yo, 1.0);
         });
 
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
