@@ -14,6 +14,7 @@ class State {
         EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
     }
 
+    mouseWheel(localX, localY, originalX, originalY, event) {}
     mouseDown(localX, localY, originalX, originalY, item, connector, event) {}
     mouseUp(localX, localY, originalX, originalY, item, connector, event) {}
     mouseMove(localX, localY, originalX, originalY, item, connector, event) {}

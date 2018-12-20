@@ -206,6 +206,11 @@ export default {
         EventBus.$on(EventBus.REBUILD_CONNECTORS, () => {
             this.schemeContainer.buildConnectors();
         });
+
+        var svgElement = document.getElementById('svg_plot');
+        if (svgElement) {
+            svgElement.addEventListener('mousewheel', this.mouseWheel);
+        }
     },
     data() {
         return {
@@ -255,6 +260,12 @@ export default {
                 x: Math.round(offsetX),
                 y: Math.round(offsetY)
             }
+        },
+
+        mouseWheel(event) {
+            var coords = this.mouseCoordsFromEvent(event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            this.state.mouseWheel(p.x, p.y, coords.x, coords.y, event);
         },
         mouseMove(event) {
             var coords = this.mouseCoordsFromEvent(event);

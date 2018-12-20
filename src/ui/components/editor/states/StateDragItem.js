@@ -31,6 +31,16 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
     }
 
+    mouseWheel(x, y, mx, my, event) {
+        if (event) {
+            if (event.deltaX !== 0 || event.deltaY !== 0) {
+                this.editor.vOffsetX += event.deltaX * this.editor.vZoom;
+                this.editor.vOffsetY += event.deltaY * this.editor.vZoom;
+                this.editor.$forceUpdate();
+            }
+        }
+    }
+
     mouseDown(x, y, mx, my, item, connector, event) {
         var selectedItems = this.schemeContainer.getSelectedItems();
         if (selectedItems && selectedItems.length > 0) {
