@@ -144,7 +144,7 @@
 </template>
 
 <script>
-import StateDragging from './states/StateDragging.js';
+import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
@@ -161,7 +161,7 @@ export default {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
         this.vZoom = parseFloat(this.zoom);
-        this.switchStateDragging();
+        this.switchStateInteract();
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, component => {
             this.switchStateCreateComponent(component);
@@ -205,7 +205,7 @@ export default {
     data() {
         return {
             states: {
-                dragging: new StateDragging(this),
+                interact: new StateInteract(this),
                 createComponent: new StateCreateComponent(this),
                 dragItem: new StateDragItem(this),
                 connecting: new StateConnecting(this)
@@ -308,12 +308,12 @@ export default {
             if (this.mode === 'edit') {
                 this.state = this.states.dragItem;
             } else {
-                this.state = this.states.dragging;
+                this.state = this.states.interact;
             }
             this.state.reset();
         },
-        switchStateDragging() {
-            this.state = this.states.dragging;
+        switchStateInteract() {
+            this.state = this.states.interact;
             this.state.reset();
         },
         switchStateDragItem() {
@@ -483,7 +483,7 @@ export default {
                 this.removeDrawnLinks();
                 this.switchStateDragItem();
             } else if (newMode === 'view') {
-                this.switchStateDragging();
+                this.switchStateInteract();
             }
         },
         zoom(newZoom) {
