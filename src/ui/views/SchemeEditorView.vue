@@ -32,7 +32,6 @@
                         :itemHighlights="searchHighlights"
                         ></svg-editor>
                 </div>
-                <h2 class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme">{{schemeContainer.scheme.name}}</h2>
             </div>
 
             <div class="side-panel">

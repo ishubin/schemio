@@ -138,7 +138,12 @@
             </g>
 
 
+            <h2 class="" >{{schemeContainer.scheme.name}}</h2>
 
+            <text class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme"
+                :x="10"
+                :y="60"
+                >{{schemeContainer.scheme.name}}</text>
         </svg>
     </div>
 </template>

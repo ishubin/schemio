@@ -1,5 +1,5 @@
 body {
-    font-family: Roboto,sans-serif;
+    font-family: Helvetica, sans-serif;
     margin: 0;
     padding: 0;
     color: #222;
@@ -151,10 +151,11 @@ ul.pagination li.active a {
 
 
 .scheme-name-header {
-    position: fixed;
-    top: 50px;
-    left: 20px;
     margin: 0;
+    font-size: 24px;
+    fill: #333;
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
     text-shadow: 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #fff, 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
 }
 
