@@ -1,49 +1,65 @@
 <template lang="html">
     <g v-if="item.type === 'component'" class="item-graphics">
-        <rect
-            :x="_x(item.area.x)"
-            :y="_y(item.area.y)"
-            :width="_z(item.area.w)"
-            :height="_z(item.area.h)"
-            stroke-width="0"
-            :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
-        />
-        <rect v-if="properties.length > 0"
-            :x="_x(item.area.x)"
-            :y="_y(item.area.y) + _z(30)"
-            :width="_z(item.area.w)"
-            :height="_z(item.area.h) - _z(30)"
-            stroke-width="0"
-            :fill="item.style.properties && item.style.properties.background && item.style.properties.background.color ? item.style.properties.background.color : '#fef'"
-        />
+        <g v-if="item.style.shape === 'ellipse'">
+            <ellipse :cx="_x(item.area.x) + _z(item.area.w / 2)" :cy="_y(item.area.y) + _z(item.area.h / 2)" :rx="_z(item.area.w/2)" :ry="_z(item.area.h/2)"
+                :stroke="item.style.stroke.color"
+                :stroke-width="item.style.stroke.size + 'px'"
+                :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
+            />
             <text
                 class="item-caption"
-                :x="_x(item.area.x + 8)"
-                :y="_y(item.area.y + 20)"
+                :x="_x(item.area.x + item.area.w/2) - _z(15 * item.name.length / (1.75 * 2))"
+                :y="_y(item.area.y) + _z(item.area.h / 2)"
                 :font-size="Math.floor(_z(15)) + 'px'"
                 :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
                 >{{item.name}}</text>
-
-            <text v-if="properties.length > 0"
-                class="item-property"
-                :x="_x(item.area.x + 4)"
-                :y="_y(item.area.y + 32)"
-                :font-size="Math.floor(fontsize) + 'px'"
-                :fill="item.style.properties && item.style.properties.text && item.style.properties.text.color ? item.style.properties.text.color : '#666'"
-                >
-                <tspan v-for="property in properties" :x="_x(item.area.x) + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{property}}</tspan>
-            </text>
-        <g v-if="item.style.stroke.size > 0">
+        </g>
+        <g v-else>
             <rect
                 :x="_x(item.area.x)"
                 :y="_y(item.area.y)"
                 :width="_z(item.area.w)"
                 :height="_z(item.area.h)"
-                :stroke="item.style.stroke.color"
-                :stroke-width="item.style.stroke.size + 'px'"
-                fill="none"
+                stroke-width="0"
+                :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
             />
-            <path :d="propertiesSeparatorPath" v-if="properties.length > 0" stroke-width="1px" :stroke="item.style.stroke.color"/>
+            <rect v-if="properties.length > 0"
+                :x="_x(item.area.x)"
+                :y="_y(item.area.y) + _z(30)"
+                :width="_z(item.area.w)"
+                :height="_z(item.area.h) - _z(30)"
+                stroke-width="0"
+                :fill="item.style.properties && item.style.properties.background && item.style.properties.background.color ? item.style.properties.background.color : '#fef'"
+            />
+                <text
+                    class="item-caption"
+                    :x="_x(item.area.x + 8)"
+                    :y="_y(item.area.y + 20)"
+                    :font-size="Math.floor(_z(15)) + 'px'"
+                    :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
+                    >{{item.name}}</text>
+
+                <text v-if="properties.length > 0"
+                    class="item-property"
+                    :x="_x(item.area.x + 4)"
+                    :y="_y(item.area.y + 32)"
+                    :font-size="Math.floor(fontsize) + 'px'"
+                    :fill="item.style.properties && item.style.properties.text && item.style.properties.text.color ? item.style.properties.text.color : '#666'"
+                    >
+                    <tspan v-for="property in properties" :x="_x(item.area.x) + Math.floor(fontsize / 2)" dx="0px" :dy="fontsize" dominant-baseline="alphabetic" style="baseline-shift: 0%;">{{property}}</tspan>
+                </text>
+            <g v-if="item.style.stroke.size > 0">
+                <rect
+                    :x="_x(item.area.x)"
+                    :y="_y(item.area.y)"
+                    :width="_z(item.area.w)"
+                    :height="_z(item.area.h)"
+                    :stroke="item.style.stroke.color"
+                    :stroke-width="item.style.stroke.size + 'px'"
+                    fill="none"
+                />
+                <path :d="propertiesSeparatorPath" v-if="properties.length > 0" stroke-width="1px" :stroke="item.style.stroke.color"/>
+            </g>
         </g>
     </g>
 </template>

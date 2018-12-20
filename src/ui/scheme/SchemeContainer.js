@@ -55,6 +55,7 @@ class SchemeContainer {
         if (item.type === 'component') {
             this.extendObject(item, {
                 style: {
+                    shape: 'component',
                     background: {
                         color: '#ddd'
                     },

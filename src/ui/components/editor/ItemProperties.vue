@@ -57,6 +57,7 @@
             </ul>
             <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
         </panel>
+
         <panel name="Connections" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape'">
             <span class="btn btn-secondary" v-on:click="connectItem()"><i class="fas fa-sitemap"></i> Connect</span>
         </panel>
@@ -67,6 +68,13 @@
         </panel>
 
         <panel name="Style" v-if="item.type !== 'image'">
+            <div class="property-row" v-if="item.type === 'component'">
+                <span class="property-label">Shape: </span>
+                <select v-model="item.style.shape">
+                    <option v-for="componentShape in knownComponentShapes">{{componentShape}}</option>
+                </select>
+            </div>
+
             <div class="property-row" v-if="item.style.background && item.style.background.color">
                 <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Background</span>
@@ -129,7 +137,7 @@ export default {
             toggleBackgroundColor: false,
             editLinkData: null,
             itemTag: '',
-
+            knownComponentShapes: ['component', 'ellipse'],
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },
