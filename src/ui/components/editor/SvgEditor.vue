@@ -306,9 +306,9 @@ export default {
 
         cancelCurrentState() {
             if (this.mode === 'edit') {
-                this.state = this.states.dragging;
-            } else {
                 this.state = this.states.dragItem;
+            } else {
+                this.state = this.states.dragging;
             }
             this.state.reset();
         },
