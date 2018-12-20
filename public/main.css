@@ -478,9 +478,9 @@ ul.button-group li .toggle-button:hover {
 
 
 /************* Links in Item Properties ***************/
-.item-properties ul.links {
+.item-properties ul.links, .item-details ul.links {
     list-style: none;
-    padding-left: 20px;
+    padding: 0px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
