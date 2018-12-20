@@ -20,12 +20,7 @@ class StateInteract extends State {
     }
 
     mouseDown(x, y, mx, my, item, connector, event){
-        if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
-            this.schemeContainer.selectItem(item, false);
-            EventBus.$emit(EventBus.ITEM_SELECTED, item);
-        } else {
-            this.initScreenDrag(mx, my);
-        }
+        this.initScreenDrag(mx, my);
     }
 
     initScreenDrag(x, y) {
@@ -38,8 +33,14 @@ class StateInteract extends State {
     mouseUp(x, y, mx, my, item, connector, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
-                this.schemeContainer.deselectAllItems();
-                this.editor.onDeselectAllItems();
+                if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
+                    this.schemeContainer.selectItem(item, false);
+                    EventBus.$emit(EventBus.ITEM_SELECTED, item);
+                } else {
+                    //clicked in empty space and didn't drag screen, so we can deselect everything
+                    this.schemeContainer.deselectAllItems();
+                    this.editor.onDeselectAllItems();
+                }
             }
             this.dragScreen(mx, my);
             this.initialClickPoint = null;
