@@ -113,7 +113,7 @@ class LocalSchemeStorage extends SchemeStorage {
         var counter = 0;
         while(this.schemeQueueForIndex.length > 0 && counter < 50) {
             var scheme = this.schemeQueueForIndex.shift();
-            this.reindexScheme(scheme.schemeId, scheme.scheme);
+            this.reindexScheme(scheme.id, scheme.scheme);
             this.reindexTags(scheme.scheme.tags);
             counter += 1;
         }
@@ -125,10 +125,10 @@ class LocalSchemeStorage extends SchemeStorage {
     }
 
     reindexScheme(schemeId, scheme) {
-        var schemeInIndex = _.find(this.indices.schemes, s => s.schemeId === schemeId);
+        var schemeInIndex = _.find(this.indices.schemes, s => s.id === schemeId);
         if (!schemeInIndex) {
             this.indices.schemes.push({
-                schemeId: schemeId,
+                id: schemeId,
                 name: scheme.name,
                 tags: scheme.tags
             });
@@ -155,9 +155,9 @@ class LocalSchemeStorage extends SchemeStorage {
 
     addSchemeToIndexQueue(schemeId, scheme) {
         try {
-            if (!_.find(this.schemeQueueForIndex, scheme => scheme.schemeId === schemeId)) {
+            if (!_.find(this.schemeQueueForIndex, scheme => scheme.id === schemeId)) {
                 this.schemeQueueForIndex.push({
-                    schemeId: schemeId,
+                    id: schemeId,
                     scheme: scheme
                 });
             }

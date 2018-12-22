@@ -31,6 +31,9 @@ class MongoSchemeStorage extends SchemeStorage {
     _inSchemes() {
         return this.db.collection('schemes');
     }
+    _inTags() {
+        return this.db.collection('tags');
+    }
 
     findSchemes(query) {
         return this._inSchemes().find({}).toArray().then(schemes => {
@@ -62,7 +65,39 @@ class MongoSchemeStorage extends SchemeStorage {
     }
 
     saveScheme(schemeId, scheme) {
+        if (scheme.tags) {
+            var tags = [].concat(scheme.tags);
+            _.forEach(scheme.items, item => {
+                if (item.tags) {
+                    tags = tags.concat(item.tags);
+                }
+            });
+        }
+        this.saveTags(tags);
         return this._inSchemes().update({id: schemeId}, scheme);
+    }
+
+    getTags() {
+        return this._inTags().find({}).toArray().then(tags => {
+            return _.map(tags, tag => tag.name);
+        });
+    }
+
+    saveTags(tags) {
+        console.log('Got tags: ', tags);
+        var uniqTags = _.uniq(tags);
+        console.log('Storing tags: ', uniqTags);
+
+        var promises = _.map(uniqTags, tag => {
+            return this._inTags().updateOne({
+                name: tag
+            }, {
+                name: tag
+            }, {
+                upsert: true
+            });
+        });
+        return Promise.all(promises);
     }
 }
 
