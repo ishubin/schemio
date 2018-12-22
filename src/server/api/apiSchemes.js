@@ -1,4 +1,4 @@
-const schemeStorage = require('../storage/storageProvider.js').provideStorage();
+const schemeStorage = require('../storage/storageProvider.js').provideSchemeStorage();
 const _             = require('lodash');
 const fs            = require('fs-extra');
 

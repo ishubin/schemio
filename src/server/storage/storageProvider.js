@@ -1,8 +1,24 @@
 const LocalSchemeStorage = require('./LocalSchemeStorage.js');
-const localSchemeStorage = new LocalSchemeStorage();
+const MongoSchemeStorage = require('./mongodb/MongoSchemeStorage.js');
+
+var localSchemeStorage = null;
+function provideLocalStorage() {
+    if (!localSchemeStorage) {
+        localSchemeStorage = new LocalSchemeStorage();
+    }
+    return localSchemeStorage;
+}
+
+var mongoSchemeStorage = null;
+function provideMongoStorage() {
+    if (!mongoSchemeStorage) {
+        mongoSchemeStorage = new MongoSchemeStorage();
+    }
+    return mongoSchemeStorage;
+}
 
 module.exports = {
-    provideStorage() {
-        return localSchemeStorage;
+    provideSchemeStorage() {
+        return provideMongoStorage();
     }
 }
