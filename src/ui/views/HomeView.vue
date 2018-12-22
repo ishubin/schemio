@@ -17,7 +17,7 @@
                 :page-class="'page-item'">
             </paginate>
             <div v-for="scheme in searchResult.results">
-                <a :href="'/schemes/' + scheme.schemeId">{{scheme.name}}</a>
+                <a :href="'/schemes/' + scheme.id">{{scheme.name}}</a>
                 <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
             </div>
         </div>

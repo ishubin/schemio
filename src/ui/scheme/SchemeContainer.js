@@ -217,6 +217,8 @@ class SchemeContainer {
                     reroutes: [],
                     style: {
                         color: '#333',
+                        width: 1,
+                        pattern: 'line',
                         source: {
                             type: 'empty',
                             size: 5
