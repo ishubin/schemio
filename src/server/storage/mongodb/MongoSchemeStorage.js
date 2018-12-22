@@ -34,10 +34,15 @@ class MongoSchemeStorage extends SchemeStorage {
 
     findSchemes(query) {
         return this._inSchemes().find({}).toArray().then(schemes => {
-            return _.map(schemes, scheme => {
-                delete scheme['_id'];
-                return scheme;
-            });
+            return {
+                results: _.map(schemes, scheme => {
+                    delete scheme['_id'];
+                    return scheme;
+                }),
+                total: 10,
+                resultsPerPage: 100,
+                offset: 0
+            };
         });
     }
 
