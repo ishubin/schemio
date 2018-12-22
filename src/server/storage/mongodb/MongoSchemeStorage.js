@@ -55,6 +55,10 @@ class MongoSchemeStorage extends SchemeStorage {
             return scheme;
         });
     }
+
+    saveScheme(schemeId, scheme) {
+        return this._inSchemes().update({id: schemeId}, scheme);
+    }
 }
 
 module.exports = MongoSchemeStorage;
