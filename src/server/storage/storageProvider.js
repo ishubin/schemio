@@ -1,5 +1,6 @@
 const LocalSchemeStorage = require('./LocalSchemeStorage.js');
 const MongoSchemeStorage = require('./mongodb/MongoSchemeStorage.js');
+const MongoCategoryStorage = require('./mongodb/MongoCategoryStorage.js');
 
 var localSchemeStorage = null;
 function provideLocalStorage() {
@@ -17,8 +18,21 @@ function provideMongoStorage() {
     return mongoSchemeStorage;
 }
 
+var mongoCategoryStorage = null;
+function provideMongoCategoryStorage() {
+    if (!mongoCategoryStorage) {
+        mongoCategoryStorage = new MongoCategoryStorage();
+    }
+    return mongoCategoryStorage;
+}
+
+
 module.exports = {
     provideSchemeStorage() {
         return provideMongoStorage();
+    },
+
+    provideCategoryStorage() {
+        return provideMongoCategoryStorage();
     }
 }

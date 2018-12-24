@@ -1,6 +1,5 @@
 const SchemeStorage     = require('../SchemeStorage.js');
 const MongoClient       = require('mongodb').MongoClient;
-const assert            = require('assert');
 const shortid           = require('shortid');
 const _                 = require('lodash');
 

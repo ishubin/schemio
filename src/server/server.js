@@ -3,6 +3,7 @@ const path                  = require('path');
 const bodyParser            = require('body-parser');
 const jsonBodyParser        = bodyParser.json();
 const apiSchemes            = require('./api/apiSchemes.js');
+const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
 
 const app = express();
@@ -20,6 +21,10 @@ app.get('/api/tags', [jsonBodyParser], apiSchemes.getTags);
 app.get('/api/shapes', [jsonBodyParser], apiSchemes.getShapes);
 app.post('/api/images', apiImages.uploadImage);
 app.get('/api/images/:fileName', apiImages.getImage);
+
+app.post('/api/categories', [jsonBodyParser], apiCategories.createCategory);
+app.get('/api/categories', [jsonBodyParser], apiCategories.getRootCategories);
+app.get('/api/categories/:categoryId', [jsonBodyParser], apiCategories.getCategory);
 
 
 app.get('*', function (req, res) {
