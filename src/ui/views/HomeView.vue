@@ -130,11 +130,18 @@ export default {
                         description: ""
                     });
                 }
-                apiClient.createNewScheme({
-                    name: name,
-                    description: this.newSchemePopup.description,
-                    tags: [],
-                    items
+                apiClient.ensureCategoryStructure(this.newSchemePopup.categories).then(category => {
+                    var categoryId = null;
+                    if (category && category.id) {
+                        categoryId = category.id;
+                    }
+                    return apiClient.createNewScheme({
+                        name: name,
+                        categoryId: categoryId,
+                        description: this.newSchemePopup.description,
+                        tags: [],
+                        items
+                    });
                 }).then(scheme => {
                     window.location.href = `/schemes/${scheme.id}`;
                 });

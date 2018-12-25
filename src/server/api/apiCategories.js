@@ -59,17 +59,13 @@ const ApiCategories = {
                     //checking if category is new or already exists
                     var parentId = parentCategory ? parentCategory.id : null;
                     if (!category.id) {
-                        console.log('Creating category', category, 'Parent category', parentCategory);
                         return categoryStorage.createCategory(category.name, shortid.generate(), parentId);
                     } else {
-                        console.log('Getting category', category.id);
                         return categoryStorage.getCategory(category.id);
                     }
                 });
-            }, Promise.resolve(null)).then(result =>{
-                res.json({
-                    result: 'created'
-                });
+            }, Promise.resolve(null)).then(category =>{
+                res.json(category);
             }).catch(err => {
                 res.status(500);
                 res.json(err);

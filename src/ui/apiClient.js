@@ -56,7 +56,20 @@ export default {
         });
     },
 
-    getCategories(parentCategoryId) {
-        //if ()
+    getCategory(parentCategoryId) {
+        var id = parentCategoryId ? parentCategoryId : '';
+        return axios.get(`/api/categories/${id}`).then(response => {
+            return response.data;
+        });
+    },
+
+    ensureCategoryStructure(categories) {
+        if (categories && categories.length > 0) {
+            return axios.put(`/api/category-structure`, categories).then(response => {
+                return response.data;
+            });
+        } else {
+            return Promise.resolve(null);
+        }
     }
 }

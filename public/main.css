@@ -608,6 +608,9 @@ svg.mode-edit .item-connector.selected {
 
 
 /*********************** Category Selector ***********************/
+.category-selector-container {
+    position: relative;
+}
 .category-selector-container .category-selector-input {
     border: 1px solid #ccc;
     border-radius: 2px;
@@ -648,4 +651,29 @@ svg.mode-edit .item-connector.selected {
     border: 1px solid #ccc;
     border-radius: 2px;
     line-height: inherit;
+}
+.category-selector-container .category-suggestions {
+    position: absolute;
+    max-height: 400px;
+    width: 100%;
+    overflow: auto;
+}
+.category-selector-container .category-suggestions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+}
+.category-selector-container .category-suggestions ul li {
+    width: 100%;
+    padding: 3px 5px;
+    margin: 0;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    border-top: 1px solid #ccc;
+}
+.category-selector-container .category-suggestions ul li:hover {
+    color: #fff;
+    background: #3b628b;
 }
