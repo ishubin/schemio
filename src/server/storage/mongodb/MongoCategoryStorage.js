@@ -30,10 +30,10 @@ class MongoCategoryStorage extends CategoryStorage {
 
     createCategory(name, id, parentId) {
         if (!name || name.trim().length === 0) {
-            return Promise.reject(new Error('name should not be empty'));
+            return Promise.reject('name should not be empty');
         }
         if (!id || id.trim().length === 0) {
-            return Promise.reject(new Error('category id should not be empty'));
+            return Promise.reject('category id should not be empty');
         }
 
         this._categories().createIndex({id: 1}, {unique: true});

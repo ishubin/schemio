@@ -605,3 +605,47 @@ svg.mode-edit .item-connector.selected {
     margin-left: auto;
     margin-right: auto;
 }
+
+
+/*********************** Category Selector ***********************/
+.category-selector-container .category-selector-input {
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.category-selector-container .category-selector-input ul{
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+.category-selector-container .category-selector-input ul li{
+    display: flex;
+    flex-wrap: wrap;
+}
+.category-selector-container .category-selector-input ul li span {
+    padding: 3px 5px;
+    margin: 2px 20px 2px 2px;
+    border-radius: 2px;
+    background: #3b628b;
+    color: #fff;
+}
+.category-selector-container .category-selector-input ul li.new-category-input{
+    -webkit-box-flex: 1;
+    flex: 1 0 auto;
+}
+.category-selector-container .category-selector-input input[type='text']{
+    -webkit-box-flex: 1;
+    flex: 1 0 auto;
+    min-width: 100px;
+    padding: 3px 5px;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    line-height: inherit;
+}

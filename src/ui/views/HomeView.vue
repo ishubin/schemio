@@ -30,13 +30,14 @@
                            <h3>New Scheme</h3>
                        </div>
                        <div class="modal-body">
-                           <p>
+                           <h5>Category</h5>
+                           <category-selector :categories="newSchemePopup.categories"/>
+
                            <h5>Name</h5>
                            <input class="textfield" type="text" v-model="newSchemePopup.name" placeholder="Name..."/>
 
                            <h5>Description</h5>
                            <textarea class="textfield" v-model="newSchemePopup.description"></textarea>
-                           </p>
 
                            <h5>Scheme Image URL</h5>
                            <table width="100%">
@@ -70,10 +71,11 @@
 
 <script>
 import apiClient from '../apiClient.js';
+import CategorySelector from '../components/CategorySelector.vue';
 import Paginate from 'vuejs-paginate';
 
 export default {
-    components: {Paginate},
+    components: {Paginate, CategorySelector},
     mounted() {
         this.reloadSchemes();
     },
@@ -86,6 +88,7 @@ export default {
                 title: '',
                 description: '',
                 imageUrl: '',
+                categories: [],
                 show: false
             }
         }
@@ -110,6 +113,7 @@ export default {
             this.newSchemePopup.name = '';
             this.newSchemePopup.description = '';
             this.newSchemePopup.show = true;
+            this.newSchemePopup.categories = [];
         },
 
         submitNewScheme() {
