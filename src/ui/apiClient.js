@@ -54,5 +54,9 @@ export default {
         return axios('/api/shapes').then(response => {
             return response.data;
         });
+    },
+
+    getCategories(parentCategoryId) {
+        //if ()
     }
 }

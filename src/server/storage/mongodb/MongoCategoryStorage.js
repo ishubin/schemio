@@ -37,6 +37,7 @@ class MongoCategoryStorage extends CategoryStorage {
         }
 
         this._categories().createIndex({id: 1}, {unique: true});
+        this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
 
         var chain = null;
         if (parentId) {
@@ -59,11 +60,15 @@ class MongoCategoryStorage extends CategoryStorage {
                 });
             }
 
-            return this._categories().insert({
+            var categoryData = {
                 name,
+                lname: name.toLowerCase(),
                 id,
                 parentId,
                 ancestors
+            };
+            return this._categories().insert(categoryData).then(result => {
+                return categoryData;
             });
         });
     }

@@ -23,8 +23,9 @@ app.post('/api/images', apiImages.uploadImage);
 app.get('/api/images/:fileName', apiImages.getImage);
 
 app.post('/api/categories', [jsonBodyParser], apiCategories.createCategory);
-app.get('/api/categories', [jsonBodyParser], apiCategories.getRootCategories);
+app.get('/api/categories', [jsonBodyParser], apiCategories.getRootCategory);
 app.get('/api/categories/:categoryId', [jsonBodyParser], apiCategories.getCategory);
+app.put('/api/category-structure', [jsonBodyParser], apiCategories.ensureCategoryStructure)
 
 
 app.get('*', function (req, res) {

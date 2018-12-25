@@ -1,5 +1,6 @@
 const categoryStorage = require('../storage/storageProvider.js').provideCategoryStorage();
 const _             = require('lodash');
+const shortid       = require('shortid');
 
 const ApiCategories = {
 
@@ -14,9 +15,11 @@ const ApiCategories = {
         })
     },
 
-    getRootCategories(req, res) {
+    getRootCategory(req, res) {
         categoryStorage.getCategories(null).then(categories => {
-            res.json(categories);
+            res.json({
+                childCategories: categories
+            });
         }).catch(err=>{
             res.status(500);
             res.json(err);
@@ -43,6 +46,39 @@ const ApiCategories = {
             res.json(err);
             console.error(err);
         });
+    },
+
+    /**
+    Creates category tree in case its nodes are missing
+    */
+    ensureCategoryStructure(req, res) {
+        var categories = req.body;
+        if (categories && categories.length > 0) {
+            _.reduce(categories, (promise, category) => {
+                return promise.then(parentCategory => {
+                    //checking if category is new or already exists
+                    var parentId = parentCategory ? parentCategory.id : null;
+                    if (!category.id) {
+                        console.log('Creating category', category, 'Parent category', parentCategory);
+                        return categoryStorage.createCategory(category.name, shortid.generate(), parentId);
+                    } else {
+                        console.log('Getting category', category.id);
+                        return categoryStorage.getCategory(category.id);
+                    }
+                });
+            }, Promise.resolve(null)).then(result =>{
+                res.json({
+                    result: 'created'
+                });
+            }).catch(err => {
+                res.status(500);
+                res.json(err);
+                console.error(err);
+            });
+        } else {
+            res.status(500);
+            res.json({error: 'empty categories'});
+        }
     }
 }
 
