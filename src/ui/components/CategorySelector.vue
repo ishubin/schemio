@@ -2,7 +2,10 @@
     <div class="category-selector-container">
         <div class="category-selector-input">
             <ul>
-                <li v-for="category in categories"><span>{{category.name}}</span></li>
+                <li v-for="category in categories">
+                    <span>{{category.name}}</span>
+                    <i class="fas fa-angle-right"></i>
+                </li>
                 <li class="new-category-input">
                     <input type="text" v-model="inputText"
                         @keydown.enter="enterPressed"

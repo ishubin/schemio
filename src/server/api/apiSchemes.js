@@ -1,6 +1,7 @@
-const schemeStorage = require('../storage/storageProvider.js').provideSchemeStorage();
-const _             = require('lodash');
-const fs            = require('fs-extra');
+const schemeStorage     = require('../storage/storageProvider.js').provideSchemeStorage();
+const categoryStorage   = require('../storage/storageProvider.js').provideCategoryStorage();
+const _                 = require('lodash');
+const fs                = require('fs-extra');
 
 
 const shapes        = [];
@@ -19,6 +20,17 @@ const ApiSchemes = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
         schemeStorage.getScheme(schemeId).then(scheme => {
+            if (scheme.categoryId) {
+                return categoryStorage.getCategory(scheme.categoryId).then(category => {
+                    scheme.category = category;
+                    return scheme;
+                }).catch(err => {
+                    return scheme;
+                });
+            } else {
+                return scheme;
+            }
+        }).then(scheme => {
             res.json(scheme);
         }).catch( err => {
             res.status(404);

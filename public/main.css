@@ -633,10 +633,13 @@ svg.mode-edit .item-connector.selected {
 }
 .category-selector-container .category-selector-input ul li span {
     padding: 3px 5px;
-    margin: 2px 20px 2px 2px;
+    margin: 2px 4px 2px 4px;
     border-radius: 2px;
     background: #3b628b;
     color: #fff;
+}
+.category-selector-container .category-selector-input ul li i {
+    margin: 5px 2px 2px 2px;
 }
 .category-selector-container .category-selector-input ul li.new-category-input{
     -webkit-box-flex: 1;
@@ -676,4 +679,21 @@ svg.mode-edit .item-connector.selected {
 .category-selector-container .category-suggestions ul li:hover {
     color: #fff;
     background: #3b628b;
+}
+
+
+/*********** category breadcrumb ************/
+ul.category-breadcrumb {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+ul.category-breadcrumb li {
+    display: inline-block;
+}
+ul.category-breadcrumb li a {
+    text-decoration: underline;
+}
+ul.category-breadcrumb li i {
+    margin: 0px 7px;
 }
