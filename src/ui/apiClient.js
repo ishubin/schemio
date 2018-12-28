@@ -44,6 +44,15 @@ export default {
         });
     },
 
+    getSchemesInCategory(categoryId) {
+        if (!categoryId) {
+            categoryId = 0;
+        }
+        return axios.get(`/api/schemes?category=${categoryId}`).then(response => {
+            return response.data;
+        });
+    },
+
     getTags() {
         return axios.get('/api/tags').then(response => {
             return response.data;

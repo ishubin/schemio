@@ -35,7 +35,16 @@ class MongoSchemeStorage extends SchemeStorage {
     }
 
     findSchemes(query) {
-        return this._inSchemes().find({}).toArray().then(schemes => {
+        var mongoQuery = {};
+        if (query.hasOwnProperty('category')) {
+            var categoryId = null;
+            if (query.category != 0) {
+                categoryId = query.category;
+            }
+            mongoQuery['categoryId'] = categoryId;
+        }
+
+        return this._inSchemes().find(mongoQuery).toArray().then(schemes => {
             return {
                 results: _.map(schemes, scheme => {
                     delete scheme['_id'];

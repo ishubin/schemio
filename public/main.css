@@ -697,3 +697,36 @@ ul.category-breadcrumb li a {
 ul.category-breadcrumb li i {
     margin: 0px 7px;
 }
+
+
+
+/********************** Category Buckets *******************/
+.category-buckets {
+    display: flex;
+    flex-wrap: wrap;
+}
+.category-buckets .category-bucket{
+    width: 500px;
+    display: block;
+    max-height: 500px;
+    background: #efefef;
+    margin: 10px;
+    padding: 0px;
+}
+.category-buckets .category-bucket .bucket-header a {
+    margin:0;
+    color: #fff;
+    font-weight: bold;
+}
+.category-buckets .category-bucket .bucket-header {
+    background: #5d7287;
+    padding: 5px;
+}
+.category-buckets .category-bucket .bucket-body {
+    padding: 5px;
+}
+.category-buckets .category-bucket .bucket-body ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}

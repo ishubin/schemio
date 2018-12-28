@@ -1,26 +1,36 @@
 <template lang="html">
     <div class="content-wrapper">
         <h1>Schemio</h1>
+        <ul class="category-breadcrumb" v-if="category">
+            <li>
+                <a href="/">Home</a>
+                <i class="fas fa-angle-right"></i>
+            </li>
+            <li v-for="parentCategory in category.ancestors">
+                <a :href="'?category='+parentCategory.id">{{parentCategory.name}}</a>
+                <i class="fas fa-angle-right"></i>
+            </li>
+            <li>
+                <a :href="'?category='+category.id">{{category.name}}</a>
+            </li>
+        </ul>
         <span class="btn" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
+        Categories
+        <ul v-if="category">
+            <li v-for="childCategory in category.childCategories">
+                <a :href="'?category='+childCategory.id">{{childCategory.name}}</a>
+            </li>
+        </ul>
 
-
-        <div v-if="searchResult">
-            <paginate
-                v-model="currentPage"
-                :page-count="totalPages"
-                :page-range="3"
-                :margin-pages="2"
-                :click-handler="selectSearchPage"
-                :prev-text="'<'"
-                :next-text="'>'"
-                :container-class="'pagination'"
-                :page-class="'page-item'">
-            </paginate>
-            <div v-for="scheme in searchResult.results">
-                <a :href="'/schemes/' + scheme.id">{{scheme.name}}</a>
-                <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
-            </div>
-        </div>
+        Schemes
+        <ul>
+            <li v-for="scheme in schemes">
+                <a :href="'/schemes/'+scheme.id">{{scheme.name}}</a>
+                <div class="scheme-desciption">
+                    {{scheme.description | shortDescription}}
+                </div>
+            </li>
+        </ul>
 
         <transition name="modal" v-if="newSchemePopup.show">
            <div class="modal-mask">
@@ -72,40 +82,38 @@
 <script>
 import apiClient from '../apiClient.js';
 import CategorySelector from '../components/CategorySelector.vue';
-import Paginate from 'vuejs-paginate';
+import _ from 'lodash';
 
 export default {
-    components: {Paginate, CategorySelector},
+    components: {CategorySelector},
     mounted() {
-        this.reloadSchemes();
+        this.loadCategories();
+        this.loadSchemes();
     },
     data() {
         return {
-            searchResult: null,
-            currentPage: 1,
-            totalPages: 0,
             newSchemePopup: {
                 title: '',
                 description: '',
                 imageUrl: '',
                 categories: [],
                 show: false
-            }
+            },
+            categoryId: this.$route.query.category,
+            category: [],
+            schemes: []
         }
     },
     methods: {
-        selectSearchPage(page) {
-            this.reloadSchemes();
+        loadCategories() {
+            apiClient.getCategory(this.categoryId).then(category => {
+                this.category = category;
+            });
         },
 
-        reloadSchemes() {
-            var offset = 0;
-            if (this.searchResult) {
-                offset = (this.currentPage - 1) * this.searchResult.resultsPerPage;
-            }
-            apiClient.findSchemes('', offset).then(searchResponse => {
-                this.searchResult = searchResponse;
-                this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
+        loadSchemes() {
+            apiClient.getSchemesInCategory(this.categoryId).then(result => {
+                this.schemes = result.results;
             });
         },
 
@@ -113,7 +121,19 @@ export default {
             this.newSchemePopup.name = '';
             this.newSchemePopup.description = '';
             this.newSchemePopup.show = true;
-            this.newSchemePopup.categories = [];
+            if (this.category && this.category.id) {
+                var categories = _.map(this.category.ancestors, ancestor => {
+                    return {name: ancestor.name, id: ancestor.id};
+                });
+
+                categories.push({
+                    name: this.category.name,
+                    id: this.category.id
+                });
+                this.newSchemePopup.categories = categories;
+            } else {
+                this.newSchemePopup.categories = [];
+            }
         },
 
         submitNewScheme() {
@@ -156,6 +176,15 @@ export default {
                 axios.post('/api/images', form).then(response => {
                     this.newSchemePopup.imageUrl = response.data.path;
                 });
+            }
+        }
+    },
+    filters: {
+        shortDescription(text) {
+            if (text.length > 200) {
+                return text.substr(0, 200) + '...';
+            } else {
+                return text;
             }
         }
     }

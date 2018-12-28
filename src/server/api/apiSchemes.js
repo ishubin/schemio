@@ -59,10 +59,14 @@ const ApiSchemes = {
     },
 
     findSchemes(req, res) {
-        schemeStorage.findSchemes({
+        var query = {
             offset: req.query.offset || 0,
             query: req.query.q ? req.query.q.trim() : null
-        }).then(searchResult => {
+        };
+        if (req.query.hasOwnProperty('category')) {
+            query['category'] = req.query.category.trim();
+        }
+        schemeStorage.findSchemes(query).then(searchResult => {
             res.json(searchResult);
         }).catch( err => {
             res.status(500);
