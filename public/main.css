@@ -76,17 +76,24 @@ ul.categories, ul.schemes {
     margin: 0;
     padding: 0;
 }
-
+ul.schemes li {
+    padding-bottom: 20px;
+    padding-top: 5px;
+}
 ul.categories li a, ul.schemes li a {
     text-decoration: none;
     font-size: 14pt;
 }
+ul.categories li a {
+    font-weight: bold;
+}
 ul.categories li a:hover, ul.schemes li a:hover {
     text-decoration: underline;
 }
-ul.schemes li {
-    padding-bottom: 20px;
-    padding-top: 5px;
+ul.categories li a i, ul.schemes li a i {
+    font-size: 10pt;
+    display: inline-block;
+    padding: 0 4px 2px 0;
 }
 ul.schemes li .scheme-description {
     color: #777;
