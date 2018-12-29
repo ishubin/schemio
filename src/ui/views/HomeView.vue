@@ -35,6 +35,7 @@
             <ul class="schemes">
                 <li v-for="scheme in schemes">
                     <a class="scheme link" :href="'/schemes/'+scheme.id"><i class="fas fa-project-diagram"></i> <span>{{scheme.name}}</span></a>
+                    <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
                     <div class="scheme-description">
                         {{scheme.description | shortDescription}}
                     </div>
@@ -92,6 +93,8 @@
 import apiClient from '../apiClient.js';
 import CategorySelector from '../components/CategorySelector.vue';
 import _ from 'lodash';
+import utils from '../utils.js';
+
 
 export default {
     components: {CategorySelector},
@@ -195,6 +198,9 @@ export default {
             } else {
                 return text;
             }
+        },
+        formatDateAndTime(dateInMillis) {
+            return utils.formatDateAndTime(dateInMillis);
         }
     }
 }

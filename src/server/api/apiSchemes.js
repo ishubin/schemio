@@ -50,6 +50,7 @@ const ApiSchemes = {
     saveScheme(req, res) {
         var schemeId = req.params.schemeId;
         var requestScheme = ApiSchemes.sanitizeScheme(req.body);
+        requestScheme.modifiedDate = Date.now();
         schemeStorage.saveScheme(schemeId, requestScheme).then(scheme => {
             res.json(scheme);
         }).catch( err => {
