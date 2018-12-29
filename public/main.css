@@ -25,11 +25,73 @@ h5 {
 
 .link {
     text-decoration: none;
-    color: #248bab;
+    color: #2472ab;
     cursor: pointer;
 }
 .link:hover {
     text-decoration: underline;
+}
+
+/******************** Menu *********************/
+.menu {
+    background: #3f4245;
+    color: #fff;
+    padding: 0;
+    margin: 0;
+}
+.menu .menu-caption {
+    display: inline-block;
+}
+.menu .menu-caption a, .menu .menu-caption a:visited {
+    color: #efefef;
+    font-weight: bold;
+    font-size: 20pt;
+    font-family:fantasy;
+    text-decoration: none;
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 20px;
+}
+.menu ul {
+    display: inline;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.menu ul li {
+    display: inline;
+}
+.menu ul li span {
+    display: inline-block;
+    padding: 15px 10px;
+    cursor: pointer;
+}
+.menu ul li span:hover {
+    background: #272728;
+}
+
+
+ul.categories, ul.schemes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+ul.categories li a, ul.schemes li a {
+    text-decoration: none;
+    font-size: 14pt;
+}
+ul.categories li a:hover, ul.schemes li a:hover {
+    text-decoration: underline;
+}
+ul.schemes li {
+    padding-bottom: 20px;
+    padding-top: 5px;
+}
+ul.schemes li .scheme-description {
+    color: #777;
+    font-size: 11pt;
+    padding: 5px 0 5px 27px;
 }
 
 /******************** Tabs *********************/
@@ -693,6 +755,7 @@ ul.category-breadcrumb li {
 }
 ul.category-breadcrumb li a {
     text-decoration: underline;
+    color: #2472ab;
 }
 ul.category-breadcrumb li i {
     margin: 0px 7px;

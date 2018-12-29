@@ -1,37 +1,46 @@
 <template lang="html">
-    <div class="content-wrapper">
-        <h1>Schemio</h1>
-        <ul class="category-breadcrumb" v-if="category">
-            <li>
-                <a href="/">Home</a>
-                <i class="fas fa-angle-right"></i>
-            </li>
-            <li v-for="parentCategory in category.ancestors">
-                <a :href="'?category='+parentCategory.id">{{parentCategory.name}}</a>
-                <i class="fas fa-angle-right"></i>
-            </li>
-            <li>
-                <a :href="'?category='+category.id">{{category.name}}</a>
-            </li>
-        </ul>
-        <span class="btn" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
-        Categories
-        <ul v-if="category">
-            <li v-for="childCategory in category.childCategories">
-                <a :href="'?category='+childCategory.id">{{childCategory.name}}</a>
-            </li>
-        </ul>
+    <div>
+        <div class="menu">
+            <div class="menu-caption">
+                <a href="/">Schemio</a>
+            </div>
+            <ul>
+                <li>
+                    <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
+                </li>
+            </ul>
+        </div>
+        <div class="content-wrapper">
+            <ul class="category-breadcrumb" v-if="category">
+                <li>
+                    <a href="/">Home</a>
+                    <i class="fas fa-angle-right"></i>
+                </li>
+                <li v-for="parentCategory in category.ancestors">
+                    <a :href="'?category='+parentCategory.id">{{parentCategory.name}}</a>
+                    <i class="fas fa-angle-right"></i>
+                </li>
+                <li>
+                    <a :href="'?category='+category.id">{{category.name}}</a>
+                </li>
+            </ul>
+            <h3>Categories</h3>
+            <ul class="categories" v-if="category">
+                <li v-for="childCategory in category.childCategories">
+                    <a class="category link" :href="'?category='+childCategory.id"><i class="fas fa-book-reader"></i> <span>{{childCategory.name}}</span></a>
+                </li>
+            </ul>
 
-        Schemes
-        <ul>
-            <li v-for="scheme in schemes">
-                <a :href="'/schemes/'+scheme.id">{{scheme.name}}</a>
-                <div class="scheme-desciption">
-                    {{scheme.description | shortDescription}}
-                </div>
-            </li>
-        </ul>
-
+            <h3>Schemes</h3>
+            <ul class="schemes">
+                <li v-for="scheme in schemes">
+                    <a class="scheme link" :href="'/schemes/'+scheme.id"><i class="fas fa-project-diagram"></i> <span>{{scheme.name}}</span></a>
+                    <div class="scheme-description">
+                        {{scheme.description | shortDescription}}
+                    </div>
+                </li>
+            </ul>
+        </div>
         <transition name="modal" v-if="newSchemePopup.show">
            <div class="modal-mask">
                <div class="modal-wrapper">
