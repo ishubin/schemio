@@ -8,8 +8,7 @@
                             :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
                             @click="toggleMode(knownMode)"
                             >
-                            <i class="fas fa-eye" v-if="knownMode === 'view'"></i>
-                            <i class="fas fa-pen-square" v-if="knownMode === 'edit'"></i>
+                            {{knownMode}}
                         </span>
                     </li>
                 </ul>

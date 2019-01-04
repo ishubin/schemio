@@ -441,23 +441,25 @@ ul.button-group li {
 ul.button-group li .toggle-button {
     display: inline-block;
     padding: 2px 5px 2px 5px;
-    border: 1px solid #5c696f;
     color: #111;
     cursor: pointer;
     cursor: hand;
     border-radius: 2px;
+    font-weight: bold;
 }
 ul.button-group li .toggle-button.toggled {
     padding: 2px 5px 2px 5px;
-    border: 1px solid #a8bac3;
     color: #111;
     background: #fff;
     cursor: pointer;
     cursor: hand;
 }
 ul.button-group li .toggle-button:hover {
-    border: 1px solid #455055;
-    opacity: 0.8;
+    background: #999;
+}
+ul.button-group li .toggle-button.toggled:hover {
+    background: #fff;
+    opacity: 1.0;
 }
 
 
