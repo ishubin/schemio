@@ -427,41 +427,58 @@ svg.state-create-component {
     padding: 2px;
     z-index: 100;
 }
+
+/*********************** Button Group **********************/
+
 ul.button-group {
     display: inline-block;
     margin: 0;
-    padding: 0;
+    padding: 2px;
     list-style: none;
 }
 ul.button-group li {
     display: inline-block;
-    margin: 0;
+    margin: 0 2px 0 2px;
     padding: 0;
 }
 ul.button-group li .toggle-button {
     display: inline-block;
-    padding: 2px 5px 2px 5px;
-    color: #111;
+    padding: 3px 5px 3px 5px;
+    color: #888;
+    background: none;
     cursor: pointer;
     cursor: hand;
     border-radius: 2px;
     font-weight: bold;
+    text-transform: capitalize;
 }
 ul.button-group li .toggle-button.toggled {
-    padding: 2px 5px 2px 5px;
-    color: #111;
-    background: #fff;
+    color: #fff;
+    background: #2d90d0;
     cursor: pointer;
     cursor: hand;
 }
 ul.button-group li .toggle-button:hover {
-    background: #999;
+    background: #56a7db;
+    color: #fff;
 }
 ul.button-group li .toggle-button.toggled:hover {
-    background: #fff;
-    opacity: 1.0;
+    background: #2d90d0;
 }
-
+.scheme-editor-top-panel ul.button-group li .toggle-button {
+    color: #999;
+}
+.scheme-editor-top-panel ul.button-group li .toggle-button.toggled {
+    color: #111;
+    background: #fff;
+}
+.scheme-editor-top-panel ul.button-group li .toggle-button:hover {
+    background: #999;
+    color: #111;
+}
+.scheme-editor-top-panel ul.button-group li .toggle-button.toggled:hover {
+    background: #fff;
+}
 
 
 
@@ -517,6 +534,24 @@ ul.button-group li .toggle-button.toggled:hover {
 .panel-title:hover {
     background: #e0edf1;
 }
+
+
+.textarea-wrapper {
+    position: relative;
+    padding: 0;
+}
+.textarea-wrapper .textarea-enlarge {
+    display: inline-block;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    opacity: 0.2;
+    cursor: pointer;
+}
+.textarea-wrapper .textarea-enlarge:hover {
+    opacity: 1.0;
+}
+
 
 .item-properties textarea {
     width: 100%;
@@ -810,4 +845,29 @@ ul.category-breadcrumb li i {
     margin: 0;
     padding: 0;
     list-style: none;
+}
+
+/******************************* Modal Text Editor ******************************/
+.textarea-enlarged-container .toolbar {
+    margin-bottom: 10px;
+}
+.textarea-enlarged-container textarea {
+    border: 1px solid #aaa;
+    width: 100%;
+    height: 100%;
+    font-size: 16px;
+    padding: 4px;
+}
+.textarea-enlarged-container .markdown-preview {
+    width: 100%;
+    height: 100%;
+    overflow: scroll;
+}
+
+
+.markdown pre {
+    border: 1px solid #ccc;
+    background: #fff;
+    padding: 4px;
+    border-radius: 5px;
 }

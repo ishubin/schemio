@@ -11,7 +11,7 @@
         </ul>
         <h3>{{schemeContainer.scheme.name}}</h3>
 
-        <vue-markdown>{{schemeContainer.scheme.description}}</vue-markdown>
+        <vue-markdown :source="schemeContainer.scheme.description" class="markdown"/>
     </div>
 </template>
 

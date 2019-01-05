@@ -12,7 +12,17 @@
                 ></vue-tags-input>
 
             <h5 class="section">Description</h5>
-            <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description"></textarea>
+
+            <div class="textarea-wrapper">
+                <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description"></textarea>
+                <span class="textarea-enlarge" @click="showDescriptionInPopup = true"><i class="fas fa-expand"></i></span>
+
+                <markdown-editor-popup v-if="showDescriptionInPopup"
+                    :text="schemeContainer.scheme.description"
+                    @close="showDescriptionInPopup = false"
+                    @changed="schemeContainer.scheme.description = arguments[0]"
+                    />
+            </div>
         </div>
     </div>
 </template>
@@ -20,10 +30,11 @@
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../apiClient.js';
+import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
 
 export default {
     props: ['schemeContainer'],
-    components: {VueTagsInput},
+    components: {VueTagsInput, MarkdownEditorPopup},
     mounted() {
         apiClient.getTags().then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {
@@ -34,7 +45,9 @@ export default {
     data() {
         return {
             schemeTag: '',
-            existingSchemeTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}]
+            existingSchemeTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
+
+            showDescriptionInPopup: false
         }
     },
 

@@ -2,7 +2,7 @@
     <div class="item-details">
         <h3>{{item.name}}</h3>
 
-        <vue-markdown>{{item.description}}</vue-markdown>
+        <vue-markdown :source="item.description" class="markdown"/>
 
         <div v-if="item.links && item.links.length > 0">
             <h5>Links</h5>
@@ -25,8 +25,14 @@
 import VueMarkdown from 'vue-markdown';
 
 export default {
-    props: ['item'],
-    components: {VueMarkdown}
+    props: ['item', 'itemId'],
+    components: {VueMarkdown},
+
+    watch: {
+        itemId(newId) {
+            console.log('Updating');
+        }
+    }
 }
 </script>
 

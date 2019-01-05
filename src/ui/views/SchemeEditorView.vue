@@ -50,7 +50,7 @@
                     </div>
                     <div v-if="currentTab === 'Item'">
                         <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"/>
-                        <item-details :item="selectedItem" v-if="selectedItem && mode !== 'edit'"/>
+                        <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
 
                         <p v-if="!selectedItem">
                             No item selected
