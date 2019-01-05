@@ -16,7 +16,16 @@
             </div>
 
             <h5 class="section">Description</h5>
-            <textarea v-model="item.description"></textarea>
+            <div class="textarea-wrapper">
+                <textarea v-model="item.description"></textarea>
+                <span class="textarea-enlarge" @click="showDescriptionInPopup = true"><i class="fas fa-expand"></i></span>
+
+                <markdown-editor-popup v-if="showDescriptionInPopup"
+                    :text="item.description"
+                    @close="showDescriptionInPopup = false"
+                    @changed="item.description = arguments[0]"
+                    />
+            </div>
         </panel>
 
         <panel name="Image" v-if="item.type === 'image'">
@@ -119,12 +128,13 @@ import ColorPicker from './ColorPicker.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import Panel from './Panel.vue';
 import apiClient from '../../apiClient.js';
+import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
 import _ from 'lodash';
 
 
 export default {
     props: ['item'],
-    components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel},
+    components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel, MarkdownEditorPopup},
     mounted() {
         apiClient.getTags().then(tags => {
             this.existingItemTags = _.map(tags, tag => {
@@ -138,6 +148,7 @@ export default {
             editLinkData: null,
             itemTag: '',
             knownComponentShapes: ['component', 'ellipse'],
+            showDescriptionInPopup: false,
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },
