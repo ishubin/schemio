@@ -484,22 +484,54 @@ ul.button-group li .toggle-button.toggled:hover {
 
 
 /***************************/
-/*   Item Properties       */
+/*   Side Panel            */
 /***************************/
 .scheme-middle-container .side-panel {
     z-index: 101;
     height: 100%;
-    width: 400px;
+    width: 0px;
     position: absolute;
     top: 0;
     right: 0;
     background: #f4f4f4;
-    overflow: auto;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
-.scheme-middle-container .side-panel > .wrapper {
+.scheme-middle-container .side-panel.expanded {
+    width: 400px;
+}
+.scheme-middle-container .side-panel .side-panel-overflow {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+}
+.scheme-middle-container .side-panel .wrapper {
     margin: 10px;
 }
+.scheme-middle-container .side-panel .side-panel-expander {
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    background: #f4f4f4;
+    top: 0;
+    bottom: 0;
+    left: -12px;
+    cursor: pointer;
+    border-radius: 4px 0 0 4px;
+    border-top: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+    color: #333;
+    height: 40px;
+    width: 12px;
+}
+.scheme-middle-container .side-panel .side-panel-expander:hover {
+    color: #777;
+}
+.scheme-middle-container .side-panel .side-panel-expander i {
+    margin-top: 10px;
+    margin-left: 1px;
+}
+
 
 
 /******************* Panel *********************/

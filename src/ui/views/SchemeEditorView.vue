@@ -33,31 +33,37 @@
                 </div>
             </div>
 
-            <div class="side-panel">
-                <ul class="tabs">
-                    <li v-for="tab in tabs">
-                        <span class="tab"
-                            :class="{active: currentTab === tab.name, disabled: tab.disabled}"
-                            @click="currentTab = tab.name"
-                            >{{tab.name}}</span>
-                    </li>
-                </ul>
+            <div class="side-panel" :class="{expanded: sidePanelExpanded}">
+                <span class="side-panel-expander" @click="sidePanelExpanded = !sidePanelExpanded">
+                    <i v-if="sidePanelExpanded" class="fas fa-angle-right"></i>
+                    <i v-else class="fas fa-angle-left"></i>
+                </span>
+                <div class="side-panel-overflow" v-if="sidePanelExpanded">
+                    <ul class="tabs">
+                        <li v-for="tab in tabs">
+                            <span class="tab"
+                                :class="{active: currentTab === tab.name, disabled: tab.disabled}"
+                                @click="currentTab = tab.name"
+                                >{{tab.name}}</span>
+                        </li>
+                    </ul>
 
-                <div class="wrapper">
-                    <div v-if="currentTab === 'Scheme' && schemeContainer">
-                        <scheme-properties v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
-                        <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
-                    </div>
-                    <div v-if="currentTab === 'Item'">
-                        <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"/>
-                        <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
+                    <div class="wrapper">
+                        <div v-if="currentTab === 'Scheme' && schemeContainer">
+                            <scheme-properties v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
+                            <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
+                        </div>
+                        <div v-if="currentTab === 'Item'">
+                            <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"/>
+                            <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
 
-                        <p v-if="!selectedItem">
-                            No item selected
-                        </p>
+                            <p v-if="!selectedItem">
+                                No item selected
+                            </p>
+                        </div>
+                        <create-item-menu v-if="currentTab === 'Create'"></create-item-menu>
+                        <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                     </div>
-                    <create-item-menu v-if="currentTab === 'Create'"></create-item-menu>
-                    <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                 </div>
             </div>
         </div>
@@ -91,6 +97,7 @@ export default {
             this.currentTab = 'Item';
             this.tabs[2].disabled = false;
             this.tabs[3].disabled = true;
+            this.sidePanelExpanded = true;
         });
         EventBus.$on(EventBus.CONNECTOR_SELECTED, connector => {
             this.selectedConnector = connector;
@@ -124,6 +131,7 @@ export default {
     },
     data() {
         return {
+            sidePanelExpanded: true,
             schemeId: this.$route.params.schemeId,
             schemeContainer: null,
             searchKeyword: '',
