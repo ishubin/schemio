@@ -185,7 +185,7 @@ export default {
                 EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
-                this.hoveredConnector = false;
+                this.hoveredConnector = null;
                 this.hoveredRerouteId = -1;
                 EventBus.$emit(EventBus.REDRAW);
             }
@@ -251,7 +251,8 @@ export default {
             },
 
             hoveredConnector: null,
-            hoveredRerouteId: -1
+            hoveredRerouteId: -1,
+            lastMouseUpTimestamp: 0
         };
     },
     methods: {
@@ -291,6 +292,11 @@ export default {
             this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
         },
         mouseUp(event) {
+            if (event.timeStamp - this.lastMouseUpTimestamp < 400.0) {
+                event.doubleClick = true;
+            }
+            this.lastMouseUpTimestamp = event.timeStamp;
+
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 

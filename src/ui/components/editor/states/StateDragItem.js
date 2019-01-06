@@ -106,6 +106,11 @@ export default class StateDragItem extends State {
     }
 
     mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
+        if (event.doubleClick && connector && rerouteId >= 0) {
+            connector.reroutes.splice(rerouteId, 1);
+            this.schemeContainer.buildConnector(connector);
+            EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
+        }
         this.reset();
     }
 
