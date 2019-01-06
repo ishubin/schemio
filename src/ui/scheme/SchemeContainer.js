@@ -398,6 +398,7 @@ class SchemeContainer {
             x: x,
             y: y
         });
+        this.buildConnector(connector);
         return id;
     }
 
