@@ -137,6 +137,7 @@ export default class StateDragItem extends State {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             this.selectedConnector.reroutes[this.selectedRerouteId].x = x;
             this.selectedConnector.reroutes[this.selectedRerouteId].y = y;
+            this.schemeContainer.buildConnector(this.selectedConnector);
             EventBus.$emit(EventBus.REDRAW_CONNECTOR, this.selectedConnector);
         }
     }

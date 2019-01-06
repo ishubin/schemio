@@ -125,23 +125,43 @@ class SchemeContainer {
             });
         }
 
-        var points = [{
-            x: (sourceEdge.x1 + sourceEdge.x2) / 2,
-            y: (sourceEdge.y1 + sourceEdge.y2) / 2
-        }];
-
-        if (connector.reroutes) {
+        var points = [];
+        if (connector.reroutes && connector.reroutes.length > 0) {
+            points.push(this.clampPointToEdge(connector.reroutes[0], sourceEdge));
             points = points.concat(connector.reroutes);
+            points.push(this.clampPointToEdge(connector.reroutes[connector.reroutes.length - 1], destinationEdge));
+        } else {
+            points.push({
+                x: (sourceEdge.x1 + sourceEdge.x2) / 2,
+                y: (sourceEdge.y1 + sourceEdge.y2) / 2
+            });
+
+            points.push({
+                x: (destinationEdge.x1 + destinationEdge.x2) / 2,
+                y: (destinationEdge.y1 + destinationEdge.y2) / 2
+            });
         }
-        points.push({
-            x: (destinationEdge.x1 + destinationEdge.x2) / 2,
-            y: (destinationEdge.y1 + destinationEdge.y2) / 2
-        });
 
         if (!connector.meta) {
             connector.meta = {};
         }
         connector.meta.points = points;
+    }
+
+    clampPointToEdge(point, edge) {
+        var p = {x: 0, y: 0};
+        if (edge.horizontal) {
+            p.x = this.clamp(point.x, edge.x1, edge.x2);
+            p.y = edge.y1;
+        } else {
+            p.x = edge.x1;
+            p.y = this.clamp(point.y, edge.y1, edge.y2);
+        }
+        return p;
+    }
+
+    clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
     }
 
     enrichConnectorWithDefaultStyle(connector) {
@@ -180,19 +200,19 @@ class SchemeContainer {
 
         if (placementId === 0) {
             return {
-                x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y
+                x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y, horizontal: true
             };
         } else if (placementId === 1) {
             return {
-                x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h
+                x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h, horizontal: false
             };
         } else if (placementId === 2) {
             return {
-                x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h
+                x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h, horizontal: true
             };
         } else {
             return {
-                x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h
+                x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h, horizontal: false
             };
         }
 
