@@ -85,8 +85,11 @@
                 :zoom="vZoom"
                 :offsetX="vOffsetX"
                 :offsetY="vOffsetY"
+                :showReroutes="mode === 'edit'"
                 v-on:connector-enter="connectorEntered(connector)"
                 v-on:connector-leave="connectorLeave(connector)"
+                v-on:reroute-enter="rerouteEntered"
+                v-on:reroute-leave="rerouteLeave"
                 ></connector-svg>
 
             <g v-for="link, linkIndex in selectedItemLinks">
@@ -183,6 +186,7 @@ export default {
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
                 this.hoveredConnector = false;
+                this.hoveredRerouteId = -1;
                 EventBus.$emit(EventBus.REDRAW);
             }
         });
@@ -246,7 +250,8 @@ export default {
                 }
             },
 
-            hoveredConnector: null
+            hoveredConnector: null,
+            hoveredRerouteId: -1
         };
     },
     methods: {
@@ -276,21 +281,21 @@ export default {
             if (this.state.shouldHandleItemHover()) {
                 itemAtCursor = this.findItemAtCursor(p.x, p.y);
             }
-            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
+            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
             var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
+            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
         },
         mouseUp(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
             var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, event);
+            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
         },
 
         findItemAtCursor(x, y) {
@@ -487,12 +492,23 @@ export default {
         connectorEntered(connector) {
             if (this.hoveredConnector !== connector) {
                 this.hoveredConnector = connector;
+                this.hoveredRerouteId = -1;
             }
         },
 
         connectorLeave(connector) {
             this.hoveredConnector = null;
+            this.hoveredRerouteId = -1;
         },
+
+        rerouteEntered(connector, rerouteId) {
+            this.connectorEntered(connector);
+            this.hoveredRerouteId = rerouteId;
+        },
+
+        rerouteLeave(connector, rerouteId) {
+            this.connectorLeave(connector);
+        }
     },
     watch: {
         mode(newMode) {

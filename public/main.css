@@ -715,6 +715,9 @@ svg.mode-edit .item-connector-hover-area:hover {
 svg.mode-edit .item-connector.selected {
     stroke: #55f;
 }
+svg.mode-edit .item-connector-reroute {
+    cursor: pointer;
+}
 
 
 /*************** File upload **********************/

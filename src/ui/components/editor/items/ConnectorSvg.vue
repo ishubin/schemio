@@ -21,6 +21,15 @@
                 stroke-linejoin="round"
             />
         </g>
+
+        <g v-for="(point, pointId) in connector.reroutes" v-if="showReroutes">
+            <circle :cx="_x(point.x)" :cy="_y(point.y)" :r="_z(5)"
+                class="item-connector-reroute"
+                :fill="connector.style.color"
+                @pointerenter="$emit('reroute-enter', connector, pointId)" @pointerleave="$emit('reroute-leave', connector, pointId)"
+            />
+        </g>
+
     </g>
 </template>
 
@@ -28,7 +37,7 @@
 import EventBus from '../EventBus.js';
 
 export default {
-    props: ['connector', 'offsetX', 'offsetY', 'zoom'],
+    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes'],
 
     mounted() {
         EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {

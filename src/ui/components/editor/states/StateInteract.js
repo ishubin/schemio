@@ -19,7 +19,7 @@ class StateInteract extends State {
         this.startedDragging = false;
     }
 
-    mouseDown(x, y, mx, my, item, connector, event){
+    mouseDown(x, y, mx, my, item, connector, rerouteId, event){
         this.initScreenDrag(mx, my);
     }
 
@@ -40,7 +40,7 @@ class StateInteract extends State {
         }
     }
 
-    mouseUp(x, y, mx, my, item, connector, event) {
+    mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
@@ -58,7 +58,7 @@ class StateInteract extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, item, connector, event) {
+    mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
         if (this.startedDragging && this.initialClickPoint) {
             this.dragScreen(mx, my);
         }

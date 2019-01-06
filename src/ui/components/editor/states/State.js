@@ -15,9 +15,9 @@ class State {
     }
 
     mouseWheel(localX, localY, originalX, originalY, event) {}
-    mouseDown(localX, localY, originalX, originalY, item, connector, event) {}
-    mouseUp(localX, localY, originalX, originalY, item, connector, event) {}
-    mouseMove(localX, localY, originalX, originalY, item, connector, event) {}
+    mouseDown(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
+    mouseUp(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
+    mouseMove(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
 
     shouldHandleItemHover() {return true;}
     shouldHandleItemMouseDown() {return true;}

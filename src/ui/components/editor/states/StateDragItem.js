@@ -12,11 +12,15 @@ export default class StateDragItem extends State {
         this.selectedItem = null;
         this.itemOriginalArea = {x: 0, y: 0, w: 0, h: 0};
         this.hasDraggedItems = false;
+        this.selectedConnector = null;
+        this.selectedRerouteId = -1;
     }
 
     reset() {
         this.startedDragging = false;
         this.selectedItem = null;
+        this.selectedConnector = null;
+        this.selectedRerouteId = -1;
         this.dragger = null;
         this.hasDraggedItems = false;
     }
@@ -31,6 +35,14 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
     }
 
+    initDraggingForReroute(connector, rerouteId, x, y) {
+        this.originalPoint.x = x;
+        this.originalPoint.y = y;
+        this.startedDragging = true;
+        this.selectedConnector = connector;
+        this.selectedRerouteId = rerouteId;
+    }
+
     mouseWheel(x, y, mx, my, event) {
         if (event) {
             if (event.deltaX !== 0 || event.deltaY !== 0) {
@@ -41,7 +53,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseDown(x, y, mx, my, item, connector, event) {
+    mouseDown(x, y, mx, my, item, connector, rerouteId, event) {
         var selectedItems = this.schemeContainer.getSelectedItems();
         if (selectedItems && selectedItems.length > 0) {
             var dragger = this.findDraggerAtPoint(selectedItems, x, y, mx, my);
@@ -53,12 +65,21 @@ export default class StateDragItem extends State {
         }
         // proceed initiating item or connector drag if dragger wasn't found
         if (connector) {
-            this.schemeContainer.selectConnector(connector, false);
-            this.schemeContainer.deselectAllItems();
-            EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED, connector);
-            EventBus.$emit(EventBus.CONNECTOR_SELECTED, connector);
-            EventBus.$emit(EventBus.REDRAW);
-            EventBus.$emit(EventBus.REDRAW_CONNECTOR);
+            if (connector && (event.metaKey || event.ctrlKey)) {
+                var rerouteId = this.schemeContainer.addReroute(x, y, connector);
+                this.initDraggingForReroute(connector, rerouteId, x, y);
+                EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
+            } else {
+                this.schemeContainer.selectConnector(connector, false);
+                this.schemeContainer.deselectAllItems();
+                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED, connector);
+                EventBus.$emit(EventBus.CONNECTOR_SELECTED, connector);
+                EventBus.$emit(EventBus.REDRAW);
+                EventBus.$emit(EventBus.REDRAW_CONNECTOR);
+                if (rerouteId >= 0) {
+                    this.initDraggingForReroute(connector, rerouteId, x, y);
+                }
+            }
         } else if (item) {
             this.selectedItem = item;
             this.initDraggingForItem(item, x, y);
@@ -72,15 +93,19 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, item, connector, event) {
-        if (this.startedDragging && this.dragger) {
-            this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
-        } else if (this.startedDragging && this.selectedItem) {
-            this.dragItem(x, y);
+    mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
+        if (this.startedDragging) {
+            if (this.dragger) {
+                this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
+            } else if (this.selectedItem) {
+                this.dragItem(x, y);
+            } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
+                this.drageReroute(x, y);
+            }
         }
     }
 
-    mouseUp(x, y, mx, my, item, connector, event) {
+    mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
         this.reset();
     }
 
@@ -97,6 +122,17 @@ export default class StateDragItem extends State {
             this.hasDraggedItems = true;
         } else {
             this.hasDraggedItems = false;
+        }
+    }
+
+    drageReroute(x, y) {
+        var dx = x - this.originalPoint.x;
+        var dy = y - this.originalPoint.y;
+
+        if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
+            this.selectedConnector.reroutes[this.selectedRerouteId].x = x;
+            this.selectedConnector.reroutes[this.selectedRerouteId].y = y;
+            EventBus.$emit(EventBus.REDRAW_CONNECTOR, this.selectedConnector);
         }
     }
 

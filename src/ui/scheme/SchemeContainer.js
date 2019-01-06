@@ -385,6 +385,22 @@ class SchemeContainer {
         }];
     }
 
+    /**
+    Adds a reroute in specified connector and returns is index (in the reroutes array)
+    */
+    addReroute(x, y, connector) {
+        if (!connector.reroutes) {
+            connector.reroutes = [];
+        }
+
+        var id = connector.reroutes.length;
+        connector.reroutes.push({
+            x: x,
+            y: y
+        });
+        return id;
+    }
+
     extendObject(originalObject, overrideObject) {
         _.forEach(overrideObject, (value, key) => {
             if (!originalObject.hasOwnProperty(key)) {
