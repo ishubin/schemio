@@ -406,7 +406,7 @@ class SchemeContainer {
     }
 
     /**
-    Adds a reroute in specified connector and returns is index (in the reroutes array)
+    Adds a reroute in specified connector and returns an index (in the reroutes array)
     */
     addReroute(x, y, connector) {
         if (!connector.reroutes) {
@@ -414,12 +414,41 @@ class SchemeContainer {
         }
 
         var id = connector.reroutes.length;
-        connector.reroutes.push({
+        if (connector.reroutes.length > 0) {
+            id = this.findMatchingRerouteSegment(x, y, connector);
+        }
+
+        connector.reroutes.splice(id, 0, {
             x: x,
             y: y
         });
         this.buildConnector(connector);
         return id;
+    }
+
+    findMatchingRerouteSegment(x, y, connector) {
+        var point = {x, y};
+        if (!connector.meta || !connector.meta.points) {
+            this.buildConnector(connector);
+        }
+        var candidates = [];
+        for (var i = 0; i < connector.meta.points.length - 1; i++) {
+            candidates.push({
+                index: i,
+                distance: myMath.distanceToLineSegment(point, connector.meta.points[i], connector.meta.points[i + 1], 10.0),
+                point1: connector.meta.points[i],
+                point2: connector.meta.points[i + 1]
+            });
+        }
+
+         var segment = _.chain(candidates).sortBy('distance').find(c => {
+             return myMath.isPointWithinLineSegment(point, c.point1, c.point2);
+         }).value();
+         if (segment) {
+             return segment.index;
+         } else {
+             return 0;
+         }
     }
 
     extendObject(originalObject, overrideObject) {
