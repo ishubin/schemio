@@ -95,12 +95,17 @@ export default class StateDragItem extends State {
 
     mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
         if (this.startedDragging) {
-            if (this.dragger) {
-                this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
-            } else if (this.selectedItem) {
-                this.dragItem(x, y);
-            } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
-                this.drageReroute(x, y);
+            if (event.buttons === 0) {
+                // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
+                this.reset();
+            } else {
+                if (this.dragger) {
+                    this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
+                } else if (this.selectedItem) {
+                    this.dragItem(x, y);
+                } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
+                    this.drageReroute(x, y);
+                }
             }
         }
     }
