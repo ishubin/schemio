@@ -31,8 +31,8 @@ class State {
                 if (event.metaKey || event.ctrlKey) {
                     this.zoomByWheel(mx, my, event.deltaY);
                 } else {
-                    this.editor.vOffsetX += event.deltaX / this.editor.vZoom;
-                    this.editor.vOffsetY += event.deltaY / this.editor.vZoom;
+                    this.editor.vOffsetX += event.deltaX;
+                    this.editor.vOffsetY += event.deltaY;
                     this.editor.$forceUpdate();
                 }
             }
