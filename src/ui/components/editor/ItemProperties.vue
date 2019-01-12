@@ -1,6 +1,15 @@
 <template lang="html">
     <div class="item-properties">
         <panel name="General">
+            <ul class="button-group">
+                <li>
+                    <span class="toggle-button" @click="toggleItemLock()"
+                        :class="{'toggled': item.locked}"
+                        >
+                        <i class="fas" :class="[item.locked ? 'fa-lock' : 'fa-unlock']"></i>
+                    </span>
+                </li>
+            </ul>
             <div  v-if="item.type !== 'comment'">
                 <h5>Name</h5>
                 <input class="textfield" type="text" v-model="item.name"/>
@@ -193,6 +202,15 @@ export default {
         },
         onItemTagChange(newTags) {
             this.item.tags = _.map(newTags, tag => tag.text);
+        },
+
+        toggleItemLock() {
+            if (this.item.locked) {
+                this.item.locked = false;
+            } else {
+                this.item.locked = true;
+            }
+            this.$forceUpdate();
         },
 
         connectItem() {

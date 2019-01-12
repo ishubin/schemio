@@ -54,6 +54,7 @@ class SchemeContainer {
     enrichItemWithDefaultStyles(item) {
         if (item.type === 'component') {
             this.extendObject(item, {
+                locked: false,
                 style: {
                     shape: 'component',
                     background: {
