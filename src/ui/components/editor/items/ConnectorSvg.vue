@@ -25,6 +25,7 @@
         <g v-for="(point, pointId) in connector.reroutes" v-if="showReroutes">
             <circle :cx="_x(point.x)" :cy="_y(point.y)" :r="_z(5)"
                 class="item-connector-reroute"
+                :class="{selected: connector.meta.selected}"
                 :fill="connector.style.color"
                 @pointerenter="$emit('reroute-enter', connector, pointId)" @pointerleave="$emit('reroute-leave', connector, pointId)"
             />
