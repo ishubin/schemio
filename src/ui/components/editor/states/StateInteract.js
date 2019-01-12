@@ -30,15 +30,6 @@ class StateInteract extends State {
         this.originalZoom = this.editor.vZoom;
     }
 
-    mouseWheel(x, y, mx, my, event) {
-        if (event) {
-            if (event.deltaX !== 0 || event.deltaY !== 0) {
-                this.editor.vOffsetX += event.deltaX * this.editor.vZoom;
-                this.editor.vOffsetY += event.deltaY * this.editor.vZoom;
-                this.editor.$forceUpdate();
-            }
-        }
-    }
 
     mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
         if (this.startedDragging && this.initialClickPoint) {
