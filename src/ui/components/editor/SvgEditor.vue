@@ -269,6 +269,10 @@ export default {
             }
         },
 
+        updateZoom(zoom) {
+            this.$emit('update-zoom', zoom);
+        },
+
         mouseWheel(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
@@ -394,12 +398,13 @@ export default {
 
                 if (this.animations.bringToView.frame >= this.animations.bringToView.totalFrames) {
                     clearInterval(this.animations.bringToView.timer);
+                    this.updateZoom(z);
                 } else  {
                     var t = this.animations.bringToView.frame / this.animations.bringToView.totalFrames;
 
                     this.vOffsetX = originalX * (1.0 - t) + x * t;
                     this.vOffsetY = originalY * (1.0 - t) + y * t;
-                    this.vZoom = originalZoom * (1.0 - t) + z * t;
+                    this.updateZoom(originalZoom * (1.0 - t) + z * t);
                 }
            }, this.animations.linksAppear.intervalMs);
         },

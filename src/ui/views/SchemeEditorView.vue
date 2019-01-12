@@ -29,6 +29,7 @@
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" :zoom="zoom / 100.0"
                         :mode="mode"
                         :itemHighlights="searchHighlights"
+                        @update-zoom="onUpdateZoom"
                         ></svg-editor>
                 </div>
             </div>
@@ -194,6 +195,11 @@ export default {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
+        },
+
+        onUpdateZoom(zoom) {
+            var value = Math.floor(zoom * 1000) / 10;
+            this.zoom = Math.min(1000, Math.max(2, value));
         }
     },
     filters: {

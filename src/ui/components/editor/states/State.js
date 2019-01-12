@@ -48,14 +48,14 @@ class State {
 
             this.editor.vOffsetX = mx - nz * (mx - xo) / this.editor.vZoom;
             this.editor.vOffsetY = my - nz * (my - yo) / this.editor.vZoom;
-            this.editor.vZoom = nz;
+            this.editor.updateZoom(nz);
         } else {
             if (this.editor.vZoom > 0.05) {
                 nz = this.editor.vZoom / 1.05;
 
                 this.editor.vOffsetX = mx - nz * (mx - xo) / this.editor.vZoom;
                 this.editor.vOffsetY = my - nz * (my - yo) / this.editor.vZoom;
-                this.editor.vZoom = nz;
+                this.editor.updateZoom(nz);
             }
         }
         this.editor.$forceUpdate();
