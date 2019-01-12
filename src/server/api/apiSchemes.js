@@ -39,7 +39,10 @@ const ApiSchemes = {
     },
 
     createScheme(req, res) {
-        schemeStorage.createScheme(req.body).then(scheme => {
+        var requestScheme = ApiSchemes.sanitizeScheme(req.body);
+        requestScheme.modifiedDate = Date.now();
+
+        schemeStorage.createScheme(requestScheme).then(scheme => {
             res.json(scheme);
         }).catch( err => {
             res.status(500);
