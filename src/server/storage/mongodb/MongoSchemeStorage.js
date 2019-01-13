@@ -72,6 +72,10 @@ class MongoSchemeStorage extends SchemeStorage {
         });
     }
 
+    deleteScheme(schemeId) {
+        return this._inSchemes().deleteOne({id: schemeId});
+    }
+
     saveScheme(schemeId, scheme) {
         if (scheme.tags) {
             var tags = [].concat(scheme.tags);

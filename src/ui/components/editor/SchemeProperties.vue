@@ -23,6 +23,16 @@
                     @changed="schemeContainer.scheme.description = arguments[0]"
                     />
             </div>
+
+            <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+
+            <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
+                primaryButton="Delete"
+                @close="showDeleteSchemeWarning = false"
+                @primary-submit="deleteScheme()"
+                >
+                Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
+            </modal>
         </div>
     </div>
 </template>
@@ -31,10 +41,11 @@
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../apiClient.js';
 import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
+import Modal from '../Modal.vue';
 
 export default {
     props: ['schemeContainer'],
-    components: {VueTagsInput, MarkdownEditorPopup},
+    components: {VueTagsInput, MarkdownEditorPopup, Modal},
     mounted() {
         apiClient.getTags().then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {
@@ -45,15 +56,22 @@ export default {
     data() {
         return {
             schemeTag: '',
-            existingSchemeTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
+            existingSchemeTags: [],
 
-            showDescriptionInPopup: false
+            showDescriptionInPopup: false,
+            showDeleteSchemeWarning: false
         }
     },
 
     methods: {
         onSchemeTagChange(newTags) {
             this.schemeContainer.scheme.tags = _.map(newTags, tag => tag.text);
+        },
+
+        deleteScheme() {
+            apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
+                window.location = '/';
+            });
         }
     },
 

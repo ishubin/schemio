@@ -62,6 +62,16 @@ const ApiSchemes = {
         });
     },
 
+    deleteScheme(req, res) {
+        var schemeId = req.params.schemeId;
+        schemeStorage.deleteScheme(schemeId).then(() => {
+            res.json({status: "ok"});
+        }).catch( err => {
+            res.status(500);
+            res.json({error: `Error deleting scheme ${schemeId}`});
+        });
+    },
+
     findSchemes(req, res) {
         var query = {
             offset: req.query.offset || 0,

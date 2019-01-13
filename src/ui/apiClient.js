@@ -37,6 +37,16 @@ export default {
         }
     },
 
+    deleteScheme(schemeId) {
+        if (schemeId && schemeId.trim().length > 0) {
+            return axios.delete(`/api/schemes/${schemeId}`).then(response => {
+                return response.data;
+            });
+        } else {
+            return Promise.resolve(null);
+        }
+    },
+
     findSchemes(query, offset) {
         var encodedQuery = encodeURIComponent(query);
         return axios.get(`/api/schemes?offset=${offset}&q=${encodedQuery}`).then(response => {

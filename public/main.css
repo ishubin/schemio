@@ -177,7 +177,20 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     color: #fff;
     border: 1px solid #2b90b5;
 }
-/***********************************************/
+.btn.btn-dangerous {
+    background: #ba2e20;
+    color: #fff;
+    border: 1px solid #5c1d1d;
+}
+.btn.btn-dangerous:hover {
+    background: #e6766b;
+    color: #fff;
+    border: 1px solid #7e3e3e;
+}
+
+
+
+
 /******************** Textfields *******************/
 input.textfield, textarea.textfield {
     display: inline-block;

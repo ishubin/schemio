@@ -14,6 +14,10 @@ class SchemeStorage {
         return  Promise.resolve(null);
     }
 
+    deleteScheme(schemeId) {
+        return Promise.resolve(null);
+    }
+
     findSchemes(searchQuery) {
         return Promise.resolve(null);
     }
