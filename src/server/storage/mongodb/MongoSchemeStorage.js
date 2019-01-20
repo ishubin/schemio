@@ -61,13 +61,23 @@ class MongoSchemeStorage extends SchemeStorage {
 
     createScheme(scheme) {
         scheme.id = shortid.generate();
-        return this._categories().findOne({id: scheme.categoryId}).then(category => {
-            if (!category) {
-                throw new Error(`Category does not exist: ${scheme.categoryId}`);
+
+        var promise = Promise.resolve(null);
+        if (scheme.categoryId) {
+            promise = this._categories().findOne({id: scheme.categoryId}).then(category => {
+                if (!category) {
+                    throw new Error(`Category does not exist: ${scheme.categoryId}`);
+                }
+                return category;
+            })
+        }
+
+        return promise.then(category => {
+            if (category) {
+                scheme.allSubCategoryIds = _.map(category.ancestors, a => a.id);
+            } else {
+                scheme.allSubCategoryIds = [];
             }
-            return category;
-        }).then(category => {
-            scheme.allSubCategoryIds = _.map(category.ancestors, a => a.id);
             return this._inSchemes().insert(scheme).then(result => {
                 return scheme;
             });
@@ -111,14 +121,16 @@ class MongoSchemeStorage extends SchemeStorage {
 
     getTags() {
         return this._inTags().find({}).toArray().then(tags => {
-            return _.map(tags, tag => tag.name);
+            if (tags && tags.length > 0) {
+                return _.map(tags, tag => tag.name);
+            } else {
+                return [];
+            }
         });
     }
 
     saveTags(tags) {
-        console.log('Got tags: ', tags);
         var uniqTags = _.uniq(tags);
-        console.log('Storing tags: ', uniqTags);
 
         var promises = _.map(uniqTags, tag => {
             return this._inTags().updateOne({
