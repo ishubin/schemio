@@ -16,6 +16,11 @@ class CategoryStorage {
     returns list of categories
     */
     getCategories(parentId) {  return Promise.resolve([]); }
+
+    /**
+    deletes category, all of its sub-categories
+    */
+    deleteCategory(categoryId) { return Promise.resolve(null); }
 }
 
 

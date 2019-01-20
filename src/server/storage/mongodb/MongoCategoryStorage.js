@@ -27,6 +27,9 @@ class MongoCategoryStorage extends CategoryStorage {
     _categories() {
         return this.db.collection('categories');
     }
+    _schemes() {
+        return this.db.collection('schemes');
+    }
 
     createCategory(name, id, parentId) {
         if (!name || name.trim().length === 0) {
@@ -79,6 +82,15 @@ class MongoCategoryStorage extends CategoryStorage {
 
     getCategories(parentId) {
         return this._categories().find({parentId}).toArray();
+    }
+
+
+    deleteCategory(categoryId) {
+        return Promise.all([
+            this._schemes().deleteMany({'allSubCategoryIds': categoryId}),
+            this._categories().deleteOne({id: categoryId}),
+            this._categories().deleteMany({'ancestors.id': categoryId})
+        ]);
     }
 }
 

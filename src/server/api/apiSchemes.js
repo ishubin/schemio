@@ -20,21 +20,31 @@ const ApiSchemes = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
         schemeStorage.getScheme(schemeId).then(scheme => {
-            if (scheme.categoryId) {
-                return categoryStorage.getCategory(scheme.categoryId).then(category => {
-                    scheme.category = category;
+            if (scheme) {
+                if (scheme.categoryId) {
+                    return categoryStorage.getCategory(scheme.categoryId).then(category => {
+                        scheme.category = category;
+                        return scheme;
+                    }).catch(err => {
+                        return scheme;
+                    });
+                } else {
                     return scheme;
-                }).catch(err => {
-                    return scheme;
-                });
+                }
             } else {
-                return scheme;
+                return null;
             }
         }).then(scheme => {
-            res.json(scheme);
-        }).catch( err => {
-            res.status(404);
-            res.json({error: 'Not found'});
+            if (scheme) {
+                res.json(scheme);
+            } else {
+                res.status(404);
+                res.json({error: 'Scheme not found'});
+            }
+        }).catch(err => {
+            res.status(500);
+            console.error(err);
+            res.json({error: 'Could not load scheme'});
         });
     },
 

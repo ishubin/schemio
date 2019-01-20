@@ -33,6 +33,9 @@ class MongoSchemeStorage extends SchemeStorage {
     _inTags() {
         return this.db.collection('tags');
     }
+    _categories() {
+        return this.db.collection('categories');
+    }
 
     findSchemes(query) {
         var mongoQuery = {};
@@ -59,16 +62,34 @@ class MongoSchemeStorage extends SchemeStorage {
 
     createScheme(scheme) {
         scheme.id = shortid.generate();
-        return this._inSchemes().insert(scheme).then(result => {
-            console.log('Result', result);
-            return scheme;
+        return this._categories().findOne({id: scheme.categoryId}).then(category => {
+            if (!category) {
+                throw new Error(`Category does not exist: ${scheme.categoryId}`);
+            }
+            return category;
+        }).then(category => {
+            scheme.allSubCategoryIds = _.map(category.ancestors, a => a.id);
+            return this._inSchemes().insert(scheme).then(result => {
+                return scheme;
+            });
         });
     }
 
     getScheme(schemeId) {
         return this._inSchemes().findOne({id: schemeId}).then(scheme => {
-            delete scheme['_id'];
-            return scheme;
+            if (scheme) {
+                return {
+                    id: scheme.id,
+                    name: scheme.name,
+                    description: scheme.description,
+                    tags: scheme.tags,
+                    modifiedDate: scheme.modifiedDate,
+                    categoryId: scheme.categoryId,
+                    items: scheme.items
+                };
+            } else {
+                return null;
+            }
         });
     }
 

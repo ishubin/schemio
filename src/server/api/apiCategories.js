@@ -48,6 +48,16 @@ const ApiCategories = {
         });
     },
 
+    deleteCategory(req, res) {
+        categoryStorage.deleteCategory(req.params.categoryId).then(data => {
+            res.json({message: `deleted category ${req.params.categoryId}`});
+        }).catch(err=>{
+            res.status(500);
+            res.json(err);
+            console.error(err);
+        });
+    },
+
     /**
     Creates category tree in case its nodes are missing
     */
