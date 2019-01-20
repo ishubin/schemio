@@ -4,7 +4,6 @@ const shortid           = require('shortid');
 const _                 = require('lodash');
 
 
-//TODO put all this into config
 const mongodbUrl = 'mongodb://localhost:27017';
 // Database Name
 const dbName = 'myproject';

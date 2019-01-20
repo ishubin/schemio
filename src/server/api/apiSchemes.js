@@ -38,14 +38,9 @@ const ApiSchemes = {
             if (scheme) {
                 res.json(scheme);
             } else {
-                res.status(404);
-                res.json({error: 'Scheme not found'});
+                res.$notFound('Scheme not found');
             }
-        }).catch(err => {
-            res.status(500);
-            console.error(err);
-            res.json({error: 'Could not load scheme'});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     createScheme(req, res) {
@@ -54,10 +49,7 @@ const ApiSchemes = {
 
         schemeStorage.createScheme(requestScheme).then(scheme => {
             res.json(scheme);
-        }).catch( err => {
-            res.status(500);
-            res.json({error: 'Error creating scheme'});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     saveScheme(req, res) {
@@ -66,20 +58,14 @@ const ApiSchemes = {
         requestScheme.modifiedDate = Date.now();
         schemeStorage.saveScheme(schemeId, requestScheme).then(scheme => {
             res.json(scheme);
-        }).catch( err => {
-            res.status(500);
-            res.json({error: `Error saving scheme ${schemeId}`});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     deleteScheme(req, res) {
         var schemeId = req.params.schemeId;
         schemeStorage.deleteScheme(schemeId).then(() => {
             res.json({status: "ok"});
-        }).catch( err => {
-            res.status(500);
-            res.json({error: `Error deleting scheme ${schemeId}`});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     findSchemes(req, res) {
@@ -92,19 +78,13 @@ const ApiSchemes = {
         }
         schemeStorage.findSchemes(query).then(searchResult => {
             res.json(searchResult);
-        }).catch( err => {
-            res.status(500);
-            res.json({error: 'Could not find schemes'});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     getTags(req, res) {
         schemeStorage.getTags().then(tags => {
             res.json(tags);
-        }).catch( err => {
-            res.status(500);
-            res.json({error: 'Could not get tags'});
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     getShapes(req, res) {

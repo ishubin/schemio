@@ -8,11 +8,7 @@ const ApiCategories = {
         var category = req.body;
         categoryStorage.createCategory(category.name, category.id, category.parentId).then(category => {
             res.json(category);
-        }).catch(err=>{
-            res.status(500);
-            res.json(err);
-            console.error(err);
-        })
+        }).catch(err => res.$apiError(err));
     },
 
     getRootCategory(req, res) {
@@ -20,11 +16,7 @@ const ApiCategories = {
             res.json({
                 childCategories: categories
             });
-        }).catch(err=>{
-            res.status(500);
-            res.json(err);
-            console.error(err);
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     getCategory(req, res) {
@@ -38,24 +30,15 @@ const ApiCategories = {
                 category['childCategories'] = childCategories;
                 res.json(category);
             } else {
-                res.status(404);
-                res.send('Category not found');
+                res.$notFound('Category not found');
             }
-        }).catch(err=>{
-            res.status(500);
-            res.json(err);
-            console.error(err);
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     deleteCategory(req, res) {
         categoryStorage.deleteCategory(req.params.categoryId).then(data => {
             res.json({message: `deleted category ${req.params.categoryId}`});
-        }).catch(err=>{
-            res.status(500);
-            res.json(err);
-            console.error(err);
-        });
+        }).catch(err => res.$apiError(err));
     },
 
     /**
@@ -76,14 +59,9 @@ const ApiCategories = {
                 });
             }, Promise.resolve(null)).then(category =>{
                 res.json(category);
-            }).catch(err => {
-                res.status(500);
-                res.json(err);
-                console.error(err);
-            });
+            }).catch(err => res.$apiError(err));
         } else {
-            res.status(500);
-            res.json({error: 'empty categories'});
+            res.$badRequest('Categories are empty');
         }
     }
 }

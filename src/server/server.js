@@ -2,14 +2,15 @@ const express               = require('express');
 const path                  = require('path');
 const bodyParser            = require('body-parser');
 const jsonBodyParser        = bodyParser.json();
+const middleware            = require('./middleware.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
 
 const app = express();
 
-app.use(express.static('public'))
-
+app.use(express.static('public'));
+app.use('/api', middleware.api);
 
 var cwd = process.cwd();
 
