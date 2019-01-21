@@ -10,28 +10,28 @@ const apiImages             = require('./api/apiImages.js');
 const app = express();
 
 app.use(express.static('public'));
-app.use('/api', middleware.api);
+app.use('/api', [jsonBodyParser, middleware.api]);
 
 var cwd = process.cwd();
 
-app.get('/api/schemes', [jsonBodyParser], apiSchemes.findSchemes);
-app.get('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.getScheme);
-app.delete('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.deleteScheme);
-app.post('/api/schemes', [jsonBodyParser], apiSchemes.createScheme);
-app.put('/api/schemes/:schemeId', [jsonBodyParser], apiSchemes.saveScheme);
+app.get('/api/schemes', apiSchemes.findSchemes);
+app.get('/api/schemes/:schemeId', apiSchemes.getScheme);
+app.delete('/api/schemes/:schemeId', apiSchemes.deleteScheme);
+app.post('/api/schemes',  apiSchemes.createScheme);
+app.put('/api/schemes/:schemeId',  apiSchemes.saveScheme);
 
-app.get('/api/tags', [jsonBodyParser], apiSchemes.getTags);
+app.get('/api/tags',  apiSchemes.getTags);
 
-app.get('/api/shapes', [jsonBodyParser], apiSchemes.getShapes);
+app.get('/api/shapes',  apiSchemes.getShapes);
 
-app.post('/api/images', apiImages.uploadImage);
-app.get('/api/images/:fileName', apiImages.getImage);
+app.post('/images', apiImages.uploadImage);
+app.get('/images/:fileName', apiImages.getImage);
 
-app.post('/api/categories', [jsonBodyParser], apiCategories.createCategory);
-app.get('/api/categories', [jsonBodyParser], apiCategories.getRootCategory);
-app.get('/api/categories/:categoryId', [jsonBodyParser], apiCategories.getCategory);
-app.delete('/api/categories/:categoryId', [jsonBodyParser], apiCategories.deleteCategory);
-app.put('/api/category-structure', [jsonBodyParser], apiCategories.ensureCategoryStructure);
+app.post('/api/categories',  apiCategories.createCategory);
+app.get('/api/categories',  apiCategories.getRootCategory);
+app.get('/api/categories/:categoryId',  apiCategories.getCategory);
+app.delete('/api/categories/:categoryId',  apiCategories.deleteCategory);
+app.put('/api/category-structure',  apiCategories.ensureCategoryStructure);
 
 
 app.get('*', function (req, res) {

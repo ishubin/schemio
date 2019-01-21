@@ -16,7 +16,9 @@
                 </tr>
             </tbody>
         </table>
-
+        <div class="msg msg-error" v-if="errorUploading">
+            Could not upload image.
+        </div>
         <div class="image-preview">
             <img :src="url"  v-if="url.length > 0"/>
         </div>
@@ -35,7 +37,8 @@ export default {
     data() {
         return {
             url: '',
-            selectedFile: null
+            selectedFile: null,
+            errorUploading: false
         }
     },
     methods: {
@@ -51,8 +54,11 @@ export default {
             if (file) {
                 var form = new FormData();
                 form.append('image', file, file.name);
-                axios.post('/api/images', form).then(response => {
+                this.errorUploading = false;
+                axios.post('/images', form).then(response => {
                     this.url = response.data.path;
+                }).catch(err => {
+                    this.errorUploading = true;
                 });
             }
         }

@@ -39,6 +39,13 @@ h5 {
     text-decoration: underline;
 }
 
+
+/******************** Message panels *****************/
+.msg.msg-error {
+    color: #a42020;
+}
+
+
 /******************** Menu *********************/
 .menu {
     background: #3f4245;

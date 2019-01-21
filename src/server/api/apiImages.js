@@ -9,14 +9,19 @@ var storage = multer.diskStorage({
         cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname);
     }
 });
-const upload            = multer({storage}).single('image');
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 1024 * 1024 * 5 //TODO move this to config
+    }
+}).single('image');
 
 module.exports = {
     uploadImage(req, res) {
         upload(req, res, err => {
             if (!err) {
                 res.json({
-                    path: `/api/images/${req.file.filename}`
+                    path: `/images/${req.file.filename}`
                 });
             } else {
                 res.status(500);

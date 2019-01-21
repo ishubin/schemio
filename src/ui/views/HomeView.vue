@@ -185,7 +185,7 @@ export default {
             if (file) {
                 var form = new FormData();
                 form.append('image', file, file.name);
-                axios.post('/api/images', form).then(response => {
+                axios.post('/images', form).then(response => {
                     this.newSchemePopup.imageUrl = response.data.path;
                 });
             }
