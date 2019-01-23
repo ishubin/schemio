@@ -94,7 +94,8 @@ class MongoSchemeStorage extends SchemeStorage {
                     tags: scheme.tags,
                     modifiedDate: scheme.modifiedDate,
                     categoryId: scheme.categoryId,
-                    items: scheme.items
+                    items: scheme.items,
+                    connectors: scheme.connectors
                 };
             } else {
                 return null;
