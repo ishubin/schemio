@@ -111,16 +111,16 @@ class SchemeContainer {
         this.reindexConnector(connector, sourceItem);
         this.reindexConnector(connector, destinationItem);
 
-        var sourceEdge = null, destinationEdge  = null;
+        var sourcePoint, destinationPoint;
         if (connector.reroutes && connector.reroutes.length > 0) {
-            sourceEdge = this.identifyConnectorEdge(sourceItem.area, connector.reroutes[0]);
-            destinationEdge = this.identifyConnectorEdge(destinationItem.area, connector.reroutes[connector.reroutes.length - 1]);
+            sourcePoint = this.findEdgePoint(sourceItem.area, connector.reroutes[0]);
+            destinationPoint = this.findEdgePoint(destinationItem.area, connector.reroutes[connector.reroutes.length - 1]);
         } else {
-            sourceEdge = this.identifyConnectorEdge(sourceItem.area, {
+            sourcePoint = this.findEdgePoint(sourceItem.area, {
                 x: destinationItem.area.x + destinationItem.area.w /2,
                 y: destinationItem.area.y + destinationItem.area.h /2,
             });
-            destinationEdge = this.identifyConnectorEdge(destinationItem.area, {
+            destinationPoint = this.findEdgePoint(destinationItem.area, {
                 x: sourceItem.area.x + sourceItem.area.w /2,
                 y: sourceItem.area.y + sourceItem.area.h /2,
             });
@@ -128,19 +128,12 @@ class SchemeContainer {
 
         var points = [];
         if (connector.reroutes && connector.reroutes.length > 0) {
-            points.push(this.clampPointToEdge(connector.reroutes[0], sourceEdge));
+            points.push(sourcePoint);
             points = points.concat(connector.reroutes);
-            points.push(this.clampPointToEdge(connector.reroutes[connector.reroutes.length - 1], destinationEdge));
+            points.push(destinationPoint);
         } else {
-            points.push({
-                x: (sourceEdge.x1 + sourceEdge.x2) / 2,
-                y: (sourceEdge.y1 + sourceEdge.y2) / 2
-            });
-
-            points.push({
-                x: (destinationEdge.x1 + destinationEdge.x2) / 2,
-                y: (destinationEdge.y1 + destinationEdge.y2) / 2
-            });
+            points.push(sourcePoint);
+            points.push(destinationPoint);
         }
 
         if (!connector.meta) {
@@ -149,20 +142,39 @@ class SchemeContainer {
         connector.meta.points = points;
     }
 
-    clampPointToEdge(point, edge) {
-        var p = {x: 0, y: 0};
-        if (edge.horizontal) {
-            p.x = this.clamp(point.x, edge.x1, edge.x2);
-            p.y = edge.y1;
-        } else {
-            p.x = edge.x1;
-            p.y = this.clamp(point.y, edge.y1, edge.y2);
-        }
-        return p;
-    }
+    findEdgePoint(area, nextPoint) {
+        var x3 = area.x + area.w / 2,
+            y3 = area.y + area.h / 2,
+            x4 = nextPoint.x,
+            y4 = nextPoint.y;
 
-    clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
+        //iterate through all edges to find out if there is an intersection point from center of item to "nextPoint"
+        var edges = [
+            {x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y}, // top
+            {x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h}, // left
+            {x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h}, // right
+            {x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h} // bottom
+        ];
+
+        for (var i = 0; i < edges.length; i++) {
+            var e = edges[i];
+            var td = (x4 - x3) * (e.y1 - e.y2) - (e.x1 - e.x2) * (y4 - y3);
+            if (Math.abs(td) > 0.0001) {
+                var t = ((y3 - y4) * (e.x1 - x3) + (x4 - x3) * (e.y1 - y3)) / td;
+                if (t >= 0 && t <= 1.0) {
+                    // checking if the intersection is within second line segment as well
+                    t = ((e.y1 - e.y2) * (e.x1 - x3) + (e.x2 - e.x1) * (e.y1 - y3)) / td;
+                    if (t >= 0 && t <= 1.0) {
+                        return {
+                            x: x3 + t * (x4 - x3),
+                            y: y3 + t * (y4 - y3),
+                        }
+                    }
+                }
+            }
+        }
+
+        return {x: x3, y: y3};
     }
 
     enrichConnectorWithDefaultStyle(connector) {
@@ -181,42 +193,6 @@ class SchemeContainer {
                 }
             }
         });
-    }
-
-    identifyConnectorEdge(area, point) {
-        var lines = [
-            {x1: area.x, y1: area.y, x2: area.x - 100, y2: area.y - 100}, //top-left
-            {x1: area.x + area.w, y1: area.y, x2: area.x + area.w + 100, y2: area.y - 100}, //top-right
-            {x1: area.x + area.w, y1: area.y + area.h, x2: area.x + area.w + 100, y2: area.y + area.h + 100}, //bottom-right
-            {x1: area.x, y1: area.y + area.h, x2: area.x - 100, y2: area.y + area.h + 100} //bottom-left
-        ];
-
-        var pointPlacements = _.map(lines, line => {
-            return myMath.findPointPlacementToLine(line, point) >= 0 ? 1: 0;
-        });
-
-        var placementId = Math.max(0, _.findIndex(pointPlacements, (side, index) => {
-            return side - pointPlacements[(index + 1 ) % pointPlacements.length] < 0;
-        }));
-
-        if (placementId === 0) {
-            return {
-                x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y, horizontal: true
-            };
-        } else if (placementId === 1) {
-            return {
-                x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h, horizontal: false
-            };
-        } else if (placementId === 2) {
-            return {
-                x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h, horizontal: true
-            };
-        } else {
-            return {
-                x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h, horizontal: false
-            };
-        }
-
     }
 
     connectItems(sourceItem, destinationItem) {
