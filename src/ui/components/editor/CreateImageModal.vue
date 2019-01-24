@@ -1,5 +1,5 @@
 <template lang="html">
-    <modal title="Create Image" @close="$emit('close')" primary-button="Create" @primary-submit="submitCreateImage()">
+    <modal title="Create Image" @close="$emit('close')" :primary-button="primaryButton" @primary-submit="submitCreateImage()">
         <h5>Image URL</h5>
         <table width="100%">
             <tbody>
@@ -31,12 +31,21 @@ import Modal from '../Modal.vue';
 import axios from 'axios';
 
 export default {
-    props: [],
+    props: {
+        imageUrl: {
+            type: String,
+            default: ''
+        },
+        primaryButton: {
+            type: String,
+            default: 'Create'
+        }
+    },
     components: {Modal},
 
     data() {
         return {
-            url: '',
+            url: this.imageUrl,
             selectedFile: null,
             errorUploading: false
         }

@@ -81,8 +81,19 @@
         </panel>
 
         <panel name="Properties" v-if="item.type === 'component'">
-            <p>You can write one property per line</p>
             <textarea v-model="item.properties"></textarea>
+        </panel>
+
+        <panel name="Image" v-if="item.type === 'component'">
+            <span class="btn btn-secondary" v-on:click="showComponentImageModal = true"><i class="fas fa-image"></i> Set Image</span>
+            <span class="btn btn-secondary" v-on:click="removeComponentImage()" v-if="item.image && item.image.url"><i class="fas fa-times"></i> Clear Image</span>
+
+            <img v-if="item.image && item.image.url" :src="item.image.url" @click="showComponentImageModal = true" style="max-width:200px; max-height:200px;"/>
+
+            <create-image-modal v-if="showComponentImageModal"
+                @submit-image="setComponentImage"
+                @close="showComponentImageModal = false"
+                ></create-image-modal>
         </panel>
 
         <panel name="Style" v-if="item.type !== 'image'">
@@ -138,12 +149,13 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import Panel from './Panel.vue';
 import apiClient from '../../apiClient.js';
 import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
+import CreateImageModal from './CreateImageModal.vue';
 import _ from 'lodash';
 
 
 export default {
     props: ['item'],
-    components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel, MarkdownEditorPopup},
+    components: {LinkEditPopup, ColorPicker, VueTagsInput, Panel, MarkdownEditorPopup, CreateImageModal},
     mounted() {
         apiClient.getTags().then(tags => {
             this.existingItemTags = _.map(tags, tag => {
@@ -158,6 +170,7 @@ export default {
             itemTag: '',
             knownComponentShapes: ['component', 'ellipse'],
             showDescriptionInPopup: false,
+            showComponentImageModal: false,
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
         };
     },
@@ -203,7 +216,15 @@ export default {
         onItemTagChange(newTags) {
             this.item.tags = _.map(newTags, tag => tag.text);
         },
-
+        setComponentImage(imageUrl) {
+            if (!this.item.image) {
+                this.item.image = {};
+            }
+            this.item.image.url = imageUrl;
+        },
+        removeComponentImage() {
+            this.item.image = null;
+        },
         toggleItemLock() {
             if (this.item.locked) {
                 this.item.locked = false;
