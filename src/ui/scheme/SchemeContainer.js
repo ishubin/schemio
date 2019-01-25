@@ -113,14 +113,14 @@ class SchemeContainer {
 
         var sourcePoint, destinationPoint;
         if (connector.reroutes && connector.reroutes.length > 0) {
-            sourcePoint = this.findEdgePoint(sourceItem.area, connector.reroutes[0]);
-            destinationPoint = this.findEdgePoint(destinationItem.area, connector.reroutes[connector.reroutes.length - 1]);
+            sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0]);
+            destinationPoint = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]);
         } else {
-            sourcePoint = this.findEdgePoint(sourceItem.area, {
+            sourcePoint = this.findEdgePoint(sourceItem, {
                 x: destinationItem.area.x + destinationItem.area.w /2,
                 y: destinationItem.area.y + destinationItem.area.h /2,
             });
-            destinationPoint = this.findEdgePoint(destinationItem.area, {
+            destinationPoint = this.findEdgePoint(destinationItem, {
                 x: sourceItem.area.x + sourceItem.area.w /2,
                 y: sourceItem.area.y + sourceItem.area.h /2,
             });
@@ -142,7 +142,37 @@ class SchemeContainer {
         connector.meta.points = points;
     }
 
-    findEdgePoint(area, nextPoint) {
+    findEdgePoint(item, nextPoint) {
+        if (item.style.shape === 'ellipse') {
+            return this.findEdgePointOnEllipse(item.area, nextPoint);
+        } else {
+            return this.findEdgePointOnRect(item.area, nextPoint);
+        }
+    }
+
+    findEdgePointOnEllipse(area, nextPoint) {
+        var a = area.w / 2,
+            b = area.h / 2,
+            x0 = area.x + a,
+            y0 = area.y + b,
+            dx = nextPoint.x - x0,
+            dy = nextPoint.y - y0,
+            D = b*b*dx*dx + a*a*dy*dy;
+
+        if (D > 0) {
+            var t = b*a / Math.sqrt(D);
+            return {
+                x: x0 + dx * t,
+                y: y0 + dy * t
+            };
+        }
+
+        return {
+            x: x0, y: y0
+        };
+    }
+
+    findEdgePointOnRect(area, nextPoint) {
         var x3 = area.x + area.w / 2,
             y3 = area.y + area.h / 2,
             x4 = nextPoint.x,
