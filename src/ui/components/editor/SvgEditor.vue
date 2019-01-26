@@ -418,7 +418,7 @@ export default {
                 direction.x = (Math.max(item.area.w, item.area.h) + 40) * direction.x / sd;
                 direction.y = (Math.max(item.area.w, item.area.h) + 40) * direction.y / sd;
             } else {
-                direction.x = area.w + 40;
+                direction.x = item.area.w + 40;
                 direction.y = 0;
             }
 
