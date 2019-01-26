@@ -353,6 +353,16 @@ svg .item-link:hover .item-link-full-title {
     z-index: 5;
 }
 
+svg .item-edit-menu-link:hover circle {
+    r: 15;
+}
+svg .item-edit-menu-link text {
+    font-weight: bold;
+    font-size: 12px;
+    color: #fff;
+    font-family: "Font Awesome 5 Free";
+}
+
 
 /*********************************/
 /*  Hover states in view mode and interacting state */

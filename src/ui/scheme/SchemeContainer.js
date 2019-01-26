@@ -298,8 +298,12 @@ class SchemeContainer {
         if (!item.hasOwnProperty('meta')) {
             item.meta = {};
         }
+        if (!item.id) {
+            item.id = shortid.generate();
+        }
         this.scheme.items.push(item);
         this.reindexItems();
+        return item;
     }
 
     getItems() {

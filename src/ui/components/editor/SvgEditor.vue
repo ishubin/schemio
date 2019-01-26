@@ -130,6 +130,15 @@
                 />
             </g>
 
+            <g v-if="mode === 'edit' && activeItem">
+                <a class="item-edit-menu-link" xlink:href="#" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y)" r="12" stroke="red" fill="#ff00ff"/>
+                    <text :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5"
+                        >&#xf067;</text>
+
+                </a>
+            </g>
+
             <g v-if="schemeContainer.activeBoundaryBox">
                 <!-- Drawing boundary edit box -->
                 <rect class="boundary-box"
@@ -141,7 +150,7 @@
             </g>
 
 
-            <h2 class="" >{{schemeContainer.scheme.name}}</h2>
+            <h2>{{schemeContainer.scheme.name}}</h2>
 
             <text class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme"
                 :x="10"
@@ -182,6 +191,7 @@ export default {
             if (key === EventBus.KEY.ESCAPE) {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
+                this.activeItem = null;
                 EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
@@ -231,6 +241,7 @@ export default {
             vOffsetY: null,
             vZoom: null,
 
+            activeItem: null,
             selectedItemLinks: [],
             lastHoveredItem: null,
 
@@ -368,12 +379,33 @@ export default {
                 this.selectedItemLinks = this.generateItemLinks(item);
                 this.startLinksAnimation();
             }
+            this.activeItem = item;
             this.$forceUpdate();
         },
 
         onDeselectAllItems(item) {
             EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+            this.activeItem = null;
             this.removeDrawnLinks();
+        },
+
+        onActiveItemAppendItem() {
+            var area = this.activeItem.area;
+
+            var item = {
+                type: this.activeItem.type,
+                area: { x: area.x + area.w + 40, y: area.y, w: area.w, h: area.h },
+                style: _.clone(this.activeItem.style),
+                properties: '',
+                name: 'Unnamed',
+                description: '',
+                links: []
+            };
+            var id = this.schemeContainer.addItem(item);
+            this.schemeContainer.connectItems(this.activeItem, item);
+
+            this.schemeContainer.selectItem(item, false);
+            EventBus.$emit(EventBus.ITEM_SELECTED, item);
         },
 
         removeDrawnLinks() {

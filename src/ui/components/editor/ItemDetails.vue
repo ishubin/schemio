@@ -27,12 +27,6 @@ import VueMarkdown from 'vue-markdown';
 export default {
     props: ['item', 'itemId'],
     components: {VueMarkdown},
-
-    watch: {
-        itemId(newId) {
-            console.log('Updating');
-        }
-    }
 }
 </script>
 
