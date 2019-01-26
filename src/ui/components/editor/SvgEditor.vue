@@ -59,9 +59,19 @@
                         >{{item.name}}</text>
                 </g>
 
+                <rect class="item-rect-highlight-area"
+                    :data-item-id="item.id"
+                    :x="_x(item.area.x)"
+                    :y="_y(item.area.y)"
+                    :width="_z(item.area.w)"
+                    :height="_z(item.area.h)"
+                    fill="rgba(0,0,0,0.0)"
+                />
+
                 <g v-if="mode === 'edit'">
                     <!-- Drawing boundary edit box -->
                     <rect class="boundary-box"
+                         :data-item-id="item.id"
                         :x="_x(item.area.x)"
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
@@ -86,10 +96,6 @@
                 :offsetX="vOffsetX"
                 :offsetY="vOffsetY"
                 :showReroutes="mode === 'edit'"
-                v-on:connector-enter="connectorEntered(connector)"
-                v-on:connector-leave="connectorLeave(connector)"
-                v-on:reroute-enter="rerouteEntered"
-                v-on:reroute-leave="rerouteLeave"
                 ></connector-svg>
 
             <g v-for="link, linkIndex in selectedItemLinks">
@@ -120,15 +126,6 @@
                 />
             </g>
 
-
-            <g v-if="state && state.name === 'connecting'">
-                <rect v-if="state.hoveredItem" class="item-search-highlight"
-                    :x="_x(state.hoveredItem.area.x) - 5"
-                    :y="_y(state.hoveredItem.area.y) - 5"
-                    :width="_z(state.hoveredItem.area.w) + 10"
-                    :height="_z(state.hoveredItem.area.h) + 10"
-                />
-            </g>
 
             <g v-if="mode === 'edit' && activeItem">
                 <g class="item-edit-menu-link" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
@@ -171,6 +168,8 @@ import ComponentItem from './items/ComponentItem.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 
 
+const EMPTY_OBJECT = {type: 'nothing'};
+
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
     components: {CommentItem, ConnectorSvg, ComponentItem},
@@ -195,8 +194,6 @@ export default {
                 EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
-                this.hoveredConnector = null;
-                this.hoveredRerouteId = -1;
                 EventBus.$emit(EventBus.REDRAW);
             }
         });
@@ -261,8 +258,6 @@ export default {
                 }
             },
 
-            hoveredConnector: null,
-            hoveredRerouteId: -1,
             lastMouseUpTimestamp: 0
         };
     },
@@ -284,6 +279,22 @@ export default {
             this.$emit('update-zoom', zoom);
         },
 
+        identifyElement(element) {
+            if (element) {
+                var itemId = event.srcElement.getAttribute('data-item-id');
+                if (itemId) {
+                    var itemAtCursor = this.schemeContainer.findItemById(itemId);
+                    if (itemAtCursor) {
+                        return {
+                            item: itemAtCursor,
+                            type: 'item'
+                        };
+                    }
+                }
+            }
+            return EMPTY_OBJECT;
+        },
+
         mouseWheel(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
@@ -292,19 +303,14 @@ export default {
         mouseMove(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
-            var itemAtCursor = null;
 
-            if (this.state.shouldHandleItemHover()) {
-                itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            }
-            this.state.mouseMove(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
+            this.state.mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
         },
         mouseDown(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
-            var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseDown(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
+            this.state.mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
         },
         mouseUp(event) {
             if (event.timeStamp - this.lastMouseUpTimestamp < 400.0) {
@@ -315,36 +321,7 @@ export default {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
 
-            var itemAtCursor = this.findItemAtCursor(p.x, p.y);
-            this.state.mouseUp(p.x, p.y, coords.x, coords.y, itemAtCursor, this.hoveredConnector, this.hoveredRerouteId, event);
-        },
-
-        findItemAtCursor(x, y) {
-            //OPTIMIZE remove this and instead use pointerenter and pointerleave events in svg
-            return this.schemeContainer.findHoveredItem(x, y);
-        },
-
-        handleItemHover(x, y) {
-            var hoveredItem = this.findItemAtCursor(x, y);
-            if (hoveredItem) {
-                if (this.lastHoveredItem !== hoveredItem) {
-                    if (this.lastHoveredItem) {
-                        this.lastHoveredItem.hovered = false;
-                        this.state.itemLostFocus(this.lastHoveredItem);
-                    }
-                    this.lastHoveredItem = hoveredItem;
-                    hoveredItem.hovered = true;
-                    this.state.itemHovered(hoveredItem);
-                    this.$forceUpdate();
-                }
-            } else {
-                if (this.lastHoveredItem) {
-                    this.lastHoveredItem.hovered = false;
-                    this.state.itemLostFocus(this.lastHoveredItem);
-                    this.lastHoveredItem = null;
-                    this.$forceUpdate();
-                }
-            }
+            this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
         },
 
         cancelCurrentState() {
@@ -568,27 +545,6 @@ export default {
             }
             return path;
         },
-
-        connectorEntered(connector) {
-            if (this.hoveredConnector !== connector) {
-                this.hoveredConnector = connector;
-                this.hoveredRerouteId = -1;
-            }
-        },
-
-        connectorLeave(connector) {
-            this.hoveredConnector = null;
-            this.hoveredRerouteId = -1;
-        },
-
-        rerouteEntered(connector, rerouteId) {
-            this.connectorEntered(connector);
-            this.hoveredRerouteId = rerouteId;
-        },
-
-        rerouteLeave(connector, rerouteId) {
-            this.connectorLeave(connector);
-        }
     },
     watch: {
         mode(newMode) {

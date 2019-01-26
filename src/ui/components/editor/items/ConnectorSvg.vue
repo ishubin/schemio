@@ -7,7 +7,7 @@
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
         />
-        <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none" @pointerenter="$emit('connector-enter')" @pointerleave="$emit('connector-leave')"/>
+        <path :d="svgPath" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
@@ -27,7 +27,6 @@
                 class="item-connector-reroute"
                 :class="{selected: connector.meta.selected}"
                 :fill="connector.style.color"
-                @pointerenter="$emit('reroute-enter', connector, pointId)" @pointerleave="$emit('reroute-leave', connector, pointId)"
             />
         </g>
 

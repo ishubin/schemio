@@ -16,18 +16,18 @@ export default class StateConnecting extends State {
         this.hoveredItem = null;
     }
 
-    mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
-        if (this.isLegitItemForConnecting(item)) {
-            this.hoveredItem = item;
+    mouseMove(x, y, mx, my, object, event) {
+        if (object && object.item && this.isLegitItemForConnecting(object.item)) {
+            this.hoveredItem = object.item;
         } else {
             this.hoveredItem = null;
         }
     }
 
-    mouseDown(x, y, mx, my, item, connector, rerouteId, event) {
-        if (this.isLegitItemForConnecting(item)) {
-            if (this.sourceItem && this.sourceItem !== item) {
-                this.schemeContainer.connectItems(this.sourceItem, item);
+    mouseDown(x, y, mx, my, object, event) {
+        if (object && object.item && this.isLegitItemForConnecting(object.item)) {
+            if (this.sourceItem && this.sourceItem !== object.item) {
+                this.schemeContainer.connectItems(this.sourceItem, object.item);
                 this.reset();
                 EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
             } else {

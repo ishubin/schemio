@@ -43,7 +43,7 @@ export default class StateDragItem extends State {
         this.selectedRerouteId = rerouteId;
     }
 
-    mouseDown(x, y, mx, my, item, connector, rerouteId, event) {
+    mouseDown(x, y, mx, my, object, event) {
         var selectedItems = this.schemeContainer.getSelectedItems();
         if (selectedItems && selectedItems.length > 0) {
             var dragger = this.findDraggerAtPoint(selectedItems, x, y, mx, my);
@@ -89,7 +89,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
+    mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
@@ -106,7 +106,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
+    mouseUp(x, y, mx, my, object, event) {
         if (event.doubleClick && connector) {
             if (rerouteId >= 0) {
                 connector.reroutes.splice(rerouteId, 1);

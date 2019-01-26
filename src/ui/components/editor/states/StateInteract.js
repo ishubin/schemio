@@ -19,7 +19,7 @@ class StateInteract extends State {
         this.startedDragging = false;
     }
 
-    mouseDown(x, y, mx, my, item, connector, rerouteId, event){
+    mouseDown(x, y, mx, my, object, event){
         this.initScreenDrag(mx, my);
     }
 
@@ -31,12 +31,12 @@ class StateInteract extends State {
     }
 
 
-    mouseUp(x, y, mx, my, item, connector, rerouteId, event) {
+    mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
-                if (item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape')) {
-                    this.schemeContainer.selectItem(item, false);
-                    EventBus.$emit(EventBus.ITEM_SELECTED, item);
+                if (object && object.item && (object.item.type === 'component' || object.item.type === 'overlay' || object.item.type === 'shape')) {
+                    this.schemeContainer.selectItem(object.item, false);
+                    EventBus.$emit(EventBus.ITEM_SELECTED, object.item);
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     this.schemeContainer.deselectAllItems();
@@ -49,7 +49,7 @@ class StateInteract extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, item, connector, rerouteId, event) {
+    mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button

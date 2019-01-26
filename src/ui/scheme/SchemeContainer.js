@@ -310,10 +310,6 @@ class SchemeContainer {
         return this.scheme.items;
     }
 
-    findHoveredItem(x, y) {
-        return _.findLast(this.scheme.items, item => myMath.isPointInArea(x, y, item.area));
-    }
-
     setActiveBoundaryBox(area) {
         this.activeBoundaryBox = area;
     }

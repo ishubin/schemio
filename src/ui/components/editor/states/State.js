@@ -14,16 +14,10 @@ class State {
         EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
     }
 
-    mouseDown(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
-    mouseUp(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
-    mouseMove(localX, localY, originalX, originalY, item, connector, rerouteId, event) {}
+    mouseDown(localX, localY, originalX, originalY, object, event) {}
+    mouseUp(localX, localY, originalX, originalY, object, event) {}
+    mouseMove(localX, localY, originalX, originalY, object, event) {}
 
-    shouldHandleItemHover() {return true;}
-    shouldHandleItemMouseDown() {return true;}
-    shouldHandleItemMouseUp() {return true;}
-
-    itemHovered(item) {}
-    itemLostFocus(item) {}
 
     mouseWheel(x, y, mx, my, event) {
         if (event) {
