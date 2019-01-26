@@ -462,6 +462,14 @@ class SchemeContainer {
          }
     }
 
+    findConnectorsPointingToItem(item) {
+        return _.filter(this.scheme.connectors, connector => connector.destinationId === item.id);
+    }
+
+    findItemById(itemId) {
+        return _.find(this.scheme.items, item => item.id === itemId);
+    }
+
     extendObject(originalObject, overrideObject) {
         _.forEach(overrideObject, (value, key) => {
             if (!originalObject.hasOwnProperty(key)) {

@@ -389,12 +389,47 @@ export default {
             this.removeDrawnLinks();
         },
 
+
         onActiveItemAppendItem() {
             var area = this.activeItem.area;
 
+            var connectors = this.schemeContainer.findConnectorsPointingToItem(this.activeItem);
+
+            var direction = {x: 0, y: 0};
+
+            if (connectors && connectors.length > 0) {
+                _.forEach(connectors, connector => {
+                    var sourceItem = this.schemeContainer.findItemById(connector.sourceId);
+                    if (sourceItem) {
+                        var vx = area.x + area.w/2 - sourceItem.area.x - sourceItem.area.w / 2;
+                        var vy = area.y + area.h/2 - sourceItem.area.y - sourceItem.area.h / 2;
+                        var v = vx*vx + vy*vy;
+                        if (v > 0.0001) {
+                            var sv = Math.sqrt(v);
+                            vx = vx / sv;
+                            vy = vy / sv;
+
+                            direction.x += vx;
+                            direction.y += vy;
+                        }
+                    };
+                });
+            }
+
+            var d = direction.x*direction.x + direction.y*direction.y;
+            if (d > 0.0001) {
+                var sd = Math.sqrt(d);
+                direction.x = (Math.max(area.w, area.h) + 40) * direction.x / sd;
+                direction.y = (Math.max(area.w, area.h) + 40) * direction.y / sd;
+            } else {
+                direction.x = area.w + 40;
+                direction.y = 0;
+            }
+
+
             var item = {
                 type: this.activeItem.type,
-                area: { x: area.x + area.w + 40, y: area.y, w: area.w, h: area.h },
+                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
                 style: _.clone(this.activeItem.style),
                 properties: '',
                 name: 'Unnamed',
