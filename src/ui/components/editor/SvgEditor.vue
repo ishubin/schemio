@@ -131,12 +131,12 @@
             </g>
 
             <g v-if="mode === 'edit' && activeItem">
-                <a class="item-edit-menu-link" xlink:href="#" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                <g class="item-edit-menu-link" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                     <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y)" r="12" stroke="red" fill="#ff00ff"/>
                     <text :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5"
                         >&#xf067;</text>
 
-                </a>
+                </g>
             </g>
 
             <g v-if="schemeContainer.activeBoundaryBox">
