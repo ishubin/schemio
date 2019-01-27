@@ -327,6 +327,13 @@ svg .item-container.item-type-component .item-caption {
     font-weight: bold;
 }
 
+svg .item-container rect.item-rect-highlight-area {
+    cursor: pointer;
+}
+svg .item-container.item-type-image rect.item-rect-highlight-area {
+    cursor: default;
+}
+
 /**********************/
 /*      Item link    */
 svg .item-link circle {
