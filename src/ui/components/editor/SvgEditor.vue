@@ -68,28 +68,6 @@
                     fill="rgba(0,0,0,0.0)"
                 />
 
-                <g v-if="mode === 'edit'">
-                    <!-- Drawing boundary edit box -->
-                    <rect class="boundary-box"
-                         :data-item-index="itemIndex"
-                        :x="_x(item.area.x)"
-                        :y="_y(item.area.y)"
-                        :width="_z(item.area.w)"
-                        :height="_z(item.area.h)"
-                    />
-                    <g v-if="item.meta.selected">
-                        <rect class="boundary-box-dragger"
-                            v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                            :data-dragger-item-index="itemIndex"
-                            :data-dragger-index="draggerIndex"
-                            :x="_x(dragger.x) - dragger.s"
-                            :y="_y(dragger.y) - dragger.s"
-                            :width="dragger.s * 2"
-                            :height="dragger.s * 2"
-                        />
-                    </g>
-
-                </g>
             </g>
             <connector-svg  v-for="(connector,connectorIndex) in schemeContainer.scheme.connectors" v-if="connector.meta"
                 :connectorIndex="connectorIndex"
@@ -99,6 +77,29 @@
                 :offsetY="vOffsetY"
                 :showReroutes="mode === 'edit'"
                 ></connector-svg>
+
+
+            <g v-if="mode === 'edit'" v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container">
+                <!-- Drawing boundary edit box -->
+                <rect class="boundary-box"
+                     :data-item-index="itemIndex"
+                    :x="_x(item.area.x)"
+                    :y="_y(item.area.y)"
+                    :width="_z(item.area.w)"
+                    :height="_z(item.area.h)"
+                />
+                <g v-if="item.meta.selected">
+                    <rect class="boundary-box-dragger"
+                        v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                        :data-dragger-item-index="itemIndex"
+                        :data-dragger-index="draggerIndex"
+                        :x="_x(dragger.x) - dragger.s"
+                        :y="_y(dragger.y) - dragger.s"
+                        :width="dragger.s * 2"
+                        :height="dragger.s * 2"
+                    />
+                </g>
+            </g>
 
             <g v-for="link, linkIndex in selectedItemLinks">
                 <a class="item-link" :xlink:href="link.url" target="_blank">
