@@ -129,13 +129,17 @@
                 />
             </g>
 
-
+            <!-- Item Edit Menu -->
             <g v-if="mode === 'edit' && activeItem">
                 <g class="item-edit-menu-link" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                     <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y)" r="12" stroke="red" fill="#ff00ff"/>
-                    <text :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5"
-                        >&#xf067;</text>
-
+                    <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5">&#xf067;</text>
+                    <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 5">Add Item</text>
+                </g>
+                <g class="item-edit-menu-link" @click="startCreatingChildScheme(activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y) + 35" r="12" stroke="red" fill="#ff00ff"/>
+                    <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 40">&#xf542;</text>
+                    <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 40">Create scheme for this element</text>
                 </g>
             </g>
 
@@ -169,7 +173,7 @@ import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
 import ComponentItem from './items/ComponentItem.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
-
+import utils from '../../utils.js';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 
@@ -435,7 +439,7 @@ export default {
             var item = {
                 type: this.activeItem.type,
                 area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
-                style: _.clone(this.activeItem.style),
+                style: utils.clone(this.activeItem.style),
                 properties: '',
                 name: 'Unnamed',
                 description: '',
@@ -446,6 +450,9 @@ export default {
 
             this.schemeContainer.selectItem(item, false);
             EventBus.$emit(EventBus.ITEM_SELECTED, item);
+        },
+
+        startCreatingChildScheme(item) {
         },
 
         removeDrawnLinks() {
@@ -519,7 +526,6 @@ export default {
                     var svgLink = {
                         url: link.url,
                         type: link.type,
-                        //shortTitle: link.title.substr(0, 1).toUpperCase(),
                         shortTitle: this.getFontAwesomeSymbolForLink(link),
                         title: link.title,
                         x: cx,

@@ -357,12 +357,20 @@ svg .item-edit-menu-link:hover circle {
     r: 15;
     cursor: pointer;
 }
-svg .item-edit-menu-link text {
+svg .item-edit-menu-link text.link-icon {
     font-weight: bold;
     font-size: 12px;
     fill: #fff;
     font-family: "Font Awesome 5 Free";
     cursor: pointer;
+}
+svg .item-edit-menu-link text.item-link-full-title {
+    fill: #222;
+    font-size: 12px;
+    display: none;
+}
+svg .item-edit-menu-link:hover text.item-link-full-title {
+    display: inline-block;
 }
 
 

@@ -23,7 +23,7 @@
         </g>
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes">
-            <circle :cx="_x(point.x)" :cy="_y(point.y)" :r="_z(5)"
+            <circle :cx="_x(point.x)" :cy="_y(point.y)" r="5"
                 :data-reroute-index="connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :class="{selected: connector.meta.selected}"
