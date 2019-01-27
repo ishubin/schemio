@@ -27,7 +27,7 @@
            <input type="text" class="textfield" v-model:value="editUrl"/>
        </div>
 
-       <scheme-search-modal v-if="showSchemeSearchModal" @close="showSchemeSearchModal = false" @selected-scheme="onSchemeSelect(arguments[0])"></scheme-search-modal>
+       <scheme-search-modal v-if="showSchemeSearchModal" @close="showSchemeSearchModal = false" @selected-scheme="onSchemeSelect"></scheme-search-modal>
     </modal>
 </template>
 
@@ -72,7 +72,7 @@ export default {
         },
         onSchemeSelect(scheme) {
             this.editType = 'scheme';
-            this.editUrl = scheme.schemeId;
+            this.editUrl = scheme.id;
             this.showSchemeSearchModal = false;
         }
     }
