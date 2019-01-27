@@ -131,12 +131,12 @@
 
             <!-- Item Edit Menu -->
             <g v-if="mode === 'edit' && activeItem">
-                <g class="item-edit-menu-link" @click="onActiveItemAppendItem" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                <g class="item-edit-menu-link" @click="$emit('add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                     <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y)" r="12" stroke="red" fill="#ff00ff"/>
                     <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5">&#xf067;</text>
                     <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 5">Add Item</text>
                 </g>
-                <g class="item-edit-menu-link" @click="startCreatingChildScheme(activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                <g class="item-edit-menu-link" @click="$emit('create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                     <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y) + 35" r="12" stroke="red" fill="#ff00ff"/>
                     <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 40">&#xf542;</text>
                     <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 40">Create scheme for this element</text>
@@ -395,66 +395,7 @@ export default {
             this.activeItem = null;
             this.removeDrawnLinks();
         },
-
-        //calculates average next direction based on all connectors pointing to item
-        calculateNextDirection(item) {
-            var connectors = this.schemeContainer.findConnectorsPointingToItem(item);
-            var direction = {x: 0, y: 0};
-
-            if (connectors && connectors.length > 0) {
-                _.forEach(connectors, connector => {
-                    var sourceItem = this.schemeContainer.findItemById(connector.sourceId);
-                    if (sourceItem) {
-                        var vx = item.area.x + item.area.w/2 - sourceItem.area.x - sourceItem.area.w / 2;
-                        var vy = item.area.y + item.area.h/2 - sourceItem.area.y - sourceItem.area.h / 2;
-                        var v = vx*vx + vy*vy;
-                        if (v > 0.0001) {
-                            var sv = Math.sqrt(v);
-                            vx = vx / sv;
-                            vy = vy / sv;
-                            direction.x += vx;
-                            direction.y += vy;
-                        }
-                    };
-                });
-            }
-
-            var d = direction.x*direction.x + direction.y*direction.y;
-            if (d > 0.0001) {
-                var sd = Math.sqrt(d);
-                direction.x = (Math.max(item.area.w, item.area.h) + 40) * direction.x / sd;
-                direction.y = (Math.max(item.area.w, item.area.h) + 40) * direction.y / sd;
-            } else {
-                direction.x = item.area.w + 40;
-                direction.y = 0;
-            }
-
-            return direction;
-        },
-
-        onActiveItemAppendItem() {
-            var area = this.activeItem.area;
-            var direction = this.calculateNextDirection(this.activeItem);
-
-            var item = {
-                type: this.activeItem.type,
-                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
-                style: utils.clone(this.activeItem.style),
-                properties: '',
-                name: 'Unnamed',
-                description: '',
-                links: []
-            };
-            var id = this.schemeContainer.addItem(item);
-            this.schemeContainer.connectItems(this.activeItem, item);
-
-            this.schemeContainer.selectItem(item, false);
-            EventBus.$emit(EventBus.ITEM_SELECTED, item);
-        },
-
-        startCreatingChildScheme(item) {
-        },
-
+        
         removeDrawnLinks() {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];

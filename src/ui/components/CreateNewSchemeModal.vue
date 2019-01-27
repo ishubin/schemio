@@ -7,14 +7,14 @@
                        <h3>New Scheme</h3>
                    </div>
                    <div class="modal-body">
-                       <h5>Category</h5>
-                       <category-selector :categories="categories"/>
-
                        <h5>Name</h5>
                        <input class="textfield" type="text" v-model="schemeName" placeholder="Name..."/>
 
                        <h5>Description</h5>
                        <textarea class="textfield" v-model="schemeDescription"></textarea>
+
+                       <h5>Category</h5>
+                       <category-selector :categories="categories"/>
 
                        <h5>Scheme Image URL</h5>
                        <table width="100%">
@@ -92,7 +92,7 @@ export default {
                         items
                     });
                 }).then(scheme => {
-                    window.location.href = `/schemes/${scheme.id}`;
+                    this.$emit('scheme-created', scheme);
                 });
             }
         },

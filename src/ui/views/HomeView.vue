@@ -42,7 +42,10 @@
                 </li>
             </ul>
         </div>
-        <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories" @close="newSchemePopup.show = false"></create-new-scheme-modal>
+        <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories"
+            @close="newSchemePopup.show = false"
+            @scheme-created="openNewSchemePopupSchemeCreated"
+            ></create-new-scheme-modal>
     </div>
 </template>
 
@@ -98,6 +101,11 @@ export default {
                 this.newSchemePopup.categories = [];
             }
             this.newSchemePopup.show = true;
+        },
+
+        openNewSchemePopupSchemeCreated(scheme) {
+            this.newSchemePopup.show = false;
+            window.location.href = `/schemes/${scheme.id}`;
         }
     },
     filters: {

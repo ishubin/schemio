@@ -30,6 +30,8 @@
                         :mode="mode"
                         :itemHighlights="searchHighlights"
                         @update-zoom="onUpdateZoom"
+                        @add-item-to-item="onActiveItemAppendItem"
+                        @create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         ></svg-editor>
                 </div>
             </div>
@@ -69,11 +71,19 @@
             </div>
         </div>
 
+        <create-new-scheme-modal v-if="newSchemePopup.show"
+            :name="newSchemePopup.name"
+            :description="newSchemePopup.description"
+            :categories="newSchemePopup.categories"
+            @close="newSchemePopup.show = false"
+            @scheme-created="openNewSchemePopupSchemeCreated"
+            ></create-new-scheme-modal>
     </div>
 
 </template>
 
 <script>
+import utils from '../utils.js';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
@@ -84,9 +94,10 @@ import SchemeProperties from '../components/editor/SchemeProperties.vue';
 import ConnectionProperties from '../components/editor/ConnectionProperties.vue';
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
+import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties},
+    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
@@ -145,6 +156,14 @@ export default {
             knownModes: ['view', 'edit'],
             searchHighlights: [],
 
+            newSchemePopup: {
+                name: '',
+                description: '',
+                categories: [],
+                show: false,
+                parentSchemeItem: null
+            },
+
             currentTab: 'Scheme',
             tabs: [{
                 name: 'Scheme'
@@ -195,6 +214,104 @@ export default {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
+        },
+
+        onActiveItemAppendItem(item) {
+            var area = item.area;
+            var direction = this.calculateNextDirection(item);
+
+            var newItem = {
+                type: item.type,
+                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
+                style: utils.clone(item.style),
+                properties: '',
+                name: 'Unnamed',
+                description: '',
+                links: []
+            };
+            var id = this.schemeContainer.addItem(newItem);
+            this.schemeContainer.connectItems(item, newItem);
+
+            this.schemeContainer.selectItem(newItem, false);
+            EventBus.$emit(EventBus.ITEM_SELECTED, newItem);
+        },
+
+        startCreatingChildSchemeForItem(item) {
+            var category = this.schemeContainer.scheme.category;
+            if (category && category.id) {
+                var categories = _.map(category.ancestors, ancestor => {
+                    return {name: ancestor.name, id: ancestor.id};
+                });
+
+                categories.push({
+                    name: category.name,
+                    id: category.id
+                });
+                this.newSchemePopup.categories = categories;
+            } else {
+                this.newSchemePopup.categories = [];
+            }
+
+            this.newSchemePopup.name = item.name;
+            this.newSchemePopup.description = `Go back to [${this.schemeContainer.scheme.name}](/schemes/${this.schemeContainer.scheme.id})`;
+            this.newSchemePopup.parentSchemeItem = item;
+            this.newSchemePopup.show = true;
+        },
+
+        openNewSchemePopupSchemeCreated(scheme) {
+            var url = `/schemes/${scheme.id}`;
+            var item = this.newSchemePopup.parentSchemeItem;
+            if (item) {
+                if (!item.links) {
+                    item.links = [];
+                }
+                item.links.push({
+                    title: `${item.name} details`,
+                    url: url,
+                    type: 'scheme'
+                });
+            }
+
+            var href = window.location.href;
+            var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
+            this.newSchemePopup.show = false;
+            window.open(urlPrefix + url, '_blank');
+        },
+
+        //calculates average next direction based on all connectors pointing to item
+        calculateNextDirection(item) {
+            var connectors = this.schemeContainer.findConnectorsPointingToItem(item);
+            var direction = {x: 0, y: 0};
+
+            if (connectors && connectors.length > 0) {
+                _.forEach(connectors, connector => {
+                    var sourceItem = this.schemeContainer.findItemById(connector.sourceId);
+                    if (sourceItem) {
+                        var vx = item.area.x + item.area.w/2 - sourceItem.area.x - sourceItem.area.w / 2;
+                        var vy = item.area.y + item.area.h/2 - sourceItem.area.y - sourceItem.area.h / 2;
+                        var v = vx*vx + vy*vy;
+                        if (v > 0.0001) {
+                            var sv = Math.sqrt(v);
+                            vx = vx / sv;
+                            vy = vy / sv;
+                            direction.x += vx;
+                            direction.y += vy;
+                        }
+                    };
+                });
+            }
+
+            var d = direction.x*direction.x + direction.y*direction.y;
+            if (d > 0.0001) {
+                var sd = Math.sqrt(d);
+                direction.x = (Math.max(item.area.w, item.area.h) + 40) * direction.x / sd;
+                direction.y = (Math.max(item.area.w, item.area.h) + 40) * direction.y / sd;
+            } else {
+                direction.x = item.area.w + 40;
+                direction.y = 0;
+            }
+
+            return direction;
         },
 
         onUpdateZoom(zoom) {
