@@ -8,7 +8,7 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp">
 
-            <g v-for="item in schemeContainer.getItems()" class="item-container"
+            <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
                 :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
                 >
                 <g v-if="item.type === 'image'" class="item-graphics">
@@ -60,7 +60,7 @@
                 </g>
 
                 <rect class="item-rect-highlight-area"
-                    :data-item-id="item.id"
+                    :data-item-index="itemIndex"
                     :x="_x(item.area.x)"
                     :y="_y(item.area.y)"
                     :width="_z(item.area.w)"
@@ -71,7 +71,7 @@
                 <g v-if="mode === 'edit'">
                     <!-- Drawing boundary edit box -->
                     <rect class="boundary-box"
-                         :data-item-id="item.id"
+                         :data-item-index="itemIndex"
                         :x="_x(item.area.x)"
                         :y="_y(item.area.y)"
                         :width="_z(item.area.w)"
@@ -79,7 +79,9 @@
                     />
                     <g v-if="item.meta.selected">
                         <rect class="boundary-box-dragger"
-                            v-for="dragger in provideBoundingBoxDraggers(item)"
+                            v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                            :data-dragger-item-index="itemIndex"
+                            :data-dragger-index="draggerIndex"
                             :x="_x(dragger.x) - dragger.s"
                             :y="_y(dragger.y) - dragger.s"
                             :width="dragger.s * 2"
@@ -89,8 +91,8 @@
 
                 </g>
             </g>
-            <connector-svg  v-for="connector in schemeContainer.scheme.connectors" v-if="connector.meta"
-                :key="connector.id"
+            <connector-svg  v-for="(connector,connectorIndex) in schemeContainer.scheme.connectors" v-if="connector.meta"
+                :connectorIndex="connectorIndex"
                 :connector="connector"
                 :zoom="vZoom"
                 :offsetX="vOffsetX"
@@ -281,14 +283,37 @@ export default {
 
         identifyElement(element) {
             if (element) {
-                var itemId = event.srcElement.getAttribute('data-item-id');
-                if (itemId) {
-                    var itemAtCursor = this.schemeContainer.findItemById(itemId);
-                    if (itemAtCursor) {
-                        return {
-                            item: itemAtCursor,
-                            type: 'item'
-                        };
+                var itemIndex = event.srcElement.getAttribute('data-item-index');
+                if (itemIndex) {
+                    return {
+                        item: this.schemeContainer.scheme.items[itemIndex]
+                    };
+                }
+
+                var connectorIndex = event.srcElement.getAttribute('data-connector-index');
+                if (connectorIndex) {
+                    return {
+                        connector: this.schemeContainer.scheme.connectors[connectorIndex]
+                    }
+                }
+
+                var rerouteIndex = event.srcElement.getAttribute('data-reroute-index');
+                if (rerouteIndex) {
+                    var indices = rerouteIndex.split('/');
+                    return {
+                        connector: this.schemeContainer.scheme.connectors[indices[0]],
+                        rerouteId: indices[1]
+                    };
+                }
+
+                var draggerItemIndex = event.srcElement.getAttribute('data-dragger-item-index');
+                if (draggerItemIndex) {
+                    var item = this.schemeContainer.scheme.items[draggerItemIndex]
+                    return {
+                        dragger: {
+                            item,
+                            dragger: this.provideBoundingBoxDraggers(item)[event.srcElement.getAttribute('data-dragger-index')]
+                        }
                     }
                 }
             }
@@ -527,6 +552,8 @@ export default {
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; },
 
+
+        //OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event
         provideBoundingBoxDraggers(item) {
             return this.schemeContainer.provideBoundingBoxDraggers(item);
         },
