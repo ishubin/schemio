@@ -102,7 +102,7 @@
             </g>
 
             <g v-for="link, linkIndex in selectedItemLinks">
-                <a class="item-link" :xlink:href="link.url" target="_blank">
+                <a class="item-link" :xlink:href="link.url">
                     <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(12)" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
 
                     <text class="item-link-icon" :class="['link-icon-' + link.type]"
@@ -152,14 +152,6 @@
                     :height="_z(schemeContainer.activeBoundaryBox.h)"
                 />
             </g>
-
-
-            <h2>{{schemeContainer.scheme.name}}</h2>
-
-            <text class="scheme-name-header" v-if="schemeContainer && schemeContainer.scheme"
-                :x="10"
-                :y="60"
-                >{{schemeContainer.scheme.name}}</text>
         </svg>
     </div>
 </template>
@@ -395,7 +387,7 @@ export default {
             this.activeItem = null;
             this.removeDrawnLinks();
         },
-        
+
         removeDrawnLinks() {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
