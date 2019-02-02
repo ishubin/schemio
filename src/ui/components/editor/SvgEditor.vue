@@ -94,10 +94,10 @@
                             v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
                             :data-dragger-item-index="itemIndex"
                             :data-dragger-index="draggerIndex"
-                            :x="dragger.x - dragger.s"
-                            :y="dragger.y - dragger.s"
-                            :width="dragger.s * 2"
-                            :height="dragger.s * 2"
+                            :x="dragger.x - dragger.s / (vZoom || 1.0)"
+                            :y="dragger.y - dragger.s / (vZoom || 1.0)"
+                            :width="dragger.s * 2 / (vZoom || 1.0)"
+                            :height="dragger.s * 2 / (vZoom || 1.0)"
                         />
                     </g>
                 </g>
