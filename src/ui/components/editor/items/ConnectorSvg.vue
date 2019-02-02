@@ -10,7 +10,7 @@
         <path :d="svgPath" :data-connector-index="connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="_x(end.x)" :cy="_y(end.y)" :r="_z(end.r)" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
+            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 class="item-connector"
@@ -23,7 +23,7 @@
         </g>
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes">
-            <circle :cx="_x(point.x)" :cy="_y(point.y)" r="5"
+            <circle :cx="point.x" :cy="point.y" r="5"
                 :data-reroute-index="connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :class="{selected: connector.meta.selected}"
@@ -61,10 +61,6 @@ export default {
         };
     },
     methods: {
-        _x(x) { return x * this.zoom + this.offsetX; },
-        _y(y) { return y * this.zoom + this.offsetY; },
-        _z(v) { return v * this.zoom; },
-
         createEnd(x, y, px, py, endStyle) {
             if (endStyle.type === 'circle') {
                 return {
@@ -89,12 +85,12 @@ export default {
                 Vx = Vx/V;
                 Vy = Vy/V;
 
-                var size = this._z(endStyle.size);
-                var Pax = this._x(x + (Vx * 2 - Vy) * size);
-                var Pay = this._y(y + (Vy * 2 + Vx) * size);
-                var Pbx = this._x(x + (Vx * 2 + Vy) * size);
-                var Pby = this._y(y + (Vy * 2 - Vx) * size);
-                var path = `M ${Pax} ${Pay} L ${this._x(x)} ${this._y(y)} L ${Pbx} ${Pby}`;
+                var size = endStyle.size;
+                var Pax = x + (Vx * 2 - Vy) * size;
+                var Pay = y + (Vy * 2 + Vx) * size;
+                var Pbx = x + (Vx * 2 + Vy) * size;
+                var Pby = y + (Vy * 2 - Vx) * size;
+                var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
                 if (close) {
                     path += ' z';
                 }
@@ -107,10 +103,10 @@ export default {
             return null;
         },
         computeSvgPath(points) {
-            var path = `M ${this._x(points[0].x)} ${this._y(points[0].y)}`
+            var path = `M ${points[0].x} ${points[0].y}`
 
             for (var i = 1; i < points.length; i++) {
-                path += ` L ${this._x(points[i].x)} ${this._y(points[i].y)}`
+                path += ` L ${points[i].x} ${points[i].y}`
             }
             return path;
         },

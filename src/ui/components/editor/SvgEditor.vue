@@ -8,149 +8,151 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp">
 
-            <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
-                :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
-                >
-                <g v-if="item.type === 'image'" class="item-graphics">
-                    <image v-bind:xlink:href="item.url" :x="_x(item.area.x)" :y="_y(item.area.y)" :width="_z(item.area.w) + 'px'" :height="_z(item.area.h) + 'px'"/>
-                </g>
+            <g :transform="transformSvg">
+                <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
+                    :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
+                    >
+                    <g v-if="item.type === 'image'" class="item-graphics">
+                        <image v-bind:xlink:href="item.url" :x="item.area.x" :y="item.area.y" :width="item.area.w + 'px'" :height="item.area.h + 'px'"/>
+                    </g>
 
-                <component-item v-if="item.type === 'component'"
-                    :key="item.id"
-                    :item="item"
+                    <component-item v-if="item.type === 'component'"
+                        :key="item.id"
+                        :item="item"
+                        :zoom="vZoom"
+                        :offsetX="vOffsetX"
+                        :offsetY="vOffsetY"
+                        ></component-item>
+
+                    <comment-item v-if="item.type === 'comment'"
+                        :x="item.area.x"
+                        :y="item.area.y"
+                        :scale="1"
+                        :width="item.area.w"
+                        :height="item.area.h"
+                        :item-style="item.style"
+                        :text="item.description"
+                        :fontsize="15"
+                        ></comment-item>
+
+                    <g v-if="item.type === 'overlay'" class="item-graphics">
+                        <rect
+                            :x="item.area.x"
+                            :y="item.area.y"
+                            :width="item.area.w"
+                            :height="item.area.h"
+                            :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
+                        />
+                    </g>
+
+                    <g v-if="item.type === 'shape'" class="item-graphics">
+                        <image
+                            :x="item.area.x"
+                            :y="item.area.y"
+                            :width="item.area.w"
+                            :height="item.area.h"
+                            :xlink:href="'/shapes/'+item.shape+'.svg'"/>
+                        <text
+                            :x="item.area.x + item.area.w/2 - 15 * item.name.length / (1.75 * 2)"
+                            :y="item.area.y + item.area.h + 20"
+                            :font-size="15 + 'px'"
+                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
+                            >{{item.name}}</text>
+                    </g>
+
+                    <rect class="item-rect-highlight-area"
+                        :data-item-index="itemIndex"
+                        :x="item.area.x"
+                        :y="item.area.y"
+                        :width="item.area.w"
+                        :height="item.area.h"
+                        fill="rgba(0,0,0,0.0)"
+                    />
+
+                </g>
+                <connector-svg  v-for="(connector,connectorIndex) in schemeContainer.scheme.connectors" v-if="connector.meta"
+                    :connectorIndex="connectorIndex"
+                    :connector="connector"
                     :zoom="vZoom"
                     :offsetX="vOffsetX"
                     :offsetY="vOffsetY"
-                    ></component-item>
+                    :showReroutes="mode === 'edit'"
+                    ></connector-svg>
 
-                <comment-item v-if="item.type === 'comment'"
-                    :x="_x(item.area.x)"
-                    :y="_y(item.area.y)"
-                    :scale="_z(1)"
-                    :width="_z(item.area.w)"
-                    :height="_z(item.area.h)"
-                    :item-style="item.style"
-                    :text="item.description"
-                    :fontsize="_z(15)"
-                    ></comment-item>
 
-                <g v-if="item.type === 'overlay'" class="item-graphics">
-                    <rect
-                        :x="_x(item.area.x)"
-                        :y="_y(item.area.y)"
-                        :width="_z(item.area.w)"
-                        :height="_z(item.area.h)"
-                        :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
+                <g v-if="mode === 'edit'" v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container">
+                    <!-- Drawing boundary edit box -->
+                    <rect class="boundary-box"
+                         :data-item-index="itemIndex"
+                        :x="item.area.x"
+                        :y="item.area.y"
+                        :width="item.area.w"
+                        :height="item.area.h"
+                    />
+                    <g v-if="item.meta.selected">
+                        <rect class="boundary-box-dragger"
+                            v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                            :data-dragger-item-index="itemIndex"
+                            :data-dragger-index="draggerIndex"
+                            :x="dragger.x - dragger.s"
+                            :y="dragger.y - dragger.s"
+                            :width="dragger.s * 2"
+                            :height="dragger.s * 2"
+                        />
+                    </g>
+                </g>
+
+                <g v-for="link, linkIndex in selectedItemLinks">
+                    <a class="item-link" :xlink:href="link.url">
+                        <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
+
+                        <text class="item-link-icon" :class="['link-icon-' + link.type]"
+                            :x="link.x - 6"
+                            :y="link.y + 5"
+                            :font-size="13 + 'px'"
+                            :title="link.title"
+                            >{{link.shortTitle}}</text>
+
+                        <text class="item-link-full-title"
+                            :x="link.x + 25 - 5"
+                            :y="link.y + 5"
+                            >{{link.title}}</text>
+                    </a>
+                </g>
+
+                <g v-for="area in itemHighlights">
+                    <!-- Drawing boundary edit box -->
+                    <rect class="item-search-highlight"
+                        :x="area.x - 5"
+                        :y="area.y - 5"
+                        :width="area.w + 10"
+                        :height="area.h + 10"
                     />
                 </g>
 
-                <g v-if="item.type === 'shape'" class="item-graphics">
-                    <image
-                        :x="_x(item.area.x)"
-                        :y="_y(item.area.y)"
-                        :width="_z(item.area.w)"
-                        :height="_z(item.area.h)"
-                        :xlink:href="'/shapes/'+item.shape+'.svg'"/>
-                    <text
-                        :x="_x(item.area.x + item.area.w/2) - _z(15 * item.name.length / (1.75 * 2))"
-                        :y="_y(item.area.y + item.area.h + 20)"
-                        :font-size="Math.floor(_z(15)) + 'px'"
-                        :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
-                        >{{item.name}}</text>
+                <!-- Item Edit Menu -->
+                <g v-if="mode === 'edit' && activeItem">
+                    <g class="item-edit-menu-link" @click="$emit('add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                        <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
+                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
+                        <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
+                    </g>
+                    <g class="item-edit-menu-link" @click="$emit('create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                        <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
+                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 40">&#xf542;</text>
+                        <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
+                    </g>
                 </g>
 
-                <rect class="item-rect-highlight-area"
-                    :data-item-index="itemIndex"
-                    :x="_x(item.area.x)"
-                    :y="_y(item.area.y)"
-                    :width="_z(item.area.w)"
-                    :height="_z(item.area.h)"
-                    fill="rgba(0,0,0,0.0)"
-                />
-
-            </g>
-            <connector-svg  v-for="(connector,connectorIndex) in schemeContainer.scheme.connectors" v-if="connector.meta"
-                :connectorIndex="connectorIndex"
-                :connector="connector"
-                :zoom="vZoom"
-                :offsetX="vOffsetX"
-                :offsetY="vOffsetY"
-                :showReroutes="mode === 'edit'"
-                ></connector-svg>
-
-
-            <g v-if="mode === 'edit'" v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container">
-                <!-- Drawing boundary edit box -->
-                <rect class="boundary-box"
-                     :data-item-index="itemIndex"
-                    :x="_x(item.area.x)"
-                    :y="_y(item.area.y)"
-                    :width="_z(item.area.w)"
-                    :height="_z(item.area.h)"
-                />
-                <g v-if="item.meta.selected">
-                    <rect class="boundary-box-dragger"
-                        v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                        :data-dragger-item-index="itemIndex"
-                        :data-dragger-index="draggerIndex"
-                        :x="_x(dragger.x) - dragger.s"
-                        :y="_y(dragger.y) - dragger.s"
-                        :width="dragger.s * 2"
-                        :height="dragger.s * 2"
+                <g v-if="schemeContainer.activeBoundaryBox">
+                    <!-- Drawing boundary edit box -->
+                    <rect class="boundary-box"
+                        :x="schemeContainer.activeBoundaryBox.x"
+                        :y="schemeContainer.activeBoundaryBox.y"
+                        :width="schemeContainer.activeBoundaryBox.w"
+                        :height="schemeContainer.activeBoundaryBox.h"
                     />
                 </g>
-            </g>
-
-            <g v-for="link, linkIndex in selectedItemLinks">
-                <a class="item-link" :xlink:href="link.url">
-                    <circle :cx="_x(link.x)" :cy="_y(link.y)" :r="_z(12)" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
-
-                    <text class="item-link-icon" :class="['link-icon-' + link.type]"
-                        :x="_x(link.x) - _z(6)"
-                        :y="_y(link.y) + _z(5)"
-                        :font-size="Math.floor(_z(13)) + 'px'"
-                        :title="link.title"
-                        >{{link.shortTitle}}</text>
-
-                    <text class="item-link-full-title"
-                        :x="_x(link.x) + 25 - _z(5)"
-                        :y="_y(link.y) + _z(5)"
-                        >{{link.title}}</text>
-                </a>
-            </g>
-
-            <g v-for="area in itemHighlights">
-                <!-- Drawing boundary edit box -->
-                <rect class="item-search-highlight"
-                    :x="_x(area.x) - 5"
-                    :y="_y(area.y) - 5"
-                    :width="_z(area.w) + 10"
-                    :height="_z(area.h) + 10"
-                />
-            </g>
-
-            <!-- Item Edit Menu -->
-            <g v-if="mode === 'edit' && activeItem">
-                <g class="item-edit-menu-link" @click="$emit('add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
-                    <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y)" r="12" stroke="red" fill="#ff00ff"/>
-                    <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 5">&#xf067;</text>
-                    <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 5">Add Item</text>
-                </g>
-                <g class="item-edit-menu-link" @click="$emit('create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
-                    <circle :cx="_x(activeItem.area.x + activeItem.area.w) + 30" :cy="_y(activeItem.area.y) + 35" r="12" stroke="red" fill="#ff00ff"/>
-                    <text class="link-icon" :x="_x(activeItem.area.x + activeItem.area.w) + 25" :y="_y(activeItem.area.y) + 40">&#xf542;</text>
-                    <text class="item-link-full-title" :x="_x(activeItem.area.x + activeItem.area.w) + 55" :y="_y(activeItem.area.y) + 40">Create scheme for this element</text>
-                </g>
-            </g>
-
-            <g v-if="schemeContainer.activeBoundaryBox">
-                <!-- Drawing boundary edit box -->
-                <rect class="boundary-box"
-                    :x="_x(schemeContainer.activeBoundaryBox.x)"
-                    :y="_y(schemeContainer.activeBoundaryBox.y)"
-                    :width="_z(schemeContainer.activeBoundaryBox.w)"
-                    :height="_z(schemeContainer.activeBoundaryBox.h)"
-                />
             </g>
         </svg>
     </div>
@@ -488,11 +490,6 @@ export default {
             return '\uf0c1';
         },
 
-        _x(x) { return x * this.vZoom + this.vOffsetX; },
-        _y(y) { return y * this.vZoom + this.vOffsetY; },
-        _z(v) { return v * this.vZoom; },
-
-
         //OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event
         provideBoundingBoxDraggers(item) {
             return this.schemeContainer.provideBoundingBoxDraggers(item);
@@ -505,10 +502,10 @@ export default {
         },
 
         connectorToSvgPath(connector) {
-            var path = `M ${this._x(connector.meta.points[0].x)} ${this._y(connector.meta.points[0].y)}`
+            var path = `M ${connector.meta.points[0].x} ${connector.meta.points[0].y}`
 
             for (var i = 1; i < connector.meta.points.length; i++) {
-                path += ` L ${this._x(connector.meta.points[i].x)} ${this._y(connector.meta.points[i].y)}`
+                path += ` L ${connector.meta.points[i].x} ${connector.meta.points[i].y}`
             }
             return path;
         },
@@ -527,6 +524,14 @@ export default {
             if (value > 0.05) {
                 this.vZoom = value;
             }
+        }
+    },
+    computed: {
+        transformSvg() {
+            var x = Math.floor(this.vOffsetX || 0);
+            var y = Math.floor(this.vOffsetY || 0);
+            var scale = this.vZoom || 1.0;
+            return `translate(${x} ${y}) scale(${scale} ${scale})`;
         }
     }
 }
