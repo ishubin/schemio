@@ -12,6 +12,17 @@
                 <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
                     >
+
+                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        :connectorIndex="connectorIndex"
+                        :sourceItem="item"
+                        :connector="connector"
+                        :zoom="vZoom"
+                        :offsetX="vOffsetX"
+                        :offsetY="vOffsetY"
+                        :showReroutes="mode === 'edit'"
+                        ></connector-svg>
+
                     <g v-if="item.type === 'image'" class="item-graphics">
                         <image v-bind:xlink:href="item.url" :x="item.area.x" :y="item.area.y" :width="item.area.w + 'px'" :height="item.area.h + 'px'"/>
                     </g>
@@ -70,14 +81,6 @@
                     />
 
                 </g>
-                <connector-svg  v-for="(connector,connectorIndex) in schemeContainer.scheme.connectors" v-if="connector.meta"
-                    :connectorIndex="connectorIndex"
-                    :connector="connector"
-                    :zoom="vZoom"
-                    :offsetX="vOffsetX"
-                    :offsetY="vOffsetY"
-                    :showReroutes="mode === 'edit'"
-                    ></connector-svg>
 
 
                 <g v-if="mode === 'edit'" v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container">
@@ -291,17 +294,24 @@ export default {
 
                 var connectorIndex = event.srcElement.getAttribute('data-connector-index');
                 if (connectorIndex) {
+                    var path = connectorIndex.split('/');
+                    var sourceItem = this.schemeContainer.findItemById(path[0]);
                     return {
-                        connector: this.schemeContainer.scheme.connectors[connectorIndex]
+                        connector: sourceItem.connectors[path[1]],
+                        connectorIndex: path[1],
+                        sourceItem
                     }
                 }
 
                 var rerouteIndex = event.srcElement.getAttribute('data-reroute-index');
                 if (rerouteIndex) {
-                    var indices = rerouteIndex.split('/');
+                    var path = rerouteIndex.split('/');
+                    var sourceItem = this.schemeContainer.findItemById(path[0]);
                     return {
-                        connector: this.schemeContainer.scheme.connectors[indices[0]],
-                        rerouteId: indices[1]
+                        connector: sourceItem.connectors[path[1]],
+                        connectorIndex: path[1],
+                        rerouteId: path[2],
+                        sourceItem
                     };
                 }
 

@@ -280,12 +280,12 @@ export default {
 
         //calculates average next direction based on all connectors pointing to item
         calculateNextDirection(item) {
-            var connectors = this.schemeContainer.findConnectorsPointingToItem(item);
+            var sourceIds = this.schemeContainer.getConnectingSourceItemIds(item.id);
             var direction = {x: 0, y: 0};
 
-            if (connectors && connectors.length > 0) {
-                _.forEach(connectors, connector => {
-                    var sourceItem = this.schemeContainer.findItemById(connector.sourceId);
+            if (sourceIds) {
+                _.forEach(sourceIds, sourceId => {
+                    var sourceItem = this.schemeContainer.findItemById(sourceId);
                     if (sourceItem) {
                         var vx = item.area.x + item.area.w/2 - sourceItem.area.x - sourceItem.area.w / 2;
                         var vy = item.area.y + item.area.h/2 - sourceItem.area.y - sourceItem.area.h / 2;

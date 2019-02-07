@@ -7,7 +7,7 @@
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
         />
-        <path :d="svgPath" :data-connector-index="connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
+        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
@@ -24,7 +24,7 @@
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes">
             <circle :cx="point.x" :cy="point.y" r="5"
-                :data-reroute-index="connectorIndex +'/'+rerouteIndex"
+                :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :class="{selected: connector.meta.selected}"
                 :fill="connector.style.color"
@@ -38,7 +38,7 @@
 import EventBus from '../EventBus.js';
 
 export default {
-    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex'],
+    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
 
     mounted() {
         EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {

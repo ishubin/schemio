@@ -8,16 +8,18 @@ class SchemeContainer {
     constructor(scheme) {
         this.scheme = scheme;
         this.selectedItems = [];
-        this.selectedConnectors = [];
+        this.selectedConnectorWrappers = [];
         this.activeBoundaryBox = null;
         this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.itemMap = {};
+        this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.reindexItems();
     }
 
     reindexItems() {
         //TODO optimize itemMap to not reconstruct it with every change
         this.itemMap = {};
+        this._destinationToSourceLookup = {};
         var items = this.scheme.items;
         if (items.length > 0) {
             this.schemeBoundaryBox.x = items[0].area.x;
@@ -44,11 +46,13 @@ class SchemeContainer {
                     this.schemeBoundaryBox.h = item.area.y + item.area.h - this.schemeBoundaryBox.y;
                 }
             });
+
+            _.forEach(items, item => {
+                this.buildItemConnectors(item);
+            });
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         }
-
-        this.buildConnectors();
     }
 
     enrichItemWithDefaultStyles(item) {
@@ -80,36 +84,31 @@ class SchemeContainer {
         }
     }
 
-    buildConnectors() {
-        if (this.scheme.connectors) {
-            _.forEach(this.scheme.connectors, connector => {
-                this.buildConnector(connector);
+    buildItemConnectors(item) {
+        if (item.connectors) {
+            _.forEach(item.connectors, connector => {
+                this.buildConnector(item, connector);
             });
         }
     }
 
-    reindexConnector(connector, item) {
-        if (!item.meta) {
-            item.meta = {};
+    indexDestinationToSource(sourceId, destinationId) {
+        if(!this._destinationToSourceLookup[destinationId]) {
+            this._destinationToSourceLookup[destinationId] = [];
         }
-
-        if (!item.meta.connectorsMap) {
-            item.meta.connectorsMap = {};
+        if (_.indexOf(this._destinationToSourceLookup[destinationId], sourceId) < 0) {
+            this._destinationToSourceLookup[destinationId].push(sourceId);
         }
-
-        item.meta.connectorsMap[connector.id] = connector;
     }
 
-    buildConnector(connector) {
+    buildConnector(sourceItem, connector) {
         this.enrichConnectorWithDefaultStyle(connector);
-        var sourceItem = this.itemMap[connector.sourceId];
-        var destinationItem = this.itemMap[connector.destinationId];
+        var destinationItem = this.itemMap[connector.itemId];
         if (!sourceItem || !destinationItem) {
             return;
         }
 
-        this.reindexConnector(connector, sourceItem);
-        this.reindexConnector(connector, destinationItem);
+        this.indexDestinationToSource(sourceItem.id, destinationItem.id);
 
         var sourcePoint, destinationPoint;
         if (connector.reroutes && connector.reroutes.length > 0) {
@@ -227,20 +226,18 @@ class SchemeContainer {
 
     connectItems(sourceItem, destinationItem) {
         if (sourceItem !== destinationItem && sourceItem.id && destinationItem.id) {
-            if (!this.scheme.connectors) {
-                this.scheme.connectors = [];
+            if (!sourceItem.connectors) {
+                sourceItem.connectors = [];
             }
 
-            var alreadyExistingConnection = _.find(this.scheme.connectors, c => {
-                return (c.sourceId === sourceItem.id && c.destinationId === destinationItem.id)
-                    || (c.sourceId === destinationItem.id && c.destinationId === sourceItem.id);
+            var alreadyExistingConnection = _.find(sourceItem.connectors, c => {
+                return (c.itemId === destinationItem.id);
             });
 
             if (!alreadyExistingConnection) {
                 var connector = {
                     id: shortid.generate(),
-                    sourceId: sourceItem.id,
-                    destinationId: destinationItem.id,
+                    itemId: destinationItem.id,
                     reroutes: [],
                     style: {
                         color: '#333',
@@ -256,9 +253,8 @@ class SchemeContainer {
                         }
                     }
                 };
-                this.scheme.connectors.push(connector);
-
-                this.buildConnector(connector);
+                sourceItem.connectors.push(connector);
+                this.buildConnector(sourceItem, connector);
             }
         }
     }
@@ -278,9 +274,12 @@ class SchemeContainer {
             this.selectedItems = [];
             removed += 1;
         }
-        if (this.selectedConnectors && this.selectedConnectors.length > 0) {
-            _.remove(this.scheme.connectors, connector => _.includes(this.selectedConnectors, connector));
-            this.selectedConnectors = [];
+        if (this.selectedConnectorWrappers && this.selectedConnectorWrappers.length > 0) {
+            _.forEach(this.selectedConnectorWrappers, cw => {
+                if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
+                    cw.sourceItem.connectors.splice(cw.connectorIndex, 1);
+                }
+            });
             removed += 1;
         }
         if (removed > 0) {
@@ -289,8 +288,14 @@ class SchemeContainer {
     }
 
     removeConnectorsForItem(item) {
-        if (item.meta && item.meta.connectorsMap) {
-            _.remove(this.scheme.connectors, connector => item.meta.connectorsMap.hasOwnProperty(connector.id));
+        var sourceIds = this._destinationToSourceLookup[item.id];
+        if (sourceIds) {
+            _.forEach(sourceIds, sourceId => {
+                var sourceItem = this.findItemById(sourceId);
+                if (sourceItem && sourceItem.connectors && sourceItem.connectors.length) {
+                    sourceItem.connectors = _.filter(sourceItem.connectors, connector => connector.itemId !== item.id);
+                }
+            });
         }
     }
 
@@ -314,25 +319,30 @@ class SchemeContainer {
         this.activeBoundaryBox = area;
     }
 
-    selectConnector(connector, inclusive) {
+    selectConnector(sourceItem, connectorIndex, inclusive) {
         // only select connector that do have meta, otherwise it would be imposible to click them
         if (inclusive) {
             throw new Error('not supported yet');
         } else {
             this.deselectAllConnectors();
 
-            if (connector.meta && !connector.meta.selected) {
-                connector.meta.selected = true;
-                this.selectedConnectors.push(connector);
+            if (sourceItem.connectors && sourceItem.connectors.length > connectorIndex) {
+                var connector = sourceItem.connectors[connectorIndex];
+                if (connector.meta && !connector.meta.selected) {
+                    connector.meta.selected = true;
+                    this.selectedConnectorWrappers.push({ sourceItem, connectorIndex });
+                }
             }
         }
     }
 
     deselectAllConnectors() {
-        _.forEach(this.selectedConnectors, connector => {
-            connector.meta.selected = false;
+        _.forEach(this.selectedConnectorWrappers, cw => {
+            if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
+                cw.sourceItem.connectors[cw.connectorIndex].meta.selected = false;
+            }
         });
-        this.selectedConnectors = [];
+        this.selectedConnectorWrappers = [];
     }
 
     selectItem(item, inclusive) {
@@ -415,7 +425,7 @@ class SchemeContainer {
     /**
     Adds a reroute in specified connector and returns an index (in the reroutes array)
     */
-    addReroute(x, y, connector) {
+    addReroute(x, y, sourceItem, connector) {
         if (!connector.reroutes) {
             connector.reroutes = [];
         }
@@ -429,15 +439,12 @@ class SchemeContainer {
             x: x,
             y: y
         });
-        this.buildConnector(connector);
+        this.buildConnector(sourceItem, connector);
         return id;
     }
 
     findMatchingRerouteSegment(x, y, connector) {
         var point = {x, y};
-        if (!connector.meta || !connector.meta.points) {
-            this.buildConnector(connector);
-        }
         var candidates = [];
         for (var i = 0; i < connector.meta.points.length - 1; i++) {
             candidates.push({
@@ -458,12 +465,13 @@ class SchemeContainer {
          }
     }
 
-    findConnectorsPointingToItem(item) {
-        return _.filter(this.scheme.connectors, connector => connector.destinationId === item.id);
-    }
-
     findItemById(itemId) {
-        return _.find(this.scheme.items, item => item.id === itemId);
+        var item = this.itemMap[itemId];
+        if (item) {
+            return item;
+        } else {
+            return _.find(this.scheme.items, item => item.id === itemId);
+        }
     }
 
     extendObject(originalObject, overrideObject) {
@@ -476,6 +484,10 @@ class SchemeContainer {
                 }
             }
         }) ;
+    }
+
+    getConnectingSourceItemIds(destinationId) {
+        return this._destinationToSourceLookup[destinationId];
     }
 }
 

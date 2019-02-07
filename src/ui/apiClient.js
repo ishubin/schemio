@@ -2,6 +2,41 @@ import axios from 'axios';
 import _ from 'lodash';
 import shortid from 'shortid';
 
+
+function sanitizeItem(oldItem) {
+    var item = {};
+    _.forEach(oldItem, (value, field) => {
+        if (field === 'connectors') {
+            item.connectors = _.map(value, sanitizeConnector);
+        } else if (field !== 'meta') {
+            item[field] = value;
+        }
+    });
+    return oldItem;
+}
+function sanitizeConnector(oldConnector) {
+    var connector = {};
+    _.forEach(oldConnector, (value, field) => {
+        if (field !== 'meta') {
+            connector[field] = value;
+        }
+    });
+    return connector;
+}
+
+
+function sanitizeScheme(scheme) {
+    return {
+        id: scheme.id,
+        name: scheme.name,
+        description: scheme.description,
+        tags: scheme.tags,
+        modifiedDate: scheme.modifiedDate,
+        categoryId: scheme.categoryId,
+        items: _.map(scheme.items, sanitizeItem)
+    }
+}
+
 export default {
     loadScheme(schemeId) {
         return axios.get(`/api/schemes/${schemeId}`).then(response => {
@@ -29,7 +64,7 @@ export default {
 
     saveScheme(schemeId, scheme) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.put(`/api/schemes/${schemeId}`, scheme).then(response => {
+            return axios.put(`/api/schemes/${schemeId}`, sanitizeScheme(scheme)).then(response => {
                 return 'saved';
             });
         } else {
