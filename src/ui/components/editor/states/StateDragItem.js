@@ -9,30 +9,30 @@ export default class StateDragItem extends State {
         this.schemeContainer = editor.schemeContainer;
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;
-        this.selectedItem = null;
-        this.itemOriginalArea = {x: 0, y: 0, w: 0, h: 0};
-        this.hasDraggedItems = false;
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
         this.sourceItem = null; // source item for a connector
+        this.multiSelectBox = null;
     }
 
     reset() {
         this.startedDragging = false;
-        this.selectedItem = null;
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
         this.dragger = null;
-        this.hasDraggedItems = false;
+        this.sourceItem = null;
+        this.multiSelectBox = null;
     }
 
     initDraggingForItem(item, x, y) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
-        this.itemOriginalArea.x = item.area.x;
-        this.itemOriginalArea.y = item.area.y;
-        this.itemOriginalArea.w = item.area.w;
-        this.itemOriginalArea.h = item.area.h;
+        item.meta.itemOriginalArea = {
+            x: item.area.x,
+            y: item.area.y,
+            w: item.area.w,
+            h: item.area.h
+        };
         this.startedDragging = true;
     }
 
@@ -73,15 +73,16 @@ export default class StateDragItem extends State {
                 }
             }
         } else if (object.item) {
-            this.selectedItem = object.item;
             this.initDraggingForItem(object.item, x, y);
 
-            if (!object.item.selected) {
-                this.schemeContainer.selectItem(object.item, false);
+            if (!object.item.meta.selected) {
+                this.schemeContainer.selectItem(object.item, event.metaKey || event.ctrlKey);
                 this.schemeContainer.deselectAllConnectors();
                 EventBus.$emit(EventBus.ITEM_SELECTED, object.item);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
             }
+        } else {
+            this.initMulitSelectBox(x, y);
         }
     }
 
@@ -93,16 +94,40 @@ export default class StateDragItem extends State {
             } else {
                 if (this.dragger && !this.dragger.item.locked) {
                     this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
-                } else if (this.selectedItem && !this.selectedItem.locked) {
-                    this.dragItem(x, y);
+                } else if (this.schemeContainer.selectedItems.length > 0) {
+                    var dx = x - this.originalPoint.x,
+                        dy = y - this.originalPoint.y;
+                    _.forEach(this.schemeContainer.selectedItems, item => {
+                        this.dragItem(item, dx, dy);
+                    });
+                    EventBus.$emit(EventBus.REDRAW);
                 } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
                     this.dragReroute(x, y);
                 }
             }
+        } else if (this.multiSelectBox) {
+            if (x > this.originalPoint.x) {
+                this.multiSelectBox.x = this.originalPoint.x;
+                this.multiSelectBox.w = x - this.originalPoint.x;
+            } else {
+                this.multiSelectBox.x = x;
+                this.multiSelectBox.w = this.originalPoint.x - x;
+            }
+            if (y > this.originalPoint.y) {
+                this.multiSelectBox.y = this.originalPoint.y;
+                this.multiSelectBox.h = y - this.originalPoint.y;
+            } else {
+                this.multiSelectBox.y = y;
+                this.multiSelectBox.h = this.originalPoint.y - y;
+            }
+            EventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        if (this.multiSelectBox) {
+            this.schemeContainer.selectByBoundaryBox(this.multiSelectBox, event.metaKey || event.ctrlKey);
+        }
         if (event.doubleClick && object.connector) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
@@ -116,19 +141,18 @@ export default class StateDragItem extends State {
         this.reset();
     }
 
-    dragItem(x, y) {
-        var dx = x - this.originalPoint.x;
-        var dy = y - this.originalPoint.y;
+    initMulitSelectBox(x, y) {
+        this.originalPoint.x = x;
+        this.originalPoint.y = y;
+        this.multiSelectBox = {x, y, w: 0, h: 0};
+    }
 
+    dragItem(item, dx, dy) {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-            this.selectedItem.area.x = this.itemOriginalArea.x + dx;
-            this.selectedItem.area.y = this.itemOriginalArea.y + dy;
+            item.area.x = item.meta.itemOriginalArea.x + dx;
+            item.area.y = item.meta.itemOriginalArea.y + dy;
 
-            this.rebuildItemConnectors(this.selectedItem);
-            EventBus.$emit(EventBus.REDRAW);
-            this.hasDraggedItems = true;
-        } else {
-            this.hasDraggedItems = false;
+            this.rebuildItemConnectors(item);
         }
     }
 
@@ -158,28 +182,25 @@ export default class StateDragItem extends State {
             if (edge === 'top') {
                 var dy = y - dragger.y;
                 change += Math.abs(dy);
-                ny = this.itemOriginalArea.y + dy;
-                nh = this.itemOriginalArea.h - dy;
+                ny = item.meta.itemOriginalArea.y + dy;
+                nh = item.meta.itemOriginalArea.h - dy;
             } else if (edge === 'bottom') {
                 var dy = y - dragger.y;
                 change += Math.abs(dy);
-                nh = this.itemOriginalArea.h + dy;
+                nh = item.meta.itemOriginalArea.h + dy;
             } else if (edge === 'left') {
                 var dx = x - dragger.x;
                 change += Math.abs(dx);
-                nx = this.itemOriginalArea.x + dx;
-                nw = this.itemOriginalArea.w - dx;
+                nx = item.meta.itemOriginalArea.x + dx;
+                nw = item.meta.itemOriginalArea.w - dx;
             } else if (edge === 'right') {
                 var dx = x - dragger.x;
                 change += Math.abs(dx);
-                nw = this.itemOriginalArea.w + dx;
+                nw = item.meta.itemOriginalArea.w + dx;
             }
         });
         if (change > 0) {
-            this.hasDraggedItems = true;
             this.rebuildItemConnectors(item);
-        } else {
-            this.hasDraggedItems = false;
         }
         if (nw > 0 && nh > 0) {
             item.area.x = nx;

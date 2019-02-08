@@ -347,7 +347,7 @@ class SchemeContainer {
 
     selectItem(item, inclusive) {
         if (inclusive) {
-            this.selectItemInclusive();
+            this.selectItemInclusive(item);
         } else {
             this.deselectAllItems();
 
@@ -488,6 +488,10 @@ class SchemeContainer {
 
     getConnectingSourceItemIds(destinationId) {
         return this._destinationToSourceLookup[destinationId];
+    }
+
+    selectByBoundaryBox(box, inclusive) {
+        throw new Error("unfinished");
     }
 }
 

@@ -16,6 +16,8 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             BRING_TO_VIEW: 'bring-to-view',
             SWITCH_MODE_TO_EDIT: 'switch-mode-edit',
+            MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
+            MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
             KEY: {
                 ESCAPE: 'escape',
                 DELETE: 'delete'

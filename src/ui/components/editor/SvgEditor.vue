@@ -156,6 +156,15 @@
                         :height="schemeContainer.activeBoundaryBox.h"
                     />
                 </g>
+                <g v-if="multiSelectBox">
+                    <!-- Drawing boundary edit box -->
+                    <rect class="boundary-box"
+                        :x="multiSelectBox.x"
+                        :y="multiSelectBox.y"
+                        :width="multiSelectBox.w"
+                        :height="multiSelectBox.h"
+                    />
+                </g>
             </g>
         </svg>
     </div>
@@ -223,6 +232,13 @@ export default {
             this.schemeContainer.buildConnectors();
         });
 
+        EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, (multiSelectBox) => {
+            this.multiSelectBox = multiSelectBox;
+        });
+        EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, () => {
+            this.multiSelectBox = null;
+        });
+
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
             svgElement.addEventListener('mousewheel', this.mouseWheel);
@@ -261,6 +277,8 @@ export default {
                     intervalMs: 5
                 }
             },
+
+            multiSelectBox: null,
 
             lastMouseUpTimestamp: 0
         };
