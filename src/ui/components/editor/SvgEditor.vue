@@ -156,15 +156,14 @@
                         :height="schemeContainer.activeBoundaryBox.h"
                     />
                 </g>
-                <g v-if="multiSelectBox">
-                    <!-- Drawing boundary edit box -->
-                    <rect class="boundary-box"
-                        :x="multiSelectBox.x"
-                        :y="multiSelectBox.y"
-                        :width="multiSelectBox.w"
-                        :height="multiSelectBox.h"
-                    />
-                </g>
+            </g>
+            <g v-if="multiSelectBox">
+                <rect class="multi-select-box"
+                    :x="_x(multiSelectBox.x)"
+                    :y="_y(multiSelectBox.y)"
+                    :width="_z(multiSelectBox.w)"
+                    :height="_z(multiSelectBox.h)"
+                />
             </g>
         </svg>
     </div>
@@ -219,6 +218,8 @@ export default {
         EventBus.$on(EventBus.ITEM_SELECTED, item => {
             this.onSelectItem(item);
         });
+        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        
         EventBus.$on(EventBus.BRING_TO_VIEW, area => {
             var Xo = (this.width - 400)/2 - (area.x + area.w/2);
             var Yo = (this.height)/2 - (area.y + area.h/2);
@@ -412,8 +413,7 @@ export default {
             this.$forceUpdate();
         },
 
-        onDeselectAllItems(item) {
-            EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+        onAllItemsDeselected(item) {
             this.activeItem = null;
             this.removeDrawnLinks();
         },
@@ -537,6 +537,10 @@ export default {
             }
             return path;
         },
+
+        _x(x) { return x * this.vZoom + this.vOffsetX; },
+        _y(y) { return y * this.vZoom + this.vOffsetY; },
+        _z(v) { return v * this.vZoom; }
     },
     watch: {
         mode(newMode) {

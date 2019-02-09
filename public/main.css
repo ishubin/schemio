@@ -291,6 +291,12 @@ svg .item-container.item-type-overlay .item-graphics rect {
 svg .item-container.item-type-overlay.selected .item-graphics rect {
     opacity: 0.5;
 }
+svg rect.multi-select-box {
+    stroke-width: 1;
+    stroke: #faa;
+    stroke-dasharray: 2 4;
+    fill: none;
+}
 svg rect.boundary-box {
     stroke-width: 1;
     stroke: #faa;

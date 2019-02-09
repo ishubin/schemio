@@ -384,6 +384,15 @@ class SchemeContainer {
         this.selectedItems = [];
     }
 
+    selectByBoundaryBox(box) {
+        _.forEach(this.scheme.items, item => {
+            if (myMath.isAreaInArea(item.area, box)) {
+                this.selectedItems.push(item);
+                item.meta.selected = true;
+            }
+        });
+    }
+
     bringToBack(item) {
         var i = _.findIndex(this.scheme.items, schemeItem => schemeItem.id === item.id);
         if (i > 0) {
@@ -488,10 +497,6 @@ class SchemeContainer {
 
     getConnectingSourceItemIds(destinationId) {
         return this._destinationToSourceLookup[destinationId];
-    }
-
-    selectByBoundaryBox(box, inclusive) {
-        throw new Error("unfinished");
     }
 }
 

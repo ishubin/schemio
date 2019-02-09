@@ -4,6 +4,13 @@ export default {
             && y >= area.y && y <= (area.y + area.h);
     },
 
+    isAreaInArea(area, largerArea) {
+        return area.x >= largerArea.x
+            && area.y >= largerArea.y
+            && area.x + area.w < largerArea.x + largerArea.w
+            && area.y + area.h < largerArea.y + largerArea.h;
+    },
+
     findPointPlacementToLine(line, point) {
         return ((point.x - line.x1) * (line.y2 - line.y1)) - ((point.y - line.y1) * (line.x2 - line.x1));
     },

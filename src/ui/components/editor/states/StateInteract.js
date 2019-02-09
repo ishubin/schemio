@@ -40,7 +40,7 @@ class StateInteract extends State {
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     this.schemeContainer.deselectAllItems();
-                    this.editor.onDeselectAllItems();
+                    EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 }
             }
             this.dragScreen(mx, my);

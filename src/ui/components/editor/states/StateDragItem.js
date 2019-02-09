@@ -24,16 +24,19 @@ export default class StateDragItem extends State {
         this.multiSelectBox = null;
     }
 
-    initDraggingForItem(item, x, y) {
+    initDragging(x, y) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
+        this.startedDragging = true;
+    }
+
+    initDraggingForItem(item, x, y) {
         item.meta.itemOriginalArea = {
             x: item.area.x,
             y: item.area.y,
             w: item.area.w,
             h: item.area.h
         };
-        this.startedDragging = true;
     }
 
     initDraggingForReroute(sourceItem, connector, rerouteId, x, y) {
@@ -48,6 +51,7 @@ export default class StateDragItem extends State {
     mouseDown(x, y, mx, my, object, event) {
         if (object.dragger) {
             this.dragger = object.dragger;
+            this.initDragging(x, y);
             this.initDraggingForItem(object.dragger.item, x, y);
             return;
         } else if (object.connector) {
@@ -73,7 +77,12 @@ export default class StateDragItem extends State {
                 }
             }
         } else if (object.item) {
+            this.initDragging(x, y);
+
             this.initDraggingForItem(object.item, x, y);
+            _.forEach(this.schemeContainer.selectedItems, item => {
+                this.initDraggingForItem(item, x, y);
+            });
 
             if (!object.item.meta.selected) {
                 this.schemeContainer.selectItem(object.item, event.metaKey || event.ctrlKey);
@@ -126,7 +135,13 @@ export default class StateDragItem extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
-            this.schemeContainer.selectByBoundaryBox(this.multiSelectBox, event.metaKey || event.ctrlKey);
+            if (!event.metaKey && !event.ctrlKey) {
+                this.schemeContainer.deselectAllItems();
+                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+                EventBus.$emit(EventBus.REDRAW);
+            }
+            this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
+            EventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
         }
         if (event.doubleClick && object.connector) {
             if (object.rerouteId >= 0) {
