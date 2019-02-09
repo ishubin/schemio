@@ -117,9 +117,7 @@ export default class StateDragItem extends State {
                     _.forEach(this.schemeContainer.selectedItems, item => {
                         this.dragItem(item, dx, dy);
                     });
-                    _.forEach(this.connectorsBuildChache, (v) => {
-                        this.schemeContainer.buildConnector(v.item, v.connector);
-                    });
+                    this.rebuildConnectorsInCache();
                     EventBus.$emit(EventBus.REDRAW);
                 } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
                     this.dragReroute(x, y);
@@ -227,9 +225,7 @@ export default class StateDragItem extends State {
             if (this.connectorsBuildChache === null) {
                 this.fillConnectorsBuildCache([item]);
             }
-            _.forEach(this.connectorsBuildChache, (v) => {
-                this.schemeContainer.buildConnector(v.item, v.connector);
-            });
+            this.rebuildConnectorsInCache();
         }
         if (nw > 0 && nh > 0) {
             item.area.x = nx;
@@ -237,6 +233,12 @@ export default class StateDragItem extends State {
             item.area.w = nw;
             item.area.h = nh;
         }
+    }
+
+    rebuildConnectorsInCache() {
+        _.forEach(this.connectorsBuildChache, (v) => {
+            this.schemeContainer.buildConnector(v.item, v.connector);
+        });
     }
 
     fillConnectorsBuildCache(items) {
