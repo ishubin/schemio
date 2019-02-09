@@ -13,6 +13,9 @@ export default class StateDragItem extends State {
         this.selectedRerouteId = -1;
         this.sourceItem = null; // source item for a connector
         this.multiSelectBox = null;
+
+        ///used in order to optimize rebuilding of all connectors
+        this.connectorsBuildChache = null;
     }
 
     reset() {
@@ -22,6 +25,7 @@ export default class StateDragItem extends State {
         this.dragger = null;
         this.sourceItem = null;
         this.multiSelectBox = null;
+        this.connectorsBuildChache = null;
     }
 
     initDragging(x, y) {
@@ -106,8 +110,15 @@ export default class StateDragItem extends State {
                 } else if (this.schemeContainer.selectedItems.length > 0) {
                     var dx = x - this.originalPoint.x,
                         dy = y - this.originalPoint.y;
+
+                    if (this.connectorsBuildChache === null) {
+                        this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
+                    }
                     _.forEach(this.schemeContainer.selectedItems, item => {
                         this.dragItem(item, dx, dy);
+                    });
+                    _.forEach(this.connectorsBuildChache, (v) => {
+                        this.schemeContainer.buildConnector(v.item, v.connector);
                     });
                     EventBus.$emit(EventBus.REDRAW);
                 } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
@@ -166,8 +177,6 @@ export default class StateDragItem extends State {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             item.area.x = item.meta.itemOriginalArea.x + dx;
             item.area.y = item.meta.itemOriginalArea.y + dy;
-
-            this.rebuildItemConnectors(item);
         }
     }
 
@@ -215,7 +224,12 @@ export default class StateDragItem extends State {
             }
         });
         if (change > 0) {
-            this.rebuildItemConnectors(item);
+            if (this.connectorsBuildChache === null) {
+                this.fillConnectorsBuildCache([item]);
+            }
+            _.forEach(this.connectorsBuildChache, (v) => {
+                this.schemeContainer.buildConnector(v.item, v.connector);
+            });
         }
         if (nw > 0 && nh > 0) {
             item.area.x = nx;
@@ -225,20 +239,24 @@ export default class StateDragItem extends State {
         }
     }
 
-    //TODO optimize it to not search for all connectors every time. This could be done on init drag
-    rebuildItemConnectors(item) {
-        _.forEach(item.connectors, connector => {
-            this.schemeContainer.buildConnector(item, connector);
-            EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
-        });
-        _.forEach(this.schemeContainer.getConnectingSourceItemIds(item.id), sourceId => {
-            var sourceItem = this.schemeContainer.findItemById(sourceId);
-            if (sourceItem) {
-                _.forEach(sourceItem.connectors, connector => {
-                    this.schemeContainer.buildConnector(sourceItem, connector);
-                    EventBus.$emit(EventBus.REDRAW_CONNECTOR, connector);
-                });
-            }
-        });
+    fillConnectorsBuildCache(items) {
+        this.connectorsBuildChache = {};
+        _.forEach(items, item => {
+            _.forEach(item.connectors, (connector, connectorIndex) => {
+                this.connectorsBuildChache[item.id + "|" + connectorIndex] = {item, connector};
+            });
+            _.forEach(this.schemeContainer.getConnectingSourceItemIds(item.id), sourceId => {
+                var sourceItem = this.schemeContainer.findItemById(sourceId);
+                if (sourceItem) {
+                    _.forEach(sourceItem.connectors, (connector, connectorIndex) => {
+                        this.schemeContainer.buildConnector(sourceItem, connector);
+                        var key = `${sourceItem.id}|${connectorIndex}`;
+                        if (!this.connectorsBuildChache.hasOwnProperty(key)) {
+                            this.connectorsBuildChache[key] = {item: sourceItem, connector};
+                        }
+                    });
+                }
+            });
+        })
     }
 }
