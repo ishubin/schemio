@@ -2,17 +2,17 @@
     <div>
         <h5>Source</h5>
         Style:
-        <select v-model="connector.style.source.type" @change="redrawConnector">
+        <select v-model="connector.style.source.type">
             <option v-for="type in knownEndStyleTypes">{{type}}</option>
         </select>
-        <input type="text" v-model="connector.style.source.size" @change="redrawConnector"/>
+        <input type="text" v-model="connector.style.source.size"/>
 
         <h5>Destination</h5>
         Style:
-        <select v-model="connector.style.destination.type" @change="redrawConnector">
+        <select v-model="connector.style.destination.type">
             <option v-for="type in knownEndStyleTypes">{{type}}</option>
         </select>
-        <input type="text" v-model="connector.style.destination.size" @change="redrawConnector"/>
+        <input type="text" v-model="connector.style.destination.size"/>
 
         <h5>Style</h5>
         <div class="property-row">
@@ -22,12 +22,12 @@
 
         <div class="property-row">
             <span class="property-label">Stoke size</span>
-            <input type="text" v-model="connector.style.width" @change="redrawConnector"/>
+            <input type="text" v-model="connector.style.width">
         </div>
 
         <div class="property-row">
             <span class="property-label">Pattern</span>
-            <select type="text" v-model="connector.style.pattern" @change="redrawConnector">
+            <select type="text" v-model="connector.style.pattern">
                 <option v-for="pattern in knownPatterns">{{pattern}}</option>
             </select>
         </div>
@@ -49,11 +49,6 @@ export default {
         };
 
         return data;
-    },
-    methods: {
-        redrawConnector() {
-            EventBus.$emit(EventBus.REDRAW_CONNECTOR, this.connector);
-        }
     }
 }
 </script>

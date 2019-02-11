@@ -23,6 +23,20 @@ const EventBus = new Vue({
                 DELETE: 'delete'
             }
         };
+    },
+    methods: {
+        emitRedrawConnector(sourceItemId, destinationId) {
+            this.$emit(this._generateRedrawConnectorEventName(sourceItemId, destinationId));
+        },
+        subscribeForRedrawConnector(sourceItemId, destinationId, callback) {
+            this.$on(this._generateRedrawConnectorEventName(sourceItemId, destinationId), callback);
+        },
+        unsubscribeForRedrawConnector(sourceItemId, destinationId, callback) {
+            this.$off(this._generateRedrawConnectorEventName(sourceItemId, destinationId), callback);
+        },
+        _generateRedrawConnectorEventName(sourceItemId, destinationId) {
+            return `${EventBus.REDRAW_CONNECTOR}/${sourceItemId}/${destinationId}`;
+        }
     }
 });
 

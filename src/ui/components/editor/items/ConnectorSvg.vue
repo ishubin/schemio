@@ -41,18 +41,8 @@ export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
 
     mounted() {
-        EventBus.$on(EventBus.REDRAW_CONNECTOR, connector => {
-            if (connector) {
-                if (this.connector.id !== connector.id) {
-                    return;
-                }
-            }
-            this.recompute();
-            this.$forceUpdate();
-        });
-        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, () => {
-            this.$forceUpdate();
-        });
+        EventBus.subscribeForRedrawConnector(this.sourceItem.id, this.connector.itemId, this.onRedrawConnector);
+        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
     },
     data() {
         return {
@@ -60,7 +50,20 @@ export default {
             ends: this.computeEnds(this.connector)
         };
     },
+    beforeDestroy(){
+        EventBus.unsubscribeForRedrawConnector(this.sourceItem.id, this.connector.itemId);
+        EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
+    },
     methods: {
+        onRedrawConnector(connector) {
+            this.recompute();
+            this.$forceUpdate();
+        },
+
+        onAllConnectorsDeselected() {
+            this.$forceUpdate();
+        },
+
         createEnd(x, y, px, py, endStyle) {
             if (endStyle.type === 'circle') {
                 return {
