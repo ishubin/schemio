@@ -78,7 +78,7 @@ class MongoSchemeStorage extends SchemeStorage {
             } else {
                 scheme.allSubCategoryIds = [];
             }
-            return this._inSchemes().insert(scheme).then(result => {
+            return this._inSchemes().insertOne(scheme).then(result => {
                 return scheme;
             });
         });
