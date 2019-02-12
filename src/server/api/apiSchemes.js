@@ -44,7 +44,7 @@ const ApiSchemes = {
     },
 
     createScheme(req, res) {
-        var requestScheme = ApiSchemes.sanitizeScheme(req.body);
+        var requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
 
         schemeStorage.createScheme(requestScheme).then(scheme => {

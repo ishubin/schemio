@@ -117,7 +117,7 @@ class MongoSchemeStorage extends SchemeStorage {
             });
         }
         this.saveTags(tags);
-        return this._inSchemes().update({id: schemeId}, scheme);
+        return this._inSchemes().updateOne({id: schemeId}, {$set: scheme});
     }
 
     getTags() {
