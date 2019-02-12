@@ -54,7 +54,7 @@ const ApiSchemes = {
 
     saveScheme(req, res) {
         var schemeId = req.params.schemeId;
-        var requestScheme = ApiSchemes.sanitizeScheme(req.body);
+        var requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
         schemeStorage.saveScheme(schemeId, requestScheme).then(scheme => {
             res.json(scheme);
@@ -89,26 +89,7 @@ const ApiSchemes = {
 
     getShapes(req, res) {
         res.json(shapes);
-    },
-
-    sanitizeScheme(scheme) {
-        if (scheme.items) {
-            _.forEach(scheme.items, item => {
-                if (item.hasOwnProperty('meta')) {
-                    delete item['meta'];
-                }
-            });
-        }
-        if (scheme.connectors) {
-            _.forEach(scheme.connectors, connector => {
-                if (connector.hasOwnProperty('meta')) {
-                    delete connector['meta'];
-                }
-            });
-        }
-        return scheme;
     }
-
 }
 
 module.exports = ApiSchemes;

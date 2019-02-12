@@ -12,7 +12,7 @@ function sanitizeItem(oldItem) {
             item[field] = value;
         }
     });
-    return oldItem;
+    return item;
 }
 function sanitizeConnector(oldConnector) {
     var connector = {};
@@ -26,6 +26,7 @@ function sanitizeConnector(oldConnector) {
 
 
 function sanitizeScheme(scheme) {
+    var items = _.map(scheme.items, sanitizeItem);
     return {
         id: scheme.id,
         name: scheme.name,
@@ -33,7 +34,7 @@ function sanitizeScheme(scheme) {
         tags: scheme.tags,
         modifiedDate: scheme.modifiedDate,
         categoryId: scheme.categoryId,
-        items: _.map(scheme.items, sanitizeItem)
+        items: items
     }
 }
 
