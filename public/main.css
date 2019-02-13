@@ -317,6 +317,13 @@ svg rect.item-search-highlight {
     fill: rgba(212, 184, 101, 0.1);
 }
 
+svg .marker-has-links {
+    stroke: #ff0000;
+    stroke-width: 1px;
+    fill: #ff0000;
+    opacity: 0.4;
+}
+
 
 svg .item-container.item-type-component .item-caption {
     font-weight: bold;

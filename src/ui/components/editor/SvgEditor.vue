@@ -71,6 +71,10 @@
                             >{{item.name}}</text>
                     </g>
 
+                    <g v-if="item.links && item.links.length > 0">
+                        <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
+                    </g>
+
                     <rect class="item-rect-highlight-area"
                         :data-item-index="itemIndex"
                         :x="item.area.x"
@@ -219,7 +223,7 @@ export default {
             this.onSelectItem(item);
         });
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
-        
+
         EventBus.$on(EventBus.BRING_TO_VIEW, area => {
             var Xo = (this.width - 400)/2 - (area.x + area.w/2);
             var Yo = (this.height)/2 - (area.y + area.h/2);
