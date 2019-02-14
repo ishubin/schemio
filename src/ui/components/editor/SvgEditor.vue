@@ -182,6 +182,7 @@ import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
 import ComponentItem from './items/ComponentItem.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
+import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 
 const EMPTY_OBJECT = {type: 'nothing'};
@@ -512,14 +513,7 @@ export default {
         },
 
         getFontAwesomeSymbolForLink(link) {
-            if (link.type === 'logs') {
-                return '\uf550';
-            } else if (link.type === 'graphs') {
-                return '\uf201';
-            } else if (link.type === 'scheme') {
-                return '\uf542';
-            }
-            return '\uf0c1';
+            return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
         },
 
         //OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event

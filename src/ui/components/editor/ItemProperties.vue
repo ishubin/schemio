@@ -62,11 +62,7 @@
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
                     <a class="link" :href="link.url" target="_blank">
-                       <i v-if="link.type === 'graphs'" class="fas fa-chart-line"></i>
-                       <i v-if="link.type === 'logs'" class="fas fa-stream"></i>
-                       <i v-if="link.type === 'scheme'" class="fas fa-project-diagram"></i>
-                       <i v-if="link.type === 'default'" class="fas fa-link"></i>
-
+                       <i class="fas" :class="getLinkCssClass(link)"></i>
                         {{link.title}}
                     </a>
                     <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
@@ -150,6 +146,7 @@ import Panel from './Panel.vue';
 import apiClient from '../../apiClient.js';
 import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
 import CreateImageModal from './CreateImageModal.vue';
+import linkTypes from './LinkTypes.js';
 import _ from 'lodash';
 
 
@@ -175,6 +172,9 @@ export default {
         };
     },
     methods: {
+        getLinkCssClass(link) {
+            return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
+        },
         addLink() {
             this.editLinkData = {
                 linkId: -1,

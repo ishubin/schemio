@@ -34,6 +34,7 @@
 <script>
 import Modal from '../Modal.vue';
 import SchemeSearchModal from './SchemeSearchModal.vue';
+import linkTypes from './LinkTypes.js';
 
 export default {
     props: ['edit', 'title', 'url', 'type'],
@@ -46,15 +47,7 @@ export default {
             editTitle: this.title,
             editUrl: this.url,
             editType: this.type && this.type.length > 0 ? this.type : 'default',
-            knownTypes: [{
-                name: 'default'
-            }, {
-                name: 'scheme'
-            }, {
-                name: 'logs'
-            }, {
-                name: 'graphs'
-            }],
+            knownTypes: linkTypes.knownTypes,
             showSchemeSearchModal: false
         }
     },

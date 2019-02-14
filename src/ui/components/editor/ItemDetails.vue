@@ -9,10 +9,7 @@
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
                     <a class="link" :href="link.url" target="_blank">
-                       <i v-if="link.type === 'graphs'" class="fas fa-chart-line"></i>
-                       <i v-if="link.type === 'logs'" class="fas fa-stream"></i>
-                       <i v-if="link.type === 'scheme'" class="fas fa-project-diagram"></i>
-                       <i v-if="link.type === 'default'" class="fas fa-link"></i>
+                       <i class="fas" :class="getLinkCssClass(link)"></i>
                         {{link.title}}
                     </a>
                 </li>
@@ -23,10 +20,17 @@
 
 <script>
 import VueMarkdown from 'vue-markdown';
+import linkTypes from './LinkTypes.js';
 
 export default {
     props: ['item', 'itemId'],
     components: {VueMarkdown},
+
+    methods: {
+        getLinkCssClass(link) {
+            return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
+        }
+    }
 }
 </script>
 
