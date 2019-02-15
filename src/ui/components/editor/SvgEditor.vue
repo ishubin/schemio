@@ -139,15 +139,25 @@
 
                 <!-- Item Edit Menu -->
                 <g v-if="mode === 'edit' && activeItem">
-                    <g class="item-edit-menu-link" @click="$emit('add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
-                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 40">&#xf542;</text>
+                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
+                    </g>
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                        <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
+                        <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
+                        <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
+                    </g>
+                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                        <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
+                        <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
+                        <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>
                     </g>
                 </g>
 

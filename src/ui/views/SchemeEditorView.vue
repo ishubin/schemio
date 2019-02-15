@@ -30,8 +30,10 @@
                         :mode="mode"
                         :itemHighlights="searchHighlights"
                         @update-zoom="onUpdateZoom"
-                        @add-item-to-item="onActiveItemAppendItem"
-                        @create-child-scheme-to-item="startCreatingChildSchemeForItem"
+                        @clicked-add-item-to-item="onActiveItemAppendItem"
+                        @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
+                        @clicked-add-item-link="onClickedAddItemLink"
+                        @clicked-start-connecting="onClickedStartConnecting"
                         ></svg-editor>
                 </div>
             </div>
@@ -78,6 +80,12 @@
             @close="newSchemePopup.show = false"
             @scheme-created="openNewSchemePopupSchemeCreated"
             ></create-new-scheme-modal>
+
+
+        <link-edit-popup v-if="addLinkPopup.shown"
+            :edit="true" title="" url="" type=""
+            @submit-link="onItemLinkSubmit"
+            @close="addLinkPopup.shown = false"/>
     </div>
 
 </template>
@@ -95,9 +103,10 @@ import ConnectionProperties from '../components/editor/ConnectionProperties.vue'
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
+import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal},
+    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal, LinkEditPopup},
 
     mounted() {
         apiClient.loadScheme(this.schemeId).then(scheme => {
@@ -155,6 +164,11 @@ export default {
             mode: 'view',
             knownModes: ['view', 'edit'],
             searchHighlights: [],
+
+            addLinkPopup: {
+                item: null,
+                shown: false
+            },
 
             newSchemePopup: {
                 name: '',
@@ -214,6 +228,23 @@ export default {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
+        },
+
+        onClickedAddItemLink(item) {
+            this.addLinkPopup.item = item;
+            this.addLinkPopup.shown = true;
+        },
+
+        onClickedStartConnecting(item) {
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, item);
+        },
+
+        onItemLinkSubmit(link) {
+            this.addLinkPopup.item.links.push({
+                title: link.title,
+                url: link.url,
+                type: link.type
+            });
         },
 
         onActiveItemAppendItem(item) {

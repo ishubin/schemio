@@ -211,7 +211,6 @@ export default {
                     type: link.type
                 });
             }
-            this.$emit('link-update');
         },
         onItemTagChange(newTags) {
             this.item.tags = _.map(newTags, tag => tag.text);
