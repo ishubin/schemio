@@ -83,7 +83,7 @@
 
 
         <link-edit-popup v-if="addLinkPopup.shown"
-            :edit="true" title="" url="" type=""
+            :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
     </div>
@@ -260,6 +260,9 @@ export default {
                 description: '',
                 links: []
             };
+            if (item.type === 'shape') {
+                newItem.shape = item.shape;
+            }
             var id = this.schemeContainer.addItem(newItem);
             this.schemeContainer.connectItems(item, newItem);
 
