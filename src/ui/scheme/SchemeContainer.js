@@ -102,6 +102,10 @@ class SchemeContainer {
     }
 
     buildConnector(sourceItem, connector) {
+        if (!connector.id || connector.id.length === 0) {
+            connector.id = shortid.generate();
+        }
+
         this.enrichConnectorWithDefaultStyle(connector);
         var destinationItem = this.itemMap[connector.itemId];
         if (!sourceItem || !destinationItem) {
