@@ -39,6 +39,12 @@ function sanitizeScheme(scheme) {
 }
 
 export default {
+    login(login, password) {
+        return axios.post('/api/login', {login, password}).then(response => {
+            return response;
+        });
+    },
+
     loadScheme(schemeId) {
         return axios.get(`/api/schemes/${schemeId}`).then(response => {
             var scheme = response.data;

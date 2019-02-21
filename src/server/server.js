@@ -2,37 +2,44 @@ const express               = require('express');
 const path                  = require('path');
 const bodyParser            = require('body-parser');
 const jsonBodyParser        = bodyParser.json();
+const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
+const apiUser               = require('./api/apiUser.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
 
 const app = express();
 
+app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/api', [jsonBodyParser, middleware.api]);
 
+app.use('/schemes', middleware.auth);
+
 var cwd = process.cwd();
+
+app.post('/api/login', apiUser.login);
+app.get('/user/logout', apiUser.logout);
 
 app.get('/api/schemes', apiSchemes.findSchemes);
 app.get('/api/schemes/:schemeId', apiSchemes.getScheme);
-app.delete('/api/schemes/:schemeId', apiSchemes.deleteScheme);
-app.post('/api/schemes',  apiSchemes.createScheme);
-app.put('/api/schemes/:schemeId',  apiSchemes.saveScheme);
+app.delete('/api/schemes/:schemeId', [middleware.auth], apiSchemes.deleteScheme);
+app.post('/api/schemes', [middleware.auth], apiSchemes.createScheme);
+app.put('/api/schemes/:schemeId', [middleware.auth], apiSchemes.saveScheme);
 
 app.get('/api/tags',  apiSchemes.getTags);
 
 app.get('/api/shapes',  apiSchemes.getShapes);
 
-app.post('/images', apiImages.uploadImage);
+app.post('/images', [middleware.auth], apiImages.uploadImage);
 app.get('/images/:fileName', apiImages.getImage);
 
-app.post('/api/categories',  apiCategories.createCategory);
 app.get('/api/categories',  apiCategories.getRootCategory);
 app.get('/api/categories/:categoryId',  apiCategories.getCategory);
-app.delete('/api/categories/:categoryId',  apiCategories.deleteCategory);
-app.put('/api/category-structure',  apiCategories.ensureCategoryStructure);
-
+app.post('/api/categories', [middleware.auth],  apiCategories.createCategory);
+app.delete('/api/categories/:categoryId', [middleware.auth],  apiCategories.deleteCategory);
+app.put('/api/category-structure', [middleware.auth],  apiCategories.ensureCategoryStructure);
 
 app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)

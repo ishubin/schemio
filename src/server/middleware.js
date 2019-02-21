@@ -28,5 +28,19 @@ module.exports = {
         res.$badRequest = badRequest;
         res.$notFound = notFound;
         next();
+    },
+
+    auth(req, res, next) {
+        if (req.cookies.authToken === 'supersecret') {
+            next();
+        } else {
+            if (req.path.indexOf('/api/') === 0) {
+                res.status(401);
+                res.json({error: 'Not authorized'});
+            } else {
+                var redirectTo = encodeURIComponent(req.path);
+                res.redirect(`/login?redirect=${redirectTo}`);
+            }
+        }
     }
 };

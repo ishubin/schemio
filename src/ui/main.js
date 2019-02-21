@@ -4,6 +4,7 @@ import VueAxios from 'vue-axios';
 import axios from 'axios';
 import App from './App.vue';
 import HomeView from './views/HomeView.vue';
+import LoginView from './views/LoginView.vue';
 import SchemeEditorView from './views/SchemeEditorView.vue';
 
 
@@ -23,6 +24,7 @@ function _route(name, path, component) {
 
 const routes = [
     _route('Home', '/', HomeView),
+    _route('Home', '/login', LoginView),
     _route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView)
 ];
 
