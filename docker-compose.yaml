@@ -1,0 +1,20 @@
+version: "3"
+services:
+    mongodb:
+        image: mongo:latest
+        container_name: mongodb
+        environment:
+            - MONGO_DATA_DIR=/data/db
+            - MONGO_LOG_DIR=/data/logs
+        volumes:
+            - /opt/share/mongodb-schemio-data:/data/db
+            - /opt/share/logs/mongodb:/data/logs
+        ports:
+            - 27017:27017
+        command: mongod --smallfiles --logpath=/data/logs/mongo.log
+        
+    ldap:
+        image: rroemhild/test-openldap:latest
+        container_name: ldap
+        ports:
+            - 389:389
