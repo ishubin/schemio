@@ -31,7 +31,7 @@ module.exports = {
     },
 
     auth(req, res, next) {
-        if (req.cookies.authToken === 'supersecret') {
+        if (req.session.userLogin && req.session.userLogin.length > 0) {
             next();
         } else {
             if (req.path.indexOf('/api/') === 0) {

@@ -8,8 +8,18 @@ const apiUser               = require('./api/apiUser.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
+const session               = require('express-session');
+const MongoStore            = require('connect-mongo')(session);
 
 const app = express();
+
+app.use(session({
+    secret: 'somesessionsecret',
+    store: new MongoStore({
+        url: 'mongodb://localhost:27017/myproject',
+        ttl: 14 * 24 * 60 * 60
+    })
+}));
 
 app.use(cookieParser());
 app.use(express.static('public'));

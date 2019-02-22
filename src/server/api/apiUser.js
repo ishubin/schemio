@@ -1,11 +1,9 @@
-const AUTH_TOKEN_COOKIE_NAME = 'authToken';
-
 
 module.exports = {
     login(req, res) {
         var credentials = req.body;
         if (credentials.login === 'test' && credentials.password === 'test123') {
-            res.cookie(AUTH_TOKEN_COOKIE_NAME, 'supersecret', {maxAge: 900000000});
+            req.session.userLogin = credentials.login;
             res.json({message: 'ok'});
         } else {
             res.status(401);
@@ -14,7 +12,7 @@ module.exports = {
     },
 
     logout(req, res) {
-        res.clearCookie(AUTH_TOKEN_COOKIE_NAME);
+        req.session.destroy();
         res.redirect('/');
     }
 };
