@@ -26,6 +26,9 @@
                     <div v-if="user">
                         <a href="/user/logout">Logout</a>
                     </div>
+                    <div v-else>
+                        <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
+                    </div>
                 </div>
             </div>
 
@@ -115,9 +118,7 @@ export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal, LinkEditPopup},
 
     mounted() {
-        apiClient.getCurrentUser().then(user => {
-            this.user = user;
-        });
+        this.loadCurrentUser();
 
         apiClient.loadScheme(this.schemeId).then(scheme => {
             this.schemeContainer = new SchemeContainer(scheme);
@@ -163,6 +164,7 @@ export default {
     data() {
         return {
             user: null,
+            originalUrlEncoded: encodeURIComponent(window.location),
 
             sidePanelExpanded: true,
             schemeId: this.$route.params.schemeId,
@@ -174,7 +176,7 @@ export default {
             selectedConnector: null,
             zoom: 100,
             mode: 'view',
-            knownModes: ['view', 'edit'],
+            knownModes: ['view'],
             searchHighlights: [],
 
             addLinkPopup: {
@@ -205,6 +207,15 @@ export default {
         }
     },
     methods: {
+        loadCurrentUser() {
+            apiClient.getCurrentUser().then(user => {
+                this.user = user;
+                if (this.user) {
+                    this.knownModes = ['view', 'edit'];
+                }
+            });
+        },
+
         toggleMode(mode) {
             this.mode = mode;
         },

@@ -25,8 +25,6 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/api', [jsonBodyParser, middleware.api]);
 
-app.use('/schemes', middleware.auth);
-
 var cwd = process.cwd();
 
 app.get('/api/user', [middleware.auth], apiUser.getCurrentUser);
