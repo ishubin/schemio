@@ -484,6 +484,10 @@ svg.state-create-component {
     z-index: 100;
 }
 
+
+.scheme-container {
+    z-index: 98;
+}
 /*********************** Button Group **********************/
 
 ul.button-group {
@@ -543,10 +547,11 @@ ul.button-group li .toggle-button.toggled:hover {
 /*   Side Panel            */
 /***************************/
 .scheme-middle-container .side-panel {
-    z-index: 101;
+    z-index: 99;
     height: 100%;
     width: 0px;
     position: absolute;
+    padding-top: 30px;
     top: 0;
     right: 0;
     background: #f4f4f4;
