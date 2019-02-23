@@ -118,7 +118,9 @@ export default class StateDragItem extends State {
                         this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
                     }
                     _.forEach(this.schemeContainer.selectedItems, item => {
-                        this.dragItem(item, dx, dy);
+                        if (!item.locked) {
+                            this.dragItem(item, dx, dy);
+                        }
                     });
                     this.rebuildConnectorsInCache();
                     EventBus.$emit(EventBus.REDRAW);
