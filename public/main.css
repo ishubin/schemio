@@ -482,8 +482,18 @@ svg.state-create-component {
     background: #5c696f;
     padding: 2px;
     z-index: 100;
+    color: #eee;
 }
 
+.top-right-panel a {
+    color: #c1e5fb;
+}
+
+.top-right-panel {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
 
 .scheme-container {
     z-index: 98;

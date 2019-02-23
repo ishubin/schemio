@@ -39,6 +39,15 @@ function sanitizeScheme(scheme) {
 }
 
 export default {
+    getCurrentUser() {
+        return axios.get('/api/user').then(response => {
+            return response.data;
+        }).catch(err => {
+            return null;
+        });
+    },
+
+
     login(login, password) {
         return axios.post('/api/login', {login, password}).then(response => {
             return response;

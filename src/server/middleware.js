@@ -1,5 +1,11 @@
 function apiError(error, message) {
-    console.error(error);
+    if (arguments.length === 1 && (typeof arguments[0]) === 'string') {
+        error = null;
+        message = arguments[0];
+    }
+    if (err) {
+        console.error(error);
+    }
     this.status(500);
     this.json({
         error: message || 'Internal error'
@@ -11,6 +17,14 @@ function badRequest(message) {
     this.status(400);
     this.json({
         error: message || 'Bad request'
+    });
+}
+
+function notAuthorized(message) {
+    console.log('401 Not Authorized', message);
+    this.status(401);
+    this.json({
+        error: message || 'Not authorized'
     });
 }
 
@@ -26,6 +40,7 @@ module.exports = {
     api(req, res, next) {
         res.$apiError = apiError;
         res.$badRequest = badRequest;
+        res.$notAuthorized = notAuthorized;
         res.$notFound = notFound;
         next();
     },

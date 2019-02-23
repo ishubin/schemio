@@ -21,6 +21,12 @@
                         <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem)">B</span>
                     </li>
                 </ul>
+
+                <div class="top-right-panel">
+                    <div v-if="user">
+                        <a href="/user/logout">Logout</a>
+                    </div>
+                </div>
             </div>
 
             <div class="scheme-container">
@@ -109,6 +115,10 @@ export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal, LinkEditPopup},
 
     mounted() {
+        apiClient.getCurrentUser().then(user => {
+            this.user = user;
+        });
+
         apiClient.loadScheme(this.schemeId).then(scheme => {
             this.schemeContainer = new SchemeContainer(scheme);
         });
@@ -152,6 +162,8 @@ export default {
     },
     data() {
         return {
+            user: null,
+
             sidePanelExpanded: true,
             schemeId: this.$route.params.schemeId,
             schemeContainer: null,

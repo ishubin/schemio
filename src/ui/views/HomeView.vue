@@ -9,6 +9,15 @@
                     <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
                 </li>
             </ul>
+
+            <div class="top-right-panel">
+                <div v-if="user">
+                    <a href="/user/logout">Logout</a>
+                </div>
+                <div v-else>
+                    <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
+                </div>
+            </div>
         </div>
         <div class="content-wrapper">
             <ul class="category-breadcrumb" v-if="category">
@@ -59,11 +68,14 @@ import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
 export default {
     components: {CreateNewSchemeModal},
     mounted() {
+        this.loadCurrentUser();
         this.loadCategories();
         this.loadSchemes();
     },
     data() {
         return {
+            user: null,
+            originalUrlEncoded: encodeURIComponent(window.location),
             categoryId: this.$route.query.category,
             newSchemePopup: {
                 categories: [],
@@ -74,6 +86,12 @@ export default {
         }
     },
     methods: {
+        loadCurrentUser() {
+            apiClient.getCurrentUser().then(user => {
+                this.user = user;
+            });
+        },
+
         loadCategories() {
             apiClient.getCategory(this.categoryId).then(category => {
                 this.category = category;

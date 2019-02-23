@@ -29,6 +29,7 @@ app.use('/schemes', middleware.auth);
 
 var cwd = process.cwd();
 
+app.get('/api/user', [middleware.auth], apiUser.getCurrentUser);
 app.post('/api/login', apiUser.login);
 app.get('/user/logout', apiUser.logout);
 
