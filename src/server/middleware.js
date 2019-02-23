@@ -38,7 +38,7 @@ module.exports = {
                 res.status(401);
                 res.json({error: 'Not authorized'});
             } else {
-                var redirectTo = encodeURIComponent(req.path);
+                var redirectTo = encodeURIComponent(req.originalUrl);
                 res.redirect(`/login?redirect=${redirectTo}`);
             }
         }

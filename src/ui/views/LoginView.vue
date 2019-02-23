@@ -24,8 +24,8 @@ export default {
     methods: {
         submitLogin() {
             apiClient.login(this.login, this.password).then(() => {
-                var redirectTo = this.$route.query.page;
-                if (!redirectTo || !redirectTo.indexOf('/')) {
+                var redirectTo = this.$route.query.redirect;
+                if (!redirectTo || !redirectTo.indexOf('/') === 0) {
                     redirectTo = '/';
                 }
                 window.location = redirectTo;
