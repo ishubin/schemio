@@ -14,8 +14,9 @@ class LdapAuthService {
 
     findUser(userId, password) {
         //TODO escape userId for ldap
+        userId = userId.replace(/\W/g, userId);
         var opts = {
-            filter: '(&(objectClass=inetOrgPerson)(uid='+userId+'))',
+            filter: '(uid='+userId+')',
             scope: 'sub',
             attributes: ['uid', 'cn', 'mail']
         };
@@ -38,10 +39,17 @@ class LdapAuthService {
                             });
                             search.on('end', () => {
                                 if (ldapObject) {
-                                    resolve({
-                                        login: ldapObject.uid,
-                                        userName: ldapObject.cn,
-                                        mail: ldapObject.mail
+                                    //trying to bind to client with password
+                                    this.client.bind(ldapObject.dn, password, err => {
+                                        if (err)  {
+                                            rejected('User not found');
+                                        } else {
+                                            resolve({
+                                                login: ldapObject.uid,
+                                                userName: ldapObject.cn,
+                                                mail: ldapObject.mail
+                                            });
+                                        }
                                     });
                                 } else {
                                     rejected('User not found');
