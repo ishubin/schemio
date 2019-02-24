@@ -360,6 +360,14 @@ class SchemeContainer {
                 this.selectedItems.push(item);
             }
         }
+
+        if (item.group && item.group.length > 0) {
+            _.forEach(this.scheme.items, otherItem => {
+                if (otherItem.group === item.group && otherItem.id !== item.id) {
+                    this.selectItemInclusive(otherItem);
+                }
+            });
+        }
     }
 
     selectItemInclusive(item) {
@@ -501,6 +509,13 @@ class SchemeContainer {
 
     getConnectingSourceItemIds(destinationId) {
         return this._destinationToSourceLookup[destinationId];
+    }
+
+    groupSelectedItems() {
+        var groupId = shortid.generate();
+        _.forEach(this.selectedItems, item => {
+            item.group = groupId;
+        })
     }
 }
 

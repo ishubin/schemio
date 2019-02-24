@@ -19,6 +19,7 @@
                     <li>
                         <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem)">F</span>
                         <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem)">B</span>
+                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems()">G</span>
                     </li>
                 </ul>
 
