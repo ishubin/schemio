@@ -236,9 +236,16 @@ export default {
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
 
         EventBus.$on(EventBus.BRING_TO_VIEW, area => {
-            var Xo = (this.width - 400)/2 - (area.x + area.w/2);
-            var Yo = (this.height)/2 - (area.y + area.h/2);
-            this.startBringToViewAnimation(Xo, Yo, 1.0);
+            var newScale = 1.0;
+            if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
+                newScale = Math.floor(100.0 * Math.min((this.width - 400)/area.w, this.height/area.h)) / 100.0;
+                newScale = Math.max(0.5, Math.min(newScale, 1.0));
+            }
+
+            var Xo = (this.width - 400)/2 - (area.x + area.w/2) * newScale;
+            var Yo = (this.height)/2 - (area.y + area.h/2)*newScale;
+
+            this.startBringToViewAnimation(Xo, Yo, newScale);
         });
 
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
