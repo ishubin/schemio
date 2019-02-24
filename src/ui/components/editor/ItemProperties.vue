@@ -9,6 +9,11 @@
                         <i class="fas" :class="[item.locked ? 'fa-lock' : 'fa-unlock']"></i>
                     </span>
                 </li>
+                <li v-if="item.group">
+                    <span class="toggle-button" @click="ungroupItem()">
+                        <i class="fas fa-object-ungroup"></i>
+                    </span>
+                </li>
             </ul>
             <div  v-if="item.type !== 'comment'">
                 <h5>Name</h5>
@@ -231,6 +236,10 @@ export default {
                 this.item.locked = true;
             }
             this.$forceUpdate();
+        },
+
+        ungroupItem() {
+            this.$emit('ungroup-item');
         },
 
         connectItem() {

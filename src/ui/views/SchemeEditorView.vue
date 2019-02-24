@@ -19,7 +19,9 @@
                     <li>
                         <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem)">F</span>
                         <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem)">B</span>
-                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems()">G</span>
+                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems()">
+                            <i class="fas fa-object-group"></i>
+                        </span>
                     </li>
                 </ul>
 
@@ -69,7 +71,9 @@
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"/>
+                            <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"
+                                @ungroup-item="ungroupItem(selectedItem)"
+                            />
                             <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
 
                             <p v-if="!selectedItem">
@@ -219,6 +223,10 @@ export default {
 
         toggleMode(mode) {
             this.mode = mode;
+        },
+
+        ungroupItem(item) {
+            this.schemeContainer.ungroupItem(item);
         },
 
         saveScheme() {

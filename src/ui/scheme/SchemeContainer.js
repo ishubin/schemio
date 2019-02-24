@@ -517,6 +517,17 @@ class SchemeContainer {
             item.group = groupId;
         })
     }
+
+    ungroupItem(item) {
+        if (item.group) {
+            var group = item.group;
+            item.group = null;
+            var leftoverGroupItems = _.filter(this.scheme.items, otherItem => {return otherItem.group === group});
+            if (leftoverGroupItems.length === 1) {
+                leftoverGroupItems[0].group = null;
+            }
+        }
+    }
 }
 
 
