@@ -230,7 +230,7 @@ export default {
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, () => {
             this.cancelCurrentState();
         });
-        EventBus.$on(EventBus.ITEM_SELECTED, item => {
+        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, item => {
             this.onSelectItem(item);
         });
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);

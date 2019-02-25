@@ -129,7 +129,7 @@ export default {
             this.schemeContainer = new SchemeContainer(scheme);
         });
 
-        EventBus.$on(EventBus.ITEM_SELECTED, item => {
+        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, item => {
             this.selectedItem = item;
             this.currentTab = 'Item';
             this.tabs[2].disabled = false;
@@ -299,7 +299,7 @@ export default {
             this.schemeContainer.connectItems(item, newItem);
 
             this.schemeContainer.selectItem(newItem, false);
-            EventBus.$emit(EventBus.ITEM_SELECTED, newItem);
+            EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, newItem);
         },
 
         startCreatingChildSchemeForItem(item) {

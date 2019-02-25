@@ -36,7 +36,7 @@ class StateInteract extends State {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item && (object.item.type === 'component' || object.item.type === 'overlay' || object.item.type === 'shape')) {
                     this.schemeContainer.selectItem(object.item, false);
-                    EventBus.$emit(EventBus.ITEM_SELECTED, object.item);
+                    EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     this.schemeContainer.deselectAllItems();

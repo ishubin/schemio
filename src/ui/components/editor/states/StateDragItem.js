@@ -84,7 +84,7 @@ export default class StateDragItem extends State {
             if (!object.item.meta.selected) {
                 this.schemeContainer.selectItem(object.item, event.metaKey || event.ctrlKey);
                 this.schemeContainer.deselectAllConnectors();
-                EventBus.$emit(EventBus.ITEM_SELECTED, object.item);
+                EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
             }
 
