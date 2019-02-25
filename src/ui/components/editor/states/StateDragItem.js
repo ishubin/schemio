@@ -55,8 +55,8 @@ export default class StateDragItem extends State {
     mouseDown(x, y, mx, my, object, event) {
         if (object.dragger) {
             this.dragger = object.dragger;
-            this.initDragging(x, y);
             this.initDraggingForItem(object.dragger.item, x, y);
+            this.initDragging(x, y);
             return;
         } else if (object.connector) {
             if (event.metaKey || event.ctrlKey) {
@@ -81,19 +81,19 @@ export default class StateDragItem extends State {
                 }
             }
         } else if (object.item) {
-            this.initDragging(x, y);
-
-            this.initDraggingForItem(object.item, x, y);
-            _.forEach(this.schemeContainer.selectedItems, item => {
-                this.initDraggingForItem(item, x, y);
-            });
-
             if (!object.item.meta.selected) {
                 this.schemeContainer.selectItem(object.item, event.metaKey || event.ctrlKey);
                 this.schemeContainer.deselectAllConnectors();
                 EventBus.$emit(EventBus.ITEM_SELECTED, object.item);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
             }
+
+            this.initDraggingForItem(object.item, x, y);
+            _.forEach(this.schemeContainer.selectedItems, item => {
+                this.initDraggingForItem(item, x, y);
+            });
+
+            this.initDragging(x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (event.srcElement.id === 'svg_plot') {
