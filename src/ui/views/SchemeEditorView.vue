@@ -129,42 +129,20 @@ export default {
             this.schemeContainer = new SchemeContainer(scheme);
         });
 
-        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, item => {
-            this.selectedItem = item;
-            this.currentTab = 'Item';
-            this.tabs[2].disabled = false;
-            this.tabs[3].disabled = true;
-            this.sidePanelExpanded = true;
-        });
-        EventBus.$on(EventBus.CONNECTOR_SELECTED, connector => {
-            this.selectedConnector = connector;
-            this.currentTab = 'Connection';
-            this.selectedItem = null;
-            this.tabs[2].disabled = true;
-            this.tabs[3].disabled = false;
-            this.schemeContainer.deselectAllItems();
-        });
-        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, item => {
-            this.selectedItem = null;
-            if (this.currentTab === 'Item') {
-                this.currentTab = 'Scheme';
-            }
-            this.tabs[2].disabled = true;
-        });
-        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, item => {
-            this.selectedConnector = null;
-            if (this.currentTab === 'Connection') {
-                this.currentTab = 'Scheme';
-            }
-            this.tabs[3].disabled = true;
-        });
-
-        EventBus.$on(EventBus.PLACE_ITEM, item => {
-            this.schemeContainer.addItem(item);
-        });
-        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
-            this.mode = 'edit';
-        });
+        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
+        EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
+        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
+        EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
+        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
+    },
+    beforeDestroy(){
+        EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
+        EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
+        EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
+        EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
+        EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     data() {
         return {
@@ -383,6 +361,47 @@ export default {
         onUpdateZoom(zoom) {
             var value = Math.floor(zoom * 1000) / 10;
             this.zoom = Math.min(1000, Math.max(2, value));
+        },
+
+        onActiveItemSelected(item) {
+            this.selectedItem = item;
+            this.currentTab = 'Item';
+            this.tabs[2].disabled = false;
+            this.tabs[3].disabled = true;
+            this.sidePanelExpanded = true;
+        },
+
+        onConnectorSelected(connector) {
+            this.selectedConnector = connector;
+            this.currentTab = 'Connection';
+            this.selectedItem = null;
+            this.tabs[2].disabled = true;
+            this.tabs[3].disabled = false;
+            this.schemeContainer.deselectAllItems();
+        },
+
+        onAllItemsDeselected() {
+            this.selectedItem = null;
+            if (this.currentTab === 'Item') {
+                this.currentTab = 'Scheme';
+            }
+            this.tabs[2].disabled = true;
+        },
+
+        onAllConnectorsDeselected() {
+            this.selectedConnector = null;
+            if (this.currentTab === 'Connection') {
+                this.currentTab = 'Scheme';
+            }
+            this.tabs[3].disabled = true;
+        },
+
+        onPlaceItem(item) {
+            this.schemeContainer.addItem(item);
+        },
+
+        onSwitchModeToEdit() {
+            this.mode = 'edit';
         }
     },
     filters: {
