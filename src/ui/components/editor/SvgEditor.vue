@@ -206,65 +206,41 @@ export default {
         this.vZoom = parseFloat(this.zoom);
         this.switchStateInteract();
 
-        EventBus.$on(EventBus.START_CREATING_COMPONENT, component => {
-            this.switchStateCreateComponent(component);
-        });
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, item => {
-            this.switchStateConnecting(item);
-        });
-
-        EventBus.$on(EventBus.KEY_PRESS, (key) => {
-            if (key === EventBus.KEY.ESCAPE) {
-                this.state.cancel();
-            } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
-                this.activeItem = null;
-                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
-                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
-                this.schemeContainer.deleteSelectedItemsAndConnectors();
-                EventBus.$emit(EventBus.REDRAW);
-            }
-        });
-        EventBus.$on(EventBus.REDRAW, () => {
-            this.$forceUpdate();
-        });
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, () => {
-            this.cancelCurrentState();
-        });
-        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, item => {
-            this.onSelectItem(item);
-        });
+        EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
+        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$on(EventBus.REDRAW, this.onRedraw);
+        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onSelectItem);
         EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
-
-        EventBus.$on(EventBus.BRING_TO_VIEW, area => {
-            var newScale = 1.0;
-            if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
-                newScale = Math.floor(100.0 * Math.min((this.width - 400)/area.w, this.height/area.h)) / 100.0;
-                newScale = Math.max(0.5, Math.min(newScale, 1.0));
-            }
-
-            var Xo = (this.width - 400)/2 - (area.x + area.w/2) * newScale;
-            var Yo = (this.height)/2 - (area.y + area.h/2)*newScale;
-
-            this.startBringToViewAnimation(Xo, Yo, newScale);
-        });
-
-        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, () => {
-            this.switchStateDragItem();
-        });
-        EventBus.$on(EventBus.REBUILD_CONNECTORS, () => {
-            this.schemeContainer.buildConnectors();
-        });
-
-        EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, (multiSelectBox) => {
-            this.multiSelectBox = multiSelectBox;
-        });
-        EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, () => {
-            this.multiSelectBox = null;
-        });
+        EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
+        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
+        EventBus.$on(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
+        EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
+        EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
             svgElement.addEventListener('mousewheel', this.mouseWheel);
+        }
+    },
+    beforeDestroy(){
+        EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
+        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$off(EventBus.REDRAW, this.onRedraw);
+        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+        EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onSelectItem);
+        EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
+        EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
+        EventBus.$off(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
+        EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
+        EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
+
+        var svgElement = document.getElementById('svg_plot');
+        if (svgElement) {
+            svgElement.removeEventListener('mousewheel', this.mouseWheel);
         }
     },
     data() {
@@ -399,7 +375,7 @@ export default {
             this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
         },
 
-        cancelCurrentState() {
+        onCancelCurrentState() {
             if (this.mode === 'edit') {
                 this.state = this.states.dragItem;
             } else {
@@ -415,15 +391,42 @@ export default {
             this.state = this.states.dragItem;
             this.state.reset();
         },
-        switchStateCreateComponent(component) {
+        onSwitchStateCreateComponent(component) {
             this.state = this.states.createComponent;
             this.state.reset();
             this.state.setComponent(component);
         },
-        switchStateConnecting(item) {
+        onSwitchStateConnecting(item) {
             this.state = this.states.connecting;
             this.state.reset();
             this.state.setSourceItem(item);
+        },
+
+        onKeyPress(key) {
+            if (key === EventBus.KEY.ESCAPE) {
+                this.state.cancel();
+            } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
+                this.activeItem = null;
+                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
+                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
+                this.schemeContainer.deleteSelectedItemsAndConnectors();
+                EventBus.$emit(EventBus.REDRAW);
+            }
+        },
+
+        onRedraw() {
+            this.$forceUpdate();
+        },
+
+        onRebuildConnectors() {
+            this.schemeContainer.buildConnectors();
+        },
+
+        onMultiSelectBoxAppear(multiSelectBox) {
+            this.multiSelectBox = multiSelectBox;
+        },
+        onMultiSelectBoxDisappear() {
+            this.multiSelectBox = null;
         },
 
         onSelectItem(item) {
@@ -444,6 +447,19 @@ export default {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
             }
+        },
+
+        onBringToView(area) {
+            var newScale = 1.0;
+            if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
+                newScale = Math.floor(100.0 * Math.min((this.width - 400)/area.w, this.height/area.h)) / 100.0;
+                newScale = Math.max(0.5, Math.min(newScale, 1.0));
+            }
+
+            var Xo = (this.width - 400)/2 - (area.x + area.w/2) * newScale;
+            var Yo = (this.height)/2 - (area.y + area.h/2)*newScale;
+
+            this.startBringToViewAnimation(Xo, Yo, newScale);
         },
 
         startBringToViewAnimation(x, y, z) {
