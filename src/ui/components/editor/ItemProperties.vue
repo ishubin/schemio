@@ -260,7 +260,7 @@ export default {
         },
 
         redrawItem() {
-            EventBus.$emit(EventBus.REDRAW_ITEM, this.item);
+            EventBus.emitRedrawItem(this.item.id);
         }
     },
     computed: {

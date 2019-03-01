@@ -36,6 +36,19 @@ const EventBus = new Vue({
         },
         _generateRedrawConnectorEventName(sourceItemId, destinationId) {
             return `${EventBus.REDRAW_CONNECTOR}/${sourceItemId}/${destinationId}`;
+        },
+
+        emitRedrawItem(itemId) {
+            this.$emit(this._generateRedrawItemEventName(itemId));
+        },
+        subscribeForRedrawItem(itemId, callback) {
+            this.$on(this._generateRedrawItemEventName(itemId), callback);
+        },
+        unsubscribeForRedrawItem(itemId, callback) {
+            this.off(this._generateRedrawItemEventName(itemId), callback);
+        },
+        _generateRedrawItemEventName(itemId) {
+            return `${EventBus.REDRAW_ITEM}/${itemId}`;
         }
     }
 });

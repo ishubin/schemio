@@ -76,18 +76,19 @@ import EventBus from '../EventBus.js';
 export default {
     props: ['item', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
-        EventBus.$on(EventBus.REDRAW_ITEM, item => {
-            if (item) {
-                if (this.item.id !== item.id) {
-                    return;
-                }
-            }
-            this.$forceUpdate();
-        });
+        EventBus.subscribeForRedrawItem(this.item.id, this.onRedrawItem);
+    },
+    beforeDestroy(){
+        EventBus.unsubscribeForRedrawItem(this.item.id, this.onRedrawItem);
     },
     data() {
         return {
             fontsize: 12
+        }
+    },
+    methods: {
+        onRedrawItem() {
+            this.$forceUpdate();
         }
     },
     computed: {
