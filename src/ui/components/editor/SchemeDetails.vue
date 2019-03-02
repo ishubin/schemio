@@ -1,6 +1,10 @@
 <template lang="html">
     <div>
         <ul class="category-breadcrumb" v-if="schemeContainer.scheme.category">
+            <li>
+                <a href="/"><i class="fas fa-home"></i></a>
+                <i class="fas fa-angle-right"></i>
+            </li>
             <li v-for="category in schemeContainer.scheme.category.ancestors">
                 <a :href="'/?category=' + category.id">{{category.name}}</a>
                 <i class="fas fa-angle-right"></i>

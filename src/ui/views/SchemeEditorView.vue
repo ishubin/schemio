@@ -2,6 +2,12 @@
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
+
+                <dropdown :options="mainDropdown.options">
+                    <i class="fas fa-bars"></i>
+                </dropdown>
+
+
                 <ul class="button-group">
                     <li v-for="knownMode in knownModes">
                         <span class="toggle-button editor-mode"
@@ -106,6 +112,7 @@
 
 <script>
 import utils from '../utils.js';
+import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
@@ -120,7 +127,9 @@ import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 
 export default {
-    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties, SchemeDetails, CreateItemMenu, ConnectionProperties, CreateNewSchemeModal, LinkEditPopup},
+    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
+        SchemeDetails, CreateItemMenu, ConnectionProperties,
+        CreateNewSchemeModal, LinkEditPopup, Dropdown},
 
     mounted() {
         this.loadCurrentUser();
@@ -148,6 +157,14 @@ export default {
         return {
             user: null,
             originalUrlEncoded: encodeURIComponent(window.location),
+
+            mainDropdown: {
+                options: [
+                    {name: "Home", icon: "fas fa-home", link: "/"},
+                    {name: "Show items", icon: "fas fa-list", emit: "clicked-show-items"},
+                    {name: "Search other documents", icon: "fas fa-search", emit: "clicked-search-other-documents"}
+                ]
+            },
 
             sidePanelExpanded: true,
             schemeId: this.$route.params.schemeId,

@@ -983,3 +983,44 @@ ul.category-breadcrumb li i {
     padding: 4px;
     border-radius: 5px;
 }
+
+
+/**************  Dropdown    ********************/
+.dropdown-container {
+    display: inline-block;
+    position: relative;
+    margin: 5px;
+}
+.dropdown-container .dropdown-click-area {
+    display: inline-block;
+    padding: 5px;
+    cursor: pointer;
+}
+.dropdown-container .dropdown-popup {
+    position: absolute;
+    z-index: 999;
+    background: #fff;
+    border-radius: 2px;
+    border: 1px solid #999;
+    color: #555;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+.dropdown-container .dropdown-popup ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.dropdown-container .dropdown-popup ul li {
+    position: relative;
+    white-space: nowrap;
+    padding: 8px 30px 8px 10px;
+    cursor: pointer;
+}
+.dropdown-container .dropdown-popup ul li:hover {
+    background: #2ea5fb;
+    color: #fff;
+}
+.dropdown-container .dropdown-popup ul li i.dropdown-option-icon {
+    position: absolute;
+    right: 5px;
+}
