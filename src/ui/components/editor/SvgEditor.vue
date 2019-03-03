@@ -14,6 +14,7 @@
                     >
 
                     <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        :key="connectorIndex"
                         :connectorIndex="connectorIndex"
                         :sourceItem="item"
                         :connector="connector"
