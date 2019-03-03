@@ -20,6 +20,7 @@ class MongoSchemeStorage extends SchemeStorage {
             poolSize: poolSize
         }).then(client => {
             this.db = client.db(dbName);
+            this._inSchemes().createIndex({name: "text", description: "text"});
         }).catch(err => {
             console.error(err);
             process.exit(1);
@@ -45,15 +46,35 @@ class MongoSchemeStorage extends SchemeStorage {
             }
             mongoQuery['categoryId'] = categoryId;
         }
+        if (query.query && query.query.length > 0) {
+            mongoQuery['$text'] = {'$search': query.query};
+        }
 
-        return this._inSchemes().find(mongoQuery).toArray().then(schemes => {
+
+        var offset = 0;
+        if (query.offset) {
+            offset = query.offset;
+        }
+        var limit = 10;
+
+        return Promise.all([
+            this._inSchemes().count(mongoQuery),
+            this._inSchemes().find(mongoQuery).skip(offset).limit(limit).toArray()
+        ]).then(values => {
+            var count = values[0];
+            var schemes = values[1];
             return {
                 results: _.map(schemes, scheme => {
-                    delete scheme['_id'];
-                    return scheme;
+                    return {
+                        "id": scheme.id,
+                        "name": scheme.name,
+                        "description": scheme.description,
+                        "tags": scheme.tags,
+                        "modifiedDate": scheme.modifiedDate
+                    };
                 }),
-                total: 10,
-                resultsPerPage: 100,
+                total: count,
+                resultsPerPage: limit,
                 offset: 0
             };
         });

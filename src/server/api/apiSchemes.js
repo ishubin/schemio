@@ -70,9 +70,13 @@ const ApiSchemes = {
 
     findSchemes(req, res) {
         var query = {
-            offset: req.query.offset || 0,
             query: req.query.q ? req.query.q.trim() : null
         };
+
+        if (req.query.offset && req.query.offset.length > 0) {
+            query.offset = parseInt(req.query.offset);
+        }
+
         if (req.query.hasOwnProperty('category')) {
             query['category'] = req.query.category.trim();
         }

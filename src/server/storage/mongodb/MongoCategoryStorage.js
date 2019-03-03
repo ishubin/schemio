@@ -18,6 +18,8 @@ class MongoCategoryStorage extends CategoryStorage {
             poolSize: poolSize
         }).then(client => {
             this.db = client.db(dbName);
+            this._categories().createIndex({id: 1}, {unique: true});
+            this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
         }).catch(err => {
             console.error(err);
             process.exit(1);
@@ -39,8 +41,6 @@ class MongoCategoryStorage extends CategoryStorage {
             return Promise.reject('category id should not be empty');
         }
 
-        this._categories().createIndex({id: 1}, {unique: true});
-        this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
 
         var chain = null;
         if (parentId) {
