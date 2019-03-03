@@ -28,4 +28,126 @@ items: [{
 Patch editing (diff based)
 --------------
 
-_TBD_
+```json
+{
+  "id": "Uk55prrKX",
+  "name": "some name",
+  "description": "Some description",
+  "tags": ["backend", "java"],
+  "modifiedDate": 1548360532261,
+  "items": [{
+      "type": "image",
+      "area": { "x": 7, "y": -76, "w": 1226, "h": 1000 },
+      "style": { },
+      "url": "http://example.com/some-image-1",
+      "name": "background-image",
+      "description": "",
+      "id": "RdtvnHWZu",
+      "tags": ["background", "image"],
+      "locked": true
+  }]
+}
+```
+
+Example of a patch: changed scheme description, item name and added item tag
+Version 1:
+```javascript
+{
+    "version": 12344,
+    "$fields": [{
+        "$path": ["description"],
+        "$value": "updated description",
+    },{
+        "$path": ["items", "#RdtvnHWZu", "name"],
+        "$value": "updated name"
+    }, {
+        "$path": ["items", "#RdtvnHWZu", "tags"],
+        "$removed": ["image"],
+        "$added": ["scheme"]
+    }]
+}
+```
+
+Version 2:
+```javascript
+{
+    "version": 12344,
+    "$fields": {
+        "description": "updated description",
+        "items": [{
+            "$#": "id:#RdtvnHWZu",
+            "$fields": {
+                "name": "updated name",
+                "tags": [{
+                    "$removed": "image",
+                    "$added": ["scheme"]
+                }]
+            }
+        }]
+    }
+}
+```
+
+Version 2: adding and removing items
+```javascript
+{
+    "version": 12324,
+    "$fields": {
+        "items": [{
+            "$#": "id:#ewr324",
+            "$removed": true
+        },{
+            "$added": {
+                "id": "#ertwetwet3",
+                //... here go all the fields of an item
+            }
+        }]
+    }
+}
+```
+
+Version 2: reshuffling items (e.g. swapping positions of two items)
+```javascript
+{
+    "version": 21313,
+    "$fields": {
+        "items": [{
+            "$#": "id:#RdtvnHWZu",
+            "$index": 2
+        },{
+            "$#": "id:#qrqr21",
+            "$index": 1
+        }]
+    }
+}
+```
+
+
+Version 2: reshuffling simple arrays (tags). (e.g. original: ["a", "b", "c"], updated: ["b", "a", "c"])
+```javascript
+{
+    "version": 12313,
+    "$fields": {
+        "tags": [{
+            "$#": "val:b",
+            "$index": 0
+        }, {
+            "$#": "val:a",
+            "$index": 1
+        }, {
+            "$#": "val:c",
+            "$index": 2
+        }]
+    }
+}
+```
+
+Or perhaps it is better not to allow reshuffling and instead just update the entire array:
+```javascript
+{
+    "version": 12313,
+    "$fields": {
+        "tags": ["b", "a", "c"]
+    }
+}
+```
