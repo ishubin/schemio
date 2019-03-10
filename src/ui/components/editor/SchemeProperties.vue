@@ -2,7 +2,7 @@
     <div class="">
         <div v-if="schemeContainer.scheme">
             <h5 class="section">Name</h5>
-            <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..."/>
+            <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..." @change="onPropertyChange('name')"/>
 
             <h5 class="section">Tags</h5>
             <vue-tags-input v-model="schemeTag"
@@ -14,13 +14,13 @@
             <h5 class="section">Description</h5>
 
             <div class="textarea-wrapper">
-                <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description"></textarea>
+                <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description" @change="onPropertyChange('description')"></textarea>
                 <span class="textarea-enlarge" @click="showDescriptionInPopup = true"><i class="fas fa-expand"></i></span>
 
                 <markdown-editor-popup v-if="showDescriptionInPopup"
                     :text="schemeContainer.scheme.description"
                     @close="showDescriptionInPopup = false"
-                    @changed="schemeContainer.scheme.description = arguments[0]"
+                    @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
                     />
             </div>
 
@@ -40,6 +40,7 @@
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../apiClient.js';
+import EventBus from './EventBus.js';
 import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
 import Modal from '../Modal.vue';
 
@@ -66,6 +67,11 @@ export default {
     methods: {
         onSchemeTagChange(newTags) {
             this.schemeContainer.scheme.tags = _.map(newTags, tag => tag.text);
+            this.onPropertyChange('tags');
+        },
+
+        onPropertyChange(propertyName) {
+            EventBus.$emit(EventBus.SCHEME_PROPERTY_CHANGED, propertyName);
         },
 
         deleteScheme() {

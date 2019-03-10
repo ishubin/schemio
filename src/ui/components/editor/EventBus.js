@@ -22,6 +22,7 @@ const EventBus = new Vue({
 
             ITEM_CHANGED: 'item-changed',
             CONNECTOR_CHANGED: 'connector-changed',
+            SCHEME_PROPERTY_CHANGED: 'scheme-property-changed',
 
             KEY: {
                 ESCAPE: 'escape',

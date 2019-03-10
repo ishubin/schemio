@@ -141,6 +141,8 @@ export default {
         });
         EventBus.$on(EventBus.ITEM_CHANGED, this.onItemChanged);
         EventBus.$on(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
+        EventBus.$on(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
+
 
         EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
@@ -152,6 +154,7 @@ export default {
     beforeDestroy(){
         EventBus.$off(EventBus.ITEM_CHANGED, this.onItemChanged);
         EventBus.$off(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
+        EventBus.$off(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
         EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
         EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
@@ -437,6 +440,10 @@ export default {
         },
 
         onConnectorChanged(connector) {
+            this.schemeChanged = true;
+        },
+
+        onSchemePropertyChanged(propertyName) {
             this.schemeChanged = true;
         },
 
