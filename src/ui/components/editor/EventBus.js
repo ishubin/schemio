@@ -6,18 +6,23 @@ const EventBus = new Vue({
             START_CONNECTING_ITEM: 'start-connecting-item',
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
-            REDRAW: 'redraw',
-            REDRAW_ITEM: 'redraw-item',
-            REDRAW_CONNECTOR: 'redraw-connector',
+            REDRAW: 'redraw', //TODO get rid of this event. instead listen to item-changed, connector-changed event and redraw properly
+            REDRAW_ITEM: 'redraw-item', //TODO get rid of this event.
+            REDRAW_CONNECTOR: 'redraw-connector',  //TODO get rid of this event.
             ACTIVE_ITEM_SELECTED: 'active-item-selected',
             ALL_ITEMS_DESELECTED: 'all-items-deselected',
             CONNECTOR_SELECTED: 'connector-selected',
             ALL_CONNECTORS_DESELECTED: 'all-connectors-deselected',
             KEY_PRESS: 'key-press',
             BRING_TO_VIEW: 'bring-to-view',
-            SWITCH_MODE_TO_EDIT: 'switch-mode-edit',
+            SWITCH_MODE_TO_EDIT: 'switch-mode-edit', //TODO rename it to MODE_CHANGED and pass the value of the mode
+
             MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
             MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
+
+            ITEM_CHANGED: 'item-changed',
+            CONNECTOR_CHANGED: 'connector-changed',
+
             KEY: {
                 ESCAPE: 'escape',
                 DELETE: 'delete'
@@ -45,7 +50,7 @@ const EventBus = new Vue({
             this.$on(this._generateRedrawItemEventName(itemId), callback);
         },
         unsubscribeForRedrawItem(itemId, callback) {
-            this.off(this._generateRedrawItemEventName(itemId), callback);
+            this.$off(this._generateRedrawItemEventName(itemId), callback);
         },
         _generateRedrawItemEventName(itemId) {
             return `${EventBus.REDRAW_ITEM}/${itemId}`;

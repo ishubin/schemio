@@ -20,12 +20,12 @@
                 </ul>
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                <span class="btn btn-secondary" @click="saveScheme()">Save</span>
+                <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                 <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                     <li>
-                        <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem)">F</span>
-                        <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem)">B</span>
-                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems()">
+                        <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem); schemeChanged = true;">F</span>
+                        <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem); schemeChanged = true;">B</span>
+                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                             <i class="fas fa-object-group"></i>
                         </span>
                     </li>
@@ -134,9 +134,13 @@ export default {
     mounted() {
         this.loadCurrentUser();
 
+        window.onbeforeunload = this.onBrowseClose;
+
         apiClient.loadScheme(this.schemeId).then(scheme => {
             this.schemeContainer = new SchemeContainer(scheme);
         });
+        EventBus.$on(EventBus.ITEM_CHANGED, this.onItemChanged);
+        EventBus.$on(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
 
         EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
@@ -146,6 +150,8 @@ export default {
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     beforeDestroy(){
+        EventBus.$off(EventBus.ITEM_CHANGED, this.onItemChanged);
+        EventBus.$off(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
         EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
         EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
@@ -165,6 +171,8 @@ export default {
                     {name: "Search other documents", icon: "fas fa-search", emit: "clicked-search-other-documents"}
                 ]
             },
+
+            schemeChanged: false, //used in order to render Save button
 
             sidePanelExpanded: true,
             schemeId: this.$route.params.schemeId,
@@ -225,7 +233,10 @@ export default {
         },
 
         saveScheme() {
-            apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme);
+            this.schemeChanged = false;
+            apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme).catch(err => {
+                this.schemeChanged = true;
+            });
         },
 
         toggleSearchedItems() {
@@ -419,6 +430,21 @@ export default {
 
         onSwitchModeToEdit() {
             this.mode = 'edit';
+        },
+
+        onItemChanged(item) {
+            this.schemeChanged = true;
+        },
+
+        onConnectorChanged(connector) {
+            this.schemeChanged = true;
+        },
+
+        onBrowseClose() {
+            if (this.schemeChanged) {
+                return 'The changes were not saved';
+            }
+            return null;
         }
     },
     filters: {

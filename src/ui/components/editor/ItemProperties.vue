@@ -274,8 +274,9 @@ export default {
     watch: {
        item: {
            handler: function(newValue) {
+               EventBus.$emit(EventBus.ITEM_CHANGED, newValue);
                this.$forceUpdate();
-               EventBus.$emit(EventBus.REDRAW);
+               EventBus.$emit(EventBus.REDRAW);  //TODO move redrawing to SvgEditor
            },
            deep: true
        }
