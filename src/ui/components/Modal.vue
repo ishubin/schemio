@@ -33,6 +33,20 @@ export default {
             type: String,
             default: null
         }
+    },
+    mounted() {
+        document.addEventListener('keydown', this.onKeyPress);
+    },
+    beforeDestroy() {
+        document.removeEventListener('keydown', this.onKeyPress);
+    },
+
+    methods: {
+        onKeyPress(event) {
+            if (event.key === 'Escape') {
+                this.$emit('close');
+            }    
+        }
     }
 }
 </script>

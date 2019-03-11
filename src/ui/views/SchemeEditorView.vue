@@ -3,7 +3,7 @@
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
 
-                <dropdown :options="mainDropdown.options">
+                <dropdown :options="mainDropdown.options" @clicked-show-items="itemListShown = true">
                     <i class="fas fa-bars"></i>
                 </dropdown>
 
@@ -106,6 +106,8 @@
             :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
+
+        <item-list-popup v-if="itemListShown" :schemeContainer="schemeContainer" @close="itemListShown = false"/>
     </div>
 
 </template>
@@ -125,11 +127,12 @@ import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
+import ItemListPopup from '../components/editor/ItemListPopup.vue';
 
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
-        CreateNewSchemeModal, LinkEditPopup, Dropdown},
+        CreateNewSchemeModal, LinkEditPopup, Dropdown, ItemListPopup},
 
     mounted() {
         this.loadCurrentUser();
@@ -175,6 +178,7 @@ export default {
                 ]
             },
 
+            itemListShown: false,
             schemeChanged: false, //used in order to render Save button
 
             sidePanelExpanded: true,
