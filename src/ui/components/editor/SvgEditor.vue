@@ -13,17 +13,6 @@
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
                     >
 
-                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
-                        :key="connectorIndex"
-                        :connectorIndex="connectorIndex"
-                        :sourceItem="item"
-                        :connector="connector"
-                        :zoom="vZoom"
-                        :offsetX="vOffsetX"
-                        :offsetY="vOffsetY"
-                        :showReroutes="mode === 'edit'"
-                        ></connector-svg>
-
                     <g v-if="item.type === 'image'" class="item-graphics">
                         <image v-bind:xlink:href="item.url" :x="item.area.x" :y="item.area.y" :width="item.area.w + 'px'" :height="item.area.h + 'px'"/>
                     </g>
@@ -85,29 +74,40 @@
                         fill="rgba(0,0,0,0.0)"
                     />
 
-                </g>
 
-
-                <g v-if="mode === 'edit'" v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container">
-                    <!-- Drawing boundary edit box -->
-                    <rect class="boundary-box"
-                         :data-item-index="itemIndex"
-                        :x="item.area.x"
-                        :y="item.area.y"
-                        :width="item.area.w"
-                        :height="item.area.h"
-                    />
-                    <g v-if="item.meta.selected">
-                        <rect class="boundary-box-dragger"
-                            v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                            :data-dragger-item-index="itemIndex"
-                            :data-dragger-index="draggerIndex"
-                            :x="dragger.x - dragger.s / (vZoom || 1.0)"
-                            :y="dragger.y - dragger.s / (vZoom || 1.0)"
-                            :width="dragger.s * 2 / (vZoom || 1.0)"
-                            :height="dragger.s * 2 / (vZoom || 1.0)"
+                    <g v-if="mode === 'edit'" class="item-container">
+                        <!-- Drawing boundary edit box -->
+                        <rect class="boundary-box"
+                             :data-item-index="itemIndex"
+                            :x="item.area.x"
+                            :y="item.area.y"
+                            :width="item.area.w"
+                            :height="item.area.h"
                         />
+                        <g v-if="item.meta.selected">
+                            <rect class="boundary-box-dragger"
+                                v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                                :data-dragger-item-index="itemIndex"
+                                :data-dragger-index="draggerIndex"
+                                :x="dragger.x - dragger.s / (vZoom || 1.0)"
+                                :y="dragger.y - dragger.s / (vZoom || 1.0)"
+                                :width="dragger.s * 2 / (vZoom || 1.0)"
+                                :height="dragger.s * 2 / (vZoom || 1.0)"
+                            />
+                        </g>
                     </g>
+                    
+                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        :key="connectorIndex"
+                        :connectorIndex="connectorIndex"
+                        :sourceItem="item"
+                        :connector="connector"
+                        :zoom="vZoom"
+                        :offsetX="vOffsetX"
+                        :offsetY="vOffsetY"
+                        :showReroutes="mode === 'edit'"
+                        ></connector-svg>
+
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks">
@@ -140,22 +140,22 @@
 
                 <!-- Item Edit Menu -->
                 <g v-if="mode === 'edit' && activeItem">
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
                         <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
                         <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'shape'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
                         <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
                         <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>

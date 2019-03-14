@@ -16,7 +16,7 @@
                 <span>Overlay</span>
             </div>
 
-            <div class="item-container" @click="menu = 'shape'">
+            <div class="item-container" @click="menu = 'art'">
                 <i class="fas fa-splotch"></i>
                 <span>Art</span>
             </div>
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <div class="item-menu" v-if="menu === 'shape'">
+        <div class="item-menu" v-if="menu === 'art'">
             <div>
                 <span class="link" @click="menu = 'main'"><i class="fas fa-angle-left"></i> Back</span>
             </div>

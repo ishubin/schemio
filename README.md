@@ -1,6 +1,9 @@
 TODO
 -------------
 - Smart drawing
+- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
+- Add link item
+- Add text item
 - User art
     - Upload custom svgs
     - Quick search

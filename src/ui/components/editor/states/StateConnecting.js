@@ -37,7 +37,7 @@ export default class StateConnecting extends State {
     }
 
     isLegitItemForConnecting(item) {
-        return item && (item.type === 'component' || item.type === 'overlay' || item.type === 'shape' || item.type === 'comment');
+        return item && (item.type === 'component' || item.type === 'overlay' || item.type === 'art' || item.type === 'comment');
     }
 
     setSourceItem(item) {
