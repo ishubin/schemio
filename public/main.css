@@ -276,11 +276,11 @@ svg .item-container.item-type-component .item-graphics rect {
 svg .item-container.item-type-component.selected .item-graphics rect {
     opacity: 0.7;
 }
-svg .item-container.item-type-shape .item-graphics image {
+svg .item-container.item-type-art .item-graphics image {
     cursor: pointer;
     cursor: hand;
 }
-svg .item-container.item-type-shape.selected .item-graphics image {
+svg .item-container.item-type-art.selected .item-graphics image {
     opacity: 0.7;
 }
 svg .item-container.item-type-overlay .item-graphics rect {
@@ -393,7 +393,7 @@ svg.mode-view.state-interact .item-container.item-type-component:hover .item-gra
     opacity: 0.8;
     cursor: pointer;
 }
-svg.mode-view.state-interact .item-container.item-type-shape:hover .item-graphics image {
+svg.mode-view.state-interact .item-container.item-type-art:hover .item-graphics image {
     opacity: 0.8;
     cursor: pointer;
 }
