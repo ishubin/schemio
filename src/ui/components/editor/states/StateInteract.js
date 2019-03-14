@@ -62,8 +62,10 @@ class StateInteract extends State {
 
 
     dragScreen(x, y) {
-        this.editor.vOffsetX = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
-        this.editor.vOffsetY = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
+        this.editor.updateOffset(
+            Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
+            Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
+        );
         this.editor.$forceUpdate();
     }
 }

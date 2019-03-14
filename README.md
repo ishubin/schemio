@@ -1,3 +1,12 @@
+TODO
+-------------
+- Smart drawing
+- User art
+    - Upload custom svgs
+    - Quick search
+- Smooth connectors
+- Diff-based saving and conflicts resolving
+
 
 
 Grouping

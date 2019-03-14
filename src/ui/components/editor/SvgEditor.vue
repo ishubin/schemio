@@ -284,6 +284,18 @@ export default {
         };
     },
     methods: {
+        updateOffset(x, y) {
+            this.vOffsetX = x;
+            this.vOffsetY = y;
+            this.$emit('offset-updated', x, y);
+        },
+
+        dragOffset(dx, dy) {
+            this.vOffsetX += dx;
+            this.vOffsetY += dy;
+            this.$emit('offset-updated', this.vOffsetX, this.vOffsetY);
+        },
+
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 targetOffsetX = rect.left + document.body.scrollLeft,
@@ -298,7 +310,7 @@ export default {
         },
 
         updateZoom(zoom) {
-            this.$emit('update-zoom', zoom);
+            this.$emit('zoom-updated', zoom);
         },
 
         identifyElement(element) {
@@ -483,8 +495,10 @@ export default {
                 } else  {
                     var t = this.animations.bringToView.frame / this.animations.bringToView.totalFrames;
 
-                    this.vOffsetX = originalX * (1.0 - t) + x * t;
-                    this.vOffsetY = originalY * (1.0 - t) + y * t;
+                    this.updateOffset(
+                        originalX * (1.0 - t) + x * t,
+                        originalY * (1.0 - t) + y * t
+                    );
                     this.updateZoom(originalZoom * (1.0 - t) + z * t);
                 }
            }, this.animations.linksAppear.intervalMs);

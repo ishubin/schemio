@@ -44,10 +44,11 @@
             <div class="scheme-container">
                 <div v-if="schemeContainer">
                     <svg-editor
-                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" offsetX="20" offsetY="20" :zoom="zoom / 100.0"
+                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
                         :mode="mode"
                         :itemHighlights="searchHighlights"
-                        @update-zoom="onUpdateZoom"
+                        @zoom-updated="onUpdateZoom"
+                        @offset-updated="onUpdateOffset"
                         @clicked-add-item-to-item="onActiveItemAppendItem"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
@@ -128,6 +129,7 @@ import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
+import settingsStorage from '../settingsStorage.js';
 
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -166,6 +168,18 @@ export default {
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     data() {
+        var schemeId = this.$route.params.schemeId;
+        var offsetX = 0;
+        var offsetY = 0;
+        var zoom = 100;
+
+        var schemeSettings = settingsStorage.getSchemeSettings(schemeId);
+        if (schemeSettings && schemeSettings.screenPosition) {
+            offsetX = schemeSettings.screenPosition.offsetX;
+            offsetY = schemeSettings.screenPosition.offsetY;
+            zoom = schemeSettings.screenPosition.zoom;
+        }
+
         return {
             user: null,
             originalUrlEncoded: encodeURIComponent(window.location),
@@ -182,14 +196,16 @@ export default {
             schemeChanged: false, //used in order to render Save button
 
             sidePanelExpanded: true,
-            schemeId: this.$route.params.schemeId,
+            schemeId: schemeId,
             schemeContainer: null,
             searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             selectedItem: null,
             selectedConnector: null,
-            zoom: 100,
+            offsetX: offsetX,
+            offsetY: offsetY,
+            zoom: zoom,
             mode: 'view',
             knownModes: ['view'],
             searchHighlights: [],
@@ -218,7 +234,9 @@ export default {
             }, {
                 name: 'Connection',
                 disabled: true
-            }]
+            }],
+
+            offsetSaveTimerId: null
         }
     },
     methods: {
@@ -396,6 +414,34 @@ export default {
         onUpdateZoom(zoom) {
             var value = Math.floor(zoom * 1000) / 10;
             this.zoom = Math.min(1000, Math.max(2, value));
+            this.initOffsetSave();
+        },
+
+        onUpdateOffset(x, y) {
+            this.offsetX = x;
+            this.offsetY = y;
+            this.initOffsetSave();
+        },
+
+        initOffsetSave() {
+            if (this.offsetSaveTimerId) {
+                clearTimeout(this.offsetSaveTimerId);
+            }
+
+            this.offsetSaveTimerId = setTimeout(()=> {
+                this.offsetSaveTimerId = null;
+                this.saveOffset();
+            }, 200);
+        },
+
+        saveOffset() {
+            settingsStorage.saveSchemeSettings(this.schemeContainer.scheme.id, {
+                screenPosition: {
+                    offsetX: this.offsetX,
+                    offsetY: this.offsetY,
+                    zoom: this.zoom
+                }
+            });
         },
 
         onActiveItemSelected(item) {

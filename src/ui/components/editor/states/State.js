@@ -25,8 +25,7 @@ class State {
                 if (event.metaKey || event.ctrlKey) {
                     this.zoomByWheel(mx, my, event.deltaY);
                 } else {
-                    this.editor.vOffsetX += event.deltaX;
-                    this.editor.vOffsetY += event.deltaY;
+                    this.editor.dragOffset(event.deltaX, event.deltaY);
                     this.editor.$forceUpdate();
                 }
             }
@@ -40,15 +39,19 @@ class State {
         if (delta < 0) {
             nz = this.editor.vZoom * 1.05;
 
-            this.editor.vOffsetX = mx - nz * (mx - xo) / this.editor.vZoom;
-            this.editor.vOffsetY = my - nz * (my - yo) / this.editor.vZoom;
+            this.editor.updateOffset(
+                mx - nz * (mx - xo) / this.editor.vZoom,
+                my - nz * (my - yo) / this.editor.vZoom
+            );
             this.editor.updateZoom(nz);
         } else {
             if (this.editor.vZoom > 0.05) {
                 nz = this.editor.vZoom / 1.05;
 
-                this.editor.vOffsetX = mx - nz * (mx - xo) / this.editor.vZoom;
-                this.editor.vOffsetY = my - nz * (my - yo) / this.editor.vZoom;
+                this.editor.updateOffset(
+                    mx - nz * (mx - xo) / this.editor.vZoom,
+                    my - nz * (my - yo) / this.editor.vZoom
+                );
                 this.editor.updateZoom(nz);
             }
         }
