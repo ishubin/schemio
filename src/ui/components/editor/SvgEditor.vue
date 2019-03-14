@@ -57,13 +57,13 @@
                         />
                     </g>
 
-                    <g v-if="item.type === 'shape'" class="item-graphics">
+                    <g v-if="item.type === 'art'" class="item-graphics">
                         <image
                             :x="item.area.x"
                             :y="item.area.y"
                             :width="item.area.w"
                             :height="item.area.h"
-                            :xlink:href="'/shapes/'+item.shape+'.svg'"/>
+                            :xlink:href="item.artUrl"/>
                         <text
                             :x="item.area.x + item.area.w/2 - 15 * item.name.length / (1.75 * 2)"
                             :y="item.area.y + item.area.h + 20"

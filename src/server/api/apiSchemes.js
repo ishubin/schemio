@@ -3,19 +3,6 @@ const categoryStorage   = require('../storage/storageProvider.js').provideCatego
 const _                 = require('lodash');
 const fs                = require('fs-extra');
 
-
-const shapes        = [];
-fs.readdirSync('public/shapes').forEach(fileName => {
-    var i = fileName.indexOf('.');
-    if (i > 0) {
-        shapes.push(fileName.substring(0, i));
-    } else {
-        shapes.push(fileName);
-    }
-});
-
-
-
 const ApiSchemes = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
@@ -92,7 +79,7 @@ const ApiSchemes = {
     },
 
     getShapes(req, res) {
-        res.json(shapes);
+        res.json({});
     }
 }
 

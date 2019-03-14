@@ -54,6 +54,18 @@ export default {
         });
     },
 
+    createArt(art) {
+        return axios.post('/api/art', art).then(response => {
+            return response.data;
+        });
+    },
+
+    getAllArt() {
+        return axios.get('/api/art').then(response => {
+            return response.data;
+        });
+    },
+
     loadScheme(schemeId) {
         return axios.get(`/api/schemes/${schemeId}`).then(response => {
             var scheme = response.data;

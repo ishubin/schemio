@@ -17,8 +17,8 @@
             </div>
 
             <div class="item-container" @click="menu = 'shape'">
-                <i class="fas fa-database"></i>
-                <span>Icons</span>
+                <i class="fas fa-splotch"></i>
+                <span>Art</span>
             </div>
 
             <div class="item-container" @click="clickImage">
@@ -31,20 +31,28 @@
                 <span>Comment</span>
             </div>
         </div>
+
         <div class="item-menu" v-if="menu === 'shape'">
             <div>
-                <span class="link" @click="menu = 'main'">&lt; Back</span>
+                <span class="link" @click="menu = 'main'"><i class="fas fa-angle-left"></i> Back</span>
+            </div>
+            <div>
+                <span class="btn btn-primary" @click="customArtUploadModalShown = true">
+                    <i class="fas fa-upload"></i> Upload Icon
+                </span>
             </div>
 
             <div class="item-container"
-                v-for="shape in shapes"
-                @click="clickShape(shape)">
-                <img width="60px" height="60px" :src="'/shapes/'+shape+'.svg'"/>
-                <span>{{shape}}</span>
+                v-for="art in artList"
+                @click="clickArt(art)">
+                <img width="60px" height="60px" :src="art.url"/>
+                <span>{{art.name}}</span>
             </div>
         </div>
 
-        <create-image-modal v-if="showCreateImageModal" @close="showCreateImageModal = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
+        <create-image-modal v-if="createImageModalShown" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
+
+        <custom-art-upload-modal v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false"/>
 
         <modal title="Error" v-if="errorMessage" @close='errorMessage = null'>
             {{errorMessage}}
@@ -56,22 +64,24 @@
 <script>
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
+import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
 
 export default {
-    components: {CreateImageModal, Modal},
+    components: {CreateImageModal, Modal, CustomArtUploadModal},
     mounted() {
-        apiClient.getShapes().then(shapes => {
-            this.shapes = shapes;
+        apiClient.getAllArt().then(artList => {
+            this.artList = artList;
         });
     },
     data() {
         return {
-            showCreateImageModal: false,
+            createImageModalShown: false,
+            customArtUploadModalShown: false,
             menu: 'main',
-            shapes: [],
+            artList: [],
             errorMessage: null
         }
     },
@@ -136,11 +146,12 @@ export default {
             });
         },
 
-        clickShape(shape) {
+        clickArt(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'shape',
-                shape: shape,
+                type: 'art',
+                artUrl: art.url,
+                artId: art.id,
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {},
                 properties: '',
@@ -151,11 +162,11 @@ export default {
         },
 
         clickImage() {
-            this.showCreateImageModal = true;
+            this.createImageModalShown = true;
         },
 
         startCreatingImage(imageUrl) {
-            this.showCreateImageModal = false;
+            this.createImageModalShown = false;
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
@@ -168,7 +179,7 @@ export default {
                         description: ''
                     });
                 }
-                this.showCreateImageModal = false;
+                this.createImageModalShown = false;
             };
             img.onerror = () => {
                 this.errorMessage = 'Could not load image. Check if the path is correct';

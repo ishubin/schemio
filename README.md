@@ -4,6 +4,8 @@ TODO
 - User art
     - Upload custom svgs
     - Quick search
+- S3 storage: AWS, Swift etc.
+- Search in all docs
 - Smooth connectors
 - Diff-based saving and conflicts resolving
 

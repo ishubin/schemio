@@ -8,6 +8,7 @@ const apiUser               = require('./api/apiUser.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
+const apiArt                = require('./api/apiArt.js');
 const session               = require('express-session');
 const MongoStore            = require('connect-mongo')(session);
 
@@ -40,6 +41,9 @@ app.put('/api/schemes/:schemeId', [middleware.auth], apiSchemes.saveScheme);
 app.get('/api/tags',  apiSchemes.getTags);
 
 app.get('/api/shapes',  apiSchemes.getShapes);
+
+app.post('/api/art', [middleware.auth], apiArt.createArt);
+app.get('/api/art', apiArt.getArt);
 
 app.post('/images', [middleware.auth], apiImages.uploadImage);
 app.get('/images/:fileName', apiImages.getImage);
