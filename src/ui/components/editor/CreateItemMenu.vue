@@ -52,7 +52,7 @@
 
         <create-image-modal v-if="createImageModalShown" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
 
-        <custom-art-upload-modal v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false"/>
+        <custom-art-upload-modal v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false" @art-created="onArtCreated"/>
 
         <modal title="Error" v-if="errorMessage" @close='errorMessage = null'>
             {{errorMessage}}
@@ -72,9 +72,7 @@ import apiClient from '../../apiClient.js';
 export default {
     components: {CreateImageModal, Modal, CustomArtUploadModal},
     mounted() {
-        apiClient.getAllArt().then(artList => {
-            this.artList = artList;
-        });
+        this.reloadArt();
     },
     data() {
         return {
@@ -86,6 +84,17 @@ export default {
         }
     },
     methods: {
+        reloadArt() {
+            apiClient.getAllArt().then(artList => {
+                this.artList = artList;
+            });
+        },
+
+        onArtCreated(art) {
+            this.artList.push(art);
+            this.customArtUploadModalShown = false;
+        },
+
         clickComponent() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),

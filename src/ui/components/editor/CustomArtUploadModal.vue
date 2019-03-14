@@ -53,7 +53,7 @@ export default {
                 name: this.iconName,
                 url: this.url
             }).then(art => {
-                this.$emit('close');
+                this.$emit('art-created', art);
             }).catch(err => {
                 this.errorMessage = 'Error creating art';
             });
