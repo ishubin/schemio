@@ -46,17 +46,17 @@ h5 {
 }
 
 
-/******************** Menu *********************/
-.menu {
+/******************** Header *********************/
+.header {
     background: #3f4245;
     color: #fff;
     padding: 0;
     margin: 0;
 }
-.menu .menu-caption {
+.header .header-caption {
     display: inline-block;
 }
-.menu .menu-caption a, .menu .menu-caption a:visited {
+.header .header-caption a, .header .header-caption a:visited {
     color: #efefef;
     font-weight: bold;
     font-size: 20pt;
@@ -66,21 +66,23 @@ h5 {
     margin-left: 10px;
     margin-right: 20px;
 }
-.menu ul {
+.header > ul {
     display: inline;
     list-style: none;
     margin: 0;
     padding: 0;
 }
-.menu ul li {
+.header > ul > li {
     display: inline;
 }
-.menu ul li span {
+.header > ul > li span, .header > ul > li a {
     display: inline-block;
     padding: 15px 10px;
     cursor: pointer;
+    text-decoration: none;
+    color: white;
 }
-.menu ul li span:hover {
+.header > ul > li span:hover, .header > ul > li a:hover {
     background: #272728;
 }
 

@@ -188,7 +188,7 @@ export default {
                 options: [
                     {name: "Home", icon: "fas fa-home", link: "/"},
                     {name: "Show items", icon: "fas fa-list", emit: "clicked-show-items"},
-                    {name: "Search other documents", icon: "fas fa-search", emit: "clicked-search-other-documents"}
+                    {name: "Search other documents", icon: "fas fa-search", link: "/search"}
                 ]
             },
 

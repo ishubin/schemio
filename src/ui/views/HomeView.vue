@@ -1,24 +1,6 @@
 <template lang="html">
     <div>
-        <div class="menu">
-            <div class="menu-caption">
-                <a href="/">Schemio</a>
-            </div>
-            <ul>
-                <li>
-                    <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
-                </li>
-            </ul>
-
-            <div class="top-right-panel">
-                <div v-if="user">
-                    <a href="/user/logout">Logout</a>
-                </div>
-                <div v-else>
-                    <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
-                </div>
-            </div>
-        </div>
+        <header-component :category="category"/>
         <div class="content-wrapper">
             <ul class="category-breadcrumb" v-if="category">
                 <li>
@@ -51,10 +33,6 @@
                 </li>
             </ul>
         </div>
-        <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories"
-            @close="newSchemePopup.show = false"
-            @scheme-created="openNewSchemePopupSchemeCreated"
-            ></create-new-scheme-modal>
     </div>
 </template>
 
@@ -62,36 +40,23 @@
 import apiClient from '../apiClient.js';
 import _ from 'lodash';
 import utils from '../utils.js';
-import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
+import HeaderComponent from '../components/Header.vue';
 
 
 export default {
-    components: {CreateNewSchemeModal},
+    components: {HeaderComponent},
     mounted() {
-        this.loadCurrentUser();
         this.loadCategories();
         this.loadSchemes();
     },
     data() {
         return {
-            user: null,
-            originalUrlEncoded: encodeURIComponent(window.location),
             categoryId: this.$route.query.category,
-            newSchemePopup: {
-                categories: [],
-                show: false
-            },
-            category: [],
+            category: null,
             schemes: []
         }
     },
     methods: {
-        loadCurrentUser() {
-            apiClient.getCurrentUser().then(user => {
-                this.user = user;
-            });
-        },
-
         loadCategories() {
             apiClient.getCategory(this.categoryId).then(category => {
                 this.category = category;
@@ -102,28 +67,6 @@ export default {
             apiClient.getSchemesInCategory(this.categoryId).then(result => {
                 this.schemes = result.results;
             });
-        },
-
-        openNewSchemePopup() {
-            if (this.category && this.category.id) {
-                var categories = _.map(this.category.ancestors, ancestor => {
-                    return {name: ancestor.name, id: ancestor.id};
-                });
-
-                categories.push({
-                    name: this.category.name,
-                    id: this.category.id
-                });
-                this.newSchemePopup.categories = categories;
-            } else {
-                this.newSchemePopup.categories = [];
-            }
-            this.newSchemePopup.show = true;
-        },
-
-        openNewSchemePopupSchemeCreated(scheme) {
-            this.newSchemePopup.show = false;
-            window.location.href = `/schemes/${scheme.id}`;
         }
     },
     filters: {

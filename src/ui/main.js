@@ -6,12 +6,13 @@ import App from './App.vue';
 import HomeView from './views/HomeView.vue';
 import LoginView from './views/LoginView.vue';
 import SchemeEditorView from './views/SchemeEditorView.vue';
+import SearchView from './views/SearchView.vue';
 
 
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 
-function _route(name, path, component) {
+function route(name, path, component) {
     return {
         name: name,
         path: path,
@@ -23,9 +24,10 @@ function _route(name, path, component) {
 
 
 const routes = [
-    _route('Home', '/', HomeView),
-    _route('Home', '/login', LoginView),
-    _route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView)
+    route('Home', '/', HomeView),
+    route('Home', '/login', LoginView),
+    route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView),
+    route('Search', '/search', SearchView)
 ];
 
 

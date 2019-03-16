@@ -1,57 +1,41 @@
 <template lang="html">
-    <transition name="modal">
-       <div class="modal-mask">
-           <div class="modal-wrapper">
-               <div class="modal-container" style="width: 600px;">
-                   <div class="modal-header">
-                       <h3>New Scheme</h3>
-                   </div>
-                   <div class="modal-body">
-                       <h5>Name</h5>
-                       <input class="textfield" type="text" v-model="schemeName" placeholder="Name..."/>
+    <modal title="New Scheme" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
+       <h5>Name</h5>
+       <input class="textfield" type="text" v-model="schemeName" placeholder="Name..."/>
 
-                       <h5>Description</h5>
-                       <textarea class="textfield" v-model="schemeDescription"></textarea>
+       <h5>Description</h5>
+       <textarea class="textfield" v-model="schemeDescription"></textarea>
 
-                       <h5>Category</h5>
-                       <category-selector :categories="categories"/>
+       <h5>Category</h5>
+       <category-selector :categories="categories"/>
 
-                       <h5>Scheme Image URL</h5>
-                       <table width="100%">
-                           <tbody>
-                                <tr>
-                                    <td>
-                                       <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL"/>
-                                    </td>
-                                    <td width="34px">
-                                        <div class="file-upload-button">
-                                            <i class="fas fa-file-upload icon"></i>
-                                            <input type="file" @change="uploadImage"/>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                  </div>
-                   <div class="modal-footer">
-                       <div class="modal-controls">
-                           <span class="btn btn-primary" @click="submitNewScheme()">Create</span>
-                           <span class="btn btn-secondary" @click="$emit('close')">Close</span>
-                       </div>
-                   </div>
-               </div>
-           </div>
-        </div>
-    </transition>
+       <h5>Scheme Image URL</h5>
+       <table width="100%">
+           <tbody>
+                <tr>
+                    <td>
+                       <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL"/>
+                    </td>
+                    <td width="34px">
+                        <div class="file-upload-button">
+                            <i class="fas fa-file-upload icon"></i>
+                            <input type="file" @change="uploadImage"/>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </modal>
 </template>
 
 <script>
 import apiClient from '../apiClient.js';
 import axios from 'axios';
-import CategorySelector from '../components/CategorySelector.vue';
+import CategorySelector from './CategorySelector.vue';
+import Modal from './Modal.vue';
 
 export default {
-    components: {CategorySelector},
+    components: {CategorySelector, Modal},
     props: {
         name: {type: String, default: ''},
         categories: {type: Array, default: []},
