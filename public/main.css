@@ -869,6 +869,7 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
 }
 .category-selector-container .category-selector-input ul li i {
     margin: 5px 2px 2px 2px;
+    color: #111;
 }
 .category-selector-container .category-selector-input ul li.new-category-input{
     -webkit-box-flex: 1;

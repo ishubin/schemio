@@ -110,9 +110,9 @@ export default {
         }
     },
 
-    findSchemes(query, offset) {
-        var encodedQuery = encodeURIComponent(query);
-        return axios.get(`/api/schemes?offset=${offset}&q=${encodedQuery}`).then(response => {
+    findSchemes(filters) {
+        var encodedQuery = encodeURIComponent(filters.query || '');
+        return axios.get(`/api/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`).then(response => {
             return response.data;
         });
     },

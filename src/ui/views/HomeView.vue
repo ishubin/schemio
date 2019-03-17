@@ -38,7 +38,6 @@
 
 <script>
 import apiClient from '../apiClient.js';
-import _ from 'lodash';
 import utils from '../utils.js';
 import HeaderComponent from '../components/Header.vue';
 
