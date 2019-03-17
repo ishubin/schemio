@@ -1,14 +1,15 @@
 TODO
 -------------
-- Smart drawing
-- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
+- Search in all docs
+    - Search by items text (name and description)
 - Add link item
 - Add text item
+- Smart drawing
+- Improve connectors - draw it perpendicular to edges.
+- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - User art
-    - Upload custom svgs
     - Quick search
 - S3 storage: AWS, Swift etc.
-- Search in all docs
 - Smooth connectors
 - Diff-based saving and conflicts resolving
 
