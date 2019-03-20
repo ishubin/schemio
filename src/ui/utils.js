@@ -14,5 +14,17 @@ module.exports = {
 
     clone(obj) {
         return JSON.parse(JSON.stringify(obj));
+    },
+
+    extendObject(originalObject, overrideObject) {
+        _.forEach(overrideObject, (value, key) => {
+            if (!originalObject.hasOwnProperty(key)) {
+                originalObject[key] = value;
+            } else {
+                if (typeof value === 'object') {
+                    this.extendObject(originalObject[key], value);
+                }
+            }
+        });
     }
 }

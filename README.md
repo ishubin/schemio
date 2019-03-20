@@ -1,9 +1,16 @@
 TODO
 -------------
+- Refactor ItemProperties into separate components per item type.
+- Fix. Style updates are not rendered for connectors
+- Fix. Stroke changes are not updated in component
+- Copy/Paste selected items with their connectors.
 - Search in all docs
     - Search by items text (name and description)
 - Add link item
-- Add text item
+- Add text item. Or even better: allow to remove background for comment items. this way it will act as a regular text label
+- Overflow item styling: non-active visibility, border, opacity,
+- Image upload error message (New Scheme Popup, etc.)
+- Snapping to items
 - Smart drawing
 - Improve connectors - draw it perpendicular to edges.
 - Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
@@ -12,6 +19,7 @@ TODO
 - S3 storage: AWS, Swift etc.
 - Smooth connectors
 - Diff-based saving and conflicts resolving
+- Export scheme as image.
 
 
 

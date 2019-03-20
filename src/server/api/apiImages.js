@@ -25,6 +25,7 @@ module.exports = {
                 });
             } else {
                 res.status(500);
+                console.error(err);
                 res.json({error: 'Could not upload file'});
             }
         });

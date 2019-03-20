@@ -68,6 +68,7 @@ import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
+import knownItems from '../../scheme/knownItems.js';
 
 export default {
     components: {CreateImageModal, Modal, CustomArtUploadModal},
@@ -145,6 +146,7 @@ export default {
                 type: 'comment',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
+                    drawRect: true,
                     background: { color: '#ccc' },
                     text: {color: '#666'},
                     stroke: {color: '#fff'}

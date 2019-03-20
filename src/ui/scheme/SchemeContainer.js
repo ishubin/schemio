@@ -1,6 +1,9 @@
 import _ from 'lodash';
 import myMath from '../myMath.js';
+import utils from '../utils.js';
 import shortid from 'shortid';
+import knownItems from './knownItems.js';
+
 /*
 Providing access to scheme elements and provides modifiers for it
 */
@@ -28,7 +31,7 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = items[0].area.h;
 
             _.forEach(items, item => {
-                this.enrichItemWithDefaultStyles(item);
+                utils.extendObject(item, knownItems[item.type].properties);
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }
@@ -52,35 +55,6 @@ class SchemeContainer {
             });
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
-        }
-    }
-
-    enrichItemWithDefaultStyles(item) {
-        if (item.type === 'component') {
-            this.extendObject(item, {
-                locked: false,
-                style: {
-                    shape: 'component',
-                    background: {
-                        color: '#ddd'
-                    },
-                    text: {
-                        color: '#333'
-                    },
-                    properties: {
-                        background: {
-                            color: '#eee'
-                        },
-                        text: {
-                            color: '#888'
-                        }
-                    },
-                    stroke: {
-                        color: '#666',
-                        size: 1
-                    }
-                }
-            });
         }
     }
 
@@ -211,7 +185,7 @@ class SchemeContainer {
     }
 
     enrichConnectorWithDefaultStyle(connector) {
-        this.extendObject(connector, {
+        utils.extendObject(connector, {
             style: {
                 color: '#333',
                 width: 1,
@@ -493,18 +467,6 @@ class SchemeContainer {
         } else {
             return _.find(this.scheme.items, item => item.id === itemId);
         }
-    }
-
-    extendObject(originalObject, overrideObject) {
-        _.forEach(overrideObject, (value, key) => {
-            if (!originalObject.hasOwnProperty(key)) {
-                originalObject[key] = value;
-            } else {
-                if (typeof value === 'object') {
-                    this.extendObject(originalObject[key], value);
-                }
-            }
-        }) ;
     }
 
     getConnectingSourceItemIds(destinationId) {
