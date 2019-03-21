@@ -22,8 +22,8 @@
                 ></create-image-modal>
         </panel>
 
-        <panel name="Style" v-if="item.type !== 'image'">
-            <div class="property-row" v-if="item.type === 'component'">
+        <panel name="Style">
+            <div class="property-row">
                 <span class="property-label">Shape: </span>
                 <select v-model="item.style.shape">
                     <option v-for="componentShape in knownComponentShapes">{{componentShape}}</option>

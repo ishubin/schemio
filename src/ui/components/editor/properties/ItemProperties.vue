@@ -16,16 +16,18 @@
         </ul>
         <component-properties v-if="item.type === 'component'" :item="item"/>
         <image-properties v-if="item.type === 'image'" :item="item"/>
+        <overlay-properties v-if="item.type === 'overlay'" :item="item"/>
     </div>
 </template>
 
 <script>
 import ComponentProperties from './ComponentProperties.vue';
 import ImageProperties from './ImageProperties.vue';
+import OverlayProperties from './OverlayProperties.vue';
 
 export default {
     props: ['item'],
-    components: {ComponentProperties, ImageProperties},
+    components: {ComponentProperties, ImageProperties, OverlayProperties},
 
     data() {
         return {
