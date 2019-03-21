@@ -17,17 +17,20 @@
         <component-properties v-if="item.type === 'component'" :item="item"/>
         <image-properties v-if="item.type === 'image'" :item="item"/>
         <overlay-properties v-if="item.type === 'overlay'" :item="item"/>
+        <comment-properties v-if="item.type === 'comment'" :item="item"/>
     </div>
 </template>
 
 <script>
+import EventBus from '../EventBus.js';
 import ComponentProperties from './ComponentProperties.vue';
 import ImageProperties from './ImageProperties.vue';
 import OverlayProperties from './OverlayProperties.vue';
+import CommentProperties from './CommentProperties.vue';
 
 export default {
     props: ['item'],
-    components: {ComponentProperties, ImageProperties, OverlayProperties},
+    components: {ComponentProperties, ImageProperties, OverlayProperties, CommentProperties},
 
     data() {
         return {
@@ -46,7 +49,19 @@ export default {
             this.$emit('ungroup-item');
             this.itemGroup = null;
         },
-    }
+    },
+
+    watch: {
+        //TODO get rid of this watcher and detect changes in other ways. At this moment this component is the one responsible for detecting any changes on the item (even dragging it)
+       item: {
+           handler: function(newValue) {
+               EventBus.$emit(EventBus.ITEM_CHANGED, newValue);
+               this.$forceUpdate();
+               EventBus.$emit(EventBus.REDRAW);  //TODO move redrawing to SvgEditor
+           },
+           deep: true
+       }
+   }
 }
 </script>
 

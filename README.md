@@ -1,6 +1,7 @@
 TODO
 -------------
 - Refactor ItemProperties into separate components per item type.
+- Get rid of art items and replace them with images.
 - Fix. Style updates are not rendered for connectors
 - Fix. Stroke changes are not updated in component
 - Copy/Paste selected items with their connectors.
