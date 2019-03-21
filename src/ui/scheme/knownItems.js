@@ -47,5 +47,9 @@ module.exports = {
         properties: {
             style: {}
         }
+    },
+
+    image: {
+        properties: {}
     }
 };

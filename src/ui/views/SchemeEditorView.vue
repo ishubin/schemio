@@ -120,7 +120,7 @@ import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
-import ItemProperties from '../components/editor/ItemProperties.vue';
+import ItemProperties from '../components/editor/properties/ItemProperties.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
 import ConnectionProperties from '../components/editor/ConnectionProperties.vue';

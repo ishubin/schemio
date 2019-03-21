@@ -1,0 +1,86 @@
+<template lang="html">
+    <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape' ">
+        <div v-if="!item.links || item.links.length === 0">There are no links</div>
+        <ul class="links">
+            <li v-for="(link, linkId) in item.links">
+                <a class="link" :href="link.url" target="_blank">
+                   <i class="fas" :class="getLinkCssClass(link)"></i>
+                    {{link.title}}
+                </a>
+                <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
+                <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-times"></i></span>
+            </li>
+        </ul>
+        <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
+
+
+        <link-edit-popup v-if="editLinkData"
+            :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url" :type="editLinkData.type"
+            @submit-link="onLinkSubmit"
+            @close="editLinkData = null"/>
+    </panel>
+</template>
+
+<script>
+import LinkEditPopup from '../LinkEditPopup.vue';
+import Panel from '../Panel.vue';
+import linkTypes from '../LinkTypes.js';
+
+export default {
+    props: ['item'],
+    components: { Panel, LinkEditPopup },
+
+    data() {
+        return {
+            editLinkData: null
+        };
+    },
+
+    methods: {
+        getLinkCssClass(link) {
+            return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
+        },
+        addLink() {
+            this.editLinkData = {
+                linkId: -1,
+                edit: false,
+                title: '',
+                url: '',
+                type: ''
+            };
+        },
+        deleteLink(linkId) {
+            this.item.links.splice(linkId, 1);
+        },
+        editLink(linkId, link) {
+            this.editLinkData = {
+                linkId: linkId,
+                edit: true,
+                title: link.title,
+                url: link.url,
+                type: link.type
+            };
+        },
+        onLinkSubmit(link) {
+            if (this.editLinkData.linkId >= 0) {
+                this.item.links[this.editLinkData.linkId].title = link.title;
+                this.item.links[this.editLinkData.linkId].url = link.url;
+                this.item.links[this.editLinkData.linkId].type = link.type;
+            } else {
+                if (!this.item.links) {
+                    this.item.links = [];
+                }
+                this.item.links.push({
+                    title: link.title,
+                    url: link.url,
+                    type: link.type
+                });
+            }
+        },
+
+    }
+}
+</script>
+
+<style lang="css">
+</style>
