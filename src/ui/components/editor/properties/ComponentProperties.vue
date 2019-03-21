@@ -2,26 +2,6 @@
     <div>
         <general-panel :item="item"/>
 
-        <panel name="Image" v-if="item.type === 'image'">
-            <h5>Image URL</h5>
-
-            <table width="100%">
-                <tbody>
-                    <tr>
-                        <td>
-                            <input class="textfield" type="text" v-model="item.url"/>
-                        </td>
-                        <td width="34px">
-                            <div class="file-upload-button">
-                                <i class="fas fa-file-upload icon"></i>
-                                <input type="file" @change="uploadImage"/>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </panel>
-
         <links-panel :item="item"/>
 
         <connections-panel :item="item"/>
@@ -114,19 +94,6 @@ export default {
         },
         removeComponentImage() {
             this.item.image = null;
-        },
-
-        uploadImage(event) {
-            var file = event.target.files[0];
-            if (file) {
-                var form = new FormData();
-                form.append('image', file, file.name);
-                axios.post('/images', form).then(response => {
-                    if (this.item) {
-                        this.item.url = response.data.path;
-                    }
-                });
-            }
         },
 
         redrawItem() {

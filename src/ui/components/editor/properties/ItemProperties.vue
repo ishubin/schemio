@@ -15,15 +15,17 @@
             </li>
         </ul>
         <component-properties v-if="item.type === 'component'" :item="item"/>
+        <image-properties v-if="item.type === 'image'" :item="item"/>
     </div>
 </template>
 
 <script>
 import ComponentProperties from './ComponentProperties.vue';
+import ImageProperties from './ImageProperties.vue';
 
 export default {
     props: ['item'],
-    components: {ComponentProperties},
+    components: {ComponentProperties, ImageProperties},
 
     data() {
         return {
