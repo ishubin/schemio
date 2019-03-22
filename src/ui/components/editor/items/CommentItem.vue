@@ -1,12 +1,14 @@
 <template lang="html">
     <g class="item-graphics">
-        <polygon :points="points" style="stroke-width:1" :fill="backgroundColor" :stroke="strokeColor"/>
-        <line :x1="x + delta" :y1="y" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
-        <line :x1="x" :y1="y + delta" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
+        <g v-if="itemStyle.shape === 'simple-comment'">
+            <polygon :points="points" style="stroke-width:1" :fill="backgroundColor" :stroke="strokeColor"/>
+            <line :x1="x + delta" :y1="y" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
+            <line :x1="x" :y1="y + delta" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
+        </g>
 
         <text
             :x="x + Math.floor(fontsize / 2)"
-            :y="y + fontsize"
+            :y="y + topMargin"
             :font-size="Math.floor(fontsize) + 'px'"
             :fill="itemStyle.text && itemStyle.text.color ? itemStyle.text.color : '#000'"
             >
@@ -90,6 +92,12 @@ export default {
         },
         strokeColor() {
             return this.itemStyle.stroke && this.itemStyle.stroke.color ? this.itemStyle.stroke.color : '#fff';
+        },
+        topMargin() {
+            if (this.itemStyle.shape === 'simple-comment') {
+                return 12;
+            }
+            return 0;
         }
     }
 }

@@ -30,6 +30,11 @@
                 <i class="fas fa-comment-alt"></i>
                 <span>Comment</span>
             </div>
+
+            <div class="item-container" @click="clickText">
+                <i class="fas fa-font"></i>
+                <span>Text</span>
+            </div>
         </div>
 
         <div class="item-menu" v-if="menu === 'art'">
@@ -140,15 +145,32 @@ export default {
             });
         },
 
+        clickText() {
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+                id: shortid.generate(),
+                type: 'comment',
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                style: {
+                    shape: 'none',
+                    background: { color: '#ccc' },
+                    text: {color: '#333'},
+                    stroke: {color: '#fff'}
+                },
+                name: '',
+                description: 'Leave a comment ...',
+                links: []
+            });
+        },
+
         clickComment() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'comment',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
-                    drawRect: true,
+                    shape: 'simple-comment',
                     background: { color: '#ccc' },
-                    text: {color: '#666'},
+                    text: {color: '#333'},
                     stroke: {color: '#fff'}
                 },
                 name: '',
