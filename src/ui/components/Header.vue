@@ -30,7 +30,7 @@
 
 <script>
 import apiClient from '../apiClient.js';
-import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
+import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 
 export default {
     props: {

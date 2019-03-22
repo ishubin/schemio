@@ -126,7 +126,7 @@ import SchemeProperties from '../components/editor/SchemeProperties.vue';
 import ConnectionProperties from '../components/editor/ConnectionProperties.vue';
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
-import CreateNewSchemeModal from '../components/createNewSchemeModal.vue';
+import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import settingsStorage from '../settingsStorage.js';
