@@ -90,8 +90,8 @@ class SchemeContainer {
 
         var sourcePoint, destinationPoint;
         if (connector.reroutes && connector.reroutes.length > 0) {
-            sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0]);
-            destinationPoint = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]);
+            sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0], true);
+            destinationPoint = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1], true);
         } else {
             sourcePoint = this.findEdgePoint(sourceItem, {
                 x: destinationItem.area.x + destinationItem.area.w /2,
@@ -119,12 +119,37 @@ class SchemeContainer {
         connector.meta.points = points;
     }
 
-    findEdgePoint(item, nextPoint) {
-        if (item.style.shape === 'ellipse') {
+    findEdgePoint(item, nextPoint, allowPerpendicularLines) {
+        if (item.type === 'component' && item.style.shape === 'ellipse') {
             return this.findEdgePointOnEllipse(item.area, nextPoint);
         } else {
-            return this.findEdgePointOnRect(item.area, nextPoint);
+            if (allowPerpendicularLines) {
+                var point = this.findPerpendicularEdgePoint(item.area, nextPoint);
+                if (point) {
+                    return point;
+                }
+            }
+            return this.findEdgePointOnRect(item.area, nextPoint, allowPerpendicularLines);
         }
+    }
+
+    findPerpendicularEdgePoint(area, nextPoint) {
+        if (nextPoint.y >= area.y && nextPoint.y <= area.y + area.h) {
+            if (nextPoint.x <= area.x) {
+                return {x: area.x, y: nextPoint.y};
+            } else if (nextPoint.x >= area.x + area.w) {
+                return {x: area.x + area.h, y: nextPoint.y};
+            }
+        }
+
+        if (nextPoint.x >= area.x && nextPoint.x <= area.x + area.w) {
+            if (nextPoint.y <= area.y) {
+                return {x: nextPoint.x, y: area.y};
+            } else if (nextPoint.y >= area.y + area.h) {
+                return {x: nextPoint.x, y: area.y + area.h};
+            }
+        }
+        return null;
     }
 
     findEdgePointOnEllipse(area, nextPoint) {

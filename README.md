@@ -1,6 +1,5 @@
 TODO
 -------------
-- Refactor ItemProperties into separate components per item type.
 - Get rid of art items and replace them with images.
 - Fix. Style updates are not rendered for connectors
 - Fix. Stroke changes are not updated in component
@@ -13,7 +12,6 @@ TODO
 - Image upload error message (New Scheme Popup, etc.)
 - Snapping to items
 - Smart drawing
-- Improve connectors - draw it perpendicular to edges.
 - Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - User art
     - Quick search
