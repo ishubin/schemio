@@ -500,10 +500,15 @@ export default {
         },
 
         onKeyPress(key) {
-            if (key === EventBus.KEY.CTRL_C) {
-                this.schemeContainer.copySelectedItems();
-            } else if (key === EventBus.KEY.CTRL_V) {
-                this.schemeContainer.pasteSelectedItems();
+            if (this.mode === 'edit') {
+                if (key === EventBus.KEY.CTRL_C) {
+                    this.schemeContainer.copySelectedItems();
+                } else if (key === EventBus.KEY.CTRL_V) {
+                    var items = this.schemeContainer.pasteSelectedItems();
+                    if (items.length > 0) {
+                        this.onActiveItemSelected(items[0]);
+                    }
+                }
             }
         },
 

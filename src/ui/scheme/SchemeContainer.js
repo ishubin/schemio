@@ -558,6 +558,8 @@ class SchemeContainer {
     pasteSelectedItems() {
         this.deselectAllItems();
 
+        var newItems = [];
+
         _.forEach(this.copyBuffer, originalItem => {
             var item = JSON.parse(JSON.stringify(originalItem));
             item.area.x += -50;
@@ -567,7 +569,10 @@ class SchemeContainer {
             item.connectors = [];
             item = this.addItem(item);
             this.selectItem(item, true);
+            newItems.push(item);
         });
+
+        return newItems;
     }
 }
 
