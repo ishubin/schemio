@@ -15,6 +15,13 @@
         <input type="text" v-model="connector.style.destination.size"/>
 
         <h5>Style</h5>
+
+        <div class="property-row">
+            <input type="checkbox" v-model="connector.style.smooth">
+            <span class="property-label">Smooth</span>
+        </div>
+
+
         <div class="property-row">
             <color-picker :color="connector.style.color" @input="connector.style.color = arguments[0];"></color-picker>
             <span class="property-label">Color</span>

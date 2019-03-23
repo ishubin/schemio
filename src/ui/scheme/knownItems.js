@@ -43,12 +43,6 @@ module.exports = {
         }
     },
 
-    art: {
-        properties: {
-            style: {}
-        }
-    },
-
     image: {
         properties: {}
     }

@@ -1,6 +1,8 @@
 <template lang="html">
-    <div class="">
+    <div>
         <general-panel :item="item" :tagsUsed="false"/>
+
+        <connections-panel :item="item"/>
 
         <panel name="Image">
             <h5>Image URL</h5>
@@ -27,11 +29,12 @@
 <script>
 import Panel from '../Panel.vue';
 import GeneralPanel from './GeneralPanel.vue';
+import ConnectionsPanel from './ConnectionsPanel.vue';
 
 export default {
     props: ['item'],
 
-    components: {Panel, GeneralPanel},
+    components: {Panel, GeneralPanel, ConnectionsPanel},
 
     methods: {
         uploadImage(event) {

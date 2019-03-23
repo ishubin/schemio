@@ -1,5 +1,5 @@
 <template lang="html">
-    <panel name="Connections" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape' || item.type === 'comment'">
+    <panel name="Connections">
         <span class="btn btn-secondary" v-on:click="connectItem()"><i class="fas fa-sitemap"></i> Connect</span>
     </panel>
 </template>

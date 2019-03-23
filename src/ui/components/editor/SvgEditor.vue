@@ -14,7 +14,18 @@
                     >
 
                     <g v-if="item.type === 'image'" class="item-graphics">
-                        <image v-bind:xlink:href="item.url" :x="item.area.x" :y="item.area.y" :width="item.area.w + 'px'" :height="item.area.h + 'px'"/>
+                        <image
+                            :x="item.area.x"
+                            :y="item.area.y"
+                            :width="item.area.w"
+                            :height="item.area.h"
+                            :xlink:href="item.url"/>
+                        <text
+                            :x="item.area.x + item.area.w/2 - 15 * item.name.length / (1.75 * 2)"
+                            :y="item.area.y + item.area.h + 20"
+                            :font-size="15 + 'px'"
+                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
+                            >{{item.name}}</text>
                     </g>
 
                     <component-item v-if="item.type === 'component'"
@@ -46,20 +57,6 @@
                         />
                     </g>
 
-                    <g v-if="item.type === 'art'" class="item-graphics">
-                        <image
-                            :x="item.area.x"
-                            :y="item.area.y"
-                            :width="item.area.w"
-                            :height="item.area.h"
-                            :xlink:href="item.artUrl"/>
-                        <text
-                            :x="item.area.x + item.area.w/2 - 15 * item.name.length / (1.75 * 2)"
-                            :y="item.area.y + item.area.h + 20"
-                            :font-size="15 + 'px'"
-                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
-                            >{{item.name}}</text>
-                    </g>
 
                     <g v-if="item.links && item.links.length > 0">
                         <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
@@ -140,22 +137,22 @@
 
                 <!-- Item Edit Menu -->
                 <g v-if="mode === 'edit' && activeItem">
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)">
                         <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
                         <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)" v-if="activeItem.type === 'component' || activeItem.type === 'overlay' || activeItem.type === 'art'">
+                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)">
                         <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
                         <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
                         <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>

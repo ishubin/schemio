@@ -3,13 +3,15 @@
         <div>
             <textarea v-model="item.description"></textarea>
         </div>
+        
+        <connections-panel :item="item"/>
 
         <panel name="Style">
             <span class="property-label">Shape: </span>
             <select v-model="item.style.shape">
                 <option v-for="knownShape in knownShapes">{{knownShape}}</option>
             </select>
-            
+
             <div class="property-row" v-if="item.style.background && item.style.background.color">
                 <color-picker :color="item.style.background.color" @input="item.style.background.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Background</span>
@@ -31,12 +33,13 @@
 import EventBus from '../EventBus.js';
 import ColorPicker from '../ColorPicker.vue';
 import Panel from '../Panel.vue';
+import ConnectionsPanel from './ConnectionsPanel.vue';
 import knownItems from '../../../scheme/knownItems.js';
 
 export default {
     props: ['item'],
 
-    components: {Panel, ColorPicker},
+    components: {Panel, ColorPicker, ConnectionsPanel},
 
     data() {
         return {

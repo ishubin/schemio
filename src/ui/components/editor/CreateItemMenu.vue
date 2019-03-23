@@ -182,13 +182,13 @@ export default {
         clickArt(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'art',
-                artUrl: art.url,
+                type: 'image',
+                url: art.url,
                 artId: art.id,
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {},
                 properties: '',
-                name: 'Unnamed',
+                name: '',
                 description: '',
                 links: []
             });
@@ -208,7 +208,7 @@ export default {
                         type: 'image',
                         url: imageUrl,
                         area: { x: 0, y: 0, w: this.width, h: this.height },
-                        name: 'image',
+                        name: '',
                         description: ''
                     });
                 }

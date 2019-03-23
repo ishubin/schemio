@@ -4,6 +4,8 @@ import utils from '../utils.js';
 import shortid from 'shortid';
 import knownItems from './knownItems.js';
 
+
+const CONNECTOR_SMOOTH_RATIO = 6;
 /*
 Providing access to scheme elements and provides modifiers for it
 */
@@ -106,7 +108,29 @@ class SchemeContainer {
         var points = [];
         if (connector.reroutes && connector.reroutes.length > 0) {
             points.push(sourcePoint);
-            points = points.concat(connector.reroutes);
+
+            var previousPoint = sourcePoint;
+            var nextPoint = null;
+            for (var i = 0; i < connector.reroutes.length; i++) {
+                if (i < connector.reroutes.length - 1) {
+                    nextPoint = connector.reroutes[i+1];
+                } else {
+                    nextPoint = destinationPoint;
+                }
+
+                var x = connector.reroutes[i].x;
+                var y = connector.reroutes[i].y;
+                var vx = (nextPoint.x - previousPoint.x)/CONNECTOR_SMOOTH_RATIO;
+                var vy = (nextPoint.y - previousPoint.y)/CONNECTOR_SMOOTH_RATIO;
+                points.push({
+                    x, y,
+                    qax: x - vx, qay: y - vy,
+                    qbx: x + vx, qby: y + vy
+                });
+
+                previousPoint = connector.reroutes[i];
+            }
+
             points.push(destinationPoint);
         } else {
             points.push(sourcePoint);
@@ -136,17 +160,17 @@ class SchemeContainer {
     findPerpendicularEdgePoint(area, nextPoint) {
         if (nextPoint.y >= area.y && nextPoint.y <= area.y + area.h) {
             if (nextPoint.x <= area.x) {
-                return {x: area.x, y: nextPoint.y};
+                return {x: area.x, y: nextPoint.y, qx: area.x - (area.x - nextPoint.x)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
             } else if (nextPoint.x >= area.x + area.w) {
-                return {x: area.x + area.h, y: nextPoint.y};
+                return {x: area.x + area.h, y: nextPoint.y,  qx: area.x + area.w + (nextPoint.x - area.x - area.w)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
             }
         }
 
         if (nextPoint.x >= area.x && nextPoint.x <= area.x + area.w) {
             if (nextPoint.y <= area.y) {
-                return {x: nextPoint.x, y: area.y};
+                return {x: nextPoint.x, y: area.y, qx: nextPoint.x, qy: area.y - (area.y - nextPoint.y)/CONNECTOR_SMOOTH_RATIO};
             } else if (nextPoint.y >= area.y + area.h) {
-                return {x: nextPoint.x, y: area.y + area.h};
+                return {x: nextPoint.x, y: area.y + area.h, qx: nextPoint.x, qy: area.y + area.h + (nextPoint.y - area.y - area.h)/CONNECTOR_SMOOTH_RATIO};
             }
         }
         return null;
@@ -163,14 +187,19 @@ class SchemeContainer {
 
         if (D > 0) {
             var t = b*a / Math.sqrt(D);
-            return {
+            var point = {
                 x: x0 + dx * t,
-                y: y0 + dy * t
+                y: y0 + dy * t,
             };
+
+            point.qx = (nextPoint.x - point.x) / 5 + point.x;
+            point.qy = (nextPoint.y - point.y) / 5 + point.y;
+            return point;
         }
 
         return {
-            x: x0, y: y0
+            x: x0, y: y0,
+            qx: x0, qy: y0
         };
     }
 
@@ -197,16 +226,20 @@ class SchemeContainer {
                     // checking if the intersection is within second line segment as well
                     t = ((e.y1 - e.y2) * (e.x1 - x3) + (e.x2 - e.x1) * (e.y1 - y3)) / td;
                     if (t >= 0 && t <= 1.0) {
-                        return {
+                        var point = {
                             x: x3 + t * (x4 - x3),
                             y: y3 + t * (y4 - y3),
-                        }
+                        };
+
+                        point.qx = (nextPoint.x - point.x) / 2 + point.x;
+                        point.qy = (nextPoint.y - point.y) / 2 + point.y;
+                        return point;
                     }
                 }
             }
         }
 
-        return {x: x3, y: y3};
+        return {x: x3, y: y3, qx: x3, qy: y3};
     }
 
     enrichConnectorWithDefaultStyle(connector) {
@@ -215,6 +248,7 @@ class SchemeContainer {
                 color: '#333',
                 width: 1,
                 pattern: 'line',
+                smooth: true,
                 destination: {
                     type: 'arrow',
                     size: 5

@@ -105,13 +105,42 @@ export default {
             }
             return null;
         },
-        computeSvgPath(points) {
+
+        computeSmoothSvgPath(points) {
+            var path = `M ${points[0].x} ${points[0].y}`
+
+            var qbx = points[0].qx;
+            var qby = points[0].qy;
+            var qax, qay;
+            var i;
+            for (i = 1; i < points.length - 1; i++) {
+                qax = points[i].qax;
+                qay = points[i].qay;
+                path += ` C ${qbx} ${qby} ${qax} ${qay} ${points[i].x} ${points[i].y}`;
+
+                qbx = points[i].qbx;
+                qby = points[i].qby;
+            }
+            i = points.length - 1;
+            path += ` C ${qbx} ${qby} ${points[i].qx} ${points[i].qy} ${points[i].x} ${points[i].y}`;
+            return path;
+        },
+
+        computeStraightSvgPath(points) {
             var path = `M ${points[0].x} ${points[0].y}`
 
             for (var i = 1; i < points.length; i++) {
-                path += ` L ${points[i].x} ${points[i].y}`
+                path += ` L ${points[i].x} ${points[i].y}`;
             }
             return path;
+        },
+
+        computeSvgPath(points) {
+            if (this.connector.style.smooth) {
+                return this.computeSmoothSvgPath(points);
+            } else {
+                return this.computeStraightSvgPath(points);
+            }
         },
         computeEnds(connector) {
             var ends = [];
