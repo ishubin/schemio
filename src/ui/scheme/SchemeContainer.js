@@ -18,6 +18,7 @@ class SchemeContainer {
         this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.itemMap = {};
         this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
+        this.copyBuffer = [];
         this.reindexItems();
     }
 
@@ -162,7 +163,7 @@ class SchemeContainer {
             if (nextPoint.x <= area.x) {
                 return {x: area.x, y: nextPoint.y, qx: area.x - (area.x - nextPoint.x)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
             } else if (nextPoint.x >= area.x + area.w) {
-                return {x: area.x + area.h, y: nextPoint.y,  qx: area.x + area.w + (nextPoint.x - area.x - area.w)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
+                return {x: area.x + area.w, y: nextPoint.y,  qx: area.x + area.w + (nextPoint.x - area.x - area.w)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
             }
         }
 
@@ -548,6 +549,25 @@ class SchemeContainer {
                 leftoverGroupItems[0].group = null;
             }
         }
+    }
+
+    copySelectedItems() {
+        this.copyBuffer = [].concat(this.selectedItems);
+    }
+
+    pasteSelectedItems() {
+        this.deselectAllItems();
+
+        _.forEach(this.copyBuffer, originalItem => {
+            var item = JSON.parse(JSON.stringify(originalItem));
+            item.area.x += -50;
+            item.area.y += -50;
+            item.meta = {};
+            delete item.id;
+            item.connectors = [];
+            item = this.addItem(item);
+            this.selectItem(item, true);
+        });
     }
 }
 

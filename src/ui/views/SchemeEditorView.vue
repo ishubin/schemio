@@ -148,6 +148,7 @@ export default {
         EventBus.$on(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
         EventBus.$on(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
 
+        EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
 
         EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
@@ -160,6 +161,7 @@ export default {
         EventBus.$off(EventBus.ITEM_CHANGED, this.onItemChanged);
         EventBus.$off(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
         EventBus.$off(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
+        EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
         EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
@@ -495,6 +497,14 @@ export default {
 
         onSchemePropertyChanged(propertyName) {
             this.schemeChanged = true;
+        },
+
+        onKeyPress(key) {
+            if (key === EventBus.KEY.CTRL_C) {
+                this.schemeContainer.copySelectedItems();
+            } else if (key === EventBus.KEY.CTRL_V) {
+                this.schemeContainer.pasteSelectedItems();
+            }
         },
 
         onBrowseClose() {

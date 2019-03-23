@@ -26,7 +26,9 @@ const EventBus = new Vue({
 
             KEY: {
                 ESCAPE: 'escape',
-                DELETE: 'delete'
+                DELETE: 'delete',
+                CTRL_C: 'ctrl-c',
+                CTRL_V: 'ctrl-v'
             }
         };
     },
@@ -64,7 +66,12 @@ function identifyKeyPress(event) {
         return EventBus.KEY.ESCAPE;
     } else if (event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127) {
         return EventBus.KEY.DELETE;
+    } else if (event.key === 'c' && (event.metaKey || event.ctrlKey)) {
+        return EventBus.KEY.CTRL_C;
+    } else if (event.key === 'v' && (event.metaKey || event.ctrlKey)) {
+        return EventBus.KEY.CTRL_V;
     }
+
     return null;
 }
 
