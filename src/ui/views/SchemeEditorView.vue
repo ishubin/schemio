@@ -508,6 +508,8 @@ export default {
                     if (items.length > 0) {
                         this.onActiveItemSelected(items[0]);
                     }
+                } else if (key === EventBus.KEY.CTRL_S) {
+                    this.saveScheme();
                 }
             }
         },

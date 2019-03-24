@@ -1,5 +1,11 @@
 <template lang="html">
     <panel name="General">
+
+        <div>
+            <input type="checkbox" v-model="item.interactive">
+            <span class="property-label">Interactive</span>
+        </div>
+
         <div v-if="nameUsed">
             <h5>Name</h5>
             <input class="textfield" type="text" v-model="item.name"/>
@@ -13,7 +19,6 @@
                 @tags-changed="onItemTagChange"
                 ></vue-tags-input>
         </div>
-
         <div v-if="descriptionUsed">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">

@@ -249,7 +249,7 @@ class SchemeContainer {
                 color: '#333',
                 width: 1,
                 pattern: 'line',
-                smooth: true,
+                smooth: false,
                 destination: {
                     type: 'arrow',
                     size: 5

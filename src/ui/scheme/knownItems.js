@@ -6,6 +6,7 @@ module.exports = {
     component: {
         properties: {
             locked: false,
+            interactive: true,
             style: {
                 shape: 'component',
                 background: { color: '#ddd' },
@@ -21,6 +22,8 @@ module.exports = {
 
     overlay: {
         properties: {
+            locked: false,
+            interactive: true,
             style: {
                 background: { color: '#b8e0ee' },
             }
@@ -29,11 +32,15 @@ module.exports = {
 
     comment: {
         values: {
+            locked: false,
+            interactive: false,
             style: {
                 shape: ['none', 'simple-comment']
             }
         },
         properties: {
+            locked: false,
+            interactive: true,
             style: {
                 shape: 'simple-comment',
                 background: { color: '#ccc' },
@@ -44,6 +51,9 @@ module.exports = {
     },
 
     image: {
-        properties: {}
+        properties: {
+            locked: false,
+            interactive: false
+        }
     }
 };

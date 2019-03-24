@@ -1,7 +1,7 @@
 TODO
 -------------
+- Fix: Foreground doesn't work with multi-select
 - Copy/Paste selected items with their connectors.
-- Save with Ctrl+S
 - Fix. Style updates are not rendered for connectors
 - Fix. Stroke changes are not updated in component
 - Search in all docs
@@ -17,7 +17,6 @@ TODO
 - S3 storage: AWS, Swift etc.
 - Diff-based saving and conflicts resolving
 - Export scheme as image.
-
 
 
 Grouping

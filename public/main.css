@@ -331,11 +331,8 @@ svg .item-container.item-type-component .item-caption {
     font-weight: bold;
 }
 
-svg .item-container rect.item-rect-highlight-area {
+svg .item-container.item-interactive rect.item-rect-highlight-area {
     cursor: pointer;
-}
-svg .item-container.item-type-image rect.item-rect-highlight-area {
-    cursor: default;
 }
 
 /**********************/
@@ -387,16 +384,20 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
 
 /*********************************/
 /*  Hover states in view mode and interacting state */
-svg.mode-view.state-interact .item-container.item-type-overlay:hover .item-graphics rect {
+svg.mode-view.state-interact .item-container.item-interactive.item-type-overlay:hover .item-graphics rect {
     opacity: 0.2;
     cursor: pointer;
 }
-svg.mode-view.state-interact .item-container.item-type-component:hover .item-graphics rect {
+svg.mode-view.state-interact .item-container.item-interactive.item-type-component:hover .item-graphics rect {
+    opacity: 0.7;
+    cursor: pointer;
+}
+svg.mode-view.state-interact .item-container.item-interactive.item-type-comment:hover .item-graphics {
     opacity: 0.8;
     cursor: pointer;
 }
-svg.mode-view.state-interact .item-container.item-type-art:hover .item-graphics image {
-    opacity: 0.8;
+svg.mode-view.state-interact .item-container.item-interactive.item-type-image:hover .item-graphics image {
+    opacity: 0.6;
     cursor: pointer;
 }
 

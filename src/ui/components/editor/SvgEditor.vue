@@ -10,7 +10,7 @@
 
             <g :transform="transformSvg">
                 <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
-                    :class="['item-type-' + item.type, item.meta.selected ? 'selected': '']"
+                    :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"
                     >
 
                     <g v-if="item.type === 'image'" class="item-graphics">

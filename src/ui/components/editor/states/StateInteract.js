@@ -34,7 +34,7 @@ class StateInteract extends State {
     mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
-                if (object && object.item && (object.item.type === 'component' || object.item.type === 'overlay' || object.item.type === 'art')) {
+                if (object && object.item && object.item.interactive) {
                     this.schemeContainer.selectItem(object.item, false);
                     EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
                 } else {

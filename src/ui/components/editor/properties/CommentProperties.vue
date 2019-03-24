@@ -1,9 +1,14 @@
 <template lang="html">
     <div>
         <div>
-            <textarea v-model="item.description"></textarea>
+            <input type="checkbox" v-model="item.interactive">
+            <span class="property-label">Interactive</span>
         </div>
         
+        <div>
+            <textarea v-model="item.description"></textarea>
+        </div>
+
         <connections-panel :item="item"/>
 
         <panel name="Style">

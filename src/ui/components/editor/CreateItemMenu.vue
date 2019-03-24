@@ -149,6 +149,7 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'comment',
+                interactive: false,
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
                     shape: 'none',
@@ -166,6 +167,7 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'comment',
+                interactive: false,
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {
                     shape: 'simple-comment',
@@ -183,6 +185,7 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 type: 'image',
+                interactive: true,
                 url: art.url,
                 artId: art.id,
                 area: { x: 0, y: 0, w: 0, h: 0 },
