@@ -1,17 +1,16 @@
 TODO
 -------------
 - Fix: Foreground doesn't work with multi-select
-- Copy/Paste selected items with their connectors.
-- Fix. Style updates are not rendered for connectors
-- Fix. Stroke changes are not updated in component
 - Search in all docs
     - Search by items text (name and description)
+- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
+- Fix. Style updates are not rendered for connectors
+- Fix. Stroke changes are not updated in component
 - Add link item
 - Overflow item styling: non-active visibility, border, opacity,
 - Image upload error message (New Scheme Popup, etc.)
 - Snapping to items
 - Smart drawing
-- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - User art
     - Quick search
 - S3 storage: AWS, Swift etc.

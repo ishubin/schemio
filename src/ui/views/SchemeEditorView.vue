@@ -23,8 +23,8 @@
                 <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                 <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                     <li>
-                        <span class="toggle-button" @click="schemeContainer.bringToFront(selectedItem); schemeChanged = true;">F</span>
-                        <span class="toggle-button" @click="schemeContainer.bringToBack(selectedItem); schemeChanged = true;">B</span>
+                        <span class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
+                        <span class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
                         <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                             <i class="fas fa-object-group"></i>
                         </span>

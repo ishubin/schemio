@@ -439,20 +439,34 @@ class SchemeContainer {
         });
     }
 
-    bringToBack(item) {
-        var i = _.findIndex(this.scheme.items, schemeItem => schemeItem.id === item.id);
-        if (i > 0) {
-            var element = this.scheme.items.splice(i, 1)[0];
-            this.scheme.items.unshift(element);
+    bringSelectedItemsToBack() {
+        let i = 0;
+        let lastItems = [];
+        while (i < this.scheme.items.length) {
+            if (this.scheme.items[i].meta.selected) {
+                lastItems.push(this.scheme.items[i]);
+                this.scheme.items.splice(i, 1);
+            } else {
+                i++;
+            }
         }
+
+        this.scheme.items = lastItems.concat(this.scheme.items);
     }
 
-    bringToFront(item) {
-        var i = _.findIndex(this.scheme.items, schemeItem => schemeItem.id === item.id);
-        if (i >= 0) {
-            var element = this.scheme.items.splice(i, 1)[0];
-            this.scheme.items.push(element);
+    bringSelectedItemsToFront() {
+        let i = 0;
+        let topItems = [];
+        while (i < this.scheme.items.length) {
+            if (this.scheme.items[i].meta.selected) {
+                topItems.push(this.scheme.items[i]);
+                this.scheme.items.splice(i, 1);
+            } else {
+                i++;
+            }
         }
+
+        this.scheme.items = this.scheme.items.concat(topItems);
     }
 
     provideBoundingBoxDraggers(item) {
