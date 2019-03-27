@@ -7,6 +7,7 @@ TODO
 - Fix. Style updates are not rendered for connectors
 - Fix. Stroke changes are not updated in component
 - Add link item
+- Opacity styling slider
 - Overflow item styling: non-active visibility, border, opacity,
 - Snapping to items
 - Convert items into other types

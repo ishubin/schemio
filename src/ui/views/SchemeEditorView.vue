@@ -57,8 +57,12 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-left" :class="{expanded: sidePanelLeftExpanded && mode === 'edit'}">
-                <div class="side-panel-overflow" v-if="sidePanelLeftExpanded && mode === 'edit'">
+            <div class="side-panel side-panel-left" v-if="mode === 'edit'" :class="{expanded: sidePanelLeftExpanded}">
+                <span class="side-panel-expander" @click="sidePanelLeftExpanded = !sidePanelLeftExpanded">
+                    <i v-if="sidePanelLeftExpanded" class="fas fa-angle-left"></i>
+                    <i v-else class="fas fa-angle-right"></i>
+                </span>
+                <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
                         <h5>Create</h5>
                         <create-item-menu/>

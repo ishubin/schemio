@@ -596,15 +596,22 @@ ul.button-group li .toggle-button.toggled:hover {
     background: #f4f4f4;
     top: 0;
     bottom: 0;
-    left: -12px;
     cursor: pointer;
-    border-radius: 4px 0 0 4px;
     border-top: 1px solid #aaa;
-    border-left: 1px solid #aaa;
     border-bottom: 1px solid #aaa;
     color: #333;
     height: 40px;
     width: 12px;
+}
+.scheme-middle-container .side-panel-right .side-panel-expander {
+    border-radius: 4px 0 0 4px;
+    border-left: 1px solid #aaa;
+    left: -12px;
+}
+.scheme-middle-container .side-panel-left .side-panel-expander {
+    border-radius: 0 4px 4px 0;
+    border-right: 1px solid #aaa;
+    right: -12px;
 }
 .scheme-middle-container .side-panel .side-panel-expander:hover {
     color: #777;
