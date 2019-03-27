@@ -53,7 +53,8 @@ module.exports = {
     image: {
         properties: {
             locked: false,
-            interactive: false
+            interactive: false,
+            style: {}
         }
     }
 };

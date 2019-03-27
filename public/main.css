@@ -566,12 +566,20 @@ ul.button-group li .toggle-button.toggled:hover {
     position: absolute;
     padding-top: 35px;
     top: 0;
-    right: 0;
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
-.scheme-middle-container .side-panel.expanded {
+.scheme-middle-container .side-panel.side-panel-right {
+    right: 0;
+}
+.scheme-middle-container .side-panel.side-panel-right.expanded {
     width: 400px;
+}
+.scheme-middle-container .side-panel.side-panel-left {
+    left: 0;
+}
+.scheme-middle-container .side-panel.side-panel-left.expanded {
+    width: 160px;
 }
 .scheme-middle-container .side-panel .side-panel-overflow {
     height: 100%;
@@ -742,10 +750,10 @@ ul.button-group li .toggle-button.toggled:hover {
 /******************* Create Item Menu *****************/
 .item-menu .item-container {
     display: inline-block;
-    width: 100px;
-    height: 100px;
-    margin: 10px;
-    padding: 15px;
+    width: 60px;
+    height: 60px;
+    margin: 2px;
+    padding: 5px;
     cursor: pointer;
     border-radius: 10px;
 }
@@ -754,7 +762,7 @@ ul.button-group li .toggle-button.toggled:hover {
     width: 100%;
     text-align: center;
     color: #0885ba;
-    font-size: 56px;
+    font-size: 24px;
 }
 .item-menu .item-container img {
     display: block;
@@ -767,7 +775,7 @@ ul.button-group li .toggle-button.toggled:hover {
     display: block;
     width: 100%;
     text-align: center;
-    font-size: 12px;
+    font-size: 10px;
     color: #045e85;
 }
 .item-menu .item-container:hover {

@@ -1,15 +1,16 @@
 TODO
 -------------
-- Fix: Foreground doesn't work with multi-select
 - Search in all docs
     - Search by items text (name and description)
 - Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
+- Edit area in properties panel
 - Fix. Style updates are not rendered for connectors
 - Fix. Stroke changes are not updated in component
 - Add link item
 - Overflow item styling: non-active visibility, border, opacity,
-- Image upload error message (New Scheme Popup, etc.)
 - Snapping to items
+- Convert items into other types
+- Image upload error message (New Scheme Popup, etc.)
 - Smart drawing
 - User art
     - Quick search

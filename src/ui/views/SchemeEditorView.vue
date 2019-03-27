@@ -57,12 +57,21 @@
                 </div>
             </div>
 
-            <div class="side-panel" :class="{expanded: sidePanelExpanded}">
-                <span class="side-panel-expander" @click="sidePanelExpanded = !sidePanelExpanded">
-                    <i v-if="sidePanelExpanded" class="fas fa-angle-right"></i>
+            <div class="side-panel side-panel-left" :class="{expanded: sidePanelLeftExpanded && mode === 'edit'}">
+                <div class="side-panel-overflow" v-if="sidePanelLeftExpanded && mode === 'edit'">
+                    <div class="wrapper">
+                        <h5>Create</h5>
+                        <create-item-menu/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="side-panel side-panel-right" :class="{expanded: sidePanelRightExpanded}">
+                <span class="side-panel-expander" @click="sidePanelRightExpanded = !sidePanelRightExpanded">
+                    <i v-if="sidePanelRightExpanded" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
-                <div class="side-panel-overflow" v-if="sidePanelExpanded">
+                <div class="side-panel-overflow" v-if="sidePanelRightExpanded">
                     <ul class="tabs">
                         <li v-for="tab in tabs">
                             <span class="tab"
@@ -87,7 +96,6 @@
                                 No item selected
                             </p>
                         </div>
-                        <create-item-menu v-if="currentTab === 'Create'"></create-item-menu>
                         <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                     </div>
                 </div>
@@ -197,7 +205,8 @@ export default {
             itemListShown: false,
             schemeChanged: false, //used in order to render Save button
 
-            sidePanelExpanded: true,
+            sidePanelRightExpanded: true,
+            sidePanelLeftExpanded: true,
             schemeId: schemeId,
             schemeContainer: null,
             searchKeyword: '',
@@ -228,8 +237,6 @@ export default {
             currentTab: 'Scheme',
             tabs: [{
                 name: 'Scheme'
-            }, {
-                name: 'Create'
             }, {
                 name: 'Item',
                 disabled: true
@@ -449,17 +456,17 @@ export default {
         onActiveItemSelected(item) {
             this.selectedItem = item;
             this.currentTab = 'Item';
-            this.tabs[2].disabled = false;
-            this.tabs[3].disabled = true;
-            this.sidePanelExpanded = true;
+            this.tabs[1].disabled = false;
+            this.tabs[2].disabled = true;
+            this.sidePanelRightExpanded = true;
         },
 
         onConnectorSelected(connector) {
             this.selectedConnector = connector;
             this.currentTab = 'Connection';
             this.selectedItem = null;
-            this.tabs[2].disabled = true;
-            this.tabs[3].disabled = false;
+            this.tabs[1].disabled = true;
+            this.tabs[2].disabled = false;
             this.schemeContainer.deselectAllItems();
         },
 
@@ -468,7 +475,7 @@ export default {
             if (this.currentTab === 'Item') {
                 this.currentTab = 'Scheme';
             }
-            this.tabs[2].disabled = true;
+            this.tabs[1].disabled = true;
         },
 
         onAllConnectorsDeselected() {
@@ -476,7 +483,7 @@ export default {
             if (this.currentTab === 'Connection') {
                 this.currentTab = 'Scheme';
             }
-            this.tabs[3].disabled = true;
+            this.tabs[2].disabled = true;
         },
 
         onPlaceItem(item) {
