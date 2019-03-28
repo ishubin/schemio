@@ -1,27 +1,25 @@
 TODO
 -------------
-- Search in all docs
-    - Search by items text (name and description)
-- Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
-- Edit area in properties panel
-- Fix. Style updates are not rendered for connectors
-- Fix. Stroke changes are not updated in component
-- Add link item
-- Opacity styling slider
-- Undo/Redo with Ctrl-Z/Ctrl-Y
-- Add drag by arrow keys in all directions
-- Zoom to all/selection button
-- Optimize storage of schemes (json) by removing default styles and property values
-- Overflow item styling: non-active visibility, border, opacity,
-- Snapping to items
-- Convert items into other types
-- Image upload error message (New Scheme Popup, etc.)
-- Smart drawing
-- User art
-    - Quick search
-- S3 storage: AWS, Swift etc.
-- Diff-based saving and conflicts resolving
-- Export scheme as image.
+- XS. Add drag by arrow keys in all directions
+- XS. Edit area in properties panel
+- XS. Overflow item styling: non-active visibility, border, opacity,
+- S. Zoom to all/selection button
+- XS. Opacity styling slider
+- M. Search by items text (name and description)
+- M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
+- M. Snapping to items
+- XS. Fix. Style updates are not rendered for connectors
+- XS. Fix. Stroke changes are not updated in component
+- XS. Image upload error message (New Scheme Popup, etc.)
+- S. Add link item
+- L. Undo/Redo with Ctrl-Z/Ctrl-Y
+- L. Optimize storage of schemes (json) by removing default styles and property values
+- M. Convert items into other types
+- L. Smart drawing
+- S. User art. Quick search
+- L. S3 storage: AWS, Swift etc.
+- XL. Diff-based saving and conflicts resolving
+- XL. Export scheme as image.
 
 
 Grouping

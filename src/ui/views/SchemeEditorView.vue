@@ -510,7 +510,7 @@ export default {
             this.schemeChanged = true;
         },
 
-        onKeyPress(key) {
+        onKeyPress(key, keyOptions) {
             if (this.mode === 'edit') {
                 if (key === EventBus.KEY.CTRL_C) {
                     this.schemeContainer.copySelectedItems();
@@ -519,7 +519,7 @@ export default {
                     if (items.length > 0) {
                         this.onActiveItemSelected(items[0]);
                     }
-                } else if (key === EventBus.KEY.CTRL_S) {
+                } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
                 }
             }

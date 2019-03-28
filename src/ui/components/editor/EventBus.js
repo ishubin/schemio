@@ -1,4 +1,6 @@
 import Vue from 'vue';
+import _ from 'lodash';
+
 const EventBus = new Vue({
     data() {
         return {
@@ -29,7 +31,11 @@ const EventBus = new Vue({
                 DELETE: 'delete',
                 CTRL_C: 'ctrl-c',
                 CTRL_V: 'ctrl-v',
-                CTRL_S: 'ctrl-s'
+                CTRL_S: 'ctrl-s',
+                UP: 'up',
+                DOWN: 'down',
+                LEFT: 'left',
+                RIGHT: 'right'
             }
         };
     },
@@ -62,20 +68,19 @@ const EventBus = new Vue({
     }
 });
 
+const keyMap = {};
+keyMap[EventBus.KEY.ESCAPE] = event => event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
+keyMap[EventBus.KEY.DELETE] = event => event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127;
+keyMap[EventBus.KEY.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrlKey);
+keyMap[EventBus.KEY.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
+keyMap[EventBus.KEY.CTRL_S] = event => event.key === 's' && (event.metaKey || event.ctrlKey);
+keyMap[EventBus.KEY.LEFT] = event => event.key === 'ArrowLeft';
+keyMap[EventBus.KEY.RIGHT] = event => event.key === 'ArrowRight';
+keyMap[EventBus.KEY.UP] = event => event.key === 'ArrowUp';
+keyMap[EventBus.KEY.DOWN] = event => event.key === 'ArrowDown';
+
 function identifyKeyPress(event) {
-    if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
-        return EventBus.KEY.ESCAPE;
-    } else if (event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127) {
-        return EventBus.KEY.DELETE;
-    } else if (event.key === 'c' && (event.metaKey || event.ctrlKey)) {
-        return EventBus.KEY.CTRL_C;
-    } else if (event.key === 'v' && (event.metaKey || event.ctrlKey)) {
-        return EventBus.KEY.CTRL_V;
-    } else if (event.key === 's' && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        return EventBus.KEY.CTRL_S;
-    }
-    return null;
+    return _.findKey(keyMap, (check, keyName) => check(event));
 }
 
 document.onkeydown = function(event) {
@@ -83,7 +88,9 @@ document.onkeydown = function(event) {
     if (event.srcElement === document.body) {
         var key = identifyKeyPress(event);
         if (key) {
-            EventBus.$emit(EventBus.KEY_PRESS, key);
+            EventBus.$emit(EventBus.KEY_PRESS, key, {
+                ctrlCmdPressed: event.metaKey || event.ctrlKey
+            });
         }
     }
 }

@@ -412,7 +412,7 @@ export default {
             this.state.setSourceItem(item);
         },
 
-        onKeyPress(key) {
+        onKeyPress(key, keyOptions) {
             if (key === EventBus.KEY.ESCAPE) {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
@@ -421,6 +421,8 @@ export default {
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
                 EventBus.$emit(EventBus.REDRAW);
+            } else {
+                this.state.keyPressed(key, keyOptions);
             }
         },
 

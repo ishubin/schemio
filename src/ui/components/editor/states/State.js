@@ -14,6 +14,8 @@ class State {
         EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
     }
 
+    keyPressed(key, keyOptions){}
+
     mouseDown(localX, localY, originalX, originalY, object, event) {}
     mouseUp(localX, localY, originalX, originalY, object, event) {}
     mouseMove(localX, localY, originalX, originalY, object, event) {}

@@ -28,6 +28,30 @@ export default class StateDragItem extends State {
         this.connectorsBuildChache = null;
     }
 
+    keyPressed(key, keyOptions) {
+        if (EventBus.KEY.LEFT === key) {
+            this.dragItemsByKeyboard(-1, 0);
+        } else if (EventBus.KEY.RIGHT === key) {
+            this.dragItemsByKeyboard(1, 0);
+        } else if (EventBus.KEY.UP === key) {
+            this.dragItemsByKeyboard(0, -1);
+        } else if (EventBus.KEY.DOWN === key) {
+            this.dragItemsByKeyboard(0, 1);
+        }
+    }
+
+    dragItemsByKeyboard(dx, dy) {
+        // don't need to drag by keyboard if already started dragging by mouse
+        if (!this.startedDragging) {
+            _.forEach(this.schemeContainer.selectedItems, item => {
+                if (!item.locked) {
+                    item.area.x += dx;
+                    item.area.y += dy;
+                }
+            });
+        }
+    }
+
     initDragging(x, y) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
