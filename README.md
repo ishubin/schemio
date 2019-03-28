@@ -8,6 +8,10 @@ TODO
 - Fix. Stroke changes are not updated in component
 - Add link item
 - Opacity styling slider
+- Undo/Redo with Ctrl-Z/Ctrl-Y
+- Add drag by arrow keys in all directions
+- Zoom to all/selection button
+- Optimize storage of schemes (json) by removing default styles and property values
 - Overflow item styling: non-active visibility, border, opacity,
 - Snapping to items
 - Convert items into other types

@@ -23,6 +23,8 @@
                 </tbody>
             </table>
         </panel>
+
+        <span class="btn btn-primary" @click="convertToComponent">Convert to Component</span>
     </div>
 </template>
 
@@ -30,6 +32,8 @@
 import Panel from '../Panel.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
+import utils from '../../../utils.js';
+import knownItems from '../../../scheme/knownItems.js';
 
 export default {
     props: ['item'],
@@ -49,6 +53,16 @@ export default {
                 });
             }
         },
+
+        convertToComponent() {
+            this.item.image = {
+                url: this.item.url
+            };
+            this.item.properties = '';
+            utils.extendObject(this.item, knownItems.component.properties);
+            this.item.type = 'component';
+            delete this.item['url'];
+        }
     }
 }
 </script>
