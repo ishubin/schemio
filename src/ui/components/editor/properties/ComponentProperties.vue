@@ -1,7 +1,5 @@
 <template lang="html">
     <div>
-        <position-panel :item="item"/>
-
         <general-panel :item="item"/>
 
         <links-panel :item="item"/>
@@ -71,7 +69,6 @@ import ColorPicker from '../ColorPicker.vue';
 import Panel from '../Panel.vue';
 import CreateImageModal from '../CreateImageModal.vue';
 import LinksPanel from './LinksPanel.vue';
-import PositionPanel from './PositionPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import _ from 'lodash';
@@ -79,7 +76,7 @@ import _ from 'lodash';
 
 export default {
     props: ['item'],
-    components: {ConnectionsPanel, GeneralPanel, PositionPanel, LinksPanel, ColorPicker, Panel, CreateImageModal},
+    components: {ConnectionsPanel, GeneralPanel, LinksPanel, ColorPicker, Panel, CreateImageModal},
     data() {
         return {
             toggleBackgroundColor: false,

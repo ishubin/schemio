@@ -14,6 +14,9 @@
                 </span>
             </li>
         </ul>
+
+        <position-panel :item="item"/>
+
         <component-properties v-if="item.type === 'component'" :item="item"/>
         <image-properties v-if="item.type === 'image'" :item="item"/>
         <overlay-properties v-if="item.type === 'overlay'" :item="item"/>
@@ -24,13 +27,14 @@
 <script>
 import EventBus from '../EventBus.js';
 import ComponentProperties from './ComponentProperties.vue';
+import PositionPanel from './PositionPanel.vue';
 import ImageProperties from './ImageProperties.vue';
 import OverlayProperties from './OverlayProperties.vue';
 import CommentProperties from './CommentProperties.vue';
 
 export default {
     props: ['item'],
-    components: {ComponentProperties, ImageProperties, OverlayProperties, CommentProperties},
+    components: {ComponentProperties, PositionPanel, ImageProperties, OverlayProperties, CommentProperties},
 
     data() {
         return {
