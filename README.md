@@ -1,8 +1,8 @@
 TODO
 -------------
 - XS. Edit area in properties panel
+- XS. Zoom to all/selection button
 - XS. Overflow item styling: non-active visibility, border, opacity,
-- S. Zoom to all/selection button
 - XS. Opacity styling slider
 - M. Search by items text (name and description)
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
@@ -10,6 +10,7 @@ TODO
 - XS. Fix. Style updates are not rendered for connectors
 - XS. Fix. Stroke changes are not updated in component
 - XS. Image upload error message (New Scheme Popup, etc.)
+- XS. Keep state (expanded/collapsed) of panels in local storage
 - S. Add link item
 - L. Undo/Redo with Ctrl-Z/Ctrl-Y
 - L. Optimize storage of schemes (json) by removing default styles and property values
