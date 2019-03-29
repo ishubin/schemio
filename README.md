@@ -1,6 +1,5 @@
 TODO
 -------------
-- XS. Edit area in properties panel
 - XS. Zoom to all/selection button
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - XS. Opacity styling slider
