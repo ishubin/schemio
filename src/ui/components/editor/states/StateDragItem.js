@@ -29,26 +29,30 @@ export default class StateDragItem extends State {
     }
 
     keyPressed(key, keyOptions) {
+        var delta = keyOptions.ctrlCmdPressed ? 10: 1;
         if (EventBus.KEY.LEFT === key) {
-            this.dragItemsByKeyboard(-1, 0);
+            this.dragItemsByKeyboard(-delta, 0);
         } else if (EventBus.KEY.RIGHT === key) {
-            this.dragItemsByKeyboard(1, 0);
+            this.dragItemsByKeyboard(delta, 0);
         } else if (EventBus.KEY.UP === key) {
-            this.dragItemsByKeyboard(0, -1);
+            this.dragItemsByKeyboard(0, -delta);
         } else if (EventBus.KEY.DOWN === key) {
-            this.dragItemsByKeyboard(0, 1);
+            this.dragItemsByKeyboard(0, delta);
         }
     }
 
     dragItemsByKeyboard(dx, dy) {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
+            this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
             _.forEach(this.schemeContainer.selectedItems, item => {
                 if (!item.locked) {
                     item.area.x += dx;
                     item.area.y += dy;
                 }
             });
+            this.rebuildConnectorsInCache();
+            EventBus.$emit(EventBus.REDRAW);
         }
     }
 

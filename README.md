@@ -1,6 +1,5 @@
 TODO
 -------------
-- XS. Add drag by arrow keys in all directions
 - XS. Edit area in properties panel
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - S. Zoom to all/selection button

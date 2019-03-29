@@ -88,6 +88,7 @@ document.onkeydown = function(event) {
     if (event.srcElement === document.body) {
         var key = identifyKeyPress(event);
         if (key) {
+            event.preventDefault();
             EventBus.$emit(EventBus.KEY_PRESS, key, {
                 ctrlCmdPressed: event.metaKey || event.ctrlKey
             });
