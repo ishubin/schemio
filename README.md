@@ -1,6 +1,6 @@
 TODO
 -------------
-- XXS. Do not display items with empty names in items list
+- M. Improve css. Make editor looks nicer.
 - XS. Fix. Highlighted items are not clickable. Draw item highlight behind the item.
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - XS. Opacity styling slider

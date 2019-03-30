@@ -3,7 +3,7 @@
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
 
-                <dropdown :options="mainDropdown.options" @clicked-show-items="itemListShown = true">
+                <dropdown :options="mainDropdown.options">
                     <i class="fas fa-bars"></i>
                 </dropdown>
 
@@ -22,6 +22,9 @@
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                 <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                 <ul class="button-group">
+                    <li>
+                        <span class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
+                    </li>
                     <li>
                         <span class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
                     </li>
@@ -206,7 +209,6 @@ export default {
             mainDropdown: {
                 options: [
                     {name: "Home", icon: "fas fa-home", link: "/"},
-                    {name: "Show items", icon: "fas fa-list", emit: "clicked-show-items"},
                     {name: "Search other documents", icon: "fas fa-search", link: "/search"}
                 ]
             },

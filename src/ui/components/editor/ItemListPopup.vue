@@ -3,11 +3,11 @@
         <input class="textfield" type="text" v-model="searchKeyword"/>
         <div class="item-list-container">
             <ul>
-                <li v-for="item in items" v-if="(shouldFilterItems && item.shown) || !shouldFilterItems">
+                <li v-for="item in filteredItems">
                     <span class="link"
                         :class="{'unnamed-item': item.name.length === 0}"
                         @click="onItemClick(item)"
-                        >{{item.name | formatName}}</span>
+                        >{{item.name}}</span>
                 </li>
             </ul>
         </div>
@@ -67,25 +67,21 @@ export default {
             }
         }
     },
-    watch: {
-        searchKeyword(newValue) {
-            var keyword = newValue.trim().toLowerCase();
-            if (keyword.length > 0) {
-                this.shouldFilterItems = true;
-                _.forEach(this.items, item => {
-                    item.shown = item.name.toLowerCase().indexOf(keyword) >= 0 || item.description.toLowerCase().indexOf(keyword) >= 0;
-                });
-            } else {
-                this.shouldFilterItems = false;
-            }
-        }
-    },
-    filters: {
-        formatName(name) {
-            if (name.length === 0) {
-                return 'Unnamed'
-            }
-            return name;
+    computed: {
+        filteredItems() {
+            var keyword = this.searchKeyword.trim().toLowerCase();
+            var items = [];
+            _.forEach(this.items, item => {
+                if (keyword) {
+                    if (item.name.toLowerCase().indexOf(keyword) >= 0 || item.description.toLowerCase().indexOf(keyword) >= 0) {
+                        items.push(item);
+                    }
+                } else {
+                    items.push(item);
+                }
+            });
+
+            return _.sortBy(items, 'name');
         }
     }
 }
