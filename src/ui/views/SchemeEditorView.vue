@@ -356,7 +356,7 @@ export default {
                 area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
                 style: utils.clone(item.style),
                 properties: '',
-                name: 'Unnamed',
+                name: '',
                 description: '',
                 links: []
             };

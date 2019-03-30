@@ -110,7 +110,7 @@ export default {
                     shape: 'component'
                 },
                 properties: '',
-                name: 'Unnamed',
+                name: '',
                 description: '',
                 links: []
             });
@@ -125,7 +125,7 @@ export default {
                     shape: 'ellipse'
                 },
                 properties: '',
-                name: 'Unnamed',
+                name: '',
                 description: '',
                 links: []
             });
@@ -139,7 +139,7 @@ export default {
                 style: {
                     background: { color: '#b8e0ee' },
                 },
-                name: 'Unnamed',
+                name: '',
                 description: '',
                 links: []
             });
