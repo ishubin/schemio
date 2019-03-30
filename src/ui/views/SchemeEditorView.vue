@@ -21,6 +21,11 @@
                 <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
                 <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                 <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
+                <ul class="button-group">
+                    <li>
+                        <span class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
+                    </li>
+                </ul>
                 <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                     <li>
                         <span class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
@@ -277,25 +282,39 @@ export default {
             });
         },
 
-        toggleSearchedItems() {
-            if (this.searchHighlights && this.searchHighlights.length > 0) {
+        // Zooms to selected items in edit mode
+        // - if no items were selected it zooms into all items
+        // - if in view mode - then it will always zoom into all items
+        zoomToSelection() {
+            if (this.mode === 'edit') {
+                if (this.schemeContainer.selectedItems.length > 0) {
+                    this.zoomToItems(this.schemeContainer.selectedItems);
+                    return;
+                }
+            }
+
+            this.zoomToItems(this.schemeContainer.scheme.items);
+        },
+
+        zoomToItems(items) {
+            if (items && items.length > 0) {
                 var area = null;
 
-                _.forEach(this.searchHighlights, a => {
+                _.forEach(items, item => {
                     if (!area) {
-                        area = {x: a.x, y: a.y, w: a.w, h: a.h};
+                        area = {x: item.area.x, y: item.area.y, w: item.area.w, h: item.area.h};
                     } else {
-                        if (area.x > a.x) {
-                            area.x = a.x;
+                        if (area.x > item.area.x) {
+                            area.x = item.area.x;
                         }
-                        if (area.y > a.y) {
-                            area.y = a.y;
+                        if (area.y > item.area.y) {
+                            area.y = item.area.y;
                         }
-                        if (area.x + area.w < a.x + a.w) {
-                            area.w = a.x + a.w - area.x;
+                        if (area.x + area.w < item.area.x + item.area.w) {
+                            area.w = item.area.x + item.area.w - area.x;
                         }
-                        if (area.y + area.h < a.y + a.h) {
-                            area.h = a.y + a.h - area.y;
+                        if (area.y + area.h < item.area.y + item.area.h) {
+                            area.h = item.area.y + item.area.h - area.y;
                         }
                     }
                 });
@@ -304,6 +323,11 @@ export default {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
+        },
+
+
+        toggleSearchedItems() {
+            this.zoomToItems(this.searchHighlights);
         },
 
         onClickedAddItemLink(item) {
@@ -554,7 +578,7 @@ export default {
                         }
                     }
                     return false;
-                }).map(item => item.area).value();
+                }).value();
             } else {
                 this.searchHighlights = [];
             }

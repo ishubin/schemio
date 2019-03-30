@@ -125,13 +125,13 @@
                     </a>
                 </g>
 
-                <g v-for="area in itemHighlights">
+                <g v-for="item in itemHighlights">
                     <!-- Drawing boundary edit box -->
                     <rect class="item-search-highlight"
-                        :x="area.x - 5"
-                        :y="area.y - 5"
-                        :width="area.w + 10"
-                        :height="area.h + 10"
+                        :x="item.area.x - 5"
+                        :y="item.area.y - 5"
+                        :width="item.area.w + 10"
+                        :height="item.area.h + 10"
                     />
                 </g>
 
@@ -462,14 +462,16 @@ export default {
         },
 
         onBringToView(area) {
+            const headerHeight = 50;
+            const sidePanelWidth = 400;
             var newScale = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
-                newScale = Math.floor(100.0 * Math.min((this.width - 400)/area.w, this.height/area.h)) / 100.0;
-                newScale = Math.max(0.5, Math.min(newScale, 1.0));
+                newScale = Math.floor(100.0 * Math.min((this.width - sidePanelWidth)/area.w, (this.height - headerHeight)/area.h)) / 100.0;
+                newScale = Math.max(0.05, Math.min(newScale, 1.0));
             }
 
-            var Xo = (this.width - 400)/2 - (area.x + area.w/2) * newScale;
-            var Yo = (this.height)/2 - (area.y + area.h/2)*newScale;
+            var Xo = (this.width - sidePanelWidth)/2 - (area.x + area.w/2) * newScale;
+            var Yo = (this.height)/2 - (area.y - headerHeight + area.h/2) *newScale;
 
             this.startBringToViewAnimation(Xo, Yo, newScale);
         },

@@ -1,6 +1,8 @@
 TODO
 -------------
-- XS. Zoom to all/selection button
+- XXS. Default name should be empty
+- XXS. Do not display items with empty names in items list
+- XS. Fix. Highlighted items are not clickable. Draw item highlight behind the item.
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - XS. Opacity styling slider
 - M. Search by items text (name and description)
@@ -13,7 +15,7 @@ TODO
 - S. Add link item
 - L. Undo/Redo with Ctrl-Z/Ctrl-Y
 - L. Optimize storage of schemes (json) by removing default styles and property values
-- M. Convert items into other types
+- S. Convert items into other types
 - L. Smart drawing
 - S. User art. Quick search
 - L. S3 storage: AWS, Swift etc.
