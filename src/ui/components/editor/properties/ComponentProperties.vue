@@ -57,6 +57,10 @@
                     <span class="property-label">Stroke size: </span>
                     <input type="text" v-model="item.style.stroke.size"/>
                 </div>
+                <div class="property-row">
+                    <span class="property-label">Opacity: </span>
+                    <input type="text" v-model="item.style.opacity"/>
+                </div>
             </div>
         </panel>
 

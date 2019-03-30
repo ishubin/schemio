@@ -1,5 +1,5 @@
 <template lang="html">
-    <g class="item-graphics">
+    <g class="item-graphics" :style="{opacity: opacityNumber}">
         <g v-if="itemStyle.shape === 'simple-comment'">
             <polygon :points="points" style="stroke-width:1" :fill="backgroundColor" :stroke="strokeColor"/>
             <line :x1="x + delta" :y1="y" :x2="x + delta" :y2="y + delta" style="stroke-width:1" :stroke="strokeColor"/>
@@ -78,6 +78,9 @@ export default {
         }
     },
     computed: {
+        opacityNumber() {
+            return parseFloat(this.itemStyle.opacity);
+        },
         points() {
             var text = '';
             var d = 10 * this.scale;

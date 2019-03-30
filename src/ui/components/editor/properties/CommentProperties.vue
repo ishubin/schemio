@@ -4,7 +4,7 @@
             <input type="checkbox" v-model="item.interactive">
             <span class="property-label">Interactive</span>
         </div>
-        
+
         <div>
             <textarea v-model="item.description"></textarea>
         </div>
@@ -30,6 +30,10 @@
                 <color-picker :color="item.style.stroke.color" @input="item.style.stroke.color = arguments[0]; redrawItem();"></color-picker>
                 <span class="property-label">Stroke color</span>
             </div>
+                <div class="property-row">
+                    <span class="property-label">Opacity: </span>
+                    <input type="text" v-model="item.style.opacity"/>
+                </div>
         </panel>
     </div>
 </template>

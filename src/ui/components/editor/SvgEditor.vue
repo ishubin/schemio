@@ -13,7 +13,7 @@
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"
                     >
 
-                    <g v-if="item.type === 'image'" class="item-graphics">
+                    <g v-if="item.type === 'image'" class="item-graphics" :style="{opacity: item.style.opacity}">
                         <image
                             :x="item.area.x"
                             :y="item.area.y"

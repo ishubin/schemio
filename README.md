@@ -1,23 +1,26 @@
 TODO
 -------------
-- M. Improve css. Make editor looks nicer.
-- XS. Fix. Highlighted items are not clickable. Draw item highlight behind the item.
+- XS. Opacity styling
 - XS. Overflow item styling: non-active visibility, border, opacity,
-- XS. Opacity styling slider
+- XS. Fix. Highlighted items are not clickable. Draw item highlight behind the item.
+- S. User art. Quick search
+- M. Improve css. Make editor look nicer.
 - M. Search by items text (name and description)
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - M. Snapping to items
+- M. Scheme Thumbnail and preview. (for now use canvas to generate image).
 - XS. Fix. Style updates are not rendered for connectors
 - XS. Fix. Stroke changes are not updated in component
 - XS. Image upload error message (New Scheme Popup, etc.)
 - XS. Keep state (expanded/collapsed) of panels in local storage
+- S. Styling. Font-size.
 - S. Add link item
 - L. Undo/Redo with Ctrl-Z/Ctrl-Y
 - L. Optimize storage of schemes (json) by removing default styles and property values
 - S. Convert items into other types
 - L. Smart drawing
-- S. User art. Quick search
 - L. S3 storage: AWS, Swift etc.
+- M. More component shapes
 - XL. Diff-based saving and conflicts resolving
 - XL. Export scheme as image.
 

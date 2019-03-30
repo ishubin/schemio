@@ -24,6 +24,12 @@
             </table>
         </panel>
 
+        <panel name="Style">
+            <div class="property-row">
+                <span class="property-label">Opacity: </span>
+                <input type="text" v-model="item.style.opacity"/>
+            </div>
+        </panel>
         <span class="btn btn-primary" @click="convertToComponent">Convert to Component</span>
     </div>
 </template>

@@ -1,5 +1,5 @@
 <template lang="html">
-    <g v-if="item.type === 'component'" class="item-graphics">
+    <g v-if="item.type === 'component'" class="item-graphics" :style="{opacity: opacityNumber}">
         <g v-if="item.style.shape === 'ellipse'">
             <ellipse :cx="item.area.x + Math.floor(item.area.w / 2)" :cy="item.area.y + Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
                 :stroke="item.style.stroke.color"
@@ -92,6 +92,9 @@ export default {
         }
     },
     computed: {
+        opacityNumber() {
+            return parseFloat(this.item.style.opacity);
+        },
         properties() {
             if (this.item.properties.trim().length > 0) {
                 var properties = this.item.properties || '';

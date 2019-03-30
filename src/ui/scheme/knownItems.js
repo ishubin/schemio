@@ -11,6 +11,7 @@ module.exports = {
                 shape: 'component',
                 background: { color: '#ddd' },
                 text: { color: '#333' },
+                opacity: 1.0,
                 properties: {
                     background: { color: '#eee' },
                     text: { color: '#888' }
@@ -42,6 +43,7 @@ module.exports = {
             locked: false,
             interactive: true,
             style: {
+                opacity: 1.0,
                 shape: 'simple-comment',
                 background: { color: '#ccc' },
                 text: {color: '#666'},
@@ -54,7 +56,9 @@ module.exports = {
         properties: {
             locked: false,
             interactive: false,
-            style: {}
+            style: {
+                opacity: 1.0
+            }
         }
     }
 };
