@@ -1,8 +1,6 @@
 TODO
 -------------
-- XS. Opacity styling
 - XS. Overflow item styling: non-active visibility, border, opacity,
-- XS. Fix. Highlighted items are not clickable. Draw item highlight behind the item.
 - S. User art. Quick search
 - M. Improve css. Make editor look nicer.
 - M. Search by items text (name and description)

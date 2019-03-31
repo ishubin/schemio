@@ -54,7 +54,6 @@
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
                         :mode="mode"
-                        :itemHighlights="searchHighlights"
                         @zoom-updated="onUpdateZoom"
                         @offset-updated="onUpdateOffset"
                         @clicked-add-item-to-item="onActiveItemAppendItem"
@@ -567,23 +566,34 @@ export default {
         searchKeyword(keyword) {
             keyword = keyword.trim().toLowerCase();
             if (keyword.length > 0) {
-                this.searchHighlights = _.chain(this.schemeContainer.getItems()).filter(item => {
+                let filteredItems = [];
+                _.forEach(this.schemeContainer.getItems(), item => {
+                    let shouldHighlight = false;
                     var name = item.name || '';
                     if (name.toLowerCase().indexOf(keyword) >= 0) {
-                        return true;
+                        shouldHighlight = true;
                     } else {
                         //search in tags
                         if (item.tags && item.tags.length > 0) {
                             if (_.find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
-                                return true;
+                                shouldHighlight = true;
                             }
                         }
                     }
-                    return false;
-                }).value();
+                    if (shouldHighlight) {
+                        filteredItems.push(item);
+                    }
+                    item.meta.searchHighlighted = shouldHighlight;
+                });
+                this.searchHighlights = filteredItems;
             } else {
+                _.forEach(this.schemeContainer.getItems(), item => {
+                    item.meta.searchHighlighted = false;
+                });
                 this.searchHighlights = [];
             }
+
+            EventBus.$emit(EventBus.REDRAW);
         }
     }
 }

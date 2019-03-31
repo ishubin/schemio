@@ -13,6 +13,14 @@
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"
                     >
 
+                    <!-- Drawing search highlight box -->
+                    <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
+                        :x="item.area.x - 5"
+                        :y="item.area.y - 5"
+                        :width="item.area.w + 10"
+                        :height="item.area.h + 10"
+                    />
+
                     <g v-if="item.type === 'image'" class="item-graphics" :style="{opacity: item.style.opacity}">
                         <image
                             :x="item.area.x"
@@ -125,16 +133,6 @@
                     </a>
                 </g>
 
-                <g v-for="item in itemHighlights">
-                    <!-- Drawing boundary edit box -->
-                    <rect class="item-search-highlight"
-                        :x="item.area.x - 5"
-                        :y="item.area.y - 5"
-                        :width="item.area.w + 10"
-                        :height="item.area.h + 10"
-                    />
-                </g>
-
                 <!-- Item Edit Menu -->
                 <g v-if="mode === 'edit' && activeItem">
                     <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
@@ -196,7 +194,7 @@ import utils from '../../utils.js';
 const EMPTY_OBJECT = {type: 'nothing'};
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'itemHighlights'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
     components: {CommentItem, ConnectorSvg, ComponentItem},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
