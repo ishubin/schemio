@@ -153,5 +153,11 @@ export default {
         } else {
             return Promise.resolve(null);
         }
+    },
+
+    uploadSchemeThumbnail(schemeId, data) {
+        return axios.post(`/api/scheme-thumnbails/${schemeId}`, {image: data}).then(response => {
+            return response.data;
+        });
     }
 }

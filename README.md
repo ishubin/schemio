@@ -1,12 +1,12 @@
 TODO
 -------------
+- M. Scheme Thumbnail and preview. (for now use canvas to generate image).
 - M. Implement proper mongo migrations
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - S. User art. Quick search
 - M. Improve css. Make editor look nicer.
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - M. Snapping to items
-- M. Scheme Thumbnail and preview. (for now use canvas to generate image).
 - XS. Fix. Style updates are not rendered for connectors
 - XS. Fix. Stroke changes are not updated in component
 - XS. Image upload error message (New Scheme Popup, etc.)

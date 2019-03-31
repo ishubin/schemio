@@ -1,5 +1,7 @@
 <template lang="html">
-    <div id="svg-editor" class="svg-editor">
+    <div id="svg-editor" class="svg-editor"
+            :width="width+'px'"
+            :height="height+'px'">
         <svg id="svg_plot" ref="svgDomElement"
             :width="width+'px'"
             :height="height+'px'"

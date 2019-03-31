@@ -1,5 +1,5 @@
-const fs                = require('fs-extra');
 const multer            = require('multer');
+const fs                = require('fs').promises;
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -35,5 +35,23 @@ module.exports = {
         res.download(`uploads/${fileName}`, fileName, (err) => {
             res.status(404);
         })
+    },
+
+    uploadSchemeThumbnail(req, res) {
+        let imageContent = req.body.image;
+
+        // removing header "data:image/png;base64,"
+        let index = imageContent.indexOf(',');
+        if (index > 0) {
+            imageContent = imageContent.substr(index + 1);
+        }
+
+        var schemeId = req.params.schemeId;
+
+        let fileName = `uploads/scheme-preview-${schemeId}.png`;
+        console.log('Writing to file', fileName);
+        fs.writeFile(fileName, new Buffer(imageContent, 'base64')).then(() => {
+            res.json({message: 'ok'});
+        }).catch(err => res.$apiError(err, 'Could not upload thumbnail'));
     }
 };

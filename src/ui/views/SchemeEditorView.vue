@@ -2,6 +2,7 @@
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
+                <canvas id="thumnbail_canvas" width="500" height="400" style="display: none;"></canvas>
 
                 <dropdown :options="mainDropdown.options">
                     <i class="fas fa-bars"></i>
@@ -150,6 +151,24 @@ import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import settingsStorage from '../settingsStorage.js';
 
+
+function drawInlineSVG(ctx, rawSVG, width, height, callback) {
+    var svg = new Blob([rawSVG], {type:"image/svg+xml;charset=utf-8"}),
+        domURL = self.URL || self.webkitURL || self,
+        url = domURL.createObjectURL(svg),
+        img = new Image;
+
+    img.onload = function () {
+        ctx.drawImage(img, 0, 0, width, height, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        domURL.revokeObjectURL(url);
+        callback();
+    };
+    img.onerror = function (err) {
+        console.error('Error Thumbnail', err);
+    };
+    img.src = url;
+}
+
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
@@ -203,6 +222,7 @@ export default {
 
         return {
             user: null,
+            schemeId: schemeId,
             originalUrlEncoded: encodeURIComponent(window.location),
 
             mainDropdown: {
@@ -278,8 +298,29 @@ export default {
 
         saveScheme() {
             this.schemeChanged = false;
+
+            this.createSchemePreview();
+
             apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme).catch(err => {
                 this.schemeChanged = true;
+            });
+        },
+
+        createSchemePreview() {
+            var previewWidth = 500;
+            var previewHeight = 400;
+
+            var canvas = document.querySelector('#thumnbail_canvas');
+            var context = canvas.getContext('2d');
+            context.canvas.width = previewWidth;
+            context.canvas.height = previewHeight;
+
+            context.clearRect(0, 0, previewWidth, previewHeight);
+
+            var svgString = new XMLSerializer().serializeToString(document.querySelector('#svg_plot'));
+
+            drawInlineSVG(context, svgString, this.svgWidth, this.svgHeight, () => {
+                apiClient.uploadSchemeThumbnail(this.schemeId, (canvas.toDataURL('image/png')));
             });
         },
 

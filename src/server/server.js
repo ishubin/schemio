@@ -48,11 +48,15 @@ app.get('/api/art', apiArt.getArt);
 app.post('/images', [middleware.auth], apiImages.uploadImage);
 app.get('/images/:fileName', apiImages.getImage);
 
+app.post('/api/scheme-thumnbails/:schemeId', apiImages.uploadSchemeThumbnail);
+
+
 app.get('/api/categories',  apiCategories.getRootCategory);
 app.get('/api/categories/:categoryId',  apiCategories.getCategory);
 app.post('/api/categories', [middleware.auth],  apiCategories.createCategory);
 app.delete('/api/categories/:categoryId', [middleware.auth],  apiCategories.deleteCategory);
 app.put('/api/category-structure', [middleware.auth],  apiCategories.ensureCategoryStructure);
+
 
 app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)
