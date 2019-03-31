@@ -33,8 +33,10 @@ module.exports = {
     getImage(req, res) {
         var fileName = req.params.fileName;
         res.download(`uploads/${fileName}`, fileName, (err) => {
-            res.status(404);
-        })
+            if(!res.headersSent) {
+                return res.sendStatus(404);
+            }
+        });
     },
 
     uploadSchemeThumbnail(req, res) {

@@ -28,7 +28,10 @@
 
                 <ul class="schemes">
                     <li v-for="scheme in searchResult.results">
-                        <a class="scheme link" :href="'/schemes/'+scheme.id"><i class="fas fa-project-diagram"></i> <span>{{scheme.name}}</span></a>
+                        <a class="scheme link" :href="'/schemes/'+scheme.id">
+                            <span>{{scheme.name}}</span>
+                            <img :src="'/images/scheme-preview-' + scheme.id + '.png'" style="max-width: 200px; max-height: 100px;"/>
+                        </a>
                         <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
                         <div class="scheme-description">
                             {{scheme.description | shortDescription}}
