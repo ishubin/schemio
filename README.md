@@ -1,9 +1,9 @@
 TODO
 -------------
+- M. Implement proper mongo migrations
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - S. User art. Quick search
 - M. Improve css. Make editor look nicer.
-- M. Search by items text (name and description)
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - M. Snapping to items
 - M. Scheme Thumbnail and preview. (for now use canvas to generate image).

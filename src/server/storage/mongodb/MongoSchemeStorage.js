@@ -20,21 +20,37 @@ class MongoSchemeStorage extends SchemeStorage {
             poolSize: poolSize
         }).then(client => {
             this.db = client.db(dbName);
-            this._inSchemes().createIndex({name: "text", description: "text"});
+            this._schemes().createIndex({name: "text", description: "text", itemsText: "text"});
         }).catch(err => {
             console.error(err);
             process.exit(1);
         });
     }
 
-    _inSchemes() {
+    _schemes() {
         return this.db.collection('schemes');
     }
-    _inTags() {
+    _tags() {
         return this.db.collection('tags');
     }
     _categories() {
         return this.db.collection('categories');
+    }
+
+    combineItemsText(items) {
+        let text = '';
+        _.forEach(items, item => {
+            if (item.name) {
+                text += '\n' + item.name;
+            }
+            if (item.description) {
+                text += '\n' + item.description;
+            }
+            if (item.properties) {
+                text += '\n' + item.properties;
+            }
+        });
+        return text;
     }
 
     findSchemes(query) {
@@ -58,8 +74,8 @@ class MongoSchemeStorage extends SchemeStorage {
         var limit = 10;
 
         return Promise.all([
-            this._inSchemes().count(mongoQuery),
-            this._inSchemes().find(mongoQuery).skip(offset).limit(limit).toArray()
+            this._schemes().count(mongoQuery),
+            this._schemes().find(mongoQuery).skip(offset).limit(limit).toArray()
         ]).then(values => {
             var count = values[0];
             var schemes = values[1];
@@ -93,20 +109,22 @@ class MongoSchemeStorage extends SchemeStorage {
             })
         }
 
+        scheme.itemsText = this.combineItemsText(scheme.items);
+
         return promise.then(category => {
             if (category) {
                 scheme.allSubCategoryIds = _.map(category.ancestors, a => a.id);
             } else {
                 scheme.allSubCategoryIds = [];
             }
-            return this._inSchemes().insertOne(scheme).then(result => {
+            return this._schemes().insertOne(scheme).then(result => {
                 return scheme;
             });
         });
     }
 
     getScheme(schemeId) {
-        return this._inSchemes().findOne({id: schemeId}).then(scheme => {
+        return this._schemes().findOne({id: schemeId}).then(scheme => {
             if (scheme) {
                 return {
                     id: scheme.id,
@@ -124,7 +142,7 @@ class MongoSchemeStorage extends SchemeStorage {
     }
 
     deleteScheme(schemeId) {
-        return this._inSchemes().deleteOne({id: schemeId});
+        return this._schemes().deleteOne({id: schemeId});
     }
 
     saveScheme(schemeId, scheme) {
@@ -137,11 +155,14 @@ class MongoSchemeStorage extends SchemeStorage {
             });
         }
         this.saveTags(tags);
-        return this._inSchemes().updateOne({id: schemeId}, {$set: scheme});
+
+        scheme.itemsText = this.combineItemsText(scheme.items);
+
+        return this._schemes().updateOne({id: schemeId}, {$set: scheme});
     }
 
     getTags() {
-        return this._inTags().find({}).toArray().then(tags => {
+        return this._tags().find({}).toArray().then(tags => {
             if (tags && tags.length > 0) {
                 return _.map(tags, tag => tag.name);
             } else {
@@ -154,11 +175,11 @@ class MongoSchemeStorage extends SchemeStorage {
         var uniqTags = _.uniq(tags);
 
         var promises = _.map(uniqTags, tag => {
-            return this._inTags().updateOne({
+            return this._tags().updateOne({
                 name: tag
-            }, {
+            }, {$set: {
                 name: tag
-            }, {
+            }}, {
                 upsert: true
             });
         });
