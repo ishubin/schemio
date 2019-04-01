@@ -1,6 +1,5 @@
 TODO
 -------------
-- M. Scheme Thumbnail and preview. (for now use canvas to generate image).
 - M. Implement proper mongo migrations
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - S. User art. Quick search

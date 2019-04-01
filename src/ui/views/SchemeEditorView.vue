@@ -92,8 +92,7 @@
                                 >{{tab.name}}</span>
                         </li>
                     </ul>
-
-                    <div class="wrapper">
+                    <div class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer">
                             <scheme-properties v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
