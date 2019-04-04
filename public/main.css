@@ -185,14 +185,24 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid #2b90b5;
 }
 .btn.btn-primary {
-    background: #2b90b5;
+    background: #3a93db;
     color: #fff;
-    border: 1px solid #2b90b5;
+    border: 1px solid #3372a6;
 }
 .btn.btn-primary:hover {
-    background: #80aed7;
+    background: #51b4ec;
     color: #fff;
-    border: 1px solid #2b90b5;
+    border: 1px solid #4392bf;
+}
+.btn.btn-secondary {
+    background: #555;
+    color: white;
+    border: 1px solid #333;
+}
+.btn.btn-secondary:hover {
+    background: #ddd;
+    color: #333;
+    border: 1px solid #999;
 }
 .btn.btn-dangerous {
     background: #ba2e20;
@@ -689,12 +699,16 @@ ul.button-group li .toggle-button.toggled:hover {
     width: 100%;
     min-height: 150px;
 }
+.item-properties .btn {
+    font-size: 14px;
+    padding: 2px 5px 2px 5px;
+}
 .property-row {
     position: relative;
 }
 .property-row .property-label {
     padding-left: 25px;
-    font-size: 12px;
+    font-size: 14px;
 }
 .property-row .color-picker {
     position: absolute;
