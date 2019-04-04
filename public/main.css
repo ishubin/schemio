@@ -222,6 +222,11 @@ input.textfield, textarea.textfield {
 textarea.textfield {
     height: 150px;
 }
+input.textfield.textfield-small {
+    width: 140px;
+    padding: 1px;
+    font-size: 12px;
+}
 
 
 /******************* Pagination *********************/
@@ -630,7 +635,8 @@ ul.button-group li .toggle-button.toggled:hover {
 
 /******************* Panel *********************/
 .panel {
-    border-top: 2px solid #d3e5eb;
+    border-top: 1px solid #fff;
+    box-shadow: 0 -1px 0 #ddd;
     margin: 2px;
     padding-top: 2px;
 }
@@ -638,8 +644,8 @@ ul.button-group li .toggle-button.toggled:hover {
     position: relative;
     display: block;
     font-weight: normal;
-    color: #11a1cf;
-    font-size: 14px;
+    color: #333;
+    font-size: 15px;
     padding-bottom: 4px;
     padding-left: 15px;
     cursor: pointer;
@@ -649,7 +655,7 @@ ul.button-group li .toggle-button.toggled:hover {
     display: inline-block;
     font-size: 10px;
     left: 2px;
-    top: 2px;
+    top: 3px;
 }
 .panel-title.panel-expanded:before {
     content: '\25BC';
@@ -658,7 +664,7 @@ ul.button-group li .toggle-button.toggled:hover {
     content: '\25BA';
 }
 .panel-title:hover {
-    background: #e0edf1;
+    color: #555;
 }
 
 
@@ -689,16 +695,6 @@ ul.button-group li .toggle-button.toggled:hover {
 .property-row .property-label {
     padding-left: 25px;
     font-size: 12px;
-}
-.property-row .property-textfield {
-    position: absolute;
-    right: 5px;
-    width: 100px;
-    height: 12px;
-    font-size: 12px;
-    border-radius: 1px;
-    background: #f0f0f0;
-    border: 1px solid #bbb;
 }
 .property-row .color-picker {
     position: absolute;
@@ -1068,4 +1064,16 @@ ul.category-breadcrumb li i {
 .item-list-container .unnamed-item {
     color: #999;
     font-style: italic;
+}
+
+
+
+/***************** Position Panel **************/
+table.position-panel-table {
+    width: 100%;
+}
+table.position-panel-table .property-label {
+    padding-left: 5px;
+    display: inline-block;
+    width: 20px;
 }

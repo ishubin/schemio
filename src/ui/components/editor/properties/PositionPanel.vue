@@ -1,29 +1,21 @@
 <template lang="html">
     <panel name="Position">
-        <table>
+        <table class="position-panel-table">
             <tbody>
                 <tr>
-                    <td>
-                        <div class="property-row">
-                            x: <input type="text" v-model="x"/>
-                        </div>
+                    <td class="property-row">
+                        <span class="property-label">x:</span> <input class="textfield textfield-small" type="text" v-model="x"/>
                     </td>
-                    <td>
-                        <div class="property-row">
-                            y: <input type="text" v-model="y"/>
-                        </div>
+                    <td class="property-row">
+                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
                     </td>
                 </tr>
                 <tr>
-                    <td>
-                        <div class="property-row">
-                            w: <input type="text" v-model="w"/>
-                        </div>
+                    <td class="property-row">
+                        <span class="property-label">w:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
                     </td>
-                    <td>
-                        <div class="property-row">
-                            h: <input type="text" v-model="h"/>
-                        </div>
+                    <td class="property-row">
+                        <span class="property-label">h:</span> <input class="textfield textfield-small" type="text" v-model="h"/>
                     </td>
                 </tr>
             </tbody>
