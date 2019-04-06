@@ -2,8 +2,6 @@
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
             <div class="scheme-editor-top-panel">
-                <canvas id="thumnbail_canvas" width="500" height="400" style="display: none;"></canvas>
-
                 <dropdown :options="mainDropdown.options">
                     <i class="fas fa-bars"></i>
                 </dropdown>
@@ -149,32 +147,9 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import settingsStorage from '../settingsStorage.js';
+import convertSvgToDataUrl from '../svgPreview.js';
 
 
-function drawInlineSVG(ctx, rawSVG, width, height, callback) {
-    let svg = new Blob([rawSVG], {type:"image/svg+xml;charset=utf-8"}),
-        domURL = self.URL || self.webkitURL || self,
-        url = domURL.createObjectURL(svg),
-        img = new Image;
-    let cw = ctx.canvas.width;
-    let ch = ctx.canvas.height;
-
-    if (width > height) {
-        ch = cw * height / width;
-    } else {
-        cw = ch * width / height;
-    }
-
-    img.onload = function () {
-        ctx.drawImage(img, 0, 0, width, height, 0, 0, cw, ch);
-        domURL.revokeObjectURL(url);
-        callback();
-    };
-    img.onerror = function (err) {
-        console.error('Error Thumbnail', err);
-    };
-    img.src = url;
-}
 
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -313,76 +288,9 @@ export default {
             });
         },
 
-        imageToDataURL(src, callback) {
-            let img = new Image();
-            img.crossOrigin = 'Anonymous';
-            img.onload = function() {
-                let canvas = document.createElement('canvas');
-                let ctx = canvas.getContext('2d');
-                canvas.height = this.naturalHeight;
-                canvas.width = this.naturalWidth;
-                ctx.drawImage(this, 0, 0);
-                callback(canvas.toDataURL('image/png'));
-            };
-            img.onerror = function() {
-                callback(null);
-            };
-            try {
-                img.src = src;
-            } catch(err) {
-                callback(null);
-            }
-        },
-
-        embedImageIntoSvg(imageElement) {
-            let url = imageElement.getAttribute('xlink:href');
-            return new Promise((resolve, reject) => {
-                this.imageToDataURL(url, resolve);
-            }).then(dataUrl => {
-                imageElement.setAttribute('xlink:href', dataUrl);
-            });
-        },
-
-        filterOutPreviewSvgElements(svgElement) {
-            let promises = [];
-            for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
-                let child = svgElement.childNodes[i];
-                if (child && child.nodeType === 1) {
-                    if (child.getAttribute('data-preview-ignore') === 'true') {
-                        svgElement.removeChild(child);
-                    } else {
-                        if (child.nodeName === 'image') {
-                            promises.push(this.embedImageIntoSvg(child));
-                        } else {
-                            promises = promises.concat(this.filterOutPreviewSvgElements(child));
-                        }
-                    }
-                }
-            }
-            return promises;
-        },
-
         createSchemePreview() {
-            var previewWidth = 500;
-            var previewHeight = 400;
-
-            var canvas = document.querySelector('#thumnbail_canvas');
-            var context = canvas.getContext('2d');
-            context.canvas.width = previewWidth;
-            context.canvas.height = previewHeight;
-
-            context.clearRect(0, 0, previewWidth, previewHeight);
-
-            let svgElement = document.querySelector('#svg_plot').cloneNode(true);
-            let promises = this.filterOutPreviewSvgElements(svgElement);
-
-            Promise.all(promises).then(() => {
-                console.log('Ready');
-                var svgString = new XMLSerializer().serializeToString(svgElement);
-
-                drawInlineSVG(context, svgString, this.svgWidth, this.svgHeight, () => {
-                    apiClient.uploadSchemeThumbnail(this.schemeId, (canvas.toDataURL('image/png')));
-                });
+            convertSvgToDataUrl(500, 400, '#svg_plot').then(dataUrl => {
+                apiClient.uploadSchemeThumbnail(this.schemeId, dataUrl);
             });
         },
 
