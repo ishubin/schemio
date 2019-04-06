@@ -94,8 +94,8 @@ ul.categories, ul.schemes {
 }
 ul.schemes li {
     position: relative;
-    padding-bottom: 20px;
-    padding-top: 5px;
+    display: inline-block;
+    margin: 15px;
 }
 ul.categories li a, ul.schemes li a {
     text-decoration: none;
@@ -112,13 +112,51 @@ ul.categories li a i, ul.schemes li a i {
     display: inline-block;
     padding: 0 4px 2px 0;
 }
+ul.schemes li a {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    width: 400px;
+    height: 300px;
+    text-decoration: none;
+}
+ul.schemes li a h5 {
+    margin: 10px 5px 10px 5px;
+    padding: 0;
+    overflow: ellipsis;
+}
+ul.schemes li a:hover {
+    text-decoration: none;
+    box-shadow: 0 0 10px rgba(0,0,0, 0.1);
+}
+ul.schemes li a .image-wrapper {
+    overflow: hidden;
+    display: block;
+    height: 200px;
+    width: 398px;
+    text-align: center;
+    white-space: nowrap;
+}
+ul.schemes li a img {
+    max-width: 100%;
+    max-height: 100%;
+    vertical-align: middle;
+}
 ul.schemes li .scheme-description {
+    position: absolute;
     color: #777;
-    font-size: 11pt;
-    padding: 5px 0 5px 27px;
+    font-size: 12px;
+    height: 50px;
+    left: 0;
+    bottom: 5px;
+    overflow: ellipsis;
+    padding: 5px;
 }
 ul.schemes li .timestamp {
-    font-size: 11pt;
+    font-size: 12px;
     color: #777;
     font-style: italic;
     position: absolute;

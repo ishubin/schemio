@@ -1,5 +1,5 @@
 <template lang="html">
-    <div>
+    <div class="browse-schemes">
         <header-component :category="category"/>
         <div class="content-wrapper">
             <ul class="category-breadcrumb" v-if="category">
@@ -26,13 +26,15 @@
             <ul class="schemes">
                 <li v-for="scheme in schemes">
                     <a class="scheme link" :href="'/schemes/'+scheme.id">
-                        <span>{{scheme.name}}</span><br/>
-                        <img :src="'/images/scheme-preview-' + scheme.id + '.png'" style="max-width: 200px; max-height: 100px;"/>
+                        <h5>{{scheme.name}}</h5>
+                        <div class="image-wrapper">
+                            <img class="scheme-preview" :src="'/images/scheme-preview-' + scheme.id + '.png'"/>
+                        </div>
+                        <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
+                        <div class="scheme-description">
+                            {{scheme.description | shortDescription}}
+                        </div>
                     </a>
-                    <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
-                    <div class="scheme-description">
-                        {{scheme.description | shortDescription}}
-                    </div>
                 </li>
             </ul>
         </div>
