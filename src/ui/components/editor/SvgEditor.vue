@@ -68,11 +68,12 @@
                     </g>
 
 
-                    <g v-if="item.links && item.links.length > 0">
+                    <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
                         <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
                     </g>
 
                     <rect class="item-rect-highlight-area"
+                        data-preview-ignore="true"
                         :data-item-index="itemIndex"
                         :x="item.area.x"
                         :y="item.area.y"
@@ -82,7 +83,7 @@
                     />
 
 
-                    <g v-if="mode === 'edit'" class="item-container">
+                    <g v-if="mode === 'edit'" class="item-container" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
                         <rect class="boundary-box"
                              :data-item-index="itemIndex"
@@ -117,7 +118,7 @@
 
                 </g>
 
-                <g v-for="link, linkIndex in selectedItemLinks">
+                <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a class="item-link" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
 
@@ -136,7 +137,7 @@
                 </g>
 
                 <!-- Item Edit Menu -->
-                <g v-if="mode === 'edit' && activeItem">
+                <g v-if="mode === 'edit' && activeItem" data-preview-ignore="true">
                     <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
                         <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
                         <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
@@ -159,7 +160,7 @@
                     </g>
                 </g>
 
-                <g v-if="schemeContainer.activeBoundaryBox">
+                <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                     <!-- Drawing boundary edit box -->
                     <rect class="boundary-box"
                         :x="schemeContainer.activeBoundaryBox.x"

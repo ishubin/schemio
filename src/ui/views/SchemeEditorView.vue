@@ -152,13 +152,21 @@ import settingsStorage from '../settingsStorage.js';
 
 
 function drawInlineSVG(ctx, rawSVG, width, height, callback) {
-    var svg = new Blob([rawSVG], {type:"image/svg+xml;charset=utf-8"}),
+    let svg = new Blob([rawSVG], {type:"image/svg+xml;charset=utf-8"}),
         domURL = self.URL || self.webkitURL || self,
         url = domURL.createObjectURL(svg),
         img = new Image;
+    let cw = ctx.canvas.width;
+    let ch = ctx.canvas.height;
+
+    if (width > height) {
+        ch = cw * height / width;
+    } else {
+        cw = ch * width / height;
+    }
 
     img.onload = function () {
-        ctx.drawImage(img, 0, 0, width, height, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.drawImage(img, 0, 0, width, height, 0, 0, cw, ch);
         domURL.revokeObjectURL(url);
         callback();
     };
@@ -305,6 +313,55 @@ export default {
             });
         },
 
+        imageToDataURL(src, callback) {
+            let img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.onload = function() {
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                canvas.height = this.naturalHeight;
+                canvas.width = this.naturalWidth;
+                ctx.drawImage(this, 0, 0);
+                callback(canvas.toDataURL('image/png'));
+            };
+            img.onerror = function() {
+                callback(null);
+            };
+            try {
+                img.src = src;
+            } catch(err) {
+                callback(null);
+            }
+        },
+
+        embedImageIntoSvg(imageElement) {
+            let url = imageElement.getAttribute('xlink:href');
+            return new Promise((resolve, reject) => {
+                this.imageToDataURL(url, resolve);
+            }).then(dataUrl => {
+                imageElement.setAttribute('xlink:href', dataUrl);
+            });
+        },
+
+        filterOutPreviewSvgElements(svgElement) {
+            let promises = [];
+            for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
+                let child = svgElement.childNodes[i];
+                if (child && child.nodeType === 1) {
+                    if (child.getAttribute('data-preview-ignore') === 'true') {
+                        svgElement.removeChild(child);
+                    } else {
+                        if (child.nodeName === 'image') {
+                            promises.push(this.embedImageIntoSvg(child));
+                        } else {
+                            promises = promises.concat(this.filterOutPreviewSvgElements(child));
+                        }
+                    }
+                }
+            }
+            return promises;
+        },
+
         createSchemePreview() {
             var previewWidth = 500;
             var previewHeight = 400;
@@ -316,10 +373,16 @@ export default {
 
             context.clearRect(0, 0, previewWidth, previewHeight);
 
-            var svgString = new XMLSerializer().serializeToString(document.querySelector('#svg_plot'));
+            let svgElement = document.querySelector('#svg_plot').cloneNode(true);
+            let promises = this.filterOutPreviewSvgElements(svgElement);
 
-            drawInlineSVG(context, svgString, this.svgWidth, this.svgHeight, () => {
-                apiClient.uploadSchemeThumbnail(this.schemeId, (canvas.toDataURL('image/png')));
+            Promise.all(promises).then(() => {
+                console.log('Ready');
+                var svgString = new XMLSerializer().serializeToString(svgElement);
+
+                drawInlineSVG(context, svgString, this.svgWidth, this.svgHeight, () => {
+                    apiClient.uploadSchemeThumbnail(this.schemeId, (canvas.toDataURL('image/png')));
+                });
             });
         },
 
