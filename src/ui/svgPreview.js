@@ -107,11 +107,13 @@ export default function createSchemePreview(previewWidth, previewHeight, selecto
     context.clearRect(0, 0, previewWidth, previewHeight);
 
     let originalSvg = document.querySelector(selector);
-    let bbRect = originalSvg.getBoundingClientRect();
-
     let svgElement = originalSvg.cloneNode(true);
+
+    svgElement.setAttribute('width', `${previewWidth}px`);
+    svgElement.setAttribute('height', `${previewHeight}px`);
+
     if (zoomArea) {
-        let screenPosition = getScreenPosition(bbRect.width, bbRect.height, zoomArea);
+        let screenPosition = getScreenPosition(previewWidth, previewHeight, zoomArea);
         let layer = findTransformLayer(svgElement);
         console.log('screenPosition', screenPosition);
         if (layer) {
@@ -124,7 +126,7 @@ export default function createSchemePreview(previewWidth, previewHeight, selecto
     return Promise.all(promises).then(() => {
         var svgString = new XMLSerializer().serializeToString(svgElement);
         return new Promise((resolve, reject) => {
-            drawInlineSVG(context, svgString, bbRect.width, bbRect.height, () => {
+            drawInlineSVG(context, svgString, previewWidth, previewHeight, () => {
                 resolve(canvas.toDataURL('image/png'));
             });
         });

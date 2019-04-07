@@ -1,7 +1,7 @@
 const express               = require('express');
 const path                  = require('path');
 const bodyParser            = require('body-parser');
-const jsonBodyParser        = bodyParser.json();
+const jsonBodyParser        = bodyParser.json({limit: '50mb', extended: true});
 const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
 const apiUser               = require('./api/apiUser.js');
