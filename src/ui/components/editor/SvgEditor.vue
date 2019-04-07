@@ -57,7 +57,7 @@
                         :fontsize="15"
                         ></comment-item>
 
-                    <g v-if="item.type === 'overlay'" class="item-graphics">
+                    <g v-if="item.type === 'overlay'" class="item-graphics" data-type="overlay">
                         <rect
                             :x="item.area.x"
                             :y="item.area.y"

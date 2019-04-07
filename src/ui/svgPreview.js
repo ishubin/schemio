@@ -61,6 +61,9 @@ function filterOutPreviewSvgElements(svgElement) {
             if (child.getAttribute('data-preview-ignore') === 'true') {
                 svgElement.removeChild(child);
             } else {
+                if (child.getAttribute('data-type') === 'overlay') {
+                    child.style.opacity = 0.3;
+                }
                 if (child.nodeName === 'image') {
                     promises.push(embedImageIntoSvg(child));
                 } else {
@@ -72,12 +75,32 @@ function filterOutPreviewSvgElements(svgElement) {
     return promises;
 }
 
-export default function createSchemePreview(previewWidth, previewHeight, selector) {
-    var previewWidth = 500;
-    var previewHeight = 400;
+function getScreenPosition(svgWidth, svgHeight, area) {
+    let newScale = 1.0;
+    if (area.w > 0 && area.h > 0 && svgWidth > 0 && svgHeight > 0) {
+        newScale = Math.floor(100.0 * Math.min(svgWidth/area.w, svgHeight/area.h)) / 100.0;
+        newScale = Math.max(0.05, Math.min(newScale, 10.0));
+    }
 
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
+    return {
+        offsetX: svgWidth/2 - (area.x + area.w/2) * newScale,
+        offsetY: svgHeight/2 - (area.y + area.h/2) *newScale,
+        scale: newScale
+    };
+}
+
+function findTransformLayer(svgElement) {
+    for (let i = 0; i < svgElement.childNodes.length - 1; i++) {
+        if (svgElement.childNodes[i].getAttribute('transform')) {
+            return svgElement.childNodes[i];
+        }
+    }
+    return null;
+}
+
+export default function createSchemePreview(previewWidth, previewHeight, selector, zoomArea) {
+    let canvas = document.createElement('canvas');
+    let context = canvas.getContext('2d');
     canvas.width = previewWidth;
     canvas.height = previewHeight;
 
@@ -87,6 +110,15 @@ export default function createSchemePreview(previewWidth, previewHeight, selecto
     let bbRect = originalSvg.getBoundingClientRect();
 
     let svgElement = originalSvg.cloneNode(true);
+    if (zoomArea) {
+        let screenPosition = getScreenPosition(bbRect.width, bbRect.height, zoomArea);
+        let layer = findTransformLayer(svgElement);
+        console.log('screenPosition', screenPosition);
+        if (layer) {
+            layer.setAttribute('transform', `translate(${screenPosition.offsetX} ${screenPosition.offsetY}) scale(${screenPosition.scale} ${screenPosition.scale})`);
+        }
+    }
+
     let promises = filterOutPreviewSvgElements(svgElement);
 
     return Promise.all(promises).then(() => {

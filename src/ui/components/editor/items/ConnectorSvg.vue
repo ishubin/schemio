@@ -22,7 +22,7 @@
             />
         </g>
 
-        <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes">
+        <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes" data-preview-ignore="true">
             <circle :cx="point.x" :cy="point.y" r="5"
                 :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"

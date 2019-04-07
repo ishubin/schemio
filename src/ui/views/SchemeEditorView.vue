@@ -289,7 +289,9 @@ export default {
         },
 
         createSchemePreview() {
-            convertSvgToDataUrl(500, 400, '#svg_plot').then(dataUrl => {
+            var area = this.getBoundingBoxOfItems(this.schemeContainer.scheme.items);
+
+            convertSvgToDataUrl(500, 400, '#svg_plot', area).then(dataUrl => {
                 apiClient.uploadSchemeThumbnail(this.schemeId, dataUrl);
             });
         },
@@ -310,31 +312,35 @@ export default {
 
         zoomToItems(items) {
             if (items && items.length > 0) {
-                var area = null;
-
-                _.forEach(items, item => {
-                    if (!area) {
-                        area = {x: item.area.x, y: item.area.y, w: item.area.w, h: item.area.h};
-                    } else {
-                        if (area.x > item.area.x) {
-                            area.x = item.area.x;
-                        }
-                        if (area.y > item.area.y) {
-                            area.y = item.area.y;
-                        }
-                        if (area.x + area.w < item.area.x + item.area.w) {
-                            area.w = item.area.x + item.area.w - area.x;
-                        }
-                        if (area.y + area.h < item.area.y + item.area.h) {
-                            area.h = item.area.y + item.area.h - area.y;
-                        }
-                    }
-                });
-
+                let area = this.getBoundingBoxOfItems(items);
                 if (area) {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
+        },
+
+        getBoundingBoxOfItems(items) {
+            var area = null;
+
+            _.forEach(items, item => {
+                if (!area) {
+                    area = {x: item.area.x, y: item.area.y, w: item.area.w, h: item.area.h};
+                } else {
+                    if (area.x > item.area.x) {
+                        area.x = item.area.x;
+                    }
+                    if (area.y > item.area.y) {
+                        area.y = item.area.y;
+                    }
+                    if (area.x + area.w < item.area.x + item.area.w) {
+                        area.w = item.area.x + item.area.w - area.x;
+                    }
+                    if (area.y + area.h < item.area.y + item.area.h) {
+                        area.h = item.area.y + item.area.h - area.y;
+                    }
+                }
+            });
+            return area;
         },
 
 
