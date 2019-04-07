@@ -124,9 +124,12 @@ ul.schemes li a {
     text-decoration: none;
 }
 ul.schemes li a h5 {
-    margin: 10px 5px 10px 5px;
+    margin: 14px 5px 10px 5px;
     padding: 0;
-    overflow: ellipsis;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 15px;
 }
 ul.schemes li a:hover {
     text-decoration: none;
@@ -156,12 +159,12 @@ ul.schemes li .scheme-description {
     padding: 5px;
 }
 ul.schemes li .timestamp {
-    font-size: 12px;
-    color: #777;
+    font-size: 11px;
+    color: #999;
     font-style: italic;
     position: absolute;
     right: 10px;
-    top: 4px;
+    top: 2px;
 }
 
 /******************** Tabs *********************/
