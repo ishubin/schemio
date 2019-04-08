@@ -10,6 +10,7 @@ body {
     color: #222;
     height: 100%;
     overflow: auto;
+    background: #eee;
 }
 
 * {
@@ -129,7 +130,7 @@ ul.schemes li a h5 {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    height: 15px;
+    height: 20px;
 }
 ul.schemes li a:hover {
     text-decoration: none;
@@ -322,6 +323,7 @@ ul.pagination li.active a {
 /********************* Svg editor *******************/
 
 .svg-editor svg {
+    background: #fff;
     position: fixed;
     top: 0;
     left: 0;

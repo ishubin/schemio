@@ -1,6 +1,5 @@
 TODO
 -------------
-- Scheme preview. Zoom into all elements when saving svg to canvas.
 - M. Implement proper mongo migrations
 - XS. Overflow item styling: non-active visibility, border, opacity,
 - S. User art. Quick search
