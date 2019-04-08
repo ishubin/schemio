@@ -339,7 +339,10 @@ class SchemeContainer {
 
     addItem(item) {
         if (!item.hasOwnProperty('meta')) {
-            item.meta = {};
+            item.meta = {
+                hovered: false,
+                selected: false
+            };
         }
         if (!item.id) {
             item.id = shortid.generate();
@@ -578,7 +581,10 @@ class SchemeContainer {
             var item = JSON.parse(JSON.stringify(originalItem));
             item.area.x += -50;
             item.area.y += -50;
-            item.meta = {};
+            item.meta = {
+                hovered: false,
+                selected: false
+            };
             delete item.id;
             item.connectors = [];
             item = this.addItem(item);

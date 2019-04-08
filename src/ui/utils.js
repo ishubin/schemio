@@ -19,7 +19,7 @@ module.exports = {
     extendObject(originalObject, overrideObject) {
         _.forEach(overrideObject, (value, key) => {
             if (!originalObject.hasOwnProperty(key)) {
-                originalObject[key] = value;
+                originalObject[key] = this.clone(value);
             } else {
                 if (typeof value === 'object') {
                     this.extendObject(originalObject[key], value);

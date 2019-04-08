@@ -57,16 +57,10 @@
                         :fontsize="15"
                         ></comment-item>
 
-                    <g v-if="item.type === 'overlay'" class="item-graphics" data-type="overlay">
-                        <rect
-                            :x="item.area.x"
-                            :y="item.area.y"
-                            :width="item.area.w"
-                            :height="item.area.h"
-                            :fill="item.style.background && item.style.background.color ? item.style.background.color : '#fff'"
-                        />
-                    </g>
-
+                    <overlay-item v-if="item.type === 'overlay'"
+                        :item="item"
+                        data-type="overlay"
+                    />
 
                     <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
                         <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
@@ -189,6 +183,7 @@ import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
 import EventBus from './EventBus.js';
 import CommentItem from './items/CommentItem.vue';
+import OverlayItem from './items/OverlayItem.vue';
 import ComponentItem from './items/ComponentItem.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
@@ -198,7 +193,7 @@ const EMPTY_OBJECT = {type: 'nothing'};
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
-    components: {CommentItem, ConnectorSvg, ComponentItem},
+    components: {CommentItem, ConnectorSvg, ComponentItem, OverlayItem},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

@@ -353,13 +353,27 @@ svg .item-container.item-type-art .item-graphics image {
 svg .item-container.item-type-art.selected .item-graphics image {
     opacity: 0.7;
 }
-svg .item-container.item-type-overlay .item-graphics rect {
-    stroke-width: 3;
+svg .item-container.item-type-overlay rect {
     stroke: none;
-    opacity: 0;
 }
-svg .item-container.item-type-overlay.selected .item-graphics rect {
-    opacity: 0.5;
+svg .item-container.item-type-overlay rect.overlay-rect-inactive {
+}
+svg .item-container.item-type-overlay rect.overlay-rect-active {
+    display: none;
+}
+svg .item-container.item-type-overlay:hover rect.overlay-rect-inactive {
+    display: none;
+}
+svg .item-container.item-type-overlay:hover rect.overlay-rect-active {
+    display: block;
+}
+svg .item-container.item-type-overlay.selected rect.overlay-rect-inactive {
+    display: none;
+}
+svg .item-container.item-type-overlay.selected rect.overlay-rect-active {
+    display: block;
+}
+svg .item-container.item-type-overlay.selected rect {
 }
 svg rect.multi-select-box {
     stroke-width: 1;
@@ -452,10 +466,6 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
 
 /*********************************/
 /*  Hover states in view mode and interacting state */
-svg.mode-view.state-interact .item-container.item-interactive.item-type-overlay:hover .item-graphics rect {
-    opacity: 0.2;
-    cursor: pointer;
-}
 svg.mode-view.state-interact .item-container.item-interactive.item-type-component:hover .item-graphics rect {
     opacity: 0.7;
     cursor: pointer;
@@ -762,11 +772,22 @@ ul.button-group li .toggle-button.toggled:hover {
 }
 .color-picker-toggle-button {
     display: inline-block;
+    position: relative;
     width: 15px;
     height: 15px;
-    border-radius: 1px;
+    border-radius: 2px;
     cursor: pointer;
     border: 1px solid #999;
+}
+.color-picker-toggle-button span {
+    display: inline-block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 2px;
+}
+.color-picker-toggle-button span.color-picker-toggle-button-background {
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQoU2M8c+bMfwY0oKenhy7EwDgUFP769QvDM5cuXcL0zBBQCADjtDObjg4SggAAAABJRU5ErkJggg==') repeat;
 }
 .color-picker .vc-chrome {
     box-shadow: none;
