@@ -10,6 +10,7 @@ TODO
 - XS. Fix. Stroke changes are not updated in component
 - XS. Image upload error message (New Scheme Popup, etc.)
 - XS. Keep state (expanded/collapsed) of panels in local storage
+- M. Export scheme as image.
 - S. Styling. Font-size.
 - S. Add link item
 - L. Undo/Redo with Ctrl-Z/Ctrl-Y
@@ -19,7 +20,6 @@ TODO
 - L. S3 storage: AWS, Swift etc.
 - M. More component shapes
 - XL. Diff-based saving and conflicts resolving
-- XL. Export scheme as image.
 
 
 Grouping
