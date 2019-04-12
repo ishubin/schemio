@@ -432,14 +432,21 @@ svg .item-link .item-link-icon {
 }
 svg .item-link .item-link-full-title {
     display: none;
-    font-size: 12px;
-    font-weight: bold;
-    font-family: helvetica;
-    fill: #ff0000;
+    font-size: 16px;
+    font-weight: normal;
+    font-family: "Lucida Console", monospace;
+    fill: #333;
+}
+svg .item-link .item-link-title-background {
+    fill: #eee;
+    opacity: 0.8;
+    display: none;
+}
+svg .item-link:hover .item-link-title-background {
+    display: block;
 }
 svg .item-link:hover .item-link-full-title {
     display: block;
-    text-shadow: 1px 0 0 #fff, 0 -1px 0 #fff, 0 1px 0 #fff, -1px 0 0 #fff, 1px 1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, -1px -1px 0 #fff;
     z-index: 5;
 }
 

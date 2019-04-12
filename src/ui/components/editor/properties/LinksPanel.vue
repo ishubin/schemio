@@ -1,5 +1,5 @@
 <template lang="html">
-    <panel name="Links" v-if="item.type === 'overlay' || item.type === 'component' || item.type === 'shape' ">
+    <panel name="Links">
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
         <ul class="links">
             <li v-for="(link, linkId) in item.links">

@@ -1,7 +1,10 @@
 TODO
 -------------
+- XS. Links with empty titles should show url
+- M. Draw grid
+- S. Snapping to grid
+- L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
 - M. Implement proper mongo migrations
-- XS. Overflow item styling: non-active visibility, border, opacity,
 - S. User art. Quick search
 - M. Improve css. Make editor look nicer.
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
@@ -19,6 +22,7 @@ TODO
 - L. Smart drawing
 - L. S3 storage: AWS, Swift etc.
 - M. More component shapes
+- M. Add property types rendering in component items. Specify it via '|' symbol
 - XL. Diff-based saving and conflicts resolving
 
 

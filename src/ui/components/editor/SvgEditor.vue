@@ -123,6 +123,12 @@
                             :title="link.title"
                             >{{link.shortTitle}}</text>
 
+                        <rect class="item-link-title-background"
+                            :x="link.x + 16"
+                            :y="link.y - 13"
+                            :width="link.title.length * 10"
+                            :height="25"
+                        ></rect>
                         <text class="item-link-full-title"
                             :x="link.x + 25 - 5"
                             :y="link.y + 5"

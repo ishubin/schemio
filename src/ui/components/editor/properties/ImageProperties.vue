@@ -2,6 +2,8 @@
     <div>
         <general-panel :item="item" :tagsUsed="false"/>
 
+        <links-panel :item="item"/>
+
         <connections-panel :item="item"/>
 
         <panel name="Image">
@@ -37,6 +39,7 @@
 <script>
 import Panel from '../Panel.vue';
 import GeneralPanel from './GeneralPanel.vue';
+import LinksPanel from './LinksPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import utils from '../../../utils.js';
 import knownItems from '../../../scheme/knownItems.js';
@@ -44,7 +47,7 @@ import knownItems from '../../../scheme/knownItems.js';
 export default {
     props: ['item'],
 
-    components: {Panel, GeneralPanel, ConnectionsPanel},
+    components: {Panel, GeneralPanel, LinksPanel, ConnectionsPanel},
 
     methods: {
         uploadImage(event) {
