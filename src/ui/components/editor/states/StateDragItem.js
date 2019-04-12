@@ -208,6 +208,10 @@ export default class StateDragItem extends State {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             item.area.x = item.meta.itemOriginalArea.x + dx;
             item.area.y = item.meta.itemOriginalArea.y + dy;
+
+            //snapping to grid
+            item.area.x = this.snapX(item.area.x);
+            item.area.y = this.snapY(item.area.y);
         }
     }
 
@@ -237,21 +241,21 @@ export default class StateDragItem extends State {
             if (edge === 'top') {
                 var dy = y - dragger.y;
                 change += Math.abs(dy);
-                ny = item.meta.itemOriginalArea.y + dy;
-                nh = item.meta.itemOriginalArea.h - dy;
+                ny = this.snapY(item.meta.itemOriginalArea.y + dy);
+                nh = item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h - ny;
             } else if (edge === 'bottom') {
                 var dy = y - dragger.y;
                 change += Math.abs(dy);
-                nh = item.meta.itemOriginalArea.h + dy;
+                nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h + dy) - item.meta.itemOriginalArea.y;
             } else if (edge === 'left') {
                 var dx = x - dragger.x;
                 change += Math.abs(dx);
-                nx = item.meta.itemOriginalArea.x + dx;
-                nw = item.meta.itemOriginalArea.w - dx;
+                nx = this.snapX(item.meta.itemOriginalArea.x + dx);
+                nw = item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w - nx;
             } else if (edge === 'right') {
                 var dx = x - dragger.x;
                 change += Math.abs(dx);
-                nw = item.meta.itemOriginalArea.w + dx;
+                nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w + dx) - item.meta.itemOriginalArea.x;
             }
         });
         if (change > 0) {
@@ -295,4 +299,5 @@ export default class StateDragItem extends State {
             });
         })
     }
+
 }

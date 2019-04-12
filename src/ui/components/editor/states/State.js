@@ -60,6 +60,18 @@ class State {
         this.editor.$forceUpdate();
     }
 
+    snapX(value) {
+        return this.snapToGrid(value);
+    }
+
+    snapY(value) {
+        return this.snapToGrid(value);
+    }
+
+    snapToGrid(value) {
+        return Math.round(value / 20) * 20;
+    }
+
 }
 
 export default State;

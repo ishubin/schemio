@@ -21,7 +21,7 @@ export default class StateCreateComponent extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
-        this.originalPoint = {x, y};
+        this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.component.area);
@@ -29,13 +29,13 @@ export default class StateCreateComponent extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
-            this.updateComponentArea(x, y);
+            this.updateComponentArea(this.snapX(x), this.snapY(y));
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
-            this.updateComponentArea(x, y);
+            this.updateComponentArea(this.snapX(x), this.snapY(y));
             this.schemeContainer.setActiveBoundaryBox(null);
             this.schemeContainer.selectItem(this.component);
             EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, this.component);
