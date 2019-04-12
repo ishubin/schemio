@@ -93,7 +93,7 @@ export default class StateDragItem extends State {
                     this.schemeContainer.buildConnector(object.sourceItem, object.connector);
                     EventBus.emitRedrawConnector(object.sourceItem.id, object.connector.itemId);
                 } else {
-                    var rerouteId = this.schemeContainer.addReroute(x, y, object.sourceItem, object.connector);
+                    var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
                     this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
                     EventBus.emitRedrawConnector(object.sourceItem.id, object.connector.itemId);
                 }
@@ -191,7 +191,7 @@ export default class StateDragItem extends State {
                 this.schemeContainer.buildConnector(object.sourceItem, object.connector);
                 EventBus.emitRedrawConnector(object.sourceItem.id, object.connector.itemId);
             } else {
-                var rerouteId = this.schemeContainer.addReroute(x, y, object.sourceItem, object.connector);
+                var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
                 EventBus.emitRedrawConnector(object.sourceItem.id, object.connector.itemId);
             }
         }
@@ -220,8 +220,8 @@ export default class StateDragItem extends State {
         var dy = y - this.originalPoint.y;
 
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-            this.selectedConnector.reroutes[this.selectedRerouteId].x = x;
-            this.selectedConnector.reroutes[this.selectedRerouteId].y = y;
+            this.selectedConnector.reroutes[this.selectedRerouteId].x = this.snapX(x);
+            this.selectedConnector.reroutes[this.selectedRerouteId].y = this.snapY(y);
             if (this.sourceItem) {
                 this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
                 EventBus.emitRedrawConnector(this.sourceItem.id, this.selectedConnector.itemId);

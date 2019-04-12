@@ -14,7 +14,7 @@
                 <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height"/>
                 <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"/>
             </g>
-            <g :transform="transformSvg">
+            <g data-type="scene-transform" :transform="transformSvg">
 
                 <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"

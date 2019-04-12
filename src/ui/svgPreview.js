@@ -91,7 +91,7 @@ function getScreenPosition(svgWidth, svgHeight, area) {
 
 function findTransformLayer(svgElement) {
     for (let i = 0; i < svgElement.childNodes.length - 1; i++) {
-        if (svgElement.childNodes[i].getAttribute('transform')) {
+        if (svgElement.childNodes[i].nodeType === 1 && svgElement.childNodes[i].getAttribute('data-type') === "scene-transform") {
             return svgElement.childNodes[i];
         }
     }
@@ -115,7 +115,6 @@ export default function createSchemePreview(previewWidth, previewHeight, selecto
     if (zoomArea) {
         let screenPosition = getScreenPosition(previewWidth, previewHeight, zoomArea);
         let layer = findTransformLayer(svgElement);
-        console.log('screenPosition', screenPosition);
         if (layer) {
             layer.setAttribute('transform', `translate(${screenPosition.offsetX} ${screenPosition.offsetY}) scale(${screenPosition.scale} ${screenPosition.scale})`);
         }
