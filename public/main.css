@@ -339,6 +339,10 @@ ul.pagination li.active a {
 svg text {
     font-family: "Lucida Console", monospace;
 }
+svg .grid line {
+    stroke: #eee;
+    stroke-width: 1;
+}
 svg .item-container.item-type-component .item-graphics rect {
     cursor: pointer;
     cursor: hand;

@@ -10,7 +10,12 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp">
 
+            <g v-if="mode === 'edit'" class="grid" data-preview-ignore="true" :transform="gridTransform">
+                <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height"/>
+                <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"/>
+            </g>
             <g :transform="transformSvg">
+
                 <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
                     :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"
                     >
@@ -613,6 +618,24 @@ export default {
             var y = Math.floor(this.vOffsetY || 0);
             var scale = this.vZoom || 1.0;
             return `translate(${x} ${y}) scale(${scale} ${scale})`;
+        },
+        gridStep() {
+            return 20 * this.vZoom;
+        },
+        gridCount() {
+            if (this.vZoom > 0.6) {
+                return {
+                    x: Math.ceil(this.width / (20 *this.vZoom)),
+                    y: Math.ceil(this.height / (20 * this.vZoom))
+                };
+            } else {
+                return 0;
+            }
+        },
+        gridTransform() {
+            let x = Math.ceil(this.vOffsetX % (20 * this.vZoom));
+            let y = Math.ceil(this.vOffsetY % (20 * this.vZoom));
+            return `translate(${x} ${y})`;
         }
     }
 }
