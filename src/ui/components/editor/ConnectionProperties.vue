@@ -28,7 +28,7 @@
         </div>
 
         <div class="property-row">
-            <span class="property-label">Stoke size</span>
+            <span class="property-label">Stroke size</span>
             <input type="text" v-model="connector.style.width">
         </div>
 

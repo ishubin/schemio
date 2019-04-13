@@ -7,6 +7,9 @@
             :width="item.area.w"
             :height="item.area.h"
             :fill="item.style.inactive.background.color"
+            :stroke="item.style.inactive.stroke.color"
+            :stroke-width="item.style.inactive.stroke.size"
+            :stroke-dasharray="inactiveStrokeDashArray"
         />
         <rect
             class="overlay-rect-active"
@@ -15,6 +18,9 @@
             :width="item.area.w"
             :height="item.area.h"
             :fill="item.style.active.background.color"
+            :stroke="item.style.active.stroke.color"
+            :stroke-width="item.style.active.stroke.size"
+            :stroke-dasharray="activeStrokeDashArray"
         />
     </g>
 </template>
@@ -26,6 +32,25 @@ export default {
     data() {
         return {
         };
+    },
+    methods: {
+        calculateDashArray(stroke) {
+            var w = stroke.size;
+            if (stroke.pattern === 'dotted') {
+                return  w + ' ' + (w * 2);
+            } else if (stroke.pattern === 'dashed') {
+                return (w * 4) + ' ' + (w * 4);
+            }
+            return '';
+        }
+    },
+    computed: {
+        inactiveStrokeDashArray() {
+            return this.calculateDashArray(this.item.style.inactive.stroke);
+        },
+        activeStrokeDashArray() {
+            return this.calculateDashArray(this.item.style.active.stroke);
+        }
     }
 }
 </script>

@@ -22,15 +22,20 @@ module.exports = {
     },
 
     overlay: {
+        values: {
+            strokePatterns: ['line', 'dotted', 'dashed']
+        },
         properties: {
             locked: false,
             interactive: true,
             style: {
                 inactive: {
-                    background: {color: 'rgba(255,0,255,0.1)'}
+                    background: {color: 'rgba(255,0,255,0.1)'},
+                    stroke: { color: 'rgba(100, 100, 100, 1.0)', size: 1, pattern: 'dashed' }
                 },
                 active: {
-                    background: { color: 'rgba(255,0,255,0.7)'}
+                    background: { color: 'rgba(255,0,255,0.7)'},
+                    stroke: { color: 'rgba(100, 100, 100, 1.0)', size: 1, pattern: 'dashed' }
                 }
             }
         }
