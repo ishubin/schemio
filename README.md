@@ -1,6 +1,7 @@
 TODO
 -------------
 - XS. Links with empty titles should show url
+- S. Redesign links. Remove animation. Don't hide titles
 - L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
 - M. Implement proper mongo migrations
 - S. User art. Quick search
@@ -17,10 +18,10 @@ TODO
 - L. Undo/Redo with Ctrl-Z/Ctrl-Y
 - L. Optimize storage of schemes (json) by removing default styles and property values
 - S. Convert items into other types
-- L. Smart drawing
 - L. S3 storage: AWS, Swift etc.
 - M. More component shapes
 - M. Add property types rendering in component items. Specify it via '|' symbol
+- XL. Smart drawing
 - XL. Diff-based saving and conflicts resolving
 
 

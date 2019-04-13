@@ -61,6 +61,7 @@
                     :height="item.area.h"
                     :stroke="item.style.stroke.color"
                     :stroke-width="item.style.stroke.size + 'px'"
+                    :stroke-dasharray="strokeDashArray"
                     fill="none"
                 />
                 <path :d="propertiesSeparatorPath" v-if="properties.length > 0 || item.image && item.image.url" stroke-width="1px" :stroke="item.style.stroke.color"/>
@@ -115,6 +116,15 @@ export default {
             var x2 = this.item.area.x + this.item.area.w;
             var y = this.item.area.y + 30;
             return `M ${x1} ${y} L ${x2} ${y}`;
+        },
+        strokeDashArray() {
+            var w = this.item.style.stroke.size;
+            if (this.item.style.stroke.pattern === 'dotted') {
+                return  w + ' ' + (w * 2);
+            } else if (this.item.style.stroke.pattern === 'dashed') {
+                return (w * 4) + ' ' + (w * 4);
+            }
+            return '';
         }
     }
 }

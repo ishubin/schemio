@@ -4,6 +4,9 @@
 
 module.exports = {
     component: {
+        values: {
+            strokePatterns: ['line', 'dotted', 'dashed']
+        },
         properties: {
             locked: false,
             interactive: true,
@@ -16,7 +19,7 @@ module.exports = {
                     background: { color: '#eee' },
                     text: { color: '#888' }
                 },
-                stroke: { color: '#666', size: 1 }
+                stroke: { color: '#666', size: 1, pattern: 'line'}
             }
         }
     },

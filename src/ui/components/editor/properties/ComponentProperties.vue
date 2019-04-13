@@ -58,6 +58,12 @@
                     <input type="text" v-model="item.style.stroke.size"/>
                 </div>
                 <div class="property-row">
+                    <span class="property-label">Stroke Pattern</span>
+                    <select type="text" v-model="item.style.stroke.pattern">
+                        <option v-for="pattern in knownStrokePatterns">{{pattern}}</option>
+                    </select>
+                </div>
+                <div class="property-row">
                     <span class="property-label">Opacity: </span>
                     <input type="text" v-model="item.style.opacity"/>
                 </div>
@@ -75,6 +81,7 @@ import CreateImageModal from '../CreateImageModal.vue';
 import LinksPanel from './LinksPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import GeneralPanel from './GeneralPanel.vue';
+import knownItems from '../../../scheme/knownItems.js';
 import _ from 'lodash';
 
 
@@ -87,6 +94,7 @@ export default {
             knownComponentShapes: ['component', 'ellipse'],
             showComponentImageModal: false,
             existingItemTags: [{text: 'Load Balancer'}, {text: 'Java'}, {text: 'Scalatra'}],
+            knownStrokePatterns: knownItems.component.values.strokePatterns
         };
     },
     methods: {
