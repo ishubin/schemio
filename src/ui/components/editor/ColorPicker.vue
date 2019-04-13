@@ -4,7 +4,7 @@
             <span class="color-picker-toggle-button-background"></span>
 
             <span class="color-picker-toggle-button-fill"
-                :style="{'background': pickerColor, 'opacity': pickerAlpha}"
+                :style="{'background': pickerColor}"
                 @click="toggleColorPicker()"
                 ></span>
         </div>
@@ -33,15 +33,13 @@ import VueColor from 'vue-color';
 
 export default {
     props: {
-        color: {type: String},
-        alpha: {type: Number, default: 1}
+        color: {type: String}
     },
 
     components: {'chrome-picker': VueColor.Chrome},
     data() {
         return {
             pickerColor: this.color,
-            pickerAlpha: this.alpha,
             chromePickerColor: {hex: this.color},
             showColorPicker: false,
             oldColor: null,
@@ -51,21 +49,19 @@ export default {
     methods: {
         toggleColorPicker() {
             this.oldColor = this.color;
-            this.oldAlpha = this.oldAlpha;
-            this.chromePickerColor = {hex: this.color, a: this.alpha};
+            this.chromePickerColor = {hex: this.color};
             this.showColorPicker = true;
         },
         updateColor(color) {
             this.pickerColor = color.hex;
-            this.pickerAlpha = color.a;
-            this.$emit('input', color.hex, color.a);
+            this.$emit('input', `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`);
         },
         applyColor() {
             this.showColorPicker = false;
         },
         cancelColorPicker() {
             this.pickerColor = this.oldColor;
-            this.$emit('input', this.oldColor, this.oldAlpha);
+            this.$emit('input', this.oldColor);
             this.showColorPicker = false;
         }
     },

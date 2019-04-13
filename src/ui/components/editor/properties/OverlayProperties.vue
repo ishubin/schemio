@@ -8,11 +8,11 @@
 
         <panel name="Style">
             <div class="property-row">
-                <color-picker :color="item.style.inactiveBackground.color" :alpha="item.style.inactiveBackground.alpha" @input="onInactiveBackgroundPickerInput"></color-picker>
+                <color-picker :color="item.style.inactiveBackground.color" @input="onInactiveBackgroundPickerInput"></color-picker>
                 <span class="property-label">Inactive Background</span>
             </div>
             <div class="property-row">
-                <color-picker :color="item.style.background.color" :alpha="item.style.background.alpha" @input="onBackgroundPickerInput"></color-picker>
+                <color-picker :color="item.style.background.color" @input="onBackgroundPickerInput"></color-picker>
                 <span class="property-label">Active Background</span>
             </div>
         </panel>
@@ -37,14 +37,12 @@ export default {
         redrawItem() {
             EventBus.emitRedrawItem(this.item.id);
         },
-        onBackgroundPickerInput(color, alpha) {
+        onBackgroundPickerInput(color) {
             this.item.style.background.color = color;
-            this.item.style.background.alpha = alpha;
             this.redrawItem();
         },
-        onInactiveBackgroundPickerInput(color, alpha) {
+        onInactiveBackgroundPickerInput(color) {
             this.item.style.inactiveBackground.color = color;
-            this.item.style.inactiveBackground.alpha = alpha;
             this.redrawItem();
         }
     }
