@@ -357,11 +357,6 @@ svg .item-container.item-type-art .item-graphics image {
 svg .item-container.item-type-art.selected .item-graphics image {
     opacity: 0.7;
 }
-svg .item-container.item-type-overlay rect {
-    stroke: none;
-}
-svg .item-container.item-type-overlay rect.overlay-rect-inactive {
-}
 svg .item-container.item-type-overlay rect.overlay-rect-active {
     display: none;
 }

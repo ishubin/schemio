@@ -1,7 +1,7 @@
 TODO
 -------------
 - XS. Links with empty titles should show url
-- S. Snapping to grid
+- M. Alpha of color should be applied everywhere (switch to rgba instead of #)
 - L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
 - M. Implement proper mongo migrations
 - S. User art. Quick search
