@@ -33,11 +33,11 @@ module.exports = {
             interactive: true,
             style: {
                 inactive: {
-                    background: {color: 'rgba(255,0,255,0.1)'},
-                    stroke: { color: 'rgba(100, 100, 100, 1.0)', size: 1, pattern: 'dashed' }
+                    background: {color: 'rgba(255,255,255,0.01)'},
+                    stroke: { color: 'rgba(100, 100, 100, 0.1)', size: 1, pattern: 'dashed' }
                 },
                 active: {
-                    background: { color: 'rgba(255,0,255,0.7)'},
+                    background: { color: 'rgba(150,100,255,0.4)'},
                     stroke: { color: 'rgba(100, 100, 100, 1.0)', size: 1, pattern: 'dashed' }
                 }
             }

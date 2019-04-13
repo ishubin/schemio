@@ -131,13 +131,13 @@
                         <rect class="item-link-title-background"
                             :x="link.x + 16"
                             :y="link.y - 13"
-                            :width="link.title.length * 10"
+                            :width="calculateLinkBackgroundRectWidth(link)"
                             :height="25"
                         ></rect>
                         <text class="item-link-full-title"
                             :x="link.x + 25 - 5"
                             :y="link.y + 5"
-                            >{{link.title}}</text>
+                            >{{link | formatLinkTitle}}</text>
                     </a>
                 </g>
 
@@ -592,6 +592,14 @@ export default {
             return path;
         },
 
+        calculateLinkBackgroundRectWidth(link) {
+            if (link.title) {
+                return link.title.length * 10;
+            } else {
+                return link.url.length * 10;
+            }
+        },
+
         _x(x) { return x * this.vZoom + this.vOffsetX; },
         _y(y) { return y * this.vZoom + this.vOffsetY; },
         _z(v) { return v * this.vZoom; }
@@ -636,6 +644,15 @@ export default {
             let x = Math.ceil(this.vOffsetX % (20 * this.vZoom));
             let y = Math.ceil(this.vOffsetY % (20 * this.vZoom));
             return `translate(${x} ${y})`;
+        }
+    },
+    filters: {
+        formatLinkTitle(link) {
+            if (link.title) {
+                return link.title;
+            } else {
+                return link.url;
+            }
         }
     }
 }
