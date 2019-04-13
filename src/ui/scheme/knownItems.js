@@ -26,8 +26,12 @@ module.exports = {
             locked: false,
             interactive: true,
             style: {
-                inactiveBackground: {color: 'rgba(255,0,255,0.1)'},
-                background: { color: 'rgba(255,0,255,0.7)'},
+                inactive: {
+                    background: {color: 'rgba(255,0,255,0.1)'}
+                },
+                active: {
+                    background: { color: 'rgba(255,0,255,0.7)'}
+                }
             }
         }
     },

@@ -6,8 +6,7 @@
             :y="item.area.y"
             :width="item.area.w"
             :height="item.area.h"
-            :fill="item.style.inactiveBackground.color"
-            :style="{'opacity': item.style.inactiveBackground.alpha}"
+            :fill="item.style.inactive.background.color"
         />
         <rect
             class="overlay-rect-active"
@@ -15,8 +14,7 @@
             :y="item.area.y"
             :width="item.area.w"
             :height="item.area.h"
-            :fill="item.style.background.color"
-            :style="{'opacity': item.style.background.alpha}"
+            :fill="item.style.active.background.color"
         />
     </g>
 </template>
