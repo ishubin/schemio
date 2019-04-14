@@ -1,7 +1,5 @@
 TODO
 -------------
-- XS. Links with empty titles should show url
-- S. Redesign links. Remove animation. Don't hide titles
 - L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
 - M. Implement proper mongo migrations
 - S. User art. Quick search

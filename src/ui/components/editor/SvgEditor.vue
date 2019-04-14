@@ -204,7 +204,7 @@ const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
     components: {CommentItem, ConnectorSvg, ComponentItem, OverlayItem},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);

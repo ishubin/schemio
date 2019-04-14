@@ -69,7 +69,10 @@ class State {
     }
 
     snapToGrid(value) {
-        return Math.round(value / 20) * 20;
+        if (this.editor.shouldSnapToGrid) {
+            return Math.round(value / 20) * 20;
+        }
+        return value;
     }
 
 }

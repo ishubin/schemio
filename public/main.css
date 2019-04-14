@@ -603,6 +603,7 @@ ul.button-group li {
 }
 ul.button-group li .toggle-button {
     display: inline-block;
+    position: relative;
     padding: 3px 5px 3px 5px;
     color: #888;
     background: none;
@@ -624,6 +625,12 @@ ul.button-group li .toggle-button:hover {
 }
 ul.button-group li .toggle-button.toggled:hover {
     background: #2d90d0;
+}
+ul.button-group li .toggle-button .small-letter {
+    position: absolute;
+    bottom: 0;
+    right: 1px;
+    font-size: 8px;
 }
 .scheme-editor-top-panel ul.button-group li .toggle-button {
     color: #999;

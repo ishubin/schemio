@@ -22,17 +22,25 @@
                 <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                 <ul class="button-group">
                     <li>
-                        <span class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
+                        <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
                     </li>
                     <li>
-                        <span class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
+                        <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
+                    </li>
+                </ul>
+                <ul class="button-group">
+                    <li>
+                        <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
+                            <i class="fas fa-magnet"></i>
+                            <i class="small-letter">G</i>
+                        </span>
                     </li>
                 </ul>
                 <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                     <li>
-                        <span class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
-                        <span class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
-                        <span class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
+                        <span title="Bring to Front" class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
+                        <span title="Bring to Back" class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
+                        <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                             <i class="fas fa-object-group"></i>
                         </span>
                     </li>
@@ -53,6 +61,7 @@
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
                         :mode="mode"
+                        :should-snap-to-grid="shouldSnapToGrid"
                         @zoom-updated="onUpdateZoom"
                         @offset-updated="onUpdateOffset"
                         @clicked-add-item-to-item="onActiveItemAppendItem"
@@ -216,6 +225,8 @@ export default {
 
             itemListShown: false,
             schemeChanged: false, //used in order to render Save button
+
+            shouldSnapToGrid: false,
 
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
