@@ -201,6 +201,7 @@ import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 
 const EMPTY_OBJECT = {type: 'nothing'};
+const LINK_FONT_SYMBOL_SIZE = 10;
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom'],
@@ -536,36 +537,59 @@ export default {
         },
 
         generateItemLinks(item) {
-            var links = [];
+            let links = [];
             if (item.links && item.links.length > 0) {
-                var fullAngle = 2 * Math.PI;
-                var stepAngle = (2 * Math.PI) / item.links.length;
 
-                var cx = item.area.w / 2 + item.area.x;
-                var cy = item.area.h / 2 + item.area.y;
-                var radius = Math.min(50, (item.area.w + item.area.h) / 2);
+                let cx = item.area.w / 2 + item.area.x;
+                let cy = item.area.h / 2 + item.area.y;
+                let startX = cx;
+                let startY = cy;
 
-                var index = 0;
-                _.forEach(item.links, link => {
-                    var svgLink = {
+                if (this._y(cy) > this.height - 100 || this._y(cy) < 100) {
+                    cy = this.y_(this.height / 2);
+                }
+
+                let step = 40;
+                let y0 = cy - item.links.length * step / 2;
+                let destinationX = item.area.x + item.area.w + 10;
+
+                // taking side panel into account
+                if (this._x(destinationX) > this.width - 500) {
+                    let maxLinkLength = _.chain(item.links).map(link => link.title ? link.title.length : link.url.length).max().value();
+                    console.log(maxLinkLength);
+                    destinationX = item.area.x - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
+
+                    if (this._x(destinationX) < 20) {
+                        destinationX = this.x_(20);
+                    }
+                }
+
+                _.forEach(item.links, (link, index) => {
+                    let svgLink = {
                         url: link.url,
                         type: link.type,
                         shortTitle: this.getFontAwesomeSymbolForLink(link),
                         title: link.title,
                         x: cx,
                         y: cy,
-                        startX: cx,
-                        startY: cy,
-                        destinationX: cx + radius * Math.cos(index * stepAngle - Math.PI/2),
-                        destinationY: cy + radius * Math.sin(index * stepAngle - Math.PI/2)
+                        startX,
+                        startY,
+                        destinationX,
+                        destinationY: y0 + step * index
                     };
 
                     links.push(svgLink);
-                    index += 1;
                 });
             }
-
             return links;
+        },
+
+        calculateLinkBackgroundRectWidth(link) {
+            if (link.title) {
+                return link.title.length * LINK_FONT_SYMBOL_SIZE;
+            } else {
+                return link.url.length * LINK_FONT_SYMBOL_SIZE;
+            }
         },
 
         getFontAwesomeSymbolForLink(link) {
@@ -592,17 +616,12 @@ export default {
             return path;
         },
 
-        calculateLinkBackgroundRectWidth(link) {
-            if (link.title) {
-                return link.title.length * 10;
-            } else {
-                return link.url.length * 10;
-            }
-        },
-
         _x(x) { return x * this.vZoom + this.vOffsetX; },
         _y(y) { return y * this.vZoom + this.vOffsetY; },
-        _z(v) { return v * this.vZoom; }
+        _z(v) { return v * this.vZoom; },
+        x_(x) { return x / this.vZoom - this.vOffsetX; },
+        y_(y) { return y / this.vZoom - this.vOffsetY; },
+        z_(v) { return v / this.vZoom; }
     },
     watch: {
         mode(newMode) {

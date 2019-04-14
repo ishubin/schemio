@@ -359,9 +359,17 @@ svg .item-container.item-type-art.selected .item-graphics image {
 }
 svg .item-container.item-type-overlay rect.overlay-rect-active {
     display: none;
+    -webkit-transition: opacity 3s ease-in-out;
+    -moz-transition: opacity 3s ease-in-out;
+    -ms-transition: opacity 3s ease-in-out;
+    -o-transition: opacity 3s ease-in-out;
 }
 svg .item-container.item-type-overlay:hover rect.overlay-rect-inactive {
     display: none;
+    -webkit-transition: opacity 3s ease-in-out;
+    -moz-transition: opacity 3s ease-in-out;
+    -ms-transition: opacity 3s ease-in-out;
+    -o-transition: opacity 3s ease-in-out;
 }
 svg .item-container.item-type-overlay:hover rect.overlay-rect-active {
     display: block;
@@ -420,9 +428,7 @@ svg .item-container.item-interactive rect.item-rect-highlight-area {
 /**********************/
 /*      Item link    */
 svg .item-link circle {
-    /*stroke: #752929;*/
     stroke-width: 2;
-    /*fill: #752929;*/
 }
 svg .item-link .item-link-icon {
     fill: #fff;
@@ -431,7 +437,6 @@ svg .item-link .item-link-icon {
     font-family: "Font Awesome 5 Free";
 }
 svg .item-link .item-link-full-title {
-    display: none;
     font-size: 16px;
     font-weight: normal;
     font-family: "Lucida Console", monospace;
@@ -440,16 +445,13 @@ svg .item-link .item-link-full-title {
 svg .item-link .item-link-title-background {
     fill: #eee;
     opacity: 0.8;
-    display: none;
 }
 svg .item-link:hover .item-link-title-background {
-    display: block;
+    fill: #222;
 }
 svg .item-link:hover .item-link-full-title {
-    display: block;
-    z-index: 5;
+    fill: #eee;
 }
-
 svg .item-edit-menu-link:hover circle {
     r: 15;
     cursor: pointer;
