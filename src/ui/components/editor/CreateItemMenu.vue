@@ -41,14 +41,22 @@
             <div>
                 <span class="link" @click="menu = 'main'"><i class="fas fa-angle-left"></i> Back</span>
             </div>
-            <div>
-                <span class="btn btn-primary" @click="customArtUploadModalShown = true">
-                    <i class="fas fa-upload"></i> Upload Icon
-                </span>
-            </div>
+
+            <table width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="text" class="textfield" v-model="artSearchKeyword" placeholder="Search..."/>
+                        </td>
+                        <td width="34px">
+                            <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art"> <i class="fas fa-upload"></i> </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <div class="item-container"
-                v-for="art in artList"
+                v-for="art in filteredArtList"
                 @click="clickArt(art)">
                 <img width="60px" height="60px" :src="art.url"/>
                 <span>{{art.name}}</span>
@@ -74,6 +82,7 @@ import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
 import knownItems from '../../scheme/knownItems.js';
+import _ from 'lodash';
 
 export default {
     components: {CreateImageModal, Modal, CustomArtUploadModal},
@@ -86,7 +95,13 @@ export default {
             customArtUploadModalShown: false,
             menu: 'main',
             artList: [],
+            artSearchKeyword: '',
             errorMessage: null
+        }
+    },
+    computed: {
+        filteredArtList() {
+            return _.filter(this.artList, a => a.name.indexOf(this.artSearchKeyword) >= 0);
         }
     },
     methods: {

@@ -852,6 +852,12 @@ ul.button-group li .toggle-button .small-letter {
 
 
 /******************* Create Item Menu *****************/
+.item-menu {
+    padding: 5px;
+}
+.item-menu .btn {
+    font-size: 12px;
+}
 .item-menu .item-container {
     display: inline-block;
     width: 60px;

@@ -1,15 +1,15 @@
 TODO
 -------------
-- L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
+- M. Search in category.
 - M. Implement proper mongo migrations
-- S. User art. Quick search
+- L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
 - M. Improve css. Make editor look nicer.
 - M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
 - M. Snapping to items
 - XS. Fix. Style updates are not rendered for connectors
 - XS. Fix. Stroke changes are not updated in component
 - XS. Image upload error message (New Scheme Popup, etc.)
-- XS. Keep state (expanded/collapsed) of panels in local storage
+- S. Keep state (expanded/collapsed) of panels in local storage
 - M. Export scheme as image.
 - S. Styling. Font-size.
 - S. Add link item
