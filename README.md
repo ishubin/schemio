@@ -1,3 +1,9 @@
+Schemio
+--------------------
+
+Schemio is a web based service for creating and viewing schemes online. It lets you design any scheme you want, link items to other schemes and provide description for each item. The basic idea behind Schemio is to provide visual and structured documentation so anyone can get a good understanding of a project.
+
+
 TODO
 -------------
 - M. Search in category.
