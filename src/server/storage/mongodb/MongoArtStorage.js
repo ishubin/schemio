@@ -6,23 +6,16 @@ const ArtStorage     = require('../ArtStorage.js');
 const MongoClient       = require('mongodb').MongoClient;
 const shortid           = require('shortid');
 const _                 = require('lodash');
-
-
-const mongodbUrl = 'mongodb://localhost:27017';
-// Database Name
-const dbName = 'myproject';
-const poolSize = 10;
-
-
+const config            = require('../../config.js');
 
 class MongoArtStorage extends ArtStorage {
     constructor() {
         super();
         this.db = null;
-        MongoClient.connect(mongodbUrl, {
-            poolSize: poolSize
+        MongoClient.connect(config.mongodb.url, {
+            poolSize: config.mongodb.poolSize
         }).then(client => {
-            this.db = client.db(dbName);
+            this.db = client.db(config.mongodb.dbName);
         }).catch(err => {
             console.error(err);
             process.exit(1);

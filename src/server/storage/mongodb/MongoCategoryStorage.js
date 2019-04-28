@@ -6,22 +6,16 @@ const CategoryStorage       = require('../CategoryStorage.js');
 const MongoClient       = require('mongodb').MongoClient;
 const assert            = require('assert');
 const _                 = require('lodash');
-
-//TODO put all this into config
-const mongodbUrl = 'mongodb://localhost:27017';
-// Database Name
-const dbName = 'myproject';
-const poolSize = 10;
-
+const config            = require('../../config.js');
 
 class MongoCategoryStorage extends CategoryStorage {
     constructor() {
         super();
         this.db = null;
-        MongoClient.connect(mongodbUrl, {
-            poolSize: poolSize
+        MongoClient.connect(config.mongodb.url, {
+            poolSize: config.mongodb.poolSize
         }).then(client => {
-            this.db = client.db(dbName);
+            this.db = client.db(config.mongodb.dbName);
             this._categories().createIndex({id: 1}, {unique: true});
             this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
         }).catch(err => {

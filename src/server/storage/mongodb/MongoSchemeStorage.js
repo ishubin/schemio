@@ -8,22 +8,14 @@ const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
 
-
-const mongodbUrl = config.mongodb.url;
-// Database Name
-const dbName = config.mongodb.dbName;
-const poolSize = config.mongodb.poolSize;
-
-
-
 class MongoSchemeStorage extends SchemeStorage {
     constructor() {
         super();
         this.db = null;
-        MongoClient.connect(mongodbUrl, {
-            poolSize: poolSize
+        MongoClient.connect(config.mongodb.url, {
+            poolSize: config.mongodb.poolSize
         }).then(client => {
-            this.db = client.db(dbName);
+            this.db = client.db(config.mongodb.dbName);
             this._schemes().createIndex({name: "text", description: "text", itemsText: "text"});
         }).catch(err => {
             console.error(err);
