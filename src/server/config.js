@@ -27,6 +27,7 @@ module.exports = {
     },
 
     auth: {
+        type: conf('AUTH_TYPE', 'auth.type', 'ldap'),
         ldap: {
             url: conf('AUTH_LDAP_URL', 'auth.ldap.url', 'ldap://127.0.0.1:389/ou=people,dc=planetexpress,dc=com'),
             timeout: conf('AUTH_LDAP_TIMEOUT', 'auth.ldap.timeout', 5000),
