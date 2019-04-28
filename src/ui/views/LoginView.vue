@@ -3,26 +3,37 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div>
-        <h2>Login</h2>
+    <div class="login-view">
+        <header-component/>
 
-        <input type="text" name="" v-model="login" placeholder="Login..."/>
-        <br/>
-        <input type="password" name="" v-model="password" placeholder="Password..."/>
-        <br/>
-        <span class="btn btn-primary" @click="submitLogin">Submit</span>
+        <div class="content-wrapper">
 
+            <div class="login-box">
+                <h2>Login</h2>
+
+                <div class="login-box-body">
+                    <input class="textfield" type="text" name="" v-model="login" placeholder="Login..."/>
+                    <input class="textfield" type="password" name="" v-model="password" placeholder="Password..."/>
+                    <span class="btn btn-primary" @click="submitLogin">Submit</span>
+                    <span class="error-message" v-if="errorMessage">{{errorMessage}}</span>
+                </div>
+            </div>
+
+        </div>
     </div>
 </template>
 
 <script>
+import HeaderComponent from '../components/Header.vue';
 import apiClient from '../apiClient.js';
 
 export default {
+    components: {HeaderComponent},
     data() {
         return {
             login: '',
-            password: ''
+            password: '',
+            errorMessage: null
         }
     },
     methods: {
@@ -32,7 +43,10 @@ export default {
                 if (!redirectTo || !redirectTo.indexOf('/') === 0) {
                     redirectTo = '/';
                 }
+                this.errorMessage = null;
                 window.location = redirectTo;
+            }).catch(err => {
+                this.errorMessage = 'Invalid user/password';
             });
         }
     }

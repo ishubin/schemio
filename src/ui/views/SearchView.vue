@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="search-editor-view">
+    <div class="search-view">
         <header-component/>
 
         <div class="content-wrapper">

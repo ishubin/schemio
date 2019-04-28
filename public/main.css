@@ -1182,3 +1182,31 @@ table.position-panel-table .property-label {
     display: inline-block;
     width: 20px;
 }
+
+
+
+/************** Login Box ******************/
+.login-box {
+    max-width: 400px;
+    margin: auto;
+    vertical-align: middle;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    background: #fff;
+}
+.login-box h2 {
+    margin: 0;
+    padding: 5px;
+    background: #666;
+    color: white;
+    border-radius: 2px 2px 0 0;
+}
+.login-box .login-box-body {
+    padding: 20px;
+}
+.login-box .login-box-body .textfield {
+    margin-bottom: 10px;
+}
+.login-box .error-message {
+    color: red;
+}

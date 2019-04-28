@@ -7,7 +7,7 @@ function apiError(error, message) {
         error = null;
         message = arguments[0];
     }
-    if (err) {
+    if (error) {
         console.error(error);
     }
     this.status(500);

@@ -16,51 +16,54 @@ class LdapAuthService {
 
     findUser(userId, password) {
         //TODO escape userId for ldap
-        userId = userId.replace(/\W/g, userId);
-        var opts = {
-            filter: '(uid='+userId+')',
-            scope: 'sub',
-            attributes: ['uid', 'cn', 'mail']
-        };
-
         return new Promise((resolve, rejected) => {
-            this.client.bind(config.auth.ldap.bind.dn, config.auth.ldap.bind.password, err => {
-                if (err) {
-                    rejected(err);
-                } else {
-                    this.client.search(config.auth.ldap.search.baseDn, opts, (err, search) => {
-                        if (err) {
-                            rejected(err)
-                        } else {
-                            var ldapObject = null;
-                            search.on('searchEntry', entry => {
-                                ldapObject = entry.object;
-                            });
-                            search.on('error', (err) => {
-                                rejected(err);
-                            });
-                            search.on('end', () => {
-                                if (ldapObject) {
-                                    //trying to bind to client with password
-                                    this.client.bind(ldapObject.dn, password, err => {
-                                        if (err)  {
-                                            rejected('User not found');
-                                        } else {
-                                            resolve({
-                                                login: ldapObject.uid,
-                                                userName: ldapObject.cn,
-                                                mail: ldapObject.mail
-                                            });
-                                        }
-                                    });
-                                } else {
-                                    rejected('User not found');
-                                }
-                            });
-                        }
-                    });
-                }
-            });
+            userId = userId.replace(/\W/g, userId);
+            if (userId) {
+                this.client.bind(config.auth.ldap.bind.dn, config.auth.ldap.bind.password, err => {
+                    if (err) {
+                        rejected(err);
+                    } else {
+                        var opts = {
+                            filter: '(uid='+userId+')',
+                            scope: 'sub',
+                            attributes: ['uid', 'cn', 'mail']
+                        };
+                        this.client.search(config.auth.ldap.search.baseDn, opts, (err, search) => {
+                            if (err) {
+                                rejected(err)
+                            } else {
+                                var ldapObject = null;
+                                search.on('searchEntry', entry => {
+                                    ldapObject = entry.object;
+                                });
+                                search.on('error', (err) => {
+                                    rejected(err);
+                                });
+                                search.on('end', () => {
+                                    if (ldapObject) {
+                                        //trying to bind to client with password
+                                        this.client.bind(ldapObject.dn, password, err => {
+                                            if (err)  {
+                                                rejected(new Error('User not found'));
+                                            } else {
+                                                resolve({
+                                                    login: ldapObject.uid,
+                                                    userName: ldapObject.cn,
+                                                    mail: ldapObject.mail
+                                                });
+                                            }
+                                        });
+                                    } else {
+                                        rejected(new Error('User not found'));
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            } else {
+                rejected(new Error('Invalid login'));
+            }
         });
     }
 }
