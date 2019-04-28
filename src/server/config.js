@@ -24,5 +24,21 @@ module.exports = {
 
     api: {
         payloadSize: conf('API_PAYLOAD_SIZE', 'api.payloadSize', '50mb')
+    },
+
+    auth: {
+        ldap: {
+            url: conf('AUTH_LDAP_URL', 'auth.ldap.url', 'ldap://127.0.0.1:389/ou=people,dc=planetexpress,dc=com'),
+            timeout: conf('AUTH_LDAP_TIMEOUT', 'auth.ldap.timeout', 5000),
+            connectTimeout: conf('AUTH_LDAP_CONNECTTIMEOUT', 'auth.ldap.connectTimeout', 10000),
+
+            bind: {
+                dn: conf('AUTH_LDAP_BIND_DN', 'auth.ldap.bind.dn', 'cn=admin,dc=planetexpress,dc=com'),
+                password: conf('AUTH_LDAP_BIND_PASSWORD', 'auth.ldap.bind.password', 'GoodNewsEveryone')
+            },
+            search: {
+                baseDn: conf('AUTH_LDAP_SEARCH_BASEDN', 'auth.ldap.search.baseDn', 'ou=people,dc=planetexpress,dc=com')
+            }
+        }
     }
 };

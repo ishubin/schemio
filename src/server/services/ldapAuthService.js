@@ -2,19 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const ldap = require('ldapjs');
-
-
+const ldap          = require('ldapjs');
+const config        = require('../config.js');
 
 class LdapAuthService {
     constructor() {
         this.client = ldap.createClient({
-            url: 'ldap://127.0.0.1:389/ou=people,dc=planetexpress,dc=com',
-            timeout: 5000,
-            connectTimeout: 10000
+            url: config.auth.ldap.url,
+            timeout: config.auth.ldap.timeout,
+            connectTimeout: config.auth.ldap.connectTimeout
         });
     }
-
 
     findUser(userId, password) {
         //TODO escape userId for ldap
@@ -26,11 +24,11 @@ class LdapAuthService {
         };
 
         return new Promise((resolve, rejected) => {
-            this.client.bind('cn=admin,dc=planetexpress,dc=com', 'GoodNewsEveryone', err => {
+            this.client.bind(config.auth.ldap.bind.dn, config.auth.ldap.bind.password, err => {
                 if (err) {
                     rejected(err);
                 } else {
-                    this.client.search('ou=people,dc=planetexpress,dc=com', opts, (err, search) => {
+                    this.client.search(config.auth.ldap.search.baseDn, opts, (err, search) => {
                         if (err) {
                             rejected(err)
                         } else {
