@@ -6,13 +6,13 @@ const SchemeStorage     = require('../SchemeStorage.js');
 const MongoClient       = require('mongodb').MongoClient;
 const shortid           = require('shortid');
 const _                 = require('lodash');
+const config            = require('../../config.js');
 
 
-const mongodbUrl = 'mongodb://localhost:27017';
+const mongodbUrl = config.mongodb.url;
 // Database Name
-const dbName = 'myproject';
-const poolSize = 10;
-
+const dbName = config.mongodb.dbName;
+const poolSize = config.mongodb.poolSize;
 
 
 

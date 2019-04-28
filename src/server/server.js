@@ -5,7 +5,6 @@
 const express               = require('express');
 const path                  = require('path');
 const bodyParser            = require('body-parser');
-const jsonBodyParser        = bodyParser.json({limit: '50mb', extended: true});
 const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
 const apiUser               = require('./api/apiUser.js');
@@ -16,14 +15,15 @@ const apiArt                = require('./api/apiArt.js');
 const session               = require('express-session');
 const MongoStore            = require('connect-mongo')(session);
 const config                = require('./config.js');
+const jsonBodyParser        = bodyParser.json({limit: config.api.payloadSize, extended: true});
 
 const app = express();
 
 app.use(session({
-    secret: 'somesessionsecret',
+    secret: config.session.secret,
     store: new MongoStore({
-        url: 'mongodb://localhost:27017/myproject',
-        ttl: 14 * 24 * 60 * 60
+        url: `${config.mongodb.url}/${config.mongodb.dbName}`,
+        ttl: config.mongodb.sessionStore.ttl
     })
 }));
 
