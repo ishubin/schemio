@@ -15,6 +15,7 @@ const apiImages             = require('./api/apiImages.js');
 const apiArt                = require('./api/apiArt.js');
 const session               = require('express-session');
 const MongoStore            = require('connect-mongo')(session);
+const config                = require('./config.js');
 
 const app = express();
 
@@ -66,8 +67,7 @@ app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)
 })
 
-var port = process.env.PORT || 4010;
-app.set('port', port);
-var server = app.listen(port, () => {
-    console.log('Listening on port ' + port);
+app.set('port', config.serverPort);
+var server = app.listen(config.serverPort, () => {
+    console.log('Listening on port ' + config.serverPort);
 });
