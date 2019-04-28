@@ -41,5 +41,10 @@ module.exports = {
                 baseDn: conf('AUTH_LDAP_SEARCH_BASEDN', 'auth.ldap.search.baseDn', 'ou=people,dc=planetexpress,dc=com')
             }
         }
+    },
+
+    images: {
+        uploadFolder: conf('IMAGES_UPLOADFOLDER', 'images.uploadFolder', 'uploads'),
+        maxSize: conf('IMAGES_MAXSIZE', 'images.maxSize', 5242880)
     }
 };

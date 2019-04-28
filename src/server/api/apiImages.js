@@ -4,19 +4,21 @@
 
 const multer            = require('multer');
 const fs                = require('fs').promises;
+const config            = require('../config.js');
 
-var storage = multer.diskStorage({
+const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads');
+        cb(null, config.images.uploadFolder);
     },
     filename: function (req, file, cb) {
-        cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname);
+        cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname.replace(/[\W_]+/g, '-'));
     }
 });
+
 const upload = multer({
     storage,
     limits: {
-        fileSize: 1024 * 1024 * 5 //TODO move this to config
+        fileSize: config.images.maxSize
     }
 }).single('image');
 
@@ -34,8 +36,9 @@ module.exports = {
             }
         });
     },
+
     getImage(req, res) {
-        var fileName = req.params.fileName;
+        const fileName = req.params.fileName;
         res.download(`uploads/${fileName}`, fileName, (err) => {
             if(!res.headersSent) {
                 return res.sendStatus(404);
