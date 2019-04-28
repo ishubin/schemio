@@ -8,7 +8,7 @@
             <a href="/">Schemio</a>
         </div>
         <ul>
-            <li>
+            <li v-if="user">
                 <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
             </li>
             <li>
