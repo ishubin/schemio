@@ -6,6 +6,8 @@ Schemio is a web based service for creating and viewing schemes online. It lets 
 
 TODO
 -------------
+- L. Proper MongoClient connection handling. Make sure schemio doesn't die in case of mongo connectivity issues.
+
 - M. Search in category.
 - M. Implement proper mongo migrations
 - L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}

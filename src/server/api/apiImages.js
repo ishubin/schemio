@@ -5,6 +5,7 @@
 const multer            = require('multer');
 const fs                = require('fs').promises;
 const config            = require('../config.js');
+const imageStorage      = require('../storage/storageProvider.js').provideImageStorage();
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -15,7 +16,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({
+const uploadToLocalFolder = multer({
     storage,
     limits: {
         fileSize: config.images.maxSize
@@ -24,10 +25,23 @@ const upload = multer({
 
 module.exports = {
     uploadImage(req, res) {
-        upload(req, res, err => {
+        uploadToLocalFolder(req, res, err => {
             if (!err) {
-                res.json({
-                    path: `/images/${req.file.filename}`
+                const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
+                imageStorage.uploadImage(imageOriginalLocalPath, req.file.filename).then(imageData => {
+                    if (imageData.imageId !== req.file.filename) {
+                        return fs.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
+                            .then(() => imageData);
+                    }
+                    return imageData;
+                }).then(imageData => {
+                    res.json({
+                        path: `/images/${imageData.imageId}`
+                    });
+                }).catch(err => {
+                    res.status(500);
+                    console.error(err, 'Could not upload to image storage');
+                    res.json({error: 'Could not upload image'});
                 });
             } else {
                 res.status(500);
@@ -39,7 +53,7 @@ module.exports = {
 
     getImage(req, res) {
         const fileName = req.params.fileName;
-        res.download(`uploads/${fileName}`, fileName, (err) => {
+        res.download(`${config.images.uploadFolder}/${fileName}`, fileName, (err) => {
             if(!res.headersSent) {
                 return res.sendStatus(404);
             }
@@ -57,7 +71,7 @@ module.exports = {
 
         var schemeId = req.params.schemeId;
 
-        let fileName = `uploads/scheme-preview-${schemeId}.png`;
+        let fileName = `${config.images.uploadFolder}/scheme-preview-${schemeId}.png`;
         console.log('Writing to file', fileName);
         fs.writeFile(fileName, new Buffer(imageContent, 'base64')).then(() => {
             res.json({message: 'ok'});
