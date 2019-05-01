@@ -3,7 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const multer            = require('multer');
-const fs                = require('fs').promises;
+const fs                = require('fs');
+const fsp               = fs.promises;
 const config            = require('../config.js');
 const imageStorage      = require('../storage/storageProvider.js').provideImageStorage();
 
@@ -23,6 +24,16 @@ const uploadToLocalFolder = multer({
     }
 }).single('image');
 
+
+
+function handleLocalImageDownload(res, imagePath, fileName) {
+    res.download(imagePath, fileName, (err) => {
+        if(!res.headersSent) {
+            return res.sendStatus(404);
+        }
+    });
+}
+
 module.exports = {
     uploadImage(req, res) {
         uploadToLocalFolder(req, res, err => {
@@ -30,7 +41,7 @@ module.exports = {
                 const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
                 imageStorage.uploadImage(imageOriginalLocalPath, req.file.filename).then(imageData => {
                     if (imageData.imageId !== req.file.filename) {
-                        return fs.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
+                        return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
                             .then(() => imageData);
                     }
                     return imageData;
@@ -53,11 +64,20 @@ module.exports = {
 
     getImage(req, res) {
         const fileName = req.params.fileName;
-        res.download(`${config.images.uploadFolder}/${fileName}`, fileName, (err) => {
-            if(!res.headersSent) {
-                return res.sendStatus(404);
-            }
-        });
+        const localImagePath = `${config.images.uploadFolder}/${fileName}`;
+
+        if (fs.existsSync(localImagePath)) {
+            handleLocalImageDownload(res, localImagePath, fileName);
+        } else {
+            //download the image from mongodb
+            imageStorage.downloadImage(fileName, localImagePath).then(() => {
+                handleLocalImageDownload(res, localImagePath, fileName);
+            })
+            .catch(err => {
+                console.error(err);
+                res.sendStatus(404);
+            });
+        }
     },
 
     uploadSchemeThumbnail(req, res) {

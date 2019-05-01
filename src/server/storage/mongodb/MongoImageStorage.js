@@ -47,9 +47,17 @@ const fs                = require('fs');
 
     // Downloads image into specified path
     downloadImage(imageId, filePath) {
-        return Promise.resolve(null);
+        return new Promise((resolve, reject) => {
+            this.imageBucket.openDownloadStreamByName(imageId)
+            .pipe(fs.createWriteStream(filePath))
+            .on('error', function(error) {
+                reject(error);
+            })
+            .on('finish', function() {
+                resolve();
+            });
+        });
     }
-
 }
 
 module.exports = MongoImageStorage;
