@@ -39,7 +39,7 @@ module.exports = {
         uploadToLocalFolder(req, res, err => {
             if (!err) {
                 const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
-                imageStorage.uploadImage(imageOriginalLocalPath, req.file.filename).then(imageData => {
+                imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename).then(imageData => {
                     if (imageData.imageId !== req.file.filename) {
                         return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
                             .then(() => imageData);
@@ -66,6 +66,8 @@ module.exports = {
         const fileName = req.params.fileName;
         const localImagePath = `${config.images.uploadFolder}/${fileName}`;
 
+        //TODO refresh images within specified interval
+
         if (fs.existsSync(localImagePath)) {
             handleLocalImageDownload(res, localImagePath, fileName);
         } else {
@@ -84,17 +86,23 @@ module.exports = {
         let imageContent = req.body.image;
 
         // removing header "data:image/png;base64,"
-        let index = imageContent.indexOf(',');
+        const index = imageContent.indexOf(',');
         if (index > 0) {
-            imageContent = imageContent.substr(index + 1);
+             imageContent = imageContent.substr(index + 1);
         }
 
-        var schemeId = req.params.schemeId;
+        const schemeId = req.params.schemeId;
 
-        let fileName = `${config.images.uploadFolder}/scheme-preview-${schemeId}.png`;
+        const fileName = `scheme-preview-${schemeId}.png`;
+        const filePath = `${config.images.uploadFolder}/${fileName}`;
+
         console.log('Writing to file', fileName);
-        fs.writeFile(fileName, new Buffer(imageContent, 'base64')).then(() => {
-            res.json({message: 'ok'});
+        fsp.writeFile(filePath, Buffer.from(imageContent, 'base64')).then(() => {
+            imageStorage.uploadImageFromFile(filePath, fileName).then(imageData => {
+                res.json({message: 'ok'});
+            }).catch(err => {
+                res.$apiError(err, 'Could not upload thumbnail');
+            });
         }).catch(err => res.$apiError(err, 'Could not upload thumbnail'));
     }
 };

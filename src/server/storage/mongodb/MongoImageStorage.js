@@ -9,6 +9,8 @@ const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
 const fs                = require('fs');
+const stream            = require('stream');
+
 
  class MongoImageStorage extends ImageStorage {
     constructor() {
@@ -31,7 +33,7 @@ const fs                = require('fs');
     }
 
     // Returns generated image path
-    uploadImage(filePath, fileName) {
+    uploadImageFromFile(filePath, fileName) {
         return new Promise((resolve, reject) => {
             fs.createReadStream(filePath)
             .pipe(this.imageBucket.openUploadStream(fileName))

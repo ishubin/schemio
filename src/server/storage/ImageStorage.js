@@ -5,7 +5,7 @@
 class ImageStorage {
 
     // Returns generated image data with its id
-    uploadImage(filePath, fileName) {
+    uploadImageFromFile(filePath, fileName) {
         return Promise.resolve(null);
     }
 
