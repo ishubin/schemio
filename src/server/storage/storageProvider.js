@@ -2,19 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const LocalSchemeStorage = require('./LocalSchemeStorage.js');
 const MongoSchemeStorage = require('./mongodb/MongoSchemeStorage.js');
 const MongoCategoryStorage = require('./mongodb/MongoCategoryStorage.js');
 const MongoArtStorage = require('./mongodb/MongoArtStorage.js');
 const MongoImageStorage = require('./mongodb/MongoImageStorage.js');
-
-var localSchemeStorage = null;
-function provideLocalStorage() {
-    if (!localSchemeStorage) {
-        localSchemeStorage = new LocalSchemeStorage();
-    }
-    return localSchemeStorage;
-}
 
 var mongoSchemeStorage = null;
 function provideMongoStorage() {
