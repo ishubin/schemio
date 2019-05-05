@@ -8,6 +8,9 @@ const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
 
+
+const CURRENT_ART_VERSION = 1;
+
 class MongoArtStorage extends ArtStorage {
     constructor() {
         super();
@@ -31,7 +34,8 @@ class MongoArtStorage extends ArtStorage {
             id: shortid.generate(),
             name: art.name,
             url: art.url,
-            modifiedDate: art.modifiedDate
+            modifiedDate: art.modifiedDate,
+            version: CURRENT_ART_VERSION
         };
 
         return this._art().insertOne(artItem).then(result => {

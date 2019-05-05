@@ -8,6 +8,8 @@ const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
 
+CURRENT_SCHEME_VERSION  = 1;
+
 class MongoSchemeStorage extends SchemeStorage {
     constructor() {
         super();
@@ -94,6 +96,7 @@ class MongoSchemeStorage extends SchemeStorage {
 
     createScheme(scheme) {
         scheme.id = shortid.generate();
+        scheme.version = CURRENT_SCHEME_VERSION;
 
         var promise = Promise.resolve(null);
         if (scheme.categoryId) {
@@ -153,6 +156,7 @@ class MongoSchemeStorage extends SchemeStorage {
         this.saveTags(tags);
 
         scheme.itemsText = this.combineItemsText(scheme.items);
+        scheme.version = CURRENT_SCHEME_VERSION;
 
         return this._schemes().updateOne({id: schemeId}, {$set: scheme});
     }

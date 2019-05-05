@@ -8,6 +8,8 @@ const assert            = require('assert');
 const _                 = require('lodash');
 const config            = require('../../config.js');
 
+const CURRENT_CATEGORY_VERSION = 1;
+
 class MongoCategoryStorage extends CategoryStorage {
     constructor() {
         super();
@@ -66,7 +68,9 @@ class MongoCategoryStorage extends CategoryStorage {
                 lname: name.toLowerCase(),
                 id,
                 parentId,
-                ancestors
+                ancestors,
+                version: CURRENT_CATEGORY_VERSION,
+                modifiedDate: Date.now()
             };
             return this._categories().insert(categoryData).then(result => {
                 return categoryData;
