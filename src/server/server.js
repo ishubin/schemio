@@ -13,6 +13,7 @@ const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
 const apiArt                = require('./api/apiArt.js');
 const session               = require('express-session');
+const mongo                 = require('./storage/mongodb/Mongo.js');
 const MongoStore            = require('connect-mongo')(session);
 const config                = require('./config.js');
 const jsonBodyParser        = bodyParser.json({limit: config.api.payloadSize, extended: true});
@@ -68,6 +69,13 @@ app.get('*', function (req, res) {
 })
 
 app.set('port', config.serverPort);
-var server = app.listen(config.serverPort, () => {
-    console.log('Listening on port ' + config.serverPort);
+
+
+mongo.connectDb().then(()=> {
+    app.listen(config.serverPort, () => {
+        console.log('Listening on port ' + config.serverPort);
+    });
+}).catch(error => {
+    console.error('Could not connect to Mongodb', error);
+    process.exit(1);
 });

@@ -3,36 +3,28 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const SchemeStorage     = require('../SchemeStorage.js');
-const MongoClient       = require('mongodb').MongoClient;
 const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
+const mongo             = require('./Mongo.js');
 
 CURRENT_SCHEME_VERSION  = 1;
 
 class MongoSchemeStorage extends SchemeStorage {
     constructor() {
         super();
-        this.db = null;
-        MongoClient.connect(config.mongodb.url, {
-            poolSize: config.mongodb.poolSize
-        }).then(client => {
-            this.db = client.db(config.mongodb.dbName);
-            this._schemes().createIndex({name: "text", description: "text", itemsText: "text"});
-        }).catch(err => {
-            console.error(err);
-            process.exit(1);
-        });
+        //TODO implement createIndex in migration somewhere
+        // this._schemes().createIndex({name: "text", description: "text", itemsText: "text"});
     }
 
     _schemes() {
-        return this.db.collection('schemes');
+        return mongo.getDb().collection('schemes');
     }
     _tags() {
-        return this.db.collection('tags');
+        return mongo.getDb().collection('tags');
     }
     _categories() {
-        return this.db.collection('categories');
+        return mongo.getDb().collection('categories');
     }
 
     combineItemsText(items) {
