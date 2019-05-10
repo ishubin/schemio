@@ -69,6 +69,7 @@ module.exports = {
         //TODO refresh images within specified interval
 
         if (fs.existsSync(localImagePath)) {
+            console.log('File exists', localImagePath);
             handleLocalImageDownload(res, localImagePath, fileName);
         } else {
             //download the image from mongodb

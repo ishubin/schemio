@@ -4,39 +4,30 @@
 
 const ImageStorage      = require('../ImageStorage.js');
 const mongodb           = require('mongodb');
-const MongoClient       = mongodb.MongoClient;
-const shortid           = require('shortid');
-const _                 = require('lodash');
-const config            = require('../../config.js');
+const mongo             = require('./Mongo.js');
 const fs                = require('fs');
-const stream            = require('stream');
-
 
  class MongoImageStorage extends ImageStorage {
     constructor() {
         super();
-        this.db = null;
-        this.imageBucket = null;
-        MongoClient.connect(config.mongodb.url, {
-            poolSize: config.mongodb.poolSize
-        }).then(client => {
-            this.db = client.db(config.mongodb.dbName);
+        this._imageBucket = null;
+    }
 
-            this.imageBucket = new mongodb.GridFSBucket(this.db, {
+    imageBucket() {
+        if (!this._imageBucket) {
+            this._imageBucket = new mongodb.GridFSBucket(mongo.db(), {
                 // chunkSizeBytes: 256 * 1024,
                 bucketName: 'images'
             });
-        }).catch(err => {
-            console.error(err);
-            process.exit(1);
-        });
+        }
+        return this._imageBucket;
     }
 
     // Returns generated image path
     uploadImageFromFile(filePath, fileName) {
         return new Promise((resolve, reject) => {
             fs.createReadStream(filePath)
-            .pipe(this.imageBucket.openUploadStream(fileName))
+            .pipe(this.imageBucket().openUploadStream(fileName))
             .on('error', function(error) {
                 reject(error);
             }).on('finish', function() {
@@ -50,13 +41,19 @@ const stream            = require('stream');
     // Downloads image into specified path
     downloadImage(imageId, filePath) {
         return new Promise((resolve, reject) => {
-            this.imageBucket.openDownloadStreamByName(imageId)
-            .pipe(fs.createWriteStream(filePath))
-            .on('error', function(error) {
-                reject(error);
-            })
-            .on('finish', function() {
-                resolve();
+            mongo.db().collection('images.files').find({filename: imageId}).count().then(count => {
+                if (count > 0) {
+                    this.imageBucket().openDownloadStreamByName(imageId)
+                    .pipe(fs.createWriteStream(filePath))
+                    .on('error', function(error) {
+                        reject(error);
+                    })
+                    .on('finish', function() {
+                        resolve();
+                    });
+                } else {
+                    reject('Image not found');
+                }
             });
         });
     }

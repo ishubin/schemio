@@ -3,34 +3,26 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const CategoryStorage       = require('../CategoryStorage.js');
-const MongoClient       = require('mongodb').MongoClient;
 const assert            = require('assert');
 const _                 = require('lodash');
 const config            = require('../../config.js');
+const mongo             = require('./Mongo.js');
 
 const CURRENT_CATEGORY_VERSION = 1;
 
 class MongoCategoryStorage extends CategoryStorage {
     constructor() {
         super();
-        this.db = null;
-        MongoClient.connect(config.mongodb.url, {
-            poolSize: config.mongodb.poolSize
-        }).then(client => {
-            this.db = client.db(config.mongodb.dbName);
-            this._categories().createIndex({id: 1}, {unique: true});
-            this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
-        }).catch(err => {
-            console.error(err);
-            process.exit(1);
-        });
+        //TODO move indices creation into mongo migrations
+        // this._categories().createIndex({id: 1}, {unique: true});
+        // this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
     }
 
     _categories() {
-        return this.db.collection('categories');
+        return mongo.db().collection('categories');
     }
     _schemes() {
-        return this.db.collection('schemes');
+        return mongo.db().collection('schemes');
     }
 
     createCategory(name, id, parentId) {

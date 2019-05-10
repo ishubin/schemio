@@ -18,13 +18,13 @@ class MongoSchemeStorage extends SchemeStorage {
     }
 
     _schemes() {
-        return mongo.getDb().collection('schemes');
+        return mongo.db().collection('schemes');
     }
     _tags() {
-        return mongo.getDb().collection('tags');
+        return mongo.db().collection('tags');
     }
     _categories() {
-        return mongo.getDb().collection('categories');
+        return mongo.db().collection('categories');
     }
 
     combineItemsText(items) {

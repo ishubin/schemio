@@ -17,7 +17,7 @@ module.exports = {
             db = client.db(config.mongodb.dbName);
         });
     },
-    getDb() {
+    db() {
         return db;
     }
 };
