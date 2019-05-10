@@ -3,10 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const ArtStorage     = require('../ArtStorage.js');
-const MongoClient       = require('mongodb').MongoClient;
 const shortid           = require('shortid');
 const _                 = require('lodash');
-const config            = require('../../config.js');
+const mongo             = require('./Mongo.js');
 
 
 const CURRENT_ART_VERSION = 1;
@@ -14,19 +13,10 @@ const CURRENT_ART_VERSION = 1;
 class MongoArtStorage extends ArtStorage {
     constructor() {
         super();
-        this.db = null;
-        MongoClient.connect(config.mongodb.url, {
-            poolSize: config.mongodb.poolSize
-        }).then(client => {
-            this.db = client.db(config.mongodb.dbName);
-        }).catch(err => {
-            console.error(err);
-            process.exit(1);
-        });
     }
 
     _art() {
-        return this.db.collection('art');
+        return mongo.db().collection('art');
     }
 
     createArt(art) {
