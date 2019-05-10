@@ -63,7 +63,7 @@
                 </div>
                 <div class="property-row">
                     <span class="property-label">Stroke Pattern</span>
-                    <select type="text" v-model="item.style.stroke.pattern">
+                    <select type="text" v-model="item.style.stroke.pattern" @change="redrawItem();">
                         <option v-for="pattern in knownStrokePatterns">{{pattern}}</option>
                     </select>
                 </div>
@@ -120,6 +120,7 @@ export default {
        item: {
            handler: function(newValue) {
                EventBus.$emit(EventBus.ITEM_CHANGED, newValue);
+               EventBus.emitRedrawItem(this.item.id);
                this.$forceUpdate();
                EventBus.$emit(EventBus.REDRAW);  //TODO move redrawing to SvgEditor
            },

@@ -88,12 +88,24 @@ export default {
     },
     data() {
         return {
-            fontsize: 12
+            fontsize: 12,
+            strokeDashArray: ''
         }
     },
     methods: {
         onRedrawItem() {
+            this.generateStrokeDashArray();
             this.$forceUpdate();
+        },
+        generateStrokeDashArray() {
+            let dashArray = '';
+            var w = this.item.style.stroke.size;
+            if (this.item.style.stroke.pattern === 'dotted') {
+                dashArray =  w + ' ' + (w * 2);
+            } else if (this.item.style.stroke.pattern === 'dashed') {
+                dashArray = (w * 4) + ' ' + (w * 4);
+            }
+            this.strokeDashArray = dashArray;
         }
     },
     computed: {
@@ -120,15 +132,6 @@ export default {
             var x2 = this.item.area.x + this.item.area.w;
             var y = this.item.area.y + 30;
             return `M ${x1} ${y} L ${x2} ${y}`;
-        },
-        strokeDashArray() {
-            var w = this.item.style.stroke.size;
-            if (this.item.style.stroke.pattern === 'dotted') {
-                return  w + ' ' + (w * 2);
-            } else if (this.item.style.stroke.pattern === 'dashed') {
-                return (w * 4) + ' ' + (w * 4);
-            }
-            return '';
         }
     }
 }
