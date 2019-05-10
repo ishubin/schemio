@@ -45,22 +45,24 @@ export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
 
     mounted() {
-        EventBus.subscribeForRedrawConnector(this.sourceItem.id, this.connector.itemId, this.onRedrawConnector);
+        EventBus.subscribeForRedrawConnector(this.connector.id, this.onRedrawConnector);
         EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
     },
     data() {
         return {
             svgPath: this.computeSvgPath(this.connector.meta.points),
-            ends: this.computeEnds(this.connector)
+            ends: this.computeEnds(this.connector),
+            strokeDashArray: ''
         };
     },
     beforeDestroy(){
-        EventBus.unsubscribeForRedrawConnector(this.sourceItem.id, this.connector.itemId);
+        EventBus.unsubscribeForRedrawConnector(this.connector.id);
         EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
     },
     methods: {
         onRedrawConnector(connector) {
             this.recompute();
+            this.generateStrokeDashArray();
             this.$forceUpdate();
         },
 
@@ -169,6 +171,16 @@ export default {
         recompute() {
             this.svgPath = this.computeSvgPath(this.connector.meta.points);
             this.ends = this.computeEnds(this.connector);
+        },
+        generateStrokeDashArray() {
+            var dashArray = '';
+            var w = this.connector.style.width;
+            if (this.connector.style.pattern === 'dotted') {
+                dashArray =  w + ' ' + (w * 2);
+            } else if (this.connector.style.pattern === 'dashed') {
+                dashArray = (w * 4) + ' ' + (w * 4);
+            }
+            this.strokeDashArray = dashArray;
         }
     },
     watch: {
@@ -189,17 +201,6 @@ export default {
             this.recompute()
         }
     },
-    computed:{
-        strokeDashArray() {
-            var w = this.connector.style.width;
-            if (this.connector.style.pattern === 'dotted') {
-                return  w + ' ' + (w * 2);
-            } else if (this.connector.style.pattern === 'dashed') {
-                return (w * 4) + ' ' + (w * 4);
-            }
-            return '';
-        }
-    }
 }
 </script>
 

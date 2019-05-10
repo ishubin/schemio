@@ -44,17 +44,17 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitRedrawConnector(sourceItemId, destinationId) {
-            this.$emit(this._generateRedrawConnectorEventName(sourceItemId, destinationId));
+        emitRedrawConnector(connectorId) {
+            this.$emit(this._generateRedrawConnectorEventName(connectorId));
         },
-        subscribeForRedrawConnector(sourceItemId, destinationId, callback) {
-            this.$on(this._generateRedrawConnectorEventName(sourceItemId, destinationId), callback);
+        subscribeForRedrawConnector(connectorId, callback) {
+            this.$on(this._generateRedrawConnectorEventName(connectorId), callback);
         },
-        unsubscribeForRedrawConnector(sourceItemId, destinationId, callback) {
-            this.$off(this._generateRedrawConnectorEventName(sourceItemId, destinationId), callback);
+        unsubscribeForRedrawConnector(connectorId, callback) {
+            this.$off(this._generateRedrawConnectorEventName(connectorId), callback);
         },
-        _generateRedrawConnectorEventName(sourceItemId, destinationId) {
-            return `${EventBus.REDRAW_CONNECTOR}/${sourceItemId}/${destinationId}`;
+        _generateRedrawConnectorEventName(connectorId) {
+            return `${EventBus.REDRAW_CONNECTOR}/${connectorId}`;
         },
 
         emitRedrawItem(itemId) {

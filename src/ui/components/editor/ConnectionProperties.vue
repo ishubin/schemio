@@ -58,7 +58,6 @@ export default {
 
             knownPatterns: ['line', 'dotted', 'dashed']
         };
-
         return data;
     },
     watch: {
@@ -66,6 +65,7 @@ export default {
             deep: true,
             handler(newConnector) {
                 EventBus.$emit(EventBus.CONNECTOR_CHANGED, newConnector);
+                EventBus.emitRedrawConnector(newConnector.id);
             }
         }
     }
