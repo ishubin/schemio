@@ -13,8 +13,6 @@ CURRENT_SCHEME_VERSION  = 1;
 class MongoSchemeStorage extends SchemeStorage {
     constructor() {
         super();
-        //TODO implement createIndex in migration somewhere
-        // this._schemes().createIndex({name: "text", description: "text", itemsText: "text"});
     }
 
     _schemes() {

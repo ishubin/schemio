@@ -13,9 +13,6 @@ const CURRENT_CATEGORY_VERSION = 1;
 class MongoCategoryStorage extends CategoryStorage {
     constructor() {
         super();
-        //TODO move indices creation into mongo migrations
-        // this._categories().createIndex({id: 1}, {unique: true});
-        // this._categories().createIndex({parentId: 1, lname: 1}, {unique: true});
     }
 
     _categories() {

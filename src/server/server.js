@@ -17,6 +17,7 @@ const mongo                 = require('./storage/mongodb/Mongo.js');
 const MongoStore            = require('connect-mongo')(session);
 const config                = require('./config.js');
 const jsonBodyParser        = bodyParser.json({limit: config.api.payloadSize, extended: true});
+const mongoMigrate          = require('./storage/mongodb/migrations/migrate.js').migrate;
 
 const app = express();
 
@@ -32,7 +33,6 @@ app.use(cookieParser());
 app.use(express.static('public'));
 app.use('/api', [jsonBodyParser, middleware.api]);
 
-var cwd = process.cwd();
 
 app.get('/api/user', [middleware.auth], apiUser.getCurrentUser);
 app.post('/api/login', apiUser.login);
@@ -64,6 +64,7 @@ app.delete('/api/categories/:categoryId', [middleware.auth],  apiCategories.dele
 app.put('/api/category-structure', [middleware.auth],  apiCategories.ensureCategoryStructure);
 
 
+const cwd = process.cwd();
 app.get('*', function (req, res) {
     res.sendFile(`${cwd}/public/index.html`)
 })
@@ -71,11 +72,16 @@ app.get('*', function (req, res) {
 app.set('port', config.serverPort);
 
 
-mongo.connectDb().then(()=> {
+mongo.connectDb().then(() => {
+    return mongoMigrate().catch(err => {
+        console.error('Could not execute mongo migrations', err);
+        process.exit(1);
+    });
+}).then(() => {
     app.listen(config.serverPort, () => {
         console.log('Listening on port ' + config.serverPort);
     });
-}).catch(error => {
-    console.error('Could not connect to Mongodb', error);
+}).catch(err => {
+    console.error('Could not connect to Mongodb', err);
     process.exit(1);
 });
