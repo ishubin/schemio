@@ -83,6 +83,57 @@ class MongoCategoryStorage extends CategoryStorage {
             this._categories().deleteMany({'ancestors.id': categoryId})
         ]);
     }
+
+
+    _categoryComparator(a, b) {
+        if ( a.ancestors.length < b.ancestors.length ){
+            return -1;
+        }
+        if ( a.ancestors.length > b.ancestors.length ){
+            return 1;
+        }
+
+        if (a.name < b.name) {
+            return -1;
+        }
+        if (a.name > b.name) {
+            return -1;
+        }
+        return 0;
+    }
+
+    // Converts list of all categories into tree structure
+    getCategoryTree() {
+        return this._categories().find().toArray().then(categories => {
+            const map = {};
+            const topCategories = [];
+
+            categories.sort(this._categoryComparator);
+
+            _.forEach(categories, category => {
+                const cat = {
+                    name: category.name,
+                    id: category.id,
+                    ancestors: category.ancestors,
+                    childCategories: []
+                };
+                map[category.id] = cat;
+
+                if (!category.parentId) {
+                    topCategories.push(cat);
+                } else {
+                    if (map.hasOwnProperty(category.parentId)) {
+                        map[category.parentId].childCategories.push(cat);
+                    }
+                }
+
+            });
+
+            return {
+                topCategories
+            };
+        });
+    }
 }
 
 module.exports = MongoCategoryStorage;

@@ -25,6 +25,9 @@ class CategoryStorage {
     deletes category, all of its sub-categories
     */
     deleteCategory(categoryId) { return Promise.resolve(null); }
+
+
+    getCategoryTree() { return Promise.resolve(null);}
 }
 
 
