@@ -107,7 +107,7 @@ export default {
                 query: this.query,
                 categoryId: this.currentCategoryId,
                 offset: offset,
-                includeParent: true
+                includeSubcategories: true
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);

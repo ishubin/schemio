@@ -120,8 +120,8 @@ export default {
         if (filters.categoryId) {
             url = `${url}&category=${encodeURIComponent(filters.categoryId)}`;
         }
-        if (filters.includeParent) {
-            url = `${url}&includeParent=true`;
+        if (filters.includeSubcategories) {
+            url = `${url}&includeSubcategories=true`;
         }
 
         return axios.get(url).then(response => {

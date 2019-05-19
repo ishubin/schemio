@@ -73,10 +73,10 @@ const ApiSchemes = {
             query['category'] = req.query.category.trim();
         }
 
-        if (req.query.hasOwnProperty('includeParent')) {
-            query.includeParent = true;
+        if (req.query.hasOwnProperty('includeSubcategories')) {
+            query.includeSubcategories = true;
         }
-        
+
         schemeStorage.findSchemes(query).then(searchResult => {
             res.json(searchResult);
         }).catch(err => res.$apiError(err));

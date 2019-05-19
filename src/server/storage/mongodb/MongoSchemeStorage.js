@@ -48,7 +48,7 @@ class MongoSchemeStorage extends SchemeStorage {
             if (query.category != 0) {
                 categoryId = query.category;
             }
-            if (query.includeParent) {
+            if (query.includeSubcategories) {
                 mongoQuery['$or'] = [
                      {categoryId},
                      {'allSubCategoryIds': categoryId}
