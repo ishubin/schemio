@@ -1210,3 +1210,28 @@ table.position-panel-table .property-label {
 .login-box .error-message {
     color: red;
 }
+
+
+
+/****************** search page ****************/
+.search-view .search-layout {
+    display: flex;
+}
+.search-view .search-layout .search-attributes-panel {
+    flex: 1;
+}
+.search-view .search-layout .search-results {
+    flex: 4;
+}
+
+.search-view .category-tree .category-selector {
+    color: #246c8f;
+    cursor: pointer;
+    cursor: hand;
+}
+.search-view .category-tree .category-selector:hover {
+    text-decoration: underline;
+}
+.search-view .category-tree .category-children {
+    padding-left: 15px;
+}

@@ -115,8 +115,16 @@ export default {
     },
 
     findSchemes(filters) {
-        var encodedQuery = encodeURIComponent(filters.query || '');
-        return axios.get(`/api/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`).then(response => {
+        let encodedQuery = encodeURIComponent(filters.query || '');
+        let url = `/api/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        if (filters.categoryId) {
+            url = `${url}&category=${encodeURIComponent(filters.categoryId)}`;
+        }
+        if (filters.includeParent) {
+            url = `${url}&includeParent=true`;
+        }
+
+        return axios.get(url).then(response => {
             return response.data;
         });
     },
@@ -147,6 +155,10 @@ export default {
         return axios.get(`/api/categories/${id}`).then(response => {
             return response.data;
         });
+    },
+
+    getCategoryTree() {
+        return axios.get(`/api/category-tree`).then(response => response.data);
     },
 
     ensureCategoryStructure(categories) {

@@ -44,11 +44,18 @@ class MongoSchemeStorage extends SchemeStorage {
     findSchemes(query) {
         var mongoQuery = {};
         if (query.hasOwnProperty('category')) {
-            var categoryId = null;
+            let categoryId = null;
             if (query.category != 0) {
                 categoryId = query.category;
             }
-            mongoQuery['categoryId'] = categoryId;
+            if (query.includeParent) {
+                mongoQuery['$or'] = [
+                     {categoryId},
+                     {'allSubCategoryIds': categoryId}
+                ];
+            } else {
+                mongoQuery['categoryId'] = categoryId;
+            }
         }
         if (query.query && query.query.length > 0) {
             mongoQuery['$text'] = {'$search': query.query};

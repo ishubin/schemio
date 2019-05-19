@@ -114,7 +114,6 @@ class MongoCategoryStorage extends CategoryStorage {
                 const cat = {
                     name: category.name,
                     id: category.id,
-                    ancestors: category.ancestors,
                     childCategories: []
                 };
                 map[category.id] = cat;
@@ -129,9 +128,7 @@ class MongoCategoryStorage extends CategoryStorage {
 
             });
 
-            return {
-                topCategories
-            };
+            return topCategories;
         });
     }
 }
