@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const SchemeStorage     = require('../SchemeStorage.js');
 const shortid           = require('shortid');
 const _                 = require('lodash');
 const config            = require('../../config.js');
@@ -10,11 +9,7 @@ const mongo             = require('./Mongo.js');
 
 CURRENT_SCHEME_VERSION  = 1;
 
-class MongoSchemeStorage extends SchemeStorage {
-    constructor() {
-        super();
-    }
-
+class MongoSchemeStorage {
     _schemes() {
         return mongo.db().collection('schemes');
     }

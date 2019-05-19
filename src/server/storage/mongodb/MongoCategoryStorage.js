@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const CategoryStorage       = require('../CategoryStorage.js');
 const assert            = require('assert');
 const _                 = require('lodash');
 const config            = require('../../config.js');
@@ -10,11 +9,7 @@ const mongo             = require('./Mongo.js');
 
 const CURRENT_CATEGORY_VERSION = 1;
 
-class MongoCategoryStorage extends CategoryStorage {
-    constructor() {
-        super();
-    }
-
+class MongoCategoryStorage {
     _categories() {
         return mongo.db().collection('categories');
     }

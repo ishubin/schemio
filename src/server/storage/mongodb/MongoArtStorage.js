@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const ArtStorage     = require('../ArtStorage.js');
 const shortid           = require('shortid');
 const _                 = require('lodash');
 const mongo             = require('./Mongo.js');
@@ -10,11 +9,7 @@ const mongo             = require('./Mongo.js');
 
 const CURRENT_ART_VERSION = 1;
 
-class MongoArtStorage extends ArtStorage {
-    constructor() {
-        super();
-    }
-
+class MongoArtStorage {
     _art() {
         return mongo.db().collection('art');
     }
