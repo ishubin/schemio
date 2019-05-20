@@ -57,6 +57,7 @@ app.get('/images/:fileName', apiImages.getImage);
 app.post('/api/scheme-thumnbails/:schemeId', apiImages.uploadSchemeThumbnail);
 
 
+app.get('/api/category-tree',  apiCategories.getCategoryTree);
 app.get('/api/categories',  apiCategories.getRootCategory);
 app.get('/api/categories/:categoryId',  apiCategories.getCategory);
 app.post('/api/categories', [middleware.auth],  apiCategories.createCategory);

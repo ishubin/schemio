@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const CategoryStorage       = require('../CategoryStorage.js');
 const assert            = require('assert');
 const _                 = require('lodash');
 const config            = require('../../config.js');
@@ -10,11 +9,7 @@ const mongo             = require('./Mongo.js');
 
 const CURRENT_CATEGORY_VERSION = 1;
 
-class MongoCategoryStorage extends CategoryStorage {
-    constructor() {
-        super();
-    }
-
+class MongoCategoryStorage {
     _categories() {
         return mongo.db().collection('categories');
     }
@@ -82,6 +77,54 @@ class MongoCategoryStorage extends CategoryStorage {
             this._categories().deleteOne({id: categoryId}),
             this._categories().deleteMany({'ancestors.id': categoryId})
         ]);
+    }
+
+
+    _categoryComparator(a, b) {
+        if ( a.ancestors.length < b.ancestors.length ){
+            return -1;
+        }
+        if ( a.ancestors.length > b.ancestors.length ){
+            return 1;
+        }
+
+        if (a.name < b.name) {
+            return -1;
+        }
+        if (a.name > b.name) {
+            return -1;
+        }
+        return 0;
+    }
+
+    // Converts list of all categories into tree structure
+    getCategoryTree() {
+        return this._categories().find().toArray().then(categories => {
+            const map = {};
+            const topCategories = [];
+
+            categories.sort(this._categoryComparator);
+
+            _.forEach(categories, category => {
+                const cat = {
+                    name: category.name,
+                    id: category.id,
+                    childCategories: []
+                };
+                map[category.id] = cat;
+
+                if (!category.parentId) {
+                    topCategories.push(cat);
+                } else {
+                    if (map.hasOwnProperty(category.parentId)) {
+                        map[category.parentId].childCategories.push(cat);
+                    }
+                }
+
+            });
+
+            return topCategories;
+        });
     }
 }
 

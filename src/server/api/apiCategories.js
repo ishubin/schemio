@@ -39,6 +39,12 @@ const ApiCategories = {
         }).catch(err => res.$apiError(err));
     },
 
+    getCategoryTree(req, res) {
+        categoryStorage.getCategoryTree().then(tree => {
+            res.json(tree);
+        }).catch(err => res.$apiError(err));
+    },
+
     deleteCategory(req, res) {
         categoryStorage.deleteCategory(req.params.categoryId).then(data => {
             res.json({message: `deleted category ${req.params.categoryId}`});

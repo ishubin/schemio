@@ -61,7 +61,8 @@ const ApiSchemes = {
 
     findSchemes(req, res) {
         var query = {
-            query: req.query.q ? req.query.q.trim() : null
+            query: req.query.q ? req.query.q.trim() : null,
+            includeParent: false
         };
 
         if (req.query.offset && req.query.offset.length > 0) {
@@ -71,6 +72,11 @@ const ApiSchemes = {
         if (req.query.hasOwnProperty('category')) {
             query['category'] = req.query.category.trim();
         }
+
+        if (req.query.hasOwnProperty('includeSubcategories')) {
+            query.includeSubcategories = true;
+        }
+
         schemeStorage.findSchemes(query).then(searchResult => {
             res.json(searchResult);
         }).catch(err => res.$apiError(err));

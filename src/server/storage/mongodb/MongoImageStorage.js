@@ -2,14 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const ImageStorage      = require('../ImageStorage.js');
 const mongodb           = require('mongodb');
 const mongo             = require('./Mongo.js');
 const fs                = require('fs');
 
- class MongoImageStorage extends ImageStorage {
+ class MongoImageStorage {
     constructor() {
-        super();
         this._imageBucket = null;
     }
 
