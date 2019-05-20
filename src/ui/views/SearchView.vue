@@ -15,8 +15,8 @@
                 <div class="search-results">
                     <div v-if="searchResult">
                         <div>
-                            <input @keyup.enter="searchSchemes()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
-                            <span @click="searchSchemes()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
+                            <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
+                            <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
                         </div>
 
                         <div>
@@ -28,7 +28,7 @@
                             :page-count="totalPages"
                             :page-range="3"
                             :margin-pages="2"
-                            :click-handler="selectSearchPage"
+                            :click-handler="onPageSelected"
                             :prev-text="'<'"
                             :next-text="'>'"
                             :container-class="'pagination'"
@@ -70,16 +70,16 @@ export default {
         apiClient.getCategoryTree().then(categories => {
             this.categories = categories;
         });
+
         this.searchSchemes();
     },
 
     data() {
         return {
-            query: '',
-            offset: 0,
+            query: this.$route.query.q || '',
             searchResult: null,
-            currentCategoryId: null,
-            currentPage: 1,
+            currentCategoryId: this.$route.query.category,
+            currentPage: parseInt(this.$route.query.page) || 1,
             totalPages: 0,
             categories: []
         };
@@ -87,20 +87,10 @@ export default {
 
     methods: {
         searchSchemes() {
-            this.selectSearchPage(0);
-        },
-
-        onCategorySelected(category) {
-            this.currentCategoryId = category.id;
-            this.searchSchemes();
-        },
-
-        selectSearchPage(page) {
-            this.currentPage = page > 0? page: 1;
-            var offset = 0;
+            let offset = 0;
             if (this.searchResult) {
-                if (page > 0) {
-                    offset = (page - 1) * this.searchResult.resultsPerPage;
+                if (this.currentPage > 0) {
+                    offset = (this.currentPage - 1) * this.searchResult.resultsPerPage;
                 }
             }
             apiClient.findSchemes({
@@ -112,6 +102,44 @@ export default {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
             });
+        },
+
+        onSearchClicked() {
+            let url = `/search?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
+            if (this.currentCategoryId) {
+                url += `&category=${encodeURIComponent(this.currentCategoryId)}`;
+            }
+
+            window.location = url;
+        },
+
+        //TODO refactor pagination completely. Make sure it renders a proper link and get rid of this ugly hack below
+        onPageSelected(page) {
+            let url = this.$route.path;
+            let hasParamsAlready = false;
+
+            _.forEach(this.$route.query, (value, name) => {
+                if (name !== 'page') {
+                    if (!hasParamsAlready) {
+                        url += '?';
+                        hasParamsAlready = true;
+                    } else {
+                        url += '&';
+                    }
+
+                    url += name + '=' + encodeURIComponent(value);
+                }
+            });
+
+            url += hasParamsAlready ? '&' : '?';
+            url += `page=${page}`;
+
+            window.location = url;
+        },
+
+        onCategorySelected(category) {
+            this.currentCategoryId = category.id;
+            this.searchSchemes();
         }
     },
     filters: {
