@@ -10,7 +10,8 @@
             <h3>Schemes</h3>
             <div class="search-layout">
                 <div class="search-attributes-panel">
-                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" @category-selected="onCategorySelected"/>
+                    <h4>Categories</h4>
+                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/search" :url-params="$route.query"/>
                 </div>
                 <div class="search-results">
                     <div v-if="searchResult">
@@ -69,6 +70,9 @@ export default {
     mounted() {
         apiClient.getCategoryTree().then(categories => {
             this.categories = categories;
+            if (this.currentCategoryId) {
+                this.expandToCategory(this.currentCategoryId);
+            }
         });
 
         this.searchSchemes();
@@ -135,6 +139,25 @@ export default {
             url += `page=${page}`;
 
             window.location = url;
+        },
+
+        expandToCategory(categoryId) {
+            for (let i = 0; i < this.categories.length; i++) {
+                if (this._expandToCategory(this.categories[i], categoryId)) {
+                    this.categories[i].expanded = true;
+                }
+            };
+        },
+
+        _expandToCategory(category, categoryId) {
+            if (category.childCategories.length > 0) {
+                for (let i = 0; i < category.childCategories.length; i++) {
+                    if (this._expandToCategory(category.childCategories[i], categoryId)) {
+                        return true;
+                    }
+                }
+            }
+            return category.id === categoryId;
         },
 
         onCategorySelected(category) {

@@ -1225,12 +1225,22 @@ table.position-panel-table .property-label {
 }
 
 .search-view .category-tree .category-selector {
+    margin: 2px;
+}
+.search-view .category-tree .category-selector a, .search-view .category-tree .category-selector a:visited {
     color: #246c8f;
+    text-decoration: none;
+    padding: 2px 4px 2px 4px;
+    border-radius: 2px;
     cursor: pointer;
     cursor: hand;
 }
-.search-view .category-tree .category-selector:hover {
+.search-view .category-tree .category-selector a:hover {
     text-decoration: underline;
+}
+.search-view .category-tree .category-selector.selected a, .search-view .category-tree .category-selector.selected a:visited {
+    background: #246c8f;
+    color: white;
 }
 .search-view .category-tree .category-children {
     padding-left: 15px;
