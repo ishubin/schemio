@@ -298,18 +298,21 @@ ul.pagination li {
     margin: 0;
     padding: 0;
 }
-ul.pagination li a {
+ul.pagination li span {
+    color: #999;
+}
+ul.pagination li a, ul.pagination li a:visited {
+    text-decoration: none;
     display: inline-block;
-    border: 1px solid #aaa;
-    background: #fff;
-    color: #666;
+    color: #136bb3;
     padding: 3px 7px 3px 7px;
 }
-ul.pagination li.active a {
+ul.pagination li a:hover {
+    opacity: 0.8;
+}
+ul.pagination li a.current {
     display: inline-block;
-    border: 1px solid #aaa;
-    background: #6fb8f4;
-    color: #fff;
+    color: #777;
 }
 
 

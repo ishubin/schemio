@@ -12,7 +12,7 @@
                 :category="childCategory"
                 :selected-category-id="selectedCategoryId"
                 :base-url="baseUrl"
-                :url-params="urlParams"
+                :url-prefix="urlPrefix"
                 @category-selected="$emit('category-selected', arguments[0])"
                 />
         </div>
@@ -23,23 +23,17 @@
 import _ from 'lodash';
 
 export default {
-    props: ['category', 'selectedCategoryId', 'urlParams', 'baseUrl'],
+    props: ['category', 'selectedCategoryId', 'urlPrefix', 'baseUrl'],
     name: 'category-tree',
 
     data() {
-        let link = this.baseUrl;
-        let hasParamsAlready = false;
-        _.forEach(this.urlParams, (value, name) => {
-            if (name !== 'page' && name != 'category') {
-                link += hasParamsAlready ? '&': '?';
-                link += `${name}=${encodeURIComponent(value)}`;
-                hasParamsAlready = true;
-            }
-        });
-
+        let link = this.urlPrefix;
         if (this.category.id !== this.selectedCategoryId) {
-            link += hasParamsAlready ? '&': '?';
-            link += `category=${encodeURIComponent(this.category.id)}`;
+            let parameterSplit = '?';
+            if (link.indexOf('?') >= 0) {
+                parameterSplit = '&';
+            }
+            link += `${parameterSplit}category=${encodeURIComponent(this.category.id)}`;
         }
 
 

@@ -11,7 +11,7 @@
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
-                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/search" :url-params="$route.query"/>
+                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/search" :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
                     <div v-if="searchResult">
@@ -24,17 +24,11 @@
                             Total results <b>{{searchResult.total}}</b>
                         </div>
 
-                        <paginate
-                            v-model="currentPage"
-                            :page-count="totalPages"
-                            :page-range="3"
-                            :margin-pages="2"
-                            :click-handler="onPageSelected"
-                            :prev-text="'<'"
-                            :next-text="'>'"
-                            :container-class="'pagination'"
-                            :page-class="'page-item'">
-                        </paginate>
+                        <pagination
+                            :current-page="currentPage"
+                            :total-pages="140"
+                            :url-prefix="urlPrefix"
+                        />
 
                         <ul class="schemes">
                             <li v-for="scheme in searchResult.results">
@@ -62,10 +56,10 @@ import HeaderComponent from '../components/Header.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
 import utils from '../utils.js';
-import Paginate from 'vuejs-paginate';
+import Pagination from '../components/Pagination.vue';
 
 export default {
-    components: {HeaderComponent, Paginate, CategoryTree},
+    components: {HeaderComponent, CategoryTree, Pagination},
 
     mounted() {
         apiClient.getCategoryTree().then(categories => {
@@ -79,8 +73,19 @@ export default {
     },
 
     data() {
+        let urlPrefix = '/search';
+        let hasParamsAlready = false;
+        _.forEach(this.$route.query, (value, name) => {
+            if (name !== 'page' && name != 'category') {
+                urlPrefix += hasParamsAlready ? '&': '?';
+                urlPrefix += `${name}=${encodeURIComponent(value)}`;
+                hasParamsAlready = true;
+            }
+        });
+
         return {
             query: this.$route.query.q || '',
+            urlPrefix: urlPrefix,
             searchResult: null,
             currentCategoryId: this.$route.query.category,
             currentPage: parseInt(this.$route.query.page) || 1,
