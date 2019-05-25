@@ -170,13 +170,8 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, Dropdown, ItemListPopup},
 
     mounted() {
-        this.loadCurrentUser();
-
         window.onbeforeunload = this.onBrowseClose;
-
-        apiClient.loadScheme(this.schemeId).then(scheme => {
-            this.schemeContainer = new SchemeContainer(scheme);
-        });
+        this.init();
         EventBus.$on(EventBus.ITEM_CHANGED, this.onItemChanged);
         EventBus.$on(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
         EventBus.$on(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
@@ -203,21 +198,9 @@ export default {
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     data() {
-        var schemeId = this.$route.params.schemeId;
-        var offsetX = 0;
-        var offsetY = 0;
-        var zoom = 100;
-
-        var schemeSettings = settingsStorage.getSchemeSettings(schemeId);
-        if (schemeSettings && schemeSettings.screenPosition) {
-            offsetX = schemeSettings.screenPosition.offsetX;
-            offsetY = schemeSettings.screenPosition.offsetY;
-            zoom = schemeSettings.screenPosition.zoom;
-        }
-
         return {
             user: null,
-            schemeId: schemeId,
+            schemeId: null,
             originalUrlEncoded: encodeURIComponent(window.location),
 
             mainDropdown: {
@@ -233,16 +216,15 @@ export default {
 
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
-            schemeId: schemeId,
             schemeContainer: null,
             searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             selectedItem: null,
             selectedConnector: null,
-            offsetX: offsetX,
-            offsetY: offsetY,
-            zoom: zoom,
+            offsetX: 0,
+            offsetY: 0,
+            zoom: 100,
             mode: 'view',
             knownModes: ['view'],
             searchHighlights: [],
@@ -275,6 +257,21 @@ export default {
         }
     },
     methods: {
+        init() {
+            this.loadCurrentUser();
+            this.schemeId = this.$route.params.schemeId;
+            apiClient.loadScheme(this.schemeId).then(scheme => {
+                this.schemeContainer = new SchemeContainer(scheme);
+            });
+
+            var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
+            if (schemeSettings && schemeSettings.screenPosition) {
+                this.offsetX = schemeSettings.screenPosition.offsetX;
+                this.offsetY = schemeSettings.screenPosition.offsetY;
+                this.zoom = schemeSettings.screenPosition.zoom;
+            }
+        },
+
         loadCurrentUser() {
             apiClient.getCurrentUser().then(user => {
                 this.user = user;
@@ -588,12 +585,18 @@ export default {
             return null;
         }
     },
+
     filters: {
         capitalize(value) {
             return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
         }
     },
+
     watch: {
+        $route(to, from) {
+            this.init();
+        },
+
         searchKeyword(keyword) {
             keyword = keyword.trim().toLowerCase();
             if (keyword.length > 0) {

@@ -6,15 +6,21 @@
     <div>
         <ul class="category-breadcrumb" v-if="schemeContainer.scheme.category">
             <li>
-                <a href="/"><i class="fas fa-home"></i></a>
+                <router-link :to="{path: '/'}">
+                    <a href="#"><i class="fas fa-home"></i></a>
+                </router-link>
                 <i class="fas fa-angle-right"></i>
             </li>
             <li v-for="category in schemeContainer.scheme.category.ancestors">
-                <a :href="'/?category=' + category.id">{{category.name}}</a>
+                <router-link :to="{ path: '/?category=' + category.id }">
+                    <a href="#">{{category.name}}</a>
+                </router-link>
                 <i class="fas fa-angle-right"></i>
             </li>
             <li>
-                <a :href="'/?category=' + schemeContainer.scheme.category.id">{{schemeContainer.scheme.category.name}}</a>
+                <router-link :to="{ path: '/?category=' + schemeContainer.scheme.category.id }">
+                    <a href="#">{{schemeContainer.scheme.category.name}}</a>
+                </router-link>
             </li>
         </ul>
         <h3>{{schemeContainer.scheme.name}}</h3>

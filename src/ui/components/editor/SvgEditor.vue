@@ -122,7 +122,7 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a class="item-link" :xlink:href="link.url">
+                    <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
 
                         <text class="item-link-icon" :class="['link-icon-' + link.type]"
@@ -422,6 +422,14 @@ export default {
             this.state = this.states.connecting;
             this.state.reset();
             this.state.setSourceItem(item);
+        },
+
+        onSvgItemLinkClick(url, event) {
+            if (url.startsWith('/')) {
+                this.$router.push({path: url});
+                event.preventDefault();
+            }
+            return false;
         },
 
         onKeyPress(key, keyOptions) {

@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="category-tree">
         <div class="category-selector" :class="{selected: category.id === selectedCategoryId}">
-            <router-link :to="{path: link}">
+            <router-link :to="{path: createCategoryUrl()}">
                 <a>{{category.name}}</a>
             </router-link>
         </div>
@@ -29,24 +29,25 @@ export default {
     name: 'category-tree',
 
     data() {
-        let link = this.urlPrefix;
-        if (this.category.id !== this.selectedCategoryId) {
-            let parameterSplit = '?';
-            if (link.indexOf('?') >= 0) {
-                parameterSplit = '&';
-            }
-            link += `${parameterSplit}category=${encodeURIComponent(this.category.id)}`;
-        }
-
-
         return {
-            collapsed: true,
-            link: link
+            collapsed: true
         };
     },
     methods: {
         onCategoryClicked() {
             this.$emit('category-selected', this.category);
+        },
+
+        createCategoryUrl() {
+            let link = this.urlPrefix;
+            if (this.category.id !== this.selectedCategoryId) {
+                let parameterSplit = '?';
+                if (link.indexOf('?') >= 0) {
+                    parameterSplit = '&';
+                }
+                link += `${parameterSplit}category=${encodeURIComponent(this.category.id)}`;
+            }
+            return link;
         }
     }
 }

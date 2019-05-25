@@ -33,16 +33,18 @@
 
                         <ul class="schemes">
                             <li v-for="scheme in searchResult.results">
-                                <a class="scheme link" :href="'/schemes/'+scheme.id">
-                                    <h5>{{scheme.name}}</h5>
-                                    <div class="image-wrapper">
-                                        <img class="scheme-preview" :src="'/images/scheme-preview-' + scheme.id + '.png'" style="max-width: 200px; max-height: 100px;"/>
-                                    </div>
-                                    <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
-                                    <div class="scheme-description">
-                                        {{scheme.description | shortDescription}}
-                                    </div>
-                                </a>
+                                <router-link :to="{path: '/schemes/'+scheme.id}">
+                                    <a class="scheme link">
+                                        <h5>{{scheme.name}}</h5>
+                                        <div class="image-wrapper">
+                                            <img class="scheme-preview" :src="'/images/scheme-preview-' + scheme.id + '.png'" style="max-width: 200px; max-height: 100px;"/>
+                                        </div>
+                                        <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
+                                        <div class="scheme-description">
+                                            {{scheme.description | shortDescription}}
+                                        </div>
+                                    </a>
+                                </router-link>
                             </li>
                         </ul>
                     </div>
@@ -83,12 +85,9 @@ export default {
 
     methods: {
         init() {
-            apiClient.getCategoryTree().then(categories => {
-                this.categories = categories;
-                if (this.currentCategoryId) {
-                    this.expandToCategory(this.currentCategoryId);
-                }
-            });
+            this.currentCategoryId = this.$route.query.category;
+            this.currentPage = parseInt(this.$route.query.page) || 1;
+            this.query = this.$route.query.q || '';
 
             let urlPrefix = '/';
             let hasParamsAlready = false;
@@ -102,10 +101,12 @@ export default {
 
             this.urlPrefix = urlPrefix;
 
-            this.currentCategoryId = this.$route.query.category;
-            this.currentPage = parseInt(this.$route.query.page) || 1;
-            this.query = this.$route.query.q || '';
-
+            apiClient.getCategoryTree().then(categories => {
+                this.categories = categories;
+                if (this.currentCategoryId) {
+                    this.expandToCategory(this.currentCategoryId);
+                }
+            });
             this.searchSchemes();
         },
         searchSchemes() {
@@ -130,7 +131,7 @@ export default {
                 url += `&category=${encodeURIComponent(this.currentCategoryId)}`;
             }
 
-            window.location = url;
+            this.$router.push({path: url});
         },
 
         expandToCategory(categoryId) {
@@ -150,11 +151,6 @@ export default {
                 }
             }
             return category.id === categoryId;
-        },
-
-        onCategorySelected(category) {
-            this.currentCategoryId = category.id;
-            this.searchSchemes();
         }
     },
 
