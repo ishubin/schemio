@@ -11,9 +11,6 @@
             <li v-if="user">
                 <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
             </li>
-            <li>
-                <a href="/search"><i class="fas fa-search"></i> Search</a>
-            </li>
         </ul>
 
         <div class="top-right-panel">

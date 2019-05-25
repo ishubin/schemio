@@ -222,8 +222,7 @@ export default {
 
             mainDropdown: {
                 options: [
-                    {name: "Home", icon: "fas fa-home", link: "/"},
-                    {name: "Search other documents", icon: "fas fa-search", link: "/search"}
+                    {name: "Home", icon: "fas fa-home", link: "/"}
                 ]
             },
 

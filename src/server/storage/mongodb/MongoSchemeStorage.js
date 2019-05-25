@@ -7,7 +7,10 @@ const _                 = require('lodash');
 const config            = require('../../config.js');
 const mongo             = require('./Mongo.js');
 
-CURRENT_SCHEME_VERSION  = 1;
+const CURRENT_SCHEME_VERSION  = 1;
+
+//TODO align it with client side
+const RESULTS_PER_PAGE = 20;
 
 class MongoSchemeStorage {
     _schemes() {
@@ -61,7 +64,7 @@ class MongoSchemeStorage {
         if (query.offset) {
             offset = query.offset;
         }
-        var limit = 10;
+        var limit = RESULTS_PER_PAGE;
 
         return Promise.all([
             this._schemes().count(mongoQuery),

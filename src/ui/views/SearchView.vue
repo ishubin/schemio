@@ -11,7 +11,7 @@
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
-                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/search" :url-prefix="urlPrefix"/>
+                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/" :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
                     <div v-if="searchResult">
@@ -26,7 +26,7 @@
 
                         <pagination
                             :current-page="currentPage"
-                            :total-pages="140"
+                            :total-pages="totalPages"
                             :url-prefix="urlPrefix"
                         />
 
@@ -58,6 +58,9 @@ import apiClient from '../apiClient.js';
 import utils from '../utils.js';
 import Pagination from '../components/Pagination.vue';
 
+//TODO Align it with the server side
+const RESULTS_PER_PAGE = 20;
+
 export default {
     components: {HeaderComponent, CategoryTree, Pagination},
 
@@ -73,7 +76,7 @@ export default {
     },
 
     data() {
-        let urlPrefix = '/search';
+        let urlPrefix = '/';
         let hasParamsAlready = false;
         _.forEach(this.$route.query, (value, name) => {
             if (name !== 'page' && name != 'category') {
@@ -97,10 +100,8 @@ export default {
     methods: {
         searchSchemes() {
             let offset = 0;
-            if (this.searchResult) {
-                if (this.currentPage > 0) {
-                    offset = (this.currentPage - 1) * this.searchResult.resultsPerPage;
-                }
+            if (this.currentPage > 0) {
+                offset = (this.currentPage - 1) * RESULTS_PER_PAGE;
             }
             apiClient.findSchemes({
                 query: this.query,
@@ -114,34 +115,10 @@ export default {
         },
 
         onSearchClicked() {
-            let url = `/search?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
+            let url = `/?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
             if (this.currentCategoryId) {
                 url += `&category=${encodeURIComponent(this.currentCategoryId)}`;
             }
-
-            window.location = url;
-        },
-
-        //TODO refactor pagination completely. Make sure it renders a proper link and get rid of this ugly hack below
-        onPageSelected(page) {
-            let url = this.$route.path;
-            let hasParamsAlready = false;
-
-            _.forEach(this.$route.query, (value, name) => {
-                if (name !== 'page') {
-                    if (!hasParamsAlready) {
-                        url += '?';
-                        hasParamsAlready = true;
-                    } else {
-                        url += '&';
-                    }
-
-                    url += name + '=' + encodeURIComponent(value);
-                }
-            });
-
-            url += hasParamsAlready ? '&' : '?';
-            url += `page=${page}`;
 
             window.location = url;
         },

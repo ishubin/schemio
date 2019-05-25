@@ -13,7 +13,7 @@
 
             <li>
                 <a v-if="currentPage < totalPages" @click="onPageClicked(currentPage + 1)" :href="urlForPage(currentPage + 1)"><i class="fas fa-chevron-circle-right"></i></a>
-                <span v-else><i class="fas fa-chevron-circle-left"></i></span>
+                <span v-else><i class="fas fa-chevron-circle-right"></i></span>
             </li>
         </ul>
     </div>
@@ -39,6 +39,7 @@ export default {
             pageUrlPrefix += 'page=';
         }
 
+        console.log(this.currentPage, this.totalPages);
         return {
             pages: this.buildPages(this.currentPage, this.totalPages),
             pageUrlPrefix
