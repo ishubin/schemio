@@ -9,17 +9,11 @@
 
 
         <div v-if="searchResult" style="height: 300px; overflow: scroll;">
-            <paginate
-                v-model="currentPage"
-                :page-count="totalPages"
-                :page-range="3"
-                :margin-pages="2"
-                :click-handler="selectSearchPage"
-                :prev-text="'<'"
-                :next-text="'>'"
-                :container-class="'pagination'"
-                :page-class="'page-item'">
-            </paginate>
+            <pagination
+                :current-page="currentPage"
+                :total-pages="totalPages"
+                @page-clicked="selectSearchPage"
+            />
             <div v-for="scheme in searchResult.results">
                 <span class="link" @click="onSchemeSelect(scheme)">{{scheme.name}}</span>
                 <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
@@ -30,11 +24,11 @@
 
 <script>
 import Modal from '../Modal.vue';
-import Paginate from 'vuejs-paginate';
+import Pagination from '../Pagination.vue';
 import apiClient from '../../apiClient.js';
 
 export default {
-    components: {Modal, Paginate},
+    components: {Modal, Pagination},
 
     mounted() {
         this.reloadSchemes();
@@ -50,6 +44,7 @@ export default {
     },
     methods: {
         selectSearchPage(page) {
+            this.currentPage = page;
             this.reloadSchemes(page);
         },
 

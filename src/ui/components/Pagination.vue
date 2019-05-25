@@ -2,17 +2,17 @@
     <div class="pagination-container">
         <ul class="pagination">
             <li>
-                <a v-if="currentPage > 1" :href="pageUrlPrefix + (currentPage - 1)"><i class="fas fa-chevron-circle-left"></i></a>
+                <a v-if="currentPage > 1" @click="onPageClicked(currentPage - 1)" :href="urlForPage(currentPage - 1)"><i class="fas fa-chevron-circle-left"></i></a>
                 <span v-else><i class="fas fa-chevron-circle-left"></i></span>
             </li>
 
             <li v-for="page in pages">
-                <a v-if="page.active" :class="{'current': currentPage === page.page}" :href="pageUrlPrefix + page.page">{{page.page}}</a>
+                <a v-if="page.active" @click="onPageClicked(page.page)" :class="{'current': currentPage === page.page}" :href="urlForPage(page.page)">{{page.page}}</a>
                 <span v-else>{{page.page}}</span>
             </li>
 
             <li>
-                <a v-if="currentPage < totalPages" :href="pageUrlPrefix + (currentPage + 1)"><i class="fas fa-chevron-circle-right"></i></a>
+                <a v-if="currentPage < totalPages" @click="onPageClicked(currentPage + 1)" :href="urlForPage(currentPage + 1)"><i class="fas fa-chevron-circle-right"></i></a>
                 <span v-else><i class="fas fa-chevron-circle-left"></i></span>
             </li>
         </ul>
@@ -22,16 +22,22 @@
 
 <script>
 export default {
-    props: ['currentPage', 'totalPages', 'urlPrefix'],
+    props: {
+        currentPage:    {type: Number, default: 1},
+        totalPages:     {type: Number, default: 1},
+        urlPrefix:      {type: String, default: null}
+    },
 
     data() {
         let pageUrlPrefix = this.urlPrefix;
-        if (pageUrlPrefix.indexOf('?') >= 0) {
-            pageUrlPrefix += '&';
-        } else {
-            pageUrlPrefix += '?';
+        if (pageUrlPrefix) {
+            if (pageUrlPrefix.indexOf('?') > 0) {
+                pageUrlPrefix += '&';
+            } else {
+                pageUrlPrefix += '?';
+            }
+            pageUrlPrefix += 'page=';
         }
-        pageUrlPrefix += 'page=';
 
         return {
             pages: this.buildPages(this.currentPage, this.totalPages),
@@ -40,6 +46,22 @@ export default {
     },
 
     methods: {
+        urlForPage(page) {
+            if (this.urlPrefix) {
+                return this.pageUrlPrefix + page;
+            } else {
+                return '#';
+            }
+        },
+
+        onPageClicked(page) {
+            if (this.urlPrefix) {
+                return true;
+            } else {
+                this.$emit('page-clicked', page);
+                return false;
+            }
+        },
 
         buildPages(currentPage, totalPages) {
             currentPage = Math.min(currentPage, totalPages);

@@ -297,6 +297,7 @@ ul.pagination li {
     display: inline;
     margin: 0;
     padding: 0;
+    padding: 3px 7px 3px 7px;
 }
 ul.pagination li span {
     color: #999;
@@ -305,7 +306,6 @@ ul.pagination li a, ul.pagination li a:visited {
     text-decoration: none;
     display: inline-block;
     color: #136bb3;
-    padding: 3px 7px 3px 7px;
 }
 ul.pagination li a:hover {
     opacity: 0.8;
