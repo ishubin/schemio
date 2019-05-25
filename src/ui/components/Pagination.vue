@@ -2,17 +2,26 @@
     <div class="pagination-container">
         <ul class="pagination">
             <li>
-                <a v-if="currentPage > 1" @click="onPageClicked(currentPage - 1)" :href="urlForPage(currentPage - 1)"><i class="fas fa-chevron-circle-left"></i></a>
+                <span v-if="currentPage > 1">
+                    <router-link v-if="useRouter" :to="{path: urlForPage(currentPage - 1)}"><i class="fas fa-chevron-circle-left"></i></router-link>
+                    <a v-else @click="onNonRoutablePageClicked(currentPage - 1)" href="#"><i class="fas fa-chevron-circle-left"></i></a>
+                </span>
                 <span v-else><i class="fas fa-chevron-circle-left"></i></span>
             </li>
 
             <li v-for="page in pages">
-                <a v-if="page.active" @click="onPageClicked(page.page)" :class="{'current': currentPage === page.page}" :href="urlForPage(page.page)">{{page.page}}</a>
+                <span v-if="page.active">
+                    <router-link v-if="useRouter" :to="{path: urlForPage(page.page)}">{{page.page}}</router-link>
+                    <a v-else @click="onNonRoutablePageClicked(page.page)" :class="{'current': currentPage === page.page}" href="#">{{page.page}}</a>
+                </span>
                 <span v-else>{{page.page}}</span>
             </li>
 
             <li>
-                <a v-if="currentPage < totalPages" @click="onPageClicked(currentPage + 1)" :href="urlForPage(currentPage + 1)"><i class="fas fa-chevron-circle-right"></i></a>
+                <span v-if="currentPage < totalPages">
+                    <router-link v-if="useRouter" :to="{path: urlForPage(currentPage + 1)}"><i class="fas fa-chevron-circle-right"></i></router-link>
+                    <a v-else @click="onNonRoutablePageClicked(currentPage + 1)" href="#"><i class="fas fa-chevron-circle-right"></i></a>
+                </span>
                 <span v-else><i class="fas fa-chevron-circle-right"></i></span>
             </li>
         </ul>
@@ -25,7 +34,8 @@ export default {
     props: {
         currentPage:    {type: Number, default: 1},
         totalPages:     {type: Number, default: 1},
-        urlPrefix:      {type: String, default: null}
+        urlPrefix:      {type: String, default: null},
+        useRouter:     {type: Boolean, default: false}
     },
 
     data() {
@@ -39,7 +49,6 @@ export default {
             pageUrlPrefix += 'page=';
         }
 
-        console.log(this.currentPage, this.totalPages);
         return {
             pages: this.buildPages(this.currentPage, this.totalPages),
             pageUrlPrefix
@@ -55,13 +64,10 @@ export default {
             }
         },
 
-        onPageClicked(page) {
-            if (this.urlPrefix) {
-                return true;
-            } else {
-                this.$emit('page-clicked', page);
-                return false;
-            }
+        // This event is only triggered in case useRouter is false
+        onNonRoutablePageClicked(page) {
+            this.$emit('page-clicked', page);
+            return false;
         },
 
         buildPages(currentPage, totalPages) {

@@ -5,7 +5,9 @@
 <template lang="html">
     <div class="category-tree">
         <div class="category-selector" :class="{selected: category.id === selectedCategoryId}">
-            <a :href="link">{{category.name}}</a>
+            <router-link :to="{path: link}">
+                <a>{{category.name}}</a>
+            </router-link>
         </div>
         <div class="category-children" v-if="category.childCategories.length > 0 && category.expanded">
             <category-tree v-for="childCategory in category.childCategories"

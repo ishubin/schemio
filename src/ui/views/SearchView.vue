@@ -28,6 +28,7 @@
                             :current-page="currentPage"
                             :total-pages="totalPages"
                             :url-prefix="urlPrefix"
+                            :use-router="true"
                         />
 
                         <ul class="schemes">
@@ -65,39 +66,48 @@ export default {
     components: {HeaderComponent, CategoryTree, Pagination},
 
     mounted() {
-        apiClient.getCategoryTree().then(categories => {
-            this.categories = categories;
-            if (this.currentCategoryId) {
-                this.expandToCategory(this.currentCategoryId);
-            }
-        });
-
-        this.searchSchemes();
+        this.init();
     },
 
     data() {
-        let urlPrefix = '/';
-        let hasParamsAlready = false;
-        _.forEach(this.$route.query, (value, name) => {
-            if (name !== 'page' && name != 'category') {
-                urlPrefix += hasParamsAlready ? '&': '?';
-                urlPrefix += `${name}=${encodeURIComponent(value)}`;
-                hasParamsAlready = true;
-            }
-        });
-
         return {
-            query: this.$route.query.q || '',
-            urlPrefix: urlPrefix,
+            query: '',
+            urlPrefix: null,
             searchResult: null,
-            currentCategoryId: this.$route.query.category,
-            currentPage: parseInt(this.$route.query.page) || 1,
+            currentCategoryId: null,
+            currentPage: 1,
             totalPages: 0,
             categories: []
         };
     },
 
     methods: {
+        init() {
+            apiClient.getCategoryTree().then(categories => {
+                this.categories = categories;
+                if (this.currentCategoryId) {
+                    this.expandToCategory(this.currentCategoryId);
+                }
+            });
+
+            let urlPrefix = '/';
+            let hasParamsAlready = false;
+            _.forEach(this.$route.query, (value, name) => {
+                if (name !== 'page' && name != 'category') {
+                    urlPrefix += hasParamsAlready ? '&': '?';
+                    urlPrefix += `${name}=${encodeURIComponent(value)}`;
+                    hasParamsAlready = true;
+                }
+            });
+
+            this.urlPrefix = urlPrefix;
+
+            this.currentCategoryId = this.$route.query.category;
+            this.currentPage = parseInt(this.$route.query.page) || 1;
+            this.query = this.$route.query.q || '';
+
+            this.searchSchemes();
+        },
         searchSchemes() {
             let offset = 0;
             if (this.currentPage > 0) {
@@ -147,6 +157,7 @@ export default {
             this.searchSchemes();
         }
     },
+
     filters: {
         shortDescription(text) {
             if (text.length > 200) {
@@ -157,6 +168,12 @@ export default {
         },
         formatDateAndTime(dateInMillis) {
             return utils.formatDateAndTime(dateInMillis);
+        }
+    },
+
+    watch:{
+        $route(to, from) {
+            this.init();
         }
     }
 }
