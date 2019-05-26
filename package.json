@@ -9,7 +9,7 @@
     "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/",
     "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
     "build-prod": "npm run init-dist; webpack --config webpack.prod.js; cp src/ui/index.html dist/",
-    "build-static-demo": "npm run build-brod; cp -r static-demo/api dist/api"
+    "build-static-demo": "npm run build-prod; cp -r static-demo/api dist/api"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
