@@ -34,6 +34,15 @@ function handleLocalImageDownload(res, imagePath, fileName) {
     });
 }
 
+function fileSizeSync(filePath) {
+    try {
+        const stat = fs.statSync(filePath);
+        return stat.size;
+    } catch(e) {
+        return 0;
+    }
+}
+
 module.exports = {
     uploadImage(req, res) {
         uploadToLocalFolder(req, res, err => {
@@ -68,17 +77,19 @@ module.exports = {
 
         //TODO refresh images within specified interval
 
-        if (fs.existsSync(localImagePath)) {
-            console.log('File exists', localImagePath);
+        if (fs.existsSync(localImagePath) && fileSizeSync(localImagePath) > 0) {
             handleLocalImageDownload(res, localImagePath, fileName);
         } else {
             //download the image from mongodb
             imageStorage.downloadImage(fileName, localImagePath).then(() => {
                 handleLocalImageDownload(res, localImagePath, fileName);
-            })
-            .catch(err => {
-                console.error(err);
-                res.sendStatus(404);
+            }).catch(err => {
+                if (fileName.startsWith('scheme-preview-')) {
+                    handleLocalImageDownload(res, 'public/images/missing-scheme-preview.png', fileName);
+                } else {
+                    console.error(err);
+                    res.sendStatus(404);
+                }
             });
         }
     },
