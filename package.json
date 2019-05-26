@@ -5,7 +5,8 @@
   "scripts": {
     "start-webpack": "webpack-dev-server",
     "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
-    "build-dev": "webpack --config webpack.build.dev.js; cp src/ui/index.html public/"
+    "init-dev": "mkdir -p uploads",
+    "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
