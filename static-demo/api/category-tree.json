@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Parent",
+    "id": "r__jtfLvC",
+    "childCategories": [
+      {
+        "name": "Child 1",
+        "id": "43-L5dqJPk",
+        "childCategories": [
+          {
+            "name": "Child 2",
+            "id": "xoGInZ1f6a",
+            "childCategories": [
+
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

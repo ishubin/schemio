@@ -1,16 +1,20 @@
+const MinifyPlugin = require("babel-minify-webpack-plugin");
+
 module.exports = {
-    mode: 'production',
     // This is the "main" file which should include all other modules
     entry: './src/ui/main.js',
     // Where should the compiled file go?
     output: {
-        filename: 'dist/schemio-ui.js'
+        filename: 'dist/bundle.js'
     },
     resolve: {
         alias: {
             vue: 'vue/dist/vue.js'
         }
     },
+    plugins: [
+        new MinifyPlugin()
+    ],
     module: {
         // Special compilation rules
         loaders: [

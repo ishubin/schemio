@@ -7,8 +7,9 @@
     "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
     "init-dev": "mkdir -p uploads",
     "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/",
-    "init-dist": "mkdir -p dist; rm -rf dist/*",
-    "build-prod": "npm run init-dist; webpack --config webpack.prod.js; cp src/ui/index.html dist/"
+    "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
+    "build-prod": "npm run init-dist; webpack --config webpack.prod.js; cp src/ui/index.html dist/",
+    "build-static-demo": "npm run build-brod; cp -r static-demo/api dist/api"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
@@ -18,6 +19,7 @@
     "babel-cli": "^6.25.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
+    "babel-minify-webpack-plugin": "^0.3.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",

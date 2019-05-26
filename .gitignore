@@ -2,4 +2,4 @@ node_modules/
 public/bundle.js
 local-storage/
 uploads/
-.dist/
+dist/
