@@ -235,6 +235,7 @@ export default {
         }
     },
     beforeDestroy(){
+        this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
@@ -261,6 +262,8 @@ export default {
                 dragItem: new StateDragItem(this),
                 connecting: new StateConnecting(this)
             },
+
+            mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
             vOffsetX: null,
@@ -374,27 +377,33 @@ export default {
             this.state.mouseWheel(p.x, p.y, coords.x, coords.y, event);
         },
         mouseMove(event) {
-            var coords = this.mouseCoordsFromEvent(event);
-            var p = this.toLocalPoint(coords.x, coords.y);
+            if (this.mouseEventsEnabled) {
+                var coords = this.mouseCoordsFromEvent(event);
+                var p = this.toLocalPoint(coords.x, coords.y);
 
-            this.state.mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                this.state.mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+            }
         },
         mouseDown(event) {
-            var coords = this.mouseCoordsFromEvent(event);
-            var p = this.toLocalPoint(coords.x, coords.y);
+            if (this.mouseEventsEnabled) {
+                var coords = this.mouseCoordsFromEvent(event);
+                var p = this.toLocalPoint(coords.x, coords.y);
 
-            this.state.mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                this.state.mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+            }
         },
         mouseUp(event) {
-            if (event.timeStamp - this.lastMouseUpTimestamp < 400.0) {
-                event.doubleClick = true;
+            if (this.mouseEventsEnabled) {
+                if (event.timeStamp - this.lastMouseUpTimestamp < 400.0) {
+                    event.doubleClick = true;
+                }
+                this.lastMouseUpTimestamp = event.timeStamp;
+
+                var coords = this.mouseCoordsFromEvent(event);
+                var p = this.toLocalPoint(coords.x, coords.y);
+
+                this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
-            this.lastMouseUpTimestamp = event.timeStamp;
-
-            var coords = this.mouseCoordsFromEvent(event);
-            var p = this.toLocalPoint(coords.x, coords.y);
-
-            this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
         },
 
         onCancelCurrentState() {
