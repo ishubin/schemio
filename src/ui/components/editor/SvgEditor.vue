@@ -649,7 +649,13 @@ export default {
             if (value > 0.05) {
                 this.vZoom = value;
             }
-        }
+        },
+        offsetX(newOffsetX) {
+            this.vOffsetX = parseInt(newOffsetX);
+        },
+        offsetY(newOffsetY) {
+            this.vOffsetY = parseInt(newOffsetY);
+        },
     },
     computed: {
         transformSvg() {
