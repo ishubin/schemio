@@ -7,6 +7,7 @@ import shortid from 'shortid';
 
 const schemeStorage = new LocalStorageDb('schemes');
 const artStorage    = new LocalStorageDb('art');
+const tagsStorage   = new LocalStorageDb('tags');
 
 const currentUser = {login: 'demo-user', name: 'Demo User'};
 
@@ -81,6 +82,7 @@ export default {
         scheme.id = shortid.generate();
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
+        this.saveSchemeTags(scheme);
         return schemeStorage.save(scheme.id, scheme).then(() => {
             return scheme;
         });
@@ -89,6 +91,7 @@ export default {
     saveScheme(schemeId, scheme) {
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
+        this.saveSchemeTags(scheme);
         return schemeStorage.save(schemeId, scheme);
     },
 
@@ -133,7 +136,7 @@ export default {
     },
 
     getTags() {
-        return Promise.resolve(null);
+        return tagsStorage.find();
     },
 
     getCategory(parentCategoryId) {
@@ -150,6 +153,21 @@ export default {
 
     uploadSchemeThumbnail(schemeId, data) {
         return Promise.resolve(null);
+    },
+
+    saveSchemeTags(scheme) {
+        let tags = [].concat(scheme.tags);
+        _.forEach(scheme.items, item => {
+            if (item.tags) {
+                tags = tags.concat(item.tags);
+            }
+        });
+
+        tags = _.uniq(tags);
+        //TODO this is inefficient, but I don't have enough time. Fix later.
+        _.forEach(tags, (tag, index) => {
+            tagsStorage.save(index, tag);
+        });
     }
 
 };
