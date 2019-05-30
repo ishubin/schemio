@@ -104,10 +104,6 @@ const ApiSchemes = {
         schemeStorage.getTags().then(tags => {
             res.json(tags);
         }).catch(err => res.$apiError(err));
-    },
-
-    getShapes(req, res) {
-        res.json({});
     }
 }
 

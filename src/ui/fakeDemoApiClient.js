@@ -132,15 +132,7 @@ export default {
         });
     },
 
-    getSchemesInCategory(categoryId) {
-        return Promise.resolve(null);
-    },
-
     getTags() {
-        return Promise.resolve(null);
-    },
-
-    getShapes() {
         return Promise.resolve(null);
     },
 

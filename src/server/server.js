@@ -46,8 +46,6 @@ app.put('/api/schemes/:schemeId', [middleware.auth], apiSchemes.saveScheme);
 
 app.get('/api/tags',  apiSchemes.getTags);
 
-app.get('/api/shapes',  apiSchemes.getShapes);
-
 app.post('/api/art', [middleware.auth], apiArt.createArt);
 app.get('/api/art', apiArt.getArt);
 
