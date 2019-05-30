@@ -11,6 +11,7 @@
         </div>
         <div class="category-children" v-if="category.childCategories.length > 0 && category.expanded">
             <category-tree v-for="childCategory in category.childCategories"
+                :key="childCategory.id"
                 :category="childCategory"
                 :selected-category-id="selectedCategoryId"
                 :base-url="baseUrl"

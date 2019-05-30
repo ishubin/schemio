@@ -11,7 +11,7 @@
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
-                    <category-tree v-for="category in categories" :category="category" :selected-category-id="currentCategoryId" base-url="/" :url-prefix="urlPrefix"/>
+                    <category-tree v-for="category in categories" :key="category.id" :category="category" :selected-category-id="currentCategoryId" base-url="/" :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
                     <div v-if="searchResult">
@@ -136,21 +136,25 @@ export default {
 
         expandToCategory(categoryId) {
             for (let i = 0; i < this.categories.length; i++) {
-                if (this._expandToCategory(this.categories[i], categoryId)) {
-                    this.categories[i].expanded = true;
-                }
+                this._expandToCategory(this.categories[i], categoryId);
             };
         },
 
         _expandToCategory(category, categoryId) {
+            if (category.id === categoryId) {
+                category.expanded = true;
+                return true;
+            }
+
             if (category.childCategories.length > 0) {
                 for (let i = 0; i < category.childCategories.length; i++) {
                     if (this._expandToCategory(category.childCategories[i], categoryId)) {
+                        category.expanded = true;
                         return true;
                     }
                 }
             }
-            return category.id === categoryId;
+            return false;
         }
     },
 
