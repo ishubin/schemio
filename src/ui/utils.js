@@ -33,7 +33,7 @@ function sanitizeConnector(oldConnector) {
 
 
 function sanitizeScheme(scheme) {
-    var items = _.map(scheme.items, sanitizeItem);
+    const items = _.map(scheme.items, sanitizeItem);
     return {
         id: scheme.id,
         name: scheme.name,

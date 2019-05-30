@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import LocalStorageDb from './localStorageDb.js';
+import utils from './utils.js';
 import shortid from 'shortid';
 
 const schemeStorage = new LocalStorageDb('schemes');
@@ -54,6 +55,21 @@ function filterSchemes(schemes, filters) {
     return schemes;
 }
 
+function saveSchemeTags(scheme) {
+    let tags = [].concat(scheme.tags);
+    _.forEach(scheme.items, item => {
+        if (item.tags) {
+            tags = tags.concat(item.tags);
+        }
+    });
+
+    tags = _.uniq(tags);
+    //TODO this is inefficient, but I don't have enough time. Fix later.
+    _.forEach(tags, (tag, index) => {
+        tagsStorage.save(index, tag);
+    });
+}
+
 export default {
     getCurrentUser() {
         return Promise.resolve(currentUser);
@@ -79,19 +95,21 @@ export default {
     },
 
     createNewScheme(scheme) {
+        scheme = utils.sanitizeScheme(scheme);
         scheme.id = shortid.generate();
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
-        this.saveSchemeTags(scheme);
+        saveSchemeTags(scheme);
         return schemeStorage.save(scheme.id, scheme).then(() => {
             return scheme;
         });
     },
 
     saveScheme(schemeId, scheme) {
+        scheme = utils.sanitizeScheme(scheme);
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
-        this.saveSchemeTags(scheme);
+        saveSchemeTags(scheme);
         return schemeStorage.save(schemeId, scheme);
     },
 
@@ -153,21 +171,5 @@ export default {
 
     uploadSchemeThumbnail(schemeId, data) {
         return Promise.resolve(null);
-    },
-
-    saveSchemeTags(scheme) {
-        let tags = [].concat(scheme.tags);
-        _.forEach(scheme.items, item => {
-            if (item.tags) {
-                tags = tags.concat(item.tags);
-            }
-        });
-
-        tags = _.uniq(tags);
-        //TODO this is inefficient, but I don't have enough time. Fix later.
-        _.forEach(tags, (tag, index) => {
-            tagsStorage.save(index, tag);
-        });
     }
-
 };

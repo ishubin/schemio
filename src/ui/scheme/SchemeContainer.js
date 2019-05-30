@@ -38,6 +38,9 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = items[0].area.h;
 
             _.forEach(items, item => {
+                if (!item.meta) {
+                    item.meta = {};
+                }
                 utils.extendObject(item, knownItems[item.type].properties);
                 if (item.id) {
                     this.itemMap[item.id] = item;
@@ -83,6 +86,9 @@ class SchemeContainer {
     }
 
     buildConnector(sourceItem, connector) {
+        if (!connector.meta) {
+            connector.meta = {};
+        }
         if (!connector.id || connector.id.length === 0) {
             connector.id = shortid.generate();
         }
