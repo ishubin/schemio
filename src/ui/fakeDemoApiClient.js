@@ -6,6 +6,8 @@ import LocalStorageDb from './localStorageDb.js';
 import shortid from 'shortid';
 
 const schemeStorage = new LocalStorageDb('schemes');
+const artStorage    = new LocalStorageDb('art');
+
 const currentUser = {login: 'demo-user', name: 'Demo User'};
 
 function textToWords(text) {
@@ -61,22 +63,25 @@ export default {
     },
 
     createArt(art) {
-        return Promise.resolve(null);
+        art.id = shortid.generate();
+        return artStorage.save(art.id, art).then(() => {
+            return art;
+        });
     },
 
     getAllArt() {
-        return Promise.resolve(null);
+        return artStorage.find();
     },
 
     loadScheme(schemeId) {
-        return schemeStorage.loadDocument(schemeId);
+        return schemeStorage.load(schemeId);
     },
 
     createNewScheme(scheme) {
         scheme.id = shortid.generate();
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
-        return schemeStorage.saveDocument(scheme.id, scheme).then(() => {
+        return schemeStorage.save(scheme.id, scheme).then(() => {
             return scheme;
         });
     },
@@ -84,17 +89,17 @@ export default {
     saveScheme(schemeId, scheme) {
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
-        return schemeStorage.saveDocument(schemeId, scheme);
+        return schemeStorage.save(schemeId, scheme);
     },
 
     deleteScheme(schemeId) {
-        return schemeStorage.deleteDocument(schemeId);
+        return schemeStorage.delete(schemeId);
     },
 
     findSchemes(filters) {
         const offset = filters.offset || 0;
 
-        return schemeStorage.findDocuments()
+        return schemeStorage.find()
         .then(schemes => filterSchemes(schemes, filters))
         .then(schemes => {
             const limit = 10;

@@ -31,7 +31,7 @@ export default class LocalStorageDb {
      *
      * @param {object} document just any js object
      */
-    saveDocument(id, document) {
+    save(id, document) {
         this.index[id] = true;
         this._set(`ldb-${this.collectionName}-index`, this.index);
         this._set(`ldb-${this.collectionName}-document-${id}`, document);
@@ -46,7 +46,7 @@ export default class LocalStorageDb {
       *
       * @returns {Promise} a document if it was found with specified id
       */
-    loadDocument(id) {
+    load(id) {
         return new Promise((resolve, reject) => {
             if (this.index[id]) {
                 resolve(this._get(`ldb-${this.collectionName}-document-${id}`));
@@ -56,7 +56,7 @@ export default class LocalStorageDb {
         });
     }
 
-    findDocuments() {
+    find() {
         return new Promise((resolve, reject) => {
             const documents = [];
             _.forEach(this.index, (value, id) => {
@@ -76,7 +76,7 @@ export default class LocalStorageDb {
      *
      * @returns {Promise}
      */
-    deleteDocument(id) {
+    delete(id) {
         if (this.index[id]) {
             delete this.index[id];
             this._get(`ldb-${this.collectionName}-index`, this.index);
