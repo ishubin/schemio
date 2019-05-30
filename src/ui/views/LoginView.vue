@@ -12,8 +12,8 @@
                 <h2>Login</h2>
 
                 <div class="login-box-body">
-                    <input class="textfield" type="text" name="" v-model="login" placeholder="Login..."/>
-                    <input class="textfield" type="password" name="" v-model="password" placeholder="Password..."/>
+                    <input class="textfield" type="text" v-model="login" placeholder="Login..."/>
+                    <input class="textfield" type="password" v-model="password" placeholder="Password..."/>
                     <span class="btn btn-primary" @click="submitLogin">Submit</span>
                     <span class="error-message" v-if="errorMessage">{{errorMessage}}</span>
                 </div>

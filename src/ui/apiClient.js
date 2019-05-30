@@ -4,42 +4,7 @@
 
 import axios from 'axios';
 import _ from 'lodash';
-
-
-function sanitizeItem(oldItem) {
-    var item = {};
-    _.forEach(oldItem, (value, field) => {
-        if (field === 'connectors') {
-            item.connectors = _.map(value, sanitizeConnector);
-        } else if (field !== 'meta') {
-            item[field] = value;
-        }
-    });
-    return item;
-}
-function sanitizeConnector(oldConnector) {
-    var connector = {};
-    _.forEach(oldConnector, (value, field) => {
-        if (field !== 'meta') {
-            connector[field] = value;
-        }
-    });
-    return connector;
-}
-
-
-function sanitizeScheme(scheme) {
-    var items = _.map(scheme.items, sanitizeItem);
-    return {
-        id: scheme.id,
-        name: scheme.name,
-        description: scheme.description,
-        tags: scheme.tags,
-        modifiedDate: scheme.modifiedDate,
-        categoryId: scheme.categoryId,
-        items: items
-    }
-}
+import utils from './utils.js';
 
 export default {
     getCurrentUser() {
@@ -83,7 +48,7 @@ export default {
 
     saveScheme(schemeId, scheme) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.put(`/api/schemes/${schemeId}`, sanitizeScheme(scheme)).then(response => {
+            return axios.put(`/api/schemes/${schemeId}`, utils.sanitizeScheme(scheme)).then(response => {
                 return 'saved';
             });
         } else {

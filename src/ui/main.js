@@ -27,7 +27,6 @@ function route(name, path, component) {
 
 
 const routes = [
-    // route('Home', '/', HomeView),
     route('Login', '/login', LoginView),
     route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView),
     route('Search', '/', SearchView)
