@@ -8,6 +8,49 @@ import shortid from 'shortid';
 const schemeStorage = new LocalStorageDb('schemes');
 const currentUser = {login: 'demo-user', name: 'Demo User'};
 
+function textToWords(text) {
+    if (text && text.length > 0) {
+        return text.toLowerCase().split(/\s+/);
+    }
+    return [];
+}
+
+function createSchemeIndexedWords(scheme) {
+    let wordSet = {};
+
+    let fullText = scheme.name + ' ' + scheme.description;
+
+    _.forEach(scheme.items, item => {
+        fullText += ' ' + item.name + ' ' + item.description;
+    });
+
+    _.forEach(textToWords(fullText), word => {
+        if (word) {
+            wordSet[word] = 1;
+        }
+    });
+
+    return wordSet;
+}
+
+function filterSchemes(schemes, filters) {
+    if (filters.query) {
+        const queryForWords = textToWords(filters.query);
+        schemes = _.filter(schemes, scheme => {
+            // checking if any word from the query exists in the index
+            let found = false;
+
+            for (let i = 0; i < queryForWords.length && !found; i++) {
+                if (scheme.indexedWords[queryForWords[i]]) {
+                    found = true;
+                }
+            }
+            return found;
+        });
+    }
+    return schemes;
+}
+
 export default {
     getCurrentUser() {
         return Promise.resolve(currentUser);
@@ -32,6 +75,7 @@ export default {
     createNewScheme(scheme) {
         scheme.id = shortid.generate();
         scheme.modifiedDate = Date.now();
+        scheme.indexedWords = createSchemeIndexedWords(scheme);
         return schemeStorage.saveDocument(scheme.id, scheme).then(() => {
             return scheme;
         });
@@ -39,6 +83,7 @@ export default {
 
     saveScheme(schemeId, scheme) {
         scheme.modifiedDate = Date.now();
+        scheme.indexedWords = createSchemeIndexedWords(scheme);
         return schemeStorage.saveDocument(schemeId, scheme);
     },
 
@@ -47,14 +92,21 @@ export default {
     },
 
     findSchemes(filters) {
+        const offset = filters.offset || 0;
+
         return schemeStorage.findDocuments()
+        .then(schemes => filterSchemes(schemes, filters))
         .then(schemes => {
             const limit = 10;
             const total = schemes.length;
 
-            if (schemes.length > limit) {
-                //TODO proper pagination with offset
-                schemes = schemes.slice(0, limit);
+            let start = offset;
+            let end = limit;
+            if (offset > schemes.length) {
+                schemes = [];
+            } else {
+                end = Math.min(schemes.length, limit);
+                schemes = schemes.slice(start, end);
             }
             return {
                 results: _.map(schemes, scheme => {
@@ -68,7 +120,7 @@ export default {
                 }),
                 total: total,
                 resultsPerPage: limit,
-                offset: 0
+                offset: offset
             };
         }).then(data => {
             return data;
