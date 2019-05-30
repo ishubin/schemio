@@ -6,11 +6,27 @@ const schemeStorage     = require('../storage/storageProvider.js').provideScheme
 const categoryStorage   = require('../storage/storageProvider.js').provideCategoryStorage();
 const _                 = require('lodash');
 const fs                = require('fs-extra');
+const shortid           = require('shortid');
+
+
+function sanitizeScheme(scheme) {
+    _.forEach(scheme.items, item => {
+        item.meta = {};
+        if (!item.hasOwnProperty('id')) {
+            item.id = shortid.generate();
+        }
+        if (!item.hasOwnProperty('tags')) {
+            item.tags = [];
+        }
+    });
+    return scheme;
+}
 
 const ApiSchemes = {
     getScheme(req, res) {
         var schemeId = req.params.schemeId;
-        schemeStorage.getScheme(schemeId).then(scheme => {
+        schemeStorage.getScheme(schemeId)
+        .then(scheme => {
             if (scheme) {
                 if (scheme.categoryId) {
                     return categoryStorage.getCategory(scheme.categoryId).then(category => {
@@ -25,7 +41,9 @@ const ApiSchemes = {
             } else {
                 return null;
             }
-        }).then(scheme => {
+        })
+        .then(sanitizeScheme)
+        .then(scheme => {
             if (scheme) {
                 res.json(scheme);
             } else {

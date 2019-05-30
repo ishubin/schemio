@@ -4,7 +4,6 @@
 
 import axios from 'axios';
 import _ from 'lodash';
-import shortid from 'shortid';
 
 
 function sanitizeItem(oldItem) {
@@ -72,19 +71,7 @@ export default {
 
     loadScheme(schemeId) {
         return axios.get(`/api/schemes/${schemeId}`).then(response => {
-            var scheme = response.data;
-
-            //TODO move this to server
-            _.forEach(scheme.items, item => {
-                item.meta = {};
-                if (!item.hasOwnProperty('id')) {
-                    item.id = shortid.generate();
-                }
-                if (!item.hasOwnProperty('tags')) {
-                    item.tags = [];
-                }
-            });
-            return scheme;
+            return response.data;
         });
     },
 
