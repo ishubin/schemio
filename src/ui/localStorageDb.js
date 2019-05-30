@@ -24,6 +24,10 @@ export default class LocalStorageDb {
         }
     }
 
+    _delete(fullId) {
+        window.localStorage.removeItem(fullId);
+    }
+
     /**
      * Saves document with specified id
      *
@@ -31,11 +35,11 @@ export default class LocalStorageDb {
      *
      * @param {object} document just any js object
      */
-    save(id, document) {
-        this.index[id] = true;
+    save(id, doc) {
+        this.index[id] = 1;
         this._set(`ldb-${this.collectionName}-index`, this.index);
-        this._set(`ldb-${this.collectionName}-document-${id}`, document);
-        return Promise.resolve({});
+        this._set(`ldb-${this.collectionName}-document-${id}`, doc);
+        return Promise.resolve(doc);
     }
 
 
@@ -60,9 +64,9 @@ export default class LocalStorageDb {
         return new Promise((resolve, reject) => {
             const documents = [];
             _.forEach(this.index, (value, id) => {
-                const document = this._get(`ldb-${this.collectionName}-document-${id}`);
-                if (document) {
-                    documents.push(document);
+                const doc = this._get(`ldb-${this.collectionName}-document-${id}`);
+                if (doc) {
+                    documents.push(doc);
                 }
             });
             resolve(documents);
@@ -79,8 +83,8 @@ export default class LocalStorageDb {
     delete(id) {
         if (this.index[id]) {
             delete this.index[id];
-            this._get(`ldb-${this.collectionName}-index`, this.index);
-            this._get(`ldb-${this.collectionName}-document-${id}`);
+            this._set(`ldb-${this.collectionName}-index`, this.index);
+            this._delete(`ldb-${this.collectionName}-document-${id}`);
         }
         return Promise.resolve({});
     }

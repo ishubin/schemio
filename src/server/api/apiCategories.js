@@ -76,5 +76,4 @@ const ApiCategories = {
     }
 }
 
-
 module.exports = ApiCategories;

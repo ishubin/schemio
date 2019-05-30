@@ -6,9 +6,10 @@ import LocalStorageDb from './localStorageDb.js';
 import utils from './utils.js';
 import shortid from 'shortid';
 
-const schemeStorage = new LocalStorageDb('schemes');
-const artStorage    = new LocalStorageDb('art');
-const tagsStorage   = new LocalStorageDb('tags');
+const schemeStorage     = new LocalStorageDb('schemes');
+const artStorage        = new LocalStorageDb('art');
+const tagsStorage       = new LocalStorageDb('tags');
+const categoryStorage   = new LocalStorageDb('categories');
 
 const currentUser = {login: 'demo-user', name: 'Demo User'};
 
@@ -157,16 +158,89 @@ export default {
         return tagsStorage.find();
     },
 
-    getCategory(parentCategoryId) {
-        return Promise.resolve(null);
+    getCategory(categoryId) {
+        return categoryStorage.find().then(categories => {
+            if (!categoryId) {
+                return {
+                    childCategories: _.filter(categories, category => !category.parentId)
+                };
+            } else {
+                return categoryStorage.load(categoryId).then(category => {
+                    category.childCategories = _.filter(categories, c => c.parentId === categoryId);
+                    return category;
+                });
+            }
+        });
     },
 
     getCategoryTree() {
-        return Promise.resolve(null);
+        return categoryStorage.find().then(categories => {
+            const map = {};
+            const topCategories = [];
+
+            categories.sort(this._categoryComparator);
+
+            _.forEach(categories, category => {
+                const cat = {
+                    name: category.name,
+                    id: category.id,
+                    childCategories: []
+                };
+                map[category.id] = cat;
+
+                if (!category.parentId) {
+                    topCategories.push(cat);
+                } else {
+                    if (map.hasOwnProperty(category.parentId)) {
+                        map[category.parentId].childCategories.push(cat);
+                    }
+                }
+
+            });
+
+            return topCategories;
+        });
+    },
+
+    _categoryComparator(a, b) {
+        if ( a.ancestors.length < b.ancestors.length ){
+            return -1;
+        }
+        if ( a.ancestors.length > b.ancestors.length ){
+            return 1;
+        }
+
+        if (a.name < b.name) {
+            return -1;
+        }
+        if (a.name > b.name) {
+            return -1;
+        }
+        return 0;
     },
 
     ensureCategoryStructure(categories) {
-        return Promise.resolve(null);
+        if (categories && categories.length > 0) {
+            return _.reduce(categories, (promise, category) => {
+                return promise.then(parentCategory => {
+                    //checking if category is new or already exists
+                    const parentId = parentCategory ? parentCategory.id : null;
+                    let ancestors = [];
+                    if (parentCategory) {
+                        ancestors = [].concat(parentCategory.ancestors);
+                        ancestors.push({name: parentCategory.name, id: parentCategory.id});
+                    }
+                    if (!category.id) {
+                        const id = shortid.generate();
+                        return categoryStorage.save(id, { name: category.name, id, parentId, ancestors });
+                    } else {
+                        return categoryStorage.get(category.id);
+                    }
+                });
+            }, Promise.resolve(null));
+        } else {
+            return Promise.resolve(null);
+        }
     },
 
     uploadSchemeThumbnail(schemeId, data) {
