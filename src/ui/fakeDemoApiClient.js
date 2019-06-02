@@ -38,7 +38,20 @@ function createSchemeIndexedWords(scheme) {
     return wordSet;
 }
 
+
 function filterSchemes(schemes, filters) {
+    if (filters.categoryId) {
+        schemes = _.filter(schemes, scheme => {
+            if (scheme.category) {
+                if (scheme.category.id === filters.categoryId || _.find(scheme.category.ancestors, category => category.id === filters.categoryId)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return false;
+        });
+    }
     if (filters.query) {
         const queryForWords = textToWords(filters.query);
         schemes = _.filter(schemes, scheme => {
@@ -96,14 +109,8 @@ export default {
     },
 
     createNewScheme(scheme) {
-        scheme = utils.sanitizeScheme(scheme);
         scheme.id = shortid.generate();
-        scheme.modifiedDate = Date.now();
-        scheme.indexedWords = createSchemeIndexedWords(scheme);
-        saveSchemeTags(scheme);
-        return schemeStorage.save(scheme.id, scheme).then(() => {
-            return scheme;
-        });
+        return this.saveScheme(scheme.id, scheme);
     },
 
     saveScheme(schemeId, scheme) {
@@ -111,7 +118,17 @@ export default {
         scheme.modifiedDate = Date.now();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
         saveSchemeTags(scheme);
-        return schemeStorage.save(schemeId, scheme);
+
+        let chain = Promise.resolve(null);
+        if (scheme.categoryId) {
+            chain = categoryStorage.load(scheme.categoryId);
+        }
+        return chain.then(category => {
+            scheme.category = category;
+            return schemeStorage.save(scheme.id, scheme).then(() => {
+                return scheme;
+            });
+        });
     },
 
     deleteScheme(schemeId) {
