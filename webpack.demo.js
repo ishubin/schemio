@@ -1,3 +1,4 @@
+const webpack = require('webpack');
 const MinifyPlugin = require("babel-minify-webpack-plugin");
 
 module.exports = {
@@ -13,6 +14,9 @@ module.exports = {
         }
     },
     plugins: [
+        new webpack.NormalModuleReplacementPlugin(/(\.*)\/apiClient\.js/, function (resource) {
+            resource.request = resource.request.replace(/apiClient/, 'fakeDemoApiClient');
+        }),
         new MinifyPlugin()
     ],
     module: {
