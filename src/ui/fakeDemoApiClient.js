@@ -12,6 +12,7 @@ const tagsStorage       = new LocalStorageDb('tags');
 const categoryStorage   = new LocalStorageDb('categories');
 
 const currentUser = {login: 'demo-user', name: 'Demo User'};
+const GLOBAL_TAGS_ID = 'global-tags';
 
 function textToWords(text) {
     if (text && text.length > 0) {
@@ -70,17 +71,16 @@ function filterSchemes(schemes, filters) {
 }
 
 function saveSchemeTags(scheme) {
-    let tags = [].concat(scheme.tags);
-    _.forEach(scheme.items, item => {
-        if (item.tags) {
-            tags = tags.concat(item.tags);
-        }
-    });
+    tagsStorage.load(GLOBAL_TAGS_ID).catch(err => []).then(existingTags => {
+        let tags = existingTags.concat(scheme.tags);
+        _.forEach(scheme.items, item => {
+            if (item.tags) {
+                tags = tags.concat(item.tags);
+            }
+        });
 
-    tags = _.uniq(tags);
-    //TODO this is inefficient, but I don't have enough time. Fix later.
-    _.forEach(tags, (tag, index) => {
-        tagsStorage.save(index, tag);
+        tags = _.uniq(tags);
+        return tagsStorage.save(GLOBAL_TAGS_ID, tags);
     });
 }
 
@@ -172,7 +172,7 @@ export default {
     },
 
     getTags() {
-        return tagsStorage.find();
+        return tagsStorage.load(GLOBAL_TAGS_ID).catch(err => []);
     },
 
     getCategory(categoryId) {
