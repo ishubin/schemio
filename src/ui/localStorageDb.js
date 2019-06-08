@@ -104,12 +104,13 @@ export default class LocalStorageDb {
     }
 
     clear() {
-        let promises = [];
-        _.forEach(this.index, id => {
-            promises.push(this.delete(id));
+        let chain = Promise.resolve(null);
+        console.log(this.index);
+        _.forEach(this.index, (x, id) => {
+            chain = chain.then(() => this.delete(id));
         });
 
-        Promise.all(promises).then(() => {
+        return chain.then(() => {
             this._delete(`ldb-${this.collectionName}-index`);
         });
     }
