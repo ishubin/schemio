@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import _ from 'lodash';
+import initialData from './demo/initialData.js';
 
 const localStorageClientFunctions = {
     exportAllStorage() {
@@ -73,7 +74,7 @@ export default class LocalStorageDb {
      */
     constructor(collectionName) {
         this.collectionName = collectionName;
-        this.index = this._get(`ldb-${this.collectionName}-index`, {});
+        this.index = this._get(`ldb-${this.collectionName}-index`, null);
         if (!this._get(`ldb-${this.collectionName}-index`)) {
             this._initStorage();
         }
@@ -84,6 +85,15 @@ export default class LocalStorageDb {
      * Initializes storage with local data
      */
     _initStorage() {
+        this.index = {};
+        if (initialData[this.collectionName]) {
+
+            _.forEach(initialData[this.collectionName], doc => {
+                this.index[doc.id] = 1;
+                this._set(`ldb-${this.collectionName}-document-${doc.id}`, doc);
+            });
+            this._set(`ldb-${this.collectionName}-index`, this.index);
+        }
     }
 
     _set(fullId, data) {
