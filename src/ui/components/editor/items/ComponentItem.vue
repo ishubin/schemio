@@ -81,6 +81,7 @@ import EventBus from '../EventBus.js';
 export default {
     props: ['item', 'offsetX', 'offsetY', 'zoom'],
     mounted() {
+        this.generateStrokeDashArray();
         EventBus.subscribeForRedrawItem(this.item.id, this.onRedrawItem);
     },
     beforeDestroy(){

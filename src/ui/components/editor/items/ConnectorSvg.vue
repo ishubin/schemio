@@ -45,6 +45,7 @@ export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
 
     mounted() {
+        this.generateStrokeDashArray();
         EventBus.subscribeForRedrawConnector(this.connector.id, this.onRedrawConnector);
         EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
     },
