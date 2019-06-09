@@ -8,9 +8,9 @@
     "init-dev": "mkdir -p uploads",
     "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/",
     "start-dev-demo": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev-demo; babel-node src/server/server.js'",
-    "build-dev-demo": "npm run init-dev; webpack --config webpack.build.dev.demo.js; cp src/ui/index.html public/",
+    "build-dev-demo": "npm run init-dev; webpack --config webpack.build.dev.demo.js; cp src/ui/index.html public/; cp -r static-demo/public-images public/",
     "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
-    "build-static-demo": "npm run init-dist; webpack --config webpack.demo.js; cp src/ui/index.html dist/; cp -r static-demo/api dist/api"
+    "build-static-demo": "npm run init-dist; webpack --config webpack.demo.js; cp src/ui/index.html dist/;"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",

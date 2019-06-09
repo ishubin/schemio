@@ -251,7 +251,7 @@ export default {
                         const id = shortid.generate();
                         return categoryStorage.save(id, { name: category.name, id, parentId, ancestors });
                     } else {
-                        return categoryStorage.get(category.id);
+                        return categoryStorage.load(category.id);
                     }
                 });
             }, Promise.resolve(null));

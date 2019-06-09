@@ -3,3 +3,7 @@ public/bundle.js
 local-storage/
 uploads/
 dist/
+.DS_Store
+*.swo
+*.swp
+public/public-images/
