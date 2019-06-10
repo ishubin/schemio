@@ -5,60 +5,52 @@
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
-            <div class="scheme-editor-top-panel">
-                <dropdown :options="mainDropdown.options">
-                    <i class="fas fa-bars"></i>
-                </dropdown>
-
-
-                <ul class="button-group">
-                    <li v-for="knownMode in knownModes">
-                        <span class="toggle-button editor-mode"
-                            :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
-                            @click="toggleMode(knownMode)"
-                            >
-                            {{knownMode}}
-                        </span>
-                    </li>
-                </ul>
-                <input class="textfield" style="width: 50px;" type="text" v-model="zoom"/>
-                <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
-                <ul class="button-group">
-                    <li>
-                        <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
-                    </li>
-                    <li>
-                        <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
-                    </li>
-                </ul>
-                <ul class="button-group">
-                    <li>
-                        <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
-                            <i class="fas fa-magnet"></i>
-                            <i class="small-letter">G</i>
-                        </span>
-                    </li>
-                </ul>
-                <ul class="button-group" v-if="selectedItem && mode === 'edit'">
-                    <li>
-                        <span title="Bring to Front" class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
-                        <span title="Bring to Back" class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
-                        <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
-                            <i class="fas fa-object-group"></i>
-                        </span>
-                    </li>
-                </ul>
-
-                <div class="top-right-panel">
-                    <div v-if="user">
-                        <a href="/user/logout">Logout</a>
+            <header-component>
+                <div slot="middle-section">
+                    <ul class="button-group">
+                        <li v-for="knownMode in knownModes">
+                            <span class="toggle-button editor-mode"
+                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                                @click="toggleMode(knownMode)"
+                                >
+                                {{knownMode}}
+                            </span>
+                        </li>
+                    </ul>
+                    <div class="input-group">
+                        <span class="input-group-item-inside"><i class="fas fa-search-plus" style="color: #999;"></i></span>
+                        <input class="textfield input-group-field" style="width: 65px; padding-left: 25px" type="text" v-model="zoom"/>
                     </div>
-                    <div v-else>
-                        <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
-                    </div>
+
+                    <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
+                    <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
+                    <ul class="button-group">
+                        <li>
+                            <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
+                        </li>
+                        <li>
+                            <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
+                        </li>
+                    </ul>
+                    <ul class="button-group">
+                        <li>
+                            <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
+                                <i class="fas fa-magnet"></i>
+                                <i class="small-letter">G</i>
+                            </span>
+                        </li>
+                    </ul>
+                    <ul class="button-group" v-if="selectedItem && mode === 'edit'">
+                        <li>
+                            <span title="Bring to Front" class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
+                            <span title="Bring to Back" class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
+                            <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
+                                <i class="fas fa-object-group"></i>
+                            </span>
+                        </li>
+                    </ul>
                 </div>
-            </div>
+            </header-component>
 
             <div class="scheme-container">
                 <div v-if="schemeContainer">
@@ -145,6 +137,7 @@
 
 <script>
 import utils from '../utils.js';
+import HeaderComponent from '../components/Header.vue';
 import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
@@ -167,7 +160,7 @@ import convertSvgToDataUrl from '../svgPreview.js';
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
-        CreateNewSchemeModal, LinkEditPopup, Dropdown, ItemListPopup},
+        CreateNewSchemeModal, LinkEditPopup, Dropdown, ItemListPopup, HeaderComponent},
 
     mounted() {
         window.onbeforeunload = this.onBrowseClose;

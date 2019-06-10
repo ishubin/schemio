@@ -13,6 +13,10 @@
             </li>
         </ul>
 
+        <div class="header-middle-section">
+            <slot name="middle-section"></slot>
+        </div>
+
         <div class="top-right-panel">
             <div v-if="user">
                 <a href="/user/logout">Logout</a>
