@@ -257,14 +257,21 @@ export default {
             this.schemeId = this.$route.params.schemeId;
             apiClient.loadScheme(this.schemeId).then(scheme => {
                 this.schemeContainer = new SchemeContainer(scheme);
+
+                var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
+                if (schemeSettings && schemeSettings.screenPosition) {
+                    this.offsetX = schemeSettings.screenPosition.offsetX;
+                    this.offsetY = schemeSettings.screenPosition.offsetY;
+                    this.zoom = schemeSettings.screenPosition.zoom;
+                } else {
+                    // Should automatically bring to view the entire scheme
+                    setTimeout(() => {
+                        this.zoomToSelection();
+                    }, 100);
+                   
+                }
             });
 
-            var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
-            if (schemeSettings && schemeSettings.screenPosition) {
-                this.offsetX = schemeSettings.screenPosition.offsetX;
-                this.offsetY = schemeSettings.screenPosition.offsetY;
-                this.zoom = schemeSettings.screenPosition.zoom;
-            }
         },
 
         loadCurrentUser() {
