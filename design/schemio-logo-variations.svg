@@ -1,62 +1,54 @@
-<!DOCTYPE html>
-<html>
-<body>
-
 <svg height="1800" width="600">
-  <g transform="translate(20 20)">
-    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="black" stroke-width="12"/>
+  <g transform="matrix(1,0,0,1,20,20)">
+    <path d="M 100 160 L 50 80 L 100 0 L 200 0 L 250 80" fill="none" stroke="black" stroke-width="12" stroke-linejoin="round"/>
     <circle cx="100" cy="160" r="20" stroke="none" stroke-width="0" fill="black" />
     <circle cx="250" cy="80" r="20" stroke="none" stroke-width="0" fill="black" />  
 
-    <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="black" stroke-width="12"/>
+    <path d="M 150 80 L 200 160 L 150 240 L 50 240 L 0 160" fill="none" stroke="black" stroke-width="12" stroke-linejoin="round"/>
     <circle cx="0" cy="160" r="20" stroke="none" stroke-width="0" fill="black" />
     <circle cx="150" cy="80" r="20" stroke="none" stroke-width="0" fill="black" />
   </g>
   
-    <g transform="translate(320 20)">
-    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="black" stroke-width="12"/>
+    <g transform="translate(320,20)">
+    <path d="M 100 160 L 50 80 L 100 0 L 200 0 L 250 80" fill="none" stroke="black" stroke-width="12" stroke-linejoin="round"/>
     <circle cx="100" cy="160" r="20" stroke="none" stroke-width="0" fill="black" />
     <circle cx="250" cy="80" r="20" stroke="none" stroke-width="0" fill="black" />  
 
-    <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="grey" stroke-width="12"/>
+    <path d="M 150 80 L 200 160 L 150 240 L 50 240 L 0 160" fill="none" stroke="grey" stroke-width="12" stroke-linejoin="round"/>
     <circle cx="0" cy="160" r="20" stroke="none" stroke-width="0" fill="grey" />
     <circle cx="150" cy="80" r="20" stroke="none" stroke-width="0" fill="grey" />
   </g>
 
 
-    <g transform="translate(320 320)">
-    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="black" stroke-width="24"/>
+    <g transform="translate(320,320)">
+    <path d="M 100 160 L 50 80 L 100 0 L 200 0 L 250 80" fill="none" stroke="black" stroke-width="24"/>
     <circle cx="100" cy="160" r="24" stroke="none" stroke-width="0" fill="black" />
     <circle cx="250" cy="80" r="24" stroke="none" stroke-width="0" fill="black" />  
 
-    <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="grey" stroke-width="24"/>
+    <path d="M 150 80 L 200 160 L 150 240 L 50 240 L 0 160" fill="none" stroke="grey" stroke-width="24"/>
     <circle cx="0" cy="160" r="24" stroke="none" stroke-width="0" fill="grey" />
     <circle cx="150" cy="80" r="24" stroke="none" stroke-width="0" fill="grey" />
   </g>
 
-    <g transform="translate(30 320)">
-    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="#054789" stroke-width="24"/>
+    <g transform="matrix(1,0,0,1,30,320)">
+    <path d="M 100 160 L 50 80 L 100 0 L 200 0 L 250 80" fill="none" stroke="#054789" stroke-width="24"/>
     <circle cx="100" cy="160" r="24" stroke="none" stroke-width="0" fill="#054789" />
     <circle cx="250" cy="80" r="24" stroke="none" stroke-width="0" fill="#054789" />  
 
-    <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="#6bafe0" stroke-width="24"/>
+    <path d="M 150 80 L 200 160 L 150 240 L 50 240 L 0 160" fill="none" stroke="#6bafe0" stroke-width="24"/>
     <circle cx="0" cy="160" r="24" stroke="none" stroke-width="0" fill="#6bafe0" />
     <circle cx="150" cy="80" r="24" stroke="none" stroke-width="0" fill="#6bafe0" />
   </g>
 
 
 
-  <g transform="translate(20 640)">
-    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="black" stroke-width="12"/>
+  <g transform="matrix(1,0,0,1,20,640)">
+    <path d="M 100 160 L 50 80 L 100 0 L 200 0 L 250 80" fill="none" stroke="black" stroke-width="12"/>
     <circle cx="100" cy="160" r="20" stroke="none" stroke-width="0" fill="black" />
     <circle cx="250" cy="80" r="20" stroke="none" stroke-width="0" fill="black" />  
 
-    <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="black" stroke-width="12"  stroke-dasharray="1 32" stroke-linecap="round" />
+    <path d="M 150 80 L 200 160 L 150 240 L 50 240 L 0 160" fill="none" stroke="black" stroke-width="12"  stroke-dasharray="1 32" stroke-linecap="round" />
     <circle cx="0" cy="160" r="20" stroke="none" stroke-width="0" fill="black" />
     <circle cx="150" cy="80" r="20" stroke="none" stroke-width="0" fill="black" />
   </g>
-
 </svg>
-
-</body>
-</html>

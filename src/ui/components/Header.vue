@@ -5,7 +5,9 @@
 <template lang="html">
     <div class="header">
         <div class="header-caption">
-            <a href="/">Schemio</a>
+            <a href="/">
+                <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
+            </a>
         </div>
         <ul>
             <li v-if="user">

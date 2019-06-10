@@ -14,6 +14,7 @@
                                 @click="toggleMode(knownMode)"
                                 >
                                 <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
+                                <i v-if="knownMode === 'view'" class="fas fa-edit"></i>
                                 {{knownMode}}
                             </span>
                         </li>

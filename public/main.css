@@ -69,13 +69,21 @@ h5 {
 }
 .header .header-caption a, .header .header-caption a:visited {
     color: #efefef;
-    font-weight: bold;
-    font-size: 20pt;
-    font-family:fantasy;
+    font-weight: normal;
+    font-size: 18px;
+    font-family:Helvetica;
     text-decoration: none;
     display: inline-block;
-    margin-left: 10px;
     margin-right: 20px;
+}
+.header .header-caption a {
+    position: relative;
+    padding: 4px 4px 4px 38px;
+}
+.header .header-caption a img {
+    position: absolute;
+    left: 8px;
+    top: 2px;
 }
 .header > ul {
     display: inline;

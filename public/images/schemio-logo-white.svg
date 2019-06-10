@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<svg id="layer_logo_1"  version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="black" stroke-width="24"/>
+    <circle cx="100" cy="160" r="24" stroke="none" stroke-width="0"/>
+    <circle cx="250" cy="80" r="24" stroke="none" stroke-width="0" fill="black" />  
+
+    <g style="opacity: 0.3">
+        <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="black" stroke-width="24"/>
+        <circle cx="0" cy="160" r="24" stroke="none" stroke-width="0" fill="black" />
+        <circle cx="150" cy="80" r="24" stroke="none" stroke-width="0" fill="black" />
+    </g>
+</svg>
