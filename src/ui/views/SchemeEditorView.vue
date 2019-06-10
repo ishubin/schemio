@@ -14,7 +14,7 @@
                                 @click="toggleMode(knownMode)"
                                 >
                                 <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
-                                <i v-if="knownMode === 'view'" class="fas fa-edit"></i>
+                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
                                 {{knownMode}}
                             </span>
                         </li>
@@ -31,7 +31,7 @@
                             <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
                         </li>
                         <li>
-                            <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="far fa-eye"></i></span>
+                            <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="fas fa-bullseye"></i></span>
                         </li>
                     </ul>
                     <ul class="button-group">
