@@ -522,6 +522,7 @@ export default {
                 if (this.animations.bringToView.frame >= this.animations.bringToView.totalFrames) {
                     clearInterval(this.animations.bringToView.timer);
                     this.updateZoom(z);
+                    this.updateOffset(x, y);
                 } else  {
                     var t = this.animations.bringToView.frame / this.animations.bringToView.totalFrames;
 
