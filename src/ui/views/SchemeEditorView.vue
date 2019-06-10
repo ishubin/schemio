@@ -13,6 +13,7 @@
                                 :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
                                 @click="toggleMode(knownMode)"
                                 >
+                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
                                 {{knownMode}}
                             </span>
                         </li>

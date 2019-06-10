@@ -129,7 +129,7 @@ ul.schemes li a {
     overflow: hidden;
     background: #fff;
     border: 1px solid #ddd;
-    border-radius: 2px;
+    border-radius: 4px;
     width: 300px;
     height: 200px;
     text-decoration: none;
@@ -227,7 +227,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 .btn {
     display: inline-block;
     padding: 5px 10px 5px 10px;
-    border-radius: 2px;
+    border-radius: 4px;
     cursor: pointer;
     background: #f0f0f0;
     border: 1px solid #777;
@@ -623,7 +623,7 @@ ul.button-group li .toggle-button {
     background: none;
     cursor: pointer;
     cursor: hand;
-    border-radius: 2px;
+    border-radius: 4px;
     font-weight: bold;
     text-transform: capitalize;
 }
@@ -940,7 +940,7 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
     height: 30px;
     padding: 5px;
     background: #bbb;
-    border-radius: 2px;
+    border-radius: 4px;
     border: 1px solid #333;
     cursor: pointer;
 }
@@ -975,7 +975,7 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
 }
 .category-selector-container .category-selector-input {
     border: 1px solid #ccc;
-    border-radius: 2px;
+    border-radius: 4px;
     padding: 4px;
     display: flex;
     flex-wrap: wrap;
@@ -996,7 +996,7 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
 .category-selector-container .category-selector-input ul li span {
     padding: 3px 5px;
     margin: 2px 4px 2px 4px;
-    border-radius: 2px;
+    border-radius: 4px;
     background: #3b628b;
     color: #fff;
 }
@@ -1015,7 +1015,7 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
     padding: 3px 5px;
     margin: 0;
     border: 1px solid #ccc;
-    border-radius: 2px;
+    border-radius: 4px;
     line-height: inherit;
 }
 .category-selector-container .category-suggestions {
