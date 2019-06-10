@@ -4,11 +4,9 @@
 
 <template lang="html">
     <div class="header">
-        <div class="header-caption">
-            <a href="/">
-                <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
-            </a>
-        </div>
+        <router-link :to="{path: '/'}" class="header-caption">
+            <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
+        </router-link>
         <ul>
             <li v-if="user">
                 <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
