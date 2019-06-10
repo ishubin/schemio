@@ -2,13 +2,13 @@
 <svg id="layer_logo_1"  version="1.1" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <rect x="0" y="0" width="50" height="50" fill="rgba(0,0,0, 0.0)"/>
     <g transform="translate(5, 5) scale(0.16, 0.16)">
-        <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="white" stroke-width="32"/>
-        <circle cx="100" cy="160" r="28" stroke="none" stroke-width="0" fill="white" />
-        <circle cx="250" cy="80" r="28" stroke="none" stroke-width="0" fill="white" />  
         <g style="opacity: 0.3">
+            <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="white" stroke-width="32"/>
+            <circle cx="100" cy="160" r="28" stroke="none" stroke-width="0" fill="white" />
+            <circle cx="250" cy="80" r="28" stroke="none" stroke-width="0" fill="white" />  
+        </g>
             <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="white" stroke-width="32"/>
             <circle cx="0" cy="160" r="28" stroke="none" stroke-width="0" fill="white" />
             <circle cx="150" cy="80" r="28" stroke="none" stroke-width="0" fill="white" />
-        </g>
     </g>
 </svg>
