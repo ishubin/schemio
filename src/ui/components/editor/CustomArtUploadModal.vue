@@ -38,6 +38,7 @@
 <script>
 import Modal from '../Modal.vue';
 import apiClient from '../../apiClient.js';
+import axios from 'axios';
 
 export default {
     components: {Modal},
@@ -69,6 +70,11 @@ export default {
     watch: {
         selectedFile(file) {
             if (file) {
+                console.log('Selected file', file);
+                if (!this.iconName) {
+                    this.iconName = file.name;
+                }
+
                 var form = new FormData();
                 form.append('image', file, file.name);
                 this.errorUploading = false;

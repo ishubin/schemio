@@ -39,12 +39,11 @@
                             :width="item.area.w"
                             :height="item.area.h"
                             :xlink:href="item.url"/>
-                        <text
-                            :x="item.area.x + item.area.w/2 - 15 * item.name.length / (1.75 * 2)"
-                            :y="item.area.y + item.area.h + 20"
-                            :font-size="15 + 'px'"
-                            :fill="item.style.text && item.style.text.color ? item.style.text.color : '#000'"
-                            >{{item.name}}</text>
+                        <foreignObject style="overflow: visible" :x="item.area.x" :y="item.area.y + item.area.h + 5" :width="item.area.w" :height="30">
+                            <div style="text-align: center; width: 100%;" :style="{'color': item.style.text && item.style.text.color ? item.style.text.color : '#000'}">
+                                {{item.name}}
+                            </div>
+                        </foreignObject>
                     </g>
 
                     <component-item v-if="item.type === 'component'"
