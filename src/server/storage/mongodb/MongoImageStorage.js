@@ -22,10 +22,12 @@ const fs                = require('fs');
     }
 
     // Returns generated image path
-    uploadImageFromFile(filePath, fileName) {
+    uploadImageFromFile(filePath, fileName, mimeType) {
         return new Promise((resolve, reject) => {
             fs.createReadStream(filePath)
-            .pipe(this.imageBucket().openUploadStream(fileName))
+            .pipe(this.imageBucket().openUploadStream(fileName, {
+                contentType: mimeType
+            }))
             .on('error', function(error) {
                 reject(error);
             }).on('finish', function() {

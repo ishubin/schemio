@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
         cb(null, config.images.uploadFolder);
     },
     filename: function (req, file, cb) {
-        cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname.replace(/[\W_]+/g, '-'));
+        cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname.replace(/[^a-zA-Z0-9\.]+/g, '-'));
     }
 });
 
@@ -48,7 +48,8 @@ module.exports = {
         uploadToLocalFolder(req, res, err => {
             if (!err) {
                 const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
-                imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename).then(imageData => {
+
+                imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename, req.file.mimetype).then(imageData => {
                     if (imageData.imageId !== req.file.filename) {
                         return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
                             .then(() => imageData);
