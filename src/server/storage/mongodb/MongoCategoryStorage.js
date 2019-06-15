@@ -63,19 +63,19 @@ class MongoCategoryStorage {
     }
 
     getCategory(id) {
-        return this._categories().findOne({id});
+        return this._categories().findOne({id: mongo.sanitizeString(id)});
     }
 
     getCategories(parentId) {
-        return this._categories().find({parentId}).toArray();
+        return this._categories().find({parentId: mongo.sanitizeString(id)}).toArray();
     }
 
 
     deleteCategory(categoryId) {
         return Promise.all([
-            this._schemes().deleteMany({'allSubCategoryIds': categoryId}),
-            this._categories().deleteOne({id: categoryId}),
-            this._categories().deleteMany({'ancestors.id': categoryId})
+            this._schemes().deleteMany({'allSubCategoryIds': mongo.sanitizeString(categoryId)}),
+            this._categories().deleteOne({id: mongo.sanitizeString(categoryId)}),
+            this._categories().deleteMany({'ancestors.id': mongo.sanitizeString(categoryId)})
         ]);
     }
 

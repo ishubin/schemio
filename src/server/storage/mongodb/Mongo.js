@@ -17,7 +17,12 @@ module.exports = {
             db = client.db(config.mongodb.dbName);
         });
     },
+
     db() {
         return db;
+    },
+
+    sanitizeString(text) {
+        return '' + text;
     }
 };

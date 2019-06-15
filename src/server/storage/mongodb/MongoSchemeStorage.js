@@ -48,21 +48,21 @@ class MongoSchemeStorage {
             }
             if (query.includeSubcategories) {
                 mongoQuery['$or'] = [
-                     {categoryId},
-                     {'allSubCategoryIds': categoryId}
+                     {categoryId: mongo.sanitizeString(categoryId)},
+                     {'allSubCategoryIds': mongo.sanitizeString(categoryId)}
                 ];
             } else {
-                mongoQuery['categoryId'] = categoryId;
+                mongoQuery['categoryId'] = mongo.sanitizeString(categoryId);
             }
         }
         if (query.query && query.query.length > 0) {
-            mongoQuery['$text'] = {'$search': query.query};
+            mongoQuery['$text'] = {'$search': mongo.sanitizeString(query.query)};
         }
 
 
         var offset = 0;
         if (query.offset) {
-            offset = query.offset;
+            offset = parseInt(query.offset);
         }
         var limit = RESULTS_PER_PAGE;
 
@@ -118,7 +118,7 @@ class MongoSchemeStorage {
     }
 
     getScheme(schemeId) {
-        return this._schemes().findOne({id: schemeId}).then(scheme => {
+        return this._schemes().findOne({id: mongo.sanitizeString(schemeId)}).then(scheme => {
             if (scheme) {
                 return {
                     id: scheme.id,
@@ -136,7 +136,7 @@ class MongoSchemeStorage {
     }
 
     deleteScheme(schemeId) {
-        return this._schemes().deleteOne({id: schemeId});
+        return this._schemes().deleteOne({id: mongo.sanitizeString(schemeId)});
     }
 
     saveScheme(schemeId, scheme) {
