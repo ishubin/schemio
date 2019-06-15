@@ -18,14 +18,15 @@
             <h5 class="section">Description</h5>
 
             <div class="textarea-wrapper">
-                <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description" @change="onPropertyChange('description')"></textarea>
+                <!-- <textarea class="textfield" type="text" v-model="schemeContainer.scheme.description" @change="onPropertyChange('description')"></textarea>
                 <span class="textarea-enlarge" @click="showDescriptionInPopup = true"><i class="fas fa-expand"></i></span>
 
                 <markdown-editor-popup v-if="showDescriptionInPopup"
                     :text="schemeContainer.scheme.description"
                     @close="showDescriptionInPopup = false"
                     @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
-                    />
+                    /> -->
+                <rich-text-editor v-model="schemeContainer.scheme.description"></rich-text-editor>
             </div>
 
             <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
@@ -47,10 +48,11 @@ import apiClient from '../../apiClient.js';
 import EventBus from './EventBus.js';
 import MarkdownEditorPopup from '../MarkdownEditorPopup.vue';
 import Modal from '../Modal.vue';
+import RichTextEditor from '../RichTextEditor.vue';
 
 export default {
     props: ['schemeContainer'],
-    components: {VueTagsInput, MarkdownEditorPopup, Modal},
+    components: {VueTagsInput, MarkdownEditorPopup, Modal, RichTextEditor},
     mounted() {
         apiClient.getTags().then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {

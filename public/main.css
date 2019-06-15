@@ -1106,7 +1106,7 @@ ul.category-breadcrumb li i {
     list-style: none;
 }
 
-/******************************* Modal Text Editor ******************************/
+/******************************* Modal (Rich) Text Editor ******************************/
 .textarea-enlarged-container .toolbar {
     margin-bottom: 10px;
 }
@@ -1123,14 +1123,45 @@ ul.category-breadcrumb li i {
     overflow: scroll;
 }
 
-
-.markdown pre {
-    border: 1px solid #ccc;
-    background: #fff;
+.rich-text-editor-container .editor-content {
+    border-radius: 4px;
     padding: 4px;
-    border-radius: 5px;
+    border: 1px solid #999;
+    background: white;
+    overflow: auto;
 }
 
+.rich-text-editor-container .ProseMirror > p:first-child {
+    margin-top: 0;
+}
+/* Temporarily disable the focus until figure out a better way */
+.rich-text-editor-container .ProseMirror.ProseMirror-focused {
+    outline: none;
+}
+
+.rich-text-editor-container .editor-menubar {
+    height: 40px;
+}
+
+.rich-text-editor-container .editor-menubar .editor-icon {
+    padding: 2px;
+    display: inline-block;
+    width: 24px;
+    height: 22px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 2px;
+    cursor: pointer;
+}
+.rich-text-editor-container .editor-menubar .editor-icon.is-active {
+    background: #333;
+    color: #fff;
+}
+
+.rich-text-editor-container .editor-menubar .editor-icon:hover {
+    background: #bbb;
+    color: #333;
+}
 
 /**************  Dropdown    ********************/
 .dropdown-container {
