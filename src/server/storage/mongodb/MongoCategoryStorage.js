@@ -67,7 +67,7 @@ class MongoCategoryStorage {
     }
 
     getCategories(parentId) {
-        return this._categories().find({parentId: mongo.sanitizeString(id)}).toArray();
+        return this._categories().find({parentId: mongo.sanitizeString(parentId)}).toArray();
     }
 
 
