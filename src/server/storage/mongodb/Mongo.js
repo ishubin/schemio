@@ -22,7 +22,15 @@ module.exports = {
         return db;
     },
 
+    /**
+     * This function is used in order to avoid mongo injections where instead of a string an object like {$ne: ''} is passed
+     * @param {string} text 
+     */
     sanitizeString(text) {
-        return '' + text;
+        if (typeof text === 'string') {
+            return text;
+        } else {
+            return null;
+        }
     }
 };
