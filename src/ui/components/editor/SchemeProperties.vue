@@ -26,7 +26,9 @@
                     @close="showDescriptionInPopup = false"
                     @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
                     /> -->
-                <rich-text-editor v-model="schemeContainer.scheme.description"></rich-text-editor>
+                <rich-text-editor v-model="schemeContainer.scheme.description"
+                    @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
+                    ></rich-text-editor>
             </div>
 
             <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>

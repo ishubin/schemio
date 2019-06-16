@@ -7,7 +7,7 @@ html {
 }
 
 body {
-    font-family: Helvetica, sans-serif;
+    font-family: 'San Francisco', Roboto, 'Segoe UI', 'Helvetica Neue',sans-serif;
     margin: 0;
     padding: 0;
     color: #222;
@@ -72,7 +72,6 @@ h5 {
     color: #999;
     font-weight: normal;
     font-size: 18px;
-    font-family:Helvetica;
     text-decoration: none;
     display: inline-block;
     padding: 10px 4px 4px 38px;
@@ -359,9 +358,6 @@ ul.pagination li a.current {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-svg text {
-    font-family: "Lucida Console", monospace;
 }
 svg .grid line {
     stroke: #eee;
@@ -774,22 +770,6 @@ ul.button-group li .toggle-button .small-letter {
 }
 
 
-.textarea-wrapper {
-    position: relative;
-    padding: 0;
-}
-.textarea-wrapper .textarea-enlarge {
-    display: inline-block;
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    opacity: 0.2;
-    cursor: pointer;
-}
-.textarea-wrapper .textarea-enlarge:hover {
-    opacity: 1.0;
-}
-
 
 .item-properties textarea {
     width: 100%;
@@ -1123,18 +1103,36 @@ ul.category-breadcrumb li i {
     overflow: scroll;
 }
 
-.rich-text-editor-container .editor-content {
+.rich-text-editor-container .editor-frame {
+    position: relative;
     border-radius: 4px;
     padding: 4px;
     border: 1px solid #999;
     background: white;
+}
+.rich-text-editor-container .editor-content {
     overflow: auto;
+}
+
+.rich-text-editor-container .editor-frame.focused {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.rich-text-editor-container .editor-frame .editor-enlarge {
+    display: inline-block;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    opacity: 0.2;
+    cursor: pointer;
+}
+.rich-text-editor-container .editor-frame .editor-enlarge:hover {
+    opacity: 1.0;
 }
 
 .rich-text-editor-container .ProseMirror > p:first-child {
     margin-top: 0;
 }
-/* Temporarily disable the focus until figure out a better way */
 .rich-text-editor-container .ProseMirror.ProseMirror-focused {
     outline: none;
 }
