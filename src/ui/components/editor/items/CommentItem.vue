@@ -12,9 +12,7 @@
 
 
         <foreignObject :x="x + padding" :y="y + topMargin" :width="width - padding" :height="height - padding">
-            <div class="comment-item-foreign-container" :style="{'width': width+'px', 'height': height+'px'}">
-                {{text}}
-            </div>
+            <div class="comment-item-foreign-container" :style="{'width': width+'px', 'height': height+'px'}" v-html="text"></div>
         </foreignObject>
     </g>
 

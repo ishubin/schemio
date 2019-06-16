@@ -88,7 +88,7 @@
                         </div>
                     </editor-menu-bar>
                     <div class="editor-frame" :style="{height: enlargedHeight+'px'}">
-                        <div class="editor-content" :style="{width, height}">
+                        <div class="editor-content" :style="{width, height: enlargedHeight+'px'}">
                             <editor-content :editor="editorLarge" />
                         </div>
                         <span class="editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>

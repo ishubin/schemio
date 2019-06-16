@@ -6,7 +6,7 @@
     <div class="item-details">
         <h3>{{item.name}}</h3>
 
-        <vue-markdown :source="item.description" class="markdown"/>
+        <div v-html="item.description"></div>
 
         <div v-if="item.links && item.links.length > 0">
             <h5>Links</h5>
@@ -23,12 +23,10 @@
 </template>
 
 <script>
-import VueMarkdown from 'vue-markdown';
 import linkTypes from './LinkTypes.js';
 
 export default {
     props: ['item', 'itemId'],
-    components: {VueMarkdown},
 
     methods: {
         getLinkCssClass(link) {

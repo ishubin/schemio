@@ -26,14 +26,7 @@
         <div v-if="descriptionUsed">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <textarea v-model="item.description"></textarea>
-                <span class="textarea-enlarge" @click="showDescriptionInPopup = true"><i class="fas fa-expand"></i></span>
-
-                <markdown-editor-popup v-if="showDescriptionInPopup"
-                    :text="item.description"
-                    @close="showDescriptionInPopup = false"
-                    @changed="item.description = arguments[0]"
-                    />
+                <rich-text-editor v-model="item.description" @changed="item.description = arguments[0];" ></rich-text-editor>
             </div>
         </div>
     </panel>
@@ -41,7 +34,7 @@
 
 <script>
 import _ from 'lodash';
-import MarkdownEditorPopup from '../../MarkdownEditorPopup.vue';
+import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../../apiClient.js';
@@ -54,7 +47,7 @@ export default {
         'descriptionUsed': {type: Boolean, default: true}
     },
 
-    components: {VueTagsInput, MarkdownEditorPopup, Panel},
+    components: {VueTagsInput, Panel, RichTextEditor},
 
     mounted() {
         if (this.tagsUsed) {
@@ -68,7 +61,6 @@ export default {
 
     data() {
         return {
-            showDescriptionInPopup: false,
             itemTag: '',
             existingItemTags: []
         };
@@ -90,6 +82,3 @@ export default {
     },
 }
 </script>
-
-<style lang="css">
-</style>

@@ -9,9 +9,9 @@
             <span class="property-label">Interactive</span>
         </div>
 
-        <div>
-            <textarea v-model="item.description"></textarea>
-        </div>
+        <rich-text-editor v-model="item.description"
+            @changed="item.description = arguments[0];"
+            ></rich-text-editor>
 
         <connections-panel :item="item"/>
 
@@ -48,11 +48,12 @@ import ColorPicker from '../ColorPicker.vue';
 import Panel from '../Panel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import knownItems from '../../../scheme/knownItems.js';
+import RichTextEditor from '../../RichTextEditor.vue';
 
 export default {
     props: ['item'],
 
-    components: {Panel, ColorPicker, ConnectionsPanel},
+    components: {Panel, ColorPicker, ConnectionsPanel, RichTextEditor},
 
     data() {
         return {
