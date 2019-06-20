@@ -21,7 +21,7 @@
             <g data-type="scene-transform" :transform="transformSvg">
 
                 <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
-                    :class="['item-type-' + item.type, item.meta.selected ? 'selected': '', item.interactive?'item-interactive':'']"
+                    :class="{selected: item.meta.selected, 'item-interactive': item.interactive}"
                     >
 
                     <!-- Drawing search highlight box -->
@@ -32,46 +32,8 @@
                         :height="item.area.h + 10"
                     />
 
-                    <g v-if="item.type === 'image'" class="item-graphics" :style="{opacity: item.style.opacity}">
-                        <image
-                            :x="item.area.x"
-                            :y="item.area.y"
-                            :width="item.area.w"
-                            :height="item.area.h"
-                            :xlink:href="item.url"/>
-                        <foreignObject style="overflow: visible" :x="item.area.x" :y="item.area.y + item.area.h + 5" :width="item.area.w" :height="30">
-                            <div style="text-align: center; width: 100%;" :style="{'color': item.style.text && item.style.text.color ? item.style.text.color : '#000'}">
-                                {{item.name}}
-                            </div>
-                        </foreignObject>
-                    </g>
-
-                    <component-item v-if="item.type === 'component'"
-                        :key="item.id"
-                        :item="item"
-                        :zoom="vZoom"
-                        :offsetX="vOffsetX"
-                        :offsetY="vOffsetY"
-                        ></component-item>
-
-                    <comment-item v-if="item.type === 'comment'"
-                        :x="item.area.x"
-                        :y="item.area.y"
-                        :scale="1"
-                        :width="item.area.w"
-                        :height="item.area.h"
-                        :item-style="item.style"
-                        :text="item.description"
-                        :fontsize="15"
-                        ></comment-item>
-
-                    <overlay-item v-if="item.type === 'overlay'"
-                        :item="item"
-                        data-type="overlay"
-                    />
-
-                    <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
-                        <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
+                    <g :transform="`translate(${item.area.x},${item.area.y})`">
+                        <item-svg :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
 
                     <rect class="item-rect-highlight-area"
@@ -84,6 +46,21 @@
                         fill="rgba(0,0,0,0.0)"
                     />
 
+                    <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
+                        <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
+                    </g>
+
+
+                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        :key="connectorIndex"
+                        :connectorIndex="connectorIndex"
+                        :sourceItem="item"
+                        :connector="connector"
+                        :zoom="vZoom"
+                        :offsetX="vOffsetX"
+                        :offsetY="vOffsetY"
+                        :showReroutes="mode === 'edit'"
+                        ></connector-svg>
 
                     <g v-if="mode === 'edit'" class="item-container" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
@@ -106,17 +83,6 @@
                             />
                         </g>
                     </g>
-
-                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
-                        :key="connectorIndex"
-                        :connectorIndex="connectorIndex"
-                        :sourceItem="item"
-                        :connector="connector"
-                        :zoom="vZoom"
-                        :offsetX="vOffsetX"
-                        :offsetY="vOffsetY"
-                        :showReroutes="mode === 'edit'"
-                        ></connector-svg>
 
                 </g>
 
@@ -196,9 +162,7 @@ import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
 import EventBus from './EventBus.js';
-import CommentItem from './items/CommentItem.vue';
-import OverlayItem from './items/OverlayItem.vue';
-import ComponentItem from './items/ComponentItem.vue';
+import ItemSvg from './items/ItemSvg.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
@@ -208,7 +172,7 @@ const LINK_FONT_SYMBOL_SIZE = 10;
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
-    components: {CommentItem, ConnectorSvg, ComponentItem, OverlayItem},
+    components: {ConnectorSvg, ItemSvg},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

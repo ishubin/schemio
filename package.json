@@ -10,12 +10,14 @@
     "start-dev-demo": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev-demo; babel-node src/server/server.js'",
     "build-dev-demo": "npm run init-dev; webpack --config webpack.build.dev.demo.js; cp src/ui/index.html public/; cp -r static-demo/public-images public/",
     "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
-    "build-static-demo": "npm run init-dist; webpack --config webpack.demo.js; cp src/ui/index.html dist/; cp static-demo/scheme-preview-images/* dist/images/."
+    "build-static-demo": "npm run init-dist; webpack --config webpack.demo.js; cp src/ui/index.html dist/; cp static-demo/scheme-preview-images/* dist/images/.",
+    "test": "mocha-webpack --webpack-config webpack.config.js --require test/setup.js test/**/*.spec.js"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
   "devDependencies": {
     "@johmun/vue-tags-input": "^1.5.10",
+    "@vue/test-utils": "^1.0.0-beta.29",
     "axios": "^0.19.0",
     "babel-cli": "^6.25.0",
     "babel-core": "^6.25.0",
@@ -26,7 +28,12 @@
     "babel-preset-stage-3": "^6.24.1",
     "babel-runtime": "^6.25.0",
     "css-loader": "^2.1.1",
+    "expect": "^24.8.0",
     "file-loader": "^0.11.2",
+    "jsdom": "^15.1.1",
+    "jsdom-global": "^3.0.2",
+    "mocha": "^6.1.4",
+    "mocha-webpack": "^1.1.0",
     "shortid": "^2.2.14",
     "tiptap": "^1.22.3",
     "tiptap-extensions": "^1.22.3",

@@ -6,7 +6,6 @@ import _ from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
-import knownItems from './knownItems.js';
 
 
 const CONNECTOR_SMOOTH_RATIO = 6;
@@ -41,7 +40,6 @@ class SchemeContainer {
                 if (!item.meta) {
                     item.meta = {};
                 }
-                utils.extendObject(item, knownItems[item.type].properties);
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }

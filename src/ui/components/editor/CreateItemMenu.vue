@@ -85,7 +85,6 @@ import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
-import knownItems from '../../scheme/knownItems.js';
 import _ from 'lodash';
 
 export default {
@@ -125,8 +124,11 @@ export default {
                 id: shortid.generate(),
                 type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                shape: 'rect',
                 style: {
-                    shape: 'component'
+                    strokeSize: 5,
+                    strokeColor: '#34f',
+                    fillColor: '#f00'
                 },
                 properties: '',
                 name: '',
@@ -140,8 +142,11 @@ export default {
                 id: shortid.generate(),
                 type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                shape: 'ellipse',
                 style: {
-                    shape: 'ellipse'
+                    strokeSize: 5,
+                    strokeColor: '#34f',
+                    fillColor: '#f00'
                 },
                 properties: '',
                 name: '',

@@ -19,35 +19,71 @@
             </li>
         </ul>
 
+        <general-panel :item="item"/>
         <position-panel :item="item"/>
+        <links-panel :item="item"/>
+        <connections-panel :item="item"/>
 
-        <component-properties v-if="item.type === 'component'" :item="item"/>
-        <image-properties v-if="item.type === 'image'" :item="item"/>
-        <overlay-properties v-if="item.type === 'overlay'" :item="item"/>
-        <comment-properties v-if="item.type === 'comment'" :item="item"/>
+        <select v-model="item.shape">
+            <option>none</option>
+            <option>rect</option>
+            <option>ellipse</option>
+        </select>
+
+        <panel name="Style">
+            <table>
+                <tbody>
+                    <tr v-for="(arg, argName) in shapeComponent.args">
+                        <td width="50%">{{arg.name}}</td>
+                        <td width="50%">
+                            <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]"/>
+                            <input v-if="arg.type === 'number'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                            <color-picker v-if="arg.type === 'color'" :color="item.style[argName]" @input="item.style[argName]= arguments[0]; redrawItem();"></color-picker>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </panel>
     </div>
 </template>
 
 <script>
 import EventBus from '../EventBus.js';
-import ComponentProperties from './ComponentProperties.vue';
+import Panel from '../Panel.vue';
+import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
-import ImageProperties from './ImageProperties.vue';
-import OverlayProperties from './OverlayProperties.vue';
-import CommentProperties from './CommentProperties.vue';
+import LinksPanel from './LinksPanel.vue';
+import ConnectionsPanel from './ConnectionsPanel.vue';
+import Shape from '../items/shapes/Shape.js';
+import ColorPicker from '../ColorPicker.vue';
 
 export default {
     props: ['item'],
-    components: {ComponentProperties, PositionPanel, ImageProperties, OverlayProperties, CommentProperties},
+    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel},
+
+    mounted() {
+        this.switchShape(this.item.shape);
+    },
 
     data() {
         return {
             itemLocked: this.item.locked || false,
-            itemGroup: this.item.group
+            itemGroup: this.item.group,
+            shapeComponent: {},
+            oldShape: this.item.shape
         };
     },
 
     methods: {
+        onStyleInputChange(styleArgName, componentArg, event) {
+            const text = event.target.value;
+            if (componentArg.type === 'number') {
+                this.item.style[styleArgName] = parseInt(text) || 0;
+            } else {
+                this.item.style[styleArgName] = text;
+            }
+        },
         toggleItemLock() {
             this.itemLocked = !this.itemLocked;
             this.item.locked = this.itemLocked;
@@ -57,15 +93,25 @@ export default {
             this.$emit('ungroup-item');
             this.itemGroup = null;
         },
+
+        switchShape(shape) {
+            this.oldShape = this.item.shape;
+            this.shapeComponent = Shape.make(shape);
+        },
+
+        redrawItem() {
+            EventBus.emitRedrawItem(this.item.id);
+        }
     },
 
     watch: {
         //TODO get rid of this watcher and detect changes in other ways. At this moment this component is the one responsible for detecting any changes on the item (even dragging it)
        item: {
-           handler: function(newValue) {
-               EventBus.$emit(EventBus.ITEM_CHANGED, newValue);
-               this.$forceUpdate();
-               EventBus.$emit(EventBus.REDRAW);  //TODO move redrawing to SvgEditor
+           handler: function(newItem) {
+                if (this.oldShape !== newItem.shape) {
+                    this.switchShape(newItem.shape);
+                }
+                EventBus.$emit(EventBus.ITEM_CHANGED, newItem);
            },
            deep: true
        }

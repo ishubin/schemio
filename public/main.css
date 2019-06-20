@@ -363,45 +363,6 @@ svg .grid line {
     stroke: #eee;
     stroke-width: 1;
 }
-svg .item-container.item-type-component .item-graphics rect {
-    cursor: pointer;
-    cursor: hand;
-}
-svg .item-container.item-type-component.selected .item-graphics rect {
-    opacity: 0.7;
-}
-svg .item-container.item-type-art .item-graphics image {
-    cursor: pointer;
-    cursor: hand;
-}
-svg .item-container.item-type-art.selected .item-graphics image {
-    opacity: 0.7;
-}
-svg .item-container.item-type-overlay rect.overlay-rect-inactive {
-    opacity: 1.0;
-}
-svg .item-container.item-type-overlay rect.overlay-rect-active {
-    opacity: 0.0;
-}
-svg .item-container.item-type-overlay rect.overlay-rect-active, svg .item-container.item-type-overlay rect.overlay-rect-inactive {
-    transition: opacity 0.3s ease-in-out;
-    -moz-transition: opacity 0.3s ease-in-out;
-    -webkit-transition: opacity 0.3s ease-in-out;
-}
-svg .item-container.item-type-overlay:hover rect.overlay-rect-inactive {
-    opacity: 1.0;
-}
-svg .item-container.item-type-overlay:hover rect.overlay-rect-active {
-    opacity: 1.0;
-}
-svg .item-container.item-type-overlay.selected rect.overlay-rect-inactive {
-    opacity: 0.0;
-}
-svg .item-container.item-type-overlay.selected rect.overlay-rect-active {
-    opacity: 1.0;
-}
-svg .item-container.item-type-overlay.selected rect {
-}
 svg rect.multi-select-box {
     stroke-width: 1;
     stroke: #faa;
@@ -436,14 +397,6 @@ svg .marker-has-links {
     opacity: 0.4;
 }
 
-
-svg .item-container.item-type-component .item-caption {
-    font-weight: bold;
-}
-
-svg .item-container.item-interactive rect.item-rect-highlight-area {
-    cursor: pointer;
-}
 
 /**********************/
 /*      Item link    */
@@ -493,19 +446,8 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
 }
 
 
-/*********************************/
-/*  Hover states in view mode and interacting state */
-svg.mode-view.state-interact .item-container.item-interactive.item-type-component:hover .item-graphics rect {
-    opacity: 0.7;
-    cursor: pointer;
-}
-svg.mode-view.state-interact .item-container.item-interactive.item-type-comment:hover .item-graphics {
-    opacity: 0.8;
-    cursor: pointer;
-}
-svg.mode-view.state-interact .item-container.item-interactive.item-type-image:hover .item-graphics image {
-    opacity: 0.6;
-    cursor: pointer;
+svg .comment-item-foreign-container > p:first-child {
+    margin-top: 0;
 }
 
 
@@ -519,7 +461,7 @@ svg.state-create-component {
 
 
 
-/* Modal */
+/******************************* Modal ********************************/
 .modal-mask {
     position: fixed;
     z-index: 9998;
@@ -770,6 +712,7 @@ ul.button-group li .toggle-button .small-letter {
 }
 
 
+/**************************** Item Properties ***********************/
 
 .item-properties textarea {
     width: 100%;
@@ -1086,7 +1029,7 @@ ul.category-breadcrumb li i {
     list-style: none;
 }
 
-/******************************* Modal (Rich) Text Editor ******************************/
+/******************************* Rich Text Editor ******************************/
 .textarea-enlarged-container .toolbar {
     margin-bottom: 10px;
 }
@@ -1096,11 +1039,6 @@ ul.category-breadcrumb li i {
     height: 100%;
     font-size: 16px;
     padding: 4px;
-}
-.textarea-enlarged-container .markdown-preview {
-    width: 100%;
-    height: 100%;
-    overflow: scroll;
 }
 
 .rich-text-editor-container .editor-frame {
