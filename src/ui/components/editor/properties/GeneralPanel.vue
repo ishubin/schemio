@@ -10,10 +10,11 @@
             <span class="property-label">Interactive</span>
         </div>
 
-        <div v-if="nameUsed">
-            <h5>Name</h5>
-            <input class="textfield" type="text" v-model="item.name"/>
-        </div>
+        <h5>Opacity</h5>
+        <input class="textfield" type="text" v-model="item.opacity"/>
+
+        <h5>Name</h5>
+        <input class="textfield" type="text" v-model="item.name"/>
 
         <div v-if="tagsUsed">
             <h5>Tags</h5>
@@ -42,7 +43,6 @@ import apiClient from '../../../apiClient.js';
 export default {
     props: {
         'item': {type: Object},
-        'nameUsed': {type: Boolean, default: true},
         'tagsUsed': {type: Boolean, default: true},
         'descriptionUsed': {type: Boolean, default: true}
     },

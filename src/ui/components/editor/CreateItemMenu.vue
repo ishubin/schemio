@@ -122,9 +122,9 @@ export default {
         clickComponent() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'rect',
+                opacity: 1.0,
                 style: {
                     strokeSize: 5,
                     strokeColor: '#34f',
@@ -140,9 +140,9 @@ export default {
         clickEllipse() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'ellipse',
+                opacity: 1.0,
                 style: {
                     strokeSize: 5,
                     strokeColor: '#34f',
@@ -158,11 +158,15 @@ export default {
         clickOverlay() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'overlay',
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                shape: 'rect',
+                opacity: 1.0,
                 style: {
-                    background: { color: '#b8e0ee' },
+                    strokeSize: 0,
+                    strokeColor: '#34f',
+                    fillColor: '#f00'
                 },
+                properties: '',
                 name: '',
                 description: '',
                 links: []
