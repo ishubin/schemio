@@ -398,6 +398,11 @@ svg .marker-has-links {
 }
 
 
+svg .interactive .item-hoverable:hover {
+    cursor: pointer;
+}
+
+
 /**********************/
 /*      Item link    */
 svg .item-link circle {

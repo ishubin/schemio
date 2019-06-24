@@ -33,18 +33,8 @@
                     />
 
                     <g :transform="`translate(${item.area.x},${item.area.y})`">
-                        <item-svg :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                        <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
-
-                    <rect class="item-rect-highlight-area"
-                        data-preview-ignore="true"
-                        :data-item-index="itemIndex"
-                        :x="item.area.x"
-                        :y="item.area.y"
-                        :width="item.area.w"
-                        :height="item.area.h"
-                        fill="rgba(0,0,0,0.0)"
-                    />
 
                     <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
                         <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
@@ -290,11 +280,20 @@ export default {
 
         identifyElement(element) {
             if (element) {
+
+                //TODO refactor and get rid of data-item-index for easier support of nested items.
                 var itemIndex = event.srcElement.getAttribute('data-item-index');
                 if (itemIndex) {
                     return {
                         item: this.schemeContainer.scheme.items[itemIndex]
                     };
+                }
+
+                var itemId = event.srcElement.getAttribute('data-item-id');
+                if (itemId) {
+                    return {
+                        item: this.schemeContainer.findItemById(itemId)
+                    }
                 }
 
                 var connectorIndex = event.srcElement.getAttribute('data-connector-index');

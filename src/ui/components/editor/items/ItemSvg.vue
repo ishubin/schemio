@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g>
+    <g :data-item-index="0" :class="{'interactive': this.item.interactive}">
         <component v-if="shapeComponent" :is="shapeComponent" :item="item"></component>
     </g>
 </template>

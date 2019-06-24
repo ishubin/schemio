@@ -18,6 +18,8 @@ const shapeReigstry = {
         template: `
             <g>
                 <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
+                    :data-item-id="item.id"
+                    class="item-hoverable"
                     :stroke-width="item.style.strokeSize + \'px\'"
                     :stroke="item.style.strokeColor"
                     :fill="item.style.fillColor"></rect>
@@ -33,6 +35,8 @@ const shapeReigstry = {
         template: `
             <g>
                 <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
+                    :data-item-id="item.id"
+                    class="item-hoverable"
                     :stroke="item.style.strokeColor"
                     :stroke-width="item.style.strokeSize + 'px'"
                     :fill="item.style.fillColor"
