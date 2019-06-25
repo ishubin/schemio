@@ -26,13 +26,49 @@ export default class UserEventBus {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             _.forEach(itemSubs[eventName], subscriber => {
-                //TODO check arguments
-                subscriber.callback.apply(null, args);
+                
+                if (this.matchesArgs(args, subscriber.args)) {
+                    subscriber.callback.apply(null, args);
+                }
             })
         }
     }
 
     clear() {
         this.itemEventSubscribers = {}
+    }
+
+
+    matchesArgs(eventArgs, subscriberArgs) {
+        for (let i = 0; i < subscriberArgs.length; i++) {
+            if (subscriberArgs[i]) {
+                if (i < eventArgs.length) {
+                    if (!this.argumentMatches(subscriberArgs[i], eventArgs[i])) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 
+     * @param {string} argPattern 
+     * @param {string} realValue 
+     */
+    argumentMatches(argPattern, realValue) {
+        if (!argPattern) {
+            //when it is empty we don't care
+            return true;
+        }
+
+        if (argPattern.charAt(0) === '=')  {
+            return argPattern.substr(1) == realValue;
+        } else {
+            return argPattern == realValue;
+        }
     }
 };
