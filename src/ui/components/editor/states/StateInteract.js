@@ -17,6 +17,9 @@ class StateInteract extends State {
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
         this.originalZoom = 1.0;
+        
+        // used in order to track whether mousein or mouseout event can be produced
+        this.currentHoveredItem = null;
     }
 
     reset() {
@@ -61,9 +64,32 @@ class StateInteract extends State {
             } else {
                 this.dragScreen(mx, my);
             }
+        } else {
+            this.handleItemHoverEvents(object);
         }
     }
 
+
+    handleItemHoverEvents(object) {
+        if (object && object.item) {
+            if (!this.currentHoveredItem) {
+                this.emit(object.item, 'mousein');
+                this.currentHoveredItem = object.item;
+            } else if (this.currentHoveredItem.id !== object.item.id) {
+                this.emit(this.currentHoveredItem, 'mouseout');
+                this.emit(object.item, 'mousein');
+                this.currentHoveredItem = object.item;
+            }
+        } else {
+            if (this.currentHoveredItem) {
+                this.emit(this.currentHoveredItem, 'mouseout');
+                this.currentHoveredItem = null;
+            }
+        }
+    }
+
+    emit(originator, eventName) {
+    }
 
     dragScreen(x, y) {
         this.editor.updateOffset(

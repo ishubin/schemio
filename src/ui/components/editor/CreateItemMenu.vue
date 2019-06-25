@@ -130,7 +130,6 @@ export default {
                     strokeColor: '#34f',
                     fillColor: '#f00'
                 },
-                properties: '',
                 name: '',
                 description: '',
                 links: []
@@ -148,7 +147,6 @@ export default {
                     strokeColor: '#34f',
                     fillColor: '#f00'
                 },
-                properties: '',
                 name: '',
                 description: '',
                 links: []
@@ -160,13 +158,36 @@ export default {
                 id: shortid.generate(),
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'rect',
-                opacity: 1.0,
+                opacity: 0.2,
                 style: {
-                    strokeSize: 0,
-                    strokeColor: '#34f',
-                    fillColor: '#f00'
+                    strokeSize: 1,
+                    strokeColor: '#000',
+                    fillColor: '#fff',
+                    strokePattern: 'dashed'
                 },
-                properties: '',
+                behavior: [ {
+                    on: {
+                        originator: 'self',
+                        event: 'mousein', // simulates hover event only once when cursor enters element
+                        args: []
+                    },
+                    do: [{
+                        item: 'self',
+                        method: 'set',
+                        args: ['opacity', 0.5]
+                    }]
+                }, {
+                    on: {
+                        originator: 'self',
+                        event: 'mouseout',
+                        args: []
+                    },
+                    do: [{
+                        item: 'self',
+                        method: 'set',
+                        args: ['opacity', 0.1]
+                    }]
+                } ],
                 name: '',
                 description: '',
                 links: []
