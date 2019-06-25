@@ -14,68 +14,39 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp">
 
-            <g v-if="mode === 'edit'" class="grid" data-preview-ignore="true" :transform="gridTransform">
-                <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height"/>
-                <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"/>
-            </g>
-            <g data-type="scene-transform" :transform="transformSvg">
-
-                <g v-for="(item,itemIndex) in schemeContainer.getItems()" class="item-container"
-                    :class="{selected: item.meta.selected, 'item-interactive': item.interactive}"
-                    >
-
-                    <!-- Drawing search highlight box -->
-                    <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
-                        :x="item.area.x - 5"
-                        :y="item.area.y - 5"
-                        :width="item.area.w + 10"
-                        :height="item.area.h + 10"
-                    />
-
-                    <g :transform="`translate(${item.area.x},${item.area.y})`">
-                        <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
-                    </g>
-
-                    <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
-                        <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
-                    </g>
-
-
-                    <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
-                        :key="connectorIndex"
-                        :connectorIndex="connectorIndex"
-                        :sourceItem="item"
-                        :connector="connector"
-                        :zoom="vZoom"
-                        :offsetX="vOffsetX"
-                        :offsetY="vOffsetY"
-                        :showReroutes="mode === 'edit'"
-                        ></connector-svg>
-
-                    <g v-if="mode === 'edit'" class="item-container" data-preview-ignore="true">
-                        <!-- Drawing boundary edit box -->
-                        <rect class="boundary-box"
-                             :data-item-index="itemIndex"
-                            :x="item.area.x"
-                            :y="item.area.y"
-                            :width="item.area.w"
-                            :height="item.area.h"
+            <g v-if="mode === 'view'">
+                <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
+                    <g v-for="(item, itemIndex) in interactiveSchemeContainer.getItems()" class="item-container"
+                        :class="{selected: item.meta.selected, 'item-interactive': item.interactive}">
+                        <!-- Drawing search highlight box -->
+                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
+                            :x="item.area.x - 5"
+                            :y="item.area.y - 5"
+                            :width="item.area.w + 10"
+                            :height="item.area.h + 10"
                         />
-                        <g v-if="item.meta.selected">
-                            <rect class="boundary-box-dragger"
-                                v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                                :data-dragger-item-index="itemIndex"
-                                :data-dragger-index="draggerIndex"
-                                :x="dragger.x - dragger.s / (vZoom || 1.0)"
-                                :y="dragger.y - dragger.s / (vZoom || 1.0)"
-                                :width="dragger.s * 2 / (vZoom || 1.0)"
-                                :height="dragger.s * 2 / (vZoom || 1.0)"
-                            />
+
+                        <g :transform="`translate(${item.area.x},${item.area.y})`">
+                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                         </g>
+
+                        <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
+                            <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
+                        </g>
+
+
+                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                            :key="connectorIndex"
+                            :connectorIndex="connectorIndex"
+                            :sourceItem="item"
+                            :connector="connector"
+                            :zoom="vZoom"
+                            :offsetX="vOffsetX"
+                            :offsetY="vOffsetY"
+                            :showReroutes="mode === 'edit'"
+                            ></connector-svg>
                     </g>
-
                 </g>
-
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
@@ -99,48 +70,116 @@
                             >{{link | formatLinkTitle}}</text>
                     </a>
                 </g>
+            </g>
 
-                <!-- Item Edit Menu -->
-                <g v-if="mode === 'edit' && activeItem" data-preview-ignore="true">
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
-                        <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
-                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
-                        <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
+
+            <!--  EDIT MODE -->
+
+            <g v-if="mode === 'edit'">
+                <g class="grid" data-preview-ignore="true" :transform="gridTransform">
+                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height"/>
+                    <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"/>
+                </g>
+                <g data-type="scene-transform" :transform="transformSvg">
+                    <g v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-container"
+                        :class="{selected: item.meta.selected, 'item-interactive': item.interactive}"
+                        >
+
+                        <!-- Drawing search highlight box -->
+                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
+                            :x="item.area.x - 5"
+                            :y="item.area.y - 5"
+                            :width="item.area.w + 10"
+                            :height="item.area.h + 10"
+                        />
+
+                        <g :transform="`translate(${item.area.x},${item.area.y})`">
+                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                        </g>
+
+                        <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
+                            <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
+                        </g>
+
+
+                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                            :key="connectorIndex"
+                            :connectorIndex="connectorIndex"
+                            :sourceItem="item"
+                            :connector="connector"
+                            :zoom="vZoom"
+                            :offsetX="vOffsetX"
+                            :offsetY="vOffsetY"
+                            :showReroutes="mode === 'edit'"
+                            ></connector-svg>
+
+                        <g class="item-container" data-preview-ignore="true">
+                            <!-- Drawing boundary edit box -->
+                            <rect class="boundary-box"
+                                :data-item-index="itemIndex"
+                                :x="item.area.x"
+                                :y="item.area.y"
+                                :width="item.area.w"
+                                :height="item.area.h"
+                            />
+                            <g v-if="item.meta.selected">
+                                <rect class="boundary-box-dragger"
+                                    v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                                    :data-dragger-item-index="itemIndex"
+                                    :data-dragger-index="draggerIndex"
+                                    :x="dragger.x - dragger.s / (vZoom || 1.0)"
+                                    :y="dragger.y - dragger.s / (vZoom || 1.0)"
+                                    :width="dragger.s * 2 / (vZoom || 1.0)"
+                                    :height="dragger.s * 2 / (vZoom || 1.0)"
+                                />
+                            </g>
+                        </g>
+
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)">
-                        <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
-                        <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
-                        <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
+
+
+                    <!-- Item Edit Menu -->
+                    <g v-if="activeItem" data-preview-ignore="true">
+                        <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
+                            <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
+                            <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
+                            <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
+                        </g>
+                        <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)">
+                            <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
+                            <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
+                            <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
+                        </g>
+                        <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)">
+                            <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
+                            <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
+                            <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
+                        </g>
+                        <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)">
+                            <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
+                            <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
+                            <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>
+                        </g>
                     </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)">
-                        <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
-                        <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
-                        <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
-                    </g>
-                    <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)">
-                        <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
-                        <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
-                        <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>
+
+                    <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
+                        <!-- Drawing boundary edit box -->
+                        <rect class="boundary-box"
+                            :x="schemeContainer.activeBoundaryBox.x"
+                            :y="schemeContainer.activeBoundaryBox.y"
+                            :width="schemeContainer.activeBoundaryBox.w"
+                            :height="schemeContainer.activeBoundaryBox.h"
+                        />
                     </g>
                 </g>
-
-                <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
-                    <!-- Drawing boundary edit box -->
-                    <rect class="boundary-box"
-                        :x="schemeContainer.activeBoundaryBox.x"
-                        :y="schemeContainer.activeBoundaryBox.y"
-                        :width="schemeContainer.activeBoundaryBox.w"
-                        :height="schemeContainer.activeBoundaryBox.h"
+                <g v-if="multiSelectBox">
+                    <rect class="multi-select-box"
+                        :x="_x(multiSelectBox.x)"
+                        :y="_y(multiSelectBox.y)"
+                        :width="_z(multiSelectBox.w)"
+                        :height="_z(multiSelectBox.h)"
                     />
                 </g>
-            </g>
-            <g v-if="multiSelectBox">
-                <rect class="multi-select-box"
-                    :x="_x(multiSelectBox.x)"
-                    :y="_y(multiSelectBox.y)"
-                    :width="_z(multiSelectBox.w)"
-                    :height="_z(multiSelectBox.h)"
-                />
             </g>
         </svg>
     </div>
@@ -156,6 +195,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
+import SchemeContainer from '../../scheme/SchemeContainer.js';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -216,6 +256,7 @@ export default {
                 connecting: new StateConnecting(this)
             },
 
+            interactiveSchemeContainer: null,
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
@@ -378,6 +419,7 @@ export default {
         },
         switchStateInteract() {
             this.state = this.states.interact;
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
             this.state.reset();
         },
         switchStateDragItem() {
