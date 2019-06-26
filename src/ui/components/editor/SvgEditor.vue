@@ -327,23 +327,22 @@ export default {
 
         identifyElement(element) {
             if (element) {
-
                 //TODO refactor and get rid of data-item-index for easier support of nested items.
-                var itemIndex = event.srcElement.getAttribute('data-item-index');
+                var itemIndex = element.getAttribute('data-item-index');
                 if (itemIndex) {
                     return {
                         item: this.schemeContainer.scheme.items[itemIndex]
                     };
                 }
 
-                var itemId = event.srcElement.getAttribute('data-item-id');
+                var itemId = element.getAttribute('data-item-id');
                 if (itemId) {
                     return {
                         item: this.schemeContainer.findItemById(itemId)
                     }
                 }
 
-                var connectorIndex = event.srcElement.getAttribute('data-connector-index');
+                var connectorIndex = element.getAttribute('data-connector-index');
                 if (connectorIndex) {
                     var path = connectorIndex.split('/');
                     var sourceItem = this.schemeContainer.findItemById(path[0]);
@@ -354,7 +353,7 @@ export default {
                     }
                 }
 
-                var rerouteIndex = event.srcElement.getAttribute('data-reroute-index');
+                var rerouteIndex = element.getAttribute('data-reroute-index');
                 if (rerouteIndex) {
                     var path = rerouteIndex.split('/');
                     var sourceItem = this.schemeContainer.findItemById(path[0]);
@@ -366,13 +365,13 @@ export default {
                     };
                 }
 
-                var draggerItemIndex = event.srcElement.getAttribute('data-dragger-item-index');
+                var draggerItemIndex = element.getAttribute('data-dragger-item-index');
                 if (draggerItemIndex) {
                     var item = this.schemeContainer.scheme.items[draggerItemIndex]
                     return {
                         dragger: {
                             item,
-                            dragger: this.provideBoundingBoxDraggers(item)[event.srcElement.getAttribute('data-dragger-index')]
+                            dragger: this.provideBoundingBoxDraggers(item)[element.getAttribute('data-dragger-index')]
                         }
                     }
                 }

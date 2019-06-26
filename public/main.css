@@ -1108,7 +1108,6 @@ ul.category-breadcrumb li i {
 .dropdown-container {
     display: inline-block;
     position: relative;
-    margin: 5px;
 }
 .dropdown-container .dropdown-click-area {
     display: inline-block;
@@ -1244,9 +1243,7 @@ table.position-panel-table .property-label {
 
 /************* Behavior Properties **********************/
 .behavior-role {
-    padding-bottom: 15px;
-    margin-bottom: 10px;
-    border-bottom: 4px solid #aaa;
+    margin-bottom: 30px;
 }
 .behavior-trigger {
     border-radius: 5px;
@@ -1271,6 +1268,9 @@ table.position-panel-table .property-label {
     background: #b957f1;
     color: #fff;
     padding: 2px 5px;
+}
+.behavior-action-container {
+    padding-left: 25px;
 }
 .behavior-action-separator {
     text-align: center;

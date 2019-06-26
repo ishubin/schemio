@@ -9,19 +9,24 @@
         </div>
 
         <div class="dropdown-popup" v-if="shown">
-            <ul>
-                <li v-for="option in options" @click="onOptionClicked(option)">
-                    {{option.name}}
-                    <i class="dropdown-option-icon" v-if="option.icon" :class="option.icon"></i>
-                </li>
-            </ul>
+            <input class="dropdown-search" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
+            <div style="max-height: 300px; overflow: auto;">
+                <ul>
+                    <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
+                        {{option.name}}
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import _ from 'lodash';
+
 export default {
-    props: ["options"],
+    /* options is an array of {id, name} */
+    props: ['options'],
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
     },
@@ -31,7 +36,8 @@ export default {
     data() {
         return {
             shown: false,
-            lastTimeClicked: 0
+            lastTimeClicked: 0,
+            searchKeyword: ''
         };
     },
     methods: {
@@ -41,17 +47,21 @@ export default {
         },
 
         onOptionClicked(option) {
-            if (option.link) {
-                window.location.href = option.link;
-            } else if (option.emit) {
-                this.$emit(option.emit);
-            }
+            this.$emit('selected', option.id);
         },
 
         onBodyClick(event) {
             if (this.shown === true && (new Date().getTime() - this.lastTimeClicked) > 200) {
+                if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
+                    return;
+                }
                 this.shown = false;
             }
+        }
+    },
+    computed: {
+        filteredOptions() {
+            return _.filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
         }
     }
 }
