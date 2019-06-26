@@ -31,10 +31,19 @@
                         </dropdown>
 
                         <span class="behavior-action-bracket">(</span>
-                        <span v-for="(arg, argId) in action.args" :key="argId">
-                            <span class="behavior-action-argument">{{arg}}</span> <span class="behavior-action-bracket">,</span>
-                        </span>
-                        <span class="behavior-action-add-argument"><i class="fas fa-plus"></i></span> 
+
+                        <div v-if="action.method === 'set'" style="display: inline-block;">
+                            <dropdown :options="methodArgumentsMeta[roleId][actionId].args[0].options" @selected="selectSetProperty(roleId, actionId, arguments[0])">
+                                <span class="behavior-action-argument">{{action.args[0] | toPrettySetPropertyName(methodArgumentsMeta[roleId][actionId].args[0].argMap) }}</span>
+                            </dropdown>
+                            <span class="behavior-action-bracket">,</span>
+
+
+                            <color-picker v-if="methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]] && methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]].type === 'color'"
+                                :color="action.args[1]" @input="action.args[1] = arguments[0]; $forceUpdate();"></color-picker>
+                            <input v-else class="behavior-action-argument" v-model="action.args[1]"/>
+                        </div>
+
                         <span class="behavior-action-bracket">)</span>
                     </div>
                     <div class="behavior-action-separator">
@@ -52,7 +61,9 @@
 
 <script>
 import _ from 'lodash';
+import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import ColorPicker from '../ColorPicker.vue';
 
 const supportedEvents = {
     mousein: {
@@ -68,7 +79,7 @@ const supportedEvents = {
 const supportedFunctions = {
     set: {
         id: 'set',
-        name: 'Set Property'
+        name: 'Set'
     },
     hide: {
         id: 'hide',
@@ -82,7 +93,7 @@ const supportedFunctions = {
 
 export default {
     props: ['item', 'schemeContainer'],
-    components: {Dropdown},
+    components: {Dropdown, ColorPicker},
 
     mounted() {
         this.roles = this.convertRoles(this.item.behavior);
@@ -101,11 +112,64 @@ export default {
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
             itemEvents: _.chain(supportedEvents).values().sortBy(event => event.name).value(),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
-            methodMap: supportedFunctions
+            methodMap: supportedFunctions,
+
+            methodArgumentsMeta: this.createMethodArgumentsMeta(this.item.behavior)
         };
     },
 
     methods: {
+        createMethodArgumentsMeta(behaviorRoles) {
+            return _.map(behaviorRoles, role => {
+                return _.map(role.do, action => {
+                    return this.argumentsMetaForMethod(action.item, action.method, action.args);
+                });
+            });
+        },
+
+        argumentsMetaForMethod(itemId, method, args) {
+            let metaArgs = [];
+
+            if (method === 'set') {
+                let item = this.item;
+                if (itemId !== 'self') {
+                    item = this.schemeContainer.findItemById(itemId);
+                }
+
+                const propsOptions = [
+                    {id: 'opacity', name: 'Opacity'}
+                ];
+
+                const argMap = {
+                    opacity: {type: 'number', defaultValue: 1.0, name: 'Opacity'}
+                };
+
+                if (item) {
+                    const shape = Shape.find(item.shape);
+                    if (shape) {
+                        _.forEach(shape.args, (shapeArg, shapeArgName) => {
+                            propsOptions.push({
+                                id: `style.${shapeArgName}`, name: `Shape :: ${shapeArg.name}`, _type: shapeArg.type, _defaultValue: shapeArg.value
+                            });
+                            argMap[`style.${shapeArgName}`] = {
+                                type: shapeArg.type,
+                                name: `Shape :: ${shapeArg.name}`,
+                                defaultValue: shapeArg.value
+                            };
+                        });
+                    }
+                }
+
+                metaArgs = [{
+                    options: propsOptions,
+                    argMap
+                }];
+            }
+            return {
+                args: metaArgs
+            }
+        },
+
         createItemMap() {
             const itemMap = {};
             _.forEach(this.schemeContainer.getItems(), item => {
@@ -149,6 +213,19 @@ export default {
 
         selectRoleActionMethod(roleIndex, actionIndex, method) {
             this.item.behavior[roleIndex].do[actionIndex].method = method;
+        },
+
+        selectSetProperty(roleIndex, actionIndex, propertyName) {
+            this.item.behavior[roleIndex].do[actionIndex].args[0] = propertyName;
+
+            const argMap = this.methodArgumentsMeta[roleIndex][actionIndex].args[0].argMap;
+            if (argMap) {
+                if (argMap[propertyName]) {
+                    this.item.behavior[roleIndex].do[actionIndex].args[1] = argMap[propertyName].defaultValue;
+                }
+            }
+
+            this.$forceUpdate();
         }
     },
 
@@ -181,6 +258,13 @@ export default {
             } else {
                 return method;
             }
+        },
+
+        toPrettySetPropertyName(propertyName, argMap) {
+            if (argMap[propertyName]) {
+                return argMap[propertyName].name;
+            }
+            return propertyName;
         }
     }
 }

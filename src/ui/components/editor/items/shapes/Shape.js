@@ -69,5 +69,8 @@ function make(encodedShape) {
 }
 
 export default {
-    make
+    make,
+    find(id) {
+        return shapeReigstry[id];
+    }
 };
