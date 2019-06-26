@@ -196,9 +196,15 @@ import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
+import UserEventBus from '../../userevents/UserEventBus.js';
+import Compiler from '../../userevents/Compiler.js';
+
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
+
+const userEventBus = new UserEventBus();
+const behaviorCompiler = new Compiler();
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
@@ -250,7 +256,7 @@ export default {
     data() {
         return {
             states: {
-                interact: new StateInteract(this),
+                interact: new StateInteract(this, userEventBus),
                 createComponent: new StateCreateComponent(this),
                 dragItem: new StateDragItem(this),
                 connecting: new StateConnecting(this)
@@ -420,6 +426,7 @@ export default {
         switchStateInteract() {
             this.state = this.states.interact;
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+            this.reindexUserEvents();
             this.state.reset();
         },
         switchStateDragItem() {
@@ -435,6 +442,25 @@ export default {
             this.state = this.states.connecting;
             this.state.reset();
             this.state.setSourceItem(item);
+        },
+
+        reindexUserEvents() {
+            userEventBus.clear();
+            _.forEach(this.interactiveSchemeContainer.getItems(), item => {
+                if (item.behavior) {
+                    _.forEach(item.behavior, rule => {
+                        if (rule.on) {
+                            const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, rule.do);
+
+                            let originator = rule.on.originator;
+                            if (rule.on.originator === 'self') {
+                                originator = item.id;
+                            }
+                            userEventBus.subscribeItemEvent(originator, rule.on.event, rule.on.args, eventCallback);
+                        }
+                    })
+                }
+            })
         },
 
         onSvgItemLinkClick(url, event) {

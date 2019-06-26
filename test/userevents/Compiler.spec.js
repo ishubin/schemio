@@ -36,8 +36,7 @@ describe('UserEvents Compiler', () => {
         }]);
 
 
-        action.execute(schemeContainer, selfItem);
-
+        action();
 
         expect(selfItem).toStrictEqual({
             id: 'qwe',

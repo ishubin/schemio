@@ -33,13 +33,10 @@ export default class Compiler {
             }
         });
 
-        return {
-            funcs,
-            execute() {
-                _.forEach(this.funcs, func => {
-                    func();
-                })
-            }
+        return () => {
+            _.forEach(funcs, func => {
+                func();
+            })
         };
     }
 }

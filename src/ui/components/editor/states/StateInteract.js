@@ -4,12 +4,18 @@
 
 import State from './State.js';
 import EventBus from '../EventBus.js';
+import UserEventBus from '../../../userevents/UserEventBus.js';
 
 /*
 This state works as dragging the screen, zooming, selecting elements
 */
 class StateInteract extends State {
-    constructor(editor) {
+    /**
+     * 
+     * @param {*} editor 
+     * @param {UserEventBus} userEventBus 
+     */
+    constructor(editor, userEventBus) {
         super(editor);
         this.name = 'interact';
         this.schemeContainer = editor.schemeContainer;
@@ -20,6 +26,7 @@ class StateInteract extends State {
         
         // used in order to track whether mousein or mouseout event can be produced
         this.currentHoveredItem = null;
+        this.userEventBus = userEventBus;
     }
 
     reset() {
@@ -89,6 +96,9 @@ class StateInteract extends State {
     }
 
     emit(originator, eventName) {
+        if (originator && originator.id) {
+            this.userEventBus.emitItemEvent(originator.id, eventName);
+        }
     }
 
     dragScreen(x, y) {
