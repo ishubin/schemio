@@ -1239,3 +1239,95 @@ table.position-panel-table .property-label {
 .search-view .category-tree .category-children {
     padding-left: 15px;
 }
+
+
+
+/************* Behavior Properties **********************/
+.behavior-role {
+    padding-bottom: 15px;
+    margin-bottom: 10px;
+    border-bottom: 4px solid #aaa;
+}
+.behavior-trigger {
+    border-radius: 5px;
+    background: #ddd;
+    padding: 8px 7px;
+}
+.behavior-trigger-on {
+    border-radius: 5px;
+    background: #fefefe;
+    color: #aaa;
+    font-weight: bold;
+    padding: 2px 5px;
+}
+.behavior-trigger-originator {
+    border-radius: 5px;
+    background: #999;
+    color: #fff;
+    padding: 2px 5px;
+}
+.behavior-trigger-event {
+    border-radius: 5px;
+    background: #b957f1;
+    color: #fff;
+    padding: 2px 5px;
+}
+.behavior-action-separator {
+    text-align: center;
+    color: #999;
+}
+.behavior-action-add-button {
+    border-radius: 5px;
+    background: #fff;
+    border: 1px dashed #ddd;
+    color: #999;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+.behavior-action-add-button:hover {
+    border: 1px solid #ccc;
+    color: #333;
+}
+.behavior-action {
+    border-radius: 5px;
+    background: #88eb88;
+    padding: 8px 7px;
+}
+.behavior-action-item {
+    border-radius: 5px;
+    background: #999;
+    color: #fff;
+    padding: 2px 5px;
+}
+.behavior-action-method {
+    border-radius: 5px;
+    background: #0486ad;
+    color: #fff;
+    padding: 2px 5px;
+}
+.behavior-action-bracket {
+    font-weight: bold;
+    font-size: 18px;
+}
+.behavior-action-argument {
+    border-radius: 5px;
+    background: #fff;
+    color: #666;
+    padding: 2px 5px;
+    margin-right: 2px;
+    margin-left: 2px;
+}
+.behavior-action-add-argument {
+    border-radius: 5px;
+    background: #fff;
+    border: 1px dashed #ddd;
+    padding: 2px 5px;
+    color: #999;
+    opacity: 0.5;
+    cursor: pointer;
+}
+.behavior-action-add-argument:hover {
+    opacity: 1.0;
+    color: #333;
+}

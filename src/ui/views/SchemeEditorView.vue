@@ -103,7 +103,7 @@
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"
+                            <item-properties :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
                                 @ungroup-item="ungroupItem(selectedItem)"
                             />
                             <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>

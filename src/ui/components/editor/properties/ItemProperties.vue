@@ -5,6 +5,14 @@
 <template lang="html">
     <div class="item-properties">
         <ul class="button-group">
+            <li v-for="tab in tabs">
+                <span class="toggle-button" @click="currentTab = tab.name"
+                    :class="{'toggled': tab.name === currentTab}">
+                    <i :class="[tab.icon]"></i>
+                </span>
+            </li>
+        </ul>
+        <ul class="button-group">
             <li>
                 <span class="toggle-button" @click="toggleItemLock()"
                     :class="{'toggled': itemLocked}"
@@ -19,32 +27,35 @@
             </li>
         </ul>
 
-        <general-panel :item="item"/>
-        <position-panel :item="item"/>
-        <links-panel :item="item"/>
-        <connections-panel :item="item"/>
+        <general-panel v-if="currentTab === 'description'" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :item="item"/>
+        <connections-panel v-if="currentTab === 'description'" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :item="item"/>
 
-        <select v-model="item.shape">
-            <option>none</option>
-            <option>rect</option>
-            <option>ellipse</option>
-        </select>
+        <behavior-properties v-if="currentTab === 'behavior'" :item="item" :scheme-container="schemeContainer"/>
 
-        <panel name="Style">
-            <table>
-                <tbody>
-                    <tr v-for="(arg, argName) in shapeComponent.args">
-                        <td width="50%">{{arg.name}}</td>
-                        <td width="50%">
-                            <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]"/>
-                            <input v-if="arg.type === 'number'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                            <color-picker v-if="arg.type === 'color'" :color="item.style[argName]" @input="item.style[argName]= arguments[0]; redrawItem();"></color-picker>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div v-if="currentTab === 'shape'">
+            <select v-model="item.shape">
+                <option>none</option>
+                <option>rect</option>
+                <option>ellipse</option>
+            </select>
 
-        </panel>
+            <panel name="Style">
+                <table>
+                    <tbody>
+                        <tr v-for="(arg, argName) in shapeComponent.args">
+                            <td width="50%">{{arg.name}}</td>
+                            <td width="50%">
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]"/>
+                                <input v-if="arg.type === 'number'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <color-picker v-if="arg.type === 'color'" :color="item.style[argName]" @input="item.style[argName]= arguments[0]; redrawItem();"></color-picker>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+        </div>
     </div>
 </template>
 
@@ -57,10 +68,11 @@ import LinksPanel from './LinksPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
+import BehaviorProperties from './BehaviorProperties.vue';
 
 export default {
-    props: ['item'],
-    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel},
+    props: ['item', 'schemeContainer'],
+    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -68,6 +80,13 @@ export default {
 
     data() {
         return {
+            tabs: [
+                {name: 'description', icon: 'fas fa-paragraph'},
+                {name: 'shape', icon: 'fas fa-vector-square'},
+                {name: 'position', icon: 'fas fa-map-marker-alt'},
+                {name: 'behavior', icon: 'far fa-hand-point-up'}
+            ],
+            currentTab: 'description',
             itemLocked: this.item.locked || false,
             itemGroup: this.item.group,
             shapeComponent: {},
