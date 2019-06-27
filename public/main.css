@@ -1247,16 +1247,39 @@ table.position-panel-table .property-label {
     margin-bottom: 30px;
 }
 .behavior-trigger {
+    position: relative;
     border-radius: 5px;
     background: #ddd;
-    padding: 8px 7px;
+    padding: 8px 7px 8px 40px;
 }
 .behavior-trigger-on {
+    position: absolute;
+    display: block;
+    top: 8px;
+    left: 7px;
     border-radius: 5px;
     background: none;
     color: #999;
     padding: 2px 5px;
 }
+.behavior-trigger-remove-icon {
+    position: absolute;
+    color: #ff4455;
+    display: none;
+}
+.behavior-trigger:hover .behavior-trigger-on {
+    display: none;
+    padding: 8px 7px;
+}
+.behavior-trigger:hover .behavior-trigger-remove-icon {
+    display: block;
+    left: 7px;
+    top: 8px;
+    cursor: pointer;
+}
+
+
+
 .behavior-trigger-originator-event {
     display: inline-block;
     border-radius: 5px;

@@ -1,8 +1,11 @@
 <template>
     <div>
+        <span class="btn btn-primary" @click="addRole()">Add behavior event</span>
+
         <div class="behavior-role" v-for="(role, roleId) in item.behavior" :key="roleId">
             <div class="behavior-trigger">
                 <span class="behavior-trigger-on">on</span>
+                <span class="behavior-trigger-remove-icon" @click="removeRole(roleId)"><i class="fas fa-times"></i></span>
 
                 <div class="behavior-trigger-originator-event">
                     <dropdown :options="originatorOptions" @selected="selectOriginator(roleId, arguments[0])">
@@ -219,14 +222,17 @@ export default {
             }
 
             this.item.behavior[roleIndex].on.originator = itemId;
+            this.$forceUpdate();
         },
 
         selectTriggerEvent(roleIndex, event) {
             this.item.behavior[roleIndex].on.event = event;
+            this.$forceUpdate();
         },
 
         selectRoleActionItem(roleIndex, actionIndex, itemId) {
             this.item.behavior[roleIndex].do[actionIndex].item = itemId;
+            this.$forceUpdate();
         },
 
         selectRoleActionMethod(roleIndex, actionIndex, method) {
@@ -234,6 +240,7 @@ export default {
                 this.methodArgumentsMeta[roleIndex][actionIndex] = this.argumentsMetaForMethod(this.item.behavior[roleIndex].do[actionIndex].item, method);
             }
             this.item.behavior[roleIndex].do[actionIndex].method = method;
+            this.$forceUpdate();
         },
 
         selectSetProperty(roleIndex, actionIndex, propertyName) {
@@ -256,9 +263,33 @@ export default {
                 args: []
             });
             this.refreshMethodArgumentsMeta();
+            this.$forceUpdate();
         },
+
         removeRoleAction(roleIndex, actionIndex) {
             this.item.behavior[roleIndex].do.splice(actionIndex, 1);
+            this.refreshMethodArgumentsMeta();
+            this.$forceUpdate();
+        },
+
+        removeRole(roleIndex) {
+            this.item.behavior.splice(roleIndex, 1);
+            this.refreshMethodArgumentsMeta();
+            this.$forceUpdate();
+        },
+
+        addRole() {
+            if (!this.item.behavior) {
+                this.item.behavior = [];
+            }
+            this.item.behavior.push({
+                on: {
+                    originator: 'self',
+                    event: 'mousein',
+                    args: []
+                },
+                do: []
+            });
             this.refreshMethodArgumentsMeta();
             this.$forceUpdate();
         }
