@@ -734,10 +734,8 @@ ul.button-group li .toggle-button .small-letter {
     padding-left: 25px;
     font-size: 14px;
 }
-.property-row .color-picker {
-    position: absolute;
-    top: 2px;
-    left: 5px;
+.color-picker {
+    display: inline-block;
 }
 .color-picker-toggle-button {
     display: inline-block;
@@ -1302,9 +1300,21 @@ table.position-panel-table .property-label {
     color: #333;
 }
 .behavior-action {
+    position: relative;
     border-radius: 5px;
     background: #88eb88;
     padding: 8px 7px;
+}
+.behavior-action .behavior-action-remove-icon {
+    position: absolute;
+    display: none;
+    cursor: pointer;
+}
+.behavior-action:hover .behavior-action-remove-icon {
+    display: block;
+    color: #d41958;
+    top: -4px;
+    right: 0;
 }
 .behavior-action-item {
     border-radius: 5px;
@@ -1315,6 +1325,7 @@ table.position-panel-table .property-label {
 .behavior-action-method {
     border-radius: 5px;
     background: #0486ad;
+    display: inline-block;
     color: #fff;
     padding: 2px 5px;
 }
@@ -1324,22 +1335,19 @@ table.position-panel-table .property-label {
 }
 .behavior-action-argument {
     border-radius: 5px;
-    background: #fff;
     color: #666;
+    background: rgba(255, 255, 255, 0.4);
+    color: #000;
     padding: 2px 5px;
     margin-right: 2px;
     margin-left: 2px;
 }
-.behavior-action-add-argument {
-    border-radius: 5px;
+span.behavior-action-argument:hover {
     background: #fff;
-    border: 1px dashed #ddd;
-    padding: 2px 5px;
-    color: #999;
-    opacity: 0.5;
-    cursor: pointer;
 }
-.behavior-action-add-argument:hover {
-    opacity: 1.0;
-    color: #333;
+input.behavior-action-argument {
+    background: #fff;
+    font-size: 14px;
+    width: 60px;
+    border: none;
 }

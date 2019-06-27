@@ -21,7 +21,9 @@
                 </div>
 
                 <div v-for="(action, actionId) in role.do" :key="actionId">
-                    <div class="behavior-action">
+                    <div class="behavior-action" v-if="action.method === 'set'">
+                        <span class="behavior-action-remove-icon" @click="removeRoleAction(roleId, actionId)"><i class="fas fa-times"></i></span>
+
                         <dropdown :options="originatorOptions" @selected="selectRoleActionItem(roleId, actionId, arguments[0])">
                             <span class="behavior-action-item">{{action.item | toOriginatorPrettyName(itemMap) }}</span>
                         </dropdown>
@@ -32,26 +34,37 @@
 
                         <span class="behavior-action-bracket">(</span>
 
-                        <div v-if="action.method === 'set'" style="display: inline-block;">
-                            <dropdown :options="methodArgumentsMeta[roleId][actionId].args[0].options" @selected="selectSetProperty(roleId, actionId, arguments[0])">
-                                <span class="behavior-action-argument">{{action.args[0] | toPrettySetPropertyName(methodArgumentsMeta[roleId][actionId].args[0].argMap) }}</span>
-                            </dropdown>
-                            <span class="behavior-action-bracket">,</span>
+                        <dropdown :options="methodArgumentsMeta[roleId][actionId].args[0].options" @selected="selectSetProperty(roleId, actionId, arguments[0])">
+                            <span class="behavior-action-argument">{{action.args[0] | toPrettySetPropertyName(methodArgumentsMeta[roleId][actionId].args[0].argMap) }}</span>
+                        </dropdown>
+                        <span class="behavior-action-bracket">,</span>
 
 
-                            <color-picker v-if="methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]] && methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]].type === 'color'"
-                                :color="action.args[1]" @input="action.args[1] = arguments[0]; $forceUpdate();"></color-picker>
-                            <input v-else class="behavior-action-argument" v-model="action.args[1]"/>
-                        </div>
+                        <color-picker v-if="methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]] && methodArgumentsMeta[roleId][actionId].args[0].argMap[action.args[0]].type === 'color'"
+                            :color="action.args[1]" @input="action.args[1] = arguments[0]; $forceUpdate();"></color-picker>
+                        <input v-else class="behavior-action-argument" v-model="action.args[1]"/>
 
                         <span class="behavior-action-bracket">)</span>
+                    </div>
+                    <div v-else  class="behavior-action">
+                        <span class="behavior-action-remove-icon" @click="removeRoleAction(roleId, actionId)"><i class="fas fa-times"></i></span>
+
+                        <dropdown :options="originatorOptions" @selected="selectRoleActionItem(roleId, actionId, arguments[0])">
+                            <span class="behavior-action-item">{{action.item | toOriginatorPrettyName(itemMap) }}</span>
+                        </dropdown>
+
+                        <dropdown :options="supportedFunctions" @selected="selectRoleActionMethod(roleId, actionId, arguments[0])">
+                            <span class="behavior-action-method">{{action.method | toPrettyMethod(methodMap) }}</span>
+                        </dropdown>
+
+                        <span class="behavior-action-bracket">()</span>
                     </div>
                     <div class="behavior-action-separator">
                         <i class="fas fa-angle-down"></i>
                     </div>
                 </div>
 
-                <div class="behavior-action-add-button">
+                <div class="behavior-action-add-button" @click="addActionToRole(roleId)">
                     Click to add action
                 </div>
             </div>
@@ -119,6 +132,11 @@ export default {
     },
 
     methods: {
+
+        refreshMethodArgumentsMeta() {
+            this.methodArgumentsMeta = this.createMethodArgumentsMeta(this.item.behavior);
+        },
+
         createMethodArgumentsMeta(behaviorRoles) {
             return _.map(behaviorRoles, role => {
                 return _.map(role.do, action => {
@@ -212,6 +230,9 @@ export default {
         },
 
         selectRoleActionMethod(roleIndex, actionIndex, method) {
+            if (method === 'set') {
+                this.methodArgumentsMeta[roleIndex][actionIndex] = this.argumentsMetaForMethod(this.item.behavior[roleIndex].do[actionIndex].item, method);
+            }
             this.item.behavior[roleIndex].do[actionIndex].method = method;
         },
 
@@ -225,6 +246,20 @@ export default {
                 }
             }
 
+            this.$forceUpdate();
+        },
+
+        addActionToRole(roleIndex) {
+            this.item.behavior[roleIndex].do.push({
+                item: 'self',
+                method: 'select method...',
+                args: []
+            });
+            this.refreshMethodArgumentsMeta();
+        },
+        removeRoleAction(roleIndex, actionIndex) {
+            this.item.behavior[roleIndex].do.splice(actionIndex, 1);
+            this.refreshMethodArgumentsMeta();
             this.$forceUpdate();
         }
     },
