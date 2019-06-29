@@ -168,6 +168,7 @@ export default {
             _.forEach(this.findShapeArgsForItem(itemAction.item), (shapeArg, shapeArgName) => {
                 const propertyPath = `style.${shapeArgName}`;
                 if (firstArg.value === propertyPath) {
+                    firstArg.displayValue = `Shape :: ${shapeArg.name}` ;
                     secondArg.type = shapeArg.type;
                     if (secondArg.value === null || secondArg.value === undefined || secondArg.value === '') {
                         secondArg.value = shapeArg.value;
@@ -180,6 +181,10 @@ export default {
                     _type: shapeArg.type
                 });
             });
+
+            if (!firstArg.displayValue) {
+                firstArg.displayValue = firstArg.value
+            }
 
             return [firstArg, secondArg];
         },
