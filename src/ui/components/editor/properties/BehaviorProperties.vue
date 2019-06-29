@@ -149,11 +149,6 @@ export default {
         },
 
         convertMethodArgumentsForSet(itemAction) {
-            let item = this.item;
-            if (itemAction.item !== 'self') {
-                item = this.schemeContainer.findItemById(itemAction.item);
-            }
-
             const firstArg = {
                 options: [{id: 'opacity', name: 'Opacity', _type: 'text'}],
                 value: itemAction.args? itemAction.args[0]: 'opacity',
@@ -165,28 +160,38 @@ export default {
                 type: 'text'
             };
 
+            _.forEach(this.findShapeArgsForItem(itemAction.item), (shapeArg, shapeArgName) => {
+                const propertyPath = `style.${shapeArgName}`;
+                if (firstArg.value === propertyPath) {
+                    secondArg.type = shapeArg.type;
+                    if (secondArg.value === null || secondArg.value === undefined || secondArg.value === '') {
+                        secondArg.value = shapeArg.value;
+                        secondArg.options = shapeArg.options;
+                    }
+                }
+                firstArg.options.push({
+                    id: propertyPath,
+                    name: `Shape :: ${shapeArg.name}`,
+                    _type: shapeArg.type
+                });
+            });
+
+            return [firstArg, secondArg];
+        },
+
+        findShapeArgsForItem(itemId) {
+            let item = this.item;
+            if (itemId !== 'self') {
+                item = this.schemeContainer.findItemById(itemId);
+            }
+
             if (item) {
                 const shape = Shape.find(item.shape);
                 if (shape) {
-                    _.forEach(shape.args, (shapeArg, shapeArgName) => {
-                        const propertyPath = `style.${shapeArgName}`;
-                        if (firstArg.value === propertyPath) {
-                            secondArg.type = shapeArg.type;
-                            if (secondArg.value === null || secondArg.value === undefined || secondArg.value === '') {
-                                secondArg.value = shapeArg.value;
-                                secondArg.options = shapeArg.options;
-                            }
-                        }
-                        firstArg.options.push({
-                            id: propertyPath,
-                            name: `Shape :: ${shapeArg.name}`,
-                            _type: shapeArg.type
-                        });
-                    });
+                    return shape.args;
                 }
             }
-
-            return [firstArg, secondArg];
+            return {};
         },
 
         createItemMap() {
@@ -237,8 +242,13 @@ export default {
 
                 if (convertedAction.args[0]._type !== convertedAction.args[1].type) {
                     // checking if the type of property has changed - in this case the second argument should be taken from the default value of the property
-                    // by reseting it to null - it will be forced to pick a default value from the shape property
-                    itemAction.args[1] = null;
+                    if (argumentValue.indexOf('style.') === 0) {
+                        const shapePropertyName = argumentValue.substr(argumentValue.indexOf('.') + 1);
+                        const shapeArg = this.findShapeArgsForItem(itemAction.item)[shapePropertyName];
+                        if (shapeArg) {
+                            itemAction.args[1] = shapeArg.value;
+                        }
+                    }
                 }
 
                 this.behaviorEvents[roleIndex].do[actionIndex] = this.convertItemBehaviorAction(this.item.behavior[roleIndex].do[actionIndex]);
