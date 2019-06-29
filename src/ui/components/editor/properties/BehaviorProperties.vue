@@ -56,6 +56,7 @@
 
 <script>
 import _ from 'lodash';
+import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
 import BehaviorArgument from './BehaviorArgument.vue';
@@ -85,6 +86,10 @@ const supportedFunctions = {
         name: 'Show'
     }
 }
+
+const supportedProperties = {
+    opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
+};
 
 export default {
     props: ['item', 'schemeContainer'],
@@ -150,7 +155,7 @@ export default {
 
         convertMethodArgumentsForSet(itemAction) {
             const firstArg = {
-                options: [{id: 'opacity', name: 'Opacity', _type: 'text'}],
+                options: _.chain(supportedProperties).valuesIn().sortBy(arg => arg.id).value(),
                 value: itemAction.args? itemAction.args[0]: 'opacity',
                 type: 'choice'
             };
@@ -179,12 +184,16 @@ export default {
             return [firstArg, secondArg];
         },
 
-        findShapeArgsForItem(itemId) {
+        findItem(itemId) {
             let item = this.item;
             if (itemId !== 'self') {
                 item = this.schemeContainer.findItemById(itemId);
             }
+            return item;
+        },
 
+        findShapeArgsForItem(itemId) {
+            const item = this.findItem(itemId);
             if (item) {
                 const shape = Shape.find(item.shape);
                 if (shape) {
@@ -239,15 +248,11 @@ export default {
 
             if (itemAction.method === 'set' && argumentIndex === 0) {
                 // do it only in case the property name was changed for the "set" method, so that we re-render control for the 2-nd argument
-
-                if (convertedAction.args[0]._type !== convertedAction.args[1].type) {
-                    // checking if the type of property has changed - in this case the second argument should be taken from the default value of the property
-                    if (argumentValue.indexOf('style.') === 0) {
-                        const shapePropertyName = argumentValue.substr(argumentValue.indexOf('.') + 1);
-                        const shapeArg = this.findShapeArgsForItem(itemAction.item)[shapePropertyName];
-                        if (shapeArg) {
-                            itemAction.args[1] = shapeArg.value;
-                        }
+                const item = this.findItem(itemAction.item);
+                if (item) {
+                    const propertyValue = utils.getObjectProperty(item, argumentValue);
+                    if (propertyValue !== undefined && propertyValue !== null) {
+                        itemAction.args[1] = propertyValue;
                     }
                 }
 

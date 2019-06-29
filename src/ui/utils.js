@@ -66,9 +66,48 @@ function extendObject(originalObject, overrideObject) {
     });
 }
 
+
+/**
+ * 
+ * @param {object} obj 
+ * @param {string} propertyPath - a dot separated path to a property inside a given object
+ */
+function getObjectProperty(item, propertyPath) {
+    if (item) {
+        const objectPath = propertyPath.split('.');
+        let field = item;
+        let i = 0;
+        while(i < objectPath.length) {
+            const fieldName = objectPath[i].trim();
+            if (fieldName) {
+                if (i < objectPath.length - 1) {
+                    field = field[fieldName];
+                    if (typeof field !== 'object') {
+                        // not doing anything since there is a conflict
+                        return undefined;
+                    }
+                } else {
+                    // this is the lowest nested property
+                    if (field.hasOwnProperty(fieldName)) {
+                        return field[fieldName];
+                    }
+                }
+            } else {
+                //Probably an error
+                return undefined;
+            }
+            i += 1;
+        }
+    }
+    return undefined;
+}
+
+
+
 module.exports = {
     formatDateAndTime,
     clone,
     extendObject,
-    sanitizeScheme
+    sanitizeScheme,
+    getObjectProperty
 };
