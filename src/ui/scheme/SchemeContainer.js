@@ -37,6 +37,7 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = items[0].area.h;
 
             _.forEach(items, item => {
+                this.enrichItemWithDefaults(item);
                 if (!item.meta) {
                     item.meta = {};
                 }
@@ -64,6 +65,12 @@ class SchemeContainer {
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         }
+    }
+
+    enrichItemWithDefaults(item) {
+        utils.extendObject(item, {
+            visible: true 
+        });
     }
 
     buildItemConnectors(item) {

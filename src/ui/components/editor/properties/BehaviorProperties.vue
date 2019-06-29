@@ -59,6 +59,7 @@ import _ from 'lodash';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import Functions from '../../../userevents/functions/Functions.js';
 import BehaviorArgument from './BehaviorArgument.vue';
 
 const supportedEvents = {
@@ -72,20 +73,22 @@ const supportedEvents = {
     }
 };
 
-const supportedFunctions = {
-    set: {
-        id: 'set',
-        name: 'Set'
-    },
-    hide: {
-        id: 'hide',
-        name: 'Hide'
-    },
-    show: {
-        id: 'show',
-        name: 'Show'
-    }
-}
+// const supportedFunctions = {
+//     set: {
+//         id: 'set',
+//         name: 'Set'
+//     },
+//     hide: {
+//         id: 'hide',
+//         name: 'Hide'
+//     },
+//     show: {
+//         id: 'show',
+//         name: 'Show'
+//     }
+// }
+
+const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}

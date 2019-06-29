@@ -4,7 +4,7 @@
 
 <template lang="html">
     <g :data-item-index="0" :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity}">
-        <component v-if="shapeComponent" :is="shapeComponent" :item="item"></component>
+        <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item"></component>
     </g>
 </template>
 

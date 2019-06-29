@@ -41,6 +41,19 @@
                 <option>ellipse</option>
             </select>
 
+            <panel name="General">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td width="50%">Visible</td>
+                            <td width="50%">
+                                <input class="checkbox" type="checkbox" v-model="item.visible"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+
             <panel name="Style">
                 <table>
                     <tbody>
