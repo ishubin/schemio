@@ -257,11 +257,13 @@ export default {
         },
 
         addActionToRole(roleIndex) {
-            this.item.behavior[roleIndex].do.push({
+            const action = {
                 item: 'self',
                 method: 'show',
                 args: []
-            });
+            }; 
+            this.item.behavior[roleIndex].do.push(action);
+            this.behaviorEvents[roleIndex].do.push(this.convertItemBehaviorAction(action));
             this.$forceUpdate();
         },
 
@@ -281,14 +283,16 @@ export default {
             if (!this.item.behavior) {
                 this.item.behavior = [];
             }
-            this.item.behavior.push({
+            const newEvent = {
                 on: {
                     originator: 'self',
                     event: 'mousein',
                     args: []
                 },
                 do: []
-            });
+            };
+            this.item.behavior.push(newEvent);
+            this.behaviorEvents.push(this.convertItemBehaviorEvent(newEvent));
             this.$forceUpdate();
         }
     },
