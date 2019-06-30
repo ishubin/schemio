@@ -73,21 +73,6 @@ const supportedEvents = {
     }
 };
 
-// const supportedFunctions = {
-//     set: {
-//         id: 'set',
-//         name: 'Set'
-//     },
-//     hide: {
-//         id: 'hide',
-//         name: 'Hide'
-//     },
-//     show: {
-//         id: 'show',
-//         name: 'Show'
-//     }
-// }
-
 const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
 
 const supportedProperties = {

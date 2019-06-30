@@ -12,25 +12,11 @@
                 </span>
             </li>
         </ul>
-        <ul class="button-group">
-            <li>
-                <span class="toggle-button" @click="toggleItemLock()"
-                    :class="{'toggled': itemLocked}"
-                    >
-                    <i class="fas" :class="[itemLocked ? 'fa-lock' : 'fa-unlock']"></i>
-                </span>
-            </li>
-            <li v-if="itemGroup">
-                <span class="toggle-button" @click="ungroupItem()">
-                    <i class="fas fa-object-ungroup"></i>
-                </span>
-            </li>
-        </ul>
 
         <general-panel v-if="currentTab === 'description'" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :item="item"/>
         <connections-panel v-if="currentTab === 'description'" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :item="item" @ungroup-item="$emit('ungroup-item')"/>
 
         <behavior-properties v-if="currentTab === 'behavior'" :item="item" :scheme-container="schemeContainer"/>
 
@@ -100,8 +86,6 @@ export default {
                 {name: 'behavior', icon: 'far fa-hand-point-up'}
             ],
             currentTab: 'description',
-            itemLocked: this.item.locked || false,
-            itemGroup: this.item.group,
             shapeComponent: {},
             oldShape: this.item.shape
         };
@@ -116,16 +100,6 @@ export default {
                 this.item.style[styleArgName] = text;
             }
         },
-        toggleItemLock() {
-            this.itemLocked = !this.itemLocked;
-            this.item.locked = this.itemLocked;
-        },
-
-        ungroupItem() {
-            this.$emit('ungroup-item');
-            this.itemGroup = null;
-        },
-
         switchShape(shape) {
             this.oldShape = this.item.shape;
             this.shapeComponent = Shape.make(shape);

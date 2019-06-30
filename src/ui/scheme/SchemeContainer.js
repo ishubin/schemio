@@ -69,7 +69,8 @@ class SchemeContainer {
 
     enrichItemWithDefaults(item) {
         utils.extendObject(item, {
-            visible: true 
+            visible: true,
+            text: ''
         });
     }
 
