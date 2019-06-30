@@ -35,9 +35,7 @@ export default {
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
-    },
-
-    name: 'rect-shape-svg-component'
+    }
 }
 </script>
 

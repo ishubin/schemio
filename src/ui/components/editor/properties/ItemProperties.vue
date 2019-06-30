@@ -56,9 +56,14 @@
                         <tr v-for="(arg, argName) in shapeComponent.args">
                             <td width="50%">{{arg.name}}</td>
                             <td width="50%">
-                                <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]"/>
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <color-picker v-if="arg.type === 'color'" :color="item.style[argName]" @input="item.style[argName]= arguments[0]; redrawItem();"></color-picker>
+
+                                <input v-if="arg.type === 'image'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <div v-if="arg.type === 'image'">
+                                    <img :src="item.style[argName]" style="max-width: 60px; max-height: 60px;"/>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
