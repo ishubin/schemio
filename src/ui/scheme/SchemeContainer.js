@@ -70,6 +70,7 @@ class SchemeContainer {
     enrichItemWithDefaults(item) {
         utils.extendObject(item, {
             visible: true,
+            blendMode: 'normal',
             text: ''
         });
     }

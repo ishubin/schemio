@@ -30,6 +30,13 @@
             <h5>Opacity</h5>
             <input class="textfield" type="text" v-model="item.opacity"/>
 
+
+            Blend Mode: 
+            <select v-model="item.blendMode">
+                <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
+            </select>
+
+
             <panel name="General">
                 <table>
                     <tbody>
@@ -90,7 +97,11 @@ export default {
             ],
             currentTab: 'description',
             shapeComponent: {},
-            oldShape: this.item.shape
+            oldShape: this.item.shape,
+            knownBlendModes: [  'normal', 'multiply', 'screen', 'overlay', 'darken', 
+                                'lighten', 'color-dodge', 'color-burn', 'difference',
+                                'exclusion', 'hue', 'saturation', 'color', 'luminosity'
+            ]
         };
     },
 

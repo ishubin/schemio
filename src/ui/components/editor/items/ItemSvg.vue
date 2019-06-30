@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :data-item-index="0" :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity}">
+    <g :data-item-index="0" :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}">
         <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item"></component>
     </g>
 </template>
