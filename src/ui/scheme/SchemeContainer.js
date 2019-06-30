@@ -6,6 +6,7 @@ import _ from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
+import Shape from '../components/editor/items/shapes/Shape.js';
 
 
 const CONNECTOR_SMOOTH_RATIO = 6;
@@ -68,11 +69,21 @@ class SchemeContainer {
     }
 
     enrichItemWithDefaults(item) {
-        utils.extendObject(item, {
+        const props = {
             visible: true,
             blendMode: 'normal',
-            text: ''
-        });
+            text: '',
+            style: {}
+        };
+        if (item.shape) {
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                _.forEach(shape.args, (arg, argName) => {
+                    props.style[argName] = arg.value;
+                });
+            }
+        }
+        utils.extendObject(item, props);
     }
 
     buildItemConnectors(item) {
