@@ -219,17 +219,14 @@ export default {
         clickComment() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'comment',
                 interactive: false,
+                blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    shape: 'simple-comment',
-                    background: { color: '#ccc' },
-                    text: {color: '#333'},
-                    stroke: {color: '#fff'}
-                },
+                shape: 'comment',
+                style: { },
                 name: '',
-                description: 'Leave a comment ...',
+                description: '',
+                text: 'Leave a comment ...',
                 links: []
             });
         },

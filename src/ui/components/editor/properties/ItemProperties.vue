@@ -22,9 +22,7 @@
 
         <div v-if="currentTab === 'shape'">
             <select v-model="item.shape">
-                <option>none</option>
-                <option>rect</option>
-                <option>ellipse</option>
+                <option v-for="shape in knownShapes">{{shape}}</option>
             </select>
 
             <h5>Opacity</h5>
@@ -105,6 +103,8 @@ export default {
                 {name: 'position', icon: 'fas fa-map-marker-alt'},
                 {name: 'behavior', icon: 'far fa-hand-point-up'}
             ],
+
+            knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
             currentTab: 'description',
             shapeComponent: {},
             oldShape: this.item.shape,

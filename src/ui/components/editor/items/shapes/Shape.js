@@ -2,12 +2,14 @@ import Vue from 'vue';
 import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
+import CommentShape from './CommentShape.vue';
 
 
 const shapeReigstry = {
     none: { args: NoneShape.args, component: NoneShape },
     rect: { args: Rect.args, component: Rect},
-    ellipse: { args: Ellipse.args, component: Ellipse}
+    ellipse: { args: Ellipse.args, component: Ellipse},
+    comment: { args: CommentShape.args, component: CommentShape}
 };
 
 /**
@@ -34,6 +36,7 @@ function make(encodedShape) {
 
 export default {
     make,
+    shapeReigstry,
     find(id) {
         return shapeReigstry[id];
     }
