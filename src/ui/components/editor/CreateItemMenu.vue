@@ -123,6 +123,8 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                interactive: false,
+                blendMode: 'normal',
                 shape: 'rect',
                 opacity: 1.0,
                 style: {
@@ -140,6 +142,8 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                interactive: false,
+                blendMode: 'normal',
                 shape: 'ellipse',
                 opacity: 1.0,
                 style: {
@@ -157,6 +161,8 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                interactive: true,
+                blendMode: 'normal',
                 shape: 'rect',
                 opacity: 0.2,
                 style: {
@@ -198,6 +204,7 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
                 interactive: false,
+                blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'none',
                 style: {
@@ -230,13 +237,17 @@ export default {
         clickArt(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                interactive: true,
-                url: art.url,
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {},
-                properties: '',
+                interactive: false,
+                shape: 'rect',
+                blendMode: 'normal',
+                area: { x: 0, y: 0, w: 0, h: 0},
+                style: {
+                    backgroundImage: art.url,
+                    strokeSize: 0
+                },
                 name: '',
                 description: '',
+                text: '',
                 links: []
             });
         },
