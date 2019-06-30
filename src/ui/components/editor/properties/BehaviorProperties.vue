@@ -1,5 +1,10 @@
 <template>
     <div>
+        <div>
+            <input type="checkbox" v-model="item.interactive">
+            <span class="property-label">Interactive</span>
+        </div>
+
         <span class="btn btn-primary" @click="addRole()">Add behavior event</span>
 
         <div class="behavior-role" v-for="(role, roleId) in behaviorEvents" :key="roleId">

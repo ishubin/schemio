@@ -27,6 +27,9 @@
                 <option>ellipse</option>
             </select>
 
+            <h5>Opacity</h5>
+            <input class="textfield" type="text" v-model="item.opacity"/>
+
             <panel name="General">
                 <table>
                     <tbody>
