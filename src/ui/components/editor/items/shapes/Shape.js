@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import Rect from './Rect.vue';
 
 
 const shapeReigstry = {
@@ -10,21 +11,8 @@ const shapeReigstry = {
         `
     },
     rect: {
-        args: {
-            strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
-            strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-            fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
-        },
-        template: `
-            <g>
-                <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
-                    :data-item-id="item.id"
-                    class="item-hoverable"
-                    :stroke-width="item.style.strokeSize + \'px\'"
-                    :stroke="item.style.strokeColor"
-                    :fill="item.style.fillColor"></rect>
-            </g>
-        `
+        args: Rect.args,
+        component: Rect
     },
     ellipse: {
         args: {
@@ -54,7 +42,7 @@ function make(encodedShape) {
     if (shapeReigstry[encodedShape]) {
         const shape = shapeReigstry[encodedShape];
 
-        if (!shape.vueComponentName) {
+        if (!shape.component && !shape.vueComponentName) {
             const componentName = `${encodedShape}-shape-svg-component`;
             Vue.component(componentName, {
                 props: ['item'],

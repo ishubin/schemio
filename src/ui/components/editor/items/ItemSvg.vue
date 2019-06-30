@@ -28,9 +28,14 @@ export default {
     },
 
     methods: {
-        switchShape(shape) {
+        switchShape(shapeId) {
             this.oldShape = this.item.shape;
-            this.shapeComponent = Shape.make(shape).vueComponentName;
+            const shape = Shape.make(shapeId);
+            if (shape.component) {
+                this.shapeComponent = shape.component;
+            } else {
+                this.shapeComponent = shape.vueComponentName;
+            }
         }
     },
 
