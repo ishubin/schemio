@@ -18,6 +18,15 @@
                 ></div>
         </foreignObject>
 
+
+        <foreignObject v-if="item.style.showName && item.name"
+            :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
+            <div class="item-text-container"
+                :style="nameStyle"
+                >{{item.name}}</div>
+
+        </foreignObject>
+
         <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
             :data-item-id="item.id"
             class="item-hoverable"
@@ -40,7 +49,11 @@ export default {
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
-        backgroundImage: {type: 'image', value: '', name: 'Image Background'}
+        backgroundImage: {type: 'image', value: '', name: 'Image Background'},
+        showName: {type: 'boolean', value: false, name: 'Show Name'},
+        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
+        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
+
     },
     data() {
         return {
@@ -54,6 +67,34 @@ export default {
             } else {
                 return this.item.style.fillColor;
             }
+        },
+
+        nameStyle() {
+            let displace = 50;
+            if (this.item.style.namePosition === 'top') {
+                displace = 100;
+            } else if (this.item.style.namePosition === 'bottom') {
+                displace = 0;
+            }
+
+            return {
+                color: this.item.style.nameColor,
+                'text-align': 'center',
+                'vertical-align': 'middle',
+                position: 'relative',
+                top: `${displace}%`,
+                transform: `translateY(${-displace}%)`
+            };
+        },
+
+        nameArea() {
+            const height = 60;
+            if (this.item.style.namePosition === 'top') {
+                return {x: 0, y:-height, w: this.item.area.w, h: height};
+            } else if (this.item.style.namePosition === 'bottom') {
+                return {x: 0, y:this.item.area.h, w: this.item.area.w, h: height};
+            }
+            return {x: 0, y: 0, w: this.item.area.w, h: this.item.area.h};
         }
     }
 }

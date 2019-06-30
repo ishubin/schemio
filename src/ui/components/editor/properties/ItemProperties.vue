@@ -64,6 +64,11 @@
                                 <div v-if="arg.type === 'image'">
                                     <img :src="item.style[argName]" style="max-width: 60px; max-height: 60px;"/>
                                 </div>
+                                <input v-if="arg.type === 'boolean'" type="checkbox" v-model="item.style[argName]"/>
+
+                                <select v-if="arg.type === 'choice'" v-model="item.style[argName]">
+                                    <option v-for="argOption in arg.options">{{argOption}}</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
@@ -118,6 +123,10 @@ export default {
             } else {
                 this.item.style[styleArgName] = text;
             }
+        },
+        onStyleCheckboxChange(styleArgName, componentArg, event) {
+            this.item.style[styleArgName] = event.srcElement.checked;
+            console.log(JSON.stringify(this.item.style, null, 2));
         },
         switchShape(shape) {
             this.oldShape = this.item.shape;
