@@ -197,17 +197,14 @@ export default {
         clickText() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'comment',
                 interactive: false,
                 area: { x: 0, y: 0, w: 0, h: 0 },
+                shape: 'none',
                 style: {
-                    shape: 'none',
-                    background: { color: '#ccc' },
-                    text: {color: '#333'},
-                    stroke: {color: '#fff'}
                 },
                 name: '',
-                description: 'Leave a comment ...',
+                description: '',
+                text: 'Text ...',
                 links: []
             });
         },
@@ -233,10 +230,8 @@ export default {
         clickArt(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'image',
                 interactive: true,
                 url: art.url,
-                artId: art.id,
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 style: {},
                 properties: '',
@@ -255,13 +250,20 @@ export default {
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    EventBus.$emit(EventBus.PLACE_ITEM, {
+                    EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                         id: shortid.generate(),
-                        type: 'image',
-                        url: imageUrl,
-                        area: { x: 0, y: 0, w: this.width, h: this.height },
+                        interactive: false,
+                        shape: 'rect',
+                        blendMode: 'normal',
+                        area: { x: 0, y: 0, w: 0, h: 0},
+                        style: {
+                            backgroundImage: imageUrl,
+                            strokeSize: 0
+                        },
                         name: '',
-                        description: ''
+                        description: '',
+                        text: '',
+                        links: []
                     });
                 }
                 this.createImageModalShown = false;

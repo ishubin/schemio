@@ -189,15 +189,17 @@ export default class StateDragItem extends State {
             this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
             EventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
         }
-        if (event.doubleClick && object.connector) {
-            if (object.rerouteId >= 0) {
-                object.connector.reroutes.splice(object.rerouteId, 1);
-                this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                EventBus.emitRedrawConnector(object.connector.id);
-            } else {
-                var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                EventBus.emitRedrawConnector(object.connector.id);
-            }
+        if (event.doubleClick) {
+            if (object.connector) {
+                if (object.rerouteId >= 0) {
+                    object.connector.reroutes.splice(object.rerouteId, 1);
+                    this.schemeContainer.buildConnector(object.sourceItem, object.connector);
+                    EventBus.emitRedrawConnector(object.connector.id);
+                } else {
+                    this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
+                    EventBus.emitRedrawConnector(object.connector.id);
+                }
+           }
         }
         this.reset();
     }

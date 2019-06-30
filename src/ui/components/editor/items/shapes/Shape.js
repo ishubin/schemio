@@ -1,16 +1,11 @@
 import Vue from 'vue';
+import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
 
 
 const shapeReigstry = {
-    none: {
-        args: {},
-        template: `
-            <g>
-            </g>
-        `
-    },
+    none: { args: NoneShape.args, component: NoneShape },
     rect: { args: Rect.args, component: Rect},
     ellipse: { args: Ellipse.args, component: Ellipse}
 };
