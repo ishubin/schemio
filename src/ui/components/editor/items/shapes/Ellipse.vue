@@ -1,23 +1,26 @@
 <template>
     <g>
-        <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
-            :stroke-width="item.style.strokeSize + 'px'"
+        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
             :stroke="item.style.strokeColor"
-            :fill="item.style.fillColor"></rect>
+            :stroke-width="item.style.strokeSize + 'px'"
+            :fill="item.style.fillColor"
+        />
 
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
                 :style="{'padding-left': item.style.textPaddingLeft+'px', 'padding-right': item.style.textPaddingRight+'px', 'padding-top': item.style.textPaddingTop+'px', 'padding-bottom': item.style.textPaddingBottom+'px' }"
+                style="text-align: center; vertical-align: middle; position: relative; top: 50%; transform: translateY(-50%);"
                 ></div>
         </foreignObject>
 
-        <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
+        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
             :data-item-id="item.id"
             class="item-hoverable"
-            :stroke-width="item.style.strokeSize + 'px'"
             stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)"></rect>
+            :stroke-width="item.style.strokeSize + 'px'"
+            fill="rgba(255, 255, 255, 0)"
+        />
     </g>
 </template>
 <script>
@@ -37,4 +40,5 @@ export default {
     name: 'rect-shape-svg-component'
 }
 </script>
+
 

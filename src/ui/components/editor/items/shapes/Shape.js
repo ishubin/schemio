@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import Rect from './Rect.vue';
+import Ellipse from './Ellipse.vue';
 
 
 const shapeReigstry = {
@@ -10,28 +11,8 @@ const shapeReigstry = {
             </g>
         `
     },
-    rect: {
-        args: Rect.args,
-        component: Rect
-    },
-    ellipse: {
-        args: {
-            strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
-            strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-            fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
-        },
-        template: `
-            <g>
-                <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
-                    :data-item-id="item.id"
-                    class="item-hoverable"
-                    :stroke="item.style.strokeColor"
-                    :stroke-width="item.style.strokeSize + 'px'"
-                    :fill="item.style.fillColor"
-                />
-            </g>
-        `
-    }
+    rect: { args: Rect.args, component: Rect},
+    ellipse: { args: Ellipse.args, component: Ellipse}
 };
 
 /**

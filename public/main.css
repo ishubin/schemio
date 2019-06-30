@@ -451,7 +451,7 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
 }
 
 
-svg .comment-item-foreign-container > p:first-child {
+svg foreignObject .item-text-container > p:first-child {
     margin-top: 0;
 }
 
