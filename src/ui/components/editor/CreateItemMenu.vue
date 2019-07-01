@@ -127,7 +127,7 @@ export default {
                 blendMode: 'normal',
                 shape: 'rect',
                 opacity: 1.0,
-                style: {
+                shapeProps: {
                     strokeSize: 5,
                     strokeColor: '#34f',
                     fillColor: '#f00'
@@ -146,7 +146,7 @@ export default {
                 blendMode: 'normal',
                 shape: 'ellipse',
                 opacity: 1.0,
-                style: {
+                shapeProps: {
                     strokeSize: 5,
                     strokeColor: '#34f',
                     fillColor: '#f00'
@@ -165,11 +165,10 @@ export default {
                 blendMode: 'normal',
                 shape: 'rect',
                 opacity: 0.2,
-                style: {
+                shapeProps: {
                     strokeSize: 1,
                     strokeColor: '#000',
-                    fillColor: '#fff',
-                    strokePattern: 'dashed'
+                    fillColor: '#fff'
                 },
                 behavior: [ {
                     on: {
@@ -207,7 +206,7 @@ export default {
                 blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'none',
-                style: {
+                shapeProps: {
                 },
                 name: '',
                 description: '',
@@ -223,7 +222,7 @@ export default {
                 blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
                 shape: 'comment',
-                style: { },
+                shapeProps: { },
                 name: '',
                 description: '',
                 text: 'Leave a comment ...',
@@ -238,7 +237,7 @@ export default {
                 shape: 'rect',
                 blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0},
-                style: {
+                shapeProps: {
                     backgroundImage: art.url,
                     strokeSize: 0
                 },
@@ -264,7 +263,7 @@ export default {
                         shape: 'rect',
                         blendMode: 'normal',
                         area: { x: 0, y: 0, w: 0, h: 0},
-                        style: {
+                        shapeProps: {
                             backgroundImage: imageUrl,
                             strokeSize: 0
                         },

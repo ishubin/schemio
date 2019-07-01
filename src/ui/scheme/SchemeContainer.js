@@ -73,13 +73,13 @@ class SchemeContainer {
             visible: true,
             blendMode: 'normal',
             text: '',
-            style: {}
+            shapeProps: {}
         };
         if (item.shape) {
             const shape = Shape.find(item.shape);
             if (shape) {
                 _.forEach(shape.args, (arg, argName) => {
-                    props.style[argName] = arg.value;
+                    props.shapeProps[argName] = arg.value;
                 });
             }
         }
@@ -173,7 +173,7 @@ class SchemeContainer {
     }
 
     findEdgePoint(item, nextPoint, allowPerpendicularLines) {
-        if (item.type === 'component' && item.style.shape === 'ellipse') {
+        if (item.type === 'component' && item.shapeProps.shape === 'ellipse') {
             return this.findEdgePointOnEllipse(item.area, nextPoint);
         } else {
             if (allowPerpendicularLines) {

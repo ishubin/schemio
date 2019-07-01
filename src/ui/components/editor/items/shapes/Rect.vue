@@ -1,25 +1,25 @@
 <template>
     <g>
-        <defs v-if="item.style.backgroundImage">
+        <defs v-if="item.shapeProps.backgroundImage">
             <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.style.backgroundImage" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+                <image :xlink:href="item.shapeProps.backgroundImage" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
             </pattern>
         </defs>
 
         <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
-            :stroke-width="item.style.strokeSize + 'px'"
-            :stroke="item.style.strokeColor"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :stroke="item.shapeProps.strokeColor"
             :fill="fill"></rect>
 
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
-                :style="{'padding-left': item.style.textPaddingLeft+'px', 'padding-right': item.style.textPaddingRight+'px', 'padding-top': item.style.textPaddingTop+'px', 'padding-bottom': item.style.textPaddingBottom+'px' }"
+                :style="{'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
                 ></div>
         </foreignObject>
 
 
-        <foreignObject v-if="item.style.showName && item.name"
+        <foreignObject v-if="item.shapeProps.showName && item.name"
             :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
             <div class="item-text-container"
                 :style="nameStyle"
@@ -30,7 +30,7 @@
         <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
             :data-item-id="item.id"
             class="item-hoverable"
-            :stroke-width="item.style.strokeSize + 'px'"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
             stroke="rgba(255, 255, 255, 0)"
             fill="rgba(255, 255, 255, 0)"></rect>
     </g>
@@ -62,23 +62,23 @@ export default {
     },
     computed: {
         fill() {
-            if (this.item.style.backgroundImage) {
+            if (this.item.shapeProps.backgroundImage) {
                 return `url(#${this.backgroundImageId})`;
             } else {
-                return this.item.style.fillColor;
+                return this.item.shapeProps.fillColor;
             }
         },
 
         nameStyle() {
             let displace = 50;
-            if (this.item.style.namePosition === 'top') {
+            if (this.item.shapeProps.namePosition === 'top') {
                 displace = 100;
-            } else if (this.item.style.namePosition === 'bottom') {
+            } else if (this.item.shapeProps.namePosition === 'bottom') {
                 displace = 0;
             }
 
             return {
-                color: this.item.style.nameColor,
+                color: this.item.shapeProps.nameColor,
                 'text-align': 'center',
                 'vertical-align': 'middle',
                 position: 'relative',
@@ -89,9 +89,9 @@ export default {
 
         nameArea() {
             const height = 60;
-            if (this.item.style.namePosition === 'top') {
+            if (this.item.shapeProps.namePosition === 'top') {
                 return {x: 0, y:-height, w: this.item.area.w, h: height};
-            } else if (this.item.style.namePosition === 'bottom') {
+            } else if (this.item.shapeProps.namePosition === 'bottom') {
                 return {x: 0, y:this.item.area.h, w: this.item.area.w, h: height};
             }
             return {x: 0, y: 0, w: this.item.area.w, h: this.item.area.h};

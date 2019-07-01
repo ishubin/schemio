@@ -3,7 +3,7 @@
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
-                :style="{'padding-left': item.style.textPaddingLeft+'px', 'padding-right': item.style.textPaddingRight+'px', 'padding-top': item.style.textPaddingTop+'px', 'padding-bottom': item.style.textPaddingBottom+'px' }"
+                :style="{'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
                 ></div>
         </foreignObject>
     </g>

@@ -54,17 +54,17 @@
                         <tr v-for="(arg, argName) in shapeComponent.args">
                             <td width="50%">{{arg.name}}</td>
                             <td width="50%">
-                                <input v-if="arg.type === 'string'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                                <input v-if="arg.type === 'number'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                                <color-picker v-if="arg.type === 'color'" :color="item.style[argName]" @input="item.style[argName]= arguments[0]; redrawItem();"></color-picker>
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="item.shapeProps[argName]= arguments[0]; redrawItem();"></color-picker>
 
-                                <input v-if="arg.type === 'image'" class="textfield" :value="item.style[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <div v-if="arg.type === 'image'">
-                                    <img :src="item.style[argName]" style="max-width: 60px; max-height: 60px;"/>
+                                    <img :src="item.shapeProps[argName]" style="max-width: 60px; max-height: 60px;"/>
                                 </div>
-                                <input v-if="arg.type === 'boolean'" type="checkbox" v-model="item.style[argName]"/>
+                                <input v-if="arg.type === 'boolean'" type="checkbox" v-model="item.shapeProps[argName]"/>
 
-                                <select v-if="arg.type === 'choice'" v-model="item.style[argName]">
+                                <select v-if="arg.type === 'choice'" v-model="item.shapeProps[argName]">
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
                             </td>
@@ -119,13 +119,13 @@ export default {
         onStyleInputChange(styleArgName, componentArg, event) {
             const text = event.target.value;
             if (componentArg.type === 'number') {
-                this.item.style[styleArgName] = parseInt(text) || 0;
+                this.item.shapeProps[styleArgName] = parseInt(text) || 0;
             } else {
-                this.item.style[styleArgName] = text;
+                this.item.shapeProps[styleArgName] = text;
             }
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
-            this.item.style[styleArgName] = event.srcElement.checked;
+            this.item.shapeProps[styleArgName] = event.srcElement.checked;
             console.log(JSON.stringify(this.item.style, null, 2));
         },
         switchShape(shape) {

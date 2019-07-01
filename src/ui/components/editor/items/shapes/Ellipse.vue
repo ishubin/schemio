@@ -1,15 +1,15 @@
 <template>
     <g>
         <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
-            :stroke="item.style.strokeColor"
-            :stroke-width="item.style.strokeSize + 'px'"
-            :fill="item.style.fillColor"
+            :stroke="item.shapeProps.strokeColor"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :fill="item.shapeProps.fillColor"
         />
 
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
-                :style="{'padding-left': item.style.textPaddingLeft+'px', 'padding-right': item.style.textPaddingRight+'px', 'padding-top': item.style.textPaddingTop+'px', 'padding-bottom': item.style.textPaddingBottom+'px' }"
+                :style="{'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
                 style="text-align: center; vertical-align: middle; position: relative; top: 50%; transform: translateY(-50%);"
                 ></div>
         </foreignObject>
@@ -18,7 +18,7 @@
             :data-item-id="item.id"
             class="item-hoverable"
             stroke="rgba(255, 255, 255, 0)"
-            :stroke-width="item.style.strokeSize + 'px'"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
             fill="rgba(255, 255, 255, 0)"
         />
     </g>
