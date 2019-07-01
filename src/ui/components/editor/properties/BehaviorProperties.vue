@@ -66,17 +66,7 @@ import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import BehaviorArgument from './BehaviorArgument.vue';
-
-const supportedEvents = {
-    mousein: {
-        id: 'mousein',
-        name: 'Mouse In'
-    },
-    mouseout: {
-        id: 'mouseout',
-        name: 'Mouse Out'
-    }
-};
+import Events from '../../../userevents/Events.js';
 
 const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
 
@@ -100,7 +90,7 @@ export default {
             itemMap: this.createItemMap(),
             items: items,
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
-            itemEvents: _.chain(supportedEvents).values().sortBy(event => event.name).value(),
+            itemEvents: _.chain(Events.standardEvents).values().sortBy(event => event.name).value(),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
             behaviorEvents: this.convertItemBehavior(this.item.behavior)
@@ -224,6 +214,7 @@ export default {
 
         selectTriggerEvent(roleIndex, event) {
             this.item.behavior[roleIndex].on.event = event;
+            this.behaviorEvents[roleIndex].on = this.convertItemBehaviorEventOnStatement(this.item.behavior[roleIndex].on);
             this.$forceUpdate();
         },
 
@@ -316,8 +307,8 @@ export default {
         },
 
         toPrettyEventName(event) {
-            if (supportedEvents[event]) {
-                return supportedEvents[event].name;
+            if (Events.standardEvents[event]) {
+                return Events.standardEvents[event].name;
             } else {
                 return event;
             }
