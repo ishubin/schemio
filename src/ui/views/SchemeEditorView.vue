@@ -103,7 +103,7 @@
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :item="selectedItem" v-if="selectedItem && mode === 'edit'"
+                            <item-properties :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
                                 @ungroup-item="ungroupItem(selectedItem)"
                             />
                             <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
@@ -140,7 +140,6 @@
 <script>
 import utils from '../utils.js';
 import HeaderComponent from '../components/Header.vue';
-import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
@@ -162,7 +161,7 @@ import convertSvgToDataUrl from '../svgPreview.js';
 export default {
     components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
-        CreateNewSchemeModal, LinkEditPopup, Dropdown, ItemListPopup, HeaderComponent},
+        CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent},
 
     mounted() {
         window.onbeforeunload = this.onBrowseClose;
@@ -197,12 +196,6 @@ export default {
             user: null,
             schemeId: null,
             originalUrlEncoded: encodeURIComponent(window.location),
-
-            mainDropdown: {
-                options: [
-                    {name: "Home", icon: "fas fa-home", link: "/"}
-                ]
-            },
 
             itemListShown: false,
             schemeChanged: false, //used in order to render Save button

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
-import knownItems from './knownItems.js';
+import Shape from '../components/editor/items/shapes/Shape.js';
 
 
 const CONNECTOR_SMOOTH_RATIO = 6;
@@ -38,10 +38,10 @@ class SchemeContainer {
             this.schemeBoundaryBox.h = items[0].area.h;
 
             _.forEach(items, item => {
+                this.enrichItemWithDefaults(item);
                 if (!item.meta) {
                     item.meta = {};
                 }
-                utils.extendObject(item, knownItems[item.type].properties);
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }
@@ -66,6 +66,24 @@ class SchemeContainer {
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         }
+    }
+
+    enrichItemWithDefaults(item) {
+        const props = {
+            visible: true,
+            blendMode: 'normal',
+            text: '',
+            shapeProps: {}
+        };
+        if (item.shape) {
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                _.forEach(shape.args, (arg, argName) => {
+                    props.shapeProps[argName] = arg.value;
+                });
+            }
+        }
+        utils.extendObject(item, props);
     }
 
     buildItemConnectors(item) {
@@ -155,7 +173,7 @@ class SchemeContainer {
     }
 
     findEdgePoint(item, nextPoint, allowPerpendicularLines) {
-        if (item.type === 'component' && item.style.shape === 'ellipse') {
+        if (item.type === 'component' && item.shapeProps.shape === 'ellipse') {
             return this.findEdgePointOnEllipse(item.area, nextPoint);
         } else {
             if (allowPerpendicularLines) {

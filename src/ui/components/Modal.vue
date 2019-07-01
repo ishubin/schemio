@@ -33,6 +33,10 @@ export default {
             type: Number,
             default: 600
         },
+        height: {
+            type: Number,
+            default: null
+        },
         primaryButton: {
             type: String,
             default: null

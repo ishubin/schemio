@@ -85,7 +85,6 @@ import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
-import knownItems from '../../scheme/knownItems.js';
 import _ from 'lodash';
 
 export default {
@@ -123,12 +122,16 @@ export default {
         clickComponent() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    shape: 'component'
+                interactive: false,
+                blendMode: 'normal',
+                shape: 'rect',
+                opacity: 1.0,
+                shapeProps: {
+                    strokeSize: 5,
+                    strokeColor: '#34f',
+                    fillColor: '#f00'
                 },
-                properties: '',
                 name: '',
                 description: '',
                 links: []
@@ -138,12 +141,16 @@ export default {
         clickEllipse() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'component',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    shape: 'ellipse'
+                interactive: false,
+                blendMode: 'normal',
+                shape: 'ellipse',
+                opacity: 1.0,
+                shapeProps: {
+                    strokeSize: 5,
+                    strokeColor: '#34f',
+                    fillColor: '#f00'
                 },
-                properties: '',
                 name: '',
                 description: '',
                 links: []
@@ -153,11 +160,39 @@ export default {
         clickOverlay() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'overlay',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    background: { color: '#b8e0ee' },
+                interactive: true,
+                blendMode: 'normal',
+                shape: 'rect',
+                opacity: 0.2,
+                shapeProps: {
+                    strokeSize: 1,
+                    strokeColor: '#000',
+                    fillColor: '#fff'
                 },
+                behavior: [ {
+                    on: {
+                        originator: 'self',
+                        event: 'mousein', // simulates hover event only once when cursor enters element
+                        args: []
+                    },
+                    do: [{
+                        item: 'self',
+                        method: 'set',
+                        args: ['opacity', 0.5]
+                    }]
+                }, {
+                    on: {
+                        originator: 'self',
+                        event: 'mouseout',
+                        args: []
+                    },
+                    do: [{
+                        item: 'self',
+                        method: 'set',
+                        args: ['opacity', 0.1]
+                    }]
+                } ],
                 name: '',
                 description: '',
                 links: []
@@ -167,17 +202,15 @@ export default {
         clickText() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'comment',
                 interactive: false,
+                blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    shape: 'none',
-                    background: { color: '#ccc' },
-                    text: {color: '#333'},
-                    stroke: {color: '#fff'}
+                shape: 'none',
+                shapeProps: {
                 },
                 name: '',
-                description: 'Leave a comment ...',
+                description: '',
+                text: 'Text ...',
                 links: []
             });
         },
@@ -185,17 +218,14 @@ export default {
         clickComment() {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'comment',
                 interactive: false,
+                blendMode: 'normal',
                 area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {
-                    shape: 'simple-comment',
-                    background: { color: '#ccc' },
-                    text: {color: '#333'},
-                    stroke: {color: '#fff'}
-                },
+                shape: 'comment',
+                shapeProps: { },
                 name: '',
-                description: 'Leave a comment ...',
+                description: '',
+                text: 'Leave a comment ...',
                 links: []
             });
         },
@@ -203,15 +233,17 @@ export default {
         clickArt(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                type: 'image',
-                interactive: true,
-                url: art.url,
-                artId: art.id,
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                style: {},
-                properties: '',
+                interactive: false,
+                shape: 'rect',
+                blendMode: 'normal',
+                area: { x: 0, y: 0, w: 0, h: 0},
+                shapeProps: {
+                    backgroundImage: art.url,
+                    strokeSize: 0
+                },
                 name: '',
                 description: '',
+                text: '',
                 links: []
             });
         },
@@ -225,13 +257,20 @@ export default {
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    EventBus.$emit(EventBus.PLACE_ITEM, {
+                    EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                         id: shortid.generate(),
-                        type: 'image',
-                        url: imageUrl,
-                        area: { x: 0, y: 0, w: this.width, h: this.height },
+                        interactive: false,
+                        shape: 'rect',
+                        blendMode: 'normal',
+                        area: { x: 0, y: 0, w: 0, h: 0},
+                        shapeProps: {
+                            backgroundImage: imageUrl,
+                            strokeSize: 0
+                        },
                         name: '',
-                        description: ''
+                        description: '',
+                        text: '',
+                        links: []
                     });
                 }
                 this.createImageModalShown = false;

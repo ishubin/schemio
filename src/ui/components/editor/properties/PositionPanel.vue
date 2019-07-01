@@ -4,6 +4,20 @@
 
 <template lang="html">
     <panel name="Position">
+        <ul class="button-group">
+            <li>
+                <span class="toggle-button" @click="toggleItemLock()"
+                    :class="{'toggled': itemLocked}"
+                    >
+                    <i class="fas" :class="[itemLocked ? 'fa-lock' : 'fa-unlock']"></i>
+                </span>
+            </li>
+            <li v-if="itemGroup">
+                <span class="toggle-button" @click="ungroupItem()">
+                    <i class="fas fa-object-ungroup"></i>
+                </span>
+            </li>
+        </ul>
         <table class="position-panel-table">
             <tbody>
                 <tr>
@@ -11,15 +25,15 @@
                         <span class="property-label">x:</span> <input class="textfield textfield-small" type="text" v-model="x"/>
                     </td>
                     <td class="property-row">
-                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
+                        <span class="property-label">W:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="property-row">
-                        <span class="property-label">w:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
+                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
                     </td>
                     <td class="property-row">
-                        <span class="property-label">h:</span> <input class="textfield textfield-small" type="text" v-model="h"/>
+                        <span class="property-label">H:</span> <input class="textfield textfield-small" type="text" v-model="h"/>
                     </td>
                 </tr>
             </tbody>
@@ -41,6 +55,21 @@ export default {
             y: this.item.area.y,
             w: this.item.area.w,
             h: this.item.area.h,
+
+            itemLocked: this.item.locked || false,
+            itemGroup: this.item.group,
+        }
+    },
+
+    methods: {
+        toggleItemLock() {
+            this.itemLocked = !this.itemLocked;
+            this.item.locked = this.itemLocked;
+        },
+
+        ungroupItem() {
+            this.$emit('ungroup-item');
+            this.itemGroup = null;
         }
     },
 

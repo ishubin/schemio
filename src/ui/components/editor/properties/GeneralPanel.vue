@@ -5,15 +5,8 @@
 <template lang="html">
     <panel name="General">
 
-        <div>
-            <input type="checkbox" v-model="item.interactive">
-            <span class="property-label">Interactive</span>
-        </div>
-
-        <div v-if="nameUsed">
-            <h5>Name</h5>
-            <input class="textfield" type="text" v-model="item.name"/>
-        </div>
+        <h5>Name</h5>
+        <input class="textfield" type="text" v-model="item.name"/>
 
         <div v-if="tagsUsed">
             <h5>Tags</h5>
@@ -29,6 +22,11 @@
                 <rich-text-editor v-model="item.description" @changed="item.description = arguments[0];" ></rich-text-editor>
             </div>
         </div>
+
+        <h5 class="section">Text</h5>
+        <div class="textarea-wrapper">
+            <rich-text-editor v-model="item.text" @changed="item.text = arguments[0];" ></rich-text-editor>
+        </div>
     </panel>
 </template>
 
@@ -42,7 +40,6 @@ import apiClient from '../../../apiClient.js';
 export default {
     props: {
         'item': {type: Object},
-        'nameUsed': {type: Boolean, default: true},
         'tagsUsed': {type: Boolean, default: true},
         'descriptionUsed': {type: Boolean, default: true}
     },

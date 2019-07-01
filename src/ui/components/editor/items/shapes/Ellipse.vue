@@ -1,0 +1,42 @@
+<template>
+    <g>
+        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
+            :stroke="item.shapeProps.strokeColor"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :fill="item.shapeProps.fillColor"
+        />
+
+        <foreignObject v-if="item.text"
+            x="0" y="0" :width="item.area.w" :height="item.area.h">
+            <div class="item-text-container" v-html="item.text"
+                :style="{'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                style="text-align: center; vertical-align: middle; position: relative; top: 50%; transform: translateY(-50%);"
+                ></div>
+        </foreignObject>
+
+        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
+            :data-item-id="item.id"
+            class="item-hoverable"
+            stroke="rgba(255, 255, 255, 0)"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            fill="rgba(255, 255, 255, 0)"
+        />
+    </g>
+</template>
+<script>
+export default {
+    props: ['item'],
+
+    args: {
+        strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
+        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
+        fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
+        textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
+        textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
+        textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
+        textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
+    }
+}
+</script>
+
+

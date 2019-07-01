@@ -5,67 +5,147 @@
 <template lang="html">
     <div class="item-properties">
         <ul class="button-group">
-            <li>
-                <span class="toggle-button" @click="toggleItemLock()"
-                    :class="{'toggled': itemLocked}"
-                    >
-                    <i class="fas" :class="[itemLocked ? 'fa-lock' : 'fa-unlock']"></i>
-                </span>
-            </li>
-            <li v-if="itemGroup">
-                <span class="toggle-button" @click="ungroupItem()">
-                    <i class="fas fa-object-ungroup"></i>
+            <li v-for="tab in tabs">
+                <span class="toggle-button" @click="currentTab = tab.name"
+                    :class="{'toggled': tab.name === currentTab}">
+                    <i :class="[tab.icon]"></i>
                 </span>
             </li>
         </ul>
 
-        <position-panel :item="item"/>
+        <general-panel v-if="currentTab === 'description'" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :item="item"/>
+        <connections-panel v-if="currentTab === 'description'" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :item="item" @ungroup-item="$emit('ungroup-item')"/>
 
-        <component-properties v-if="item.type === 'component'" :item="item"/>
-        <image-properties v-if="item.type === 'image'" :item="item"/>
-        <overlay-properties v-if="item.type === 'overlay'" :item="item"/>
-        <comment-properties v-if="item.type === 'comment'" :item="item"/>
+        <behavior-properties v-if="currentTab === 'behavior'" :item="item" :scheme-container="schemeContainer"/>
+
+        <div v-if="currentTab === 'shape'">
+            <select v-model="item.shape">
+                <option v-for="shape in knownShapes">{{shape}}</option>
+            </select>
+
+            <h5>Opacity</h5>
+            <input class="textfield" type="text" v-model="item.opacity"/>
+
+
+            Blend Mode: 
+            <select v-model="item.blendMode">
+                <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
+            </select>
+
+
+            <panel name="General">
+                <table>
+                    <tbody>
+                        <tr>
+                            <td width="50%">Visible</td>
+                            <td width="50%">
+                                <input class="checkbox" type="checkbox" v-model="item.visible"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+
+            <panel name="Style">
+                <table>
+                    <tbody>
+                        <tr v-for="(arg, argName) in shapeComponent.args">
+                            <td width="50%">{{arg.name}}</td>
+                            <td width="50%">
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="item.shapeProps[argName]= arguments[0]; redrawItem();"></color-picker>
+
+                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <div v-if="arg.type === 'image'">
+                                    <img :src="item.shapeProps[argName]" style="max-width: 60px; max-height: 60px;"/>
+                                </div>
+                                <input v-if="arg.type === 'boolean'" type="checkbox" v-model="item.shapeProps[argName]"/>
+
+                                <select v-if="arg.type === 'choice'" v-model="item.shapeProps[argName]">
+                                    <option v-for="argOption in arg.options">{{argOption}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+        </div>
     </div>
 </template>
 
 <script>
 import EventBus from '../EventBus.js';
-import ComponentProperties from './ComponentProperties.vue';
+import Panel from '../Panel.vue';
+import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
-import ImageProperties from './ImageProperties.vue';
-import OverlayProperties from './OverlayProperties.vue';
-import CommentProperties from './CommentProperties.vue';
+import LinksPanel from './LinksPanel.vue';
+import ConnectionsPanel from './ConnectionsPanel.vue';
+import Shape from '../items/shapes/Shape.js';
+import ColorPicker from '../ColorPicker.vue';
+import BehaviorProperties from './BehaviorProperties.vue';
 
 export default {
-    props: ['item'],
-    components: {ComponentProperties, PositionPanel, ImageProperties, OverlayProperties, CommentProperties},
+    props: ['item', 'schemeContainer'],
+    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
+
+    mounted() {
+        this.switchShape(this.item.shape);
+    },
 
     data() {
         return {
-            itemLocked: this.item.locked || false,
-            itemGroup: this.item.group
+            tabs: [
+                {name: 'description', icon: 'fas fa-paragraph'},
+                {name: 'shape', icon: 'fas fa-vector-square'},
+                {name: 'position', icon: 'fas fa-map-marker-alt'},
+                {name: 'behavior', icon: 'far fa-hand-point-up'}
+            ],
+
+            knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
+            currentTab: 'description',
+            shapeComponent: {},
+            oldShape: this.item.shape,
+            knownBlendModes: [  'normal', 'multiply', 'screen', 'overlay', 'darken', 
+                                'lighten', 'color-dodge', 'color-burn', 'difference',
+                                'exclusion', 'hue', 'saturation', 'color', 'luminosity'
+            ]
         };
     },
 
     methods: {
-        toggleItemLock() {
-            this.itemLocked = !this.itemLocked;
-            this.item.locked = this.itemLocked;
+        onStyleInputChange(styleArgName, componentArg, event) {
+            const text = event.target.value;
+            if (componentArg.type === 'number') {
+                this.item.shapeProps[styleArgName] = parseInt(text) || 0;
+            } else {
+                this.item.shapeProps[styleArgName] = text;
+            }
+        },
+        onStyleCheckboxChange(styleArgName, componentArg, event) {
+            this.item.shapeProps[styleArgName] = event.srcElement.checked;
+            console.log(JSON.stringify(this.item.style, null, 2));
+        },
+        switchShape(shape) {
+            this.oldShape = this.item.shape;
+            this.shapeComponent = Shape.make(shape);
         },
 
-        ungroupItem() {
-            this.$emit('ungroup-item');
-            this.itemGroup = null;
-        },
+        redrawItem() {
+            EventBus.emitRedrawItem(this.item.id);
+        }
     },
 
     watch: {
         //TODO get rid of this watcher and detect changes in other ways. At this moment this component is the one responsible for detecting any changes on the item (even dragging it)
        item: {
-           handler: function(newValue) {
-               EventBus.$emit(EventBus.ITEM_CHANGED, newValue);
-               this.$forceUpdate();
-               EventBus.$emit(EventBus.REDRAW);  //TODO move redrawing to SvgEditor
+           handler: function(newItem) {
+                if (this.oldShape !== newItem.shape) {
+                    this.switchShape(newItem.shape);
+                }
+                EventBus.$emit(EventBus.ITEM_CHANGED, newItem);
            },
            deep: true
        }
