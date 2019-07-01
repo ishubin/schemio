@@ -62,19 +62,18 @@ class StateInteract extends State {
                     if (this.schemeContainer.selectedItems.length > 0) {
                         previouslySelectedItemId = this.schemeContainer.selectedItems[0].id;
                         if (previouslySelectedItemId !== object.item.id) {
+                            this.emit(this.schemeContainer.selectedItems[0], DESELECTED);
                             this.schemeContainer.deselectAllItems();
                             EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
-                            this.emit(this.schemeContainer.selectedItems[0], DESELECTED);
                         }
                     }
 
                     if (object.item.interactive) {
                         if (object.item.id !== previouslySelectedItemId) {
                             this.emit(object.item, SELECTED);
+                            this.schemeContainer.selectItem(object.item, false);
+                            EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
                         }
-
-                        this.schemeContainer.selectItem(object.item, false);
-                        EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
                     }
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
