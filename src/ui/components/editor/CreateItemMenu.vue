@@ -4,68 +4,27 @@
 
 <template lang="html">
     <div class="create-item-menu">
-        <div class="item-menu" v-if="menu === 'main'">
-            <div class="item-container" @click="clickComponent">
-                <i class="fab fa-elementor"></i>
-                <span>Component</span>
+        <panel name="General">
+            <div class="item-menu">
+                <div v-for="item in generalItems" class="item-container" @click="onItemSelected(item)">
+                    <svg v-if="item.shapeComponent" width="40px" height="40px">
+                        <component :is="item.shapeComponent" :item="item.item"></component>
+                    </svg>
+                    <span>{{item.name}}</span>
+                </div>
             </div>
+        </panel>
 
-            <div class="item-container" @click="clickEllipse">
-                <i class="fas fa-circle"></i>
-                <span>Ellipse</span>
+        <panel name="Art">
+            <div class="item-menu">
+                <div class="item-container"
+                    v-for="art in artList"
+                    @click="onArtSelected(art)">
+                    <img width="60px" height="60px" :src="art.url"/>
+                    <span>{{art.name}}</span>
+                </div>
             </div>
-
-            <div class="item-container" @click="clickOverlay">
-                <i class="fas fa-layer-group"></i>
-                <span>Overlay</span>
-            </div>
-
-            <div class="item-container" @click="menu = 'art'">
-                <i class="fas fa-splotch"></i>
-                <span>Art</span>
-            </div>
-
-            <div class="item-container" @click="clickImage">
-                <i class="fas fa-image"></i>
-                <span>Image</span>
-            </div>
-
-            <div class="item-container" @click="clickComment">
-                <i class="fas fa-comment-alt"></i>
-                <span>Comment</span>
-            </div>
-
-            <div class="item-container" @click="clickText">
-                <i class="fas fa-font"></i>
-                <span>Text</span>
-            </div>
-        </div>
-
-        <div class="item-menu" v-if="menu === 'art'">
-            <div>
-                <span class="link" @click="menu = 'main'"><i class="fas fa-angle-left"></i> Back</span>
-            </div>
-
-            <table width="100%">
-                <tbody>
-                    <tr>
-                        <td>
-                            <input type="text" class="textfield" v-model="artSearchKeyword" placeholder="Search..."/>
-                        </td>
-                        <td width="34px">
-                            <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art"> <i class="fas fa-upload"></i> </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="item-container"
-                v-for="art in filteredArtList"
-                @click="clickArt(art)">
-                <img width="60px" height="60px" :src="art.url"/>
-                <span>{{art.name}}</span>
-            </div>
-        </div>
+        </panel>
 
         <create-image-modal v-if="createImageModalShown" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
 
@@ -82,13 +41,20 @@
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
+import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
 import _ from 'lodash';
+import utils from '../../../ui/utils.js';
+import generalItems from './item-menu/GeneralItemMenu.js';
+import Shape from './items/shapes/Shape.js';
+
+
+let _selectedImageItem = null;
 
 export default {
-    components: {CreateImageModal, Modal, CustomArtUploadModal},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal},
     mounted() {
         this.reloadArt();
     },
@@ -99,15 +65,37 @@ export default {
             menu: 'main',
             artList: [],
             artSearchKeyword: '',
-            errorMessage: null
-        }
-    },
-    computed: {
-        filteredArtList() {
-            return _.filter(this.artList, a => a.name.indexOf(this.artSearchKeyword) >= 0);
+            errorMessage: null,
+            generalItems: this.prepareItemsForMenu(generalItems)
         }
     },
     methods: {
+
+        /**
+         * Enriches item with defaults of its shape
+         */
+        prepareItemsForMenu(items) {
+            return _.map(items, item => {
+                item.item.area = {x: 3, y: 3, w: 37, h: 37};
+                if (item.item.shape) {
+                    const shape = Shape.make(item.item.shape);
+                    if (shape.component) {
+                        if (shape.args) {
+                            if (!item.item.shapeProps) {
+                                item.item.shapeProps = {};
+                            }
+                            _.forEach(shape.args, (shapeArg, shapeArgName) => {
+                                if (!item.item.shapeProps.hasOwnProperty(shapeArgName)) {
+                                    item.item.shapeProps[shapeArgName] = shapeArg.value;
+                                }
+                            });
+                        }
+                        item.shapeComponent = shape.component;
+                    }
+                }
+                return item;
+            })
+        },
         reloadArt() {
             apiClient.getAllArt().then(artList => {
                 this.artList = artList;
@@ -119,133 +107,35 @@ export default {
             this.customArtUploadModalShown = false;
         },
 
-        clickComponent() {
+        onArtSelected(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                area: { x: 0, y: 0, w: 0, h: 0 },
                 interactive: false,
-                blendMode: 'normal',
-                shape: 'rect',
                 opacity: 1.0,
-                shapeProps: {
-                    strokeSize: 5,
-                    strokeColor: '#34f',
-                    fillColor: '#f00'
-                },
-                name: '',
-                description: '',
-                links: []
-            });
-        },
-
-        clickEllipse() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                interactive: false,
                 blendMode: 'normal',
-                shape: 'ellipse',
-                opacity: 1.0,
-                shapeProps: {
-                    strokeSize: 5,
-                    strokeColor: '#34f',
-                    fillColor: '#f00'
-                },
-                name: '',
-                description: '',
-                links: []
-            });
-        },
-
-        clickOverlay() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                interactive: true,
-                blendMode: 'normal',
-                shape: 'rect',
-                opacity: 0.2,
-                shapeProps: {
-                    strokeSize: 1,
-                    strokeColor: '#000',
-                    fillColor: '#fff'
-                },
-                behavior: [ {
-                    on: {
-                        originator: 'self',
-                        event: 'mousein', // simulates hover event only once when cursor enters element
-                        args: []
-                    },
-                    do: [{
-                        item: 'self',
-                        method: 'set',
-                        args: ['opacity', 0.5]
-                    }]
-                }, {
-                    on: {
-                        originator: 'self',
-                        event: 'mouseout',
-                        args: []
-                    },
-                    do: [{
-                        item: 'self',
-                        method: 'set',
-                        args: ['opacity', 0.1]
-                    }]
-                } ],
-                name: '',
-                description: '',
-                links: []
-            });
-        },
-
-        clickText() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                interactive: false,
-                blendMode: 'normal',
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                shape: 'none',
-                shapeProps: {
-                },
-                name: '',
-                description: '',
-                text: 'Text ...',
-                links: []
-            });
-        },
-
-        clickComment() {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                interactive: false,
-                blendMode: 'normal',
-                area: { x: 0, y: 0, w: 0, h: 0 },
-                shape: 'comment',
-                shapeProps: { },
-                name: '',
-                description: '',
-                text: 'Leave a comment ...',
-                links: []
-            });
-        },
-
-        clickArt(art) {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                id: shortid.generate(),
-                interactive: false,
-                shape: 'rect',
-                blendMode: 'normal',
-                area: { x: 0, y: 0, w: 0, h: 0},
-                shapeProps: {
-                    backgroundImage: art.url,
-                    strokeSize: 0
-                },
                 name: '',
                 description: '',
                 text: '',
-                links: []
+                links: [],
+                shape: 'rect',
+                area: { x: 0, y: 0, w: 0, h: 0 },
+                shapeProps: {
+                    strokeSize: 0,
+                    backgroundImage: art.url
+                }
             });
+        },
+
+        onItemSelected(item) {
+            if (item.imageProperty) {
+                _selectedImageItem = utils.clone(item);
+                this.createImageModalShown = true;
+            } else {
+                const newItem = utils.clone(item.item);
+                newItem.id = shortid.generate();
+                newItem.area = { x: 0, y: 0, w: 0, h: 0 };
+                EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
+            }
         },
 
         clickImage() {
@@ -257,21 +147,12 @@ export default {
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
-                        id: shortid.generate(),
-                        interactive: false,
-                        shape: 'rect',
-                        blendMode: 'normal',
-                        area: { x: 0, y: 0, w: 0, h: 0},
-                        shapeProps: {
-                            backgroundImage: imageUrl,
-                            strokeSize: 0
-                        },
-                        name: '',
-                        description: '',
-                        text: '',
-                        links: []
-                    });
+                    const newItem = utils.clone(_selectedImageItem.item);
+                    newItem.id = shortid.generate();
+                    newItem.area = { x: 0, y: 0, w: 0, h: 0 };
+
+                    utils.setObjectProperty(newItem, _selectedImageItem.imageProperty, imageUrl);
+                    EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
                 }
                 this.createImageModalShown = false;
             };
