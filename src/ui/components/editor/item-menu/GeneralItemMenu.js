@@ -12,6 +12,7 @@ const defaultItem = {
 
 export default [{
     name: 'Rect',
+    svg: `<rect x="3" y="6" width="37" height="24" stroke-width="3" stroke-color="#111" fill="#fff"></rect>`,
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {}

@@ -7,8 +7,11 @@
         <panel name="General">
             <div class="item-menu">
                 <div v-for="item in generalItems" class="item-container" @click="onItemSelected(item)">
-                    <svg v-if="item.shapeComponent" width="40px" height="40px">
-                        <component :is="item.shapeComponent" :item="item.item"></component>
+                    <svg v-if="item.svg" width="40px" height="30px" v-html="item.svg"></svg>
+                    <svg v-if="!item.svg && item.shapeComponent" width="40px" height="30px">
+                        <g :transform="`translate(${item.item.area.x}, ${item.item.area.y})`">
+                            <component :is="item.shapeComponent" :item="item.item"></component>
+                        </g>
                     </svg>
                     <span>{{item.name}}</span>
                 </div>
@@ -76,7 +79,7 @@ export default {
          */
         prepareItemsForMenu(items) {
             return _.map(items, item => {
-                item.item.area = {x: 3, y: 3, w: 37, h: 37};
+                item.item.area = {x: 6, y: 6, w: 32, h: 22};
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
