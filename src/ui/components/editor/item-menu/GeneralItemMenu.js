@@ -12,10 +12,16 @@ const defaultItem = {
 
 export default [{
     name: 'Rect',
-    svg: `<rect x="3" y="6" width="37" height="24" stroke-width="3" stroke-color="#111" fill="#fff"></rect>`,
+    svg: `<rect x="3" y="6" width="32" height="22" stroke-width="2" stroke="#111" fill="#fff"></rect>`,
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {}
+    }, defaultItem)
+}, {
+    name: 'Rounded Rect',
+    item: utils.extendObject({
+        shape: 'rect',
+        shapeProps: {cornerRadius: 20}
     }, defaultItem)
 }, {
     name: 'Ellipse',
@@ -69,23 +75,22 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Comment',
+    shapeProps: {
+        fontSize: 8,
+        cornerRadius: 5,
+        tailLength: 7,
+        tailWidth: 4
+    },
     item: utils.extendObject({
         shape: 'comment',
         text: 'Text...',
-        shapeProps: {
-            fontSize: 8,
-            cornerRadius: 5,
-            tailLength: 7,
-            tailWidth: 4
-        }
+        shapeProps: { }
     }, defaultItem)
 }, {
     name: 'Text',
     item: utils.extendObject({
         shape: 'none',
         text: 'Text ...',
-        shapeProps: {
-            fontSize: 9
-        }
+        shapeProps: { }
     }, defaultItem)
 }];

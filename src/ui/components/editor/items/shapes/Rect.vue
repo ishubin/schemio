@@ -6,10 +6,10 @@
             </pattern>
         </defs>
 
-        <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
+        <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="fill"></rect>
+            :fill="fill"></path>
 
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
@@ -27,12 +27,11 @@
 
         </foreignObject>
 
-        <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
+        <path :d="shapePath" 
             :data-item-id="item.id"
-            class="item-hoverable"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)"></rect>
+            fill="rgba(255, 255, 255, 0)"></path>
     </g>
 </template>
 <script>
@@ -45,6 +44,7 @@ export default {
         strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
+        cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
@@ -67,6 +67,16 @@ export default {
             } else {
                 return this.item.shapeProps.fillColor;
             }
+        },
+
+        shapePath() {
+            const W = this.item.area.w;
+            const H = this.item.area.h;
+            const R = Math.min(this.item.shapeProps.cornerRadius, this.item.area.w/4, this.item.area.h/4);
+            const TL = Math.min(Math.max(0, this.item.area.h - this.item.shapeProps.tailLength), this.item.shapeProps.tailLength);
+            const TW = Math.min(Math.max(0, this.item.area.w - this.item.shapeProps.tailWidth), this.item.shapeProps.tailWidth);
+
+            return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
         },
 
         nameStyle() {

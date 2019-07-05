@@ -47,7 +47,7 @@ export default {
             const R = Math.min(this.item.shapeProps.cornerRadius, this.item.area.w/4, this.item.area.h/4);
             const TL = Math.min(Math.max(0, this.item.area.h - this.item.shapeProps.tailLength), this.item.shapeProps.tailLength);
             const TW = Math.min(Math.max(0, this.item.area.w - this.item.shapeProps.tailWidth), this.item.shapeProps.tailWidth);
-            return `M ${W} ${H}  L ${W-TW} ${H-TL}  L ${R} ${H-TL}   a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H}`;
+            return `M ${W} ${H}  L ${W-TW} ${H-TL}  L ${R} ${H-TL}   a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
         }
     }
 }
