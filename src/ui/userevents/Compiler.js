@@ -1,8 +1,6 @@
 
 import _ from 'lodash';
 import knownFunctions from './functions/Functions.js';
-import SchemeContainer from '../scheme/SchemeContainer.js';
-
 
 function createCallable(knownFunction, item, args) {
     return () => {
