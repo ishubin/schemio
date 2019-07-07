@@ -9,7 +9,6 @@ import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 
 
-const CONNECTOR_SMOOTH_RATIO = 6;
 /*
 Providing access to scheme elements and provides modifiers for it
 */
@@ -94,6 +93,11 @@ class SchemeContainer {
         }
     }
 
+    /**
+     * Used in order to later discover all items that were connecting to specific item
+     * @param {string} sourceId 
+     * @param {string} destinationId 
+     */
     indexDestinationToSource(sourceId, destinationId) {
         if(!this._destinationToSourceLookup[destinationId]) {
             this._destinationToSourceLookup[destinationId] = [];
@@ -110,60 +114,41 @@ class SchemeContainer {
         if (!connector.id || connector.id.length === 0) {
             connector.id = shortid.generate();
         }
+        const points = [];
 
         this.enrichConnectorWithDefaultStyle(connector);
-        var destinationItem = this.itemMap[connector.itemId];
-        if (!sourceItem || !destinationItem) {
-            return;
+
+        const destinationItem = this.itemMap[connector.itemId];
+        if (destinationItem) {
+            this.indexDestinationToSource(sourceItem.id, destinationItem.id);
         }
 
-        this.indexDestinationToSource(sourceItem.id, destinationItem.id);
-
-        var sourcePoint, destinationPoint;
         if (connector.reroutes && connector.reroutes.length > 0) {
-            sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0], true);
-            destinationPoint = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1], true);
-        } else {
-            sourcePoint = this.findEdgePoint(sourceItem, {
-                x: destinationItem.area.x + destinationItem.area.w /2,
-                y: destinationItem.area.y + destinationItem.area.h /2,
-            });
-            destinationPoint = this.findEdgePoint(destinationItem, {
-                x: sourceItem.area.x + sourceItem.area.w /2,
-                y: sourceItem.area.y + sourceItem.area.h /2,
-            });
-        }
-
-        var points = [];
-        if (connector.reroutes && connector.reroutes.length > 0) {
+            const sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0], true);
             points.push(sourcePoint);
 
-            var previousPoint = sourcePoint;
-            var nextPoint = null;
-            for (var i = 0; i < connector.reroutes.length; i++) {
-                if (i < connector.reroutes.length - 1) {
-                    nextPoint = connector.reroutes[i+1];
-                } else {
-                    nextPoint = destinationPoint;
+            for (let i = 0; i < connector.reroutes.length; i++) {
+                if (!connector.reroutes[i].disabled) {
+                    const x = connector.reroutes[i].x;
+                    const y = connector.reroutes[i].y;
+                    points.push({ x, y });
                 }
-
-                var x = connector.reroutes[i].x;
-                var y = connector.reroutes[i].y;
-                var vx = (nextPoint.x - previousPoint.x)/CONNECTOR_SMOOTH_RATIO;
-                var vy = (nextPoint.y - previousPoint.y)/CONNECTOR_SMOOTH_RATIO;
-                points.push({
-                    x, y,
-                    qax: x - vx, qay: y - vy,
-                    qbx: x + vx, qby: y + vy
-                });
-
-                previousPoint = connector.reroutes[i];
             }
-
-            points.push(destinationPoint);
+            if (destinationItem) {
+                points.push(this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1], true));
+            }
         } else {
-            points.push(sourcePoint);
-            points.push(destinationPoint);
+            if (destinationItem) {
+                points.push(this.findEdgePoint(sourceItem, {
+                    x: destinationItem.area.x + destinationItem.area.w /2,
+                    y: destinationItem.area.y + destinationItem.area.h /2,
+                }));
+
+                points.push(this.findEdgePoint(destinationItem, {
+                    x: sourceItem.area.x + sourceItem.area.w /2,
+                    y: sourceItem.area.y + sourceItem.area.h /2,
+                }));
+            }
         }
 
         if (!connector.meta) {
@@ -173,7 +158,8 @@ class SchemeContainer {
     }
 
     findEdgePoint(item, nextPoint, allowPerpendicularLines) {
-        if (item.type === 'component' && item.shapeProps.shape === 'ellipse') {
+        //TODO refactor all this to use closest point to SVG path calculation
+        if (item.shape === 'ellipse') {
             return this.findEdgePointOnEllipse(item.area, nextPoint);
         } else {
             if (allowPerpendicularLines) {
@@ -189,17 +175,17 @@ class SchemeContainer {
     findPerpendicularEdgePoint(area, nextPoint) {
         if (nextPoint.y >= area.y && nextPoint.y <= area.y + area.h) {
             if (nextPoint.x <= area.x) {
-                return {x: area.x, y: nextPoint.y, qx: area.x - (area.x - nextPoint.x)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
+                return {x: area.x, y: nextPoint.y};
             } else if (nextPoint.x >= area.x + area.w) {
-                return {x: area.x + area.w, y: nextPoint.y,  qx: area.x + area.w + (nextPoint.x - area.x - area.w)/CONNECTOR_SMOOTH_RATIO, qy: nextPoint.y};
+                return {x: area.x + area.w, y: nextPoint.y};
             }
         }
 
         if (nextPoint.x >= area.x && nextPoint.x <= area.x + area.w) {
             if (nextPoint.y <= area.y) {
-                return {x: nextPoint.x, y: area.y, qx: nextPoint.x, qy: area.y - (area.y - nextPoint.y)/CONNECTOR_SMOOTH_RATIO};
+                return {x: nextPoint.x, y: area.y};
             } else if (nextPoint.y >= area.y + area.h) {
-                return {x: nextPoint.x, y: area.y + area.h, qx: nextPoint.x, qy: area.y + area.h + (nextPoint.y - area.y - area.h)/CONNECTOR_SMOOTH_RATIO};
+                return {x: nextPoint.x, y: area.y + area.h};
             }
         }
         return null;
@@ -221,14 +207,11 @@ class SchemeContainer {
                 y: y0 + dy * t,
             };
 
-            point.qx = (nextPoint.x - point.x) / 5 + point.x;
-            point.qy = (nextPoint.y - point.y) / 5 + point.y;
             return point;
         }
 
         return {
-            x: x0, y: y0,
-            qx: x0, qy: y0
+            x: x0, y: y0
         };
     }
 
@@ -260,15 +243,13 @@ class SchemeContainer {
                             y: y3 + t * (y4 - y3),
                         };
 
-                        point.qx = (nextPoint.x - point.x) / 2 + point.x;
-                        point.qy = (nextPoint.y - point.y) / 2 + point.y;
                         return point;
                     }
                 }
             }
         }
 
-        return {x: x3, y: y3, qx: x3, qy: y3};
+        return {x: x3, y: y3};
     }
 
     enrichConnectorWithDefaultStyle(connector) {

@@ -171,7 +171,22 @@
                             :height="schemeContainer.activeBoundaryBox.h"
                         />
                     </g>
+
+                    <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when rerout point or connector line is right below it -->
+                    <g v-if="state.name === 'connecting'">
+                        <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
+                            :data-item-index="itemIndex"
+                            :x="item.area.x"
+                            :y="item.area.y"
+                            :width="item.area.w"
+                            :height="item.area.h"
+                            fill="rgba(255, 255, 255, 0.0)"
+                            stroke="none"
+                            ></rect>
+                    </g>
                 </g>
+
+
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
                         :x="_x(multiSelectBox.x)"
