@@ -23,6 +23,9 @@ class SchemeContainer {
         this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.copyBuffer = [];
         this.reindexItems();
+
+        // Used for calculating closest point to svg path
+        this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
 
     reindexItems() {
@@ -124,7 +127,7 @@ class SchemeContainer {
         }
 
         if (connector.reroutes && connector.reroutes.length > 0) {
-            const sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0], true);
+            const sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0]);
             points.push(sourcePoint);
 
             for (let i = 0; i < connector.reroutes.length; i++) {
@@ -135,7 +138,7 @@ class SchemeContainer {
                 }
             }
             if (destinationItem) {
-                points.push(this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1], true));
+                points.push(this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]));
             }
         } else {
             if (destinationItem) {
@@ -157,99 +160,64 @@ class SchemeContainer {
         connector.meta.points = points;
     }
 
-    findEdgePoint(item, nextPoint, allowPerpendicularLines) {
-        //TODO refactor all this to use closest point to SVG path calculation
-        if (item.shape === 'ellipse') {
-            return this.findEdgePointOnEllipse(item.area, nextPoint);
-        } else {
-            if (allowPerpendicularLines) {
-                var point = this.findPerpendicularEdgePoint(item.area, nextPoint);
-                if (point) {
-                    return point;
-                }
-            }
-            return this.findEdgePointOnRect(item.area, nextPoint, allowPerpendicularLines);
-        }
-    }
-
-    findPerpendicularEdgePoint(area, nextPoint) {
-        if (nextPoint.y >= area.y && nextPoint.y <= area.y + area.h) {
-            if (nextPoint.x <= area.x) {
-                return {x: area.x, y: nextPoint.y};
-            } else if (nextPoint.x >= area.x + area.w) {
-                return {x: area.x + area.w, y: nextPoint.y};
-            }
-        }
-
-        if (nextPoint.x >= area.x && nextPoint.x <= area.x + area.w) {
-            if (nextPoint.y <= area.y) {
-                return {x: nextPoint.x, y: area.y};
-            } else if (nextPoint.y >= area.y + area.h) {
-                return {x: nextPoint.x, y: area.y + area.h};
-            }
-        }
-        return null;
-    }
-
-    findEdgePointOnEllipse(area, nextPoint) {
-        var a = area.w / 2,
-            b = area.h / 2,
-            x0 = area.x + a,
-            y0 = area.y + b,
-            dx = nextPoint.x - x0,
-            dy = nextPoint.y - y0,
-            D = b*b*dx*dx + a*a*dy*dy;
-
-        if (D > 0) {
-            var t = b*a / Math.sqrt(D);
-            var point = {
-                x: x0 + dx * t,
-                y: y0 + dy * t,
-            };
-
-            return point;
-        }
-
-        return {
-            x: x0, y: y0
-        };
-    }
-
-    findEdgePointOnRect(area, nextPoint) {
-        var x3 = area.x + area.w / 2,
-            y3 = area.y + area.h / 2,
-            x4 = nextPoint.x,
-            y4 = nextPoint.y;
-
-        //iterate through all edges to find out if there is an intersection point from center of item to "nextPoint"
-        var edges = [
-            {x1: area.x, y1: area.y, x2: area.x + area.w, y2: area.y}, // top
-            {x1: area.x, y1: area.y, x2: area.x, y2: area.y + area.h}, // left
-            {x1: area.x + area.w, y1: area.y, x2: area.x + area.w, y2: area.y + area.h}, // right
-            {x1: area.x, y1: area.y + area.h, x2: area.x + area.w, y2: area.y + area.h} // bottom
-        ];
-
-        for (var i = 0; i < edges.length; i++) {
-            var e = edges[i];
-            var td = (x4 - x3) * (e.y1 - e.y2) - (e.x1 - e.x2) * (y4 - y3);
-            if (Math.abs(td) > 0.0001) {
-                var t = ((y3 - y4) * (e.x1 - x3) + (x4 - x3) * (e.y1 - y3)) / td;
-                if (t >= 0 && t <= 1.0) {
-                    // checking if the intersection is within second line segment as well
-                    t = ((e.y1 - e.y2) * (e.x1 - x3) + (e.x2 - e.x1) * (e.y1 - y3)) / td;
-                    if (t >= 0 && t <= 1.0) {
-                        var point = {
-                            x: x3 + t * (x4 - x3),
-                            y: y3 + t * (y4 - y3),
-                        };
-
-                        return point;
+    findEdgePoint(item, nextPoint) {
+        if (item.shape) {
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                if (shape.computePath) {
+                    const path = shape.computePath(item);
+                    if (path) {
+                        return this.closestPointToSvgPath(item, path, nextPoint);
                     }
                 }
             }
         }
 
-        return {x: x3, y: y3};
+        return {
+            x: item.area.x + item.area.w / 2,
+            y: item.area.y + item.area.h / 2
+        };
+    }
+
+    closestPointToSvgPath(item, path, globalPoint) {
+        const localPoint = {
+            x: globalPoint.x - item.area.x,
+            y: globalPoint.y - item.area.y
+        };
+
+        if (!this.shadowSvgPath) {
+            this.shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        }
+        this.shadowSvgPath.setAttribute('d', path);
+        const pathLength = this.shadowSvgPath.getTotalLength();
+
+        const leftSegment = [0, pathLength / 2];
+        const rightSegment = [pathLength / 2, pathLength]
+        let segmentWidth = pathLength / 2;
+
+        let closestPoint = this.shadowSvgPath.getPointAtLength(0);
+
+        while(segmentWidth > 1) {
+            const middle = segmentWidth / 2;
+            let pointLeft = this.shadowSvgPath.getPointAtLength(leftSegment[0] + middle);
+            let pointRight = this.shadowSvgPath.getPointAtLength(rightSegment[0] + middle);
+            let distanceLeft = (localPoint.x - pointLeft.x)*(localPoint.x - pointLeft.x) + (localPoint.y - pointLeft.y) * (localPoint.y - pointLeft.y);
+            let distanceRight = (localPoint.x - pointRight.x)*(localPoint.x - pointRight.x) + (localPoint.y - pointRight.y) * (localPoint.y - pointRight.y);
+
+            segmentWidth = middle;
+            if (distanceLeft < distanceRight) {
+                closestPoint = pointLeft;
+                leftSegment[1] = leftSegment[0] + segmentWidth;
+            } else {
+                closestPoint = pointRight;
+                leftSegment[0] = rightSegment[0];
+                leftSegment[1] = leftSegment[0] + segmentWidth;
+            }
+            rightSegment[0] = leftSegment[1];
+            rightSegment[1] = rightSegment[0] + segmentWidth;
+        }
+        
+        return {x: Math.round(closestPoint.x + item.area.x), y: Math.round(closestPoint.y + item.area.y)};
     }
 
     enrichConnectorWithDefaultStyle(connector) {

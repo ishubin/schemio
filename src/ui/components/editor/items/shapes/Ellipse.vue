@@ -1,10 +1,9 @@
 <template>
     <g>
-        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
-            :stroke="item.shapeProps.strokeColor"
+        <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
-            :fill="item.shapeProps.fillColor"
-        />
+            :stroke="item.shapeProps.strokeColor"
+            :fill="item.shapeProps.fillColor"></path>
 
         <foreignObject v-if="item.text"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
@@ -14,19 +13,24 @@
                 ></div>
         </foreignObject>
 
-        <ellipse :cx="Math.floor(item.area.w / 2)" :cy="Math.floor(item.area.h / 2)" :rx="Math.floor(item.area.w/2)" :ry="Math.floor(item.area.h/2)"
+        <path :d="shapePath" 
             :data-item-id="item.id"
-            class="item-hoverable"
-            stroke="rgba(255, 255, 255, 0)"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
-            fill="rgba(255, 255, 255, 0)"
-        />
+            stroke="rgba(255, 255, 255, 0)"
+            fill="rgba(255, 255, 255, 0)"></path>
     </g>
 </template>
 <script>
+
+const computePath = (item) => {
+    const rx = item.area.w / 2;
+    const ry = item.area.h / 2;
+    return `M ${rx}, 0 a ${rx}, ${ry} 0 1,0 1,0 Z`;
+};
 export default {
     props: ['item'],
 
+    computePath,
     args: {
         strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -35,6 +39,12 @@ export default {
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
+    },
+
+    computed: {
+        shapePath() {
+            return computePath(this.item);
+        }
     }
 }
 </script>

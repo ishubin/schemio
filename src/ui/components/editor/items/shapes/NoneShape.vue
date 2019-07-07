@@ -9,9 +9,17 @@
     </g>
 </template>
 <script>
+const computePath = (item) => {
+    const x = item.area.x;
+    const y = item.area.y;
+    const w = item.area.w;
+    const h = item.area.h;
+    return `M ${x} ${y}  L ${x+w} ${y}  L ${x+w} ${y+h} ${x} ${y+h} Z`;
+};
 export default {
     props: ['item'],
 
+    computePath,
     args: {
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},

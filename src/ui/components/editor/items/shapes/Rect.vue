@@ -37,9 +37,18 @@
 <script>
 import shortid from 'shortid';
 
+const computePath = (item) => {
+    const W = item.area.w;
+    const H = item.area.h;
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+
+    return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+};
+
 export default {
     props: ['item'],
 
+    computePath,
     args: {
         strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -70,13 +79,7 @@ export default {
         },
 
         shapePath() {
-            const W = this.item.area.w;
-            const H = this.item.area.h;
-            const R = Math.min(this.item.shapeProps.cornerRadius, this.item.area.w/4, this.item.area.h/4);
-            const TL = Math.min(Math.max(0, this.item.area.h - this.item.shapeProps.tailLength), this.item.shapeProps.tailLength);
-            const TW = Math.min(Math.max(0, this.item.area.w - this.item.shapeProps.tailWidth), this.item.shapeProps.tailWidth);
-
-            return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+            return computePath(this.item);
         },
 
         nameStyle() {

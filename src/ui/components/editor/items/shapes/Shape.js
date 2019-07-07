@@ -4,12 +4,15 @@ import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
 import CommentShape from './CommentShape.vue';
 
+function _shape(shapeComponent) {
+    return { args: shapeComponent.args, computePath: shapeComponent.computePath, component: shapeComponent };
+}
 
 const shapeReigstry = {
-    none: { args: NoneShape.args, component: NoneShape },
-    rect: { args: Rect.args, component: Rect},
-    ellipse: { args: Ellipse.args, component: Ellipse},
-    comment: { args: CommentShape.args, component: CommentShape}
+    none: _shape(NoneShape),
+    rect: _shape(Rect),
+    ellipse: _shape(Ellipse),
+    comment: _shape(CommentShape)
 };
 
 /**

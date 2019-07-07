@@ -23,9 +23,19 @@
 <script>
 import shortid from 'shortid';
 
+const computePath = (item) => {
+    const W = item.area.w;
+    const H = item.area.h;
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+    const TL = Math.min(Math.max(0, item.area.h - item.shapeProps.tailLength), item.shapeProps.tailLength);
+    const TW = Math.min(Math.max(0, item.area.w - item.shapeProps.tailWidth), item.shapeProps.tailWidth);
+    return `M ${W} ${H}  L ${W-TW} ${H-TL}  L ${R} ${H-TL}   a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
+}
+
 export default {
     props: ['item'],
 
+    computePath,
     args: {
         cornerRadius: {type: 'number', value: 20, name: 'Corner radius'},
         tailLength: {type: 'number', value: 30, name: 'Tail Length'},
@@ -42,12 +52,7 @@ export default {
 
     computed: {
         shapePath() {
-            const W = this.item.area.w;
-            const H = this.item.area.h;
-            const R = Math.min(this.item.shapeProps.cornerRadius, this.item.area.w/4, this.item.area.h/4);
-            const TL = Math.min(Math.max(0, this.item.area.h - this.item.shapeProps.tailLength), this.item.shapeProps.tailLength);
-            const TW = Math.min(Math.max(0, this.item.area.w - this.item.shapeProps.tailWidth), this.item.shapeProps.tailWidth);
-            return `M ${W} ${H}  L ${W-TW} ${H-TL}  L ${R} ${H-TL}   a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
+            return computePath(this.item);
         }
     }
 }
