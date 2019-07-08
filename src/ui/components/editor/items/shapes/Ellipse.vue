@@ -36,9 +36,7 @@ export default {
     },
 
     computed: {
-        shapePath() {
-            return computePath(this.item);
-        }
+        shapePath() { return computePath(this.item); }
     }
 }
 </script>

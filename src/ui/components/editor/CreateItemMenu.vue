@@ -4,9 +4,9 @@
 
 <template lang="html">
     <div class="create-item-menu">
-        <panel name="General">
+        <panel v-for="panel in itemPanels" :name="panel.name">
             <div class="item-menu">
-                <div v-for="item in generalItems" class="item-container" @click="onItemSelected(item)">
+                <div v-for="item in panel.items" class="item-container" @click="onItemSelected(item)">
                     <svg v-if="item.svg" width="40px" height="30px" v-html="item.svg"></svg>
                     <svg v-if="!item.svg && item.shapeComponent" width="40px" height="30px">
                         <g :transform="`translate(${item.item.area.x}, ${item.item.area.y})`">
@@ -51,6 +51,7 @@ import apiClient from '../../apiClient.js';
 import _ from 'lodash';
 import utils from '../../../ui/utils.js';
 import generalItems from './item-menu/GeneralItemMenu.js';
+import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
 
 
@@ -69,7 +70,14 @@ export default {
             artList: [],
             artSearchKeyword: '',
             errorMessage: null,
-            generalItems: this.prepareItemsForMenu(generalItems)
+
+            itemPanels: [{
+                name: 'General',
+                items: this.prepareItemsForMenu(generalItems)
+            }, {
+                name: 'UML',
+                items: this.prepareItemsForMenu(umlItems)
+            }]
         }
     },
     methods: {

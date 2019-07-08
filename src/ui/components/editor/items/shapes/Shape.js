@@ -3,6 +3,7 @@ import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
 import CommentShape from './CommentShape.vue';
+import UMLObject from './uml/UMLObject.vue';
 
 function _shape(shapeComponent) {
     return { args: shapeComponent.args, computePath: shapeComponent.computePath, component: shapeComponent };
@@ -12,7 +13,8 @@ const shapeReigstry = {
     none: _shape(NoneShape),
     rect: _shape(Rect),
     ellipse: _shape(Ellipse),
-    comment: _shape(CommentShape)
+    comment: _shape(CommentShape),
+    uml_object: _shape(UMLObject)
 };
 
 /**
