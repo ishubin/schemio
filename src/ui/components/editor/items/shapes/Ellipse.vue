@@ -12,12 +12,6 @@
                 style="text-align: center; vertical-align: middle; position: relative; top: 50%; transform: translateY(-50%);"
                 ></div>
         </foreignObject>
-
-        <path :d="shapePath" 
-            :data-item-id="item.id"
-            :stroke-width="item.shapeProps.strokeSize + 'px'"
-            stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)"></path>
     </g>
 </template>
 <script>

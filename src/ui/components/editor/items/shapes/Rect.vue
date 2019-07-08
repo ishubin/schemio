@@ -27,11 +27,6 @@
 
         </foreignObject>
 
-        <path :d="shapePath" 
-            :data-item-id="item.id"
-            :stroke-width="item.shapeProps.strokeSize + 'px'"
-            stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)"></path>
     </g>
 </template>
 <script>

@@ -11,13 +11,6 @@
                 :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
                 ></div>
         </foreignObject>
-
-        <rect x="0" y="0" :width="item.area.w" :height="item.area.h"
-            :data-item-id="item.id"
-            class="item-hoverable"
-            :stroke-width="item.shapeProps.strokeSize + 'px'"
-            stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)"></rect>
     </g>
 </template>
 <script>

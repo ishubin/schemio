@@ -5,6 +5,12 @@
 <template lang="html">
     <g :data-item-index="0" :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}">
         <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item"></component>
+
+        <path v-if="itemSvgPath" :d="itemSvgPath" 
+            :data-item-id="item.id"
+            :stroke-width="0 + 'px'"
+            stroke="rgba(255, 255, 255, 0)"
+            fill="rgba(255, 255, 255, 0)" />
     </g>
 </template>
 
@@ -23,7 +29,8 @@ export default {
     data() {
         return {
             shapeComponent: null,
-            oldShape: this.item.shape
+            oldShape: this.item.shape,
+            itemSvgPath: null
         };
     },
 
@@ -33,6 +40,7 @@ export default {
             const shape = Shape.make(shapeId);
             if (shape.component) {
                 this.shapeComponent = shape.component;
+                this.itemSvgPath = shape.component.computePath(this.item);
             } else {
                 this.shapeComponent = shape.vueComponentName;
             }
