@@ -67,6 +67,10 @@
                                 <select v-if="arg.type === 'choice'" v-model="item.shapeProps[argName]">
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
+
+                                <select v-if="arg.type === 'stroke-pattern'" v-model="item.shapeProps[argName]">
+                                    <option v-for="knownPattern in knownStrokePatterns">{{knownPattern}}</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
@@ -86,6 +90,7 @@ import ConnectionsPanel from './ConnectionsPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
+import StrokePattern from '../items/StrokePattern.js';
 
 export default {
     props: ['item', 'schemeContainer'],
@@ -103,6 +108,8 @@ export default {
                 {name: 'position', icon: 'fas fa-map-marker-alt'},
                 {name: 'behavior', icon: 'far fa-hand-point-up'}
             ],
+
+            knownStrokePatterns: StrokePattern.getPatternsList(),
 
             knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
             currentTab: 'description',

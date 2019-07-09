@@ -9,6 +9,7 @@
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
+            :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
 
         <foreignObject v-if="item.text"
@@ -31,6 +32,7 @@
 </template>
 <script>
 import shortid from 'shortid';
+import StrokePattern from '../StrokePattern.js';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -47,6 +49,8 @@ export default {
     args: {
         strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
+        strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
+
         fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
@@ -56,8 +60,8 @@ export default {
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
         backgroundImage: {type: 'image', value: '', name: 'Image Background'},
         showName: {type: 'boolean', value: false, name: 'Show Name'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
-        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
+        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position', depends: {showName: true}},
+        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
     data() {
         return {
@@ -103,6 +107,10 @@ export default {
                 return {x: 0, y:this.item.area.h, w: this.item.area.w, h: height};
             }
             return {x: 0, y: 0, w: this.item.area.w, h: this.item.area.h};
+        },
+
+        strokeDashArray() {
+            return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         }
     }
 }
