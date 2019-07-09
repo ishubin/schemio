@@ -3,6 +3,7 @@
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
+            :stroke-dasharray="strokeDashArray"
             :fill="item.shapeProps.fillColor"></path>
 
         <foreignObject v-if="item.text"
@@ -15,6 +16,7 @@
     </g>
 </template>
 <script>
+import StrokePattern from '../StrokePattern.js';
 
 const computePath = (item) => {
     const rx = item.area.w / 2;
@@ -28,6 +30,8 @@ export default {
     args: {
         strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
+        strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
+
         fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
@@ -36,7 +40,11 @@ export default {
     },
 
     computed: {
-        shapePath() { return computePath(this.item); }
+        shapePath() { return computePath(this.item); },
+
+        strokeDashArray() {
+            return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+        }
     }
 }
 </script>
