@@ -16,4 +16,10 @@ export default [{
         shape: 'uml_object',
         shapeProps: {}
     }, defaultItem)
+}, {
+    name: 'Module',
+    item: utils.extendObject({
+        shape: 'uml_module',
+        shapeProps: {}
+    }, defaultItem)
 }]

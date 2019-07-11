@@ -11,9 +11,10 @@
         />
 
         <foreignObject
-            x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="nameLineTop - 2*item.shapeProps.strokeSize">
+            x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, nameLineTop - 2*item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.name"
                 style="padding-top: 4px; text-align: center;"
+                :style="{'color': item.shapeProps.nameColor}"
             ></div>
         </foreignObject>
 
@@ -47,7 +48,6 @@ export default {
         fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
     },
 
