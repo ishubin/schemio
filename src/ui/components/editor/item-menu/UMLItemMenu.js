@@ -22,4 +22,10 @@ export default [{
         shape: 'uml_module',
         shapeProps: {}
     }, defaultItem)
+}, {
+    name: 'Package',
+    item: utils.extendObject({
+        shape: 'uml_package',
+        shapeProps: {}
+    }, defaultItem)
 }]
