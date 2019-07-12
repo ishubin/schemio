@@ -28,4 +28,10 @@ export default [{
         shape: 'uml_package',
         shapeProps: {}
     }, defaultItem)
+}, {
+    name: 'Node',
+    item: utils.extendObject({
+        shape: 'uml_node',
+        shapeProps: {}
+    }, defaultItem)
 }]

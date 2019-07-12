@@ -6,6 +6,7 @@ import CommentShape from './CommentShape.vue';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
+import UMLNode from './uml/UMLNode.vue';
 
 function _shape(shapeComponent) {
     return { args: shapeComponent.args, computePath: shapeComponent.computePath, component: shapeComponent };
@@ -19,6 +20,7 @@ const shapeReigstry = {
     uml_object: _shape(UMLObject),
     uml_module: _shape(UMLModule),
     uml_package: _shape(UMLPackage),
+    uml_node: _shape(UMLNode),
 };
 
 /**
