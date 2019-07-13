@@ -26,7 +26,7 @@
                             :height="item.area.h + 10"
                         />
 
-                        <g :transform="`translate(${item.area.x},${item.area.y})`">
+                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
                             <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                         </g>
 
@@ -93,7 +93,7 @@
                             :height="item.area.h + 10"
                         />
 
-                        <g :transform="`translate(${item.area.x},${item.area.y})`">
+                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
                             <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                         </g>
 
@@ -113,25 +113,28 @@
                             :showReroutes="mode === 'edit'"
                             ></connector-svg>
 
-                        <g class="item-container" data-preview-ignore="true">
-                            <!-- Drawing boundary edit box -->
-                            <rect class="boundary-box"
-                                :data-item-index="itemIndex"
-                                :x="item.area.x"
-                                :y="item.area.y"
-                                :width="item.area.w"
-                                :height="item.area.h"
-                            />
-                            <g v-if="item.meta.selected">
-                                <rect class="boundary-box-dragger"
-                                    v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                                    :data-dragger-item-index="itemIndex"
-                                    :data-dragger-index="draggerIndex"
-                                    :x="dragger.x - dragger.s / (vZoom || 1.0)"
-                                    :y="dragger.y - dragger.s / (vZoom || 1.0)"
-                                    :width="dragger.s * 2 / (vZoom || 1.0)"
-                                    :height="dragger.s * 2 / (vZoom || 1.0)"
+                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
+                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                            <g class="item-container" data-preview-ignore="true">
+                                <!-- Drawing boundary edit box -->
+                                <rect class="boundary-box"
+                                    :data-item-index="itemIndex"
+                                    x="0"
+                                    y="0"
+                                    :width="item.area.w"
+                                    :height="item.area.h"
                                 />
+                                <g v-if="item.meta.selected">
+                                    <rect class="boundary-box-dragger"
+                                        v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                                        :data-dragger-item-index="itemIndex"
+                                        :data-dragger-index="draggerIndex"
+                                        :x="dragger.x - dragger.s / (vZoom || 1.0)"
+                                        :y="dragger.y - dragger.s / (vZoom || 1.0)"
+                                        :width="dragger.s * 2 / (vZoom || 1.0)"
+                                        :height="dragger.s * 2 / (vZoom || 1.0)"
+                                    />
+                                </g>
                             </g>
                         </g>
 
@@ -172,7 +175,7 @@
                         />
                     </g>
 
-                    <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when rerout point or connector line is right below it -->
+                    <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state.name === 'connecting'">
                         <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
                             :data-item-index="itemIndex"

@@ -72,6 +72,7 @@ class SchemeContainer {
 
     enrichItemWithDefaults(item) {
         const props = {
+            area: {x:0, y: 0, w: 0, h: 0, r: 0},
             visible: true,
             blendMode: 'normal',
             text: '',
@@ -453,21 +454,21 @@ class SchemeContainer {
         // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
         var s = 5;
         return [{
-            x: item.area.x, y: item.area.y, s: s, edges: ['top', 'left']
+            x: 0, y: 0, s: s, edges: ['top', 'left']
         },{
-            x: item.area.x + item.area.w, y: item.area.y, s: s, edges: ['top', 'right']
+            x: item.area.w, y:0, s: s, edges: ['top', 'right']
         },{
-            x: item.area.x + item.area.w, y: item.area.y + item.area.h, s: s, edges: ['bottom', 'right']
+            x: item.area.w, y: item.area.h, s: s, edges: ['bottom', 'right']
         },{
-            x: item.area.x, y: item.area.y + item.area.h, s: s, edges: ['bottom', 'left']
+            x: 0, y: item.area.h, s: s, edges: ['bottom', 'left']
         }, {
-            x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y, s: s, edges: ['top']
+            x: Math.floor(item.area.w / 2), y: 0, s: s, edges: ['top']
         },{
-            x: item.area.x + Math.floor(item.area.w / 2), y: item.area.y + item.area.h, s: s, edges: ['bottom']
+            x: Math.floor(item.area.w / 2), y: item.area.h, s: s, edges: ['bottom']
         },{
-            x: item.area.x + item.area.w, y: item.area.y + Math.floor(item.area.h / 2), s: s, edges: ['right']
+            x: item.area.w, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
         },{
-            x: item.area.x, y: item.area.y + Math.floor(item.area.h / 2), s: s, edges: ['left']
+            x: 0, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
         }];
     }
 

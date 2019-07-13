@@ -241,26 +241,25 @@ export default class StateDragItem extends State {
         var nw = item.area.w;
         var nh = item.area.h;
 
-        var change = 0;
+        let change = 0;
 
         _.forEach(dragger.edges, edge => {
+            const tx = x - this.originalPoint.x;
+            const ty = y - this.originalPoint.y;
+            const cs = Math.cos(-item.area.r * Math.PI / 180); 
+            const sn = Math.sin(-item.area.r * Math.PI / 180);
+            const dx = tx * cs - ty * sn;
+            const dy = tx * sn + ty * cs;
+            change += Math.abs(dx) + Math.abs(dy);
             if (edge === 'top') {
-                var dy = y - dragger.y;
-                change += Math.abs(dy);
                 ny = this.snapY(item.meta.itemOriginalArea.y + dy);
                 nh = item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h - ny;
             } else if (edge === 'bottom') {
-                var dy = y - dragger.y;
-                change += Math.abs(dy);
                 nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h + dy) - item.meta.itemOriginalArea.y;
             } else if (edge === 'left') {
-                var dx = x - dragger.x;
-                change += Math.abs(dx);
                 nx = this.snapX(item.meta.itemOriginalArea.x + dx);
                 nw = item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w - nx;
             } else if (edge === 'right') {
-                var dx = x - dragger.x;
-                change += Math.abs(dx);
                 nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w + dx) - item.meta.itemOriginalArea.x;
             }
         });

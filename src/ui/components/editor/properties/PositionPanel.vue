@@ -38,6 +38,7 @@
                 </tr>
             </tbody>
         </table>
+        <span class="property-label">Rotation: </span> <input class="textfield textfield-small" type="text" v-model="r"/>
 
     </panel>
 </template>
@@ -55,6 +56,7 @@ export default {
             y: this.item.area.y,
             w: this.item.area.w,
             h: this.item.area.h,
+            r: this.item.area.r,
 
             itemLocked: this.item.locked || false,
             itemGroup: this.item.group,
@@ -81,6 +83,7 @@ export default {
                 this.y = newItem.area.y;
                 this.w = newItem.area.w;
                 this.h = newItem.area.h;
+                this.r = newItem.area.r;
             }
         },
         x(text) {
@@ -103,6 +106,11 @@ export default {
                 this.item.area.h = parseFloat(text);
             }
         },
+        r(text) {
+            if (text.length > 0) {
+                this.item.area.r = parseFloat(text);
+            }
+        }
     }
 }
 </script>
