@@ -136,6 +136,25 @@ function setObjectProperty(obj, propertyPath, value) {
     }
 }
 
+function rotatePointAroundCenter(px, py, angle, cx, cy) {
+    const vx = px - cx;
+    const vy = py - cy;
+    const rotated = rotateVector(vx, vy, angle);
+
+    return {
+        x: cx + rotated.x,
+        y: cy + rotated.y
+    };
+}
+
+function rotateVector(x, y, angle) {
+    const cs = Math.cos(angle * Math.PI / 180); 
+    const sn = Math.sin(angle * Math.PI / 180);
+    return {
+        x: x * cs - y * sn,
+        y: x * sn + y * cs
+    };
+}
 
 
 module.exports = {
@@ -144,5 +163,7 @@ module.exports = {
     extendObject,
     sanitizeScheme,
     getObjectProperty,
-    setObjectProperty
+    setObjectProperty,
+    rotateVector,
+    rotatePointAroundCenter
 };

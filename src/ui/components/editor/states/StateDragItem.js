@@ -244,6 +244,11 @@ export default class StateDragItem extends State {
         let change = 0;
 
         _.forEach(dragger.edges, edge => {
+            //TODO calculate dragging of rotated item edges properly
+            /*
+            the problem here is that by dragging any of the draggers - the center of the item moves.
+            This causes it "squezes" the item from both sides instead of just dragging the single edge.
+            */
             const tx = x - this.originalPoint.x;
             const ty = y - this.originalPoint.y;
             const cs = Math.cos(-item.area.r * Math.PI / 180); 
