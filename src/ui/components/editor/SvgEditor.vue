@@ -124,9 +124,20 @@
                                     :width="item.area.w"
                                     :height="item.area.h"
                                 />
-                                <g v-if="item.meta.selected">
-                                    <rect class="boundary-box-dragger"
-                                        v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                                <g v-if="item.meta.selected"
+                                    v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
+                                >
+                                    <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
+                                        :data-dragger-item-index="itemIndex"
+                                        data-dragger-type="rotation"
+                                        :cx="dragger.x"
+                                        :cy="dragger.y"
+                                        :rx="dragger.s/(vZoom || 1.0)"
+                                        :ry="dragger.s/(vZoom || 1.0)"
+                                    />
+
+
+                                    <rect v-if="!dragger.rotation" class="boundary-box-dragger"
                                         :data-dragger-item-index="itemIndex"
                                         :data-dragger-index="draggerIndex"
                                         :x="dragger.x - dragger.s / (vZoom || 1.0)"
@@ -385,14 +396,24 @@ export default {
 
                 var draggerItemIndex = element.getAttribute('data-dragger-item-index');
                 if (draggerItemIndex) {
-                    var item = this.schemeContainer.scheme.items[draggerItemIndex]
-                    return {
-                        dragger: {
-                            item,
-                            dragger: this.provideBoundingBoxDraggers(item)[element.getAttribute('data-dragger-index')]
-                        }
+                    const item = this.schemeContainer.scheme.items[draggerItemIndex]
+                    if (element.getAttribute('data-dragger-type') === 'rotation') {
+                        return {
+                            rotationDragger: {
+                                item
+                            }
+                        };
+                    } else {
+                        return {
+                            dragger: {
+                                item,
+                                dragger: this.provideBoundingBoxDraggers(item)[element.getAttribute('data-dragger-index')]
+                            }
+                        };
                     }
                 }
+
+
             }
             return EMPTY_OBJECT;
         },

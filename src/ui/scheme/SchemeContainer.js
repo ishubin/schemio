@@ -475,6 +475,8 @@ class SchemeContainer {
             x: item.area.w, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
         },{
             x: 0, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
+        }, {
+            x: item.area.w/2, y: - 30, s, rotation: true
         }];
     }
 

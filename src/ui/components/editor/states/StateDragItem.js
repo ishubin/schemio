@@ -20,6 +20,7 @@ export default class StateDragItem extends State {
 
         ///used in order to optimize rebuilding of all connectors
         this.connectorsBuildChache = null;
+        this.rotatingItem = false;
     }
 
     reset() {
@@ -27,6 +28,7 @@ export default class StateDragItem extends State {
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
         this.dragger = null;
+        this.rotatingItem = false;
         this.sourceItem = null;
         this.multiSelectBox = null;
         this.connectorsBuildChache = null;
@@ -75,6 +77,12 @@ export default class StateDragItem extends State {
         };
     }
 
+    initItemRotation(item, x, y) {
+        item.meta.originalRotation = item.area.r;
+        this.sourceItem = item;
+        this.rotatingItem = true;
+    }
+
     initDraggingForReroute(sourceItem, connector, rerouteId, x, y) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
@@ -90,6 +98,9 @@ export default class StateDragItem extends State {
             this.initDraggingForItem(object.dragger.item, x, y);
             this.initDragging(x, y);
             return;
+        } else if (object.rotationDragger) {
+            this.initItemRotation(object.rotationDragger.item, x, y);
+            this.initDragging(x, y);
         } else if (object.connector) {
             if (event.metaKey || event.ctrlKey) {
                 if (object.rerouteId >= 0) {
@@ -142,6 +153,8 @@ export default class StateDragItem extends State {
             } else {
                 if (this.dragger && !this.dragger.item.locked) {
                     this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
+                } else if (this.rotatingItem) {
+                    this.rotateItem(x, y, event);
                 } else if (this.schemeContainer.selectedItems.length > 0) {
                     var dx = x - this.originalPoint.x,
                         dy = y - this.originalPoint.y;
@@ -232,6 +245,24 @@ export default class StateDragItem extends State {
                 this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
                 EventBus.emitRedrawConnector(this.selectedConnector.id);
             }
+        }
+    }
+
+    rotateItem(x, y, event) {
+        if (this.sourceItem) {
+            const cx = this.sourceItem.area.x + this.sourceItem.area.w/2;
+            const cy = this.sourceItem.area.y + this.sourceItem.area.h/2;
+
+            const v1x = this.originalPoint.x - cx;
+            const v1y = this.originalPoint.y - cy;
+            const v2x = x - cx;
+            const v2y = y - cy;
+
+            let angle = this.sourceItem.meta.originalRotation + (Math.atan2(v2y, v2x) - Math.atan2(v1y, v1x)) * 180.0/Math.PI
+            if (event.metaKey || event.ctrlKey) {
+                angle = Math.round(angle / 5) * 5;
+            }
+            this.sourceItem.area.r = angle;
         }
     }
 

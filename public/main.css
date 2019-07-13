@@ -375,12 +375,12 @@ svg rect.boundary-box {
     fill: rgba(255, 255, 255, 0.01);
     opacity: 0.5;
 }
-svg rect.boundary-box-dragger {
+svg .boundary-box-dragger {
     stroke: none;
     fill: #faa;
     cursor: pointer;
 }
-svg rect.boundary-box-dragger:hover {
+svg .boundary-box-dragger:hover {
     opacity: 0.5;
 }
 
