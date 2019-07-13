@@ -17,6 +17,13 @@
                 :style="{'color': item.shapeProps.nameColor}"
             ></div>
         </foreignObject>
+
+        <foreignObject v-if="item.text"
+            x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="textarea.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
+            <div class="item-text-container" v-html="item.text"
+                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                ></div>
+        </foreignObject>
     </g>
 </template>
 <script>
@@ -52,20 +59,17 @@ export default {
 
     computed: {
         shapePath() { return computePath(this.item); },
-        brickWidth() {
-            return Math.max(0, this.item.area.w/3);
-        },
 
-        brickHeight() {
-            return Math.max(0, this.item.area.h/8);
+        nameLineTop() {
+            return 30 + calculateD(this.item);
         },
 
         textarea() {
             const d = calculateD(this.item);
             return {
-                x: 0, y: d,
-                w: this.item.area.w - d,
-                h: this.item.area.h - d
+                x: this.item.shapeProps.strokeSize, y: d + this.item.shapeProps.strokeSize,
+                w: Math.max(0, this.item.area.w - d - 2*this.item.shapeProps.strokeSize),
+                h: Math.max(0, this.item.area.h - d - 2*this.item.shapeProps.strokeSize)
             };
         },
 

@@ -19,7 +19,7 @@
         </foreignObject>
 
         <foreignObject v-if="item.text"
-            x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="item.area.w" :height="item.area.h - nameLineTop - 2*item.shapeProps.strokeSize">
+            x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.text"
                 :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
                 ></div>
