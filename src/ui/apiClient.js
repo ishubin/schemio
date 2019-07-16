@@ -22,6 +22,12 @@ export default {
         return axios.post('/api/projects', project).then(unwrapAxios);
     },
 
+    findProjects(filters) {
+        let encodedQuery = encodeURIComponent(filters.query || '');
+        let url = `/api/projects?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        return axios.get(url).then(unwrapAxios);
+    },
+
     login(login, password) {
         return axios.post('/api/login', {login, password}).then(unwrapAxios);
     },

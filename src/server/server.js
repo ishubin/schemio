@@ -40,6 +40,7 @@ app.post('/api/login', apiUser.login);
 app.get('/user/logout', apiUser.logout);
 
 app.post('/api/projects', [middleware.auth], apiProjects.createProject);
+app.get('/api/projects', apiProjects.findProjects);
 
 app.get('/api/schemes', apiSchemes.findSchemes);
 app.get('/api/schemes/:schemeId', apiSchemes.getScheme);

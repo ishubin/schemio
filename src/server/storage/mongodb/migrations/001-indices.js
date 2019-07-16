@@ -10,6 +10,8 @@ module.exports = {
             db.collection('categories').createIndex({parentId: 1, lname: 1}, {unique: true})
         ).then(() =>
             db.collection('schemes').createIndex({name: "text", description: "text", itemsText: "text"})
+        ).then(() =>
+            db.collection('projects').createIndex({name: "text", description: "text"})
         );
     }
 }

@@ -73,6 +73,8 @@ export default {
 
     data() {
         return {
+            projectId: this.$route.params.projectId,
+            project: null,
             query: '',
             urlPrefix: null,
             searchResult: null,
@@ -126,7 +128,7 @@ export default {
         },
 
         onSearchClicked() {
-            let url = `/?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
+            let url = `/projects/${this.projectId}?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
             if (this.currentCategoryId) {
                 url += `&category=${encodeURIComponent(this.currentCategoryId)}`;
             }
