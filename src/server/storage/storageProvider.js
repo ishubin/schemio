@@ -6,47 +6,32 @@ const MongoSchemeStorage = require('./mongodb/MongoSchemeStorage.js');
 const MongoCategoryStorage = require('./mongodb/MongoCategoryStorage.js');
 const MongoArtStorage = require('./mongodb/MongoArtStorage.js');
 const MongoImageStorage = require('./mongodb/MongoImageStorage.js');
+const MongoProjectStorage = require('./mongodb/MongoProjectStorage.js');
 
-var mongoSchemeStorage = null;
-function provideMongoStorage() {
-    if (!mongoSchemeStorage) {
-        mongoSchemeStorage = new MongoSchemeStorage();
-    }
-    return mongoSchemeStorage;
-}
-
-var mongoCategoryStorage = null;
-function provideMongoCategoryStorage() {
-    if (!mongoCategoryStorage) {
-        mongoCategoryStorage = new MongoCategoryStorage();
-    }
-    return mongoCategoryStorage;
-}
-
-var mongoArtStorage = null;
-function provideMongoArtStorage() {
-    if (!mongoArtStorage) {
-        mongoArtStorage = new MongoArtStorage();
-    }
-    return mongoArtStorage;
-}
-
+const mongoSchemeStorage = new MongoSchemeStorage();
+const mongoCategoryStorage = new MongoCategoryStorage();
+const mongoArtStorage = new MongoArtStorage();
 const mongoImageStorage = new MongoImageStorage();
+const mongoProjectStorage = new MongoProjectStorage();
 
 module.exports = {
     provideSchemeStorage() {
-        return provideMongoStorage();
+        return mongoSchemeStorage;
     },
 
     provideCategoryStorage() {
-        return provideMongoCategoryStorage();
+        return mongoCategoryStorage;
     },
 
     provideArtStorage() {
-        return provideMongoArtStorage();
+        return mongoArtStorage;
     },
 
     provideImageStorage() {
         return mongoImageStorage;
+    },
+
+    provideProjectStorage() {
+        return mongoProjectStorage;
     }
 }

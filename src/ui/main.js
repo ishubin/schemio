@@ -10,6 +10,7 @@ import App from './App.vue';
 import LoginView from './views/LoginView.vue';
 import SchemeEditorView from './views/SchemeEditorView.vue';
 import SearchView from './views/SearchView.vue';
+import ProjectCreateView from './views/ProjectCreateView.vue';
 
 
 Vue.use(VueRouter);
@@ -28,6 +29,7 @@ function route(name, path, component) {
 
 const routes = [
     route('Login', '/login', LoginView),
+    route('Login', '/create-project', ProjectCreateView),
     route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView),
     route('Search', '/', SearchView)
 ];

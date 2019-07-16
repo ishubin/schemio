@@ -190,6 +190,15 @@ ul.schemes li .timestamp {
     top: 2px;
 }
 
+
+/******************* Middle content *********************/
+.middle-content {
+    margin-top: 60px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /******************** Tabs *********************/
 ul.tabs {
     list-style: none;

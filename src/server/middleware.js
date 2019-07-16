@@ -3,16 +3,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 function apiError(error, message) {
+    let msg = message;
+    let err = error;
     if (arguments.length === 1 && (typeof arguments[0]) === 'string') {
-        error = null;
-        message = arguments[0];
+        err = null;
+        msg = arguments[0];
     }
-    if (error) {
+    if (err) {
         console.error(error);
     }
     this.status(500);
     this.json({
-        error: message || 'Internal error'
+        error: msg || 'Internal error'
     });
 }
 

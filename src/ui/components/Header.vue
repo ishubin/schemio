@@ -9,6 +9,11 @@
         </router-link>
         <ul>
             <li v-if="user">
+                <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
+            </li>
+        </ul>
+        <ul>
+            <li v-if="user">
                 <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
             </li>
         </ul>

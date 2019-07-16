@@ -8,6 +8,7 @@ const bodyParser            = require('body-parser');
 const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
 const apiUser               = require('./api/apiUser.js');
+const apiProjects           = require('./api/apiProjects.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
 const apiImages             = require('./api/apiImages.js');
@@ -37,6 +38,8 @@ app.use('/api', [jsonBodyParser, middleware.api]);
 app.get('/api/user', [middleware.auth], apiUser.getCurrentUser);
 app.post('/api/login', apiUser.login);
 app.get('/user/logout', apiUser.logout);
+
+app.post('/api/projects', [middleware.auth], apiProjects.createProject);
 
 app.get('/api/schemes', apiSchemes.findSchemes);
 app.get('/api/schemes/:schemeId', apiSchemes.getScheme);
