@@ -39,6 +39,7 @@ import apiClient from '../../../apiClient.js';
 
 export default {
     props: {
+        'projectId': {type: String},
         'item': {type: Object},
         'tagsUsed': {type: Boolean, default: true},
         'descriptionUsed': {type: Boolean, default: true}
@@ -48,7 +49,7 @@ export default {
 
     mounted() {
         if (this.tagsUsed) {
-            apiClient.getTags().then(tags => {
+            apiClient.getTags(this.projectId).then(tags => {
                 this.existingItemTags = _.map(tags, tag => {
                     return {text: tag};
                 });

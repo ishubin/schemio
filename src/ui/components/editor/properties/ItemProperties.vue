@@ -13,7 +13,7 @@
             </li>
         </ul>
 
-        <general-panel v-if="currentTab === 'description'" :item="item"/>
+        <general-panel :project-id="projectId" v-if="currentTab === 'description'" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :item="item"/>
         <connections-panel v-if="currentTab === 'description'" :item="item"/>
         <position-panel v-if="currentTab === 'position'" :item="item" @ungroup-item="$emit('ungroup-item')"/>
@@ -93,7 +93,7 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 
 export default {
-    props: ['item', 'schemeContainer'],
+    props: ['projectId', 'item', 'schemeContainer'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     mounted() {

@@ -41,10 +41,10 @@ import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
 
 export default {
-    props: ['schemeContainer'],
+    props: ['projectId', 'schemeContainer'],
     components: {VueTagsInput, Modal, RichTextEditor},
     mounted() {
-        apiClient.getTags().then(tags => {
+        apiClient.getTags(this.projectId).then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {
                 return {text: tag};
             });
@@ -69,7 +69,7 @@ export default {
         },
 
         deleteScheme() {
-            apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
+            apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
                 window.location = '/';
             });
         }

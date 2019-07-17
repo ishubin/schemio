@@ -78,7 +78,7 @@
                 <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
                         <h5>Create</h5>
-                        <create-item-menu/>
+                        <create-item-menu :project-id="projectId"/>
                     </div>
                 </div>
             </div>
@@ -99,11 +99,11 @@
                     </ul>
                     <div class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer">
-                            <scheme-properties v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
+                            <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
+                            <item-properties :project-id="projectId" :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
                                 @ungroup-item="ungroupItem(selectedItem)"
                             />
                             <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>

@@ -58,6 +58,7 @@ import Shape from './items/shapes/Shape.js';
 let _selectedImageItem = null;
 
 export default {
+    props: ['projectId'],
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal},
     mounted() {
         this.reloadArt();
@@ -108,7 +109,7 @@ export default {
             })
         },
         reloadArt() {
-            apiClient.getAllArt().then(artList => {
+            apiClient.getAllArt(this.projectId).then(artList => {
                 this.artList = artList;
             });
         },
