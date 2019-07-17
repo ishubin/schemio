@@ -63,6 +63,7 @@ class StateInteract extends State {
                         this.emit(object.item, SELECTED);
                         _.forEach(this.schemeContainer.selectedItems, item => {
                             if (item.id !== object.item.id) {
+                                this.emit(item, DESELECTED);
                                 EventBus.emitItemDeselected(item.id);
                             }
                         });
@@ -71,10 +72,10 @@ class StateInteract extends State {
                     }
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
-                    if (this.schemeContainer.selectedItems.length > 0) {
-                        this.emit(this.schemeContainer.selectedItems[0], DESELECTED);
-                    }
-                    _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
+                    _.forEach(this.schemeContainer.selectedItems, item => {
+                        EventBus.emitItemDeselected(item.id)
+                        this.emit(item, DESELECTED);
+                    });
                     this.schemeContainer.deselectAllItems();
                 }
             }

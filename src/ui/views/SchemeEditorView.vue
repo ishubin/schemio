@@ -508,6 +508,16 @@ export default {
             this.sidePanelRightExpanded = true;
         },
 
+        onAnyItemDeselected(itemId) {
+            if (this.selectedItem !== null && this.selectedItem.id === itemId) {
+                this.selectedItem = null;
+                if (this.currentTab === 'Item') {
+                    this.currentTab = 'Scheme';
+                }
+                this.tabs[1].disabled = true;
+            }
+        },
+
         onConnectorSelected(connector) {
             this.selectedConnector = connector;
             this.currentTab = 'Connection';
@@ -515,18 +525,6 @@ export default {
             this.tabs[1].disabled = true;
             this.tabs[2].disabled = false;
             this.schemeContainer.deselectAllItems();
-        },
-
-        onAnyItemDeselected() {
-            if (this.schemeContainer.selectedItems.length > 0) {
-                this.selectedItem = this.schemeContainer.selectedItems[this.schemeContainer.selectedItems.length - 1];
-            } else {
-                this.selectedItem = null;
-                if (this.currentTab === 'Item') {
-                    this.currentTab = 'Scheme';
-                }
-                this.tabs[1].disabled = true;
-            }
         },
 
         onAllConnectorsDeselected() {
