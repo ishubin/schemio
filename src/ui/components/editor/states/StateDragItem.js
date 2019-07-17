@@ -196,6 +196,9 @@ export default class StateDragItem extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
+            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
+            this.schemeContainer.deselectAllConnectors();
+
             if (!event.metaKey && !event.ctrlKey) {
                 this.deselectAllItems();
             }
@@ -284,7 +287,7 @@ export default class StateDragItem extends State {
             //TODO calculate dragging of rotated item edges properly
             /*
             the problem here is that by dragging any of the draggers - the center of the item moves.
-            This causes it "squezes" the item from both sides instead of just dragging the single edge.
+            This causes it to "squeze" the item from both sides instead of just dragging the single edge.
             */
             const tx = x - this.originalPoint.x;
             const ty = y - this.originalPoint.y;

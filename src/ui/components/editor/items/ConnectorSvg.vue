@@ -47,12 +47,14 @@ export default {
     mounted() {
         this.generateStrokeDashArray();
         EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.subscribeForConnectorChanged(this.connector.id, this.onConnectorChanged);
         EventBus.subscribeForConnectorSelected(this.connector.id, this.onConnectorSelected);
         EventBus.subscribeForConnectorDeselected(this.connector.id, this.onConnectorDeselected);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.unsubscribeForConnectorChanged(this.connector.id, this.onConnectorChanged);
         EventBus.unsubscribeForConnectorSelected(this.connector.id, this.onConnectorSelected);
         EventBus.unsubscribeForConnectorDeselected(this.connector.id, this.onConnectorDeselected);
@@ -70,6 +72,10 @@ export default {
             this.recompute();
             this.generateStrokeDashArray();
             this.$forceUpdate();
+        },
+
+        onAnyItemSelected() {
+            this.selected = false;
         },
 
         onConnectorSelected() {
