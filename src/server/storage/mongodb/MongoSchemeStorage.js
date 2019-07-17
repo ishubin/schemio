@@ -39,8 +39,8 @@ class MongoSchemeStorage {
         return text;
     }
 
-    findSchemes(query) {
-        var mongoQuery = {};
+    findSchemes(projectId, query) {
+        var mongoQuery = {projectId: mongo.sanitizeString(projectId)};
         if (query.hasOwnProperty('category')) {
             let categoryId = null;
             if (query.category != 0) {
@@ -89,13 +89,16 @@ class MongoSchemeStorage {
         });
     }
 
-    createScheme(scheme) {
+    createScheme(projectId, scheme) {
         scheme.id = shortid.generate();
         scheme.version = CURRENT_SCHEME_VERSION;
 
         var promise = Promise.resolve(null);
         if (scheme.categoryId) {
-            promise = this._categories().findOne({id: scheme.categoryId}).then(category => {
+            promise = this._categories().findOne({
+                id: scheme.categoryId,
+                projectId: mongo.sanitizeString(projectId)
+            }).then(category => {
                 if (!category) {
                     throw new Error(`Category does not exist: ${scheme.categoryId}`);
                 }
@@ -104,6 +107,7 @@ class MongoSchemeStorage {
         }
 
         scheme.itemsText = this.combineItemsText(scheme.items);
+        scheme.projectId = projectId;
 
         return promise.then(category => {
             if (category) {
@@ -117,8 +121,11 @@ class MongoSchemeStorage {
         });
     }
 
-    getScheme(schemeId) {
-        return this._schemes().findOne({id: mongo.sanitizeString(schemeId)}).then(scheme => {
+    getScheme(projectId, schemeId) {
+        return this._schemes().findOne({
+            id: mongo.sanitizeString(schemeId),
+            projectId: mongo.sanitizeString(projectId)
+        }).then(scheme => {
             if (scheme) {
                 return {
                     id: scheme.id,
@@ -135,11 +142,14 @@ class MongoSchemeStorage {
         });
     }
 
-    deleteScheme(schemeId) {
-        return this._schemes().deleteOne({id: mongo.sanitizeString(schemeId)});
+    deleteScheme(projectId, schemeId) {
+        return this._schemes().deleteOne({
+            id: mongo.sanitizeString(schemeId),
+            projectId: mongo.sanitizeString(projectId)
+        });
     }
 
-    saveScheme(schemeId, scheme) {
+    saveScheme(projectId, schemeId, scheme) {
         if (scheme.tags) {
             var tags = [].concat(scheme.tags);
             _.forEach(scheme.items, item => {
@@ -152,12 +162,18 @@ class MongoSchemeStorage {
 
         scheme.itemsText = this.combineItemsText(scheme.items);
         scheme.version = CURRENT_SCHEME_VERSION;
+        scheme.projectId = projectId;
 
-        return this._schemes().updateOne({id: schemeId}, {$set: scheme});
+        return this._schemes().updateOne({
+            id: schemeId,
+            projectId: mongo.sanitizeString(projectId)
+        }, {$set: scheme});
     }
 
-    getTags() {
-        return this._tags().find({}).toArray().then(tags => {
+    getTags(projectId) {
+        return this._tags().find({
+            projectId: mongo.sanitizeString(projectId)
+        }).toArray().then(tags => {
             if (tags && tags.length > 0) {
                 return _.map(tags, tag => tag.name);
             } else {
@@ -166,14 +182,16 @@ class MongoSchemeStorage {
         });
     }
 
-    saveTags(tags) {
-        var uniqTags = _.uniq(tags);
+    saveTags(projectId, tags) {
+        const uniqTags = _.uniq(tags);
 
-        var promises = _.map(uniqTags, tag => {
+        const promises = _.map(uniqTags, tag => {
             return this._tags().updateOne({
-                name: tag
+                name: tag, 
+                projectId: projectId
             }, {$set: {
-                name: tag
+                name: tag,
+                projectId: projectId
             }}, {
                 upsert: true
             });

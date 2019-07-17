@@ -3,20 +3,23 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const categoryStorage = require('../storage/storageProvider.js').provideCategoryStorage();
+const projectStorage = require('../storage/storageProvider.js').provideProjectStorage();
 const _             = require('lodash');
 const shortid       = require('shortid');
 
 const ApiCategories = {
 
     createCategory(req, res) {
-        var category = req.body;
-        categoryStorage.createCategory(category.name, category.id, category.parentId).then(category => {
+        const projectId = req.params.projectId;
+        let category = req.body;
+        categoryStorage.createCategory(projectId, category.name, category.id, category.parentId).then(category => {
             res.json(category);
         }).catch(err => res.$apiError(err));
     },
 
     getRootCategory(req, res) {
-        categoryStorage.getCategories(null).then(categories => {
+        const projectId = req.params.projectId;
+        categoryStorage.getCategories(projectId, null).then(categories => {
             res.json({
                 childCategories: categories
             });
@@ -24,9 +27,10 @@ const ApiCategories = {
     },
 
     getCategory(req, res) {
+        const projectId = req.params.projectId;
         Promise.all([
-            categoryStorage.getCategory(req.params.categoryId),
-            categoryStorage.getCategories(req.params.categoryId)
+            categoryStorage.getCategory(projectId, req.params.categoryId),
+            categoryStorage.getCategories(projectId, req.params.categoryId)
         ]).then(data => {
             if (data[0]) {
                 var category = data[0];
@@ -40,13 +44,15 @@ const ApiCategories = {
     },
 
     getCategoryTree(req, res) {
-        categoryStorage.getCategoryTree().then(tree => {
+        const projectId = req.params.projectId;
+        categoryStorage.getCategoryTree(projectId).then(tree => {
             res.json(tree);
         }).catch(err => res.$apiError(err));
     },
 
     deleteCategory(req, res) {
-        categoryStorage.deleteCategory(req.params.categoryId).then(data => {
+        const projectId = req.params.projectId;
+        categoryStorage.deleteCategory(projectId, req.params.categoryId).then(data => {
             res.json({message: `deleted category ${req.params.categoryId}`});
         }).catch(err => res.$apiError(err));
     },
@@ -55,16 +61,17 @@ const ApiCategories = {
     Creates category tree in case its nodes are missing
     */
     ensureCategoryStructure(req, res) {
-        var categories = req.body;
+        const projectId = req.params.projectId;
+        let categories = req.body;
         if (categories && categories.length > 0) {
             _.reduce(categories, (promise, category) => {
                 return promise.then(parentCategory => {
                     //checking if category is new or already exists
-                    var parentId = parentCategory ? parentCategory.id : null;
+                    let parentId = parentCategory ? parentCategory.id : null;
                     if (!category.id) {
-                        return categoryStorage.createCategory(category.name, shortid.generate(), parentId);
+                        return categoryStorage.createCategory(projectId, category.name, shortid.generate(), parentId);
                     } else {
-                        return categoryStorage.getCategory(category.id);
+                        return categoryStorage.getCategory(projectId, category.id);
                     }
                 });
             }, Promise.resolve(null)).then(category =>{

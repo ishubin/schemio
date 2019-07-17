@@ -193,6 +193,7 @@ export default {
     },
     data() {
         return {
+            projectId: this.$route.params.projectId,
             user: null,
             schemeId: null,
             originalUrlEncoded: encodeURIComponent(window.location),
@@ -248,7 +249,7 @@ export default {
         init() {
             this.loadCurrentUser();
             this.schemeId = this.$route.params.schemeId;
-            apiClient.loadScheme(this.schemeId).then(scheme => {
+            apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
                 this.schemeContainer = new SchemeContainer(scheme);
 
                 var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
@@ -289,7 +290,7 @@ export default {
 
             this.createSchemePreview();
 
-            apiClient.saveScheme(this.schemeId, this.schemeContainer.scheme).catch(err => {
+            apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme).catch(err => {
                 this.schemeChanged = true;
             });
         },
@@ -298,7 +299,7 @@ export default {
             var area = this.getBoundingBoxOfItems(this.schemeContainer.scheme.items);
 
             convertSvgToDataUrl(500, 400, '#svg_plot', area).then(dataUrl => {
-                apiClient.uploadSchemeThumbnail(this.schemeId, dataUrl);
+                apiClient.uploadSchemeThumbnail(this.projectId, this.schemeId, dataUrl);
             });
         },
 

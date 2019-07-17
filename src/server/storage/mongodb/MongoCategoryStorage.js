@@ -17,7 +17,7 @@ class MongoCategoryStorage {
         return mongo.db().collection('schemes');
     }
 
-    createCategory(name, id, parentId) {
+    createCategory(projectId, name, id, parentId) {
         if (!name || name.trim().length === 0) {
             return Promise.reject('name should not be empty');
         }
@@ -28,7 +28,7 @@ class MongoCategoryStorage {
 
         var chain = null;
         if (parentId) {
-            chain = this.getCategory(parentId).then(category => {
+            chain = this.getCategory(projectId, parentId).then(category => {
                 if (!category) {
                     throw new Error(`Parent category ${parentId} does not exist`);
                 }
@@ -51,6 +51,7 @@ class MongoCategoryStorage {
                 name,
                 lname: name.toLowerCase(),
                 id,
+                projectId,
                 parentId,
                 ancestors,
                 version: CURRENT_CATEGORY_VERSION,
@@ -62,20 +63,35 @@ class MongoCategoryStorage {
         });
     }
 
-    getCategory(id) {
-        return this._categories().findOne({id: mongo.sanitizeString(id)});
+    getCategory(projectId, id) {
+        return this._categories().findOne({
+            id: mongo.sanitizeString(id),
+            projectId: mongo.sanitizeString(projectId)
+        });
     }
 
-    getCategories(parentId) {
-        return this._categories().find({parentId: mongo.sanitizeString(parentId)}).toArray();
+    getCategories(projectId, parentId) {
+        return this._categories().find({
+            parentId: mongo.sanitizeString(parentId),
+            projectId: mongo.sanitizeString(projectId)
+        }).toArray();
     }
 
 
-    deleteCategory(categoryId) {
+    deleteCategory(projectId, categoryId) {
         return Promise.all([
-            this._schemes().deleteMany({'allSubCategoryIds': mongo.sanitizeString(categoryId)}),
-            this._categories().deleteOne({id: mongo.sanitizeString(categoryId)}),
-            this._categories().deleteMany({'ancestors.id': mongo.sanitizeString(categoryId)})
+            this._schemes().deleteMany({
+                allSubCategoryIds: mongo.sanitizeString(categoryId),
+                projectId: mongo.sanitizeString(projectId)
+            }),
+            this._categories().deleteOne({
+                id: mongo.sanitizeString(categoryId),
+                projectId: mongo.sanitizeString(projectId)
+            }),
+            this._categories().deleteMany({
+                'ancestors.id': mongo.sanitizeString(categoryId),
+                projectId: mongo.sanitizeString(projectId)
+            })
         ]);
     }
 
@@ -98,8 +114,8 @@ class MongoCategoryStorage {
     }
 
     // Converts list of all categories into tree structure
-    getCategoryTree() {
-        return this._categories().find().toArray().then(categories => {
+    getCategoryTree(projectId) {
+        return this._categories().find({projectId: mongo.sanitizeString(projectId)}).toArray().then(categories => {
             const map = {};
             const topCategories = [];
 

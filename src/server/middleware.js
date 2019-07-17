@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+ const projectStorage = require('./storage/storageProvider').provideProjectStorage();
+
 function apiError(error, message) {
     let msg = message;
     let err = error;
@@ -55,13 +57,59 @@ module.exports = {
         if (req.session.userLogin && req.session.userLogin.length > 0) {
             next();
         } else {
-            if (req.path.indexOf('/api/') === 0) {
+            if (req.path.indexOf('/v1/') === 0) {
                 res.status(401);
                 res.json({error: 'Not authorized'});
             } else {
                 var redirectTo = encodeURIComponent(req.originalUrl);
                 res.redirect(`/login?redirect=${redirectTo}`);
             }
+        }
+    },
+
+    projectReadPermission(req, res, next) {
+        const reject = () => {
+            res.status(401);
+            res.json({error: 'Not authorized'});
+        };
+        const projectId = req.params.projectId;
+        const userLogin = req.session.userLogin;
+        if (projectId && userLogin) {
+            projectStorage.isUserAuthorizedToRead(projectId, userLogin).then(isAuthorized => {
+                if (!isAuthorized) {
+                    reject();
+                } else {
+                    next();
+                }
+            }).catch(err => {
+                console.error(err);
+                reject();
+            });
+        } else {
+            reject();
+        }
+    },
+
+    projectWritePermission(req, res, next) {
+        const reject = () => {
+            res.status(401);
+            res.json({error: 'Not authorized'});
+        };
+        const projectId = req.params.projectId;
+        const userLogin = req.session.userLogin;
+        if (projectId && userLogin) {
+            projectStorage.isUserAuthorizedToWrite(projectId, userLogin).then(isAuthorized => {
+                if (!isAuthorized) {
+                    reject();
+                } else {
+                    next();
+                }
+            }).catch(err => {
+                console.error(err);
+                reject();
+            });
+        } else {
+            reject();
         }
     }
 };

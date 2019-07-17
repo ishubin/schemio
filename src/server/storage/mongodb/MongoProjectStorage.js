@@ -25,6 +25,62 @@ class MongoProjectStorage {
         return this._projects().insertOne(newProject).then(result => newProject);
     }
 
+
+    /**
+     * Retrieves the project only in case the user is authorized
+     * @param {string} projectId 
+     * @param {string} userLogin 
+     */
+    getProject(projectId, userLogin) {
+        const $or = [{isPublic: true}];
+        if (userLogin) {
+            $or.push({read: userLogin});
+        }
+
+        return this._projects().findOne({
+            id: projectId,
+            $or: $or
+        });
+    }
+
+
+    /**
+     * Checks whether user has read rights for specified project
+     * @param {string} projectId 
+     * @param {string} userLogin 
+     * @returns {Promise} boolean if the user is authorized to read
+     */
+    isUserAuthorizedToRead(projectId, userLogin) {
+        return this._projects().find({
+            id: projectId,
+            $or: [{
+                isPublic: true
+            }, {
+                read: userLogin
+            }]
+        }).limit(1).count().then(size => size === 1? true: false);
+    }
+
+    /**
+     * Checks whether user has write rights for specified project
+     * @param {string} projectId 
+     * @param {string} userLogin 
+     * @returns {Promise} boolean if the user is authorized to write
+     */
+    isUserAuthorizedToWrite(projectId, userLogin) {
+        return this._projects().find({
+            id: projectId,
+            $or: [{
+                isPublic: true
+            }, {
+                write: userLogin
+            }]
+        }).limit(1).count().then(size => size === 1? true: false);
+    }
+    
+    /**
+     * Finds all projects either public or the ones the user is authorized to read
+     */
     findProjects(query) {
         const mongoQuery = {
             $or: [{

@@ -11,9 +11,7 @@
             <li v-if="user">
                 <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
             </li>
-        </ul>
-        <ul>
-            <li v-if="user">
+            <li v-if="user && projectId">
                 <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
             </li>
         </ul>
@@ -32,6 +30,7 @@
         </div>
 
         <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories"
+            :project-id="projectId"
             @close="newSchemePopup.show = false"
             @scheme-created="openNewSchemePopupSchemeCreated"
             ></create-new-scheme-modal>
@@ -44,10 +43,8 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 
 export default {
     props: {
-        category: {
-            type: Object,
-            default: null
-        }
+        projectId:  {type: String, default: null},
+        category:   {type: Object, default: null}
     },
 
     components: {CreateNewSchemeModal},
@@ -91,7 +88,7 @@ export default {
 
         openNewSchemePopupSchemeCreated(scheme) {
             this.newSchemePopup.show = false;
-            window.location.href = `/schemes/${scheme.id}`;
+            window.location.href = `/projects/${this.projectId}/schemes/${scheme.id}`;
         }
     }
 }

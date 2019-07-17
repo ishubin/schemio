@@ -31,7 +31,7 @@ function route(name, path, component) {
 const routes = [
     route('Login', '/login', LoginView),
     route('CreateProject', '/create-project', ProjectCreateView),
-    route('SchemeEditorView', '/schemes/:schemeId', SchemeEditorView),
+    route('SchemeEditorView', '/projects/:projectId/schemes/:schemeId', SchemeEditorView),
     route('HomeView', '/', HomeView),
     route('ProjectView', '/projects/:projectId', ProjectView)
 ];

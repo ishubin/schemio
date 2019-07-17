@@ -34,7 +34,7 @@
 import apiClient from '../apiClient.js';
 
 export default {
-    props: ['categories'],
+    props: ['categories', 'projectId'],
 
     mounted() {
         this.reloadSuggestions();
@@ -60,7 +60,7 @@ export default {
                     return Promise.resolve(null);
                 }
             }
-            return apiClient.getCategory(id).then(category => {
+            return apiClient.getCategory(this.projectId, id).then(category => {
                 this.childSuggestions = category.childCategories;
             });
         },

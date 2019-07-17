@@ -32,39 +32,38 @@ app.use(session({
 
 app.use(cookieParser());
 app.use(express.static('public'));
-app.use('/api', [jsonBodyParser, middleware.api]);
+app.use('/v1', [jsonBodyParser, middleware.api]);
 
 
-app.get('/api/user', [middleware.auth], apiUser.getCurrentUser);
-app.post('/api/login', apiUser.login);
+app.get('/v1/user', [middleware.auth], apiUser.getCurrentUser);
+app.post('/v1/login', apiUser.login);
 app.get('/user/logout', apiUser.logout);
 
-app.post('/api/projects', [middleware.auth], apiProjects.createProject);
-app.get('/api/projects', apiProjects.findProjects);
+app.post('/v1/projects', [middleware.auth], apiProjects.createProject);
+app.get('/v1/projects', apiProjects.findProjects);
 
-app.get('/api/schemes', apiSchemes.findSchemes);
-app.get('/api/schemes/:schemeId', apiSchemes.getScheme);
-app.delete('/api/schemes/:schemeId', [middleware.auth], apiSchemes.deleteScheme);
-app.post('/api/schemes', [middleware.auth], apiSchemes.createScheme);
-app.put('/api/schemes/:schemeId', [middleware.auth], apiSchemes.saveScheme);
+app.get('/v1/projects/:projectId/schemes',              [middleware.projectReadPermission], apiSchemes.findSchemes);
+app.get('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectReadPermission], apiSchemes.getScheme);
+app.delete('/v1/projects/:projectId/schemes/:schemeId', [middleware.projectWritePermission], apiSchemes.deleteScheme);
+app.post('/v1/projects/:projectId/schemes',             [middleware.projectWritePermission], apiSchemes.createScheme);
+app.put('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectWritePermission], apiSchemes.saveScheme);
 
-app.get('/api/tags',  apiSchemes.getTags);
+app.get('/v1/projects/:projectId/tags',  apiSchemes.getTags);
 
-app.post('/api/art', [middleware.auth], apiArt.createArt);
-app.get('/api/art', apiArt.getArt);
+app.post('/v1/projects/:projectId/art', [middleware.auth], apiArt.createArt);
+app.get('/v1/projects/:projectId/art', apiArt.getArt);
 
-app.post('/images', [middleware.auth], apiImages.uploadImage);
-app.get('/images/:fileName', apiImages.getImage);
+app.post('/projects/:projectId/images', [middleware.auth], apiImages.uploadImage);
+app.get('/projects/:projectId/images/:fileName', apiImages.getImage);
 
-app.post('/api/scheme-thumnbails/:schemeId', apiImages.uploadSchemeThumbnail);
+app.post('/v1/projects/:projectId/scheme-thumnbails/:schemeId', apiImages.uploadSchemeThumbnail);
 
-
-app.get('/api/category-tree',  apiCategories.getCategoryTree);
-app.get('/api/categories',  apiCategories.getRootCategory);
-app.get('/api/categories/:categoryId',  apiCategories.getCategory);
-app.post('/api/categories', [middleware.auth],  apiCategories.createCategory);
-app.delete('/api/categories/:categoryId', [middleware.auth],  apiCategories.deleteCategory);
-app.put('/api/category-structure', [middleware.auth],  apiCategories.ensureCategoryStructure);
+app.get('/v1/projects/:projectId/category-tree',                [middleware.projectReadPermission], apiCategories.getCategoryTree);
+app.get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission], apiCategories.getRootCategory);
+app.get('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectReadPermission], apiCategories.getCategory);
+app.post('/v1/projects/:projectId/categories',                  [middleware.projectWritePermission],  apiCategories.createCategory);
+app.delete('/v1/projects/:projectId/categories/:categoryId',    [middleware.projectWritePermission],  apiCategories.deleteCategory);
+app.put('/v1/projects/:projectId/category-structure',           [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
 
 
 const cwd = process.cwd();

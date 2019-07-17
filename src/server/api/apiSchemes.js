@@ -24,12 +24,14 @@ function sanitizeScheme(scheme) {
 
 const ApiSchemes = {
     getScheme(req, res) {
-        var schemeId = req.params.schemeId;
-        schemeStorage.getScheme(schemeId)
+        const projectId = req.params.projectId;
+
+        let schemeId = req.params.schemeId;
+        schemeStorage.getScheme(projectId, schemeId)
         .then(scheme => {
             if (scheme) {
                 if (scheme.categoryId) {
-                    return categoryStorage.getCategory(scheme.categoryId).then(category => {
+                    return categoryStorage.getCategory(projectId, scheme.categoryId).then(category => {
                         scheme.category = category;
                         return scheme;
                     }).catch(err => {
@@ -53,31 +55,35 @@ const ApiSchemes = {
     },
 
     createScheme(req, res) {
-        var requestScheme = req.body;
+        const projectId = req.params.projectId;
+        const requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
 
-        schemeStorage.createScheme(requestScheme).then(scheme => {
+        schemeStorage.createScheme(projectId, requestScheme).then(scheme => {
             res.json(scheme);
         }).catch(err => res.$apiError(err));
     },
 
     saveScheme(req, res) {
-        var schemeId = req.params.schemeId;
-        var requestScheme = req.body;
+        const projectId = req.params.projectId;
+        const schemeId = req.params.schemeId;
+        const requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
-        schemeStorage.saveScheme(schemeId, requestScheme).then(scheme => {
+        schemeStorage.saveScheme(projectId, schemeId, requestScheme).then(scheme => {
             res.json(scheme);
         }).catch(err => res.$apiError(err));
     },
 
     deleteScheme(req, res) {
-        var schemeId = req.params.schemeId;
-        schemeStorage.deleteScheme(schemeId).then(() => {
+        const projectId = req.params.projectId;
+        const schemeId = req.params.schemeId;
+        schemeStorage.deleteScheme(projectId, schemeId).then(() => {
             res.json({status: "ok"});
         }).catch(err => res.$apiError(err));
     },
 
     findSchemes(req, res) {
+        const projectId = req.params.projectId;
         var query = {
             query: req.query.q ? req.query.q.trim() : null,
             includeParent: false
@@ -95,13 +101,14 @@ const ApiSchemes = {
             query.includeSubcategories = true;
         }
 
-        schemeStorage.findSchemes(query).then(searchResult => {
+        schemeStorage.findSchemes(projectId, query).then(searchResult => {
             res.json(searchResult);
         }).catch(err => res.$apiError(err));
     },
 
     getTags(req, res) {
-        schemeStorage.getTags().then(tags => {
+        const projectId = req.params.projectId;
+        schemeStorage.getTags(projectId).then(tags => {
             res.json(tags);
         }).catch(err => res.$apiError(err));
     }

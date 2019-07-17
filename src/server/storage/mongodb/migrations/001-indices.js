@@ -11,6 +11,8 @@ module.exports = {
         ).then(() =>
             db.collection('schemes').createIndex({name: "text", description: "text", itemsText: "text"})
         ).then(() =>
+            db.collection('schemes').createIndex({projectId: 1})
+        ).then(() =>
             db.collection('projects').createIndex({name: "text", description: "text"})
         );
     }

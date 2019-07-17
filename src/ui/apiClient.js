@@ -13,44 +13,44 @@ function unwrapAxios(response) {
 
 export default {
     getCurrentUser() {
-        return axios.get('/api/user').then(unwrapAxios).catch(err => {
+        return axios.get('/v1/user').then(unwrapAxios).catch(err => {
             return null;
         });
     },
 
     createProject(project) {
-        return axios.post('/api/projects', project).then(unwrapAxios);
+        return axios.post('/v1/projects', project).then(unwrapAxios);
     },
 
     findProjects(filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
-        let url = `/api/projects?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        let url = `/v1/projects?offset=${filters.offset || 0}&q=${encodedQuery}`;
         return axios.get(url).then(unwrapAxios);
     },
 
     login(login, password) {
-        return axios.post('/api/login', {login, password}).then(unwrapAxios);
+        return axios.post('/v1/login', {login, password}).then(unwrapAxios);
     },
 
-    createArt(art) {
-        return axios.post('/api/art', art).then(unwrapAxios);
+    createArt(projectId, art) {
+        return axios.post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
     },
 
-    getAllArt() {
-        return axios.get('/api/art').then(unwrapAxios);
+    getAllArt(projectId) {
+        return axios.get(`/v1/projects/${projectId}/art`).then(unwrapAxios);
     },
 
-    loadScheme(schemeId) {
-        return axios.get(`/api/schemes/${schemeId}`).then(unwrapAxios);
+    loadScheme(projectId, schemeId) {
+        return axios.get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
     },
 
-    createNewScheme(scheme) {
-        return axios.post(`/api/schemes`, scheme).then(unwrapAxios);
+    createNewScheme(projectId, scheme) {
+        return axios.post(`/v1/projects/${projectId}/schemes`, scheme).then(unwrapAxios);
     },
 
-    saveScheme(schemeId, scheme) {
+    saveScheme(projectId, schemeId, scheme) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.put(`/api/schemes/${schemeId}`, utils.sanitizeScheme(scheme)).then(response => {
+            return axios.put(`/v1/projects/${projectId}/schemes/${schemeId}`, utils.sanitizeScheme(scheme)).then(response => {
                 return 'saved';
             });
         } else {
@@ -58,17 +58,17 @@ export default {
         }
     },
 
-    deleteScheme(schemeId) {
+    deleteScheme(projectId, schemeId) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.delete(`/api/schemes/${schemeId}`).then(unwrapAxios);
+            return axios.delete(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
         } else {
             return Promise.resolve(null);
         }
     },
 
-    findSchemes(filters) {
+    findSchemes(projectId, filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
-        let url = `/api/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        let url = `/v1/projects/${projectId}/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`;
         if (filters.categoryId) {
             url = `${url}&category=${encodeURIComponent(filters.categoryId)}`;
         }
@@ -79,28 +79,28 @@ export default {
         return axios.get(url).then(unwrapAxios);
     },
 
-    getTags() {
-        return axios.get('/api/tags').then(unwrapAxios);
+    getTags(projectId) {
+        return axios.get(`/v1/projects/${projectId}/tags`).then(unwrapAxios);
     },
 
-    getCategory(parentCategoryId) {
+    getCategory(projectId, parentCategoryId) {
         var id = parentCategoryId ? parentCategoryId : '';
-        return axios.get(`/api/categories/${id}`).then(unwrapAxios);
+        return axios.get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
     },
 
-    getCategoryTree() {
-        return axios.get(`/api/category-tree`).then(unwrapAxios);
+    getCategoryTree(projectId) {
+        return axios.get(`/v1/projects/${projectId}/category-tree`).then(unwrapAxios);
     },
 
-    ensureCategoryStructure(categories) {
+    ensureCategoryStructure(projectId, categories) {
         if (categories && categories.length > 0) {
-            return axios.put(`/api/category-structure`, categories).then(unwrapAxios);
+            return axios.put(`/v1/projects/${projectId}/category-structure`, categories).then(unwrapAxios);
         } else {
             return Promise.resolve(null);
         }
     },
 
-    uploadSchemeThumbnail(schemeId, data) {
-        return axios.post(`/api/scheme-thumnbails/${schemeId}`, {image: data}).then(unwrapAxios);
+    uploadSchemeThumbnail(projectId, schemeId, data) {
+        return axios.post(`/v1/projects/${projectId}/scheme-thumnbails/${schemeId}`, {image: data}).then(unwrapAxios);
     }
 }

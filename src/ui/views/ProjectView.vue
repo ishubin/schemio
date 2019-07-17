@@ -4,14 +4,14 @@
 
 <template lang="html">
     <div class="search-view">
-        <header-component/>
+        <header-component :project-id="projectId"/>
 
         <div class="content-wrapper">
             <h3>Schemes</h3>
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
-                    <category-tree v-for="category in categories" :key="category.id" :category="category" :selected-category-id="currentCategoryId" base-url="/" :url-prefix="urlPrefix"/>
+                    <category-tree v-for="category in categories" :key="category.id" :category="category" :selected-category-id="currentCategoryId" :base-url="`/projects/${projectId}`" :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
                     <div v-if="searchResult">
@@ -33,7 +33,7 @@
 
                         <ul class="schemes">
                             <li v-for="scheme in searchResult.results">
-                                <router-link :to="{path: '/schemes/'+scheme.id}">
+                                <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}">
                                     <a class="scheme link">
                                         <h5>{{scheme.name}}</h5>
                                         <div class="image-wrapper">
@@ -74,7 +74,6 @@ export default {
     data() {
         return {
             projectId: this.$route.params.projectId,
-            project: null,
             query: '',
             urlPrefix: null,
             searchResult: null,
@@ -91,7 +90,7 @@ export default {
             this.currentPage = parseInt(this.$route.query.page) || 1;
             this.query = this.$route.query.q || '';
 
-            let urlPrefix = '/';
+            let urlPrefix = `/projects/${this.projectId}/`;
             let hasParamsAlready = false;
             _.forEach(this.$route.query, (value, name) => {
                 if (name !== 'page' && name != 'category') {
@@ -103,7 +102,7 @@ export default {
 
             this.urlPrefix = urlPrefix;
 
-            apiClient.getCategoryTree().then(categories => {
+            apiClient.getCategoryTree(this.projectId).then(categories => {
                 this.categories = categories;
                 if (this.currentCategoryId) {
                     this.expandToCategory(this.currentCategoryId);
@@ -116,7 +115,7 @@ export default {
             if (this.currentPage > 0) {
                 offset = (this.currentPage - 1) * RESULTS_PER_PAGE;
             }
-            apiClient.findSchemes({
+            apiClient.findSchemes(this.projectId, {
                 query: this.query,
                 categoryId: this.currentCategoryId,
                 offset: offset,
