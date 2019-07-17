@@ -154,7 +154,7 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import settingsStorage from '../settingsStorage.js';
-import convertSvgToDataUrl from '../svgPreview.js';
+import snapshotSvg from '../svgPreview.js';
 
 
 
@@ -298,8 +298,8 @@ export default {
         createSchemePreview() {
             var area = this.getBoundingBoxOfItems(this.schemeContainer.scheme.items);
 
-            convertSvgToDataUrl(500, 400, '#svg_plot', area).then(dataUrl => {
-                apiClient.uploadSchemeThumbnail(this.projectId, this.schemeId, dataUrl);
+            snapshotSvg(500, 400, '#svg_plot', area).then(svgCode => {
+                apiClient.uploadSchemeSvgThumbnail(this.projectId, this.schemeId, svgCode);
             });
         },
 

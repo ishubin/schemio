@@ -104,7 +104,7 @@ export default {
         }
     },
 
-    uploadSchemeThumbnail(projectId, schemeId, data) {
-        return axios.post(`/v1/projects/${projectId}/scheme-thumnbails/${schemeId}`, {image: data}).then(unwrapAxios);
+    uploadSchemeSvgThumbnail(projectId, schemeId, svgCode) {
+        return axios.post(`/v1/projects/${projectId}/scheme-thumnbails/${schemeId}`, {svg: svgCode}).then(unwrapAxios);
     }
 }

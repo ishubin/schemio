@@ -96,21 +96,15 @@ module.exports = {
     },
 
     uploadSchemeThumbnail(req, res) {
-        let imageContent = req.body.image;
-
-        // removing header "data:image/png;base64,"
-        const index = imageContent.indexOf(',');
-        if (index > 0) {
-             imageContent = imageContent.substr(index + 1);
-        }
+        let imageContent = req.body.svg;
 
         const schemeId = req.params.schemeId;
 
-        const fileName = `scheme-preview-${schemeId}.png`;
+        const fileName = `scheme-preview-${schemeId}.svg`;
         const filePath = `${config.images.uploadFolder}/${fileName}`;
 
         console.log('Writing to file', fileName);
-        fsp.writeFile(filePath, Buffer.from(imageContent, 'base64')).then(() => {
+        fsp.writeFile(filePath, imageContent).then(() => {
             imageStorage.uploadImageFromFile(filePath, fileName).then(imageData => {
                 res.json({message: 'ok'});
             }).catch(err => {
