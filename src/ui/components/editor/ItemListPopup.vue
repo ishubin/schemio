@@ -65,7 +65,7 @@ export default {
             var item = this.schemeContainer.findItemById(itemData.id);
             if (item) {
                 this.schemeContainer.selectItem(item);
-                EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, item);
+                EventBus.emitItemSelected(item.id);
                 this.$emit('close');
                 EventBus.$emit(EventBus.BRING_TO_VIEW, item.area);
             }

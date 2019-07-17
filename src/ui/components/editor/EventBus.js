@@ -13,10 +13,7 @@ const EventBus = new Vue({
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             REDRAW: 'redraw', //TODO get rid of this event. instead listen to item-changed, connector-changed event and redraw properly
-            REDRAW_ITEM: 'redraw-item', //TODO get rid of this event.
             REDRAW_CONNECTOR: 'redraw-connector',  //TODO get rid of this event.
-            ACTIVE_ITEM_SELECTED: 'active-item-selected',
-            ALL_ITEMS_DESELECTED: 'all-items-deselected',
             CONNECTOR_SELECTED: 'connector-selected',
             ALL_CONNECTORS_DESELECTED: 'all-connectors-deselected',
             KEY_PRESS: 'key-press',
@@ -26,9 +23,16 @@ const EventBus = new Vue({
             MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
             MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
 
-            ITEM_CHANGED: 'item-changed',
             CONNECTOR_CHANGED: 'connector-changed',
-            SCHEME_PROPERTY_CHANGED: 'scheme-property-changed',
+            SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
+
+
+            ITEM_CHANGED: 'item-changed',
+            ITEM_SELECTED: 'item-selected',
+            ITEM_DESELECTED: 'item-deselected',
+            ANY_ITEM_CHANGED: 'any-item-changed',
+            ANY_ITEM_SELECTED: 'any-item-selected',
+            ANY_ITEM_DESELECTED: 'any-item-deselected',
 
             KEY: {
                 ESCAPE: 'escape',
@@ -57,18 +61,29 @@ const EventBus = new Vue({
             return `${EventBus.REDRAW_CONNECTOR}/${connectorId}`;
         },
 
-        emitRedrawItem(itemId) {
-            this.$emit(this._generateRedrawItemEventName(itemId));
+        emitItemChanged(itemId) {
+            this.$emit(this._itemChangedEvent(itemId));
+            this.$emit(EventBus.ANY_ITEM_CHANGED, itemId);
         },
-        subscribeForRedrawItem(itemId, callback) {
-            this.$on(this._generateRedrawItemEventName(itemId), callback);
+        subscribeForItemChanged(itemId, callback) { this.$on(this._itemChangedEvent(itemId), callback); },
+        unsubscribeForItemChanged(itemId, callback) { this.$off(this._itemChangedEvent(itemId), callback); },
+        _itemChangedEvent(itemId) { return `${EventBus.ITEM_CHANGED}/${itemId}`; },
+
+        emitItemSelected(itemId) {
+            this.$emit(this._itemSelectedEvent(itemId));
+            this.$emit(EventBus.ANY_ITEM_SELECTED, itemId);
         },
-        unsubscribeForRedrawItem(itemId, callback) {
-            this.$off(this._generateRedrawItemEventName(itemId), callback);
+        subscribeForItemSelected(itemId, callback) {this.$on(this._itemSelectedEvent(itemId), callback)},
+        unsubscribeForItemSelected(itemId, callback) {this.$off(this._itemSelectedEvent(itemId), callback)},
+        _itemSelectedEvent(itemId) { return `${EventBus.ITEM_SELECTED}/${itemId}`; },
+
+        emitItemDeselected(itemId) {
+            this.$emit(this._itemDeselectedEvent(itemId));
+            this.$emit(EventBus.ANY_ITEM_DESELECTED, itemId);
         },
-        _generateRedrawItemEventName(itemId) {
-            return `${EventBus.REDRAW_ITEM}/${itemId}`;
-        }
+        subscribeForItemDeselected(itemId, callback) {this.$on(this._itemDeselectedEvent(itemId), callback)},
+        unsubscribeForItemDeselected(itemId, callback) {this.$off(this._itemDeselectedEvent(itemId), callback)},
+        _itemDeselectedEvent(itemId) { return `${EventBus.ITEM_DESELECTED}/${itemId}`; },
     }
 });
 

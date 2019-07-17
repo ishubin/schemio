@@ -26,14 +26,6 @@
                             :height="item.area.h + 10"
                         />
 
-                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
-                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
-                        </g>
-
-                        <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
-                            <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
-                        </g>
-
 
                         <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
                             :key="connectorIndex"
@@ -45,6 +37,8 @@
                             :offsetY="vOffsetY"
                             :showReroutes="mode === 'edit'"
                             ></connector-svg>
+
+                        <item-svg :item-index="itemIndex" :item="item" :mode="mode" :scheme-container="schemeContainer" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
                 </g>
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -93,14 +87,6 @@
                             :height="item.area.h + 10"
                         />
 
-                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
-                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
-                        </g>
-
-                        <g v-if="item.links && item.links.length > 0" data-preview-ignore="true">
-                            <ellipse :cx="item.area.x" :cy="item.area.y" rx="3" :ry="3" class="marker-has-links" />
-                        </g>
-
 
                         <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
                             :key="connectorIndex"
@@ -113,42 +99,7 @@
                             :showReroutes="mode === 'edit'"
                             ></connector-svg>
 
-                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`">
-                            <item-svg :item-index="itemIndex" :item="item" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
-                            <g class="item-container" data-preview-ignore="true">
-                                <!-- Drawing boundary edit box -->
-                                <rect class="boundary-box"
-                                    :data-item-index="itemIndex"
-                                    x="0"
-                                    y="0"
-                                    :width="item.area.w"
-                                    :height="item.area.h"
-                                />
-                                <g v-if="item.meta.selected"
-                                    v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)"
-                                >
-                                    <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
-                                        :data-dragger-item-index="itemIndex"
-                                        data-dragger-type="rotation"
-                                        :cx="dragger.x"
-                                        :cy="dragger.y"
-                                        :rx="dragger.s/(vZoom || 1.0)"
-                                        :ry="dragger.s/(vZoom || 1.0)"
-                                    />
-
-
-                                    <rect v-if="!dragger.rotation" class="boundary-box-dragger"
-                                        :data-dragger-item-index="itemIndex"
-                                        :data-dragger-index="draggerIndex"
-                                        :x="dragger.x - dragger.s / (vZoom || 1.0)"
-                                        :y="dragger.y - dragger.s / (vZoom || 1.0)"
-                                        :width="dragger.s * 2 / (vZoom || 1.0)"
-                                        :height="dragger.s * 2 / (vZoom || 1.0)"
-                                    />
-                                </g>
-                            </g>
-                        </g>
-
+                        <item-svg :item-index="itemIndex" :item="item" :mode="mode" :scheme-container="schemeContainer" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
 
 
@@ -249,8 +200,8 @@ export default {
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.REDRAW, this.onRedraw);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onSelectItem);
-        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
@@ -269,8 +220,8 @@ export default {
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.REDRAW, this.onRedraw);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onSelectItem);
-        EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
@@ -514,10 +465,9 @@ export default {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 this.activeItem = null;
-                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
+                _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
-                EventBus.$emit(EventBus.REDRAW);
             } else {
                 this.state.keyPressed(key, keyOptions);
             }
@@ -538,16 +488,17 @@ export default {
             this.multiSelectBox = null;
         },
 
-        onSelectItem(item) {
+        onAnyItemSelected(itemId) {
+            const item = this.schemeContainer.findItemById(itemId);
+
             if (this.mode === 'view') {
                 this.selectedItemLinks = this.generateItemLinks(item);
                 this.startLinksAnimation();
             }
             this.activeItem = item;
-            this.$forceUpdate();
         },
 
-        onAllItemsDeselected(item) {
+        onAnyItemDeselected(item) {
             this.activeItem = null;
             this.removeDrawnLinks();
         },

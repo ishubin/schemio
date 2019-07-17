@@ -4,6 +4,7 @@
 
 import State from './State.js';
 import EventBus from '../EventBus.js';
+import _ from 'lodash';
 
 export default class StateCreateComponent extends State {
     constructor(editor) {
@@ -41,8 +42,10 @@ export default class StateCreateComponent extends State {
         if (this.addedToScheme) {
             this.updateComponentArea(this.snapX(x), this.snapY(y));
             this.schemeContainer.setActiveBoundaryBox(null);
+            
+            _.forEach(this.schemeContainer.selectItems, item => EventBus.emitItemDeselected(item.id));
             this.schemeContainer.selectItem(this.component);
-            EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, this.component);
+            EventBus.emitItemSelected(this.component.id);
             EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
             this.reset();
         } else {

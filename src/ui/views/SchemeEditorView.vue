@@ -166,30 +166,24 @@ export default {
     mounted() {
         window.onbeforeunload = this.onBrowseClose;
         this.init();
-        EventBus.$on(EventBus.ITEM_CHANGED, this.onItemChanged);
-        EventBus.$on(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
-        EventBus.$on(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
-
+        EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-
-        EventBus.$on(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
-        EventBus.$on(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     beforeDestroy(){
-        EventBus.$off(EventBus.ITEM_CHANGED, this.onItemChanged);
-        EventBus.$off(EventBus.CONNECTOR_CHANGED, this.onConnectorChanged);
-        EventBus.$off(EventBus.SCHEME_PROPERTY_CHANGED, this.onSchemePropertyChanged);
+        EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.ACTIVE_ITEM_SELECTED, this.onActiveItemSelected);
         EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
-        EventBus.$off(EventBus.ALL_ITEMS_DESELECTED, this.onAllItemsDeselected);
         EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
     },
     data() {
         return {
@@ -391,8 +385,8 @@ export default {
             var id = this.schemeContainer.addItem(newItem);
             this.schemeContainer.connectItems(item, newItem);
 
+            _.forEach(this.schemeContainer.selectedItems, selectedItem => EventBus.emitItemDeselected(selectedItem.id));
             this.schemeContainer.selectItem(newItem, false);
-            EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, newItem);
         },
 
         startCreatingChildSchemeForItem(item) {
@@ -506,8 +500,8 @@ export default {
             });
         },
 
-        onActiveItemSelected(item) {
-            this.selectedItem = item;
+        onAnyItemSelected(itemId) {
+            this.selectedItem = this.schemeContainer.findItemById(itemId);
             this.currentTab = 'Item';
             this.tabs[1].disabled = false;
             this.tabs[2].disabled = true;
@@ -523,12 +517,16 @@ export default {
             this.schemeContainer.deselectAllItems();
         },
 
-        onAllItemsDeselected() {
-            this.selectedItem = null;
-            if (this.currentTab === 'Item') {
-                this.currentTab = 'Scheme';
+        onAnyItemDeselected() {
+            if (this.schemeContainer.selectedItems.length > 0) {
+                this.selectedItem = this.schemeContainer.selectedItems[this.schemeContainer.selectedItems.length - 1];
+            } else {
+                this.selectedItem = null;
+                if (this.currentTab === 'Item') {
+                    this.currentTab = 'Scheme';
+                }
+                this.tabs[1].disabled = true;
             }
-            this.tabs[1].disabled = true;
         },
 
         onAllConnectorsDeselected() {
@@ -547,15 +545,7 @@ export default {
             this.mode = 'edit';
         },
 
-        onItemChanged(item) {
-            this.schemeChanged = true;
-        },
-
-        onConnectorChanged(connector) {
-            this.schemeChanged = true;
-        },
-
-        onSchemePropertyChanged(propertyName) {
+        onSchemeChange(item) {
             this.schemeChanged = true;
         },
 

@@ -58,7 +58,6 @@ export default class StateDragItem extends State {
                 }
             });
             this.rebuildConnectorsInCache();
-            EventBus.$emit(EventBus.REDRAW);
         }
     }
 
@@ -115,21 +114,25 @@ export default class StateDragItem extends State {
             } else {
                 this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
                 EventBus.emitRedrawConnector(object.connector.id);
-                this.schemeContainer.deselectAllItems();
-                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED, object.connector);
+                this.deselectAllItems();
                 EventBus.$emit(EventBus.CONNECTOR_SELECTED, object.connector);
-                EventBus.$emit(EventBus.REDRAW);
                 if (object.rerouteId >= 0) {
                     this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
                 }
             }
         } else if (object.item) {
-            if (!object.item.meta.selected) {
-                this.schemeContainer.selectItem(object.item, event.metaKey || event.ctrlKey);
-                this.schemeContainer.deselectAllConnectors();
-                EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
-                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
+            const inclusive = event.metaKey || event.ctrlKey;
+            if (!inclusive) {
+                _.forEach(this.schemeContainer.selectedItems, item => {
+                    if (item.id !== object.item.id) {
+                        EventBus.emitItemDeselected(item.id);
+                    }
+                });
             }
+            this.schemeContainer.selectItem(object.item, inclusive);
+            EventBus.emitItemSelected(object.item.id);
+            this.schemeContainer.deselectAllConnectors();
+            EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
 
             this.initDraggingForItem(object.item, x, y);
             _.forEach(this.schemeContainer.selectedItems, item => {
@@ -168,7 +171,6 @@ export default class StateDragItem extends State {
                         }
                     });
                     this.rebuildConnectorsInCache();
-                    EventBus.$emit(EventBus.REDRAW);
                 } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
                     this.dragReroute(x, y);
                 }
@@ -195,11 +197,10 @@ export default class StateDragItem extends State {
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
             if (!event.metaKey && !event.ctrlKey) {
-                this.schemeContainer.deselectAllItems();
-                EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
-                EventBus.$emit(EventBus.REDRAW);
+                this.deselectAllItems();
             }
             this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
+            this.emitEventsForAllSelectedItems();
             EventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
         }
         if (event.doubleClick) {
@@ -245,6 +246,7 @@ export default class StateDragItem extends State {
                 this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
                 EventBus.emitRedrawConnector(this.selectedConnector.id);
             }
+            EventBus.emitItemChanged(this.sourceItem.id);
         }
     }
 
@@ -263,6 +265,11 @@ export default class StateDragItem extends State {
                 angle = Math.round(angle / 5) * 5;
             }
             this.sourceItem.area.r = angle;
+            if (this.connectorsBuildChache === null) {
+                this.fillConnectorsBuildCache([this.sourceItem]);
+            }
+            this.rebuildConnectorsInCache();
+            EventBus.emitItemChanged(this.sourceItem.id);
         }
     }
 
@@ -339,6 +346,15 @@ export default class StateDragItem extends State {
                 }
             });
         })
+    }
+
+    deselectAllItems() {
+        _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
+        this.schemeContainer.deselectAllItems();
+    }
+
+    emitEventsForAllSelectedItems() {
+        _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemSelected(item.id));
     }
 
 }

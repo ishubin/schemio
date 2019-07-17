@@ -56,7 +56,7 @@
                             <td width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="item.shapeProps[argName]= arguments[0]; redrawItem();"></color-picker>
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="item.shapeProps[argName]= arguments[0]; emitItemChanged();"></color-picker>
 
                                 <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <div v-if="arg.type === 'image'">
@@ -130,32 +130,34 @@ export default {
             } else {
                 this.item.shapeProps[styleArgName] = text;
             }
+            EventBus.emitItemChanged(this.item.id);
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
-            console.log(JSON.stringify(this.item.style, null, 2));
+            EventBus.emitItemChanged(this.item.id);
         },
         switchShape(shape) {
             this.oldShape = this.item.shape;
             this.shapeComponent = Shape.make(shape);
+            EventBus.emitItemChanged(this.item.id);
         },
 
-        redrawItem() {
-            EventBus.emitRedrawItem(this.item.id);
+        emitItemChanged() {
+            EventBus.emitItemChanged(this.item.id);
         }
     },
 
     watch: {
         //TODO get rid of this watcher and detect changes in other ways. At this moment this component is the one responsible for detecting any changes on the item (even dragging it)
-       item: {
-           handler: function(newItem) {
-                if (this.oldShape !== newItem.shape) {
-                    this.switchShape(newItem.shape);
-                }
-                EventBus.$emit(EventBus.ITEM_CHANGED, newItem);
-           },
-           deep: true
-       }
+    //    item: {
+    //        handler: function(newItem) {
+    //             if (this.oldShape !== newItem.shape) {
+    //                 this.switchShape(newItem.shape);
+    //             }
+    //             EventBus.$emit(EventBus.ITEM_CHANGED, newItem);
+    //        },
+    //        deep: true
+    //    }
    }
 }
 </script>

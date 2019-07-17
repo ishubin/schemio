@@ -50,7 +50,8 @@ class StateInteract extends State {
         this.originalOffset = {x: this.editor.vOffsetX, y: this.editor.vOffsetY};
         this.originalZoom = this.editor.vZoom;
     }
-
+    
+    
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
@@ -58,30 +59,23 @@ class StateInteract extends State {
                 if (object && object.item) {
                     this.emit(object.item, CLICKED);
 
-                    let previouslySelectedItemId = null;
-                    if (this.schemeContainer.selectedItems.length > 0) {
-                        previouslySelectedItemId = this.schemeContainer.selectedItems[0].id;
-                        if (previouslySelectedItemId !== object.item.id) {
-                            this.emit(this.schemeContainer.selectedItems[0], DESELECTED);
-                            this.schemeContainer.deselectAllItems();
-                            EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
-                        }
-                    }
-
                     if (object.item.interactive) {
-                        if (object.item.id !== previouslySelectedItemId) {
-                            this.emit(object.item, SELECTED);
-                            this.schemeContainer.selectItem(object.item, false);
-                            EventBus.$emit(EventBus.ACTIVE_ITEM_SELECTED, object.item);
-                        }
+                        this.emit(object.item, SELECTED);
+                        _.forEach(this.schemeContainer.selectedItems, item => {
+                            if (item.id !== object.item.id) {
+                                EventBus.emitItemDeselected(item.id);
+                            }
+                        });
+                        this.schemeContainer.selectItem(object.item, false);
+                        EventBus.emitItemSelected(object.item.id);
                     }
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     if (this.schemeContainer.selectedItems.length > 0) {
                         this.emit(this.schemeContainer.selectedItems[0], DESELECTED);
                     }
+                    _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                     this.schemeContainer.deselectAllItems();
-                    EventBus.$emit(EventBus.ALL_ITEMS_DESELECTED);
                 }
             }
             this.dragScreen(mx, my);
