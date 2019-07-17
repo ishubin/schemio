@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
-            <header-component>
+            <header-component :project-id="projectId">
                 <div slot="middle-section">
                     <ul class="button-group">
                         <li v-for="knownMode in knownModes">

@@ -39,8 +39,9 @@ app.get('/v1/user', [middleware.auth], apiUser.getCurrentUser);
 app.post('/v1/login', apiUser.login);
 app.get('/user/logout', apiUser.logout);
 
-app.post('/v1/projects', [middleware.auth], apiProjects.createProject);
-app.get('/v1/projects', apiProjects.findProjects);
+app.post('/v1/projects',            [middleware.auth], apiProjects.createProject);
+app.get('/v1/projects',             apiProjects.findProjects);
+app.get('/v1/projects/:projectId',  [middleware.projectReadPermission], apiProjects.getProject);
 
 app.get('/v1/projects/:projectId/schemes',              [middleware.projectReadPermission], apiSchemes.findSchemes);
 app.get('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectReadPermission], apiSchemes.getScheme);

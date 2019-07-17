@@ -5,15 +5,14 @@
 <template lang="html">
     <div class="search-view">
         <header-component :project-id="projectId"/>
-
         <div class="content-wrapper">
-            <h3>Schemes</h3>
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
                     <category-tree v-for="category in categories" :key="category.id" :category="category" :selected-category-id="currentCategoryId" :base-url="`/projects/${projectId}`" :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
+                    <h3 v-if="project">{{project.name}}</h3>
                     <div v-if="searchResult">
                         <div>
                             <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
@@ -74,6 +73,7 @@ export default {
     data() {
         return {
             projectId: this.$route.params.projectId,
+            project: null,
             query: '',
             urlPrefix: null,
             searchResult: null,
@@ -86,6 +86,8 @@ export default {
 
     methods: {
         init() {
+            apiClient.getProject(this.projectId).then(project => this.project = project);
+
             this.currentCategoryId = this.$route.query.category;
             this.currentPage = parseInt(this.$route.query.page) || 1;
             this.query = this.$route.query.q || '';

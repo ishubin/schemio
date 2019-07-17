@@ -31,7 +31,16 @@ h5 {
 }
 
 .content-wrapper {
-    margin: 10px;
+    margin: 60px 10px 10px 10px;
+}
+
+
+/******************* Middle content *********************/
+.middle-content {
+    margin-top: 60px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 
@@ -188,15 +197,6 @@ ul.schemes li .timestamp {
     position: absolute;
     right: 10px;
     top: 2px;
-}
-
-
-/******************* Middle content *********************/
-.middle-content {
-    margin-top: 60px;
-    max-width: 900px;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 /******************** Tabs *********************/

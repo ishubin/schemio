@@ -31,6 +31,20 @@ const ApiProjects = {
         projectStorage.findProjects(query).then(searchResult => {
             res.json(searchResult);
         }).catch(err => res.$apiError(err));
+    },
+
+    getProject(req, res) {
+        const projectId = req.params.projectId;
+        const userLogin = req.session.userLogin;
+        projectStorage.getProject(projectId, userLogin)
+        .then(project => {
+            if (project) {
+                res.json(project);
+            } else {
+                return Promise.reject('Not authorized');
+            }
+        })
+        .catch(res.$apiError)
     }
 
 };
