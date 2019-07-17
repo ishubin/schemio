@@ -114,7 +114,7 @@ export default class StateDragItem extends State {
             } else {
                 this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
                 this.deselectAllItems();
-                EventBus.emitConnectorSelected(object.connector.id);
+                EventBus.emitConnectorSelected(object.connector.id, object.connector);
                 if (object.rerouteId >= 0) {
                     this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
                 }
@@ -131,7 +131,7 @@ export default class StateDragItem extends State {
             this.schemeContainer.selectItem(object.item, inclusive);
             EventBus.emitItemSelected(object.item.id);
 
-            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
+            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
             this.schemeContainer.deselectAllConnectors();
 
             this.initDraggingForItem(object.item, x, y);
@@ -196,7 +196,7 @@ export default class StateDragItem extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
-            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
+            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
             this.schemeContainer.deselectAllConnectors();
 
             if (!event.metaKey && !event.ctrlKey) {

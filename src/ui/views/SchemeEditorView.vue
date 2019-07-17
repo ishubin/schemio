@@ -168,18 +168,18 @@ export default {
         this.init();
         EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
+        EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.$on(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
-        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.CONNECTOR_SELECTED, this.onConnectorSelected);
-        EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
+        EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.$off(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
@@ -518,7 +518,7 @@ export default {
             }
         },
 
-        onConnectorSelected(connector) {
+        onAnyConnectorSelected(connectorId, connector) {
             this.selectedConnector = connector;
             this.currentTab = 'Connection';
             this.selectedItem = null;
@@ -527,12 +527,14 @@ export default {
             this.schemeContainer.deselectAllItems();
         },
 
-        onAllConnectorsDeselected() {
-            this.selectedConnector = null;
-            if (this.currentTab === 'Connection') {
-                this.currentTab = 'Scheme';
+        onAnyConnectorDeselected(connectorId, connector) {
+            if (this.selectedConnector && this.selectedConnector.id === connectorId) {
+                this.selectedConnector = null;
+                if (this.currentTab === 'Connection') {
+                    this.currentTab = 'Scheme';
+                }
+                this.tabs[2].disabled = true;
             }
-            this.tabs[2].disabled = true;
         },
 
         onPlaceItem(item) {

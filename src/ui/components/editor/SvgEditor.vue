@@ -463,7 +463,7 @@ export default {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 this.activeItem = null;
-                this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
+                this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
                 _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
             } else {

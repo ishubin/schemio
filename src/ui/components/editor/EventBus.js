@@ -33,6 +33,7 @@ const EventBus = new Vue({
             CONNECTOR_SELECTED: 'connector-selected',
             CONNECTOR_DESELECTED: 'connector-deselected',
             ANY_CONNECTOR_SELECTED: 'any-connector-selected',
+            ANY_CONNECTOR_DESELECTED: 'any-connector-deselected',
 
             KEY: {
                 ESCAPE: 'escape',
@@ -80,17 +81,18 @@ const EventBus = new Vue({
         _connectorChangedEvent(connectorId) {return `${EventBus.CONNECTOR_CHANGED}/${connectorId}`},
 
 
-        emitConnectorSelected(connectorId) {
-            this.$emit(this._connectorSelectedEvent(connectorId));
-            this.$emit(EventBus.ANY_CONNECTOR_SELECTED, connectorId);
+        emitConnectorSelected(connectorId, connector) {
+            this.$emit(this._connectorSelectedEvent(connectorId), connector);
+            this.$emit(EventBus.ANY_CONNECTOR_SELECTED, connectorId, connector);
         },
         subscribeForConnectorSelected(connectorId, callback) {this.$on(this._connectorSelectedEvent(connectorId), callback)},
         unsubscribeForConnectorSelected(connectorId, callback) {this.$off(this._connectorSelectedEvent(connectorId), callback)},
         _connectorSelectedEvent(connectorId) {return `${EventBus.CONNECTOR_SELECTED}/${connectorId}`},
 
 
-        emitConnectorDeselected(connectorId) {
-            this.$emit(this._connectorDeselectedEvent(connectorId));
+        emitConnectorDeselected(connectorId, connector) {
+            this.$emit(this._connectorDeselectedEvent(connectorId), connector);
+            this.$emit(EventBus.ANY_CONNECTOR_DESELECTED, connectorId, connector);
         },
         subscribeForConnectorDeselected(connectorId, callback) {this.$on(this._connectorDeselectedEvent(connectorId), callback)},
         unsubscribeForConnectorDeselected(connectorId, callback) {this.$off(this._connectorDeselectedEvent(connectorId), callback)},
