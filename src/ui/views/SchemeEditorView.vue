@@ -610,8 +610,6 @@ export default {
                 });
                 this.searchHighlights = [];
             }
-
-            EventBus.$emit(EventBus.REDRAW);
         }
     }
 }

@@ -362,12 +362,15 @@ class SchemeContainer {
     }
 
     deselectAllConnectors() {
+        this.selectedConnectorWrappers = [];
+    }
+
+    forEachSelectedConnector(callback) {
         _.forEach(this.selectedConnectorWrappers, cw => {
             if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
-                cw.sourceItem.connectors[cw.connectorIndex].meta.selected = false;
+                callback(cw.sourceItem.connectors[cw.connectorIndex]);
             }
         });
-        this.selectedConnectorWrappers = [];
     }
 
     selectItem(item, inclusive) {

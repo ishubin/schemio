@@ -198,7 +198,6 @@ export default {
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.REDRAW, this.onRedraw);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
@@ -218,7 +217,6 @@ export default {
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.REDRAW, this.onRedraw);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
@@ -465,16 +463,12 @@ export default {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 this.activeItem = null;
-                EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED);
+                this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
                 _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
             } else {
                 this.state.keyPressed(key, keyOptions);
             }
-        },
-
-        onRedraw() {
-            this.$forceUpdate();
         },
 
         onRebuildConnectors() {

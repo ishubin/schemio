@@ -5,7 +5,7 @@
 <template lang="html">
     <g>
         <path :d="svgPath" class="item-connector"
-            :class="{selected: connector.meta.selected}"
+            :class="{selected: selected}"
             :stroke="connector.style.color"
             :stroke-width="connector.style.width" fill="none"
             :stroke-dasharray="strokeDashArray"
@@ -14,11 +14,11 @@
         <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.style.color" class="item-connector" :class="{selected: connector.meta.selected}"/>
+            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.style.color" class="item-connector" :class="{selected: selected}"/>
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 class="item-connector"
-                :class="{selected: connector.meta.selected}"
+                :class="{selected: selected}"
                 :stroke="connector.style.color"
                 :stroke-width="connector.style.width"
                 :fill="end.fill"
@@ -26,11 +26,11 @@
             />
         </g>
 
-        <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes" data-preview-ignore="true">
+        <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes && selected" data-preview-ignore="true">
             <circle :cx="point.x" :cy="point.y" r="5"
                 :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
-                :class="{selected: connector.meta.selected}"
+                :class="{selected: selected}"
                 :fill="connector.style.color"
             />
         </g>
@@ -46,29 +46,44 @@ export default {
 
     mounted() {
         this.generateStrokeDashArray();
-        EventBus.subscribeForRedrawConnector(this.connector.id, this.onRedrawConnector);
-        EventBus.$on(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
+        EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.subscribeForConnectorChanged(this.connector.id, this.onConnectorChanged);
+        EventBus.subscribeForConnectorSelected(this.connector.id, this.onConnectorSelected);
+        EventBus.subscribeForConnectorDeselected(this.connector.id, this.onConnectorDeselected);
+    },
+    beforeDestroy(){
+        EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
+        EventBus.unsubscribeForConnectorChanged(this.connector.id, this.onConnectorChanged);
+        EventBus.unsubscribeForConnectorSelected(this.connector.id, this.onConnectorSelected);
+        EventBus.unsubscribeForConnectorDeselected(this.connector.id, this.onConnectorDeselected);
     },
     data() {
         return {
             svgPath: this.computeSvgPath(this.connector.meta.points),
             ends: this.computeEnds(this.connector),
-            strokeDashArray: ''
+            strokeDashArray: '',
+            selected: false
         };
     },
-    beforeDestroy(){
-        EventBus.unsubscribeForRedrawConnector(this.connector.id);
-        EventBus.$off(EventBus.ALL_CONNECTORS_DESELECTED, this.onAllConnectorsDeselected);
-    },
     methods: {
-        onRedrawConnector(connector) {
+        onConnectorChanged() {
             this.recompute();
             this.generateStrokeDashArray();
             this.$forceUpdate();
         },
 
-        onAllConnectorsDeselected() {
-            this.$forceUpdate();
+        onConnectorSelected() {
+            this.selected = true;
+        },
+
+        onConnectorDeselected() {
+            this.selected = false;
+        },
+
+        onAnyConnectorSelected(connectorId) {
+            if (this.connector.id !== connectorId) {
+                this.selected = false;
+            }
         },
 
         createEnd(x, y, px, py, endStyle) {

@@ -12,10 +12,6 @@ const EventBus = new Vue({
             START_CONNECTING_ITEM: 'start-connecting-item',
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
-            REDRAW: 'redraw', //TODO get rid of this event. instead listen to item-changed, connector-changed event and redraw properly
-            REDRAW_CONNECTOR: 'redraw-connector',  //TODO get rid of this event.
-            CONNECTOR_SELECTED: 'connector-selected',
-            ALL_CONNECTORS_DESELECTED: 'all-connectors-deselected',
             KEY_PRESS: 'key-press',
             BRING_TO_VIEW: 'bring-to-view',
             SWITCH_MODE_TO_EDIT: 'switch-mode-edit', //TODO rename it to MODE_CHANGED and pass the value of the mode
@@ -23,7 +19,6 @@ const EventBus = new Vue({
             MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
             MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
 
-            CONNECTOR_CHANGED: 'connector-changed',
             SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
 
 
@@ -33,6 +28,11 @@ const EventBus = new Vue({
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
+
+            CONNECTOR_CHANGED: 'connector-changed',
+            CONNECTOR_SELECTED: 'connector-selected',
+            CONNECTOR_DESELECTED: 'connector-deselected',
+            ANY_CONNECTOR_SELECTED: 'any-connector-selected',
 
             KEY: {
                 ESCAPE: 'escape',
@@ -48,19 +48,6 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitRedrawConnector(connectorId) {
-            this.$emit(this._generateRedrawConnectorEventName(connectorId));
-        },
-        subscribeForRedrawConnector(connectorId, callback) {
-            this.$on(this._generateRedrawConnectorEventName(connectorId), callback);
-        },
-        unsubscribeForRedrawConnector(connectorId, callback) {
-            this.$off(this._generateRedrawConnectorEventName(connectorId), callback);
-        },
-        _generateRedrawConnectorEventName(connectorId) {
-            return `${EventBus.REDRAW_CONNECTOR}/${connectorId}`;
-        },
-
         emitItemChanged(itemId) {
             this.$emit(this._itemChangedEvent(itemId));
             this.$emit(EventBus.ANY_ITEM_CHANGED, itemId);
@@ -77,6 +64,7 @@ const EventBus = new Vue({
         unsubscribeForItemSelected(itemId, callback) {this.$off(this._itemSelectedEvent(itemId), callback)},
         _itemSelectedEvent(itemId) { return `${EventBus.ITEM_SELECTED}/${itemId}`; },
 
+
         emitItemDeselected(itemId) {
             this.$emit(this._itemDeselectedEvent(itemId));
             this.$emit(EventBus.ANY_ITEM_DESELECTED, itemId);
@@ -84,6 +72,29 @@ const EventBus = new Vue({
         subscribeForItemDeselected(itemId, callback) {this.$on(this._itemDeselectedEvent(itemId), callback)},
         unsubscribeForItemDeselected(itemId, callback) {this.$off(this._itemDeselectedEvent(itemId), callback)},
         _itemDeselectedEvent(itemId) { return `${EventBus.ITEM_DESELECTED}/${itemId}`; },
+
+
+        emitConnectorChanged(connectorId) { this.$emit(this._connectorChangedEvent(connectorId)); },
+        subscribeForConnectorChanged(connectorId, callback) {this.$on(this._connectorChangedEvent(connectorId), callback)},
+        unsubscribeForConnectorChanged(connectorId, callback) {this.$off(this._connectorChangedEvent(connectorId), callback)},
+        _connectorChangedEvent(connectorId) {return `${EventBus.CONNECTOR_CHANGED}/${connectorId}`},
+
+
+        emitConnectorSelected(connectorId) {
+            this.$emit(this._connectorSelectedEvent(connectorId));
+            this.$emit(EventBus.ANY_CONNECTOR_SELECTED, connectorId);
+        },
+        subscribeForConnectorSelected(connectorId, callback) {this.$on(this._connectorSelectedEvent(connectorId), callback)},
+        unsubscribeForConnectorSelected(connectorId, callback) {this.$off(this._connectorSelectedEvent(connectorId), callback)},
+        _connectorSelectedEvent(connectorId) {return `${EventBus.CONNECTOR_SELECTED}/${connectorId}`},
+
+
+        emitConnectorDeselected(connectorId) {
+            this.$emit(this._connectorDeselectedEvent(connectorId));
+        },
+        subscribeForConnectorDeselected(connectorId, callback) {this.$on(this._connectorDeselectedEvent(connectorId), callback)},
+        unsubscribeForConnectorDeselected(connectorId, callback) {this.$off(this._connectorDeselectedEvent(connectorId), callback)},
+        _connectorDeselectedEvent(connectorId) {return `${EventBus.CONNECTOR_DESELECTED}/${connectorId}`},
     }
 });
 

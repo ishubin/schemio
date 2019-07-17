@@ -105,17 +105,16 @@ export default class StateDragItem extends State {
                 if (object.rerouteId >= 0) {
                     object.connector.reroutes.splice(object.rerouteId, 1);
                     this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    EventBus.emitRedrawConnector(object.connector.id);
+                    EventBus.emitConnectorChanged(object.connector.id);
                 } else {
                     var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
                     this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
-                    EventBus.emitRedrawConnector(object.connector.id);
+                    EventBus.emitConnectorChanged(object.connector.id);
                 }
             } else {
                 this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
-                EventBus.emitRedrawConnector(object.connector.id);
                 this.deselectAllItems();
-                EventBus.$emit(EventBus.CONNECTOR_SELECTED, object.connector);
+                EventBus.emitConnectorSelected(object.connector.id);
                 if (object.rerouteId >= 0) {
                     this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
                 }
@@ -131,8 +130,9 @@ export default class StateDragItem extends State {
             }
             this.schemeContainer.selectItem(object.item, inclusive);
             EventBus.emitItemSelected(object.item.id);
+
+            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id));
             this.schemeContainer.deselectAllConnectors();
-            EventBus.$emit(EventBus.ALL_CONNECTORS_DESELECTED, object.item);
 
             this.initDraggingForItem(object.item, x, y);
             _.forEach(this.schemeContainer.selectedItems, item => {
@@ -208,10 +208,10 @@ export default class StateDragItem extends State {
                 if (object.rerouteId >= 0) {
                     object.connector.reroutes.splice(object.rerouteId, 1);
                     this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    EventBus.emitRedrawConnector(object.connector.id);
+                    EventBus.emitConnectorChanged(object.connector.id);
                 } else {
                     this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                    EventBus.emitRedrawConnector(object.connector.id);
+                    EventBus.emitConnectorChanged(object.connector.id);
                 }
            }
         }
@@ -244,9 +244,8 @@ export default class StateDragItem extends State {
             this.selectedConnector.reroutes[this.selectedRerouteId].y = this.snapY(y);
             if (this.sourceItem) {
                 this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
-                EventBus.emitRedrawConnector(this.selectedConnector.id);
+                EventBus.emitConnectorChanged(this.selectedConnector.id);
             }
-            EventBus.emitItemChanged(this.sourceItem.id);
         }
     }
 
@@ -323,7 +322,7 @@ export default class StateDragItem extends State {
     rebuildConnectorsInCache() {
         _.forEach(this.connectorsBuildChache, (v) => {
             this.schemeContainer.buildConnector(v.item, v.connector);
-            EventBus.emitRedrawConnector(v.connector.id);
+            EventBus.emitConnectorChanged(v.connector.id);
         });
     }
 
