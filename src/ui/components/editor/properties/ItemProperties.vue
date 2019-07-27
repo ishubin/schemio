@@ -14,7 +14,7 @@
         </ul>
 
         <general-panel :project-id="projectId" v-if="currentTab === 'description'" :item="item"/>
-        <links-panel v-if="currentTab === 'description'" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :projectId="projectId" :item="item"/>
         <connections-panel v-if="currentTab === 'description'" :item="item"/>
         <position-panel v-if="currentTab === 'position'" :item="item" @ungroup-item="$emit('ungroup-item')"/>
 
@@ -145,20 +145,7 @@ export default {
         emitItemChanged() {
             EventBus.emitItemChanged(this.item.id);
         }
-    },
-
-    watch: {
-        //TODO get rid of this watcher and detect changes in other ways. At this moment this component is the one responsible for detecting any changes on the item (even dragging it)
-    //    item: {
-    //        handler: function(newItem) {
-    //             if (this.oldShape !== newItem.shape) {
-    //                 this.switchShape(newItem.shape);
-    //             }
-    //             EventBus.$emit(EventBus.ITEM_CHANGED, newItem);
-    //        },
-    //        deep: true
-    //    }
-   }
+    }
 }
 </script>
 

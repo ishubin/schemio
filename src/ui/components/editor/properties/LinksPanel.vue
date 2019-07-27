@@ -19,6 +19,7 @@
 
 
         <link-edit-popup v-if="editLinkData"
+            :projectId="projectId"
             :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url" :type="editLinkData.type"
             @submit-link="onLinkSubmit"
             @close="editLinkData = null"/>
@@ -31,7 +32,7 @@ import Panel from '../Panel.vue';
 import linkTypes from '../LinkTypes.js';
 
 export default {
-    props: ['item'],
+    props: ['item', 'projectId'],
     components: { Panel, LinkEditPopup },
 
     data() {

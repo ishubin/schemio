@@ -31,7 +31,7 @@
            <input type="text" class="textfield" v-model:value="editUrl"/>
        </div>
 
-       <scheme-search-modal v-if="showSchemeSearchModal" @close="showSchemeSearchModal = false" @selected-scheme="onSchemeSelect"></scheme-search-modal>
+       <scheme-search-modal v-if="showSchemeSearchModal" :projectId="projectId" @close="showSchemeSearchModal = false" @selected-scheme="onSchemeSelect"></scheme-search-modal>
     </modal>
 </template>
 
@@ -41,7 +41,7 @@ import SchemeSearchModal from './SchemeSearchModal.vue';
 import linkTypes from './LinkTypes.js';
 
 export default {
-    props: ['edit', 'title', 'url', 'type'],
+    props: ['edit', 'title', 'url', 'type', 'projectId'],
     components : {Modal, SchemeSearchModal},
 
     data() {

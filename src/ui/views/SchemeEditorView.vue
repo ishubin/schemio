@@ -129,6 +129,7 @@
 
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
+            :projectId="projectId"
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
 

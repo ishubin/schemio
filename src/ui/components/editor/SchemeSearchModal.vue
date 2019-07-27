@@ -29,6 +29,7 @@ import apiClient from '../../apiClient.js';
 
 export default {
     components: {Modal, Pagination},
+    props: ['projectId'],
 
     mounted() {
         this.reloadSchemes();
@@ -59,7 +60,7 @@ export default {
                     offset = (page - 1) * this.searchResult.resultsPerPage;
                 }
             }
-            apiClient.findSchemes({
+            apiClient.findSchemes(this.projectId, {
                 query: this.query,
                 offset: offset
             }).then(searchResponse => {
