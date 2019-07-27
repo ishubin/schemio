@@ -24,8 +24,8 @@ export default class StateConnecting extends State {
     }
     
     cancel() {
-        if (this.connector && !this.connector.itemId) {
-            this.connector.reroutes.pop();
+        if (this.connector && this.sourceItem) {
+            this.sourceItem.connectors.pop();
         }
         super.cancel();
     }

@@ -173,7 +173,7 @@ class SchemeContainer {
                 }
             }
         }
-
+        
         return {
             x: item.area.x + item.area.w / 2,
             y: item.area.y + item.area.h / 2

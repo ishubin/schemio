@@ -10,11 +10,9 @@
 </template>
 <script>
 const computePath = (item) => {
-    const x = item.area.x;
-    const y = item.area.y;
     const w = item.area.w;
     const h = item.area.h;
-    return `M ${x} ${y}  L ${x+w} ${y}  L ${x+w} ${y+h} ${x} ${y+h} Z`;
+    return `M 0 0  L ${w} 0  L ${w} ${h}  M 0 ${h} Z`;
 };
 export default {
     props: ['item'],
