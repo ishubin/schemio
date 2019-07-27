@@ -89,7 +89,7 @@
 
 
                         <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
-                            :key="connectorIndex"
+                            :key="connector.id"
                             :connectorIndex="connectorIndex"
                             :sourceItem="item"
                             :connector="connector"
@@ -466,6 +466,7 @@ export default {
                 this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
                 _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
+                this.$forceUpdate();
             } else {
                 this.state.keyPressed(key, keyOptions);
             }
