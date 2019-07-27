@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
-            <header-component :project-id="projectId">
+            <header-component :project-id="projectId" :category="currentCategory">
                 <div slot="middle-section">
                     <ul class="button-group">
                         <li v-for="knownMode in knownModes">
@@ -190,6 +190,7 @@ export default {
             projectId: this.$route.params.projectId,
             user: null,
             schemeId: null,
+            currentCategory: null,
             originalUrlEncoded: encodeURIComponent(window.location),
 
             itemListShown: false,
@@ -244,6 +245,7 @@ export default {
             this.loadCurrentUser();
             this.schemeId = this.$route.params.schemeId;
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
+                this.currentCategory = scheme.category;
                 this.schemeContainer = new SchemeContainer(scheme);
 
                 var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);

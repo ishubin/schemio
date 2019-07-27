@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="search-view">
-        <header-component :project-id="projectId"/>
+        <header-component :project-id="projectId" :category="currentCategory"/>
         <div class="content-wrapper">
             <div class="search-layout">
                 <div class="search-attributes-panel">
@@ -77,7 +77,8 @@ export default {
             query: '',
             urlPrefix: null,
             searchResult: null,
-            currentCategoryId: null,
+            currentCategory: null,
+            currentCategoryId: this.$route.query.category || null,
             currentPage: 1,
             totalPages: 0,
             categories: []
@@ -87,8 +88,10 @@ export default {
     methods: {
         init() {
             apiClient.getProject(this.projectId).then(project => this.project = project);
+            apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
+                this.currentCategory = category;
+            });
 
-            this.currentCategoryId = this.$route.query.category;
             this.currentPage = parseInt(this.$route.query.page) || 1;
             this.query = this.$route.query.q || '';
 
