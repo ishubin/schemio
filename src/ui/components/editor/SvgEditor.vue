@@ -576,28 +576,23 @@ export default {
             let links = [];
             if (item.links && item.links.length > 0) {
 
-                let cx = item.area.w / 2 + item.area.x;
-                let cy = item.area.h / 2 + item.area.y;
+                let cx = this._x(item.area.w / 2 + item.area.x);
+                let cy = this._y(item.area.h / 2 + item.area.y);
                 let startX = cx;
                 let startY = cy;
 
-                if (this._y(cy) > this.height - 100 || this._y(cy) < 100) {
+                if (cy > this.height - 100 || cy < 100) {
                     cy = this.y_(this.height / 2);
                 }
 
                 let step = 40;
                 let y0 = cy - item.links.length * step / 2;
-                let destinationX = item.area.x + item.area.w + 10;
+                let destinationX = this._x(item.area.x + item.area.w + 10);
 
                 // taking side panel into account
-                if (this._x(destinationX) > this.width - 500) {
+                if (destinationX > this.width - 500) {
                     let maxLinkLength = _.chain(item.links).map(link => link.title ? link.title.length : link.url.length).max().value();
-                    console.log(maxLinkLength);
                     destinationX = item.area.x - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
-
-                    if (this._x(destinationX) < 20) {
-                        destinationX = this.x_(20);
-                    }
                 }
 
                 _.forEach(item.links, (link, index) => {
