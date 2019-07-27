@@ -813,19 +813,12 @@ ul.button-group li .toggle-button .small-letter {
 }
 .item-menu .item-container {
     display: inline-block;
-    width: 60px;
-    height: 60px;
+    width: 42px;
+    height: 32px;
     margin: 2px;
     padding: 5px;
     cursor: pointer;
     border-radius: 10px;
-}
-.item-menu .item-container i {
-    display: block;
-    width: 100%;
-    text-align: center;
-    color: #0885ba;
-    font-size: 24px;
 }
 .item-menu .item-container img {
     display: block;
@@ -833,21 +826,9 @@ ul.button-group li .toggle-button .small-letter {
     max-height: 100px;
     text-align: center;
 }
-.item-menu .item-container span {
-    margin-top: 10px;
-    display: block;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    color: #045e85;
-}
 .item-menu .item-container:hover {
-    background: #25a7de;
+    opacity: 0.6;
 }
-.item-menu .item-container:hover i, .item-menu .item-container:hover span {
-    color: #fff;
-}
-
 
 /******************** Connectors *********************/
 svg.mode-edit .item-connector-hover-area {

@@ -6,14 +6,13 @@
     <div class="create-item-menu">
         <panel v-for="panel in itemPanels" :name="panel.name">
             <div class="item-menu">
-                <div v-for="item in panel.items" class="item-container" @click="onItemSelected(item)">
+                <div v-for="item in panel.items" :title="item.name" class="item-container" @click="onItemSelected(item)">
                     <svg v-if="item.svg" width="40px" height="30px" v-html="item.svg"></svg>
                     <svg v-if="!item.svg && item.shapeComponent" width="40px" height="30px">
                         <g :transform="`translate(${item.item.area.x}, ${item.item.area.y})`">
                             <component :is="item.shapeComponent" :item="item.item"></component>
                         </g>
                     </svg>
-                    <span>{{item.name}}</span>
                 </div>
             </div>
         </panel>
