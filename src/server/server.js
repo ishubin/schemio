@@ -11,7 +11,7 @@ const apiUser               = require('./api/apiUser.js');
 const apiProjects           = require('./api/apiProjects.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
-const apiImages             = require('./api/apiImages.js');
+const apiFiles             = require('./api/apiFiles.js');
 const apiArt                = require('./api/apiArt.js');
 const session               = require('express-session');
 const mongo                 = require('./storage/mongodb/Mongo.js');
@@ -54,10 +54,10 @@ app.get('/v1/projects/:projectId/tags', [middleware.projectReadPermission], apiS
 app.post('/v1/projects/:projectId/art', [middleware.projectWritePermission], apiArt.createArt);
 app.get('/v1/projects/:projectId/art',  [middleware.projectReadPermission], apiArt.getArt);
 
-app.post('/projects/:projectId/images',             [middleware.projectWritePermission], apiImages.uploadImage);
-app.get('/projects/:projectId/images/:fileName',    [middleware.projectReadPermission], apiImages.getImage);
+app.post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
+app.get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission], apiFiles.downloadFile);
 
-app.post('/v1/projects/:projectId/scheme-thumnbails/:schemeId', [middleware.projectReadPermission], apiImages.uploadSchemeThumbnail);
+app.post('/v1/projects/:projectId/scheme-thumnbails/:schemeId', [middleware.projectReadPermission], apiFiles.uploadSchemeThumbnail);
 
 app.get('/v1/projects/:projectId/category-tree',                [middleware.projectReadPermission], apiCategories.getCategoryTree);
 app.get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission], apiCategories.getRootCategory);

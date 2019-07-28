@@ -22,7 +22,7 @@ const uploadToLocalFolder = multer({
     limits: {
         fileSize: config.images.maxSize
     }
-}).single('image');
+}).single('file');
 
 
 
@@ -44,20 +44,19 @@ function fileSizeSync(filePath) {
 }
 
 module.exports = {
-    uploadImage(req, res) {
+    uploadFile(req, res) {
+        const projectId = req.params.projectId;
         uploadToLocalFolder(req, res, err => {
             if (!err) {
                 const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
 
-                imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename, req.file.mimetype).then(imageData => {
-                    if (imageData.imageId !== req.file.filename) {
-                        return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${imageData.imageId}`)
-                            .then(() => imageData);
-                    }
-                    return imageData;
+                fsp.mkdir(`${config.images.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
+                    return imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename, req.file.mimetype);
+                }).then(imageData => {
+                    return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${projectId}/${imageData.imageId}`).then(() => imageData);
                 }).then(imageData => {
                     res.json({
-                        path: `/images/${imageData.imageId}`
+                        path: `/projects/${projectId}/files/${imageData.imageId}`
                     });
                 }).catch(err => {
                     res.status(500);
@@ -72,27 +71,33 @@ module.exports = {
         });
     },
 
-    getImage(req, res) {
+    downloadFile(req, res) {
+        const projectId = req.params.projectId;
         const fileName = req.params.fileName;
-        const localImagePath = `${config.images.uploadFolder}/${fileName}`;
+        fsp.mkdir(`${config.images.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
+            const localImagePath = `${config.images.uploadFolder}/${projectId}/${fileName}`;
 
-        //TODO refresh images within specified interval
+            //TODO use checksum to check if the image is stale and needs to be re-downloaded from gridfs
 
-        if (fs.existsSync(localImagePath) && fileSizeSync(localImagePath) > 0) {
-            handleLocalImageDownload(res, localImagePath, fileName);
-        } else {
-            //download the image from mongodb
-            imageStorage.downloadImage(fileName, localImagePath).then(() => {
+            if (fs.existsSync(localImagePath) && fileSizeSync(localImagePath) > 0) {
                 handleLocalImageDownload(res, localImagePath, fileName);
-            }).catch(err => {
-                if (fileName.startsWith('scheme-preview-')) {
-                    handleLocalImageDownload(res, 'public/images/missing-scheme-preview.png', fileName);
-                } else {
-                    console.error(err);
-                    res.sendStatus(404);
-                }
-            });
-        }
+            } else {
+                //download the image from mongodb
+                imageStorage.downloadImage(fileName, localImagePath).then(() => {
+                    handleLocalImageDownload(res, localImagePath, fileName);
+                }).catch(err => {
+                    if (fileName.startsWith('scheme-preview-')) {
+                        handleLocalImageDownload(res, 'public/images/missing-scheme-preview.png', fileName);
+                    } else {
+                        console.error(err);
+                        res.sendStatus(404);
+                    }
+                });
+            }
+        }).catch(err => {
+            console.error('Not able to mkdir', err);
+            res.sendStatus(500);
+        });
     },
 
     uploadSchemeThumbnail(req, res) {

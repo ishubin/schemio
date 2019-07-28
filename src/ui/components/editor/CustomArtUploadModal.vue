@@ -38,9 +38,9 @@
 <script>
 import Modal from '../Modal.vue';
 import apiClient from '../../apiClient.js';
-import axios from 'axios';
 
 export default {
+    props: ['projectId'],
     components: {Modal},
 
     data() {
@@ -54,7 +54,7 @@ export default {
     },
     methods: {
         submitIcon() {
-            apiClient.createArt({
+            apiClient.createArt(this.projectId, {
                 name: this.iconName,
                 url: this.url
             }).then(art => {
@@ -70,18 +70,15 @@ export default {
     watch: {
         selectedFile(file) {
             if (file) {
-                console.log('Selected file', file);
                 if (!this.iconName) {
                     this.iconName = file.name;
                 }
-
-                var form = new FormData();
-                form.append('image', file, file.name);
-                this.errorUploading = false;
-                axios.post('/images', form).then(response => {
-                    this.url = response.data.path;
+                apiClient.uploadFile(this.projectId, file)
+                .then(imageUrl => {
+                    this.url = imageUrl;
                 }).catch(err => {
                     this.errorUploading = true;
+                    this.errorMessage = 'Unable to upload a file';
                 });
             }
         }

@@ -106,5 +106,14 @@ export default {
 
     uploadSchemeSvgThumbnail(projectId, schemeId, svgCode) {
         return axios.post(`/v1/projects/${projectId}/scheme-thumnbails/${schemeId}`, {svg: svgCode}).then(unwrapAxios);
+    },
+
+    uploadFile(projectId, file) {
+        var form = new FormData();
+        form.append('file', file, file.name);
+        this.errorUploading = false;
+        return axios.post(`/projects/${projectId}/files`, form).then(response => {
+            return response.data.path;
+        });
     }
 }
