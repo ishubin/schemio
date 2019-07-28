@@ -22,7 +22,7 @@ const fs                = require('fs');
     }
 
     // Returns generated image path
-    uploadImageFromFile(filePath, fileName, mimeType) {
+    uploadFromFile(filePath, fileName, mimeType) {
         return new Promise((resolve, reject) => {
             fs.createReadStream(filePath)
             .pipe(this.imageBucket().openUploadStream(fileName, {
@@ -40,7 +40,7 @@ const fs                = require('fs');
     }
 
     // Downloads image into specified path
-    downloadImage(imageId, filePath) {
+    downloadFile(imageId, filePath) {
         return new Promise((resolve, reject) => {
             mongo.db().collection('images.files').find({filename: imageId}).count().then(count => {
                 if (count > 0) {

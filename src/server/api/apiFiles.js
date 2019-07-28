@@ -6,11 +6,11 @@ const multer            = require('multer');
 const fs                = require('fs');
 const fsp               = fs.promises;
 const config            = require('../config.js');
-const imageStorage      = require('../storage/storageProvider.js').provideImageStorage();
+const fileStorage      = require('../storage/storageProvider.js').provideFileStorage();
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, config.images.uploadFolder);
+        cb(null, config.files.uploadFolder);
     },
     filename: function (req, file, cb) {
         cb(null, Math.random().toString(36).substring(2) + '-' + file.originalname.replace(/[^a-zA-Z0-9\.]+/g, '-'));
@@ -20,14 +20,14 @@ const storage = multer.diskStorage({
 const uploadToLocalFolder = multer({
     storage,
     limits: {
-        fileSize: config.images.maxSize
+        fileSize: config.files.maxSize
     }
 }).single('file');
 
 
 
-function handleLocalImageDownload(res, imagePath, fileName) {
-    res.download(imagePath, fileName, (err) => {
+function handleLocalFileDownload(res, filePath, fileName) {
+    res.download(filePath, fileName, (err) => {
         if(!res.headersSent) {
             return res.sendStatus(404);
         }
@@ -48,15 +48,15 @@ module.exports = {
         const projectId = req.params.projectId;
         uploadToLocalFolder(req, res, err => {
             if (!err) {
-                const imageOriginalLocalPath = `${config.images.uploadFolder}/${req.file.filename}`;
+                const originalLocalPath = `${config.files.uploadFolder}/${req.file.filename}`;
 
-                fsp.mkdir(`${config.images.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
-                    return imageStorage.uploadImageFromFile(imageOriginalLocalPath, req.file.filename, req.file.mimetype);
-                }).then(imageData => {
-                    return fsp.rename(imageOriginalLocalPath, `${config.images.uploadFolder}/${projectId}/${imageData.imageId}`).then(() => imageData);
-                }).then(imageData => {
+                fsp.mkdir(`${config.files.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
+                    return fileStorage.uploadFromFile(originalLocalPath, req.file.filename, req.file.mimetype);
+                }).then(fileData => {
+                    return fsp.rename(originalLocalPath, `${config.files.uploadFolder}/${projectId}/${fileData.imageId}`).then(() => fileData);
+                }).then(fileData => {
                     res.json({
-                        path: `/projects/${projectId}/files/${imageData.imageId}`
+                        path: `/projects/${projectId}/files/${fileData.imageId}`
                     });
                 }).catch(err => {
                     res.status(500);
@@ -74,20 +74,18 @@ module.exports = {
     downloadFile(req, res) {
         const projectId = req.params.projectId;
         const fileName = req.params.fileName;
-        fsp.mkdir(`${config.images.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
-            const localImagePath = `${config.images.uploadFolder}/${projectId}/${fileName}`;
+        fsp.mkdir(`${config.files.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
+            const localFilePath = `${config.files.uploadFolder}/${projectId}/${fileName}`;
 
-            //TODO use checksum to check if the image is stale and needs to be re-downloaded from gridfs
-
-            if (fs.existsSync(localImagePath) && fileSizeSync(localImagePath) > 0) {
-                handleLocalImageDownload(res, localImagePath, fileName);
+            if (fs.existsSync(localFilePath) && fileSizeSync(localFilePath) > 0) {
+                handleLocalFileDownload(res, localFilePath, fileName);
             } else {
-                //download the image from mongodb
-                imageStorage.downloadImage(fileName, localImagePath).then(() => {
-                    handleLocalImageDownload(res, localImagePath, fileName);
+                //download the file from mongodb
+                fileStorage.downloadFile(fileName, localFilePath).then(() => {
+                    handleLocalFileDownload(res, localFilePath, fileName);
                 }).catch(err => {
                     if (fileName.startsWith('scheme-preview-')) {
-                        handleLocalImageDownload(res, 'public/images/missing-scheme-preview.png', fileName);
+                        handleLocalFileDownload(res, 'public/images/missing-scheme-preview.png', fileName);
                     } else {
                         console.error(err);
                         res.sendStatus(404);
@@ -103,14 +101,15 @@ module.exports = {
     uploadSchemeThumbnail(req, res) {
         let imageContent = req.body.svg;
 
+        //TODO update stale thumbnails
+
         const schemeId = req.params.schemeId;
 
         const fileName = `scheme-preview-${schemeId}.svg`;
         const filePath = `${config.images.uploadFolder}/${fileName}`;
 
-        console.log('Writing to file', fileName);
         fsp.writeFile(filePath, imageContent).then(() => {
-            imageStorage.uploadImageFromFile(filePath, fileName).then(imageData => {
+            fileStorage.uploadFromFile(filePath, fileName).then(imageData => {
                 res.json({message: 'ok'});
             }).catch(err => {
                 res.$apiError(err, 'Could not upload thumbnail');

@@ -43,8 +43,8 @@ module.exports = {
         }
     },
 
-    images: {
-        uploadFolder: conf('IMAGES_UPLOADFOLDER', 'images.uploadFolder', 'uploads'),
-        maxSize: conf('IMAGES_MAXSIZE', 'images.maxSize', 5242880)
+    files: {
+        uploadFolder: conf('FILES_UPLOADFOLDER', 'files.uploadFolder', 'uploads'),
+        maxSize: conf('FILES_MAXSIZE', 'files.maxSize', 5242880)
     }
 };

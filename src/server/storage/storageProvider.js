@@ -5,13 +5,13 @@
 const MongoSchemeStorage = require('./mongodb/MongoSchemeStorage.js');
 const MongoCategoryStorage = require('./mongodb/MongoCategoryStorage.js');
 const MongoArtStorage = require('./mongodb/MongoArtStorage.js');
-const MongoImageStorage = require('./mongodb/MongoImageStorage.js');
+const MongoFileStorage = require('./mongodb/MongoFileStorage.js');
 const MongoProjectStorage = require('./mongodb/MongoProjectStorage.js');
 
 const mongoSchemeStorage = new MongoSchemeStorage();
 const mongoCategoryStorage = new MongoCategoryStorage();
 const mongoArtStorage = new MongoArtStorage();
-const mongoImageStorage = new MongoImageStorage();
+const mongoFileStorage = new MongoFileStorage();
 const mongoProjectStorage = new MongoProjectStorage();
 
 module.exports = {
@@ -27,8 +27,8 @@ module.exports = {
         return mongoArtStorage;
     },
 
-    provideImageStorage() {
-        return mongoImageStorage;
+    provideFileStorage() {
+        return mongoFileStorage;
     },
 
     provideProjectStorage() {
