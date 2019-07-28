@@ -260,7 +260,7 @@ export default {
         }
     },
 
-    uploadSchemeThumbnail(schemeId, data) {
+    uploadSchemePreview(schemeId, data) {
         return Promise.resolve(null);
     }
 };

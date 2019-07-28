@@ -5,8 +5,11 @@
 const schemeStorage     = require('../storage/storageProvider.js').provideSchemeStorage();
 const categoryStorage   = require('../storage/storageProvider.js').provideCategoryStorage();
 const _                 = require('lodash');
-const fs                = require('fs-extra');
 const shortid           = require('shortid');
+
+const MISSING_PREVIEW_SVG = `
+    <svg></svg>
+`;
 
 
 function sanitizeScheme(scheme) {
@@ -111,6 +114,36 @@ const ApiSchemes = {
         schemeStorage.getTags(projectId).then(tags => {
             res.json(tags);
         }).catch(err => res.$apiError(err));
+    },
+
+    savePreview(req, res) {
+        const projectId = req.params.projectId;
+        const schemeId = req.params.schemeId;
+        const svg = req.body.svg;
+        if (svg && projectId && schemeId) {
+            schemeStorage.saveSchemePreview(projectId, schemeId, svg)
+            .then(() => res.json({status: 'ok'}))
+            .catch(err => res.$apiError(err, 'Not able to save preview'));
+        } else {
+            res.$badRequest('SVG content is missing');
+        }
+    },
+
+    getPreview(req, res) {
+        const projectId = req.params.projectId;
+        const schemeId = req.params.schemeId;
+        schemeStorage.getSchemePreview(projectId, schemeId)
+        .then(preview => {
+            res.set({
+                'Content-Type': 'image/svg+xml'
+            });
+            if (preview) {
+                res.send(preview.content);
+            } else {
+                res.send(MISSING_PREVIEW_SVG);
+            }
+        })
+
     }
 }
 

@@ -48,6 +48,8 @@ app.get('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectReadP
 app.delete('/v1/projects/:projectId/schemes/:schemeId', [middleware.projectWritePermission], apiSchemes.deleteScheme);
 app.post('/v1/projects/:projectId/schemes',             [middleware.projectWritePermission], apiSchemes.createScheme);
 app.put('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectWritePermission], apiSchemes.saveScheme);
+app.post('/v1/projects/:projectId/scheme-preview/:schemeId', [middleware.projectWritePermission], apiSchemes.savePreview);
+app.get('/projects/:projectId/scheme-preview/:schemeId', [middleware.projectReadPermission], apiSchemes.getPreview);
 
 app.get('/v1/projects/:projectId/tags', [middleware.projectReadPermission], apiSchemes.getTags);
 
@@ -57,7 +59,6 @@ app.get('/v1/projects/:projectId/art',  [middleware.projectReadPermission], apiA
 app.post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
 app.get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission], apiFiles.downloadFile);
 
-app.post('/v1/projects/:projectId/scheme-thumnbails/:schemeId', [middleware.projectReadPermission], apiFiles.uploadSchemeThumbnail);
 
 app.get('/v1/projects/:projectId/category-tree',                [middleware.projectReadPermission], apiCategories.getCategoryTree);
 app.get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission], apiCategories.getRootCategory);

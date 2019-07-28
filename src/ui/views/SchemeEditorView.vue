@@ -296,7 +296,7 @@ export default {
             var area = this.getBoundingBoxOfItems(this.schemeContainer.scheme.items);
 
             snapshotSvg(500, 400, '#svg_plot', area).then(svgCode => {
-                apiClient.uploadSchemeSvgThumbnail(this.projectId, this.schemeId, svgCode);
+                apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
             });
         },
 

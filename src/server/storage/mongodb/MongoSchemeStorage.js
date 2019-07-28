@@ -16,6 +16,9 @@ class MongoSchemeStorage {
     _schemes() {
         return mongo.db().collection('schemes');
     }
+    _schemePreviews() {
+        return mongo.db().collection('schemePreviews');
+    }
     _tags() {
         return mongo.db().collection('tags');
     }
@@ -197,6 +200,18 @@ class MongoSchemeStorage {
             });
         });
         return Promise.all(promises);
+    }
+
+    saveSchemePreview(projectId, schemeId, svgContent) {
+        return this._schemePreviews().updateOne(
+            {projectId, schemeId},
+            {$set: {schemeId, projectId, content: svgContent, type: 'svg'}},
+            {upsert: true}
+        );
+    }
+
+    getSchemePreview(projectId, schemeId) {
+        return this._schemePreviews().findOne({projectId, schemeId});
     }
 }
 

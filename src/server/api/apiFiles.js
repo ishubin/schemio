@@ -96,24 +96,5 @@ module.exports = {
             console.error('Not able to mkdir', err);
             res.sendStatus(500);
         });
-    },
-
-    uploadSchemeThumbnail(req, res) {
-        let imageContent = req.body.svg;
-
-        //TODO update stale thumbnails
-
-        const schemeId = req.params.schemeId;
-
-        const fileName = `scheme-preview-${schemeId}.svg`;
-        const filePath = `${config.images.uploadFolder}/${fileName}`;
-
-        fsp.writeFile(filePath, imageContent).then(() => {
-            fileStorage.uploadFromFile(filePath, fileName).then(imageData => {
-                res.json({message: 'ok'});
-            }).catch(err => {
-                res.$apiError(err, 'Could not upload thumbnail');
-            });
-        }).catch(err => res.$apiError(err, 'Could not upload thumbnail'));
     }
 };
