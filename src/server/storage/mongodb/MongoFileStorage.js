@@ -26,8 +26,7 @@ const fs                = require('fs');
         return new Promise((resolve, reject) => {
             fs.createReadStream(filePath)
             .pipe(this.imageBucket().openUploadStream(fileName, {
-                contentType: mimeType,
-                metadata: {checksum: 0}
+                contentType: mimeType
             }))
             .on('error', function(error) {
                 reject(error);

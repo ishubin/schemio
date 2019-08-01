@@ -32,18 +32,13 @@
 
 <script>
 import Modal from '../Modal.vue';
-import axios from 'axios';
+import apiClient from '../../apiClient.js';
 
 export default {
     props: {
-        imageUrl: {
-            type: String,
-            default: ''
-        },
-        primaryButton: {
-            type: String,
-            default: 'Create'
-        }
+        projectId: { type: String },
+        imageUrl: { type: String, default: '' },
+        primaryButton: { type: String, default: 'Create' }
     },
     components: {Modal},
 
@@ -65,11 +60,9 @@ export default {
     watch: {
         selectedFile(file) {
             if (file) {
-                var form = new FormData();
-                form.append('image', file, file.name);
-                this.errorUploading = false;
-                axios.post('/images', form).then(response => {
-                    this.url = response.data.path;
+                apiClient.uploadFile(this.projectId, file)
+                .then(imageUrl => {
+                    this.url = imageUrl;
                 }).catch(err => {
                     this.errorUploading = true;
                 });
