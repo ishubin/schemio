@@ -44,6 +44,14 @@ export default {
         return axios.get(`/v1/projects/${projectId}/art`).then(unwrapAxios);
     },
 
+    saveArt(projectId, artId, art) {
+        return axios.put(`/v1/projects/${projectId}/art/${artId}`, art).then(unwrapAxios);
+    },
+
+    deleteArt(projectId, artId) {
+        return axios.delete(`/v1/projects/${projectId}/art/${artId}`).then(unwrapAxios);
+    },
+
     loadScheme(projectId, schemeId) {
         return axios.get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
     },

@@ -6,20 +6,59 @@ const artStorage     = require('../storage/storageProvider.js').provideArtStorag
 const _                 = require('lodash');
 const fs                = require('fs-extra');
 
+
+function artFromRequest(req) {
+    const art = req.body;
+    const artItem = {
+        projectId: req.params.projectId,
+        name: art.name,
+        url: art.url,
+    };
+
+    if (art.id) {
+        artItem.id = art.id;
+    }
+
+    return artItem;
+}
+
 const ApiArt = {
     createArt(req, res) {
-        var requestArt = req.body;
-        requestArt.modifiedDate = Date.now();
+        const projectId = req.params.projectId;
+        const requestArt = artFromRequest(req);
 
-        artStorage.createArt(requestArt).then(art => {
+        artStorage.createArt(projectId, requestArt).then(art => {
             res.json(art);
         }).catch(err => res.$apiError(err, 'Could not create art'));
     },
 
     getArt(req, res) {
-        artStorage.getArt().then(artList => {
+        const projectId = req.params.projectId;
+        artStorage.getAllArt(projectId).then(artList => {
             res.json(artList);
         }).catch(err => res.$apiError(err, 'Could not retrieve art list'));
+    },
+
+    saveArt(req, res) {
+        const projectId = req.params.projectId;
+        const artId = req.params.artId;
+        const requestArt = artFromRequest(req);
+
+        requestArt.modifiedDate = Date.now();
+        artStorage.saveArt(projectId, artId, requestArt).then(art => {
+            res.json(art);
+        }).catch(err => res.$apiError(err, 'Could not save art'));
+    },
+
+    deleteArt(req, res) {
+        const projectId = req.params.projectId;
+        const artId = req.params.artId;
+
+        artStorage.deleteArt(projectId, artId).then(() => {
+            res.json({status: 'ok'});
+        }).catch(err => {
+            res.$apiError(err, 'Could not delete art');
+        });
     }
 };
 

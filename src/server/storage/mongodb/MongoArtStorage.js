@@ -14,22 +14,18 @@ class MongoArtStorage {
         return mongo.db().collection('art');
     }
 
-    createArt(art) {
-        var artItem = {
-            id: shortid.generate(),
-            name: art.name,
-            url: art.url,
-            modifiedDate: art.modifiedDate,
-            version: CURRENT_ART_VERSION
-        };
+    createArt(projectId, art) {
+        art.id = shortid.generate();
+        art.version = CURRENT_ART_VERSION;
+        art.projectId = projectId;
 
-        return this._art().insertOne(artItem).then(result => {
-            return artItem;
+        return this._art().insertOne(art).then(result => {
+            return art;
         });
     }
 
-    getArt() {
-        return this._art().find({}).toArray().then(result => {
+    getAllArt(projectId) {
+        return this._art().find({projectId}).toArray().then(result => {
             return _.map(result, item => {
                 return {
                     id: item.id,
@@ -40,6 +36,16 @@ class MongoArtStorage {
         });
     }
 
+    saveArt(projectId, artId, art) {
+        art.version = CURRENT_ART_VERSION;
+        return this._art().updateOne({projectId, id: artId}, {$set: art}).then(() => {
+            return art;
+        });
+    }
+    
+    deleteArt(projectId, artId) {
+        return this._art().deleteOne({projectId, id: artId}).then(() => {return {};});
+    }
 }
 
 module.exports = MongoArtStorage;

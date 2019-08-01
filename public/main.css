@@ -628,7 +628,7 @@ ul.button-group li .toggle-button .small-letter {
     height: 100%;
     width: 0px;
     position: absolute;
-    padding-top: 35px;
+    padding-top: 45px;
     top: 0;
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -826,8 +826,14 @@ ul.button-group li .toggle-button .small-letter {
     max-height: 100px;
     text-align: center;
 }
+.item-menu .item-container span {
+    font-size: 12px;
+}
 .item-menu .item-container:hover {
     opacity: 0.6;
+}
+.item-menu .item-container.selected {
+    background: #aaa;
 }
 
 /******************** Connectors *********************/

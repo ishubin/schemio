@@ -77,7 +77,6 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
-                        <h5>Create</h5>
                         <create-item-menu :project-id="projectId"/>
                     </div>
                 </div>

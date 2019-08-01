@@ -53,8 +53,10 @@ app.get('/projects/:projectId/scheme-preview/:schemeId', [middleware.projectRead
 
 app.get('/v1/projects/:projectId/tags', [middleware.projectReadPermission], apiSchemes.getTags);
 
-app.post('/v1/projects/:projectId/art', [middleware.projectWritePermission], apiArt.createArt);
-app.get('/v1/projects/:projectId/art',  [middleware.projectReadPermission], apiArt.getArt);
+app.post('/v1/projects/:projectId/art',         [middleware.projectWritePermission],    apiArt.createArt);
+app.put('/v1/projects/:projectId/art/:artId',   [middleware.projectWritePermission],    apiArt.saveArt);
+app.delete('/v1/projects/:projectId/art/:artId',[middleware.projectWritePermission],    apiArt.deleteArt);
+app.get('/v1/projects/:projectId/art',          [middleware.projectReadPermission],     apiArt.getArt);
 
 app.post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
 app.get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission], apiFiles.downloadFile);

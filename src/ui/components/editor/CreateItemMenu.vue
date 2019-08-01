@@ -18,7 +18,8 @@
         </panel>
 
         <panel name="Art">
-            <span class="btn btn-primary" @click="customArtUploadModalShown = true">Upload Image</span>
+            <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
+            <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
             <div class="item-menu">
                 <div class="item-container"
                     v-for="art in artList"
@@ -32,8 +33,9 @@
         <create-image-modal v-if="createImageModalShown" :project-id="projectId" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
 
         <custom-art-upload-modal :project-id="projectId" v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false" @art-created="onArtCreated"/>
+        <edit-art-modal v-if="editArtModalShown" :project-id="projectId" :art-list="artList" @close="editArtModalShown = false"/>
 
-        <modal title="Error" v-if="errorMessage" @close='errorMessage = null'>
+        <modal title="Error" v-if="errorMessage" @close="errorMessage = null">
             {{errorMessage}}
         </modal>
 
@@ -44,6 +46,7 @@
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
+import EditArtModal from './EditArtModal.vue';
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
@@ -59,7 +62,7 @@ let _selectedImageItem = null;
 
 export default {
     props: ['projectId'],
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal},
     mounted() {
         this.reloadArt();
     },
@@ -71,6 +74,8 @@ export default {
             artList: [],
             artSearchKeyword: '',
             errorMessage: null,
+
+            editArtModalShown: false,
 
             itemPanels: [{
                 name: 'General',
