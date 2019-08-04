@@ -4,9 +4,12 @@
 
 <template lang="html">
     <div class="create-item-menu">
+
+        <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
+
         <panel v-for="panel in itemPanels" :name="panel.name">
             <div class="item-menu">
-                <div v-for="item in panel.items" :title="item.name" class="item-container" @click="onItemSelected(item)">
+                <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"   :title="item.name" class="item-container" @click="onItemSelected(item)">
                     <svg v-if="item.svg" width="40px" height="30px" v-html="item.svg"></svg>
                     <svg v-if="!item.svg && item.shapeComponent" width="40px" height="30px">
                         <g :transform="`translate(${item.item.area.x}, ${item.item.area.y})`">
@@ -23,6 +26,7 @@
             <div class="item-menu">
                 <div class="item-container"
                     v-for="art in artList"
+                    v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
                     @click="onArtSelected(art)">
                     <img width="60px" height="60px" :src="art.url"/>
                     <span>{{art.name}}</span>
@@ -72,7 +76,7 @@ export default {
             customArtUploadModalShown: false,
             menu: 'main',
             artList: [],
-            artSearchKeyword: '',
+            searchKeyword: '',
             errorMessage: null,
 
             editArtModalShown: false,
