@@ -39,7 +39,7 @@
         </editor-menu-bar>
 
         <div class="editor-frame" :style="{width, height}" :class="{focused}">
-            <div class="editor-content" :style="{width, height}">
+            <div class="editor-content" @click="onEditorClick" :style="{width, height}">
                 <editor-content :editor="editor" />
             </div>
             <span class="editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
@@ -192,6 +192,14 @@ export default {
             enlargedWidth: window.innerWidth - 100,
             enlargedHeight: window.innerHeight - 440
         };
+    },
+
+    methods: {
+        onEditorClick(event) {
+            if (event.target.className.indexOf('editor-content') >= 0) {
+                this.editor.view.dom.focus();
+            }
+        }
     },
 
     watch: {
