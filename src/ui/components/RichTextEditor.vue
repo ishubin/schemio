@@ -111,6 +111,7 @@ import Modal from './Modal.vue';
 export default {
     props: {
         value: {type: String},
+        id: {type: String},
         width: {type: String, default: '100%'},
         height: {type: String, default: '150px'}
     },
@@ -191,6 +192,16 @@ export default {
             enlargedWidth: window.innerWidth - 100,
             enlargedHeight: window.innerHeight - 440
         };
+    },
+
+    watch: {
+        // Used in order to track switching from one item to another.
+        // In such cases we should reset the text in the text area.
+        // Otherwise it will not get updated
+        id(val) {
+            this.editorLarge.setContent(this.value);
+            this.editor.setContent(this.value);
+        }
     }
 }
 </script>

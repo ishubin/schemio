@@ -19,13 +19,13 @@
         <div v-if="descriptionUsed">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <rich-text-editor v-model="item.description" @changed="item.description = arguments[0];" ></rich-text-editor>
+                <rich-text-editor :id="item.id" v-model="item.description" @changed="item.description = arguments[0];" ></rich-text-editor>
             </div>
         </div>
 
         <h5 class="section">Text</h5>
         <div class="textarea-wrapper">
-            <rich-text-editor v-model="item.text" @changed="item.text = arguments[0];" ></rich-text-editor>
+            <rich-text-editor :id="item.id" v-model="item.text" @changed="item.text = arguments[0];" ></rich-text-editor>
         </div>
     </panel>
 </template>
