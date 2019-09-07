@@ -235,6 +235,7 @@ export default class StateDragItem extends State {
             //snapping to grid
             item.area.x = this.snapX(item.area.x);
             item.area.y = this.snapY(item.area.y);
+            EventBus.emitItemChanged(item.id);
         }
     }
 
@@ -319,6 +320,7 @@ export default class StateDragItem extends State {
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+            EventBus.emitItemChanged(item.id);
         }
     }
 

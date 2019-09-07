@@ -45,10 +45,19 @@
 
 <script>
 import Panel from '../Panel.vue';
+import EventBus from '../EventBus.js';
 
 export default {
     props: ['item'],
     components: {Panel},
+
+    beforeMount() {
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
+
+    beforeDestroy() {
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
 
     data() {
         return {
@@ -60,7 +69,9 @@ export default {
 
             itemLocked: this.item.locked || false,
             itemGroup: this.item.group,
-        }
+
+            isSelfOriginatedEvent: false, // using this flag in order to avoid processing of item changes that were triggered from this component
+        };
     },
 
     methods: {
@@ -72,44 +83,45 @@ export default {
         ungroupItem() {
             this.$emit('ungroup-item');
             this.itemGroup = null;
+        },
+
+        onItemChanged() {
+            if (!this.isSelfOriginatedEvent) {
+                this.x = this.item.area.x;
+                this.y = this.item.area.y;
+                this.w = this.item.area.w;
+                this.h = this.item.area.h;
+                this.r = this.item.area.r;
+            } else {
+                this.isSelfOriginatedEvent = false;
+            }
+        },
+
+        updateAreaProperty(propertyName, textValue) {
+            if (textValue.length > 0) {
+                this.item.area[propertyName] = parseFloat(textValue);
+
+                this.isSelfOriginatedEvent = true;
+                EventBus.emitItemChanged(this.item.id);
+            }
         }
     },
 
     watch: {
-        item: {
-            deep: true,
-            handler(newItem) {
-                this.x = newItem.area.x;
-                this.y = newItem.area.y;
-                this.w = newItem.area.w;
-                this.h = newItem.area.h;
-                this.r = newItem.area.r;
-            }
-        },
         x(text) {
-            if (text.length > 0) {
-                this.item.area.x = parseFloat(text);
-            }
+            this.updateAreaProperty('x', text);
         },
         y(text) {
-            if (text.length > 0) {
-                this.item.area.y = parseFloat(text);
-            }
+            this.updateAreaProperty('y', text);
         },
         w(text) {
-            if (text.length > 0) {
-                this.item.area.w = parseFloat(text);
-            }
+            this.updateAreaProperty('w', text);
         },
         h(text) {
-            if (text.length > 0) {
-                this.item.area.h = parseFloat(text);
-            }
+            this.updateAreaProperty('h', text);
         },
         r(text) {
-            if (text.length > 0) {
-                this.item.area.r = parseFloat(text);
-            }
+            this.updateAreaProperty('r', text);
         }
     }
 }
