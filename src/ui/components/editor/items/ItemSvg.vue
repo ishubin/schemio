@@ -4,8 +4,13 @@
 
 <template lang="html">
     <g  :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
-        :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
+        :transform="`translate(${item.area.x - item.area.w/2},${item.area.y - item.area.h/2}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
     >
+    <g>
+
+<!-- 
+        :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
+ -->
         <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item"></component>
 
         <path v-if="itemSvgPath" :d="itemSvgPath" 
@@ -45,6 +50,7 @@
                 </g>
             </g>
         </g>
+    </g>
     </g>
 </template>
 

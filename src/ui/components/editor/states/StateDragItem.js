@@ -255,8 +255,8 @@ export default class StateDragItem extends State {
 
     rotateItem(x, y, event) {
         if (this.sourceItem) {
-            const cx = this.sourceItem.area.x + this.sourceItem.area.w/2;
-            const cy = this.sourceItem.area.y + this.sourceItem.area.h/2;
+            const cx = this.sourceItem.area.x;
+            const cy = this.sourceItem.area.y;
 
             const v1x = this.originalPoint.x - cx;
             const v1y = this.originalPoint.y - cy;
@@ -277,8 +277,6 @@ export default class StateDragItem extends State {
     }
 
     dragByDragger(item, dragger, x, y) {
-        var nx = item.area.x;
-        var ny = item.area.y;
         var nw = item.area.w;
         var nh = item.area.h;
 
@@ -298,15 +296,13 @@ export default class StateDragItem extends State {
             const dy = tx * sn + ty * cs;
             change += Math.abs(dx) + Math.abs(dy);
             if (edge === 'top') {
-                ny = this.snapY(item.meta.itemOriginalArea.y + dy);
-                nh = item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h - ny;
+                nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h - 2 * dy) - item.meta.itemOriginalArea.y;
             } else if (edge === 'bottom') {
-                nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h + dy) - item.meta.itemOriginalArea.y;
+                nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h + 2 * dy) - item.meta.itemOriginalArea.y;
             } else if (edge === 'left') {
-                nx = this.snapX(item.meta.itemOriginalArea.x + dx);
-                nw = item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w - nx;
+                nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w - 2 * dx) - item.meta.itemOriginalArea.x;
             } else if (edge === 'right') {
-                nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w + dx) - item.meta.itemOriginalArea.x;
+                nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w + 2 * dx) - item.meta.itemOriginalArea.x;
             }
         });
         if (change > 0) {
@@ -316,8 +312,6 @@ export default class StateDragItem extends State {
             this.rebuildConnectorsInCache();
         }
         if (nw > 0 && nh > 0) {
-            item.area.x = nx;
-            item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
             EventBus.emitItemChanged(item.id);
