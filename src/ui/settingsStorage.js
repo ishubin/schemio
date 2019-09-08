@@ -6,9 +6,44 @@ import _ from 'lodash';
 
 const SCHEME_SETTINGS = 'scheme-settings';
 const DEFAULT_SCHEME_SETTINGS = {schemes: {}};
+
+class StorageWithAllowedValues {
+    constructor(settingsStorage, name, allowedValues, defaultIndex) {
+        this.settingsStorage = settingsStorage;
+        this.name = name;
+        this.allowedValues = allowedValues;
+        this.defaultIndex = defaultIndex;
+    }
+
+    save(value) {
+        this.settingsStorage.saveItem(this.name, value);
+    }
+
+    get() {
+        const value = this.settingsStorage.getItem(this.name);
+        if (_.includes(this.allowedValues, value)) {
+            return value;
+        } else {
+            return this.allowedValues[this.defaultIndex];
+        }
+    }
+}
+
+
 class SettingsStorage {
     constructor() {
         this.storage = window.localStorage;
+    }
+
+    /**
+     * Returns an object that stores and retreives from local storage for a given name, only if it matches one of allowedValues
+     * In case it doesn't match - it returns a value at a defaultIndex position in allowedValues array
+     * @param {string} name 
+     * @param {Array} allowedValues 
+     * @param {number} defaultIndex 
+     */
+    createStorageWithAllowedValues(name, allowedValues, defaultIndex) {
+        return new StorageWithAllowedValues(this, name, allowedValues, defaultIndex)
     }
 
     saveItem(itemName, obj) {
@@ -21,22 +56,6 @@ class SettingsStorage {
             return JSON.parse(encodedJson);
         } else {
             return defaultValue;
-        }
-    }
-
-    /**
-     * Return a value from local storage for a given name, only if it matches one of allowedValues
-     * In case it doesn't match - it returns a value at a defaultIndex position in allowedValues array
-     * @param {string} name 
-     * @param {Array} allowedValues 
-     * @param {number} defaultIndex 
-     */
-    getItemFromAllowedValues(name, allowedValues, defaultIndex) {
-        const value = this.getItem(name);
-        if (_.includes(allowedValues, value)) {
-            return value;
-        } else {
-            return allowedValues[defaultIndex];
         }
     }
 

@@ -93,8 +93,6 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import settingsStorage from '../../../settingsStorage.js';
 
-const LS_CURRENT_TAB = 'item-properties-current-tab';
-
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
     {name: 'shape', icon: 'fas fa-vector-square'},
@@ -102,13 +100,18 @@ const ALL_TABS = [
     {name: 'behavior', icon: 'far fa-hand-point-up'}
 ];
 
+const tabsSettingsStorage = settingsStorage.createStorageWithAllowedValues(
+    'item-properties-current-tab',
+    _.chain(ALL_TABS).map(x => x.name).value(),
+    0
+);
+
 export default {
     props: ['projectId', 'item', 'schemeContainer'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {
-        const defaultTabs = _.chain(ALL_TABS).map(x => x.name).value();
-        this.currentTab = settingsStorage.getItemFromAllowedValues(LS_CURRENT_TAB, defaultTabs, 0);
+        this.currentTab = tabsSettingsStorage.get();
     },
 
     mounted() {
@@ -159,7 +162,7 @@ export default {
 
     watch: {
         currentTab(value) {
-            settingsStorage.saveItem(LS_CURRENT_TAB, value);
+            tabsSettingsStorage.save(value);
         }
     }
 }
