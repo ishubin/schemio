@@ -38,7 +38,7 @@
                 </tr>
             </tbody>
         </table>
-        <span class="property-label">Rotation: </span> <input class="textfield textfield-small" type="text" v-model="r"/>
+        <span class="property-label"><i class="fas fa-sync"></i>: </span> <input class="textfield textfield-small" type="text" v-model="r"/>
 
     </panel>
 </template>

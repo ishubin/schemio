@@ -91,10 +91,25 @@ import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
+import settingsStorage from '../../../settingsStorage.js';
+
+const LS_CURRENT_TAB = 'item-properties-current-tab';
+
+const ALL_TABS = [
+    {name: 'description', icon: 'fas fa-paragraph'},
+    {name: 'shape', icon: 'fas fa-vector-square'},
+    {name: 'position', icon: 'fas fa-map-marker-alt'},
+    {name: 'behavior', icon: 'far fa-hand-point-up'}
+];
 
 export default {
     props: ['projectId', 'item', 'schemeContainer'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
+
+    beforeMount() {
+        const defaultTabs = _.chain(ALL_TABS).map(x => x.name).value();
+        this.currentTab = settingsStorage.getItemFromAllowedValues(LS_CURRENT_TAB, defaultTabs, 0);
+    },
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -102,12 +117,7 @@ export default {
 
     data() {
         return {
-            tabs: [
-                {name: 'description', icon: 'fas fa-paragraph'},
-                {name: 'shape', icon: 'fas fa-vector-square'},
-                {name: 'position', icon: 'fas fa-map-marker-alt'},
-                {name: 'behavior', icon: 'far fa-hand-point-up'}
-            ],
+            tabs: ALL_TABS,
 
             knownStrokePatterns: StrokePattern.getPatternsList(),
 
@@ -144,6 +154,12 @@ export default {
 
         emitItemChanged() {
             EventBus.emitItemChanged(this.item.id);
+        }
+    },
+
+    watch: {
+        currentTab(value) {
+            settingsStorage.saveItem(LS_CURRENT_TAB, value);
         }
     }
 }
