@@ -1363,3 +1363,32 @@ input.behavior-action-argument {
     width: 60px;
     border: none;
 }
+
+
+/**************** Context Menu *****************/
+.context-menu {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.5) 1px 1px 5px;
+}
+.context-menu ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.context-menu ul li {
+    position: relative;
+    padding: 4px 7px 4px 30px;
+    color: #333;
+    cursor: pointer;
+}
+.context-menu ul li i {
+    position: absolute;
+    left: 4px;
+}
+.context-menu ul li:hover {
+    background: #ccc;
+}

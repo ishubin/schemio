@@ -103,30 +103,6 @@
                     </g>
 
 
-                    <!-- Item Edit Menu -->
-                    <g v-if="activeItem" data-preview-ignore="true">
-                        <g class="item-edit-menu-link" @click="$emit('clicked-add-item-to-item', activeItem)">
-                            <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y" r="12" stroke="red" fill="#ff00ff"/>
-                            <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 25" :y="activeItem.area.y + 5">&#xf067;</text>
-                            <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 5">Add Item</text>
-                        </g>
-                        <g class="item-edit-menu-link" @click="$emit('clicked-create-child-scheme-to-item', activeItem)">
-                            <circle :cx="activeItem.area.x + activeItem.area.w + 30" :cy="activeItem.area.y + 35" r="12" stroke="red" fill="#ff00ff"/>
-                            <text class="link-icon" :x="activeItem.area.x + activeItem.area.w + 23" :y="activeItem.area.y + 40">&#xf542;</text>
-                            <text class="item-link-full-title" :x="activeItem.area.x + activeItem.area.w + 55" :y="activeItem.area.y + 40">Create scheme for this element</text>
-                        </g>
-                        <g class="item-edit-menu-link" @click="$emit('clicked-add-item-link', activeItem)">
-                            <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y" r="12" stroke="#096e9f" fill="#0698e0"/>
-                            <text class="link-icon" :x="activeItem.area.x - 36" :y="activeItem.area.y + 5">&#xf0c1;</text>
-                            <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 5">Add link</text>
-                        </g>
-                        <g class="item-edit-menu-link" @click="$emit('clicked-start-connecting', activeItem)">
-                            <circle :cx="activeItem.area.x - 30" :cy="activeItem.area.y + 35" r="12" stroke="#096e9f" fill="#0698e0"/>
-                            <text class="link-icon" :x="activeItem.area.x - 37" :y="activeItem.area.y + 40">&#xf0e8;</text>
-                            <text class="item-link-full-title" :x="activeItem.area.x + 5" :y="activeItem.area.y + 40">Connect</text>
-                        </g>
-                    </g>
-
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
                         <rect class="boundary-box"
@@ -162,6 +138,28 @@
                 </g>
             </g>
         </svg>
+
+        <context-menu v-if="contextMenu.show"
+            :mouse-x="contextMenu.mouseX"
+            :mouse-y="contextMenu.mouseY"
+            @close="contextMenu.show = false"
+        >
+            <ul>
+                <li @click="$emit('clicked-add-item-link', contextMenu.item)">
+                    <i class="fas fa-link"></i> Add link
+                </li>
+                <li @click="$emit('clicked-start-connecting', contextMenu.item)">
+                    <i class="fas fa-network-wired"></i> Connect
+                </li>
+                <li @click="$emit('clicked-add-item-to-item', contextMenu.item)">
+                    <i class="far fa-plus-square"></i> Add item
+                </li>
+                <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
+                    <i class="far fa-file"></i> Create scheme for this element...
+                </li>
+            </ul>
+        </context-menu>
+
     </div>
 </template>
 
@@ -178,6 +176,7 @@ import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
+import ContextMenu from './ContextMenu.vue';
 
 
 const EMPTY_OBJECT = {type: 'nothing'};
@@ -188,7 +187,7 @@ const behaviorCompiler = new Compiler();
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
-    components: {ConnectorSvg, ItemSvg},
+    components: {ConnectorSvg, ItemSvg, ContextMenu},
     mounted() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
@@ -206,6 +205,7 @@ export default {
         EventBus.$on(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
+        EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -225,6 +225,7 @@ export default {
         EventBus.$off(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
+        EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -270,7 +271,12 @@ export default {
 
             multiSelectBox: null,
 
-            lastMouseUpTimestamp: 0
+            lastMouseUpTimestamp: 0,
+            contextMenu: {
+                show: false,
+                item: null,
+                mouseX: 0, mouseY: 0
+            }
         };
     },
     methods: {
@@ -645,6 +651,14 @@ export default {
                 path += ` L ${connector.meta.points[i].x} ${connector.meta.points[i].y}`
             }
             return path;
+        },
+
+
+        onRightClickedItem(item, mouseX, mouseY) {
+            this.contextMenu.item = item;
+            this.contextMenu.mouseX = mouseX;
+            this.contextMenu.mouseY = mouseY;
+            this.contextMenu.show = true;
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },

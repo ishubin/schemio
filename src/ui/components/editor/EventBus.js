@@ -21,7 +21,6 @@ const EventBus = new Vue({
 
             SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
 
-
             ITEM_CHANGED: 'item-changed',
             ITEM_SELECTED: 'item-selected',
             ITEM_DESELECTED: 'item-deselected',
@@ -34,6 +33,8 @@ const EventBus = new Vue({
             CONNECTOR_DESELECTED: 'connector-deselected',
             ANY_CONNECTOR_SELECTED: 'any-connector-selected',
             ANY_CONNECTOR_DESELECTED: 'any-connector-deselected',
+
+            RIGHT_CLICKED_ITEM: 'right-clicked-item',
 
             KEY: {
                 ESCAPE: 'escape',
@@ -97,6 +98,10 @@ const EventBus = new Vue({
         subscribeForConnectorDeselected(connectorId, callback) {this.$on(this._connectorDeselectedEvent(connectorId), callback)},
         unsubscribeForConnectorDeselected(connectorId, callback) {this.$off(this._connectorDeselectedEvent(connectorId), callback)},
         _connectorDeselectedEvent(connectorId) {return `${EventBus.CONNECTOR_DESELECTED}/${connectorId}`},
+        
+        emitRightClickedItem(item, mouseX, mouseY) {
+            this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
+        }
     }
 });
 

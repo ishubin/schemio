@@ -375,7 +375,8 @@ export default {
             var newItem = {
                 type: item.type,
                 area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
-                style: utils.clone(item.style),
+                shape: item.shape,
+                shapeProps: utils.clone(item.shapeProps),
                 properties: '',
                 name: '',
                 description: '',

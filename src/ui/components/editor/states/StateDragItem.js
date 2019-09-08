@@ -6,6 +6,11 @@ import State from './State.js';
 import EventBus from '../EventBus.js';
 import _ from 'lodash';
 
+
+function isEventRightClick(event) {
+    return event.button === 2;
+}
+
 export default class StateDragItem extends State {
     constructor(editor) {
         super(editor);
@@ -133,6 +138,11 @@ export default class StateDragItem extends State {
 
             this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
             this.schemeContainer.deselectAllConnectors();
+            
+            if (isEventRightClick(event)) {
+                EventBus.emitRightClickedItem(object.item, mx, my);
+                return;
+            }
 
             this.initDraggingForItem(object.item, x, y);
             _.forEach(this.schemeContainer.selectedItems, item => {
