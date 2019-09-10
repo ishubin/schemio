@@ -43,9 +43,9 @@ export default {
 
     computePath,
     args: {
-        strokeColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Stroke color'},
+        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        fillColor: {type: 'color', value: 'rgba(255,125,125,0.5)', name: 'Fill color'},
+        fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},

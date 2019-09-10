@@ -12,7 +12,7 @@ const defaultItem = {
 
 export default [{
     name: 'Rect',
-    svg: `<rect x="3" y="6" width="32" height="22" stroke-width="2" stroke="#111" fill="#fff"></rect>`,
+    svg: `<rect x="3" y="6" width="32" height="22" stroke-width="2" stroke="rgba(30,30,30,1.0)" fill="rgba(240,240,240,1.0)"></rect>`,
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {}
@@ -79,6 +79,9 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Comment',
+    svg: `
+        <path fill="rgba(240,240,240,1.0)" stroke-width="2" stroke="rgba(30,30,30,1.0)" d="M 34 26  L 28 20  L 6 20   a 5 5 0 0 1 -5 -5  L 1 6  a 5 5 0 0 1 5 -5   L 29 1  a 5 5 0 0 1 5 5 Z"></path>
+    `,
     shapeProps: {
         fontSize: 8,
         cornerRadius: 5,
