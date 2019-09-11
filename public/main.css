@@ -109,7 +109,6 @@ h5 {
     cursor: pointer;
     text-decoration: none;
     color: white;
-    border-radius: 4px;
 }
 .header > ul > li span:hover, .header > ul > li a:hover {
     background: #56a7db;
@@ -147,7 +146,6 @@ ul.schemes li a {
     overflow: hidden;
     background: #fff;
     border: 1px solid #ddd;
-    border-radius: 4px;
     width: 300px;
     height: 200px;
     text-decoration: none;
@@ -213,7 +211,6 @@ ul.tabs li .tab {
     display: inline-block;
     padding: 3px 5px;
     border: 1px solid #aaa;
-    border-radius: 3px 3px 0 0;
     background: #ddd;
     color: #555;
     font-size: 10px;
@@ -246,7 +243,6 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 .btn {
     display: inline-block;
     padding: 5px 10px 5px 10px;
-    border-radius: 4px;
     cursor: pointer;
     background: #f0f0f0;
     border: 1px solid #777;
@@ -296,7 +292,6 @@ input.textfield, textarea.textfield {
     display: inline-block;
     width: 100%;
     color: #444;
-    border-radius: 4px;
     padding: 5px 10px 5px 10px;
     background: #fff;
     font-size: 16px;
@@ -491,7 +486,6 @@ svg.state-create-component {
     margin: 0px auto;
     padding: 20px 30px;
     background-color: #efefef;
-    border-radius: 2px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
     transition: all .3s ease;
 }
@@ -579,7 +573,6 @@ ul.button-group li .toggle-button {
     background: none;
     cursor: pointer;
     cursor: hand;
-    border-radius: 4px;
     font-weight: bold;
     text-transform: capitalize;
 }
@@ -665,12 +658,10 @@ ul.button-group li .toggle-button .small-letter {
     width: 12px;
 }
 .scheme-middle-container .side-panel-right .side-panel-expander {
-    border-radius: 4px 0 0 4px;
     border-left: 1px solid #aaa;
     left: -12px;
 }
 .scheme-middle-container .side-panel-left .side-panel-expander {
-    border-radius: 0 4px 4px 0;
     border-right: 1px solid #aaa;
     right: -12px;
 }
@@ -744,7 +735,6 @@ ul.button-group li .toggle-button .small-letter {
     position: relative;
     width: 15px;
     height: 15px;
-    border-radius: 2px;
     cursor: pointer;
     border: 1px solid #999;
 }
@@ -753,7 +743,6 @@ ul.button-group li .toggle-button .small-letter {
     position: absolute;
     width: 100%;
     height: 100%;
-    border-radius: 2px;
 }
 .color-picker-toggle-button span.color-picker-toggle-button-background {
     background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQoU2M8c+bMfwY0oKenhy7EwDgUFP769QvDM5cuXcL0zBBQCADjtDObjg4SggAAAABJRU5ErkJggg==') repeat;
@@ -818,7 +807,6 @@ ul.button-group li .toggle-button .small-letter {
     margin: 2px;
     padding: 5px;
     cursor: pointer;
-    border-radius: 10px;
 }
 .item-menu .item-container img {
     display: block;
@@ -866,7 +854,6 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
     height: 30px;
     padding: 5px;
     background: #bbb;
-    border-radius: 4px;
     border: 1px solid #333;
     cursor: pointer;
 }
@@ -901,7 +888,6 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
 }
 .category-selector-container .category-selector-input {
     border: 1px solid #ccc;
-    border-radius: 4px;
     padding: 4px;
     display: flex;
     flex-wrap: wrap;
@@ -922,7 +908,6 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
 .category-selector-container .category-selector-input ul li span {
     padding: 3px 5px;
     margin: 2px 4px 2px 4px;
-    border-radius: 4px;
     background: #3b628b;
     color: #fff;
 }
@@ -941,7 +926,6 @@ svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-rerou
     padding: 3px 5px;
     margin: 0;
     border: 1px solid #ccc;
-    border-radius: 4px;
     line-height: inherit;
 }
 .category-selector-container .category-suggestions {
@@ -1035,7 +1019,6 @@ ul.category-breadcrumb li i {
 
 .rich-text-editor-container .editor-frame {
     position: relative;
-    border-radius: 4px;
     padding: 4px;
     border: 1px solid #999;
     background: white;
@@ -1078,7 +1061,6 @@ ul.category-breadcrumb li i {
     height: 22px;
     font-weight: bold;
     text-align: center;
-    border-radius: 2px;
     cursor: pointer;
 }
 .rich-text-editor-container .editor-menubar .editor-icon.is-active {
@@ -1108,7 +1090,6 @@ ul.category-breadcrumb li i {
     position: absolute;
     z-index: 999;
     background: #fff;
-    border-radius: 2px;
     border: 1px solid #999;
     color: #555;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -1139,7 +1120,6 @@ ul.category-breadcrumb li i {
     overflow: scroll;
     padding: 4px;
     border: 1px solid #ddd;
-    border-radius: 2px;
     margin-top: 5px;
     background: #fdfdfd;
 }
@@ -1174,7 +1154,6 @@ table.position-panel-table .property-label {
     margin: auto;
     vertical-align: middle;
     border: 1px solid #aaa;
-    border-radius: 5px;
     background: #fff;
 }
 .login-box h2 {
@@ -1182,7 +1161,6 @@ table.position-panel-table .property-label {
     padding: 5px;
     background: #666;
     color: white;
-    border-radius: 2px 2px 0 0;
 }
 .login-box .login-box-body {
     padding: 20px;
@@ -1214,7 +1192,6 @@ table.position-panel-table .property-label {
     color: #246c8f;
     text-decoration: none;
     padding: 2px 4px 2px 4px;
-    border-radius: 2px;
     cursor: pointer;
     cursor: hand;
 }
@@ -1237,7 +1214,6 @@ table.position-panel-table .property-label {
 }
 .behavior-trigger {
     position: relative;
-    border-radius: 5px;
     background: #ddd;
     padding: 8px 7px 8px 40px;
 }
@@ -1246,7 +1222,6 @@ table.position-panel-table .property-label {
     display: block;
     top: 8px;
     left: 7px;
-    border-radius: 5px;
     background: none;
     color: #999;
     padding: 2px 5px;
@@ -1271,21 +1246,18 @@ table.position-panel-table .property-label {
 
 .behavior-trigger-originator-event {
     display: inline-block;
-    border-radius: 5px;
     background: #999;
     color: #fff;
     padding: 2px 5px;
     margin: 0;
 }
 .behavior-trigger-originator {
-    border-radius: 5px;
     background: none;
     color: #fff;
     padding: 2px 5px;
     margin: 0;
 }
 .behavior-trigger-event {
-    border-radius: 5px;
     background: #b957f1;
     color: #fff;
     padding: 2px 5px;
@@ -1299,7 +1271,6 @@ table.position-panel-table .property-label {
     color: #999;
 }
 .behavior-action-add-button {
-    border-radius: 5px;
     background: #fff;
     border: 1px dashed #ddd;
     color: #999;
@@ -1313,7 +1284,6 @@ table.position-panel-table .property-label {
 }
 .behavior-action {
     position: relative;
-    border-radius: 5px;
     background: #88eb88;
     padding: 8px 7px;
 }
@@ -1329,13 +1299,11 @@ table.position-panel-table .property-label {
     right: 0;
 }
 .behavior-action-item {
-    border-radius: 5px;
     background: #999;
     color: #fff;
     padding: 2px 5px;
 }
 .behavior-action-method {
-    border-radius: 5px;
     background: #0486ad;
     display: inline-block;
     color: #fff;
@@ -1346,7 +1314,6 @@ table.position-panel-table .property-label {
     font-size: 18px;
 }
 .behavior-action-argument {
-    border-radius: 5px;
     color: #666;
     background: rgba(255, 255, 255, 0.4);
     color: #000;
