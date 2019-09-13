@@ -7,14 +7,23 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-
+import EventBus from '../components/editor/EventBus.js';
 
 /*
 Providing access to scheme elements and provides modifiers for it
 */
 class SchemeContainer {
-    constructor(scheme) {
+    /**
+     * 
+     * @param {*} scheme 
+     * @param {EventBus} eventBus 
+     */
+    constructor(scheme, eventBus) {
+        if (!eventBus) {
+            throw new Error('Missing eventBus');
+        }
         this.scheme = scheme;
+        this.eventBus = eventBus;
         this.selectedItems = [];
         this.selectedConnectorWrappers = [];
         this.activeBoundaryBox = null;
@@ -362,33 +371,46 @@ class SchemeContainer {
     }
 
     deselectAllConnectors() {
+        _.forEach(this.selectedConnectorWrappers, cw => {
+            if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
+                const connector = cw.sourceItem.connectors[cw.connectorIndex];
+                this.eventBus.emitConnectorDeselected(connector.id, connector);
+            }
+        });
         this.selectedConnectorWrappers = [];
     }
 
-    forEachSelectedConnector(callback) {
-        _.forEach(this.selectedConnectorWrappers, cw => {
-            if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
-                callback(cw.sourceItem.connectors[cw.connectorIndex]);
-            }
-        });
+    isItemSelected(item) {
+        return item.meta.selected || false;
     }
 
+    /**
+     * Selects a specifies item and deselects any other items that were selected previously
+     * @param {SchemeItem} item 
+     * @param {boolean} inclusive Flag that specifies whether it should deselect other items
+     */
     selectItem(item, inclusive) {
         if (inclusive) {
             this.selectItemInclusive(item);
+            this.eventBus.emitItemSelected(item.id);
         } else {
-            this.deselectAllItems();
+            _.forEach(this.selectedItems, selectedItem => {
+                if (selectedItem.id !== item.id) {
+                    selectedItem.meta.selected = false;
+                    this.eventBus.emitItemDeselected(selectedItem.id);
+                }
+            });
+            item.meta.selected = true;
+            this.selectedItems = [item];
 
-            if (!item.meta.selected) {
-                item.meta.selected = true;
-                this.selectedItems.push(item);
-            }
+            this.eventBus.emitItemSelected(item.id);
         }
 
         if (item.group && item.group.length > 0) {
             _.forEach(this.scheme.items, otherItem => {
                 if (otherItem.group === item.group && otherItem.id !== item.id) {
                     this.selectItemInclusive(otherItem);
+                    this.eventBus.emitItemSelected(otherItem.id);
                 }
             });
         }
@@ -407,15 +429,16 @@ class SchemeContainer {
         if (!isAlreadyIn) {
             this.selectedItems.push(item);
             item.meta.selected = true;
-        } else {
-            item.meta.selected = false;
-            this.selectedItems.splice(i, 1);
         }
     }
 
+    /**
+     * Deselect all previously selected items
+     */
     deselectAllItems() {
         _.forEach(this.selectedItems, item => {
             item.meta.selected = false;
+            this.eventBus.emitItemDeselected(item.id);
         });
         this.selectedItems = [];
     }

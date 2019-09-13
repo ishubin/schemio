@@ -246,7 +246,7 @@ export default {
             this.schemeId = this.$route.params.schemeId;
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
                 this.currentCategory = scheme.category;
-                this.schemeContainer = new SchemeContainer(scheme);
+                this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
                 var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {

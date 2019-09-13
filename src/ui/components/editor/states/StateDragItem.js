@@ -12,8 +12,8 @@ function isEventRightClick(event) {
 }
 
 export default class StateDragItem extends State {
-    constructor(editor) {
-        super(editor);
+    constructor(editor, eventBus) {
+        super(editor, eventBus);
         this.name = 'drag-item';
         this.schemeContainer = editor.schemeContainer;
         this.originalPoint = {x: 0, y: 0};
@@ -110,52 +110,81 @@ export default class StateDragItem extends State {
                 if (object.rerouteId >= 0) {
                     object.connector.reroutes.splice(object.rerouteId, 1);
                     this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    EventBus.emitConnectorChanged(object.connector.id);
+                    this.eventBus.emitConnectorChanged(object.connector.id);
                 } else {
                     var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
                     this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
-                    EventBus.emitConnectorChanged(object.connector.id);
+                    this.eventBus.emitConnectorChanged(object.connector.id);
                 }
             } else {
                 this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
                 this.deselectAllItems();
-                EventBus.emitConnectorSelected(object.connector.id, object.connector);
+                this.eventBus.emitConnectorSelected(object.connector.id, object.connector);
                 if (object.rerouteId >= 0) {
                     this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
                 }
             }
         } else if (object.item) {
-            const inclusive = event.metaKey || event.ctrlKey;
-            if (!inclusive) {
-                _.forEach(this.schemeContainer.selectedItems, item => {
-                    if (item.id !== object.item.id) {
-                        EventBus.emitItemDeselected(item.id);
-                    }
-                });
-            }
-            this.schemeContainer.selectItem(object.item, inclusive);
-            EventBus.emitItemSelected(object.item.id);
-
-            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
-            this.schemeContainer.deselectAllConnectors();
-            
             if (isEventRightClick(event)) {
-                EventBus.emitRightClickedItem(object.item, mx, my);
-                return;
+                this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
+            } else {
+                this.handleItemLeftMouseDown(x, y, mx, my, object.item, event);
             }
-
-            this.initDraggingForItem(object.item, x, y);
-            _.forEach(this.schemeContainer.selectedItems, item => {
-                this.initDraggingForItem(item, x, y);
-            });
-
-            this.initDragging(x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (event.srcElement.id === 'svg_plot') {
                 this.initMulitSelectBox(x, y);
             }
         }
+    }
+
+    /**
+     * This function is tricky as there are a lot of various conditions for the mouse click event.
+     * 1. When clicked non-selected element without meta/ctrl key 
+     *      =>  it should only select that element and deselect any other
+     * 
+     * 2. When clicked already selected element 
+     *      =>  it should not do anything until the mouse is either released or moved.
+     *          Other selected elements should stay selected
+     * 
+     * 3. When clicked non-selected element with meta/ctrl key
+     *      =>  it should just select that element only without reseting selection for other elements
+     * 
+     * 4. When clicked selected element with meta/ctrl key
+     *      =>  it should just deselect this element without reseting selection for other elements
+     * 
+     * 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} mx 
+     * @param {number} my 
+     * @param {SchemeItem} item 
+     * @param {MouseEvent} event 
+     */
+    handleItemLeftMouseDown(x, y, mx, my, item, event) {
+        // if the item is already selected it should not do anything. This way we can let user drag multiple items
+        if (!this.schemeContainer.isItemSelected(item)) {
+            const inclusive = event.metaKey || event.ctrlKey;
+            this.schemeContainer.selectItem(item, inclusive);
+        }
+        this.schemeContainer.deselectAllConnectors();
+        
+        this.initDraggingForItem(item, x, y);
+        _.forEach(this.schemeContainer.selectedItems, item => {
+            this.initDraggingForItem(item, x, y);
+        });
+
+        this.initDragging(x, y);
+    }
+
+    handleItemRightMouseDown(x, y, mx, my, item, event) {
+        this.eventBus.emitRightClickedItem(item, mx, my);
+
+        if (!this.schemeContainer.isItemSelected(item)) {
+            const inclusive = event.metaKey || event.ctrlKey;
+            this.schemeContainer.selectItem(item, inclusive);
+        }
+        this.schemeContainer.deselectAllConnectors();
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -200,13 +229,12 @@ export default class StateDragItem extends State {
                 this.multiSelectBox.y = y;
                 this.multiSelectBox.h = this.originalPoint.y - y;
             }
-            EventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
+            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
-            this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
             this.schemeContainer.deselectAllConnectors();
 
             if (!event.metaKey && !event.ctrlKey) {
@@ -214,17 +242,17 @@ export default class StateDragItem extends State {
             }
             this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
             this.emitEventsForAllSelectedItems();
-            EventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
+            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
         }
         if (event.doubleClick) {
             if (object.connector) {
                 if (object.rerouteId >= 0) {
                     object.connector.reroutes.splice(object.rerouteId, 1);
                     this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    EventBus.emitConnectorChanged(object.connector.id);
+                    this.eventBus.emitConnectorChanged(object.connector.id);
                 } else {
                     this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                    EventBus.emitConnectorChanged(object.connector.id);
+                    this.eventBus.emitConnectorChanged(object.connector.id);
                 }
            }
         }
@@ -245,7 +273,7 @@ export default class StateDragItem extends State {
             //snapping to grid
             item.area.x = this.snapX(item.area.x);
             item.area.y = this.snapY(item.area.y);
-            EventBus.emitItemChanged(item.id);
+            this.eventBus.emitItemChanged(item.id);
         }
     }
 
@@ -258,7 +286,7 @@ export default class StateDragItem extends State {
             this.selectedConnector.reroutes[this.selectedRerouteId].y = this.snapY(y);
             if (this.sourceItem) {
                 this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
-                EventBus.emitConnectorChanged(this.selectedConnector.id);
+                this.eventBus.emitConnectorChanged(this.selectedConnector.id);
             }
         }
     }
@@ -282,7 +310,7 @@ export default class StateDragItem extends State {
                 this.fillConnectorsBuildCache([this.sourceItem]);
             }
             this.rebuildConnectorsInCache();
-            EventBus.emitItemChanged(this.sourceItem.id);
+            this.eventBus.emitItemChanged(this.sourceItem.id);
         }
     }
 
@@ -330,14 +358,14 @@ export default class StateDragItem extends State {
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
-            EventBus.emitItemChanged(item.id);
+            this.eventBus.emitItemChanged(item.id);
         }
     }
 
     rebuildConnectorsInCache() {
         _.forEach(this.connectorsBuildChache, (v) => {
             this.schemeContainer.buildConnector(v.item, v.connector);
-            EventBus.emitConnectorChanged(v.connector.id);
+            this.eventBus.emitConnectorChanged(v.connector.id);
         });
     }
 
@@ -363,12 +391,12 @@ export default class StateDragItem extends State {
     }
 
     deselectAllItems() {
-        _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
+        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
         this.schemeContainer.deselectAllItems();
     }
 
     emitEventsForAllSelectedItems() {
-        _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemSelected(item.id));
+        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemSelected(item.id));
     }
 
 }

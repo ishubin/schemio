@@ -3,12 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import EventBus from '../EventBus.js';
 import _ from 'lodash';
 
 export default class StateCreateComponent extends State {
-    constructor(editor) {
-        super(editor);
+    constructor(editor, eventBus) {
+        super(editor, eventBus);
         this.name = 'create-component';
         this.component = null;
         this.addedToScheme = false;
@@ -43,10 +42,10 @@ export default class StateCreateComponent extends State {
             this.updateComponentArea(this.snapX(x), this.snapY(y));
             this.schemeContainer.setActiveBoundaryBox(null);
             
-            _.forEach(this.schemeContainer.selectItems, item => EventBus.emitItemDeselected(item.id));
+            _.forEach(this.schemeContainer.selectItems, item => this.eventBus.emitItemDeselected(item.id));
             this.schemeContainer.selectItem(this.component);
-            EventBus.emitItemSelected(this.component.id);
-            EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
+            this.eventBus.emitItemSelected(this.component.id);
+            this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
             this.reset();
         } else {
             this.cancel();

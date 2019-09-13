@@ -235,10 +235,10 @@ export default {
     data() {
         return {
             states: {
-                interact: new StateInteract(this, userEventBus),
-                createComponent: new StateCreateComponent(this),
-                dragItem: new StateDragItem(this),
-                connecting: new StateConnecting(this)
+                interact: new StateInteract(this, EventBus, userEventBus),
+                createComponent: new StateCreateComponent(this, EventBus),
+                dragItem: new StateDragItem(this, EventBus),
+                connecting: new StateConnecting(this, EventBus)
             },
 
             interactiveSchemeContainer: null,
@@ -418,7 +418,7 @@ export default {
         },
         switchStateInteract() {
             this.state = this.states.interact;
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.reindexUserEvents();
             this.state.reset();
         },
@@ -469,8 +469,6 @@ export default {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 this.activeItem = null;
-                this.schemeContainer.forEachSelectedConnector(connector => EventBus.emitConnectorDeselected(connector.id, connector));
-                _.forEach(this.schemeContainer.selectedItems, item => EventBus.emitItemDeselected(item.id));
                 this.schemeContainer.deleteSelectedItemsAndConnectors();
                 this.$forceUpdate();
             } else {

@@ -3,12 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import EventBus from '../EventBus.js';
 import shortid from 'shortid';
 
 export default class StateConnecting extends State {
-    constructor(editor) {
-        super(editor);
+    constructor(editor, eventBus) {
+        super(editor, eventBus);
         this.name = 'connecting';
         this.component = null;
         this.schemeContainer = editor.schemeContainer;

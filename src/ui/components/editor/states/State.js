@@ -2,11 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import EventBus from '../EventBus.js';
-
 class State {
-    constructor(editor) {
+    /**
+     * @param {object} editor 
+     * @param {EVentBus} EventBus 
+     */
+    constructor(editor, eventBus) {
         this.editor = editor;
+        this.eventBus = eventBus;
         this.name = '';
     }
 
@@ -15,7 +18,7 @@ class State {
     // invoked when user cancels the state (e.g. press Esc key)
     cancel() {
         this.reset();
-        EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+        this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE);
     }
 
     keyPressed(key, keyOptions){}

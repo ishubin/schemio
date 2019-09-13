@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import EventBus from '../EventBus.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 
@@ -22,8 +21,8 @@ class StateInteract extends State {
      * @param {*} editor 
      * @param {UserEventBus} userEventBus 
      */
-    constructor(editor, userEventBus) {
-        super(editor);
+    constructor(editor, eventBus, userEventBus) {
+        super(editor, eventBus);
         this.name = 'interact';
         this.schemeContainer = editor.schemeContainer;
         this.startedDragging = false;
@@ -64,16 +63,16 @@ class StateInteract extends State {
                         _.forEach(this.schemeContainer.selectedItems, item => {
                             if (item.id !== object.item.id) {
                                 this.emit(item, DESELECTED);
-                                EventBus.emitItemDeselected(item.id);
+                                this.eventBus.emitItemDeselected(item.id);
                             }
                         });
                         this.schemeContainer.selectItem(object.item, false);
-                        EventBus.emitItemSelected(object.item.id);
+                        this.eventBus.emitItemSelected(object.item.id);
                     }
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     _.forEach(this.schemeContainer.selectedItems, item => {
-                        EventBus.emitItemDeselected(item.id)
+                        this.eventBus.emitItemDeselected(item.id)
                         this.emit(item, DESELECTED);
                     });
                     this.schemeContainer.deselectAllItems();

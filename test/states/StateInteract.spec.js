@@ -1,11 +1,11 @@
 import StateInteract from '../../src/ui/components/editor/states/StateInteract.js';
 import expect from 'expect';
 
-
+const EventBus = {};
 describe('StateInteract', () => {
 
     it('should handle mousein and mouseout events correctly', () => {
-        const stateInteract = new StateInteract({});
+        const stateInteract = new StateInteract({}, EventBus);
         const invokations = [];
         stateInteract.emit = (originator, eventName) => {
             invokations.push({originator, eventName});
@@ -23,7 +23,7 @@ describe('StateInteract', () => {
     });
 
     it('should handle mousein and mouseout events when moving from one object to another', () => {
-        const stateInteract = new StateInteract({});
+        const stateInteract = new StateInteract({}, EventBus);
         const invokations = [];
         stateInteract.emit = (originator, eventName) => {
             invokations.push({originator, eventName});

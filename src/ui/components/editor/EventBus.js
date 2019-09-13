@@ -50,6 +50,9 @@ const EventBus = new Vue({
         };
     },
     methods: {
+        /**
+         * @param {string} itemId 
+         */
         emitItemChanged(itemId) {
             this.$emit(this._itemChangedEvent(itemId));
             this.$emit(EventBus.ANY_ITEM_CHANGED, itemId);
