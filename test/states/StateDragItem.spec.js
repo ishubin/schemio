@@ -1,8 +1,6 @@
 import StateDragItem from '../../src/ui/components/editor/states/StateDragItem.js';
 import expect from 'expect';
-
 import sinon from 'sinon';
-import { AssertionError } from 'assert';
 
 const whateverEventBus = {};
 
