@@ -26,6 +26,9 @@ export default class StateDragItem extends State {
         ///used in order to optimize rebuilding of all connectors
         this.connectorsBuildChache = null;
         this.rotatingItem = false;
+
+        // used to check whether the mouse moved between mouseDown and mouseUp events
+        this.wasMouseMoved = false;
     }
 
     reset() {
@@ -37,6 +40,7 @@ export default class StateDragItem extends State {
         this.sourceItem = null;
         this.multiSelectBox = null;
         this.connectorsBuildChache = null;
+        this.wasMouseMoved = false;
     }
 
     keyPressed(key, keyOptions) {
@@ -70,6 +74,7 @@ export default class StateDragItem extends State {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
         this.startedDragging = true;
+        this.wasMouseMoved = false;
     }
 
     initDraggingForItem(item, x, y) {
@@ -79,12 +84,14 @@ export default class StateDragItem extends State {
             w: item.area.w,
             h: item.area.h
         };
+        this.wasMouseMoved = false;
     }
 
     initItemRotation(item, x, y) {
         item.meta.originalRotation = item.area.r;
         this.sourceItem = item;
         this.rotatingItem = true;
+        this.wasMouseMoved = false;
     }
 
     initDraggingForReroute(sourceItem, connector, rerouteId, x, y) {
@@ -189,6 +196,7 @@ export default class StateDragItem extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
+            this.wasMouseMoved = true;
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
@@ -215,6 +223,7 @@ export default class StateDragItem extends State {
                 }
             }
         } else if (this.multiSelectBox) {
+            this.wasMouseMoved = true;
             if (x > this.originalPoint.x) {
                 this.multiSelectBox.x = this.originalPoint.x;
                 this.multiSelectBox.w = x - this.originalPoint.x;
@@ -243,18 +252,22 @@ export default class StateDragItem extends State {
             this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
             this.emitEventsForAllSelectedItems();
             this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
-        }
-        if (event.doubleClick) {
-            if (object.connector) {
-                if (object.rerouteId >= 0) {
-                    object.connector.reroutes.splice(object.rerouteId, 1);
-                    this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    this.eventBus.emitConnectorChanged(object.connector.id);
-                } else {
-                    this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                    this.eventBus.emitConnectorChanged(object.connector.id);
-                }
-           }
+
+        } else if (object.item && !this.wasMouseMoved) {
+            if (!event.metaKey && !event.ctrlKey) {
+                // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
+                this.schemeContainer.selectItem(object.item, false);
+            }
+            
+        } else if (event.doubleClick && object.connector) {
+            if (object.rerouteId >= 0) {
+                object.connector.reroutes.splice(object.rerouteId, 1);
+                this.schemeContainer.buildConnector(object.sourceItem, object.connector);
+                this.eventBus.emitConnectorChanged(object.connector.id);
+            } else {
+                this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
+                this.eventBus.emitConnectorChanged(object.connector.id);
+            }
         }
         this.reset();
     }
