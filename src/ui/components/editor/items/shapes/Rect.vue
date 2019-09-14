@@ -12,7 +12,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
 
-        <foreignObject v-if="item.text"
+        <foreignObject v-if="item.text && !textHidden"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
                 :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
@@ -43,7 +43,7 @@ const computePath = (item) => {
 };
 
 export default {
-    props: ['item'],
+    props: ['item', 'textHidden'],
 
     computePath,
     args: {

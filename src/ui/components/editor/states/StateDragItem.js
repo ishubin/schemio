@@ -12,6 +12,10 @@ function isEventRightClick(event) {
 }
 
 export default class StateDragItem extends State {
+    /**
+     * @param {object} editor 
+     * @param {EventBus} eventBus 
+     */
     constructor(editor, eventBus) {
         super(editor, eventBus);
         this.name = 'drag-item';
@@ -104,6 +108,7 @@ export default class StateDragItem extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        this.wasMouseMoved = false;
         if (object.dragger) {
             this.dragger = object.dragger;
             this.initDraggingForItem(object.dragger.item, x, y);
@@ -113,24 +118,7 @@ export default class StateDragItem extends State {
             this.initItemRotation(object.rotationDragger.item, x, y);
             this.initDragging(x, y);
         } else if (object.connector) {
-            if (event.metaKey || event.ctrlKey) {
-                if (object.rerouteId >= 0) {
-                    object.connector.reroutes.splice(object.rerouteId, 1);
-                    this.schemeContainer.buildConnector(object.sourceItem, object.connector);
-                    this.eventBus.emitConnectorChanged(object.connector.id);
-                } else {
-                    var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                    this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
-                    this.eventBus.emitConnectorChanged(object.connector.id);
-                }
-            } else {
-                this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
-                this.deselectAllItems();
-                this.eventBus.emitConnectorSelected(object.connector.id, object.connector);
-                if (object.rerouteId >= 0) {
-                    this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
-                }
-            }
+            this.handleConnectorMouseDown(x, y, mx, my, object, event);
         } else if (object.item) {
             if (isEventRightClick(event)) {
                 this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
@@ -194,6 +182,27 @@ export default class StateDragItem extends State {
         this.schemeContainer.deselectAllConnectors();
     }
 
+    handleConnectorMouseDown(x, y, mx, my, object, event) {
+        if (event.metaKey || event.ctrlKey) {
+            if (object.rerouteId >= 0) {
+                object.connector.reroutes.splice(object.rerouteId, 1);
+                this.schemeContainer.buildConnector(object.sourceItem, object.connector);
+                this.eventBus.emitConnectorChanged(object.connector.id);
+            } else {
+                var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
+                this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
+                this.eventBus.emitConnectorChanged(object.connector.id);
+            }
+        } else {
+            this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
+            this.deselectAllItems();
+            this.eventBus.emitConnectorSelected(object.connector.id, object.connector);
+            if (object.rerouteId >= 0) {
+                this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
+            }
+        }
+    }
+
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
             this.wasMouseMoved = true;
@@ -254,12 +263,14 @@ export default class StateDragItem extends State {
             this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
 
         } else if (object.item && !this.wasMouseMoved) {
-            if (!event.metaKey && !event.ctrlKey) {
+            if (event.doubleClick) {
+                this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
+            } else if (!event.metaKey && !event.ctrlKey) {
                 // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
                 this.schemeContainer.selectItem(object.item, false);
             }
             
-        } else if (event.doubleClick && object.connector) {
+        } else if (event.doubleClick && object.connector && !this.wasMouseMoved) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
                 this.schemeContainer.buildConnector(object.sourceItem, object.connector);

@@ -5,7 +5,7 @@
 class State {
     /**
      * @param {object} editor 
-     * @param {EVentBus} EventBus 
+     * @param {EventBus} EventBus 
      */
     constructor(editor, eventBus) {
         this.editor = editor;

@@ -127,6 +127,17 @@
                     </g>
                 </g>
 
+                <!-- Item Text Editor -->    
+                <g v-if="itemTextEditor.shown" :transform="transformSvg">
+                    <g :transform="`translate(${itemTextEditor.x},${itemTextEditor.y})`"
+                    >
+                        <foreignObject x="0" y="0" :width="itemTextEditor.w" :height="itemTextEditor.h">
+                            <div id="item-text-editor" class="item-text-container" v-html="itemTextEditor.text" contenteditable="true"></div>
+                        </foreignObject>
+                    </g>
+                </g>
+
+
 
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
@@ -206,6 +217,7 @@ export default {
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -226,6 +238,7 @@ export default {
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -276,6 +289,13 @@ export default {
                 show: false,
                 item: null,
                 mouseX: 0, mouseY: 0
+            },
+
+            itemTextEditor: {
+                shown: false,
+                itemId: null,
+                text: '',
+                x: 0, y: 0, w: 0, h: 0
             }
         };
     },
@@ -651,12 +671,63 @@ export default {
             return path;
         },
 
-
         onRightClickedItem(item, mouseX, mouseY) {
             this.contextMenu.item = item;
             this.contextMenu.mouseX = mouseX;
             this.contextMenu.mouseY = mouseY;
             this.contextMenu.show = true;
+        },
+
+        onItemInEditorTextEditTriggered(item, x, y) {
+            this.displayItemTextEditor(item);
+        },
+
+        displayItemTextEditor(item) {
+            item.meta.textHidden = true;
+            EventBus.emitItemChanged(item.id);
+            if (!this.itemTextEditor.shown) {
+                setTimeout(() => {
+                    document.addEventListener('click', this.itemTextEditorOutsideClickListener);
+                    const domElement = document.getElementById('item-text-editor');
+                    if (domElement) {
+                        domElement.focus();
+                    }
+                }, 50);
+            }
+            this.itemTextEditor.itemId = item.id;
+            this.itemTextEditor.text = item.text;
+            this.itemTextEditor.x = item.area.x;
+            this.itemTextEditor.y = item.area.y;
+            this.itemTextEditor.w = item.area.w;
+            this.itemTextEditor.h = item.area.h;
+            this.itemTextEditor.shown = true;
+            console.log('sowrewr', this.itemTextEditor);
+        },
+
+        itemTextEditorOutsideClickListener(event) {
+            if (!this.hasParentNode(event.target, domElement => domElement.id === 'item-text-editor')) {
+                document.removeEventListener('click', this.itemTextEditorOutsideClickListener);
+                this.itemTextEditor.shown = false;
+                const item = this.schemeContainer.findItemById(this.itemTextEditor.itemId);
+                if (item) {
+                    const domElement = document.getElementById('item-text-editor');
+                    if (domElement) {
+                        item.text = domElement.innerHTML;
+                    }
+                    item.meta.textHidden = false;
+                    EventBus.emitItemChanged(item.id);
+                }
+            }
+        },
+
+        hasParentNode(domElement, callbackCheck) {
+            if (callbackCheck(domElement)) {
+                return true;
+            };
+            if (domElement.parentElement) {
+                return this.hasParentNode(domElement.parentElement, callbackCheck);
+            }
+            return false;
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },

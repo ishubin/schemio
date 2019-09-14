@@ -34,6 +34,9 @@ const EventBus = new Vue({
             ANY_CONNECTOR_SELECTED: 'any-connector-selected',
             ANY_CONNECTOR_DESELECTED: 'any-connector-deselected',
 
+            // used to triggered in-svg text edit of an item
+            ITEM_INEDITOR_TEXTEDIT_TRIGGERED: 'item-ineditor-textedit-triggered',
+
             RIGHT_CLICKED_ITEM: 'right-clicked-item',
 
             KEY: {
@@ -104,6 +107,10 @@ const EventBus = new Vue({
         
         emitRightClickedItem(item, mouseX, mouseY) {
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
+        },
+
+        emitItemInEditorTextEditTriggered(item, x, y) {
+            this.$emit(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, item, x, y);
         }
     }
 });
