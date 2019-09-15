@@ -263,14 +263,18 @@ export default class StateDragItem extends State {
             this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
 
         } else if (object.item && !this.wasMouseMoved) {
-            if (event.doubleClick) {
-                this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
-            } else if (!event.metaKey && !event.ctrlKey) {
+            if (!event.metaKey && !event.ctrlKey) {
                 // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
                 this.schemeContainer.selectItem(object.item, false);
             }
-            
-        } else if (event.doubleClick && object.connector && !this.wasMouseMoved) {
+        } 
+        this.reset();
+    }
+
+    mouseDoubleClick(x, y, mx, my, object, event) {
+        if (object.item) {
+            this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
+        } else if (object.connector) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
                 this.schemeContainer.buildConnector(object.sourceItem, object.connector);
@@ -280,7 +284,6 @@ export default class StateDragItem extends State {
                 this.eventBus.emitConnectorChanged(object.connector.id);
             }
         }
-        this.reset();
     }
 
     initMulitSelectBox(x, y) {

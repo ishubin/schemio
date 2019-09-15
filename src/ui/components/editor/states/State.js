@@ -23,9 +23,10 @@ class State {
 
     keyPressed(key, keyOptions){}
 
-    mouseDown(localX, localY, originalX, originalY, object, event) {}
-    mouseUp(localX, localY, originalX, originalY, object, event) {}
-    mouseMove(localX, localY, originalX, originalY, object, event) {}
+    mouseDown(worldX, worldY, screenX, screenY, object, event) {}
+    mouseUp(worldX, worldY, screenX, screenY, object, event) {}
+    mouseMove(worldX, worldY, screenX, screenY, object, event) {}
+    mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {}
 
 
     mouseWheel(x, y, mx, my, event) {

@@ -12,7 +12,8 @@
             :class="['mode-' + mode, 'state-' + (state != null ? state.name: 'unknown')]"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
-            @mouseup="mouseUp">
+            @mouseup="mouseUp"
+            @dblclick="mouseDoubleClick">
 
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
@@ -284,7 +285,6 @@ export default {
 
             multiSelectBox: null,
 
-            lastMouseUpTimestamp: 0,
             contextMenu: {
                 show: false,
                 item: null,
@@ -416,15 +416,18 @@ export default {
         },
         mouseUp(event) {
             if (this.mouseEventsEnabled) {
-                if (event.timeStamp - this.lastMouseUpTimestamp < 400.0) {
-                    event.doubleClick = true;
-                }
-                this.lastMouseUpTimestamp = event.timeStamp;
-
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
                 this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+            }
+        },
+        mouseDoubleClick(event) {
+            if (this.mouseEventsEnabled) {
+                var coords = this.mouseCoordsFromEvent(event);
+                var p = this.toLocalPoint(coords.x, coords.y);
+
+                this.state.mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
 
@@ -701,7 +704,6 @@ export default {
             this.itemTextEditor.w = item.area.w;
             this.itemTextEditor.h = item.area.h;
             this.itemTextEditor.shown = true;
-            console.log('sowrewr', this.itemTextEditor);
         },
 
         itemTextEditorOutsideClickListener(event) {
