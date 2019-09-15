@@ -10,18 +10,17 @@
             :stroke="item.shapeProps.strokeColor"
         />
 
-        <foreignObject
+        <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, nameLineTop - 2*item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.name"
-                style="padding-top: 4px; text-align: center;"
-                :style="{'color': item.shapeProps.nameColor}"
+                :style="nameStyle"
             ></div>
         </foreignObject>
 
-        <foreignObject v-if="item.text"
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.text"
-                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                :style="textStyle"
                 ></div>
         </foreignObject>
 
@@ -38,10 +37,57 @@ const computePath = (item) => {
 
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
+
+function identifyTextEditArea(item, x, y) {
+    const nameLineTop = Math.min(item.area.h/2, Math.max(30, item.shapeProps.cornerRadius));
+
+    if (y < nameLineTop) {
+        return {
+            property: 'name',
+            style: generateNameStyle(item),
+            area: {
+                x: 0, y: item.shapeProps.strokeSize,
+                w: item.area.w,
+                h: Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)
+            }
+        };
+    }
+    return {
+        property: 'text',
+        style: generateTextStyle(item),
+        area: {
+            x: 0, y: nameLineTop + item.shapeProps.strokeSize,
+            w: item.area.w,
+            h: Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)
+        }
+    };
+}
+
+function generateTextStyle(item) {
+    return {
+        'font-size': item.shapeProps.fontSize + 'px',
+        'padding-left': item.shapeProps.textPaddingLeft+'px',
+        'padding-right': item.shapeProps.textPaddingRight+'px',
+        'padding-top': item.shapeProps.textPaddingTop+'px',
+        'padding-bottom': item.shapeProps.textPaddingBottom+'px'
+    };
+}
+
+function generateNameStyle(item) {
+    return {
+        'color': item.shapeProps.nameColor,
+        'padding-top': '4px',
+        'text-align': 'center',
+        'font-weight': 'bold'
+    };
+}
+
 export default {
-    props: ['item'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
+
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -49,11 +95,22 @@ export default {
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         fontSize: {type: 'number', value: 16, name: 'Text font size'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
+
+        textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
+        textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
+        textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
+        textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
     },
 
     computed: {
         nameLineTop() {
             return Math.min(this.item.area.h/2, Math.max(30, this.item.shapeProps.cornerRadius));
+        },
+        textStyle() {
+            return generateTextStyle(this.item);
+        },
+        nameStyle() {
+            return generateNameStyle(this.item);
         },
 
         shapePath() { return computePath(this.item); }

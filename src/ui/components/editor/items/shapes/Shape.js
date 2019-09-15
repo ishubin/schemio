@@ -8,8 +8,27 @@ import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
 
+
+/**
+ * Used as a fallback in case a particular shape has not speicified identifyTextEditArea function
+ * This is needed for handling in-svg text edit on double click
+ * @param {SchemeItem} item 
+ */
+function identifyTextEditAreaFallback(item) {
+    return {
+        property: 'text',
+        style: {}
+    };
+}
+
 function _shape(shapeComponent) {
-    return { args: shapeComponent.args, computePath: shapeComponent.computePath, component: shapeComponent };
+    return {
+        args: shapeComponent.args,
+        computePath: shapeComponent.computePath,
+        // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
+        identifyTextEditArea: shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
+        component: shapeComponent
+    };
 }
 
 const shapeReigstry = {

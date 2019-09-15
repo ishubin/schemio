@@ -5,7 +5,7 @@
             :stroke="item.shapeProps.strokeColor"
             :fill="item.shapeProps.fillColor"></path>
 
-        <foreignObject v-if="item.text && !textHidden"
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.tailLength)">
             <div class="item-text-container" v-html="item.text"
                 :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
@@ -26,7 +26,7 @@ const computePath = (item) => {
 }
 
 export default {
-    props: ['item'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
     args: {

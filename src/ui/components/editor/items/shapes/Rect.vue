@@ -12,15 +12,15 @@
             :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
 
-        <foreignObject v-if="item.text && !textHidden"
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
-                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                :style="textStyle"
                 ></div>
         </foreignObject>
 
 
-        <foreignObject v-if="item.shapeProps.showName && item.name"
+        <foreignObject v-if="item.shapeProps.showName && item.name && hiddenTextProperty !== 'name'"
             :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
             <div class="item-text-container"
                 :style="nameStyle"
@@ -42,10 +42,28 @@ const computePath = (item) => {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'text',
+        style: generateTextStyle(item)
+    }
+};
+
+function generateTextStyle(item) {
+    return {
+        'font-size': item.shapeProps.fontSize + 'px',
+        'padding-left': item.shapeProps.textPaddingLeft + 'px',
+        'padding-right': item.shapeProps.textPaddingRight + 'px',
+        'padding-top': item.shapeProps.textPaddingTop + 'px',
+        'padding-bottom': item.shapeProps.textPaddingBottom + 'px'
+    };
+}
+
 export default {
-    props: ['item', 'textHidden'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -75,6 +93,10 @@ export default {
             } else {
                 return this.item.shapeProps.fillColor;
             }
+        },
+
+        textStyle() {
+            return generateTextStyle(this.item);
         },
 
         shapePath() {

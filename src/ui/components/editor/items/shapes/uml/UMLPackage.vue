@@ -10,7 +10,7 @@
             :stroke="item.shapeProps.strokeColor"
             :fill="item.shapeProps.fillColor"></path>
 
-        <foreignObject
+        <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.name"
                 style="padding-top: 4px; text-align: center;"
@@ -34,7 +34,7 @@ const computePath = (item) => {
     return `M 0 0  L 0 ${-BH}  L ${BW} ${-BH}  L ${BW} 0  L ${W} 0  L ${W} ${H} L 0 ${H} Z`;
 };
 export default {
-    props: ['item'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
     args: {

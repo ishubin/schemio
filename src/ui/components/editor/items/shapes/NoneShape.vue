@@ -1,6 +1,6 @@
 <template>
     <g>
-        <foreignObject v-if="item.text && !textHidden"
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
                 :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
@@ -15,7 +15,7 @@ const computePath = (item) => {
     return `M 0 0  L ${w} 0  L ${w} ${h}  M 0 ${h} Z`;
 };
 export default {
-    props: ['item', 'textHidden'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
     args: {

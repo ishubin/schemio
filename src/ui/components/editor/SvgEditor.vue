@@ -130,12 +130,9 @@
 
                 <!-- Item Text Editor -->    
                 <g v-if="itemTextEditor.shown" :transform="transformSvg">
-                    <g :transform="`translate(${itemTextEditor.x},${itemTextEditor.y})`"
-                    >
-                        <foreignObject x="0" y="0" :width="itemTextEditor.w" :height="itemTextEditor.h">
-                            <div id="item-text-editor" class="item-text-container" v-html="itemTextEditor.text" contenteditable="true"></div>
-                        </foreignObject>
-                    </g>
+                    <foreignObject :x="itemTextEditor.area.x" :y="itemTextEditor.area.y" :width="itemTextEditor.area.w" :height="itemTextEditor.area.h">
+                        <div id="item-text-editor" class="item-text-container" :style="itemTextEditor.style" v-html="itemTextEditor.text" contenteditable="true"></div>
+                    </foreignObject>
                 </g>
 
 
@@ -189,6 +186,7 @@ import SchemeContainer from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
+import Shape from './items/shapes/Shape';
 
 
 const EMPTY_OBJECT = {type: 'nothing'};
@@ -293,9 +291,11 @@ export default {
 
             itemTextEditor: {
                 shown: false,
+                property: 'text',
                 itemId: null,
                 text: '',
-                x: 0, y: 0, w: 0, h: 0
+                style: {},
+                area: {x: 0, y: 0, w: 0, h: 0}
             }
         };
     },
@@ -682,11 +682,15 @@ export default {
         },
 
         onItemInEditorTextEditTriggered(item, x, y) {
-            this.displayItemTextEditor(item);
+            this.displayItemTextEditor(item, x, y);
         },
 
-        displayItemTextEditor(item) {
-            item.meta.textHidden = true;
+        displayItemTextEditor(item, x, y) {
+            const itemPoint = this.calculateItemLocalPoint(item, x, y);
+            const shape = Shape.make(item.shape);
+            const textEditArea = shape.identifyTextEditArea(item, itemPoint.x, itemPoint.y);
+
+            item.meta.hiddenTextProperty = textEditArea.property;
             EventBus.emitItemChanged(item.id);
             if (!this.itemTextEditor.shown) {
                 setTimeout(() => {
@@ -698,11 +702,21 @@ export default {
                 }, 50);
             }
             this.itemTextEditor.itemId = item.id;
-            this.itemTextEditor.text = item.text;
-            this.itemTextEditor.x = item.area.x;
-            this.itemTextEditor.y = item.area.y;
-            this.itemTextEditor.w = item.area.w;
-            this.itemTextEditor.h = item.area.h;
+            this.itemTextEditor.text = item[textEditArea.property];
+            this.itemTextEditor.property = textEditArea.property;
+            this.itemTextEditor.style = textEditArea.style;
+            if (textEditArea.area) {
+                this.itemTextEditor.area = textEditArea.area;
+                this.itemTextEditor.area.x = item.area.x + textEditArea.area.x;
+                this.itemTextEditor.area.y = item.area.y + textEditArea.area.y;
+                this.itemTextEditor.area.w = textEditArea.area.w;
+                this.itemTextEditor.area.h = textEditArea.area.h;
+            } else {
+                this.itemTextEditor.area.x = item.area.x;
+                this.itemTextEditor.area.y = item.area.y;
+                this.itemTextEditor.area.w = item.area.w;
+                this.itemTextEditor.area.h = item.area.h;
+            }
             this.itemTextEditor.shown = true;
         },
 
@@ -714,9 +728,9 @@ export default {
                 if (item) {
                     const domElement = document.getElementById('item-text-editor');
                     if (domElement) {
-                        item.text = domElement.innerHTML;
+                        item[this.itemTextEditor.property] = domElement.innerHTML;
                     }
-                    item.meta.textHidden = false;
+                    item.meta.hiddenTextProperty = null;
                     EventBus.emitItemChanged(item.id);
                 }
             }
@@ -730,6 +744,26 @@ export default {
                 return this.hasParentNode(domElement.parentElement, callbackCheck);
             }
             return false;
+        },
+
+        // Converts world coordinates to item local coordinates (takes items rotation and translation into account)
+        calculateItemLocalPoint(item, x, y) {
+            // Rotating a world point around item center in the opposite direction
+            // in order to align world coordinates with items coordinates
+            const cos = Math.cos(-item.area.r * Math.PI / 180);
+            const sin = Math.sin(-item.area.r * Math.PI / 180);
+
+            const dx = x - item.area.x - item.area.w/2;
+            const dy = y - item.area.y - item.area.h/2;
+
+            const nx = dx * cos - dy * sin;
+            const ny = dx * sin + dy * cos;
+
+            // correcting item center since item position is defined by its top left corner
+            return {
+                x: nx + item.area.w / 2,
+                y: ny + item.area.h / 2
+            };
         },
 
         _x(x) { return x * this.vZoom + this.vOffsetX; },

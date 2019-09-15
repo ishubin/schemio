@@ -6,7 +6,7 @@
     <g  :class="{'interactive': this.item.interactive}" :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
         :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
     >
-        <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item" :text-hidden="textHidden"></component>
+        <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item" :hidden-text-property="hiddenTextProperty"></component>
 
         <path v-if="itemSvgPath" :d="itemSvgPath" 
             :data-item-id="item.id"
@@ -75,7 +75,7 @@ export default {
             oldShape: this.item.shape,
             itemSvgPath: null,
             selected: false,
-            textHidden: this.item.meta.textHidden || false
+            hiddenTextProperty: this.item.meta.hiddenTextProperty || null
         };
     },
 
@@ -93,7 +93,7 @@ export default {
 
         redrawItem() {
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
-            this.textHidden = this.item.meta.textHidden || false;
+            this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.$forceUpdate();
         },
 
