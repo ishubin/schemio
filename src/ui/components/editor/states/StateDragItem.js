@@ -332,7 +332,7 @@ export default class StateDragItem extends State {
             if (event.metaKey || event.ctrlKey) {
                 angle = Math.round(angle / 5) * 5;
             }
-            this.sourceItem.area.r = angle;
+            this.sourceItem.area.r = Math.round(angle);
             if (this.connectorsBuildChache === null) {
                 this.fillConnectorsBuildCache([this.sourceItem]);
             }

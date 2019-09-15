@@ -80,7 +80,7 @@ class State {
         if (this.editor.shouldSnapToGrid) {
             return Math.round(value / 20) * 20;
         }
-        return value;
+        return Math.round(value);
     }
 
 }
