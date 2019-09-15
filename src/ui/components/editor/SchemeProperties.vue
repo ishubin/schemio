@@ -65,7 +65,7 @@ export default {
         },
 
         onPropertyChange(propertyName) {
-            EventBus.$emit(EventBus.SCHEME_PROPERTY_CHANGED, propertyName);
+            EventBus.$emit(EventBus.SCHEME_CHANGED, propertyName);
         },
 
         deleteScheme() {
