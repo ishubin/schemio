@@ -12,9 +12,7 @@
 
         <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
-            <div class="item-text-container" v-html="item.name"
-                style="padding-top: 4px; text-align: center;"
-                :style="{'color': item.shapeProps.nameColor}"
+            <div class="item-text-container" v-html="item.name" :style="nameStyle"
             ></div>
         </foreignObject>
     </g>
@@ -33,10 +31,28 @@ const computePath = (item) => {
     const BH = brickHeight(item);
     return `M 0 0  L 0 ${-BH}  L ${BW} ${-BH}  L ${BW} 0  L ${W} 0  L ${W} ${H} L 0 ${H} Z`;
 };
+
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'name',
+        style: generateNameStyle(item)
+    }
+};
+
+function generateNameStyle(item) {
+    return {
+        'color': item.shapeProps.nameColor,
+        'padding-top': '4px',
+        'text-align': 'center',
+        'font-weight': 'bold'
+    };
+}
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -50,6 +66,9 @@ export default {
         shapePath() { return computePath(this.item); },
         brickWidth() {
             return Math.max(0, this.item.area.w/3);
+        },
+        nameStyle() {
+            return generateNameStyle(this.item);
         },
 
         brickHeight() {

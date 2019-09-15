@@ -22,8 +22,7 @@
         <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.name"
-                style="padding-top: 4px; text-align: center;"
-                :style="{'color': item.shapeProps.nameColor}"
+                :style="nameStyle"
             ></div>
         </foreignObject>
     </g>
@@ -36,10 +35,29 @@ const computePath = (item) => {
 
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
+
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'name',
+        style: generateNameStyle(item),
+    }
+};
+
+function generateNameStyle(item) {
+    return {
+        'color': item.shapeProps.nameColor,
+        'padding-top': '4px',
+        'text-align': 'center'
+    };
+}
+
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
+
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -64,6 +82,10 @@ export default {
             const w = this.moduleBrickWidth;
             const h = this.moduleBrickHeight;
             return `M 0 0  L ${w} 0  L ${w} ${h}  L 0 ${h} Z`;
+        },
+
+        nameStyle() {
+            return generateNameStyle(this.item);
         }
     }
 }

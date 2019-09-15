@@ -9,8 +9,7 @@
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
             <div class="item-text-container" v-html="item.text"
-                :style="{'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
-                style="text-align: center; vertical-align: middle; position: relative; top: 50%; transform: translateY(-50%);"
+                :style="textStyle"
                 ></div>
         </foreignObject>
     </g>
@@ -23,10 +22,34 @@ const computePath = (item) => {
     const ry = item.area.h / 2;
     return `M ${rx}, 0 a ${rx}, ${ry} 0 1,0 1,0 Z`;
 };
+
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'text',
+        style: generateTextStyle(item),
+    }
+};
+
+function generateTextStyle(item) {
+    return {
+        'padding-left': item.shapeProps.textPaddingLeft+'px',
+        'padding-right': item.shapeProps.textPaddingRight+'px',
+        'padding-top': item.shapeProps.textPaddingTop+'px',
+        'padding-bottom': item.shapeProps.textPaddingBottom+'px',
+        'text-align': 'center',
+        'vertical-align': 'middle',
+        'position': 'relative',
+        'top': '50%',
+        'transform': 'translateY(-50%)'
+    };
+}
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
+
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
@@ -44,6 +67,10 @@ export default {
 
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+        },
+
+        textStyle() {
+            return generateTextStyle(this.item);
         }
     }
 }

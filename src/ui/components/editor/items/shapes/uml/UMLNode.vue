@@ -14,14 +14,14 @@
             x="0" :y="textarea.y" :width="textarea.w" :height="textarea.h">
             <div class="item-text-container" v-html="item.name"
                 style="padding-top: 4px; text-align: center;"
-                :style="{'color': item.shapeProps.nameColor}"
+                :style="nameStyle"
             ></div>
         </foreignObject>
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="textarea.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
             <div class="item-text-container" v-html="item.text"
-                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                :style="textStyle"
                 ></div>
         </foreignObject>
     </g>
@@ -43,10 +43,66 @@ const computePath = (item) => {
     const D = calculateD(item);
     return `M 0 ${D}  l ${D} ${-D}   l ${W-D} 0  l 0 ${H-D}  l ${-D} ${D}  l ${D-W} 0  Z`;
 };
+
+function identifyTextEditArea(item, itemX, itemY) {
+    const nameLineTop = calculateNameLineTop(item);
+    const textarea = calculateTextArea(item);
+    if (itemY < nameLineTop) {
+        return {
+            property: 'name',
+            style: generateNameStyle(item),
+            area: textarea
+        }
+    } else {
+        return {
+            property: 'text',
+            style: generateTextStyle(item),
+            area: {
+                x: 0, y: nameLineTop + item.shapeProps.strokeSize,
+                w: textarea.w, 
+                h: Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)
+            }
+        }
+    }
+};
+
+function generateNameStyle(item) {
+    return {
+        'color': item.shapeProps.nameColor,
+        'padding-top': '4px',
+        'text-align': 'center',
+        'font-weight': 'bold'
+    };
+}
+
+function generateTextStyle(item) {
+    return {
+        'color': item.shapeProps.nameColor,
+        'padding-top': '4px',
+        'text-align': 'center'
+    };
+}
+
+function calculateTextArea(item) {
+    const d = calculateD(item);
+    return {
+        x: item.shapeProps.strokeSize, y: d + item.shapeProps.strokeSize,
+        w: Math.max(0, item.area.w - d - 2 * item.shapeProps.strokeSize),
+        h: Math.max(0, item.area.h - d - 2 * item.shapeProps.strokeSize)
+    };
+}
+
+function calculateNameLineTop(item) {
+    return 30 + calculateD(item);
+}
+
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
+
     args: {
         depth: {type: 'number', value: 20, name: 'Depth'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
@@ -61,16 +117,12 @@ export default {
         shapePath() { return computePath(this.item); },
 
         nameLineTop() {
-            return 30 + calculateD(this.item);
+            return calculateNameLineTop(this.item);
+            
         },
 
         textarea() {
-            const d = calculateD(this.item);
-            return {
-                x: this.item.shapeProps.strokeSize, y: d + this.item.shapeProps.strokeSize,
-                w: Math.max(0, this.item.area.w - d - 2*this.item.shapeProps.strokeSize),
-                h: Math.max(0, this.item.area.h - d - 2*this.item.shapeProps.strokeSize)
-            };
+            return calculateTextArea(this.item);
         },
 
         edgeLinePath() {
@@ -78,7 +130,16 @@ export default {
             const H = this.item.area.h;
             const D = calculateD(this.item);
             return `M 0 ${D}  l ${W-D} 0   l ${D} ${-D}  M ${W-D} ${D}  l 0 ${H-D}`;
+        },
+
+        textStyle() {
+            return generateTextStyle(this.item);
+        },
+
+        nameStyle() {
+            return generateNameStyle(this.item);
         }
+
     }
 }
 </script>
