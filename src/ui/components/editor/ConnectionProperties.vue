@@ -21,12 +21,6 @@
         <h5>Style</h5>
 
         <div class="property-row">
-            <input type="checkbox" v-model="connector.style.smooth">
-            <span class="property-label">Smooth</span>
-        </div>
-
-
-        <div class="property-row">
             <color-picker :color="connector.style.color" @input="connector.style.color = arguments[0];"></color-picker>
             <span class="property-label">Color</span>
         </div>
@@ -38,7 +32,7 @@
 
         <div class="property-row">
             <span class="property-label">Pattern</span>
-            <select type="text" v-model="connector.style.pattern">
+            <select type="text" v-model="connector.style.pattern" @change="onConnectorChange">
                 <option v-for="pattern in knownPatterns">{{pattern}}</option>
             </select>
         </div>
@@ -54,12 +48,15 @@ export default {
 
     components: {ColorPicker},
     data() {
-        var data =  {
+        return {
             knownCapStyleTypes: Connector.CapType.values(),
-
-            knownPatterns: ['line', 'dotted', 'dashed']
+            knownPatterns: Connector.Pattern.values(),
         };
-        return data;
+    },
+    methods: {
+        onConnectorChange() {
+            EventBus.emitConnectorChanged(this.connector.id);
+        }
     }
 }
 </script>
