@@ -40,6 +40,7 @@
 
 <script>
 import EventBus from '../EventBus.js';
+import Connector from '../../../scheme/Connector.js';
 
 export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
@@ -62,7 +63,7 @@ export default {
     data() {
         return {
             svgPath: this.computeSvgPath(this.connector.meta.points),
-            ends: this.computeEnds(this.connector),
+            ends: this.computeCaps(this.connector),
             strokeDashArray: '',
             selected: false
         };
@@ -92,23 +93,23 @@ export default {
             }
         },
 
-        createEnd(x, y, px, py, endStyle) {
-            if (endStyle.type === 'circle') {
+        createCap(x, y, px, py, capStyle) {
+            if (capStyle.type === Connector.CapType.CIRCLE) {
                 return {
                     type: 'circle',
                     x: x,
                     y: y,
-                    r: endStyle.size
+                    r: capStyle.size
                 };
-            } else if (endStyle.type === 'arrow') {
-                return this.createArrowEnd(x, y, px, py, endStyle, false);
-            } else if (endStyle.type === 'triangle') {
-                return this.createArrowEnd(x, y, px, py, endStyle, true);
+            } else if (capStyle.type === Connector.CapType.ARROW) {
+                return this.createArrowCap(x, y, px, py, capStyle, false);
+            } else if (capStyle.type === Connector.CapType.TRIANGLE) {
+                return this.createArrowCap(x, y, px, py, capStyle, true);
             }
             return null;
         },
 
-        createArrowEnd(x, y, px, py, endStyle, close) {
+        createArrowCap(x, y, px, py, capStyle, close) {
             var Vx = px - x, Vy = py - y;
             var V = Vx * Vx + Vy * Vy;
             if (V !== 0) {
@@ -116,7 +117,7 @@ export default {
                 Vx = Vx/V;
                 Vy = Vy/V;
 
-                var size = endStyle.size;
+                var size = capStyle.size;
                 var Pax = x + (Vx * 2 - Vy) * size;
                 var Pay = y + (Vy * 2 + Vx) * size;
                 var Pbx = x + (Vx * 2 + Vy) * size;
@@ -147,19 +148,19 @@ export default {
             return this.computeStraightSvgPath(points);
         },
 
-        computeEnds(connector) {
+        computeCaps(connector) {
             var ends = [];
             if (connector.meta && connector.meta.points.length > 0 && connector.style) {
                 var points = connector.meta.points;
 
                 if (connector.style.source) {
-                    var end = this.createEnd(points[0].x, points[0].y, points[1].x, points[1].y, connector.style.source);
+                    var end = this.createCap(points[0].x, points[0].y, points[1].x, points[1].y, connector.style.source);
                     if (end) {
                         ends.push(end);
                     }
                 }
                 if (connector.style.destination) {
-                    var end = this.createEnd(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, connector.style.destination);
+                    var end = this.createCap(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, connector.style.destination);
                     if (end) {
                         ends.push(end);
                     }
@@ -169,14 +170,14 @@ export default {
         },
         recompute() {
             this.svgPath = this.computeSvgPath(this.connector.meta.points);
-            this.ends = this.computeEnds(this.connector);
+            this.ends = this.computeCaps(this.connector);
         },
         generateStrokeDashArray() {
             var dashArray = '';
             var w = this.connector.style.width;
-            if (this.connector.style.pattern === 'dotted') {
+            if (this.connector.style.pattern === Connector.Pattern.DOTTED) {
                 dashArray =  w + ' ' + (w * 2);
-            } else if (this.connector.style.pattern === 'dashed') {
+            } else if (this.connector.style.pattern === Connector.Pattern.DASHED) {
                 dashArray = (w * 4) + ' ' + (w * 4);
             }
             this.strokeDashArray = dashArray;
@@ -187,7 +188,7 @@ export default {
             deep: true,
             handler(connector) {
                 this.svgPath = this.computeSvgPath(connector.meta.points);
-                this.ends = this.computeEnds(connector);
+                this.ends = this.computeCaps(connector);
             }
         },
         offsetX(value) {

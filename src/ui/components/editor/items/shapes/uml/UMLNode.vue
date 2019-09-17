@@ -140,7 +140,7 @@ export default {
             return generateNameStyle(this.item);
         }
 
-    }
+    } 
 }
 </script>
 

@@ -7,14 +7,14 @@
         <h5>Source</h5>
         Style:
         <select v-model="connector.style.source.type">
-            <option v-for="type in knownEndStyleTypes">{{type}}</option>
+            <option v-for="type in knownCapStyleTypes">{{type}}</option>
         </select>
         <input type="text" v-model="connector.style.source.size"/>
 
         <h5>Destination</h5>
         Style:
         <select v-model="connector.style.destination.type">
-            <option v-for="type in knownEndStyleTypes">{{type}}</option>
+            <option v-for="type in knownCapStyleTypes">{{type}}</option>
         </select>
         <input type="text" v-model="connector.style.destination.size"/>
 
@@ -48,13 +48,14 @@
 <script>
 import ColorPicker from './ColorPicker.vue';
 import EventBus from './EventBus.js';
+import Connector from '././../../scheme/Connector.js';
 export default {
     props: ['connector'],
 
     components: {ColorPicker},
     data() {
         var data =  {
-            knownEndStyleTypes: ['empty', 'arrow', 'triangle', 'circle'],
+            knownCapStyleTypes: Connector.CapType.values(),
 
             knownPatterns: ['line', 'dotted', 'dashed']
         };

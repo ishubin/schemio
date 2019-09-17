@@ -8,6 +8,7 @@ import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import EventBus from '../components/editor/EventBus.js';
+import Connector from './Connector.js';
 
 /*
 Providing access to scheme elements and provides modifiers for it
@@ -241,14 +242,14 @@ class SchemeContainer {
             style: {
                 color: '#333',
                 width: 1,
-                pattern: 'line',
-                smooth: false,
+                pattern: Connector.Pattern.LINE,
+                connectorType: Connector.Type.STRAIGHT,
                 destination: {
-                    type: 'arrow',
+                    type: Connector.CapType.ARROW,
                     size: 5
                 },
                 source: {
-                    type: 'empty',
+                    type: Connector.CapType.EMPTY,
                     size: 5
                 }
             }
