@@ -3,8 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g  :class="cssClasses"
-        :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
+    <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
     >
         <component
             v-if="shapeComponent && item.visible"
@@ -17,6 +16,7 @@
         <path v-if="itemSvgPath" :d="itemSvgPath" 
             :data-item-id="item.id"
             :stroke-width="0 + 'px'"
+            :style="{'cursor': item.cursor}"
             stroke="rgba(255, 255, 255, 0)"
             fill="rgba(255, 255, 255, 0)" />
 
@@ -113,12 +113,6 @@ export default {
 
         onItemDeselected() {
             this.selected = false;
-        }
-    },
-
-    computed: {
-        cssClasses() {
-            return [`item-cursor-${this.item.cursor}`];
         }
     },
 

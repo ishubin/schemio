@@ -129,7 +129,7 @@ export default {
     data() {
         return {
             tabs: ALL_TABS,
-            knownCursors: ['default', 'pointer'],
+            knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
 
             knownStrokePatterns: StrokePattern.getPatternsList(),
 
