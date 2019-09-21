@@ -39,7 +39,11 @@
                             :showReroutes="mode === 'edit'"
                             ></connector-svg>
 
-                        <item-svg :item-index="itemIndex" :item="item" :mode="mode" :scheme-container="schemeContainer" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                        <item-svg 
+                            :item="item"
+                            :mode="mode"
+                            :scheme-container="schemeContainer"
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
                 </g>
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -100,7 +104,11 @@
                             :showReroutes="mode === 'edit'"
                             ></connector-svg>
 
-                        <item-svg :item-index="itemIndex" :item="item" :mode="mode" :scheme-container="schemeContainer" :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                        <item-svg
+                            :item="item"
+                            :mode="mode"
+                            :scheme-container="schemeContainer"
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
 
 
@@ -117,7 +125,7 @@
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state.name === 'connecting'">
                         <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
-                            :data-item-index="itemIndex"
+                            :data-item-id="item.id"
                             :x="item.area.x"
                             :y="item.area.y"
                             :width="item.area.w"
@@ -331,15 +339,7 @@ export default {
 
         identifyElement(element) {
             if (element) {
-                //TODO refactor and get rid of data-item-index for easier support of nested items.
-                var itemIndex = element.getAttribute('data-item-index');
-                if (itemIndex) {
-                    return {
-                        item: this.schemeContainer.scheme.items[itemIndex]
-                    };
-                }
-
-                var itemId = element.getAttribute('data-item-id');
+                const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
                     return {
                         item: this.schemeContainer.findItemById(itemId)
@@ -369,9 +369,9 @@ export default {
                     };
                 }
 
-                var draggerItemIndex = element.getAttribute('data-dragger-item-index');
-                if (draggerItemIndex) {
-                    const item = this.schemeContainer.scheme.items[draggerItemIndex]
+                const draggerItemId = element.getAttribute('data-dragger-item-id');
+                if (draggerItemId) {
+                    const item = this.schemeContainer.findItemById(draggerItemId);
                     if (element.getAttribute('data-dragger-type') === 'rotation') {
                         return {
                             rotationDragger: {

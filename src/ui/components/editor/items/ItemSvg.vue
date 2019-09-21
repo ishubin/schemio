@@ -18,7 +18,7 @@
             <g class="item-container" data-preview-ignore="true">
                 <!-- Drawing boundary edit box -->
                 <rect class="boundary-box"
-                    :data-item-index="itemIndex"
+                    :data-item-id="item.id"
                     x="0"
                     y="0"
                     :width="item.area.w"
@@ -26,7 +26,7 @@
                 />
                 <g v-if="selected" v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers()">
                     <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
-                        :data-dragger-item-index="itemIndex"
+                        :data-dragger-item-id="item.id"
                         data-dragger-type="rotation"
                         :cx="dragger.x"
                         :cy="dragger.y"
@@ -35,7 +35,7 @@
                     />
 
                     <rect v-if="!dragger.rotation" class="boundary-box-dragger"
-                        :data-dragger-item-index="itemIndex"
+                        :data-dragger-item-id="item.id"
                         :data-dragger-index="draggerIndex"
                         :x="dragger.x - dragger.s / (zoom || 1.0)"
                         :y="dragger.y - dragger.s / (zoom || 1.0)"
@@ -54,7 +54,7 @@ import EventBus from '../EventBus.js';
 
 
 export default {
-    props: ['item', 'itemIndex', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer'],
+    props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer'],
 
     mounted() {
         this.switchShape(this.item.shape);
