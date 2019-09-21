@@ -1,7 +1,7 @@
 import utils from '../../../../ui/utils.js';
 
 const defaultItem = {
-    interactive: false,
+    cursor: 'default',
     opacity: 1.0,
     blendMode: 'normal',
     name: '',
@@ -38,6 +38,7 @@ export default [{
     item: utils.extendObject({
         shape: 'rect',
         opacity: 0.2,
+        cursor: 'pointer',
         shapeProps: {
             strokeSize: 1,
             strokeColor: '#000',

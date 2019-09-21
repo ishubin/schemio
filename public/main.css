@@ -395,7 +395,8 @@ svg rect.item-search-highlight {
 }
 
 
-svg .interactive .item-hoverable:hover {
+/********** Item Cursor *******************/
+svg .item-cursor-pointer {
     cursor: pointer;
 }
 

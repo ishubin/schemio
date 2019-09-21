@@ -39,6 +39,14 @@
                 <table>
                     <tbody>
                         <tr>
+                            <td width="50%">Cursor</td>
+                            <td width="50%">
+                                <select v-model="item.cursor">
+                                    <option v-for="cursor in knownCursors">{{cursor}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
                             <td width="50%">Visible</td>
                             <td width="50%">
                                 <input class="checkbox" type="checkbox" v-model="item.visible"/>
@@ -121,6 +129,7 @@ export default {
     data() {
         return {
             tabs: ALL_TABS,
+            knownCursors: ['default', 'pointer'],
 
             knownStrokePatterns: StrokePattern.getPatternsList(),
 

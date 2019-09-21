@@ -131,7 +131,7 @@ export default {
         onArtSelected(art) {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
                 id: shortid.generate(),
-                interactive: false,
+                cursor: 'default',
                 opacity: 1.0,
                 blendMode: 'normal',
                 name: '',

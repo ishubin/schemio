@@ -18,7 +18,7 @@
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
                     <g v-for="(item, itemIndex) in interactiveSchemeContainer.getItems()" class="item-container"
-                        :class="{selected: item.meta.selected, 'item-interactive': item.interactive}">
+                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         <!-- Drawing search highlight box -->
                         <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
                             :x="item.area.x - 5"
@@ -82,7 +82,7 @@
                 </g>
                 <g data-type="scene-transform" :transform="transformSvg">
                     <g v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-container"
-                        :class="{selected: item.meta.selected, 'item-interactive': item.interactive}"
+                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
                         <!-- Drawing search highlight box -->

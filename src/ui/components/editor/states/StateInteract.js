@@ -58,17 +58,15 @@ class StateInteract extends State {
                 if (object && object.item) {
                     this.emit(object.item, CLICKED);
 
-                    if (object.item.interactive) {
-                        this.emit(object.item, SELECTED);
-                        _.forEach(this.schemeContainer.selectedItems, item => {
-                            if (item.id !== object.item.id) {
-                                this.emit(item, DESELECTED);
-                                this.eventBus.emitItemDeselected(item.id);
-                            }
-                        });
-                        this.schemeContainer.selectItem(object.item, false);
-                        this.eventBus.emitItemSelected(object.item.id);
-                    }
+                    this.emit(object.item, SELECTED);
+                    _.forEach(this.schemeContainer.selectedItems, item => {
+                        if (item.id !== object.item.id) {
+                            this.emit(item, DESELECTED);
+                            this.eventBus.emitItemDeselected(item.id);
+                        }
+                    });
+                    this.schemeContainer.selectItem(object.item, false);
+                    this.eventBus.emitItemSelected(object.item.id);
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
                     _.forEach(this.schemeContainer.selectedItems, item => {

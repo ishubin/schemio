@@ -1,7 +1,7 @@
 import utils from '../../../../ui/utils.js';
 
 const defaultItem = {
-    interactive: false,
+    cursor: 'default',
     opacity: 1.0,
     blendMode: 'normal',
     name: '',
