@@ -3,10 +3,16 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g  :class="cssClasses" :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
+    <g  :class="cssClasses"
         :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
     >
-        <component v-if="shapeComponent && item.visible" :is="shapeComponent" :item="item" :hidden-text-property="hiddenTextProperty"></component>
+        <component
+            v-if="shapeComponent && item.visible"
+            :is="shapeComponent"
+            :item="item"
+            :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
+            :hidden-text-property="hiddenTextProperty">
+        </component>
 
         <path v-if="itemSvgPath" :d="itemSvgPath" 
             :data-item-id="item.id"
