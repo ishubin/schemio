@@ -11,6 +11,15 @@ function isEventRightClick(event) {
     return event.button === 2;
 }
 
+/**
+ * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
+ * @param {MouseEvent} event 
+ */
+function isMultiSelectKey(event) {
+    return event.metaKey || event.ctrlKey || event.shiftKey;
+
+}
+
 export default class StateDragItem extends State {
     /**
      * @param {object} editor 
@@ -159,8 +168,7 @@ export default class StateDragItem extends State {
     handleItemLeftMouseDown(x, y, mx, my, item, event) {
         // if the item is already selected it should not do anything. This way we can let user drag multiple items
         if (!this.schemeContainer.isItemSelected(item)) {
-            const inclusive = event.metaKey || event.ctrlKey;
-            this.schemeContainer.selectItem(item, inclusive);
+            this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
         this.schemeContainer.deselectAllConnectors();
         
@@ -176,14 +184,13 @@ export default class StateDragItem extends State {
         this.eventBus.emitRightClickedItem(item, mx, my);
 
         if (!this.schemeContainer.isItemSelected(item)) {
-            const inclusive = event.metaKey || event.ctrlKey;
-            this.schemeContainer.selectItem(item, inclusive);
+            this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
         this.schemeContainer.deselectAllConnectors();
     }
 
     handleConnectorMouseDown(x, y, mx, my, object, event) {
-        if (event.metaKey || event.ctrlKey) {
+        if (isMultiSelectKey(event)) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
                 this.schemeContainer.buildConnector(object.sourceItem, object.connector);
@@ -255,7 +262,7 @@ export default class StateDragItem extends State {
         if (this.multiSelectBox) {
             this.schemeContainer.deselectAllConnectors();
 
-            if (!event.metaKey && !event.ctrlKey) {
+            if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
             }
             this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
@@ -263,7 +270,9 @@ export default class StateDragItem extends State {
             this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
 
         } else if (object.item && !this.wasMouseMoved) {
-            if (!event.metaKey && !event.ctrlKey) {
+            // when clicking right button - it should not deselected
+            // but when clicking left button and without movin a mouse - it should deselect other items
+            if (!isEventRightClick(event) && ! isMultiSelectKey(event)) {
                 // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
                 this.schemeContainer.selectItem(object.item, false);
             }
@@ -329,7 +338,7 @@ export default class StateDragItem extends State {
             const v2y = y - cy;
 
             let angle = this.sourceItem.meta.originalRotation + (Math.atan2(v2y, v2x) - Math.atan2(v1y, v1x)) * 180.0/Math.PI
-            if (event.metaKey || event.ctrlKey) {
+            if (!isMultiSelectKey(event)) {
                 angle = Math.round(angle / 5) * 5;
             }
             this.sourceItem.area.r = Math.round(angle);
