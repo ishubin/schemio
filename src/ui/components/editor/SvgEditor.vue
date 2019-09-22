@@ -176,6 +176,9 @@
                 <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
                     <i class="far fa-file"></i> Create scheme for this element...
                 </li>
+                <li @click="deleteSelectedItemsAndConnectors()">
+                    <i class="fa fa-times"></i> Delete
+                </li>
             </ul>
         </context-menu>
 
@@ -493,12 +496,17 @@ export default {
             if (key === EventBus.KEY.ESCAPE) {
                 this.state.cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
-                this.activeItem = null;
-                this.schemeContainer.deleteSelectedItemsAndConnectors();
-                this.$forceUpdate();
+                this.deleteSelectedItemsAndConnectors();
             } else {
                 this.state.keyPressed(key, keyOptions);
             }
+        },
+
+        deleteSelectedItemsAndConnectors() {
+            this.activeItem = null;
+            this.schemeContainer.deleteSelectedItemsAndConnectors();
+            this.$emit('deleted-items');
+            this.$forceUpdate();
         },
 
         onRebuildConnectors() {

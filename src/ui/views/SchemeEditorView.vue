@@ -66,6 +66,7 @@
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
                         @clicked-start-connecting="onClickedStartConnecting"
+                        @deleted-items="onSelectedItemsAndConnectorsDelete()"
                         ></svg-editor>
                 </div>
             </div>
@@ -432,6 +433,11 @@ export default {
             var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
             this.newSchemePopup.show = false;
             window.open(urlPrefix + url, '_blank');
+        },
+
+        onSelectedItemsAndConnectorsDelete() {
+            this.selectedItem = null;
+            this.selectedConnector = null;
         },
 
         //calculates average next direction based on all connectors pointing to item
