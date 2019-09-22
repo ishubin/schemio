@@ -13,12 +13,12 @@
             </li>
         </ul>
 
-        <general-panel :key="item.id" :project-id="projectId" v-if="currentTab === 'description'" :item="item"/>
-        <links-panel v-if="currentTab === 'description'" :key="item.id" :projectId="projectId" :item="item"/>
-        <connections-panel v-if="currentTab === 'description'" :key="item.id" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="item.id" :item="item" @ungroup-item="$emit('ungroup-item')"/>
+        <general-panel :key="'general-panel' + item.id" :project-id="projectId" v-if="currentTab === 'description'" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :key="'links-panel' + item.id" :projectId="projectId" :item="item"/>
+        <connections-panel v-if="currentTab === 'description'" :key="'connections-panel' + item.id" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :key="'position-panel' + item.id" :item="item" @ungroup-item="$emit('ungroup-item')"/>
 
-        <behavior-properties v-if="currentTab === 'behavior'" :key="item.id" :item="item" :scheme-container="schemeContainer"/>
+        <behavior-properties v-if="currentTab === 'behavior'" :key="'behavior-panel' + item.id" :item="item" :scheme-container="schemeContainer"/>
 
         <div v-if="currentTab === 'shape'">
             <select v-model="item.shape">
@@ -123,7 +123,6 @@ export default {
     },
 
     mounted() {
-        console.log('Mounted');
         this.switchShape(this.item.shape);
     },
 

@@ -179,6 +179,12 @@
                 <li @click="deleteSelectedItemsAndConnectors()">
                     <i class="fa fa-times"></i> Delete
                 </li>
+                <li v-if="contextMenu.selectedMultipleItems && contextMenu.areSelectedItemsGrouped" @click="ungroupSelectedItems()">
+                    <i class="fas fa-object-ungroup"></i> Ungroup
+                </li>
+                <li v-if="contextMenu.selectedMultipleItems && !contextMenu.areSelectedItemsGrouped" @click="groupSelectedItems()">
+                    <i class="fas fa-object-group"></i> Group
+                </li>
             </ul>
         </context-menu>
 
@@ -299,7 +305,9 @@ export default {
             contextMenu: {
                 show: false,
                 item: null,
-                mouseX: 0, mouseY: 0
+                mouseX: 0, mouseY: 0,
+                areSelectedItemsGrouped: false,
+                selectedMultipleItems: false
             },
 
             itemTextEditor: {
@@ -688,7 +696,34 @@ export default {
             this.contextMenu.item = item;
             this.contextMenu.mouseX = mouseX;
             this.contextMenu.mouseY = mouseY;
+
+            this.contextMenu.selectedMultipleItems = this.schemeContainer.selectedItems.length > 1;
+            this.contextMenu.areSelectedItemsGrouped = false;
+
+            if (this.schemeContainer.selectedItems.length > 0) {
+                const firstItemGroup = item.group;
+                if (firstItemGroup) {
+                    let sameGroup = true;
+                    for (let i = 0; i < this.schemeContainer.selectedItems.length && sameGroup; i++) {
+                        if (firstItemGroup !== this.schemeContainer.selectedItems[i].group) {
+                            sameGroup = false;
+                        }
+                    }
+                    this.contextMenu.areSelectedItemsGrouped = sameGroup;
+                }
+                
+            }
             this.contextMenu.show = true;
+        },
+
+        groupSelectedItems() {
+            this.schemeContainer.groupSelectedItems();
+        },
+
+        ungroupSelectedItems() {
+            _.forEach(this.schemeContainer.selectedItems, selectedItem => {
+                selectedItem.group = null;
+            });
         },
 
         onItemInEditorTextEditTriggered(item, x, y) {
