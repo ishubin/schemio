@@ -9,7 +9,7 @@
         <svg id="svg_plot" ref="svgDomElement"
             :width="width+'px'"
             :height="height+'px'"
-            :class="['mode-' + mode, 'state-' + (state != null ? state.name: 'unknown')]"
+            :class="['mode-' + mode, 'state-' + (state? state.name: 'unknown')]"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
@@ -125,7 +125,7 @@
                     </g>
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
-                    <g v-if="state.name === 'connecting'">
+                    <g v-if="state && state.name === 'connecting'">
                         <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
                             :data-item-id="item.id"
                             :x="item.area.x"
@@ -276,9 +276,9 @@ export default {
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
-            vOffsetX: null,
-            vOffsetY: null,
-            vZoom: null,
+            vOffsetX: 0,
+            vOffsetY: 0,
+            vZoom: 1.0,
 
             activeItem: null,
             selectedItemLinks: [],

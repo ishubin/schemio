@@ -156,6 +156,7 @@ import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import settingsStorage from '../settingsStorage.js';
 import snapshotSvg from '../svgPreview.js';
+import hasher from '../url/hasher.js';
 
 
 
@@ -243,7 +244,17 @@ export default {
     },
     methods: {
         init() {
-            this.loadCurrentUser();
+            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            this.loadCurrentUser().then(user => {
+                if (user) {
+                    this.knownModes = ['view', 'edit'];
+                    if (pageParams.m && pageParams.m === 'edit') {
+                        this.mode = 'edit';
+                    } else {
+                        this.mode = 'view';
+                    }
+                }
+            });
             this.schemeId = this.$route.params.schemeId;
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
                 this.currentCategory = scheme.category;
@@ -266,11 +277,9 @@ export default {
         },
 
         loadCurrentUser() {
-            apiClient.getCurrentUser().then(user => {
+            return apiClient.getCurrentUser().then(user => {
                 this.user = user;
-                if (this.user) {
-                    this.knownModes = ['view', 'edit'];
-                }
+                return user;
             });
         },
 
@@ -432,7 +441,7 @@ export default {
             var href = window.location.href;
             var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
             this.newSchemePopup.show = false;
-            window.open(urlPrefix + url, '_blank');
+            window.open(`${urlPrefix}${url}#m:edit`, '_blank');
         },
 
         onSelectedItemsAndConnectorsDelete() {
@@ -590,6 +599,12 @@ export default {
     watch: {
         $route(to, from) {
             this.init();
+        },
+
+        mode(value) {
+            hasher.changeURLHash(hasher.encodeURLHash({
+                m: value
+            }));
         },
 
         searchKeyword(keyword) {
