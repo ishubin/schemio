@@ -2,7 +2,7 @@
     <div>
         <span class="btn btn-primary" @click="addRole()">Add behavior event</span>
 
-        <div class="behavior-role" v-for="(role, roleId) in behaviorEvents" :key="roleId">
+        <div class="behavior-role" v-for="(role, roleId) in behaviorEvents" :key="role.id">
             <div class="behavior-trigger">
                 <span class="behavior-trigger-on">on</span>
                 <span class="behavior-trigger-remove-icon" @click="removeRole(roleId)"><i class="fas fa-times"></i></span>
@@ -23,7 +23,7 @@
                     <i class="fas fa-angle-down"></i>
                 </div>
 
-                <div v-for="(action, actionId) in role.do" :key="`${roleId}-${actionId}`">
+                <div v-for="(action, actionId) in role.do" :key="`${role.id}-${actionId}`">
                     <div class="behavior-action">
                         <span class="behavior-action-remove-icon" @click="removeRoleAction(roleId, actionId)"><i class="fas fa-times"></i></span>
 
@@ -56,6 +56,7 @@
 
 <script>
 import _ from 'lodash';
+import shortid from 'shortid';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
@@ -95,11 +96,13 @@ export default {
     methods: {
 
         convertItemBehavior(behavior) {
+            console.log('Converting item behavior');
             return _.map(behavior, this.convertItemBehaviorEvent);
         },
 
         convertItemBehaviorEvent(itemBehaviorEvent) {
             return {
+                id: shortid.generate(),
                 on: this.convertItemBehaviorEventOnStatement(itemBehaviorEvent.on),
                 do: _.map(itemBehaviorEvent.do, this.convertItemBehaviorAction)
             };
@@ -204,6 +207,7 @@ export default {
             }
 
             this.item.behavior[roleIndex].on.originator = itemId;
+            this.behaviorEvents = this.convertItemBehavior(this.item.behavior);
             this.$forceUpdate();
         },
 
@@ -329,6 +333,8 @@ export default {
         item: {
             deep: true,
             handler(value) {
+                // Handling selection of a different item
+                // in this case we need to update everything
                 if (value.id !== this.originalItemId) {
                     this.originalItemId = value.id;
                     this.behaviorEvents = this.convertItemBehavior(this.item.behavior);
