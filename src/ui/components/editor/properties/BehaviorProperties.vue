@@ -207,7 +207,7 @@ export default {
             }
 
             this.item.behavior[roleIndex].on.originator = itemId;
-            this.behaviorEvents = this.convertItemBehavior(this.item.behavior);
+            this.behaviorEvents[roleIndex].on = this.convertItemBehaviorEventOnStatement(this.item.behavior[roleIndex].on);
             this.$forceUpdate();
         },
 
