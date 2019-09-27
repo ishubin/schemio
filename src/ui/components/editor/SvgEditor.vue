@@ -222,7 +222,11 @@ export default {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
         this.vZoom = parseFloat(this.zoom);
-        this.switchStateInteract();
+        if (this.mode === 'edit') {
+            this.switchStateDragItem();
+        } else {
+            this.switchStateInteract();
+        }
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);

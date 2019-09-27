@@ -270,7 +270,6 @@ export default {
                     setTimeout(() => {
                         this.zoomToSelection();
                     }, 100);
-                   
                 }
             });
 
