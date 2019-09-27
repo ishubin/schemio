@@ -3,6 +3,7 @@ import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
 import CommentShape from './CommentShape.vue';
+import FramePlayer from './FramePlayer.vue';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
@@ -21,12 +22,17 @@ function identifyTextEditAreaFallback(item) {
     };
 }
 
+function defaultGetEventsFunc(item) {
+    return [];
+}
+
 function _shape(shapeComponent) {
     return {
         args: shapeComponent.args,
         computePath: shapeComponent.computePath,
         // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
         identifyTextEditArea: shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
+        getEvents: shapeComponent.getEvents || defaultGetEventsFunc,
         component: shapeComponent
     };
 }
@@ -36,6 +42,7 @@ const shapeReigstry = {
     rect: _shape(Rect),
     ellipse: _shape(Ellipse),
     comment: _shape(CommentShape),
+    frame_player: _shape(FramePlayer),
     uml_object: _shape(UMLObject),
     uml_module: _shape(UMLModule),
     uml_package: _shape(UMLPackage),

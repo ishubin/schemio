@@ -18,6 +18,12 @@ export default class UserEventBus {
     }
 
 
+    /**
+     * Emits event that originated for a specific item
+     * @param {string} itemId 
+     * @param {string} eventName 
+     * @param {Array} args arguments of the event
+     */
     emitItemEvent(itemId, eventName, args) {
         if (args === undefined) {
             args = [];

@@ -44,7 +44,8 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"
+                            @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -789,6 +790,10 @@ export default {
                 return this.hasParentNode(domElement.parentElement, callbackCheck);
             }
             return false;
+        },
+
+        onItemCustomEvent(event) {
+            userEventBus.emitItemEvent(event.itemId, event.eventName, event.args);
         },
 
         // Converts world coordinates to item local coordinates (takes items rotation and translation into account)

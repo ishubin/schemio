@@ -102,4 +102,11 @@ export default [{
         text: 'Text ...',
         shapeProps: { }
     }, defaultItem)
+}, {
+    name: 'Frame Player',
+    svg: `<circle cx="16" cy="16" r="14"></circle>`,
+    item: utils.extendObject({
+        shape: 'frame_player',
+        shapeProps: { }
+    }, defaultItem)
 }];

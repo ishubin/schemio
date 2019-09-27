@@ -12,7 +12,7 @@
                         <span class="behavior-trigger-originator">{{role.on.originator | toOriginatorPrettyName(itemMap) }}</span>
                     </dropdown>
 
-                    <dropdown :options="itemEvents" @selected="selectTriggerEvent(roleId, arguments[0])">
+                    <dropdown :options="role.eventOptions" @selected="selectTriggerEvent(roleId, arguments[0])">
                         <span class="behavior-trigger-event">{{role.on.event | toPrettyEventName}}</span>
                     </dropdown>
                 </div>
@@ -70,6 +70,8 @@ const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
 };
 
+const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
+
 export default {
     props: ['item', 'schemeContainer'],
 
@@ -82,11 +84,9 @@ export default {
             .value();
 
         return {
-            originalItemId: this.item.id,
             itemMap: this.createItemMap(),
             items: items,
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
-            itemEvents: _.chain(Events.standardEvents).values().sortBy(event => event.name).value(),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
             behaviorEvents: this.convertItemBehavior(this.item.behavior)
@@ -94,25 +94,35 @@ export default {
     },
 
     methods: {
-
         convertItemBehavior(behavior) {
-            console.log('Converting item behavior');
             return _.map(behavior, this.convertItemBehaviorEvent);
         },
 
         convertItemBehaviorEvent(itemBehaviorEvent) {
+            let eventOptions = standardItemEvents;
+            
+
+            const originatorItem = this.findItem(itemBehaviorEvent.on.originator);
+            if (originatorItem) {
+                const shape = Shape.find(originatorItem.shape);
+                if (shape) {
+                    eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(originatorItem)).map(event => {return {id: event.name, name: event.name}}).value());
+                }
+            }
+
             return {
-                id: shortid.generate(),
-                on: this.convertItemBehaviorEventOnStatement(itemBehaviorEvent.on),
-                do: _.map(itemBehaviorEvent.do, this.convertItemBehaviorAction)
+                id:             shortid.generate(),
+                on:             this.convertItemBehaviorEventOnStatement(itemBehaviorEvent.on),
+                eventOptions:   eventOptions,
+                do:             _.map(itemBehaviorEvent.do, this.convertItemBehaviorAction)
             };
         },
 
         convertItemBehaviorEventOnStatement(itemOnStatement) {
             return {
                 originator: itemOnStatement.originator,
-                event: itemOnStatement.event,
-                args: itemOnStatement.args
+                event:      itemOnStatement.event,
+                args:       itemOnStatement.args
             };
         },
 
@@ -207,7 +217,7 @@ export default {
             }
 
             this.item.behavior[roleIndex].on.originator = itemId;
-            this.behaviorEvents[roleIndex].on = this.convertItemBehaviorEventOnStatement(this.item.behavior[roleIndex].on);
+            this.behaviorEvents[roleIndex] = this.convertItemBehaviorEvent(this.item.behavior[roleIndex]);
             this.$forceUpdate();
         },
 
@@ -326,21 +336,6 @@ export default {
                 return argMap[propertyName].name;
             }
             return propertyName;
-        }
-    },
-
-    watch: {
-        item: {
-            deep: true,
-            handler(value) {
-                // Handling selection of a different item
-                // in this case we need to update everything
-                if (value.id !== this.originalItemId) {
-                    this.originalItemId = value.id;
-                    this.behaviorEvents = this.convertItemBehavior(this.item.behavior);
-                    this.$forceUpdate();
-                }
-            }
         }
     }
 }

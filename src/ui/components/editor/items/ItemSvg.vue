@@ -10,7 +10,8 @@
             :is="shapeComponent"
             :item="item"
             :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
-            :hidden-text-property="hiddenTextProperty">
+            :hidden-text-property="hiddenTextProperty"
+            @custom-event="onShapeCustomEvent">
         </component>
 
         <path v-if="itemSvgPath" :d="itemSvgPath" 
@@ -113,6 +114,14 @@ export default {
 
         onItemDeselected() {
             this.selected = false;
+        },
+
+        onShapeCustomEvent(eventName, ...args) {
+            this.$emit('custom-event', {
+                itemId: this.item.id,
+                eventName: eventName,
+                args: arguments
+            });
         }
     },
 
