@@ -4,6 +4,7 @@
 
 import State from './State.js';
 import _ from 'lodash';
+import collections from '../../../collections.js';
 
 export default class StateCreateComponent extends State {
     constructor(editor, eventBus) {
@@ -26,6 +27,7 @@ export default class StateCreateComponent extends State {
 
     mouseDown(x, y, mx, my, object, event) {
         this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
+        this.component.name = this.findProperComponentName(this.component.name);
         this.schemeContainer.addItem(this.component);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.component.area);
@@ -68,5 +70,14 @@ export default class StateCreateComponent extends State {
             this.component.area.h = this.originalPoint.y - y;
             this.component.area.y = y;
         }
+    }
+
+    /**
+     * Searches for all item names and adds numeric index so that it becomes unique in the scheme
+     * @param {string} name 
+     */
+    findProperComponentName(name) {
+        const itemNames = _.map(this.schemeContainer.scheme.items, item => item.name);
+        return collections.giveUniqueName(name, itemNames);
     }
 }

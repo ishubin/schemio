@@ -134,7 +134,7 @@ export default {
                 cursor: 'default',
                 opacity: 1.0,
                 blendMode: 'normal',
-                name: '',
+                name: 'Art',
                 description: '',
                 text: '',
                 links: [],
@@ -155,6 +155,7 @@ export default {
                 const newItem = utils.clone(item.item);
                 newItem.id = shortid.generate();
                 newItem.area = { x: 0, y: 0, w: 0, h: 0 };
+                newItem.name = item.name;
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
         },
