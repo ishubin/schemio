@@ -119,6 +119,7 @@
         </div>
 
         <create-new-scheme-modal v-if="newSchemePopup.show"
+            :project-id="projectId"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
             :categories="newSchemePopup.categories"

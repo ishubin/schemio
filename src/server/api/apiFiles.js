@@ -84,12 +84,8 @@ module.exports = {
                 fileStorage.downloadFile(fileName, localFilePath).then(() => {
                     handleLocalFileDownload(res, localFilePath, fileName);
                 }).catch(err => {
-                    if (fileName.startsWith('scheme-preview-')) {
-                        handleLocalFileDownload(res, 'public/images/missing-scheme-preview.png', fileName);
-                    } else {
-                        console.error(err);
-                        res.sendStatus(404);
-                    }
+                    console.error(err);
+                    res.sendStatus(404);
                 });
             }
         }).catch(err => {
