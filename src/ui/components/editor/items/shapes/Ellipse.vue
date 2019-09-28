@@ -40,7 +40,8 @@ function generateTextStyle(item) {
         'vertical-align': 'middle',
         'position': 'relative',
         'top': '50%',
-        'transform': 'translateY(-50%)'
+        'transform': 'translateY(-50%)',
+        'font-size': item.shapeProps.fontSize + 'px'
     };
 }
 
@@ -54,8 +55,9 @@ export default {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-
         fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
+
+        fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},

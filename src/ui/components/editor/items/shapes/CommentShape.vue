@@ -8,7 +8,7 @@
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.tailLength)">
             <div class="item-text-container" v-html="item.text"
-                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
+                :style="textStyle"
                 ></div>
         </foreignObject>
     </g>
@@ -25,10 +25,28 @@ const computePath = (item) => {
     return `M ${W} ${H}  L ${W-TW} ${H-TL}  L ${R} ${H-TL}   a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
 }
 
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'text',
+        style: generateTextStyle(item)
+    }
+};
+
+function generateTextStyle(item) {
+    return {
+        'font-size': item.shapeProps.fontSize + 'px',
+        'padding-left': item.shapeProps.textPaddingLeft + 'px',
+        'padding-right': item.shapeProps.textPaddingRight + 'px',
+        'padding-top': item.shapeProps.textPaddingTop + 'px',
+        'padding-bottom': item.shapeProps.textPaddingBottom + 'px'
+    };
+}
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
     args: {
         cornerRadius: {type: 'number', value: 20, name: 'Corner radius'},
         tailLength: {type: 'number', value: 30, name: 'Tail Length'},
@@ -46,6 +64,9 @@ export default {
     computed: {
         shapePath() {
             return computePath(this.item);
+        },
+        textStyle() {
+            return generateTextStyle(this.item);
         }
     }
 }

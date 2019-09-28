@@ -19,7 +19,7 @@ export default {
 
     computePath,
     args: {
-        fontSize: {type: 'number', value: 16, name: 'Text font size'},
+        fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},

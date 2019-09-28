@@ -71,7 +71,7 @@ export default {
 
         fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-        fontSize: {type: 'number', value: 16, name: 'Text font size'},
+        fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},

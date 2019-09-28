@@ -1,7 +1,7 @@
 <template>
     <g>
         <foreignObject x="2" y="65" width="130" height="30">
-            <div style="text-align: center">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+            <div :style="textStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
         </foreignObject>
 
         <circle cx="20" cy="30" r="15"
@@ -82,7 +82,7 @@ export default {
         frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},
         fillColor: {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        fontSize: {type: 'number', value: 16, name: 'Text font size'},
+        fontSize: {type: 'number', value: 16, name: 'Font Size'},
     },
 
     /**
@@ -152,6 +152,15 @@ export default {
 
         emitCurrentFrameEvent() {
             this.$emit('custom-event', `Frame-${this.currentFrame}`);
+        }
+    },
+
+    computed: {
+        textStyle() {
+            return {
+                'text-align': 'center',
+                'font-size': this.item.shapeProps.fontSize + 'px'
+            };
         }
     }
 }
