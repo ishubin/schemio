@@ -159,6 +159,17 @@ function rotateVector(x, y, angle) {
     };
 }
 
+function enumerateConstants(obj) {
+    const props = [];
+    for (let key in obj) {
+        // checking if property is all uppercase
+        if (obj.hasOwnProperty(key) && key === key.toUpperCase()) {
+            props.push(obj[key]);
+        }
+    }
+    return props;
+}
+
 
 module.exports = {
     formatDateAndTime,
@@ -168,5 +179,6 @@ module.exports = {
     getObjectProperty,
     setObjectProperty,
     rotateVector,
-    rotatePointAroundCenter
+    rotatePointAroundCenter,
+    enumerateConstants
 };

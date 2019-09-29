@@ -135,6 +135,8 @@
             @close="addLinkPopup.shown = false"/>
 
         <item-list-popup v-if="itemListShown" :schemeContainer="schemeContainer" @close="itemListShown = false"/>
+
+        <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
     </div>
 
 </template>
@@ -155,6 +157,7 @@ import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
+import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import settingsStorage from '../settingsStorage.js';
 import snapshotSvg from '../svgPreview.js';
 import hasher from '../url/hasher.js';
@@ -162,9 +165,12 @@ import hasher from '../url/hasher.js';
 
 
 export default {
-    components: {SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
+    components: {
+        SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
-        CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent},
+        CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
+        ItemTooltip
+    },
 
     mounted() {
         window.onbeforeunload = this.onBrowseClose;
@@ -177,6 +183,8 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
+        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -187,6 +195,8 @@ export default {
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
     },
     data() {
         return {
@@ -240,7 +250,14 @@ export default {
                 disabled: true
             }],
 
-            offsetSaveTimerId: null
+            offsetSaveTimerId: null,
+
+            itemTooltip: {
+                item: null,
+                shown: false,
+                x: 0,
+                y: 0
+            }
         }
     },
     methods: {
@@ -567,6 +584,10 @@ export default {
             this.schemeChanged = true;
         },
 
+        onVoidClicked() {
+            this.sidePanelRightExpanded = false;
+        },
+
         onKeyPress(key, keyOptions) {
             if (this.mode === 'edit') {
                 if (key === EventBus.KEY.CTRL_C) {
@@ -587,6 +608,13 @@ export default {
                 return 'The changes were not saved';
             }
             return null;
+        },
+
+        onItemTooltipTriggered(item, mouseX, mouseY) {
+            this.itemTooltip.item = item;
+            this.itemTooltip.x = mouseX;
+            this.itemTooltip.y = mouseY;
+            this.itemTooltip.shown = true;
         }
     },
 

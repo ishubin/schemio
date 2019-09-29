@@ -1,5 +1,23 @@
 <template>
     <div>
+        <div>
+
+            <table width="100%">
+                <tbody>
+                    <tr>
+                        <td width="50%">Interaction Mode</td>
+                        <td width="50%">
+                            <select v-model="item.interactionMode">
+                                <option v-for="interactionMode in knownInteractionModes"
+                                    :value="interactionMode"
+                                    :key="interactionMode">{{interactionMode}}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <span class="btn btn-primary" @click="addRole()">Add behavior event</span>
 
         <div class="behavior-role" v-for="(role, roleId) in behaviorEvents" :key="role.id">
@@ -63,6 +81,7 @@ import Dropdown from '../../Dropdown.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import BehaviorArgument from './BehaviorArgument.vue';
 import Events from '../../../userevents/Events.js';
+import Item from '../../../scheme/Item.js';
 
 const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
 
@@ -89,7 +108,8 @@ export default {
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
-            behaviorEvents: this.convertItemBehavior(this.item.behavior)
+            behaviorEvents: this.convertItemBehavior(this.item.behavior),
+            knownInteractionModes: Item.InteractionMode.values()
         };
     },
 

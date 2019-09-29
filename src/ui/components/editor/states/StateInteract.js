@@ -5,6 +5,8 @@
 import State from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
+import EventBus from '../EventBus.js';
+import Item from '../../../scheme/Item.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -65,10 +67,11 @@ class StateInteract extends State {
                             this.eventBus.emitItemDeselected(item.id);
                         }
                     });
-                    this.schemeContainer.selectItem(object.item, false);
-                    this.eventBus.emitItemSelected(object.item.id);
+                    
+                    this.handleItemClick(object.item, mx, my)
                 } else {
                     //clicked in empty space and didn't drag screen, so we can deselect everything
+                    this.eventBus.$emit(EventBus.VOID_CLICKED);
                     _.forEach(this.schemeContainer.selectedItems, item => {
                         this.eventBus.emitItemDeselected(item.id)
                         this.emit(item, DESELECTED);
@@ -92,6 +95,16 @@ class StateInteract extends State {
             }
         } else {
             this.handleItemHoverEvents(object);
+        }
+    }
+
+    handleItemClick(item, mx, my) {
+        if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
+            // TODO Refactor this. it should not select item but instead should emit an event that the item side panel is shown
+            this.schemeContainer.selectItem(item, false);
+            this.eventBus.emitItemSelected(item.id);
+        } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
+            this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
         }
     }
 

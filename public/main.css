@@ -1360,3 +1360,16 @@ input.behavior-action-argument {
 .context-menu ul li:hover {
     background: #ccc;
 }
+
+
+/******************** Item Tooltip ***************/
+.item-tooltip {
+    position: fixed;
+    box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 10px;
+    overflow: auto;
+}
+
+.item-tooltip h2 {
+    margin-top: 0px;
+    margin-bottom: 10px;
+}

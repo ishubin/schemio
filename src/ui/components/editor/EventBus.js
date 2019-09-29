@@ -34,8 +34,14 @@ const EventBus = new Vue({
             ANY_CONNECTOR_SELECTED: 'any-connector-selected',
             ANY_CONNECTOR_DESELECTED: 'any-connector-deselected',
 
-            // used to triggered in-svg text edit of an item
+            // used to trigger in-svg text edit of an item
             ITEM_INEDITOR_TEXTEDIT_TRIGGERED: 'item-ineditor-textedit-triggered',
+
+            // triggered when user is in interactive mode and clicks empty space
+            VOID_CLICKED: 'void-clicked',
+
+            // used to trigger display of item description as a tooltip (when in interactive mode)
+            ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
 
             RIGHT_CLICKED_ITEM: 'right-clicked-item',
 

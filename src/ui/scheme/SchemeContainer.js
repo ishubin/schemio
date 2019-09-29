@@ -9,6 +9,7 @@ import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import EventBus from '../components/editor/EventBus.js';
 import Connector from './Connector.js';
+import Item from './Item.js';
 
 /*
 Providing access to scheme elements and provides modifiers for it
@@ -86,6 +87,9 @@ class SchemeContainer {
             visible: true,
             blendMode: 'normal',
             text: '',
+            description: '',
+            
+            interactionMode: Item.InteractionMode.SIDE_PANEL,
             shapeProps: {}
         };
         if (item.shape) {
