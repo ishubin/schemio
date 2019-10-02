@@ -4,6 +4,9 @@
 
 <template lang="html">
     <div>
+        <h5>Name</h5>
+        <input class="textfield" type="text" v-model="connector.name"/>
+
         <h5>Source</h5>
         Style:
         <select v-model="connector.style.source.type">

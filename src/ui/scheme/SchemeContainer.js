@@ -243,6 +243,7 @@ class SchemeContainer {
 
     enrichConnectorWithDefaultStyle(connector) {
         utils.extendObject(connector, {
+            name: '',
             style: {
                 color: '#333',
                 width: 1,

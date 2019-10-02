@@ -27,7 +27,17 @@ export default class Compiler {
                 } else if (action.item) {
                     item = schemeContainer.findItemById(action.item);
                 }
-                funcs.push(createCallable(knownFunctions[action.method], item, action.args));
+
+                if (item) {
+                    if (action.connector) {
+                        const connector = _.find(item.connectors, c => c.id === action.connector);
+                        if (connector) {
+                            funcs.push(createCallable(knownFunctions[action.method], connector, action.args));
+                        }
+                    } else {
+                        funcs.push(createCallable(knownFunctions[action.method], item, action.args));
+                    }
+                }
             }
         });
 
