@@ -13,7 +13,8 @@
             <div style="max-height: 300px; overflow: auto;">
                 <ul>
                     <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
-                        {{option.name}}
+                        <i v-if="option.iconClass" :class="option.iconClass"/>
+                        <span> {{option.name}} </span>
                     </li>
                 </ul>
             </div>
@@ -25,7 +26,7 @@
 import _ from 'lodash';
 
 export default {
-    /* options is an array of {id, name} */
+    /* options is an array of {name and any other fields} */
     props: ['options'],
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
@@ -47,7 +48,7 @@ export default {
         },
 
         onOptionClicked(option) {
-            this.$emit('selected', option.id);
+            this.$emit('selected', option);
         },
 
         onBodyClick(event) {

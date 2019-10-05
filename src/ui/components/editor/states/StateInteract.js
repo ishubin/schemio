@@ -127,9 +127,9 @@ class StateInteract extends State {
         }
     }
 
-    emit(originator, eventName) {
-        if (originator && originator.id) {
-            this.userEventBus.emitItemEvent(originator.id, eventName);
+    emit(element, eventName) {
+        if (element && element.id) {
+            this.userEventBus.emitItemEvent(element.id, eventName);
         }
     }
 

@@ -12,8 +12,46 @@ function createCallable(knownFunction, item, args) {
 export default class Compiler {
     /**
      * 
+     * @param {SchemeItem} item 
+     * @param {String} connectorId 
+     */
+    findItemConnector(item, connectorId) {
+        if (item && item.connectors) {
+            return _.find(item.connectors, c => c.id === connectorId);
+        }
+        return null;
+    }
+
+    /**
+     * 
      * @param {SchemeContainer} schemeContainer 
-     * @param {*} selfItem 
+     * @param {SchemeItem} selfItem 
+     * @param {Object} entity contains a selector for an elemment (item, connector) e.g. {item: "self", connector: "345et2"}
+     */
+    findEntity(schemeContainer, selfItem, entity) {
+        if (entity.item) {
+            let item = null;
+            if (entity.item === 'self') {
+                item = selfItem;
+            } else {
+                item = schemeContainer.findItemById(entity.item);
+            }
+
+            if (item) {
+                if (entity.connector) {
+                    return this.findItemConnector(item, entity.connector);
+                } else {
+                    return item;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 
+     * @param {SchemeContainer} schemeContainer 
+     * @param {SchemeItem} selfItem 
      * @param {Array} actions 
      */
     compileActions(schemeContainer, selfItem, actions) {
@@ -21,21 +59,10 @@ export default class Compiler {
         const funcs = [];
         _.forEach(actions, action => {
             if (knownFunctions.hasOwnProperty(action.method)) {
-                let item = null;
-                if (action.item === 'self') {
-                    item = selfItem;
-                } else if (action.item) {
-                    item = schemeContainer.findItemById(action.item);
-                }
-
-                if (item) {
-                    if (action.connector) {
-                        const connector = _.find(item.connectors, c => c.id === action.connector);
-                        if (connector) {
-                            funcs.push(createCallable(knownFunctions[action.method], connector, action.args));
-                        }
-                    } else {
-                        funcs.push(createCallable(knownFunctions[action.method], item, action.args));
+                if (action.entity) {
+                    const entity = this.findEntity(schemeContainer, selfItem, action.entity);
+                    if (entity) {
+                        funcs.push(createCallable(knownFunctions[action.method], entity, action.args));
                     }
                 }
             }

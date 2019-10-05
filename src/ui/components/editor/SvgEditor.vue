@@ -486,11 +486,17 @@ export default {
                         if (rule.on) {
                             const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, rule.do);
 
-                            let originator = rule.on.originator;
-                            if (rule.on.originator === 'self') {
-                                originator = item.id;
+                            if (rule.on.element && rule.on.element.item) {
+                                if (!rule.on.element.connector) {
+                                    let itemId = rule.on.element.item;
+                                    if (itemId === 'self') {
+                                        itemId = item.id;
+                                    }
+                                    userEventBus.subscribeItemEvent(itemId, rule.on.event, rule.on.args, eventCallback);
+                                } else {
+                                    //TODO handle connector user events
+                                }
                             }
-                            userEventBus.subscribeItemEvent(originator, rule.on.event, rule.on.args, eventCallback);
                         }
                     })
                 }

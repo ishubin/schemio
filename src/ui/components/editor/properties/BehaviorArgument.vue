@@ -30,8 +30,8 @@ export default {
 
     methods: {
         onChange(newValue) {
-            this.argument.value = newValue;
-            this.$emit('change', newValue);
+            this.argument.value = newValue.id;
+            this.$emit('change', newValue.id);
             this.$forceUpdate();
         },
         onInputChange(event) {

@@ -46,23 +46,23 @@ export default [{
         },
         behavior: [ {
             on: {
-                originator: 'self',
+                originator: {item: 'self'},
                 event: 'mousein', // simulates hover event only once when cursor enters element
                 args: []
             },
             do: [{
-                item: 'self',
+                entity: {item: 'self'},
                 method: 'set',
                 args: ['opacity', 0.5]
             }]
         }, {
             on: {
-                originator: 'self',
+                originator: {item: 'self'},
                 event: 'mouseout',
                 args: []
             },
             do: [{
-                item: 'self',
+                entity: {item: 'self'},
                 method: 'set',
                 args: ['opacity', 0.1]
             }]
