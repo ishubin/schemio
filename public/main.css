@@ -284,6 +284,11 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid #7e3e3e;
 }
 
+.btn.btn-tiny {
+    font-size: 10px;
+    padding: 2px 3px 2px 3px;
+}
+
 
 
 
@@ -1213,7 +1218,7 @@ table.position-panel-table .property-label {
 /************* Behavior Properties **********************/
 .behavior-events-table {
     table-layout: fixed;
-    font-size: 14px;
+    font-size: 12px;
     width: 100%;
     border-collapse: collapse;
 }
@@ -1232,6 +1237,44 @@ table.position-panel-table .property-label {
     background: #fff;
     text-align: left;
 }
+
+.behavior-action-container {
+    padding-bottom: 3px;
+    margin-bottom: 3px;
+    border-bottom: 1px dashed #999;
+}
+.behavior-action-container > div {
+    display: inline-block;
+}
+.behavior-action-container .icon-container {
+    position: relative;
+    width: 20px;
+    height: 16px;
+}
+.behavior-action-container .icon-container span {
+    position: absolute;
+    left: 2px;
+    top: 0px;
+    padding: 6px;
+}
+.behavior-action-container .icon-container .icon-action {
+    display: block;
+}
+.behavior-action-container .icon-container .icon-delete {
+    display: none;
+    opacity: 0.6;
+    color: #f55;
+}
+.behavior-action-container:hover .icon-container .icon-action {
+    display: none;
+}
+.behavior-action-container:hover .icon-container .icon-delete {
+    display: block;
+}
+.behavior-action-container .icon-container .icon-delete:hover {
+    opacity: 1.0;
+}
+
 
 /**************** Context Menu *****************/
 .context-menu {

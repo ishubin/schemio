@@ -22,15 +22,15 @@ describe('UserEvents Compiler', () => {
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            entity: {item: 'self'},
+            element: {item: 'self'},
             method: 'set',
             args: ['opacity', 0.5]
         }, {
-            entity: {item: 'abc'},
+            element: {item: 'abc'},
             method: 'set',
             args: ['shapeProps.strokeSize', 2]
         }, {
-            entity: {item: 'abc'},
+            element: {item: 'abc'},
             method: 'set',
             args: ['shapeProps.text', 'Blah']
         }]);
@@ -86,15 +86,15 @@ describe('UserEvents Compiler', () => {
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            entity: {item: 'self', connector: 'c1'},
+            element: {item: 'self', connector: 'c1'},
             method: 'set',
             args: ['style.opacity', 0.5]
         }, {
-            entity: {item: 'abc', connector: 'b1'},
+            element: {item: 'abc', connector: 'b1'},
             method: 'set',
             args: ['style.color', '#abc']
         }, {
-            entity: {item: 'abc', connector: 'b2'},
+            element: {item: 'abc', connector: 'b2'},
             method: 'set',
             args: ['style.color', '#f00']
         }]);

@@ -26,20 +26,20 @@ export default class Compiler {
      * 
      * @param {SchemeContainer} schemeContainer 
      * @param {SchemeItem} selfItem 
-     * @param {Object} entity contains a selector for an elemment (item, connector) e.g. {item: "self", connector: "345et2"}
+     * @param {Object} element contains a selector for an elemment (item, connector) e.g. {item: "self", connector: "345et2"}
      */
-    findEntity(schemeContainer, selfItem, entity) {
-        if (entity.item) {
+    findElement(schemeContainer, selfItem, element) {
+        if (element.item) {
             let item = null;
-            if (entity.item === 'self') {
+            if (element.item === 'self') {
                 item = selfItem;
             } else {
-                item = schemeContainer.findItemById(entity.item);
+                item = schemeContainer.findItemById(element.item);
             }
 
             if (item) {
-                if (entity.connector) {
-                    return this.findItemConnector(item, entity.connector);
+                if (element.connector) {
+                    return this.findItemConnector(item, element.connector);
                 } else {
                     return item;
                 }
@@ -59,10 +59,10 @@ export default class Compiler {
         const funcs = [];
         _.forEach(actions, action => {
             if (knownFunctions.hasOwnProperty(action.method)) {
-                if (action.entity) {
-                    const entity = this.findEntity(schemeContainer, selfItem, action.entity);
-                    if (entity) {
-                        funcs.push(createCallable(knownFunctions[action.method], entity, action.args));
+                if (action.element) {
+                    const element = this.findElement(schemeContainer, selfItem, action.element);
+                    if (element) {
+                        funcs.push(createCallable(knownFunctions[action.method], element, action.args));
                     }
                 }
             }

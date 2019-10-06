@@ -17,20 +17,22 @@
             </table>
         </div>
 
-        <table v-if="item.behavior" class="behavior-events-table">
+        <table class="behavior-events-table" v-if="item.behavior">
             <thead>
                 <tr>
-                    <th width="30xp"></th>
+                    <th width="30px"></th>
                     <th width="50%">Entity</th>
                     <th width="50%">Event</th>
                 </tr>
             </thead>
+        </table>
+        <table class="behavior-events-table" v-for="(behavior, behaviorIndex) in item.behavior">
             <tbody>
-                <tr v-for="(behavior, behaviorIndex) in item.behavior">
-                    <td>
+                <tr>
+                    <td width="30px" rowspan="2" style="vertical-align: top;">
                         <span class="link" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
-                        </td>
-                    <td>
+                    </td>
+                    <td width="50%">
                         <element-picker
                             :element="behavior.on.element" 
                             :scheme-container="schemeContainer"
@@ -38,13 +40,56 @@
                             @selected="onBehaviorEventElementSelected(behaviorIndex, arguments[0])"
                             />
                     </td>
-                    <td>
+                    <td width="50%">
                         <dropdown
                             :options="behaviorsEventOptions[behaviorIndex]"
                             @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
                             >
-                            <span>{{behavior.on.event}}</span>
+                            <span>{{behavior.on.event | toPrettyEventName}}</span>
                         </dropdown>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
+                            <div class="icon-container">
+                                <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
+                                <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                            </div>
+                            <div>
+                                <element-picker
+                                    :element="action.element" 
+                                    :scheme-container="schemeContainer"
+                                    :self-item="item"
+                                    @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                                    />
+                            </div>
+                            <i class="fas fa-caret-right"></i>
+                            <div>
+                                <dropdown
+                                    :options="supportedFunctions"
+                                    @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0].id)"
+                                    >
+                                    <span>{{action.method | toPrettyMethod(methodMap)}}</span>
+                                </dropdown>
+                            </div>
+                            <span class="function-brackets">(</span>
+                            <div>
+                                <div v-if="action.method === 'set'">
+                                    <set-function-arguments-editor
+                                        :key="action.element.item+action.args[0]"
+                                        :element="action.element"
+                                        :self-item="item"
+                                        :property="action.args[0]"
+                                        :property-value="action.args[1]"
+                                        :scheme-container="schemeContainer"
+                                        @property-changed="onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, arguments[0], arguments[1])"
+                                        />
+                                </div>
+                            </div>
+                            <span class="function-brackets">)</span>
+                        </div>
+                        <span class="btn btn-primary btn-tiny" @click="addActionToBehavior(behaviorIndex)">Add...</span>
                     </td>
                 </tr>
             </tbody>
@@ -61,10 +106,10 @@ import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
 import Functions from '../../../userevents/functions/Functions.js';
-import BehaviorArgument from './BehaviorArgument.vue';
 import Events from '../../../userevents/Events.js';
 import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
+import SetFunctionArgumentsEditor from './behavior/SetFunctionArgumentsEditor.vue';
 
 const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
 
@@ -77,7 +122,7 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {BehaviorArgument, Dropdown, ElementPicker},
+    components: {Dropdown, ElementPicker, SetFunctionArgumentsEditor},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())
@@ -147,7 +192,7 @@ export default {
             if (!this.item.behavior) {
                 this.item.behavior = [];
             }
-            const newEvent = {
+            const newBehavior = {
                 on: {
                     element: {item: 'self'},
                     event: 'mousein',
@@ -155,12 +200,14 @@ export default {
                 },
                 do: []
             };
-            this.item.behavior.push(newEvent);
+            this.item.behavior.push(newBehavior);
+            this.behaviorsEventOptions.push(this.createEventOptions(newBehavior));
             this.$forceUpdate();
         },
 
         removeBehavior(behaviorIndex) {
             this.item.behavior.splice(behaviorIndex, 1);
+            this.behaviorsEventOptions.splice(behaviorIndex, 1)
         },
         
         onBehaviorEventElementSelected(behaviorIndex, element) {
@@ -170,6 +217,48 @@ export default {
 
         onBehaviorEventSelected(behaviorIndex, eventOption) {
             this.item.behavior[behaviorIndex].on.event = eventOption.id;
+        },
+
+        addActionToBehavior(behaviorIndex) {
+            const behavior = this.item.behavior[behaviorIndex];
+            if (!behavior.do) {
+                behavior.do = [];
+            }
+
+            behavior.do.push({
+                element: {item: 'self'},
+                method: 'show',
+                args: []
+            });
+        },
+
+        removeAction(behaviorIndex, actionIndex) {
+            this.item.behavior[behaviorIndex].do.splice(actionIndex, 1);
+        },
+
+        onActionElementSelected(behaviorIndex, actionIndex, element) {
+            this.item.behavior[behaviorIndex].do[actionIndex].element = element;
+        },
+
+        onActionMethodSelected(behaviorIndex, actionIndex, method) {
+            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+            if (action.method !== method) {
+                action.method = method;
+
+                if (method === 'set') {
+                    action.args = [
+                        'opacity', 1.0
+                    ];
+                } else {
+                    action.args = [];
+                }
+            }
+        },
+
+        onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, propertyId, value) {
+            this.item.behavior[behaviorIndex].do[actionIndex].args[0] = propertyId;
+            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+            this.$forceUpdate();
         }
     },
 
@@ -202,13 +291,6 @@ export default {
             } else {
                 return method;
             }
-        },
-
-        toPrettySetPropertyName(propertyName, argMap) {
-            if (argMap[propertyName]) {
-                return argMap[propertyName].name;
-            }
-            return propertyName;
         }
     }
 }
