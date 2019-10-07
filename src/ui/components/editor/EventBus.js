@@ -4,6 +4,7 @@
 
 import Vue from 'vue';
 import _ from 'lodash';
+import { request } from 'https';
 
 const EventBus = new Vue({
     data() {
@@ -44,6 +45,11 @@ const EventBus = new Vue({
             ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
 
             RIGHT_CLICKED_ITEM: 'right-clicked-item',
+
+            // used inside ElementPicker and force editor state to switch to StatePickElement
+            ELEMENT_PICK_REQUESTED: 'element-pick-requested',
+
+            ELEMENT_PICKED: 'element-picked',
 
             KEY: {
                 ESCAPE: 'escape',
@@ -117,6 +123,10 @@ const EventBus = new Vue({
 
         emitItemInEditorTextEditTriggered(item, x, y) {
             this.$emit(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, item, x, y);
+        },
+
+        emitElementPickRequested(elementPickCallback) {
+            this.$emit(EventBus.ELEMENT_PICK_REQUESTED, elementPickCallback);
         }
     }
 });

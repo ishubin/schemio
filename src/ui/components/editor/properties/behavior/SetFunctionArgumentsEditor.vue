@@ -4,6 +4,8 @@
             <span>{{property}}</span>
         </dropdown>
 
+        <span class="function-brackets"> = </span>
+
 
         <input v-if="propertyType === 'string' || propertyType === 'number' || propertyValue === 'image'" style="width: 100px" :value="propertyValue" @input="emitValue"/>
 

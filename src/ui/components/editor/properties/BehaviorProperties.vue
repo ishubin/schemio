@@ -74,18 +74,16 @@
                                 </dropdown>
                             </div>
                             <span class="function-brackets">(</span>
-                            <div>
-                                <div v-if="action.method === 'set'">
-                                    <set-function-arguments-editor
-                                        :key="action.element.item+action.args[0]"
-                                        :element="action.element"
-                                        :self-item="item"
-                                        :property="action.args[0]"
-                                        :property-value="action.args[1]"
-                                        :scheme-container="schemeContainer"
-                                        @property-changed="onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, arguments[0], arguments[1])"
-                                        />
-                                </div>
+                            <div class="set-function-arguments" v-if="action.method === 'set'">
+                                <set-function-arguments-editor
+                                    :key="action.element.item+action.args[0]"
+                                    :element="action.element"
+                                    :self-item="item"
+                                    :property="action.args[0]"
+                                    :property-value="action.args[1]"
+                                    :scheme-container="schemeContainer"
+                                    @property-changed="onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, arguments[0], arguments[1])"
+                                    />
                             </div>
                             <span class="function-brackets">)</span>
                         </div>

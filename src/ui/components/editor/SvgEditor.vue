@@ -197,6 +197,7 @@ import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
+import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemSvg from './items/ItemSvg.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
@@ -241,6 +242,7 @@ export default {
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
+        EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -262,6 +264,7 @@ export default {
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
+        EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -274,7 +277,8 @@ export default {
                 interact: new StateInteract(this, EventBus, userEventBus),
                 createComponent: new StateCreateComponent(this, EventBus),
                 dragItem: new StateDragItem(this, EventBus),
-                connecting: new StateConnecting(this, EventBus)
+                connecting: new StateConnecting(this, EventBus),
+                pickElement: new StatePickElement(this, EventBus)
             },
 
             interactiveSchemeContainer: null,
@@ -466,6 +470,11 @@ export default {
         switchStateDragItem() {
             this.state = this.states.dragItem;
             this.state.reset();
+        },
+        switchStatePickElement(elementPickCallback) {
+            this.state = this.states.pickElement;
+            this.state.reset();
+            this.state.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateComponent(component) {
             this.state = this.states.createComponent;
@@ -804,6 +813,10 @@ export default {
 
         onItemCustomEvent(event) {
             userEventBus.emitItemEvent(event.itemId, event.eventName, event.args);
+        },
+
+        onElementPickRequested(elementPickCallback) {
+            this.switchStatePickElement(elementPickCallback);
         },
 
         // Converts world coordinates to item local coordinates (takes items rotation and translation into account)

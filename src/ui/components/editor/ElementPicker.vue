@@ -1,9 +1,9 @@
 <template>
-    <div class="item-picker">
+    <div class="element-picker">
         <dropdown :options="allOptions" @selected="onElementSelected">
             <div>
                 <i :class="enrichedElement.iconClass"/>
-                <span>{{enrichedElement.name}}</span>
+                <span class="element-name">{{enrichedElement.name}}</span>
             </div>
         </dropdown>
     </div>
@@ -13,16 +13,28 @@
  * This component is used in order to pick any element on the scheme (e.g. item, connector)
  */
 import Dropdown from '../Dropdown.vue';
+import EventBus from './EventBus.js';
 import _ from 'lodash';
+import shortid from 'shortid';
 
 export default {
     props: ['element', 'selfItem', 'schemeContainer'],
 
     components: {Dropdown},
 
+    mounted() {
+        EventBus.$on(EventBus.ELEMENT_PICKED, this.onElementPickedFromState);
+    },
+
+    beforeDestroy() {
+        EventBus.$off(EventBus.ELEMENT_PICKED, this.onElementPickedFromState);
+    },
+
     data() {
         return {
-            allOptions: this.collectAllOptions()
+            allOptions: this.collectAllOptions(),
+            // used as a unique id in order to distinguish subscribed event for picking element from StatePickElement
+            pickElementRequestId: null
         };
     },
 
@@ -50,15 +62,17 @@ export default {
 
         onElementSelected(option) {
             if (option.type === 'pick') {
-                alert('picking is not implemented yet');
+                this.pickElementRequestId = shortid.generate();
+                EventBus.emitElementPickRequested((element) => {
+                    this.$emit('selected', element);
+                });
             } else {
                 if (option.type === 'item') {
-                    // this.element.item = option.id;
                     this.$emit('selected', {
                         item: option.id
                     });
                 } else {
-                    alert('not implemented yet');
+                    console.error(option.type + ' not implemented yet');
                 }
             }
         }

@@ -1237,6 +1237,12 @@ table.position-panel-table .property-label {
     background: #fff;
     text-align: left;
 }
+.behavior-events-table .element-picker .element-name {
+    display: inline-block;
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .behavior-action-container {
     padding-bottom: 3px;
@@ -1245,6 +1251,10 @@ table.position-panel-table .property-label {
 }
 .behavior-action-container > div {
     display: inline-block;
+}
+.behavior-action-container > div.set-function-arguments {
+    padding-left: 40px;
+    display: block;
 }
 .behavior-action-container .icon-container {
     position: relative;
