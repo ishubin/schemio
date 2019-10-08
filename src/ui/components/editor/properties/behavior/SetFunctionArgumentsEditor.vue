@@ -1,7 +1,7 @@
 <template>
     <div>
         <dropdown :options="propertyOptions" @selected="onPropertySelected(arguments[0].id)">
-            <span>{{property}}</span>
+            <span>{{property | toPrettyPropertyName(shapeArgs)}}</span>
         </dropdown>
 
         <span class="function-brackets"> = </span>
@@ -23,6 +23,9 @@ import Dropdown from '../../../Dropdown.vue';
 import Shape from '../../items/shapes/Shape.js';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import StrokePattern from '../../items/StrokePattern.js';
+
+
+const SHAPE_PROPS_PREFIX = 'shapeProps.';
 
 export default {
     props: ['element', 'selfItem', 'property', 'propertyValue', 'schemeContainer'],
@@ -82,8 +85,8 @@ export default {
                 let value = '';
                 if (propertyId === 'opacity') {
                     value = 1.0;
-                } else if (propertyId.indexOf('shapeProps.') === 0) {
-                    const shapePropField = propertyId.substr('shapeProps.'.length);
+                } else if (propertyId.indexOf(SHAPE_PROPS_PREFIX) === 0) {
+                    const shapePropField = propertyId.substr(SHAPE_PROPS_PREFIX.length);
                     const shapeArg = this.shapeArgs[shapePropField];
                     if (shapeArg) {
                         value = shapeArg.value;
@@ -95,6 +98,19 @@ export default {
 
         emitValue(value) {
             this.$emit('propert-value-changed', value);
+        }
+    },
+
+    filters: {
+        toPrettyPropertyName(propertyPath, shapeArgs) {
+            if (propertyPath.indexOf(SHAPE_PROPS_PREFIX) === 0) {
+                const shapePropField = propertyPath.substr(SHAPE_PROPS_PREFIX.length);
+                const shapeArg = shapeArgs[shapePropField];
+                if (shapeArg) {
+                    return shapeArg.name;
+                }
+            }
+            return propertyPath;
         }
     }
 }
