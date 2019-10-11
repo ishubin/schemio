@@ -17,81 +17,48 @@
             </table>
         </div>
 
-        <table class="behavior-events-table" v-if="item.behavior">
-            <thead>
-                <tr>
-                    <th width="30px"></th>
-                    <th width="50%">Entity</th>
-                    <th width="50%">Event</th>
-                </tr>
-            </thead>
-        </table>
-        <table class="behavior-events-table" v-for="(behavior, behaviorIndex) in item.behavior">
-            <tbody>
-                <tr>
-                    <td width="30px" rowspan="2" style="vertical-align: top;">
-                        <span class="link" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
-                    </td>
-                    <td width="50%">
-                        <element-picker
-                            :element="behavior.on.element" 
-                            :scheme-container="schemeContainer"
-                            :self-item="item"
-                            @selected="onBehaviorEventElementSelected(behaviorIndex, arguments[0])"
-                            />
-                    </td>
-                    <td width="50%">
-                        <dropdown
-                            :options="behaviorsEventOptions[behaviorIndex]"
-                            @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
-                            >
-                            <span>{{behavior.on.event | toPrettyEventName}}</span>
-                        </dropdown>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
-                            <div class="icon-container">
-                                <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
-                                <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
-                            </div>
-                            <div>
-                                <element-picker
-                                    :element="action.element" 
-                                    :scheme-container="schemeContainer"
-                                    :self-item="item"
-                                    @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
-                                    />
-                            </div>
-                            <i class="fas fa-caret-right"></i>
-                            <div>
-                                <dropdown
-                                    :options="supportedFunctions"
-                                    @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0].id)"
-                                    >
-                                    <span>{{action.method | toPrettyMethod(methodMap)}}</span>
-                                </dropdown>
-                            </div>
-                            <span class="function-brackets">(</span>
-                            <div class="set-function-arguments" v-if="action.method === 'set'">
-                                <set-function-arguments-editor
-                                    :key="action.element.item+action.args[0]"
-                                    :element="action.element"
-                                    :self-item="item"
-                                    :property="action.args[0]"
-                                    :property-value="action.args[1]"
-                                    :scheme-container="schemeContainer"
-                                    @property-changed="onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, arguments[0], arguments[1])"
-                                    />
-                            </div>
-                            <span class="function-brackets">)</span>
-                        </div>
-                        <span class="btn btn-primary btn-tiny" @click="addActionToBehavior(behaviorIndex)">Add...</span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
+            <div class="behavior-event">
+                <div class="behavior-menu">
+                    <span class="link" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
+                </div>
+                <dropdown
+                    :options="behaviorsEventOptions[behaviorIndex]"
+                    @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
+                    >
+                    <span>{{behavior.on.event | toPrettyEventName}}</span>
+                </dropdown>
+            </div>
+            <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
+                <div class="icon-container">
+                    <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
+                    <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                </div>
+                <div>
+                    <element-picker
+                        :element="action.element" 
+                        :scheme-container="schemeContainer"
+                        :self-item="item"
+                        @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                        />
+                </div>
+                <i class="fas fa-caret-right"></i>
+                <div>
+                    <dropdown
+                        :key="action.element.item"
+                        :options="createMethodSuggestionsForElement(action.element)"
+                        @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                        >
+                        <span v-if="action.method === 'set'">{{action.args[0]}}</span>
+                        <span v-else>{{action.method | toPrettyMethod(methodMap)}}</span>
+                    </dropdown>
+                </div>
+                <span v-if="action.method === 'set'" class="function-brackets"> = </span>
+                <div v-if="action.method === 'set'">{{action.args[1]}}</div>
+            </div>
+            <span class="btn btn-primary btn-tiny" @click="addActionToBehavior(behaviorIndex)">Add...</span>
+        </div>
+
 
         <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
     </div>
@@ -109,7 +76,7 @@ import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetFunctionArgumentsEditor from './behavior/SetFunctionArgumentsEditor.vue';
 
-const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
+const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {method: funcId, name: func.name}});
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
@@ -135,11 +102,22 @@ export default {
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
-            knownInteractionModes: Item.InteractionMode.values()
+            knownInteractionModes: Item.InteractionMode.values(),
+
+            itemMethodSuggestionsMap: {}
         };
     },
 
     methods: {
+
+        findElement(element) {
+            if (element.item) {
+                const item = this.findItem(element.item);
+                return item;
+            }
+            return null;
+        },
+
         findItem(itemId) {
             let item = this.item;
             if (itemId !== 'self') {
@@ -184,6 +162,43 @@ export default {
                 }
             }
             return eventOptions;
+        },
+
+        createMethodSuggestionsForElement(element) {
+            if (element.item) {
+                const item = this.findItem(element.item);
+                if (item) {
+                    const options = [];
+                    _.forEach(Functions, (func, funcId) => {
+                        if (funcId !== 'set') {
+                            options.push({
+                                method: funcId,
+                                name: func.name,
+                                iconClass: 'fas fa-dice-d6'
+                            });
+                        }
+                    });
+                    options.push({
+                        method: 'set',
+                        name: 'Opacity',
+                        fieldPath: 'opacity',
+                        iconClass: 'fas fa-cog'
+                    });
+                    const shape = Shape.find(item.shape);
+                    if (shape) {
+                        _.forEach(shape.args, (arg, argName) => {
+                            options.push({
+                                method: 'set',
+                                name: arg.name,
+                                fieldPath: `shapeProps.${argName}`,
+                                iconClass: 'fas fa-cog'
+                            });
+                        });
+                    }
+                    return options;
+                }
+            }
+            return [];
         },
 
         addBehavior() {
@@ -238,18 +253,23 @@ export default {
             this.item.behavior[behaviorIndex].do[actionIndex].element = element;
         },
 
-        onActionMethodSelected(behaviorIndex, actionIndex, method) {
-            const action = this.item.behavior[behaviorIndex].do[actionIndex];
-            if (action.method !== method) {
-                action.method = method;
+        onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
+            // {method: "set", name: "Stroke size", fieldPath: "shapeProps.strokeSize", iconClass: "fas fa-cog"}
 
-                if (method === 'set') {
-                    action.args = [
-                        'opacity', 1.0
-                    ];
-                } else {
-                    action.args = [];
+            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+            if (methodOption.method === 'set') {
+                action.method = methodOption.method;
+                const args = [];
+                args[0] = methodOption.fieldPath;
+
+                const element = this.findElement(action.element);
+                if (element) {
+                    args[1] = utils.getObjectProperty(element, methodOption.fieldPath);
                 }
+                action.args = args;
+            } else {
+                action.method = methodOption.method;
+                action.args = [];
             }
         },
 

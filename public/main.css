@@ -1216,34 +1216,17 @@ table.position-panel-table .property-label {
 
 
 /************* Behavior Properties **********************/
-.behavior-events-table {
-    table-layout: fixed;
-    font-size: 12px;
-    width: 100%;
-    border-collapse: collapse;
-}
-.behavior-events-table th, .behavior-events-table td {
-    border: 1px solid #aaa;
-    padding: 2px 4px 2px 4px;
-    height: 20px;
-    overflow: hidden;
-    white-space: nowrap;
-}
-.behavior-events-table th {
-    background: #eee;
-    text-align: left;
-}
-.behavior-events-table td {
-    background: #fff;
-    text-align: left;
-}
-.behavior-events-table .element-picker .element-name {
-    display: inline-block;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
+.behavior-event {
+    position: relative;
+    padding-left: 40px;
+}
+.behavior-event .behavior-menu {
+    position: absolute;
+    display: block;
+    left: 5px;
+    top: 0;
+}
 .behavior-action-container {
     padding-bottom: 3px;
     margin-bottom: 3px;
@@ -1251,6 +1234,12 @@ table.position-panel-table .property-label {
 }
 .behavior-action-container > div {
     display: inline-block;
+}
+.behavior-action-container .element-picker .dropdown-click-area {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .behavior-action-container > div.set-function-arguments {
     padding-left: 40px;
