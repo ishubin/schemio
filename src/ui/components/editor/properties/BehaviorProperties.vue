@@ -49,12 +49,18 @@
                         :options="createMethodSuggestionsForElement(action.element)"
                         @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                         >
-                        <span v-if="action.method === 'set'">{{action.args[0]}}</span>
+                        <span v-if="action.method === 'set'">{{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
                         <span v-else>{{action.method | toPrettyMethod(methodMap)}}</span>
                     </dropdown>
                 </div>
                 <span v-if="action.method === 'set'" class="function-brackets"> = </span>
-                <div v-if="action.method === 'set'">{{action.args[1]}}</div>
+
+                <set-argument-editor v-if="action.method === 'set'"
+                    :key="action.args[0]"
+                    :argument-type="getArgumentTypeForElement(action.element, action.args[0])"
+                    :argument-value="action.args[1]"
+                    @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
+                    />
             </div>
             <span class="btn btn-primary btn-tiny" @click="addActionToBehavior(behaviorIndex)">Add...</span>
         </div>
@@ -74,7 +80,7 @@ import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
 import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
-import SetFunctionArgumentsEditor from './behavior/SetFunctionArgumentsEditor.vue';
+import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 
 const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {method: funcId, name: func.name}});
 
@@ -87,7 +93,7 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {Dropdown, ElementPicker, SetFunctionArgumentsEditor},
+    components: {Dropdown, ElementPicker, SetArgumentEditor},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())
@@ -109,7 +115,6 @@ export default {
     },
 
     methods: {
-
         findElement(element) {
             if (element.item) {
                 const item = this.findItem(element.item);
@@ -254,8 +259,6 @@ export default {
         },
 
         onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
-            // {method: "set", name: "Stroke size", fieldPath: "shapeProps.strokeSize", iconClass: "fas fa-cog"}
-
             const action = this.item.behavior[behaviorIndex].do[actionIndex];
             if (methodOption.method === 'set') {
                 action.method = methodOption.method;
@@ -277,6 +280,26 @@ export default {
             this.item.behavior[behaviorIndex].do[actionIndex].args[0] = propertyId;
             this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
             this.$forceUpdate();
+        },
+
+        getArgumentTypeForElement(element, propertyPath) {
+            if (propertyPath.indexOf('shapeProps.') === 0) {
+                const entity = this.findElement(element);
+                if (entity && entity.shape) {
+                    const shape = Shape.find(entity.shape);
+                    if (shape) {
+                        const shapeArgName = propertyPath.substr('shapeProps.'.length);
+                        if (shape.args.hasOwnProperty(shapeArgName)) {
+                            return shape.args[shapeArgName].type;
+                        }
+                    }
+                }
+            }
+            return 'string';
+        },
+
+        onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
+            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
         }
     },
 
@@ -309,6 +332,29 @@ export default {
             } else {
                 return method;
             }
+        },
+
+
+        toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
+            //TODO cache all item properties instead of fetching them over and over again
+            if (propertyPath === 'opacity') {
+                return 'Opacity';
+            } else if (propertyPath.indexOf('shapeProps.') === 0) {
+                let item = null;
+                if (element.item === 'self') {
+                    item = selfItem;
+                } else {
+                    item = schemeContainer.findItemById(element.item);
+                }
+                if (item && item.shape) {
+                    const shape = Shape.find(item.shape);
+                    const shapeArgName = propertyPath.substr('shapeProps.'.length);
+                    if (shape && shape.args.hasOwnProperty(shapeArgName)) {
+                        return shape.args[shapeArgName].name;
+                    }
+                }
+            }
+            return propertyPath;
         }
     }
 }
