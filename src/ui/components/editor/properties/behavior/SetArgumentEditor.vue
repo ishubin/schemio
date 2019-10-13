@@ -1,14 +1,14 @@
 <template>
     <div>
         <input v-if="argumentType === 'string' || argumentType === 'number' || argumentType === 'image'"
-            style="width: 100px" :value="argumentValue" @input="emitValue"/>
+            style="width: 100px" :value="argumentValue" @input="onInputValue"/>
 
         <color-picker v-if="argumentType === 'color'" :color="argumentValue" @input="emitValue"></color-picker>
 
-        <input v-if="argumentType === 'boolean'" type="checkbox" v-model="argumentValue"/>
+        <input v-if="argumentType === 'boolean'" type="checkbox" v-model="argumentValue" @input="onCheckboxValue"/>
 
-        <select v-if="argumentType === 'stroke-pattern'" v-model="argumentValue" @input="emitValue">
-            <option v-for="knownPattern in knownStrokePatterns" :key="knownPattern">{{knownPattern}}</option>
+        <select v-if="argumentType === 'stroke-pattern'" :value="argumentValue" @input="onInputValue">
+            <option v-for="knownPattern in knownStrokePatterns" :key="knownPattern.id">{{knownPattern.name}}</option>
         </select>
     </div>
 </template>
@@ -35,6 +35,12 @@ export default {
     methods: {
         emitValue(value) {
             this.$emit('changed', value);
+        },
+        onInputValue(event) {
+            this.emitValue(event.target.value);
+        },
+        onCheckboxInput(event) {
+            this.emit(event.target.checked);
         }
     }
 }

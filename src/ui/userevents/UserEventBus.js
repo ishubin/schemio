@@ -1,5 +1,9 @@
 import _ from 'lodash';
 
+/**
+ * This UserEventBus is used in order to track and handle events that emitted in interactive mode
+ * when user interacts with elements
+ */
 export default class UserEventBus {
     constructor() {
         this.itemEventSubscribers = {};
