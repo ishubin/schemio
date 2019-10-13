@@ -133,6 +133,7 @@ export default {
 
             if (!this.isPlaying) {
                 this.isPlaying = true;
+                this.emitCurrentFrameEvent();
                 this.intervalId = setInterval(this.onPlayInterval, this.item.shapeProps.frameDelay * 1000);
             } else {
                 this.isPlaying = false;
