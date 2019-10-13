@@ -44,15 +44,15 @@
                             @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
                             />
                     </div>
-                    <i class="fas fa-caret-right"></i>
+                    <span>: </span>
                     <div>
                         <dropdown
                             :key="action.element.item"
                             :options="createMethodSuggestionsForElement(action.element)"
                             @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                             >
-                            <span v-if="action.method === 'set'">{{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                            <span v-else>{{action.method | toPrettyMethod(methodMap)}}</span>
+                            <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                            <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(methodMap)}}</span>
                         </dropdown>
                     </div>
                     <span v-if="action.method === 'set'" class="function-brackets"> = </span>
