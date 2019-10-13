@@ -59,7 +59,7 @@
 
                     <set-argument-editor v-if="action.method === 'set'"
                         :key="action.args[0]"
-                        :argument-type="getArgumentTypeForElement(action.element, action.args[0])"
+                        :argument-description="getArgumentDescriptionForElement(action.element, action.args[0])"
                         :argument-value="action.args[1]"
                         @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
                         />
@@ -290,7 +290,7 @@ export default {
             this.$forceUpdate();
         },
 
-        getArgumentTypeForElement(element, propertyPath) {
+        getArgumentDescriptionForElement(element, propertyPath) {
             if (propertyPath.indexOf('shapeProps.') === 0) {
                 const entity = this.findElement(element);
                 if (entity && entity.shape) {
@@ -298,12 +298,12 @@ export default {
                     if (shape) {
                         const shapeArgName = propertyPath.substr('shapeProps.'.length);
                         if (shape.args.hasOwnProperty(shapeArgName)) {
-                            return shape.args[shapeArgName].type;
+                            return shape.args[shapeArgName];
                         }
                     }
                 }
             }
-            return 'string';
+            return {type: 'string'};
         },
 
         onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {

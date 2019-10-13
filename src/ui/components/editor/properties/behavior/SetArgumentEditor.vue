@@ -5,10 +5,10 @@
 
         <color-picker v-if="argumentType === 'color'" :color="argumentValue" @input="emitValue"></color-picker>
 
-        <input v-if="argumentType === 'boolean'" type="checkbox" v-model="argumentValue" @input="onCheckboxValue"/>
+        <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
-        <select v-if="argumentType === 'stroke-pattern'" :value="argumentValue" @input="onInputValue">
-            <option v-for="knownPattern in knownStrokePatterns" :key="knownPattern.id">{{knownPattern.name}}</option>
+        <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
+            <option v-for="option in choiceOptions" :key="option">{{option}}</option>
         </select>
     </div>
 </template>
@@ -22,13 +22,25 @@ import StrokePattern from '../../items/StrokePattern.js';
 const SHAPE_PROPS_PREFIX = 'shapeProps.';
 
 export default {
-    props: ['argumentType', 'argumentValue'],
+    props: ['argumentValue', 'argumentDescription'],
 
     components: {Dropdown, ColorPicker},
 
     data() {
+        let isChoice = false;
+        let choiceOptions = [];
+
+        if (this.argumentDescription.type === 'stroke-pattern') {
+            isChoice = true;
+            choiceOptions = StrokePattern.getPatternsList();
+        } else if (this.argumentDescription.type === 'choice') {
+            isChoice = true;
+            choiceOptions = this.argumentDescription.options;
+        }
         return {
-            knownStrokePatterns: _.map(StrokePattern.getPatternsList(), pattern => {return {id: pattern, name: pattern}})
+            isChoice,
+            choiceOptions,
+            argumentType: this.argumentDescription.type
         };
     },
 
@@ -40,7 +52,7 @@ export default {
             this.emitValue(event.target.value);
         },
         onCheckboxInput(event) {
-            this.emit(event.target.checked);
+            this.emitValue(event.target.checked);
         }
     }
 }
