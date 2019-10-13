@@ -17,56 +17,63 @@
             </table>
         </div>
 
-        <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
-            <div class="behavior-event">
-                <div class="behavior-menu">
-                    <span class="link" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
-                </div>
-                <dropdown
-                    :options="behaviorsEventOptions[behaviorIndex]"
-                    @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
-                    >
-                    <span>{{behavior.on.event | toPrettyEventName}}</span>
-                </dropdown>
-            </div>
-            <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
-                <div class="icon-container">
-                    <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
-                    <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
-                </div>
-                <div>
-                    <element-picker
-                        :element="action.element" 
-                        :scheme-container="schemeContainer"
-                        :self-item="item"
-                        @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
-                        />
-                </div>
-                <i class="fas fa-caret-right"></i>
-                <div>
+        <panel name="Events">
+            <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
+                <div class="behavior-event">
+                    <div class="behavior-menu">
+                        <span class="icon-event"><i class="fas fa-bell"></i></span>
+                        <span class="link icon-delete" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
+                    </div>
                     <dropdown
-                        :key="action.element.item"
-                        :options="createMethodSuggestionsForElement(action.element)"
-                        @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                        :options="behaviorsEventOptions[behaviorIndex]"
+                        @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
                         >
-                        <span v-if="action.method === 'set'">{{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                        <span v-else>{{action.method | toPrettyMethod(methodMap)}}</span>
+                        <span>{{behavior.on.event | toPrettyEventName}}</span>
                     </dropdown>
                 </div>
-                <span v-if="action.method === 'set'" class="function-brackets"> = </span>
+                <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
+                    <div class="icon-container">
+                        <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
+                        <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                    </div>
+                    <div>
+                        <element-picker
+                            :element="action.element" 
+                            :scheme-container="schemeContainer"
+                            :self-item="item"
+                            @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                            />
+                    </div>
+                    <i class="fas fa-caret-right"></i>
+                    <div>
+                        <dropdown
+                            :key="action.element.item"
+                            :options="createMethodSuggestionsForElement(action.element)"
+                            @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                            >
+                            <span v-if="action.method === 'set'">{{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                            <span v-else>{{action.method | toPrettyMethod(methodMap)}}</span>
+                        </dropdown>
+                    </div>
+                    <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
-                <set-argument-editor v-if="action.method === 'set'"
-                    :key="action.args[0]"
-                    :argument-type="getArgumentTypeForElement(action.element, action.args[0])"
-                    :argument-value="action.args[1]"
-                    @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
-                    />
+                    <set-argument-editor v-if="action.method === 'set'"
+                        :key="action.args[0]"
+                        :argument-type="getArgumentTypeForElement(action.element, action.args[0])"
+                        :argument-value="action.args[1]"
+                        @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
+                        />
+                </div>
+                <div class="behavior-event-add-action">
+                    <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">+</span>
+                </div>
             </div>
-            <span class="btn btn-primary btn-tiny" @click="addActionToBehavior(behaviorIndex)">Add...</span>
-        </div>
 
 
-        <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
+            <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
+
+        </panel>
+
     </div>
 </template>
 
@@ -76,6 +83,7 @@ import shortid from 'shortid';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
 import Item from '../../../scheme/Item.js';
@@ -93,7 +101,7 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())

@@ -284,10 +284,6 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid #7e3e3e;
 }
 
-.btn.btn-tiny {
-    font-size: 10px;
-    padding: 2px 3px 2px 3px;
-}
 
 
 
@@ -1216,48 +1212,59 @@ table.position-panel-table .property-label {
 
 
 /************* Behavior Properties **********************/
+.behavior-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+.behavior-container .behavior-event-add-action {
+    padding-left: 40px;
+}
 
 .behavior-event {
     position: relative;
-    padding-left: 40px;
+    padding-left: 20px;
 }
 .behavior-event .behavior-menu {
     position: absolute;
     display: block;
-    left: 5px;
+    left: 4px;
     top: 0;
 }
+.behavior-event .behavior-menu .icon-delete {
+    display: none;
+    opacity: 0.6;
+    color: #f55;
+}
+.behavior-event:hover .behavior-menu .icon-event {
+    display: none;
+}
+.behavior-event:hover .behavior-menu .icon-delete {
+    display: inline-block;
+}
+.behavior-event .dropdown-click-area {
+    font-size: 14px;
+}
 .behavior-action-container {
-    padding-bottom: 3px;
-    margin-bottom: 3px;
-    border-bottom: 1px dashed #999;
+    position: relative;
+    padding-left: 40px;
+    margin-top: 5px;
 }
 .behavior-action-container > div {
     display: inline-block;
 }
-.behavior-action-container .element-picker .dropdown-click-area {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.behavior-action-container .dropdown-click-area {
+    font-size: 14px;
+}
+.behavior-action-container .element-picker .dropdown-click-area span.element-name {
     white-space: nowrap;
 }
-.behavior-action-container > div.set-function-arguments {
-    padding-left: 40px;
-    display: block;
-}
 .behavior-action-container .icon-container {
-    position: relative;
-    width: 20px;
-    height: 16px;
-}
-.behavior-action-container .icon-container span {
     position: absolute;
-    left: 2px;
-    top: 0px;
-    padding: 6px;
+    left: 20px;
+    top: 0;
 }
 .behavior-action-container .icon-container .icon-action {
-    display: block;
+    display: inline-block;
 }
 .behavior-action-container .icon-container .icon-delete {
     display: none;
@@ -1273,7 +1280,6 @@ table.position-panel-table .property-label {
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;
 }
-
 
 /**************** Context Menu *****************/
 .context-menu {
