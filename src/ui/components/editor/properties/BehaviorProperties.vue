@@ -65,7 +65,8 @@
                         />
                 </div>
                 <div class="behavior-event-add-action">
-                    <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">+</span>
+                    <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
+                    <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
                 </div>
             </div>
 
@@ -308,6 +309,13 @@ export default {
 
         onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
             this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+        },
+
+        duplicateBehavior(behaviorIndex) {
+            const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
+            this.item.behavior.push(newBehavior);
+            this.behaviorsEventOptions.push(this.createEventOptions(newBehavior));
+            this.$forceUpdate();
         }
     },
 

@@ -264,12 +264,12 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid #4392bf;
 }
 .btn.btn-secondary {
-    background: #555;
-    color: white;
-    border: 1px solid #333;
+    background: #ddd;
+    color: #333;
+    border: 1px solid #999;
 }
 .btn.btn-secondary:hover {
-    background: #ddd;
+    background: #eee;
     color: #333;
     border: 1px solid #999;
 }
@@ -1116,6 +1116,13 @@ ul.category-breadcrumb li i {
     position: absolute;
     right: 5px;
 }
+.dropdown-container .dropdown-popup .dropdown-search {
+    width: 100%;
+    display: inline-block;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
 
 /******************************* Item List Popup ****************************/
 .item-list-container {
@@ -1280,6 +1287,15 @@ table.position-panel-table .property-label {
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;
 }
+.behavior-event-add-action {
+    visibility: hidden;
+    margin-top: 6px;
+}
+.behavior-container:hover .behavior-event-add-action {
+    visibility: visible;
+}
+
+
 
 /**************** Context Menu *****************/
 .context-menu {

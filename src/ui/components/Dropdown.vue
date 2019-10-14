@@ -8,9 +8,9 @@
             <slot></slot>
         </div>
 
-        <div class="dropdown-popup" v-if="shown">
+        <div class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
             <input class="dropdown-search" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
-            <div style="max-height: 300px; overflow: auto;">
+            <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
                     <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
                         <i v-if="option.iconClass" :class="option.iconClass"/>
@@ -38,11 +38,34 @@ export default {
         return {
             shown: false,
             lastTimeClicked: 0,
-            searchKeyword: ''
+            searchKeyword: '',
+            x: 0, y: 0,
+            maxHeight: 300,
+            searchTextfieldHeight: 30,
+            maxWidth: 150
         };
     },
     methods: {
-        toggleDropdown() {
+        toggleDropdown(event) {
+            //console.log(event.target.getBoundingClientRect());
+            const bbRect = event.target.getBoundingClientRect();
+            let originalX = Math.max(0, bbRect.x);
+            let originalY = Math.max(0, bbRect.bottom);
+
+            let rightSide = originalX + this.maxWidth;
+            let bottomSide = originalY + this.maxHeight + this.searchTextfieldHeight;
+            let dx = 0, dy = 0;
+            if (rightSide > window.innerWidth) {
+                dx = window.innerWidth - rightSide;
+            }
+            if (bottomSide > window.innerHeight) {
+                dy = window.innerHeight - bottomSide;
+            }
+
+            this.x = originalX + dx;
+            this.y = originalY + dy;
+
+
             this.lastTimeClicked = new Date().getTime();
             this.shown = !this.shown;
         },
