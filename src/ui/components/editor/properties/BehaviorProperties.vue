@@ -21,52 +21,57 @@
             <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
                 <div class="behavior-event">
                     <div class="behavior-menu">
+                        <span class="link icon-collapse" @click="toggleBehaviorCollapse(behaviorIndex)">
+                            <i class="fas" :class="[behaviorsMetas[behaviorIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
+                        </span>
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
                         <span class="link icon-delete" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
                     </div>
                     <dropdown
-                        :options="behaviorsEventOptions[behaviorIndex]"
+                        :options="behaviorsMetas[behaviorIndex].eventOptions"
                         @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
                         >
                         <span>{{behavior.on.event | toPrettyEventName}}</span>
                     </dropdown>
                 </div>
-                <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
-                    <div class="icon-container">
-                        <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
-                        <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
-                    </div>
-                    <div>
-                        <element-picker
-                            :element="action.element" 
-                            :scheme-container="schemeContainer"
-                            :self-item="item"
-                            @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
+                    <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
+                        <div class="icon-container">
+                            <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
+                            <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                        </div>
+                        <div>
+                            <element-picker
+                                :element="action.element" 
+                                :scheme-container="schemeContainer"
+                                :self-item="item"
+                                @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                                />
+                        </div>
+                        <span>: </span>
+                        <div>
+                            <dropdown
+                                :key="action.element.item"
+                                :options="createMethodSuggestionsForElement(action.element)"
+                                @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                                >
+                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(methodMap)}}</span>
+                            </dropdown>
+                        </div>
+                        <span v-if="action.method === 'set'" class="function-brackets"> = </span>
+
+                        <set-argument-editor v-if="action.method === 'set'"
+                            :key="action.args[0]"
+                            :argument-description="getArgumentDescriptionForElement(action.element, action.args[0])"
+                            :argument-value="action.args[1]"
+                            @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
                             />
                     </div>
-                    <span>: </span>
-                    <div>
-                        <dropdown
-                            :key="action.element.item"
-                            :options="createMethodSuggestionsForElement(action.element)"
-                            @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
-                            >
-                            <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                            <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(methodMap)}}</span>
-                        </dropdown>
+                    <div class="behavior-event-add-action">
+                        <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
+                        <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
                     </div>
-                    <span v-if="action.method === 'set'" class="function-brackets"> = </span>
-
-                    <set-argument-editor v-if="action.method === 'set'"
-                        :key="action.args[0]"
-                        :argument-description="getArgumentDescriptionForElement(action.element, action.args[0])"
-                        :argument-value="action.args[1]"
-                        @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
-                        />
-                </div>
-                <div class="behavior-event-add-action">
-                    <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
-                    <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
                 </div>
             </div>
 
@@ -113,7 +118,7 @@ export default {
         return {
             itemMap: this.createItemMap(),
             items: items,
-            behaviorsEventOptions: _.map(this.item.behavior, this.createEventOptions),
+            behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
             originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
@@ -124,6 +129,17 @@ export default {
     },
 
     methods: {
+        createBehaviorMeta(behavior) {
+            return{
+                collapsed: behavior.do && behavior.do.length > 0, // collapsing behaviors that do not have any actions
+                eventOptions: this.createEventOptions(behavior),
+            };
+        },
+
+        toggleBehaviorCollapse(behaviorIndex) {
+            this.behaviorsMetas[behaviorIndex].collapsed = !this.behaviorsMetas[behaviorIndex].collapsed;
+        },
+
         findElement(element) {
             if (element.item) {
                 const item = this.findItem(element.item);
@@ -228,18 +244,18 @@ export default {
                 do: []
             };
             this.item.behavior.push(newBehavior);
-            this.behaviorsEventOptions.push(this.createEventOptions(newBehavior));
+            this.behaviorsMetas.push(this.createEventOptions(newBehavior));
             this.$forceUpdate();
         },
 
         removeBehavior(behaviorIndex) {
             this.item.behavior.splice(behaviorIndex, 1);
-            this.behaviorsEventOptions.splice(behaviorIndex, 1)
+            this.behaviorsMetas.splice(behaviorIndex, 1)
         },
         
         onBehaviorEventElementSelected(behaviorIndex, element) {
             this.item.behavior[behaviorIndex].on.element = element;
-            this.behaviorsEventOptions[behaviorIndex] = this.createEventOptions(this.item.behavior[behaviorIndex]);
+            this.behaviorsMetas[behaviorIndex] = this.createBehaviorMeta(this.item.behavior[behaviorIndex]);
         },
 
         onBehaviorEventSelected(behaviorIndex, eventOption) {
@@ -314,7 +330,7 @@ export default {
         duplicateBehavior(behaviorIndex) {
             const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
             this.item.behavior.push(newBehavior);
-            this.behaviorsEventOptions.push(this.createEventOptions(newBehavior));
+            this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
             this.$forceUpdate();
         }
     },
