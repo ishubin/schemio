@@ -1,7 +1,7 @@
 <template>
     <div class="element-picker">
         <dropdown :options="allOptions" @selected="onElementSelected">
-            <div>
+            <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`]">
                 <i :class="enrichedElement.iconClass"/>
                 <span class="element-name">{{enrichedElement.name}}</span>
             </div>
@@ -40,7 +40,8 @@ export default {
 
     methods: {
         collectAllOptions() {
-            return [{
+            //TODO cache it so that it doesn't have to collect all elements every time it appears
+            const options = [{
                 iconClass: 'fas fa-crosshairs',
                 name: 'Pick...',
                 id: 'pick',
@@ -50,14 +51,28 @@ export default {
                 name: 'self',
                 id: 'self',
                 type: 'item'
-            }].concat(_.map(this.schemeContainer.getItems(), item => {
-                return {
+            }];
+
+            _.forEach(this.schemeContainer.getItems(), item => {
+                options.push({
                     iconClass: 'fas fa-cube',
                     name: item.name,
                     id: item.id,
                     type: 'item'
-                };
-            }));
+                });
+                if (item.connectors) {
+                    _.forEach(item.connectors, connector => {
+                        options.push({
+                            iconClass: 'fas fa-link',
+                            name: connector.name || 'unnamed connector',
+                            itemId: item.id,
+                            id: connector.id,
+                            type: 'connector'
+                        });
+                    });
+                }
+            });
+            return options;
         },
 
         onElementSelected(option) {
@@ -71,8 +86,13 @@ export default {
                     this.$emit('selected', {
                         item: option.id
                     });
+                } else if (option.type === 'connector') {
+                    this.$emit('selected', {
+                        item: option.itemId,
+                        connector: option.id
+                    })
                 } else {
-                    console.error(option.type + ' not implemented yet');
+                    console.error(option.type + ' is not supported');
                 }
             }
         }
@@ -81,28 +101,37 @@ export default {
     computed: {
         enrichedElement() {
             if (this.element.item) {
-                let name = null;
+                let item = null;
                 if (this.element.item === 'self') {
-                    name = 'self';
+                    item = this.selfItem;
                 } else {
-                    const item = this.schemeContainer.findItemById(this.element.item);
-                    if (item) {
-                        name = item.name;
+                    item = this.schemeContainer.findItemById(this.element.item);
+                }
+
+                if (item) {
+                    if (this.element.connector && item.connectors) {
+                        const connector = _.find(item.connectors, connector => connector.id === this.element.connector);
+                        if (connector) {
+                            return {
+                                name: connector.name || connector.id,
+                                type: 'connector',
+                                iconClass: 'fas fa-link'
+                            };
+                        }
+                    } else {
+                        return {
+                            name: this.selfItem.id === item.id ? 'self' : item.name,
+                            type: 'item',
+                            iconClass: 'fas fa-cube'
+                        }
                     }
-                }
-                if (name !== null) {
-                    return {
-                        name: name,
-                        type: 'item',
-                        iconClass: 'fas fa-cube'
-                    };
-                } else {
-                    return {
-                        name: 'Missing item!!!!',
-                        type: 'item',
-                        iconClass: 'fas fa-cube'
-                    };
-                }
+                } 
+
+                return {
+                    name: 'no item',
+                    type: 'error',
+                    iconClass: 'fas fa-exclamation-triangle'
+                };
             }
             return {
                 name: 'page',

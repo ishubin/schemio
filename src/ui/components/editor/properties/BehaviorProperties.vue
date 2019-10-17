@@ -37,7 +37,7 @@
                 <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
                     <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
                         <div class="icon-container">
-                            <span class="icon-action"><i class="fas fa-angle-double-right"></i></span>
+                            <span class="icon-action"><i class="fas fa-circle"></i></span>
                             <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
                         </div>
                         <div>
@@ -51,7 +51,7 @@
                         <span>: </span>
                         <div>
                             <dropdown
-                                :key="action.element.item"
+                                :key="action.element.item + ' ' + (action.element.connector||'')"
                                 :options="createMethodSuggestionsForElement(action.element)"
                                 @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                                 >
@@ -119,12 +119,9 @@ export default {
             itemMap: this.createItemMap(),
             items: items,
             behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
-            originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
             supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
             methodMap: supportedFunctions,
             knownInteractionModes: Item.InteractionMode.values(),
-
-            itemMethodSuggestionsMap: {}
         };
     },
 
@@ -143,6 +140,9 @@ export default {
         findElement(element) {
             if (element.item) {
                 const item = this.findItem(element.item);
+                if (element.connector && item && item.connectors) {
+                    return _.find(item.connectors, connector => connector.id === element.connector);
+                }
                 return item;
             }
             return null;
@@ -214,16 +214,19 @@ export default {
                         fieldPath: 'opacity',
                         iconClass: 'fas fa-cog'
                     });
-                    const shape = Shape.find(item.shape);
-                    if (shape) {
-                        _.forEach(shape.args, (arg, argName) => {
-                            options.push({
-                                method: 'set',
-                                name: arg.name,
-                                fieldPath: `shapeProps.${argName}`,
-                                iconClass: 'fas fa-cog'
+
+                    if (!element.connector) {
+                        const shape = Shape.find(item.shape);
+                        if (shape) {
+                            _.forEach(shape.args, (arg, argName) => {
+                                options.push({
+                                    method: 'set',
+                                    name: arg.name,
+                                    fieldPath: `shapeProps.${argName}`,
+                                    iconClass: 'fas fa-cog'
+                                });
                             });
-                        });
+                        }
                     }
                     return options;
                 }

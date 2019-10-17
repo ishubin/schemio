@@ -1272,6 +1272,8 @@ table.position-panel-table .property-label {
 }
 .behavior-action-container .icon-container .icon-action {
     display: inline-block;
+    font-size: 8px;
+    opacity: 0.3;
 }
 .behavior-action-container .icon-container .icon-delete {
     display: none;
@@ -1295,6 +1297,17 @@ table.position-panel-table .property-label {
     visibility: visible;
 }
 
+/***************** Element Picker ****************/
+.element-picker .picked-element.picked-element-type-item {
+    color: #036503;
+}
+.element-picker .picked-element.picked-element-type-connector {
+    color: #0250a8;
+}
+.element-picker .picked-element.picked-element-type-error {
+    color: #9b0b0b;
+    font-weight: bold;
+}
 
 
 /**************** Context Menu *****************/
