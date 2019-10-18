@@ -58,11 +58,20 @@ export default class Compiler {
         
         const funcs = [];
         _.forEach(actions, action => {
-            if (knownFunctions.hasOwnProperty(action.method)) {
+            let scope = 'page';
+            if (action.element && action.element.item) {
+                if (action.element.connector) {
+                    scope = 'connector';
+                } else {
+                    scope = 'item';
+                }
+            }
+
+            if (knownFunctions[scope].hasOwnProperty(action.method)) {
                 if (action.element) {
                     const element = this.findElement(schemeContainer, selfItem, action.element);
                     if (element) {
-                        funcs.push(createCallable(knownFunctions[action.method], element, action.args));
+                        funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args));
                     }
                 }
             }

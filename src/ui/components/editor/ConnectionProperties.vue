@@ -7,35 +7,38 @@
         <h5>Name</h5>
         <input class="textfield" type="text" v-model="connector.name"/>
 
+        <h5>Opacity</h5>
+        <input class="textfield" type="text" v-model="connector.opacity"/>
+
         <h5>Source</h5>
         Style:
-        <select v-model="connector.style.source.type">
+        <select v-model="connector.source.type">
             <option v-for="type in knownCapStyleTypes">{{type}}</option>
         </select>
-        <input type="text" v-model="connector.style.source.size"/>
+        <input type="text" v-model="connector.source.size"/>
 
         <h5>Destination</h5>
         Style:
-        <select v-model="connector.style.destination.type">
+        <select v-model="connector.destination.type">
             <option v-for="type in knownCapStyleTypes">{{type}}</option>
         </select>
-        <input type="text" v-model="connector.style.destination.size"/>
+        <input type="text" v-model="connector.destination.size"/>
 
         <h5>Style</h5>
 
         <div class="property-row">
-            <color-picker :color="connector.style.color" @input="connector.style.color = arguments[0];"></color-picker>
+            <color-picker :color="connector.color" @input="connector.color = arguments[0];"></color-picker>
             <span class="property-label">Color</span>
         </div>
 
         <div class="property-row">
             <span class="property-label">Stroke size</span>
-            <input type="text" v-model="connector.style.width">
+            <input type="text" v-model="connector.width">
         </div>
 
         <div class="property-row">
             <span class="property-label">Pattern</span>
-            <select type="text" v-model="connector.style.pattern" @change="onConnectorChange">
+            <select type="text" v-model="connector.pattern" @change="onConnectorChange">
                 <option v-for="pattern in knownPatterns">{{pattern}}</option>
             </select>
         </div>

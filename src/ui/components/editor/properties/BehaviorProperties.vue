@@ -56,7 +56,7 @@
                                 @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(methodMap)}}</span>
+                                <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(action.element) }}</span>
                             </dropdown>
                         </div>
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
@@ -96,8 +96,6 @@ import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 
-const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {method: funcId, name: func.name}});
-
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
 };
@@ -119,8 +117,6 @@ export default {
             itemMap: this.createItemMap(),
             items: items,
             behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
-            supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
-            methodMap: supportedFunctions,
             knownInteractionModes: Item.InteractionMode.values(),
         };
     },
@@ -198,8 +194,13 @@ export default {
             if (element.item) {
                 const item = this.findItem(element.item);
                 if (item) {
+                    let scope = 'item';
+                    if (element.connector) {
+                        scope = 'connector';
+                    }
+
                     const options = [];
-                    _.forEach(Functions, (func, funcId) => {
+                    _.forEach(Functions[scope], (func, funcId) => {
                         if (funcId !== 'set') {
                             options.push({
                                 method: funcId,
@@ -361,9 +362,16 @@ export default {
             }
         },
 
-        toPrettyMethod(method, methodMap) {
-            if (methodMap[method]) {
-                return methodMap[method].name;
+        toPrettyMethod(method, element) {
+            let scope = 'page';
+            if (element && element.item) {
+                scope = 'item';
+                if (element.connector) {
+                    scope = 'connector';
+                }
+            }
+            if (Functions[scope][method]) {
+                return Functions[scope][method].name;
             } else {
                 return method;
             }
