@@ -4,7 +4,14 @@ import ShowFunction from "./ShowFunction";
 
 
 export default {
-    set: SetFunction,
-    hide: HideFunction,
-    show: ShowFunction
+    item: {
+        hide: HideFunction,
+        show: ShowFunction,
+        set: SetFunction,
+    },
+    connector: {
+        set: SetFunction
+    },
+    scheme: {
+    }
 };

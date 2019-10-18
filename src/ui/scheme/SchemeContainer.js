@@ -244,19 +244,18 @@ class SchemeContainer {
     enrichConnectorWithDefaultStyle(connector) {
         utils.extendObject(connector, {
             name: '',
-            style: {
-                color: '#333',
-                width: 1,
-                pattern: Connector.Pattern.LINE,
-                connectorType: Connector.Type.STRAIGHT,
-                destination: {
-                    type: Connector.CapType.ARROW,
-                    size: 5
-                },
-                source: {
-                    type: Connector.CapType.EMPTY,
-                    size: 5
-                }
+            opacity: 1.0,
+            color: '#333',
+            width: 1,
+            pattern: Connector.Pattern.LINE,
+            connectorType: Connector.Type.STRAIGHT,
+            destination: {
+                type: Connector.CapType.ARROW,
+                size: 5
+            },
+            source: {
+                type: Connector.CapType.EMPTY,
+                size: 5
             }
         });
     }

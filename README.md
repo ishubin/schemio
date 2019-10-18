@@ -4,32 +4,31 @@ Schemio
 Schemio is a web based service for creating and viewing schemes online. It lets you design any scheme you want, link items to other schemes and provide description for each item. The basic idea behind Schemio is to provide visual and structured documentation so anyone can get a good understanding of a project.
 
 
-TODO
--------------
-- L. Proper MongoClient connection handling. Make sure schemio doesn't die in case of mongo connectivity issues.
 
-- M. Search in category.
-- M. Implement proper mongo migrations
-- L. Parameterized data. Use Global parameters page for storing links or other data. This should be processed with ${...} expression. e.g. ${global.prod.jenkins.link}
-- M. Improve css. Make editor look nicer.
-- M. Improve "connecting" state - draw a virtual connector and allow to create routes before connecting to destination item.
-- M. Snapping to items
-- XS. Fix. Style updates are not rendered for connectors
-- XS. Fix. Stroke changes are not updated in component
-- XS. Image upload error message (New Scheme Popup, etc.)
-- S. Keep state (expanded/collapsed) of panels in local storage
-- M. Export scheme as image.
-- S. Styling. Font-size.
-- S. Add link item
-- L. Undo/Redo with Ctrl-Z/Ctrl-Y
-- L. Optimize storage of schemes (json) by removing default styles and property values
-- S. Convert items into other types
-- L. S3 storage: AWS, Swift etc.
-- M. More component shapes
-- M. Add property types rendering in component items. Specify it via '|' symbol
-- XL. Smart drawing
-- XL. Diff-based saving and conflicts resolving
 
+```js
+"behavior": [ {
+    "on": {
+    "entity": {
+        "item": "self"
+    },
+    "event": "Frame-1",
+    "args": [ ]
+    },
+    "do": [ {
+        "entity": {
+            "item": "some-id232313",
+            "connector": "connection-id-wer32423423"
+        },
+        "method": "show",
+        "args": [ ]
+    }, {
+        "item": { 
+            // this means that the method should be invoked on the page itself
+        }
+    } ]
+}]
+```
 
 License
 ---------

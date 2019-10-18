@@ -1,7 +1,6 @@
 <template>
     <div>
         <div>
-
             <table width="100%">
                 <tbody>
                     <tr>
@@ -18,57 +17,69 @@
             </table>
         </div>
 
-        <span class="btn btn-primary" @click="addRole()">Add behavior event</span>
-
-        <div class="behavior-role" v-for="(role, roleId) in behaviorEvents" :key="role.id">
-            <div class="behavior-trigger">
-                <span class="behavior-trigger-on">on</span>
-                <span class="behavior-trigger-remove-icon" @click="removeRole(roleId)"><i class="fas fa-times"></i></span>
-
-                <div class="behavior-trigger-originator-event">
-                    <dropdown :options="originatorOptions" @selected="selectOriginator(roleId, arguments[0])">
-                        <span class="behavior-trigger-originator">{{role.on.originator | toOriginatorPrettyName(itemMap) }}</span>
+        <panel name="Events">
+            <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
+                <div class="behavior-event">
+                    <div class="behavior-menu">
+                        <span class="link icon-collapse" @click="toggleBehaviorCollapse(behaviorIndex)">
+                            <i class="fas" :class="[behaviorsMetas[behaviorIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
+                        </span>
+                        <span class="icon-event"><i class="fas fa-bell"></i></span>
+                        <span class="link icon-delete" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
+                    </div>
+                    <dropdown
+                        :options="behaviorsMetas[behaviorIndex].eventOptions"
+                        @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
+                        >
+                        <span>{{behavior.on.event | toPrettyEventName}}</span>
                     </dropdown>
+                </div>
+                <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
+                    <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
+                        <div class="icon-container">
+                            <span class="icon-action"><i class="fas fa-circle"></i></span>
+                            <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                        </div>
+                        <div>
+                            <element-picker
+                                :element="action.element" 
+                                :scheme-container="schemeContainer"
+                                :self-item="item"
+                                @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                                />
+                        </div>
+                        <span>: </span>
+                        <div>
+                            <dropdown
+                                :key="action.element.item + ' ' + (action.element.connector||'')"
+                                :options="createMethodSuggestionsForElement(action.element)"
+                                @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                                >
+                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(action.element) }}</span>
+                            </dropdown>
+                        </div>
+                        <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
-                    <dropdown :options="role.eventOptions" @selected="selectTriggerEvent(roleId, arguments[0])">
-                        <span class="behavior-trigger-event">{{role.on.event | toPrettyEventName}}</span>
-                    </dropdown>
+                        <set-argument-editor v-if="action.method === 'set'"
+                            :key="action.args[0]"
+                            :argument-description="getArgumentDescriptionForElement(action.element, action.args[0])"
+                            :argument-value="action.args[1]"
+                            @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
+                            />
+                    </div>
+                    <div class="behavior-event-add-action">
+                        <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
+                        <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="behavior-action-container">
-                <div class="behavior-action-separator">
-                    <i class="fas fa-angle-down"></i>
-                </div>
 
-                <div v-for="(action, actionId) in role.do" :key="`${role.id}-${actionId}`">
-                    <div class="behavior-action">
-                        <span class="behavior-action-remove-icon" @click="removeRoleAction(roleId, actionId)"><i class="fas fa-times"></i></span>
+            <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
 
-                        <dropdown :options="originatorOptions" @selected="selectRoleActionItem(roleId, actionId, arguments[0])">
-                            <span class="behavior-action-item">{{action.item | toOriginatorPrettyName(itemMap) }}</span>
-                        </dropdown>
+        </panel>
 
-                        <dropdown :options="supportedFunctions" @selected="selectRoleActionMethod(roleId, actionId, arguments[0])">
-                            <span class="behavior-action-method">{{action.method | toPrettyMethod(methodMap) }}</span>
-                        </dropdown>
-
-                        <span class="behavior-action-bracket">(</span>
-
-                        <behavior-argument v-for="(arg, argId) in action.args" :key="`${roleId}-${actionId}-${argId}`" :argument="arg" @change="onArgumentChange(roleId, actionId, argId, arguments[0])"></behavior-argument>
-
-                        <span class="behavior-action-bracket">)</span>
-                    </div>
-                    <div class="behavior-action-separator">
-                        <i class="fas fa-angle-down"></i>
-                    </div>
-                </div>
-
-                <div class="behavior-action-add-button" @click="addActionToRole(roleId)">
-                    Click to add action
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 
@@ -78,12 +89,12 @@ import shortid from 'shortid';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
-import BehaviorArgument from './BehaviorArgument.vue';
 import Events from '../../../userevents/Events.js';
 import Item from '../../../scheme/Item.js';
-
-const supportedFunctions = _.mapValues(Functions, (func, funcId) => {return {id: funcId, name: func.name}});
+import ElementPicker from '../ElementPicker.vue';
+import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
@@ -94,7 +105,7 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {BehaviorArgument, Dropdown},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())
@@ -105,99 +116,32 @@ export default {
         return {
             itemMap: this.createItemMap(),
             items: items,
-            originatorOptions: [{id: 'self', name: 'Self'}].concat(items),
-            supportedFunctions: _.chain(supportedFunctions).values().sortBy(func => func.name).value(),
-            methodMap: supportedFunctions,
-            behaviorEvents: this.convertItemBehavior(this.item.behavior),
-            knownInteractionModes: Item.InteractionMode.values()
+            behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
+            knownInteractionModes: Item.InteractionMode.values(),
         };
     },
 
     methods: {
-        convertItemBehavior(behavior) {
-            return _.map(behavior, this.convertItemBehaviorEvent);
+        createBehaviorMeta(behavior) {
+            return{
+                collapsed: behavior.do && behavior.do.length > 0, // collapsing behaviors that do not have any actions
+                eventOptions: this.createEventOptions(behavior),
+            };
         },
 
-        convertItemBehaviorEvent(itemBehaviorEvent) {
-            let eventOptions = standardItemEvents;
-            
+        toggleBehaviorCollapse(behaviorIndex) {
+            this.behaviorsMetas[behaviorIndex].collapsed = !this.behaviorsMetas[behaviorIndex].collapsed;
+        },
 
-            const originatorItem = this.findItem(itemBehaviorEvent.on.originator);
-            if (originatorItem) {
-                const shape = Shape.find(originatorItem.shape);
-                if (shape) {
-                    eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(originatorItem)).map(event => {return {id: event.name, name: event.name}}).value());
+        findElement(element) {
+            if (element.item) {
+                const item = this.findItem(element.item);
+                if (element.connector && item && item.connectors) {
+                    return _.find(item.connectors, connector => connector.id === element.connector);
                 }
+                return item;
             }
-
-            return {
-                id:             shortid.generate(),
-                on:             this.convertItemBehaviorEventOnStatement(itemBehaviorEvent.on),
-                eventOptions:   eventOptions,
-                do:             _.map(itemBehaviorEvent.do, this.convertItemBehaviorAction)
-            };
-        },
-
-        convertItemBehaviorEventOnStatement(itemOnStatement) {
-            return {
-                originator: itemOnStatement.originator,
-                event:      itemOnStatement.event,
-                args:       itemOnStatement.args
-            };
-        },
-
-        convertItemBehaviorAction(itemAction) {
-            const action = {
-                item: itemAction.item,
-                method: itemAction.method,
-                args: this.convertMethodArguments(itemAction)
-            };
-            return action;
-        },
-
-        convertMethodArguments(itemAction) {
-            if (itemAction.method === 'set') {
-                return this.convertMethodArgumentsForSet(itemAction);
-            } else {
-                //TODO fix it later once we have more methods that take arguments
-                return []; // since other methods do not take arguments. 
-            }
-        },
-
-        convertMethodArgumentsForSet(itemAction) {
-            const firstArg = {
-                options: _.chain(supportedProperties).valuesIn().sortBy(arg => arg.id).value(),
-                value: itemAction.args? itemAction.args[0]: 'opacity',
-                type: 'choice'
-            };
-
-            const secondArg = {
-                value: (itemAction.args && itemAction.args.length > 1)? itemAction.args[1] : '',
-                type: 'text'
-            };
-
-            _.forEach(this.findShapeArgsForItem(itemAction.item), (shapeArg, shapeArgName) => {
-                const propertyPath = `shapeProps.${shapeArgName}`;
-                if (firstArg.value === propertyPath) {
-                    firstArg.displayValue = `Shape :: ${shapeArg.name}` ;
-                    secondArg.type = shapeArg.type;
-                    if (secondArg.value === null || secondArg.value === undefined || secondArg.value === '') {
-                        secondArg.value = shapeArg.value;
-                        secondArg.options = shapeArg.options;
-                    }
-                }
-                firstArg.options.push({
-                    id: propertyPath,
-                    name: `Shape :: ${shapeArg.name}`,
-                    _type: shapeArg.type
-                });
-            });
-
-            if (!firstArg.displayValue) {
-                firstArg.displayValue = firstArg.value
-            }
-
-            return [firstArg, secondArg];
+            return null;
         },
 
         findItem(itemId) {
@@ -230,92 +174,167 @@ export default {
             return itemMap;
         },
 
-        selectOriginator(roleIndex, originator) {
-            let itemId = originator;
-            if (originator === this.item.id) {
-                itemId = 'self';
-            }
-
-            this.item.behavior[roleIndex].on.originator = itemId;
-            this.behaviorEvents[roleIndex] = this.convertItemBehaviorEvent(this.item.behavior[roleIndex]);
-            this.$forceUpdate();
-        },
-
-        selectTriggerEvent(roleIndex, event) {
-            this.item.behavior[roleIndex].on.event = event;
-            this.behaviorEvents[roleIndex].on = this.convertItemBehaviorEventOnStatement(this.item.behavior[roleIndex].on);
-            this.$forceUpdate();
-        },
-
-        selectRoleActionItem(roleIndex, actionIndex, itemId) {
-            this.item.behavior[roleIndex].do[actionIndex].item = itemId;
-            this.behaviorEvents[roleIndex].do[actionIndex] = this.convertItemBehaviorAction(this.item.behavior[roleIndex].do[actionIndex]);
-            this.$forceUpdate();
-        },
-
-        selectRoleActionMethod(roleIndex, actionIndex, method) {
-            this.item.behavior[roleIndex].do[actionIndex].method = method;
-            this.behaviorEvents[roleIndex].do[actionIndex] = this.convertItemBehaviorAction(this.item.behavior[roleIndex].do[actionIndex]);
-            this.$forceUpdate();
-        },
-
-        onArgumentChange(roleIndex, actionIndex, argumentIndex, argumentValue) {
-            const itemAction = this.item.behavior[roleIndex].do[actionIndex];
-            const convertedAction = this.behaviorEvents[roleIndex].do[actionIndex];
-            itemAction.args[argumentIndex] = argumentValue;
-
-            if (itemAction.method === 'set' && argumentIndex === 0) {
-                // do it only in case the property name was changed for the "set" method, so that we re-render control for the 2-nd argument
-                const item = this.findItem(itemAction.item);
+        createEventOptions(behavior) {
+            let eventOptions = [];
+            if (behavior.on.element.item) {
+                eventOptions = standardItemEvents;
+                
+                const item = this.findItem(behavior.on.element.item);
                 if (item) {
-                    const propertyValue = utils.getObjectProperty(item, argumentValue);
-                    if (propertyValue !== undefined && propertyValue !== null) {
-                        itemAction.args[1] = propertyValue;
+                    const shape = Shape.find(item.shape);
+                    if (shape) {
+                        eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(item)).map(event => {return {id: event.name, name: event.name}}).value());
                     }
                 }
-
-                this.behaviorEvents[roleIndex].do[actionIndex] = this.convertItemBehaviorAction(this.item.behavior[roleIndex].do[actionIndex]);
-                this.$forceUpdate();
             }
+            return eventOptions;
         },
 
-        addActionToRole(roleIndex) {
-            const action = {
-                item: 'self',
-                method: 'show',
-                args: []
-            }; 
-            this.item.behavior[roleIndex].do.push(action);
-            this.behaviorEvents[roleIndex].do.push(this.convertItemBehaviorAction(action));
-            this.$forceUpdate();
+        createMethodSuggestionsForElement(element) {
+            if (element.item) {
+                const item = this.findItem(element.item);
+                if (item) {
+                    let scope = 'item';
+                    if (element.connector) {
+                        scope = 'connector';
+                    }
+
+                    const options = [];
+                    _.forEach(Functions[scope], (func, funcId) => {
+                        if (funcId !== 'set') {
+                            options.push({
+                                method: funcId,
+                                name: func.name,
+                                iconClass: 'fas fa-dice-d6'
+                            });
+                        }
+                    });
+                    options.push({
+                        method: 'set',
+                        name: 'Opacity',
+                        fieldPath: 'opacity',
+                        iconClass: 'fas fa-cog'
+                    });
+
+                    if (!element.connector) {
+                        const shape = Shape.find(item.shape);
+                        if (shape) {
+                            _.forEach(shape.args, (arg, argName) => {
+                                options.push({
+                                    method: 'set',
+                                    name: arg.name,
+                                    fieldPath: `shapeProps.${argName}`,
+                                    iconClass: 'fas fa-cog'
+                                });
+                            });
+                        }
+                    }
+                    return options;
+                }
+            }
+            return [];
         },
 
-        removeRoleAction(roleIndex, actionIndex) {
-            this.item.behavior[roleIndex].do.splice(actionIndex, 1);
-            this.behaviorEvents[roleIndex].do.splice(actionIndex, 1);
-            this.$forceUpdate();
-        },
-
-        removeRole(roleIndex) {
-            this.item.behavior.splice(roleIndex, 1);
-            this.behaviorEvents.splice(roleIndex, 1);
-            this.$forceUpdate();
-        },
-
-        addRole() {
+        addBehavior() {
             if (!this.item.behavior) {
                 this.item.behavior = [];
             }
-            const newEvent = {
+            const newBehavior = {
                 on: {
-                    originator: 'self',
+                    element: {item: 'self'},
                     event: 'mousein',
                     args: []
                 },
                 do: []
             };
-            this.item.behavior.push(newEvent);
-            this.behaviorEvents.push(this.convertItemBehaviorEvent(newEvent));
+            this.item.behavior.push(newBehavior);
+            this.behaviorsMetas.push(this.createEventOptions(newBehavior));
+            this.$forceUpdate();
+        },
+
+        removeBehavior(behaviorIndex) {
+            this.item.behavior.splice(behaviorIndex, 1);
+            this.behaviorsMetas.splice(behaviorIndex, 1)
+        },
+        
+        onBehaviorEventElementSelected(behaviorIndex, element) {
+            this.item.behavior[behaviorIndex].on.element = element;
+            this.behaviorsMetas[behaviorIndex] = this.createBehaviorMeta(this.item.behavior[behaviorIndex]);
+        },
+
+        onBehaviorEventSelected(behaviorIndex, eventOption) {
+            this.item.behavior[behaviorIndex].on.event = eventOption.id;
+        },
+
+        addActionToBehavior(behaviorIndex) {
+            const behavior = this.item.behavior[behaviorIndex];
+            if (!behavior.do) {
+                behavior.do = [];
+            }
+
+            behavior.do.push({
+                element: {item: 'self'},
+                method: 'show',
+                args: []
+            });
+        },
+
+        removeAction(behaviorIndex, actionIndex) {
+            this.item.behavior[behaviorIndex].do.splice(actionIndex, 1);
+        },
+
+        onActionElementSelected(behaviorIndex, actionIndex, element) {
+            this.item.behavior[behaviorIndex].do[actionIndex].element = element;
+        },
+
+        onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
+            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+            if (methodOption.method === 'set') {
+                action.method = methodOption.method;
+                const args = [];
+                args[0] = methodOption.fieldPath;
+
+                const element = this.findElement(action.element);
+                if (element) {
+                    args[1] = utils.getObjectProperty(element, methodOption.fieldPath);
+                }
+                action.args = args;
+            } else {
+                action.method = methodOption.method;
+                action.args = [];
+            }
+        },
+
+        onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, propertyId, value) {
+            this.item.behavior[behaviorIndex].do[actionIndex].args[0] = propertyId;
+            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+            this.$forceUpdate();
+        },
+
+        getArgumentDescriptionForElement(element, propertyPath) {
+            if (propertyPath.indexOf('shapeProps.') === 0) {
+                const entity = this.findElement(element);
+                if (entity && entity.shape) {
+                    const shape = Shape.find(entity.shape);
+                    if (shape) {
+                        const shapeArgName = propertyPath.substr('shapeProps.'.length);
+                        if (shape.args.hasOwnProperty(shapeArgName)) {
+                            return shape.args[shapeArgName];
+                        }
+                    }
+                }
+            }
+            return {type: 'string'};
+        },
+
+        onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
+            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+        },
+
+        duplicateBehavior(behaviorIndex) {
+            const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
+            this.item.behavior.push(newBehavior);
+            this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
             this.$forceUpdate();
         }
     },
@@ -343,19 +362,42 @@ export default {
             }
         },
 
-        toPrettyMethod(method, methodMap) {
-            if (methodMap[method]) {
-                return methodMap[method].name;
+        toPrettyMethod(method, element) {
+            let scope = 'page';
+            if (element && element.item) {
+                scope = 'item';
+                if (element.connector) {
+                    scope = 'connector';
+                }
+            }
+            if (Functions[scope][method]) {
+                return Functions[scope][method].name;
             } else {
                 return method;
             }
         },
 
-        toPrettySetPropertyName(propertyName, argMap) {
-            if (argMap[propertyName]) {
-                return argMap[propertyName].name;
+
+        toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
+            //TODO cache all item properties instead of fetching them over and over again
+            if (propertyPath === 'opacity') {
+                return 'Opacity';
+            } else if (propertyPath.indexOf('shapeProps.') === 0) {
+                let item = null;
+                if (element.item === 'self') {
+                    item = selfItem;
+                } else {
+                    item = schemeContainer.findItemById(element.item);
+                }
+                if (item && item.shape) {
+                    const shape = Shape.find(item.shape);
+                    const shapeArgName = propertyPath.substr('shapeProps.'.length);
+                    if (shape && shape.args.hasOwnProperty(shapeArgName)) {
+                        return shape.args[shapeArgName].name;
+                    }
+                }
             }
-            return propertyName;
+            return propertyPath;
         }
     }
 }

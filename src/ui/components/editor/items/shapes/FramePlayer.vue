@@ -22,25 +22,25 @@
             style="cursor: pointer"/>
 
             
-        <circle cx="66" cy="30" r="26"
+        <circle cx="54" cy="30" r="15"
             :fill="item.shapeProps.fillColor"
             :stroke="item.shapeProps.strokeColor"
             stroke-width="1"/>
-        <path d="M 0 18  L 0 0  L 12 9 Z"
+        <path d="M 0 12  L 0 0  L 9 6 Z"
             v-if="!isPlaying"
-            transform="translate(63 21)"
+            transform="translate(52 24)"
             :fill="item.shapeProps.strokeColor"
             :stroke="item.shapeProps.strokeColor"
             stroke-width="3"
         />
-        <path d="M 0 0  L 0 18  M 8 0 L 8 18"
+        <path d="M 0 0  L 0 12  M 8 0 L 8 12"
             v-if="isPlaying"
-            transform="translate(62 21)"
+            transform="translate(50 24)"
             :fill="item.shapeProps.strokeColor"
             :stroke="item.shapeProps.strokeColor"
             stroke-width="4"
         />
-        <circle cx="66" cy="30" r="26"
+        <circle cx="54" cy="30" r="15"
             @click="onClickedTogglePlay"
             fill="rgba(255, 255, 255, 0)"
             stroke="rgba(255, 255, 255, 0)"
@@ -48,17 +48,17 @@
             style="cursor: pointer"/>
 
 
-        <circle cx="112" cy="30" r="15" @click="onClickedRight"
+        <circle cx="88" cy="30" r="15" @click="onClickedRight"
             :fill="item.shapeProps.fillColor"
             :stroke="item.shapeProps.strokeColor"
             stroke-width="1"/>
         <path d="M 0 12  L 6 6   L 0 0"
-            transform="translate(109 24)"
+            transform="translate(85 24)"
             fill="none"
             :stroke="item.shapeProps.strokeColor"
             stroke-width="3"
         />
-        <circle cx="112" cy="30" r="15" @click="onClickedRight"
+        <circle cx="88" cy="30" r="15" @click="onClickedRight"
             fill="rgba(255, 255, 255, 0)"
             stroke="rgba(255, 255, 255, 0)"
             stroke-width="1"
@@ -132,7 +132,11 @@ export default {
             }
 
             if (!this.isPlaying) {
+                if (this.currentFrame === this.item.shapeProps.totalFrames) {
+                    this.currentFrame = 1;
+                }
                 this.isPlaying = true;
+                this.emitCurrentFrameEvent();
                 this.intervalId = setInterval(this.onPlayInterval, this.item.shapeProps.frameDelay * 1000);
             } else {
                 this.isPlaying = false;

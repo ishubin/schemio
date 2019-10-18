@@ -3,24 +3,25 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g>
+    <g :style="{'opacity': connector.opacity}">
+            
         <path :d="svgPath" class="item-connector"
             :class="{selected: selected}"
-            :stroke="connector.style.color"
-            :stroke-width="connector.style.width" fill="none"
+            :stroke="connector.color"
+            :stroke-width="connector.width" fill="none"
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
         />
         <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.style.color" class="item-connector" :class="{selected: selected}"/>
+            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector" :class="{selected: selected}"/>
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 class="item-connector"
                 :class="{selected: selected}"
-                :stroke="connector.style.color"
-                :stroke-width="connector.style.width"
+                :stroke="connector.color"
+                :stroke-width="connector.width"
                 :fill="end.fill"
                 stroke-linejoin="round"
             />
@@ -31,7 +32,7 @@
                 :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :class="{selected: selected}"
-                :fill="connector.style.color"
+                :fill="connector.color"
             />
         </g>
 
@@ -150,17 +151,17 @@ export default {
 
         computeCaps(connector) {
             var ends = [];
-            if (connector.meta && connector.meta.points.length > 0 && connector.style) {
+            if (connector.meta && connector.meta.points.length > 0 && connector) {
                 var points = connector.meta.points;
 
-                if (connector.style.source) {
-                    var end = this.createCap(points[0].x, points[0].y, points[1].x, points[1].y, connector.style.source);
+                if (connector.source) {
+                    var end = this.createCap(points[0].x, points[0].y, points[1].x, points[1].y, connector.source);
                     if (end) {
                         ends.push(end);
                     }
                 }
-                if (connector.style.destination) {
-                    var end = this.createCap(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, connector.style.destination);
+                if (connector.destination) {
+                    var end = this.createCap(points[points.length - 1].x, points[points.length - 1].y, points[points.length - 2].x, points[points.length - 2].y, connector.destination);
                     if (end) {
                         ends.push(end);
                     }
@@ -174,10 +175,10 @@ export default {
         },
         generateStrokeDashArray() {
             var dashArray = '';
-            var w = this.connector.style.width;
-            if (this.connector.style.pattern === Connector.Pattern.DOTTED) {
+            var w = this.connector.width;
+            if (this.connector.pattern === Connector.Pattern.DOTTED) {
                 dashArray =  w + ' ' + (w * 2);
-            } else if (this.connector.style.pattern === Connector.Pattern.DASHED) {
+            } else if (this.connector.pattern === Connector.Pattern.DASHED) {
                 dashArray = (w * 4) + ' ' + (w * 4);
             }
             this.strokeDashArray = dashArray;
