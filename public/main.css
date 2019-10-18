@@ -419,15 +419,16 @@ svg .item-link .item-link-full-title {
     font-family: "Lucida Console", monospace;
     fill: #333;
 }
-svg .item-link .item-link-title-background {
-    fill: #eee;
+svg .item-link .item-link-title {
+    display: inline-block;
+    padding: 2px 4px;
+    background: #eee;
+    color: #111;
     opacity: 0.8;
 }
-svg .item-link:hover .item-link-title-background {
-    fill: #222;
-}
-svg .item-link:hover .item-link-full-title {
-    fill: #eee;
+svg .item-link:hover .item-link-title {
+    background: #222;
+    color: #eee;
 }
 svg .item-edit-menu-link:hover circle {
     r: 15;

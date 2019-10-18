@@ -51,7 +51,6 @@
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
-
                         <text class="item-link-icon" :class="['link-icon-' + link.type]"
                             :x="link.x - 6"
                             :y="link.y + 5"
@@ -59,16 +58,9 @@
                             :title="link.title"
                             >{{link.shortTitle}}</text>
 
-                        <rect class="item-link-title-background"
-                            :x="link.x + 16"
-                            :y="link.y - 13"
-                            :width="calculateLinkBackgroundRectWidth(link)"
-                            :height="25"
-                        ></rect>
-                        <text class="item-link-full-title"
-                            :x="link.x + 25 - 5"
-                            :y="link.y + 5"
-                            >{{link | formatLinkTitle}}</text>
+                        <foreignObject :x="link.x + 16" :y="link.y - 11" :width="1000" height="30">
+                            <span class="item-link-title">{{link | formatLinkTitle}}</span>
+                        </foreignObject>
                     </a>
                 </g>
             </g>
