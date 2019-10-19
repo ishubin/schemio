@@ -46,23 +46,23 @@ export default [{
         },
         behavior: [ {
             on: {
-                originator: {item: 'self'},
-                event: 'mousein', // simulates hover event only once when cursor enters element
+                element: {item: 'self'},
+                event: 'mousein', // simulates hover event only when cursor enters element
                 args: []
             },
             do: [{
-                entity: {item: 'self'},
+                element: {item: 'self'},
                 method: 'set',
                 args: ['opacity', 0.5]
             }]
         }, {
             on: {
-                originator: {item: 'self'},
+                element: {item: 'self'},
                 event: 'mouseout',
                 args: []
             },
             do: [{
-                entity: {item: 'self'},
+                element: {item: 'self'},
                 method: 'set',
                 args: ['opacity', 0.1]
             }]
@@ -103,8 +103,15 @@ export default [{
         shapeProps: { }
     }, defaultItem)
 }, {
+    name: 'Link',
+    svg: `<foreignObject x="0" y="0" width="38" height="28"><i class="fas fa-link" style="font-size: 26px;"></i></foreignObject>`,
+    item: utils.extendObject({
+        shape: 'link',
+        shapeProps: { }
+    }, defaultItem)
+}, {
     name: 'Frame Player',
-    svg: `<circle cx="16" cy="16" r="14"></circle>`,
+    svg: `<foreignObject x="0" y="0" width="38" height="28"><i class="fas fa-film" style="font-size: 28px;"></i></foreignObject>`,
     item: utils.extendObject({
         shape: 'frame_player',
         shapeProps: { }

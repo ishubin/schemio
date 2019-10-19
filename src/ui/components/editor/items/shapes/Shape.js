@@ -2,12 +2,14 @@ import Vue from 'vue';
 import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
+import Link from './Link.vue';
 import CommentShape from './CommentShape.vue';
 import FramePlayer from './FramePlayer.vue';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
+import _ from 'lodash';
 
 
 /**
@@ -26,7 +28,7 @@ function defaultGetEventsFunc(item) {
     return [];
 }
 
-function _shape(shapeComponent) {
+function enrichShape(shapeComponent) {
     return {
         args: shapeComponent.args,
         computePath: shapeComponent.computePath,
@@ -37,17 +39,18 @@ function _shape(shapeComponent) {
     };
 }
 
-const shapeReigstry = {
-    none: _shape(NoneShape),
-    rect: _shape(Rect),
-    ellipse: _shape(Ellipse),
-    comment: _shape(CommentShape),
-    frame_player: _shape(FramePlayer),
-    uml_object: _shape(UMLObject),
-    uml_module: _shape(UMLModule),
-    uml_package: _shape(UMLPackage),
-    uml_node: _shape(UMLNode),
-};
+const shapeReigstry = _.mapValues({
+    none: NoneShape,
+    rect: Rect,
+    ellipse: Ellipse,
+    comment: CommentShape,
+    frame_player: FramePlayer,
+    link: Link,
+    uml_object: UMLObject,
+    uml_module: UMLModule,
+    uml_package: UMLPackage,
+    uml_node: UMLNode,
+}, enrichShape);
 
 /**
  * Generates a component and returns it's name
