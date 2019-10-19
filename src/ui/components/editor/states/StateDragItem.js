@@ -42,6 +42,10 @@ export default class StateDragItem extends State {
 
         // used to check whether the mouse moved between mouseDown and mouseUp events
         this.wasMouseMoved = false;
+
+        // used in order to drag screen when user holds spacebar
+        this.shouldDragScreen = false;
+        this.originalOffset = {x: 0, y: 0};
     }
 
     reset() {
@@ -66,6 +70,18 @@ export default class StateDragItem extends State {
             this.dragItemsByKeyboard(0, -delta);
         } else if (EventBus.KEY.DOWN === key) {
             this.dragItemsByKeyboard(0, delta);
+        }
+    }
+
+    keyPressed(key, keyOptions) {
+        if (key === EventBus.KEY.SPACE && !this.startedDragging) {
+            this.shouldDragScreen = true;
+        }
+    }
+
+    keyUp(key, keyOptions) {
+        if (key === EventBus.KEY.SPACE) {
+            this.shouldDragScreen = false;
         }
     }
 
@@ -116,9 +132,19 @@ export default class StateDragItem extends State {
         this.sourceItem = sourceItem;
     }
 
+    initScreenDrag(mx, my) {
+        this.startedDragging = true;
+        this.originalPoint.x = mx;
+        this.originalPoint.y = my;
+        this.originalOffset = {x: this.editor.vOffsetX, y: this.editor.vOffsetY};
+    }
+
     mouseDown(x, y, mx, my, object, event) {
         this.wasMouseMoved = false;
-        if (object.dragger) {
+
+        if (this.shouldDragScreen) {
+            this.initScreenDrag(mx, my);
+        } else if (object.dragger) {
             this.dragger = object.dragger;
             this.initDraggingForItem(object.dragger.item, x, y);
             this.initDragging(x, y);
@@ -213,7 +239,10 @@ export default class StateDragItem extends State {
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
             this.wasMouseMoved = true;
-            if (event.buttons === 0) {
+
+            if (this.shouldDragScreen) {
+                this.dragScreen(mx, my);
+            } else if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
             } else {
@@ -433,6 +462,14 @@ export default class StateDragItem extends State {
 
     emitEventsForAllSelectedItems() {
         _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemSelected(item.id));
+    }
+
+    dragScreen(x, y) {
+        this.editor.updateOffset(
+            Math.floor(this.originalOffset.x + x - this.originalPoint.x),
+            Math.floor(this.originalOffset.y + y - this.originalPoint.y)
+        );
+        this.editor.$forceUpdate();
     }
 
 }

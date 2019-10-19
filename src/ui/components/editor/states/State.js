@@ -22,6 +22,7 @@ class State {
     }
 
     keyPressed(key, keyOptions){}
+    keyUp(key, keyOptions){}
 
     mouseDown(worldX, worldY, screenX, screenY, object, event) {}
     mouseUp(worldX, worldY, screenX, screenY, object, event) {}

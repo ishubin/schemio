@@ -224,6 +224,7 @@ export default {
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
@@ -246,6 +247,7 @@ export default {
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
@@ -444,7 +446,6 @@ export default {
                 this.state.mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
-
         onCancelCurrentState() {
             if (this.mode === 'edit') {
                 this.state = this.states.dragItem;
@@ -519,6 +520,12 @@ export default {
                 this.deleteSelectedItemsAndConnectors();
             } else {
                 this.state.keyPressed(key, keyOptions);
+            }
+        },
+
+        onKeyUp(key, keyOptions) {
+            if (key !== EventBus.KEY.ESCAPE && key != EventBus.KEY.DELETE) {
+                this.state.keyUp(key, keyOptions);
             }
         },
 

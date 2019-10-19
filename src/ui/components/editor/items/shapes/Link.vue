@@ -57,7 +57,6 @@ export default {
             }
         },
         linkHtml() {
-            console.log('linkhtml', this.item);
             if (this.item.text && this.item.text.length > 0) {
                 console.log(this.item.text);
                 return this.item.text;

@@ -14,6 +14,7 @@ const EventBus = new Vue({
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             KEY_PRESS: 'key-press',
+            KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
             SWITCH_MODE_TO_EDIT: 'switch-mode-edit', //TODO rename it to MODE_CHANGED and pass the value of the mode
 
@@ -60,7 +61,8 @@ const EventBus = new Vue({
                 UP: 'up',
                 DOWN: 'down',
                 LEFT: 'left',
-                RIGHT: 'right'
+                RIGHT: 'right',
+                SPACE: 'space'
             }
         };
     },
@@ -141,15 +143,30 @@ keyMap[EventBus.KEY.LEFT] = event => event.key === 'ArrowLeft';
 keyMap[EventBus.KEY.RIGHT] = event => event.key === 'ArrowRight';
 keyMap[EventBus.KEY.UP] = event => event.key === 'ArrowUp';
 keyMap[EventBus.KEY.DOWN] = event => event.key === 'ArrowDown';
+keyMap[EventBus.KEY.SPACE] = event => event.key === ' ' || event.keyCode === 32;
 
 function identifyKeyPress(event) {
     return _.findKey(keyMap, (check, keyName) => check(event));
 }
 
+document.onkeyup = function(event) {
+    event = event || window.event;
+    if (event.srcElement === document.body) {
+        const key = identifyKeyPress(event);
+        if (key) {
+            event.preventDefault();
+            EventBus.$emit(EventBus.KEY_UP, key, {
+                ctrlCmdPressed: event.metaKey || event.ctrlKey
+            });
+        }
+    }
+};
+
+
 document.onkeydown = function(event) {
     event = event || window.event;
     if (event.srcElement === document.body) {
-        var key = identifyKeyPress(event);
+        const key = identifyKeyPress(event);
         if (key) {
             event.preventDefault();
             EventBus.$emit(EventBus.KEY_PRESS, key, {
@@ -157,5 +174,5 @@ document.onkeydown = function(event) {
             });
         }
     }
-}
+};
 export default EventBus;
