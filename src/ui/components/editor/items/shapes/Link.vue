@@ -58,7 +58,6 @@ export default {
         },
         linkHtml() {
             if (this.item.text && this.item.text.length > 0) {
-                console.log(this.item.text);
                 return this.item.text;
             }
             return this.item.shapeProps.url;

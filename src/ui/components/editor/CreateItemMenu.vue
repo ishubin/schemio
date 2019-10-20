@@ -43,6 +43,8 @@
             {{errorMessage}}
         </modal>
 
+        <link-edit-popup v-if="linkCreation.popupShown" :edit="false" :project-id="projectId" @submit-link="startCreatingLink" @close="linkCreation.popupShown = false"/>
+
     </div>
 </template>
 
@@ -60,18 +62,19 @@ import utils from '../../../ui/utils.js';
 import generalItems from './item-menu/GeneralItemMenu.js';
 import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
+import LinkEditPopup from './LinkEditPopup.vue';
 
 
-let _selectedImageItem = null;
 
 export default {
     props: ['projectId'],
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup},
     mounted() {
         this.reloadArt();
     },
     data() {
         return {
+            selectedImageItem: null,
             createImageModalShown: false,
             customArtUploadModalShown: false,
             menu: 'main',
@@ -87,7 +90,11 @@ export default {
             }, {
                 name: 'UML',
                 items: this.prepareItemsForMenu(umlItems)
-            }]
+            }],
+            linkCreation: {
+                popupShown: false,
+                item: null
+            }
         }
     },
     methods: {
@@ -149,8 +156,11 @@ export default {
 
         onItemSelected(item) {
             if (item.imageProperty) {
-                _selectedImageItem = utils.clone(item);
+                this.selectedImageItem = utils.clone(item);
                 this.createImageModalShown = true;
+            } if (item.item.shape === 'link') {
+                this.linkCreation.item = utils.clone(item.item);
+                this.linkCreation.popupShown = true;
             } else {
                 const newItem = utils.clone(item.item);
                 newItem.id = shortid.generate();
@@ -160,8 +170,12 @@ export default {
             }
         },
 
-        clickImage() {
-            this.createImageModalShown = true;
+        startCreatingLink(link) {
+            this.linkCreation.popupShown = false;
+            const item = utils.clone(this.linkCreation.item);
+            item.shapeProps.url = link.url;
+            item.text = link.title;
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
         startCreatingImage(imageUrl) {
@@ -169,11 +183,11 @@ export default {
             var img = new Image();
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    const newItem = utils.clone(_selectedImageItem.item);
+                    const newItem = utils.clone(this.selectedImageItem.item);
                     newItem.id = shortid.generate();
                     newItem.area = { x: 0, y: 0, w: 0, h: 0 };
 
-                    utils.setObjectProperty(newItem, _selectedImageItem.imageProperty, imageUrl);
+                    utils.setObjectProperty(newItem, this.selectedImageItem.imageProperty, imageUrl);
                     EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
                 }
                 this.createImageModalShown = false;
