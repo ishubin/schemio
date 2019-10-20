@@ -19,10 +19,12 @@ export default class StateCreateComponent extends State {
     reset() {
         this.component = null;
         this.addedToScheme = false;
+        this.updateCursor('default');
     }
 
     setComponent(component) {
         this.component = component;
+        this.updateCursor('crosshair');
     }
 
     mouseDown(x, y, mx, my, object, event) {

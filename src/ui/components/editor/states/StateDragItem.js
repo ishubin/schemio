@@ -49,6 +49,7 @@ export default class StateDragItem extends State {
     }
 
     reset() {
+        this.updateCursor('default');
         this.startedDragging = false;
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
@@ -76,12 +77,14 @@ export default class StateDragItem extends State {
     keyPressed(key, keyOptions) {
         if (key === EventBus.KEY.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
+            this.updateCursor('grab');
         }
     }
 
     keyUp(key, keyOptions) {
         if (key === EventBus.KEY.SPACE) {
             this.shouldDragScreen = false;
+            this.updateCursor('default');
         }
     }
 
@@ -143,6 +146,7 @@ export default class StateDragItem extends State {
         this.wasMouseMoved = false;
 
         if (this.shouldDragScreen) {
+            this.updateCursor('grabbing');
             this.initScreenDrag(mx, my);
         } else if (object.dragger) {
             this.dragger = object.dragger;

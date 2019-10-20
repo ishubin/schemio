@@ -84,6 +84,10 @@ class State {
         return Math.round(value);
     }
 
+    updateCursor(cursor) {
+        this.editor.cursor = cursor;
+    }
+
 }
 
 export default State;

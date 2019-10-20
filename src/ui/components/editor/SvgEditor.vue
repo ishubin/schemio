@@ -10,6 +10,7 @@
             :width="width+'px'"
             :height="height+'px'"
             :class="['mode-' + mode, 'state-' + (state? state.name: 'unknown')]"
+            :style="{cursor: cursor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
@@ -282,6 +283,8 @@ export default {
             vOffsetX: 0,
             vOffsetY: 0,
             vZoom: 1.0,
+
+            cursor: 'default',
 
             activeItem: null,
             selectedItemLinks: [],
