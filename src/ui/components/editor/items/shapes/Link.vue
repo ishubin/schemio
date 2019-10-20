@@ -1,15 +1,19 @@
 <template>
     <g>
         <a class="item-link" @click="onLinkClick" :xlink:href="item.shapeProps.url">
-            <foreignObject x="0" y="0" width="24" :height="item.area.h"
+            <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
                 :style="iconStyle"
-                ><i class="fas fa-link"></i></foreignObject>
-            <foreignObject x="24" y="0" :width="item.area.w" :height="item.area.h" v-html="linkHtml" :style="style"></foreignObject>
+                ><i :class="iconClass"></i></foreignObject>
+            <foreignObject :x="textOffset" y="0" :width="item.area.w - textOffset" :height="item.area.h" v-html="linkHtml" :style="style"></foreignObject>
         </a>
     </g>
     
 </template>
 <script>
+import _ from 'lodash';
+import LinkTypes from '../../LinkTypes.js';
+import LinkEditPopupVue from '../../LinkEditPopup.vue';
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
@@ -18,11 +22,14 @@ export default {
     },
 
     args: {
-        url: {type: 'string', value: '', name: 'URL'},
-        color: {type: 'color', value: '#047FE4', name: 'Color'},
+        url      : {type: 'string', value: '', name: 'URL'},
+        color    : {type: 'color', value: '#047FE4', name: 'Color'},
         underline: {type: 'boolean', value: true, name: 'Underline'},
-        bold: {type: 'boolean', value: false, name: 'Bold'},
-        fontSize: {type: 'number', value: 16, name: 'Font Size'}
+        bold     : {type: 'boolean', value: false, name: 'Bold'},
+        fontSize : {type: 'number', value: 16, name: 'Font Size'},
+        showIcon : {type: 'boolean', value: true, name: 'Show Icon'},
+        icon     : {type: 'choice', value: 'default', name: 'Icon', options: _.map(LinkTypes.knownTypes, linkType => linkType.name)},
+        iconColor: {type: 'color', value: '#666666', name: 'Color'}
     },
 
     data() {
@@ -52,7 +59,7 @@ export default {
         },
         iconStyle() {
             return {
-                'color': '#666',
+                'color': this.item.shapeProps.iconColor,
                 'font-size': `${this.item.shapeProps.fontSize}px`
             }
         },
@@ -61,6 +68,17 @@ export default {
                 return this.item.text;
             }
             return this.item.shapeProps.url;
+        },
+
+        textOffset() {
+            if (this.item.shapeProps.showIcon) {
+                return this.item.shapeProps.fontSize * 1.4;
+            }
+            return 0;
+        },
+
+        iconClass() {
+            return LinkTypes.findTypeByNameOrDefault(this.item.shapeProps.icon).cssClass;
         }
     }
 }

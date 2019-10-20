@@ -13,7 +13,7 @@
             <ul class="links">
                 <li v-for="(link, linkId) in item.links">
                     <a class="link" :href="link.url" target="_blank">
-                       <i class="fas" :class="getLinkCssClass(link)"></i>
+                       <i :class="getLinkCssClass(link)"></i>
                         {{link.title}}
                     </a>
                 </li>

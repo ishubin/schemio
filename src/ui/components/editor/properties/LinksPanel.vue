@@ -8,7 +8,7 @@
         <ul class="links">
             <li v-for="(link, linkId) in item.links">
                 <a class="link" :href="link.url" target="_blank">
-                   <i class="fas" :class="getLinkCssClass(link)"></i>
+                   <i :class="getLinkCssClass(link)"></i>
                     {{link | formatLinkTitle }}
                 </a>
                 <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
