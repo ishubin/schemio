@@ -123,7 +123,8 @@ export default {
     },
 
     mounted() {
-        this.switchShape(this.item.shape);
+        this.oldShape = this.item.shape;
+        this.shapeComponent = Shape.make(this.item.shape);
     },
 
     data() {

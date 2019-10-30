@@ -176,6 +176,7 @@ export default {
         window.onbeforeunload = this.onBrowseClose;
         this.init();
         EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
+        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
         EventBus.$on(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
@@ -188,6 +189,7 @@ export default {
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
+        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
         EventBus.$off(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
@@ -580,7 +582,11 @@ export default {
             this.mode = 'edit';
         },
 
-        onSchemeChange(item) {
+        onSchemeChange() {
+            this.schemeChanged = true;
+        },
+
+        onItemChange(itemId) {
             this.schemeChanged = true;
         },
 
