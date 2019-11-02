@@ -35,6 +35,15 @@ h5 {
 }
 
 
+.text-nonselectable {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select:    none;
+    user-select:    none;
+    -o-user-select: none;
+}
+
+
 /******************* Middle content *********************/
 .middle-content {
     margin-top: 60px;
@@ -591,6 +600,11 @@ ul.button-group li .toggle-button:hover {
 }
 ul.button-group li .toggle-button.toggled:hover {
     background: #2d90d0;
+}
+ul.button-group li .toggle-button.disabled:hover, ul.button-group li .toggle-button.disabled {
+    color: #555 !important;
+    background: none;
+    cursor: default;
 }
 ul.button-group li .toggle-button .small-letter {
     position: absolute;

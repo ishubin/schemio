@@ -25,8 +25,13 @@
                     </div>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                    <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                     <ul class="button-group">
+                        <li>
+                            <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
+                        </li>
+                        <li>
+                            <span title="Redo" class="toggle-button" :class="{'disabled': !historyState.redoable}" @click="historyRedo"><i class="fas fa-redo"></i></span>
+                        </li>
                         <li>
                             <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
                         </li>
@@ -51,6 +56,7 @@
                             </span>
                         </li>
                     </ul>
+                    <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
 
@@ -161,7 +167,10 @@ import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import settingsStorage from '../settingsStorage.js';
 import snapshotSvg from '../svgPreview.js';
 import hasher from '../url/hasher.js';
+import History from '../history/History.js';
 
+
+let history = new History({size: 30});
 
 
 export default {
@@ -186,6 +195,7 @@ export default {
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$on(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -199,6 +209,7 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$off(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
     },
     data() {
         return {
@@ -207,6 +218,11 @@ export default {
             schemeId: null,
             currentCategory: null,
             originalUrlEncoded: encodeURIComponent(window.location),
+
+            historyState: {
+                undoable: false,
+                redoable: false
+            },
 
             itemListShown: false,
             schemeChanged: false, //used in order to render Save button
@@ -277,6 +293,10 @@ export default {
             });
             this.schemeId = this.$route.params.schemeId;
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
+                history = new History({size: 30});
+                document._history = history;
+                history.commit(scheme);
+
                 this.currentCategory = scheme.category;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
@@ -621,6 +641,38 @@ export default {
             this.itemTooltip.x = mouseX;
             this.itemTooltip.y = mouseY;
             this.itemTooltip.shown = true;
+        },
+
+        commitHistory() {
+            history.commit(this.schemeContainer.scheme);
+            this.updateHistoryState();
+        },
+
+        historyUndo() {
+            if (history.undoable()) {
+                const scheme = history.undo();
+                if (scheme) {
+                    this.schemeContainer.scheme = scheme;
+                    this.schemeContainer.reindexItems();
+                }
+                this.updateHistoryState();
+            }
+        },
+
+        historyRedo() {
+            if (history.redoable()) {
+                const scheme = history.redo();
+                if (scheme) {
+                    this.schemeContainer.scheme = scheme;
+                    this.schemeContainer.reindexItems();
+                }
+                this.updateHistoryState();
+            }
+        },
+
+        updateHistoryState() {
+            this.historyState.undoable = history.undoable();
+            this.historyState.redoable = history.redoable();
         }
     },
 

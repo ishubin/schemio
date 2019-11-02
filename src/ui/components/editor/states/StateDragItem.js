@@ -310,6 +310,9 @@ export default class StateDragItem extends State {
                 this.schemeContainer.selectItem(object.item, false);
             }
         } 
+        if (this.startedDragging && this.wasMouseMoved) {
+            this.eventBus.emitSchemeChangeCommited();
+        }
         this.reset();
     }
 
@@ -321,9 +324,11 @@ export default class StateDragItem extends State {
                 object.connector.reroutes.splice(object.rerouteId, 1);
                 this.schemeContainer.buildConnector(object.sourceItem, object.connector);
                 this.eventBus.emitConnectorChanged(object.connector.id);
+                this.eventBus.emitSchemeChangeCommited();
             } else {
                 this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
                 this.eventBus.emitConnectorChanged(object.connector.id);
+                this.eventBus.emitSchemeChangeCommited();
             }
         }
     }

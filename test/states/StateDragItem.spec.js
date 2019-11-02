@@ -2,7 +2,9 @@ import StateDragItem from '../../src/ui/components/editor/states/StateDragItem.j
 import expect from 'expect';
 import sinon from 'sinon';
 
-const whateverEventBus = {};
+const whateverEventBus = {
+    emitSchemeChangeCommited() {}
+};
 
 
 describe('StateDragItem', () => {

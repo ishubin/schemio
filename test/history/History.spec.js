@@ -69,11 +69,26 @@ describe('History', () => {
         history.undo();
         history.commit({index: 1000});
 
-        console.log(history.checkpoints);
         expect(history.checkpoints).toStrictEqual([
             {index: 0}, {index: 1}, {index: 2}, {index: 1000} 
         ]);
         expect(history.current()).toStrictEqual({index: 1000});
 
+    });
+
+
+    it('should undo commit two times', () => {
+        const history = new History({size: 5});
+        history.commit({animal: 'Cat'});
+        history.commit({animal: 'Dog'});
+        history.undo();
+        history.commit({animal: 'Lizzard'});
+        history.undo();
+
+
+        expect(history.checkpoints).toStrictEqual([
+            {animal: 'Cat'}, {animal: 'Lizzard'}
+        ]);
+        expect(history.current()).toStrictEqual({animal: 'Cat'});
     });
 });

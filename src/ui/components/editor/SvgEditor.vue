@@ -535,6 +535,7 @@ export default {
         deleteSelectedItemsAndConnectors() {
             this.activeItem = null;
             this.schemeContainer.deleteSelectedItemsAndConnectors();
+            EventBus.emitSchemeChangeCommited();
             this.$emit('deleted-items');
             this.$forceUpdate();
         },

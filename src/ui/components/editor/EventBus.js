@@ -23,6 +23,8 @@ const EventBus = new Vue({
 
             SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
 
+            SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
+
             ITEM_CHANGED: 'item-changed',
             ITEM_SELECTED: 'item-selected',
             ITEM_DESELECTED: 'item-deselected',
@@ -67,6 +69,10 @@ const EventBus = new Vue({
         };
     },
     methods: {
+        emitSchemeChangeCommited() {
+            this.$emit(EventBus.SCHEME_CHANGE_COMITTED);
+        },
+
         /**
          * @param {string} itemId 
          */
