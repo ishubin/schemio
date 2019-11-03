@@ -654,6 +654,10 @@ export default {
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
+                    // Reloading selected item, since the scheme was fully reloaded
+                    if (this.selectedItem) {
+                        this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
+                    }
                 }
                 this.updateHistoryState();
             }
@@ -665,6 +669,10 @@ export default {
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
+                    // Reloading selected item, since the scheme was fully reloaded
+                    if (this.selectedItem) {
+                        this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
+                    }
                 }
                 this.updateHistoryState();
             }
