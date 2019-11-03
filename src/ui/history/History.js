@@ -5,9 +5,24 @@ export default class History {
         this.checkpoints = [];
         this.size = options.size || 30;
         this.currentPosition = 0;
+
+        // Used to group commits
+        this.lastAffinityId = null;
     }
     
-    commit(obj) {
+    /**
+     * Commits a modification of on object
+     * @param {Object} obj - New version of modified object
+     * @param {String} affinityId - Id of change which is used in order to group commits. If not specified, then commits will not be grouped
+     */
+    commit(obj, affinityId) {
+        if (affinityId && affinityId === this.lastAffinityId) {
+            this.checkpoints[this.currentPosition] = utils.clone(obj);
+            return;
+        }
+            
+        this.lastAffinityId = affinityId;
+
         // erasing history in case commit was invoked after undoing
         if (this.currentPosition < this.checkpoints.length - 1 && this.currentPosition >= 0) {
             this.checkpoints.splice(this.currentPosition + 1, this.checkpoints.length - this.currentPosition);
@@ -22,6 +37,7 @@ export default class History {
     }
 
     undo() {
+        this.lastAffinityId = null;
         if (this.currentPosition > 0) {
             this.currentPosition -= 1;
         }
@@ -29,6 +45,7 @@ export default class History {
     }
 
     redo() {
+        this.lastAffinityId = null;
         if (this.currentPosition < this.checkpoints.length - 1) {
             this.currentPosition += 1;
         }

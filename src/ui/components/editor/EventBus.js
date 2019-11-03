@@ -69,8 +69,8 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitSchemeChangeCommited() {
-            this.$emit(EventBus.SCHEME_CHANGE_COMITTED);
+        emitSchemeChangeCommited(affinityId) {
+            this.$emit(EventBus.SCHEME_CHANGE_COMITTED, affinityId);
         },
 
         /**

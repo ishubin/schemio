@@ -91,4 +91,26 @@ describe('History', () => {
         ]);
         expect(history.current()).toStrictEqual({animal: 'Cat'});
     });
+
+
+    /*
+        The following feature is needed so that we don't generate massive amount of checkpoints 
+        for each symbol typed inside any property textfield. 
+        Since each modification of text triggers a commit, it might make sense to group checkpoints
+    */
+    it('should overwrite commits if they are specified with the same affinity', () => {
+        const history = new History({size: 5});
+        history.commit({name: 'John', age: 32});
+        history.commit({name: 'John', age:33}, 'person.age');
+        history.commit({name: 'John', age:36}, 'person.age');
+        history.commit({name: 'Johny', age:36}, 'person.name');
+        history.commit({name: 'Jonathan', age:36}, 'person.name');
+
+
+        expect(history.checkpoints).toStrictEqual([
+            {name: 'John', age: 32}, {name: 'John', age: 36}, {name: 'Jonathan', age: 36}
+        ]);
+        expect(history.current()).toStrictEqual({name: 'Jonathan', age: 36});
+
+    });
 });

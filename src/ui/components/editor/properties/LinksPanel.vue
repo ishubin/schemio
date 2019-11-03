@@ -30,6 +30,7 @@
 import LinkEditPopup from '../LinkEditPopup.vue';
 import Panel from '../Panel.vue';
 import linkTypes from '../LinkTypes.js';
+import EventBus from '../EventBus.js';
 
 export default {
     props: ['item', 'projectId'],
@@ -56,6 +57,7 @@ export default {
         },
         deleteLink(linkId) {
             this.item.links.splice(linkId, 1);
+            EventBus.emitSchemeChangeCommited();
         },
         editLink(linkId, link) {
             this.editLinkData = {
@@ -80,6 +82,7 @@ export default {
                     url: link.url,
                     type: link.type
                 });
+                EventBus.emitSchemeChangeCommited();
             }
         },
     },

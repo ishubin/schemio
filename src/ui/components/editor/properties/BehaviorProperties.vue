@@ -95,6 +95,7 @@ import Events from '../../../userevents/Events.js';
 import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
+import EventBus from '../EventBus.js';
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
@@ -249,21 +250,25 @@ export default {
             };
             this.item.behavior.push(newBehavior);
             this.behaviorsMetas.push(this.createEventOptions(newBehavior));
+            EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
         },
 
         removeBehavior(behaviorIndex) {
             this.item.behavior.splice(behaviorIndex, 1);
             this.behaviorsMetas.splice(behaviorIndex, 1)
+            EventBus.emitSchemeChangeCommited();
         },
         
         onBehaviorEventElementSelected(behaviorIndex, element) {
             this.item.behavior[behaviorIndex].on.element = element;
             this.behaviorsMetas[behaviorIndex] = this.createBehaviorMeta(this.item.behavior[behaviorIndex]);
+            EventBus.emitSchemeChangeCommited();
         },
 
         onBehaviorEventSelected(behaviorIndex, eventOption) {
             this.item.behavior[behaviorIndex].on.event = eventOption.id;
+            EventBus.emitSchemeChangeCommited();
         },
 
         addActionToBehavior(behaviorIndex) {
@@ -277,14 +282,17 @@ export default {
                 method: 'show',
                 args: []
             });
+            EventBus.emitSchemeChangeCommited();
         },
 
         removeAction(behaviorIndex, actionIndex) {
             this.item.behavior[behaviorIndex].do.splice(actionIndex, 1);
+            EventBus.emitSchemeChangeCommited();
         },
 
         onActionElementSelected(behaviorIndex, actionIndex, element) {
             this.item.behavior[behaviorIndex].do[actionIndex].element = element;
+            EventBus.emitSchemeChangeCommited();
         },
 
         onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
@@ -303,11 +311,13 @@ export default {
                 action.method = methodOption.method;
                 action.args = [];
             }
+            EventBus.emitSchemeChangeCommited();
         },
 
         onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, propertyId, value) {
             this.item.behavior[behaviorIndex].do[actionIndex].args[0] = propertyId;
             this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+            EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
         },
 
@@ -329,12 +339,14 @@ export default {
 
         onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
             this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
+            EventBus.emitSchemeChangeCommited();
         },
 
         duplicateBehavior(behaviorIndex) {
             const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
             this.item.behavior.push(newBehavior);
             this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
+            EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
         }
     },

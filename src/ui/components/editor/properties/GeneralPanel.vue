@@ -6,7 +6,7 @@
     <panel name="General">
 
         <h5>Name</h5>
-        <input class="textfield" type="text" v-model="item.name"/>
+        <input class="textfield" type="text" v-model="item.name" @input="commitSchemeChange('name')"/>
 
         <div v-if="tagsUsed">
             <h5>Tags</h5>
@@ -19,13 +19,13 @@
         <div v-if="descriptionUsed">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <rich-text-editor :id="item.id" v-model="item.description" @changed="item.description = arguments[0];" ></rich-text-editor>
+                <rich-text-editor :id="item.id" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
             </div>
         </div>
 
         <h5 class="section">Text</h5>
         <div class="textarea-wrapper">
-            <rich-text-editor :id="item.id" v-model="item.text" @changed="item.text = arguments[0];" ></rich-text-editor>
+            <rich-text-editor :id="item.id" :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
         </div>
     </panel>
 </template>
@@ -36,6 +36,7 @@ import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../../apiClient.js';
+import EventBus from '../EventBus';
 
 export default {
     props: {
@@ -68,6 +69,10 @@ export default {
         onItemTagChange(newTags) {
             this.item.tags = _.map(newTags, tag => tag.text);
         },
+
+        commitSchemeChange(propertyName) {
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyName}`);
+        }
     },
 
     computed: {

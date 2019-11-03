@@ -64,19 +64,19 @@
                             <td width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="item.shapeProps[argName]= arguments[0]; emitItemChanged();"></color-picker>
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
 
                                 <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <div v-if="arg.type === 'image'">
                                     <img :src="item.shapeProps[argName]" style="max-width: 60px; max-height: 60px;"/>
                                 </div>
-                                <input v-if="arg.type === 'boolean'" type="checkbox" v-model="item.shapeProps[argName]"/>
+                                <input v-if="arg.type === 'boolean'" type="checkbox" :checked="item.shapeProps[argName]" @input="onStyleCheckboxChange(argName, arg, arguments[0])"/>
 
-                                <select v-if="arg.type === 'choice'" v-model="item.shapeProps[argName]">
+                                <select v-if="arg.type === 'choice'" :value="item.shapeProps[argName]" @input="onStyleSelectChange(argName, arg, arguments[0])">
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
 
-                                <select v-if="arg.type === 'stroke-pattern'" v-model="item.shapeProps[argName]">
+                                <select v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @input="onStyleSelectChange(argName, arg, arguments[0])">
                                     <option v-for="knownPattern in knownStrokePatterns">{{knownPattern}}</option>
                                 </select>
                             </td>
@@ -154,11 +154,25 @@ export default {
                 this.item.shapeProps[styleArgName] = text;
             }
             EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
             EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
         },
+        onStyleColorChange(styleArgName, value) {
+            this.item.shapeProps[styleArgName] = value;
+            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+        },
+        onStyleSelectChange(styleArgName, componentArg, event) {
+            const value = event.target.value;
+            this.item.shapeProps[styleArgName] = value;
+            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+        },
+
         switchShape(shape) {
             this.oldShape = this.item.shape;
             this.shapeComponent = Shape.make(shape);

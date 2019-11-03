@@ -643,8 +643,8 @@ export default {
             this.itemTooltip.shown = true;
         },
 
-        commitHistory() {
-            history.commit(this.schemeContainer.scheme);
+        commitHistory(affinityId) {
+            history.commit(this.schemeContainer.scheme, affinityId);
             this.updateHistoryState();
         },
 
