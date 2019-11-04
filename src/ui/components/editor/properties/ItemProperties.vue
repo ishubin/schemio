@@ -13,12 +13,12 @@
             </li>
         </ul>
 
-        <general-panel :key="'general-panel' + item.id" :project-id="projectId" v-if="currentTab === 'description'" :item="item"/>
-        <links-panel v-if="currentTab === 'description'" :key="'links-panel' + item.id" :projectId="projectId" :item="item"/>
-        <connections-panel v-if="currentTab === 'description'" :key="'connections-panel' + item.id" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="'position-panel' + item.id" :item="item" @ungroup-item="$emit('ungroup-item')"/>
+        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}-${revision}`" :project-id="projectId" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}-${revision}`" :projectId="projectId" :item="item"/>
+        <connections-panel v-if="currentTab === 'description'" :key="`connections-panel-${item.id}-${revision}`" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item" @ungroup-item="$emit('ungroup-item')"/>
 
-        <behavior-properties v-if="currentTab === 'behavior'" :key="'behavior-panel' + item.id" :item="item" :scheme-container="schemeContainer"/>
+        <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
         <div v-if="currentTab === 'shape'">
             <select v-model="item.shape">
@@ -115,7 +115,7 @@ const tabsSettingsStorage = settingsStorage.createStorageWithAllowedValues(
 );
 
 export default {
-    props: ['projectId', 'item', 'schemeContainer'],
+    props: ['projectId', 'item', 'schemeContainer', 'revision'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {

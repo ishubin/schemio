@@ -109,7 +109,7 @@
                             <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :key="selectedItem.id" :project-id="projectId" :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
+                            <item-properties :key="`${selectedItem.id}-${schemeRevision}`" :revision="schemeRevision" :project-id="projectId" :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
                                 @ungroup-item="ungroupItem(selectedItem)"
                             />
                             <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
@@ -216,6 +216,9 @@ export default {
             projectId: this.$route.params.projectId,
             user: null,
             schemeId: null,
+
+            // used for triggering update of some ui components on undo/redo due to scheme reload
+            schemeRevision: new Date().getTime(),
             currentCategory: null,
             originalUrlEncoded: encodeURIComponent(window.location),
 
@@ -658,6 +661,7 @@ export default {
                     if (this.selectedItem) {
                         this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
                     }
+                    this.updateRevision();
                 }
                 this.updateHistoryState();
             }
@@ -673,6 +677,7 @@ export default {
                     if (this.selectedItem) {
                         this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
                     }
+                    this.updateRevision();
                 }
                 this.updateHistoryState();
             }
@@ -681,6 +686,10 @@ export default {
         updateHistoryState() {
             this.historyState.undoable = history.undoable();
             this.historyState.redoable = history.redoable();
+        },
+
+        updateRevision() {
+            this.schemeRevision = new Date().getTime();
         }
     },
 
