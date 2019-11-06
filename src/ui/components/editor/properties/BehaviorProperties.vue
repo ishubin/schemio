@@ -6,7 +6,7 @@
                     <tr>
                         <td width="50%">Interaction Mode</td>
                         <td width="50%">
-                            <select v-model="item.interactionMode">
+                            <select v-model="item.interactionMode" @input="emitChangeCommited()">
                                 <option v-for="interactionMode in knownInteractionModes"
                                     :value="interactionMode"
                                     :key="interactionMode">{{interactionMode}}</option>
@@ -251,25 +251,25 @@ export default {
             };
             this.item.behavior.push(newBehavior);
             this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
             this.$forceUpdate();
         },
 
         removeBehavior(behaviorIndex) {
             this.item.behavior.splice(behaviorIndex, 1);
             this.behaviorsMetas.splice(behaviorIndex, 1)
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
         
         onBehaviorEventElementSelected(behaviorIndex, element) {
             this.item.behavior[behaviorIndex].on.element = element;
             this.behaviorsMetas[behaviorIndex] = this.createBehaviorMeta(this.item.behavior[behaviorIndex]);
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
 
         onBehaviorEventSelected(behaviorIndex, eventOption) {
             this.item.behavior[behaviorIndex].on.event = eventOption.id;
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
 
         addActionToBehavior(behaviorIndex) {
@@ -283,17 +283,17 @@ export default {
                 method: 'show',
                 args: []
             });
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
 
         removeAction(behaviorIndex, actionIndex) {
             this.item.behavior[behaviorIndex].do.splice(actionIndex, 1);
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
 
         onActionElementSelected(behaviorIndex, actionIndex, element) {
             this.item.behavior[behaviorIndex].do[actionIndex].element = element;
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
         },
 
         onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
@@ -312,14 +312,7 @@ export default {
                 action.method = methodOption.method;
                 action.args = [];
             }
-            EventBus.emitSchemeChangeCommited();
-        },
-
-        onActionSetFunctionPropertyChanged(behaviorIndex, actionIndex, propertyId, value) {
-            this.item.behavior[behaviorIndex].do[actionIndex].args[0] = propertyId;
-            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
-            EventBus.emitSchemeChangeCommited();
-            this.$forceUpdate();
+            this.emitChangeCommited();
         },
 
         getArgumentDescriptionForElement(element, propertyPath) {
@@ -340,15 +333,21 @@ export default {
 
         onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
             this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
-            EventBus.emitSchemeChangeCommited();
+            const propertyName = this.item.behavior[behaviorIndex].do[actionIndex].args[0];
+            this.emitChangeCommited(`${this.item.id}.shapeProps.${propertyName}`);
         },
 
         duplicateBehavior(behaviorIndex) {
             const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
             this.item.behavior.push(newBehavior);
             this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
-            EventBus.emitSchemeChangeCommited();
+            this.emitChangeCommited();
             this.$forceUpdate();
+        },
+
+        emitChangeCommited(affinityId) {
+            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(affinityId);
         }
     },
 
