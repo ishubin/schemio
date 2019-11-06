@@ -241,6 +241,7 @@ export default {
                 this.item.behavior = [];
             }
             const newBehavior = {
+                id: shortid.generate(),
                 on: {
                     element: {item: 'self'},
                     event: 'mousein',
@@ -249,7 +250,7 @@ export default {
                 do: []
             };
             this.item.behavior.push(newBehavior);
-            this.behaviorsMetas.push(this.createEventOptions(newBehavior));
+            this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
             EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
         },
