@@ -6,7 +6,7 @@
                     <tr>
                         <td width="50%">Interaction Mode</td>
                         <td width="50%">
-                            <select v-model="item.interactionMode" @input="emitChangeCommited()">
+                            <select :value="item.interactionMode" @input="item.interactionMode = arguments[0].target.value; emitChangeCommited();">
                                 <option v-for="interactionMode in knownInteractionModes"
                                     :value="interactionMode"
                                     :key="interactionMode">{{interactionMode}}</option>
@@ -348,7 +348,7 @@ export default {
         emitChangeCommited(affinityId) {
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(affinityId);
-        }
+        },
     },
 
     filters: {

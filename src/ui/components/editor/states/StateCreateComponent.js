@@ -50,6 +50,7 @@ export default class StateCreateComponent extends State {
             this.schemeContainer.selectItem(this.component);
             this.eventBus.emitItemSelected(this.component.id);
             this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
+            this.eventBus.emitItemChanged(this.component.id);
             this.eventBus.emitSchemeChangeCommited();
             this.reset();
         } else {
