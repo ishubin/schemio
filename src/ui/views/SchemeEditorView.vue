@@ -49,8 +49,8 @@
                     </ul>
                     <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                         <li>
-                            <span title="Bring to Front" class="toggle-button" @click="schemeContainer.bringSelectedItemsToFront(); schemeChanged = true;">F</span>
-                            <span title="Bring to Back" class="toggle-button" @click="schemeContainer.bringSelectedItemsToBack(); schemeChanged = true;">B</span>
+                            <span title="Bring to Front" class="toggle-button" @click="bringSelectedItemsToFront()">F</span>
+                            <span title="Bring to Back" class="toggle-button" @click="bringSelectedItemsToBack()">B</span>
                             <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                                 <i class="fas fa-object-group"></i>
                             </span>
@@ -690,6 +690,18 @@ export default {
 
         updateRevision() {
             this.schemeRevision = new Date().getTime();
+        },
+
+        bringSelectedItemsToFront() {
+            this.schemeContainer.bringSelectedItemsToFront();
+            this.commitHistory();
+            this.schemeChanged = true;
+        },
+
+        bringSelectedItemsToBack() {
+            this.schemeContainer.bringSelectedItemsToBack();
+            this.commitHistory();
+            this.schemeChanged = true;
         }
     },
 
