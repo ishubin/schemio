@@ -55,7 +55,12 @@ function generateTextStyle(item) {
         'padding-left': item.shapeProps.textPaddingLeft + 'px',
         'padding-right': item.shapeProps.textPaddingRight + 'px',
         'padding-top': item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom': item.shapeProps.textPaddingBottom + 'px'
+        'padding-bottom': item.shapeProps.textPaddingBottom + 'px',
+        'text-align': item.shapeProps.textHorizontalAlign,
+        'vertical-align': item.shapeProps.textVerticalAlign,
+        'display': 'table-cell',
+        'width': item.area.w + 'px',
+        'height': item.area.h + 'px',
     };
 }
 
@@ -76,9 +81,11 @@ export default {
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
+        textHorizontalAlign: {type:'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal align', depends: {showName: false}},
+        textVerticalAlign: {type:'choice', value: 'center', options: ['top', 'middle', 'bottom'], name: 'Vertical align', depends: {showName: false}},
         backgroundImage: {type: 'image', value: '', name: 'Image Background'},
         showName: {type: 'boolean', value: false, name: 'Show Name'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position', depends: {showName: true}},
+        namePosition: {type:'choice', value: 'center', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
     data() {
