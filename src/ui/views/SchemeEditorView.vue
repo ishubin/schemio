@@ -168,6 +168,7 @@ import settingsStorage from '../settingsStorage.js';
 import snapshotSvg from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
+import Shape from '../components/editor/items/shapes/Shape.js';
 
 
 let history = new History({size: 30});
@@ -609,8 +610,35 @@ export default {
             this.schemeChanged = true;
         },
 
-        onItemChange(itemId) {
+        onItemChange(itemId, propertyPath) {
             this.schemeChanged = true;
+            if (this.schemeContainer.selectedItems.length > 1 && propertyPath) {
+                const item = this.schemeContainer.findItemById(itemId);
+                if (item) {
+                    _.forEach(this.schemeContainer.selectedItems, selectedItem => {
+                        if (selectedItem.id !== itemId) {
+                            this.applySameChangeToItem(item, selectedItem, propertyPath);
+                        }
+                    });
+                }
+            }
+        },
+
+        applySameChangeToItem(srcItem, dstItem, propertyPath) {
+            if (propertyPath.indexOf('shapeProps.') === 0) {
+                const shapePropName = propertyPath.substr('shapeProps.'.length);
+                const srcShape = Shape.make(srcItem.shape);
+                const dstShape = Shape.make(srcItem.shape);
+                if (srcShape && dstShape) {
+                    if (srcShape.args[shapePropName] && dstShape.args[shapePropName]) {
+                        dstItem.shapeProps[shapePropName] = srcItem.shapeProps[shapePropName];
+                    }
+                }
+            } else {
+                if (srcItem.hasOwnProperty(propertyPath) && dstItem.hasOwnProperty(propertyPath)) {
+                    dstItem[propertyPath] = srcItem[propertyPath];
+                }
+            }
         },
 
         onVoidClicked() {

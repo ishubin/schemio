@@ -74,11 +74,12 @@ const EventBus = new Vue({
         },
 
         /**
-         * @param {string} itemId 
+         * @param {string} itemId  id of an item
+         * @param {string} propertyPath  path to a field that was changed. This argument is optional
          */
-        emitItemChanged(itemId) {
-            this.$emit(this._itemChangedEvent(itemId));
-            this.$emit(EventBus.ANY_ITEM_CHANGED, itemId);
+        emitItemChanged(itemId, propertyPath) {
+            this.$emit(this._itemChangedEvent(itemId), propertyPath);
+            this.$emit(EventBus.ANY_ITEM_CHANGED, itemId, propertyPath);
         },
         subscribeForItemChanged(itemId, callback) { this.$on(this._itemChangedEvent(itemId), callback); },
         unsubscribeForItemChanged(itemId, callback) { this.$off(this._itemChangedEvent(itemId), callback); },

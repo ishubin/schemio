@@ -21,16 +21,16 @@
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
         <div v-if="currentTab === 'shape'">
-            <select v-model="item.shape">
+            <select :value="item.shape" @input="onShapeChange(arguments[0].target.value)">
                 <option v-for="shape in knownShapes">{{shape}}</option>
             </select>
 
             <h5>Opacity</h5>
-            <input class="textfield" type="text" v-model="item.opacity"/>
+            <input class="textfield" type="text" :value="item.opacity" @input="onOpacityChange(arguments[0].target.value)"/>
 
 
             Blend Mode: 
-            <select v-model="item.blendMode">
+            <select :value="item.blendMode" @input="onBlendModeChange(arguments[0].target.value)">
                 <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
             </select>
 
@@ -41,7 +41,7 @@
                         <tr>
                             <td width="50%">Cursor</td>
                             <td width="50%">
-                                <select v-model="item.cursor">
+                                <select :value="item.cursor" @input="onCursorChange(arguments[0].target.value)">
                                     <option v-for="cursor in knownCursors">{{cursor}}</option>
                                 </select>
                             </td>
@@ -49,7 +49,7 @@
                         <tr>
                             <td width="50%">Visible</td>
                             <td width="50%">
-                                <input class="checkbox" type="checkbox" v-model="item.visible"/>
+                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="onVisibleChange(arguments[0].target.checked)"/>
                             </td>
                         </tr>
                     </tbody>
@@ -158,38 +158,62 @@ export default {
             } else {
                 this.item.shapeProps[styleArgName] = text;
             }
-            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
             this.updateShapePropsDependencies();
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
-            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
             this.updateShapePropsDependencies();
         },
         onStyleColorChange(styleArgName, value) {
             this.item.shapeProps[styleArgName] = value;
-            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
             this.updateShapePropsDependencies();
         },
         onStyleSelectChange(styleArgName, componentArg, event) {
             const value = event.target.value;
             this.item.shapeProps[styleArgName] = value;
-            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
             this.updateShapePropsDependencies();
         },
 
-        switchShape(shape) {
-            this.oldShape = this.item.shape;
-            this.shapeComponent = Shape.make(shape);
-            EventBus.emitItemChanged(this.item.id);
+        onShapeChange(shape) {
+            this.item.shape = shape;
+            EventBus.emitItemChanged(this.item.id, 'shape');
         },
 
-        emitItemChanged() {
-            EventBus.emitItemChanged(this.item.id);
+        onOpacityChange(opacity) {
+            const value = parseFloat(opacity);
+            if (isNaN(value)) {
+                this.item.opacity = 0;
+            } else {
+                this.item.opacity = value;
+            }
+            EventBus.emitItemChanged(this.item.id, 'opacity');
+        },
+
+        onBlendModeChange(blendMode) {
+            this.item.blendMode = blendMode;
+            EventBus.emitItemChanged(this.item.id, 'blendMode');
+        },
+
+        onCursorChange(cursor) {
+            this.item.cursor = cursor;
+            EventBus.emitItemChanged(this.item.id, 'cursor');
+        },
+
+        onVisibleChange(visible) {
+            this.item.visible = visible;
+            EventBus.emitItemChanged(this.item.id, 'visible');
+        },
+
+        emitItemChanged(propertyPath) {
+            EventBus.emitItemChanged(this.item.id, propertyPath);
         },
 
         updateShapePropsDependencies() {
