@@ -59,7 +59,7 @@
             <panel name="Style">
                 <table>
                     <tbody>
-                        <tr v-for="(arg, argName) in shapeComponent.args">
+                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName].shown">
                             <td width="50%">{{arg.name}}</td>
                             <td width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
@@ -100,6 +100,7 @@ import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import settingsStorage from '../../../settingsStorage.js';
+import _ from 'lodash';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -125,9 +126,11 @@ export default {
     mounted() {
         this.oldShape = this.item.shape;
         this.shapeComponent = Shape.make(this.item.shape);
+        this.updateShapePropsDependencies();
     },
 
     data() {
+        const shapeComponent = Shape.make(this.item.shape);
         return {
             tabs: ALL_TABS,
             knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
@@ -136,12 +139,14 @@ export default {
 
             knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
             currentTab: 'description',
-            shapeComponent: {},
+            shapeComponent: shapeComponent,
             oldShape: this.item.shape,
             knownBlendModes: [  'normal', 'multiply', 'screen', 'overlay', 'darken', 
                                 'lighten', 'color-dodge', 'color-burn', 'difference',
                                 'exclusion', 'hue', 'saturation', 'color', 'luminosity'
-            ]
+            ],
+
+            shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};})
         };
     },
 
@@ -155,22 +160,26 @@ export default {
             }
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+            this.updateShapePropsDependencies();
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+            this.updateShapePropsDependencies();
         },
         onStyleColorChange(styleArgName, value) {
             this.item.shapeProps[styleArgName] = value;
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+            this.updateShapePropsDependencies();
         },
         onStyleSelectChange(styleArgName, componentArg, event) {
             const value = event.target.value;
             this.item.shapeProps[styleArgName] = value;
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+            this.updateShapePropsDependencies();
         },
 
         switchShape(shape) {
@@ -182,6 +191,16 @@ export default {
         emitItemChanged() {
             EventBus.emitItemChanged(this.item.id);
         },
+
+        updateShapePropsDependencies() {
+            _.forEach(this.shapeComponent.args, (argConfig, argName) => {
+                if (argConfig.depends) {
+                    _.forEach(argConfig.depends, (depArgValue, depArgName) => {
+                        this.shapePropsControlStates[argName].shown = this.item.shapeProps[depArgName] === depArgValue;
+                    });
+                }
+            });
+        }
     },
 
     watch: {
