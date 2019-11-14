@@ -59,7 +59,7 @@
             <panel name="Style">
                 <table>
                     <tbody>
-                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName].shown">
+                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
                             <td width="50%">{{arg.name}}</td>
                             <td width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
@@ -184,6 +184,9 @@ export default {
 
         onShapeChange(shape) {
             this.item.shape = shape;
+            this.schemeContainer.enrichItemWithDefaults(this.item);
+            this.shapeComponent = Shape.make(this.item.shape);
+            this.updateShapePropsDependencies();
             EventBus.emitItemChanged(this.item.id, 'shape');
         },
 
@@ -220,7 +223,12 @@ export default {
             _.forEach(this.shapeComponent.args, (argConfig, argName) => {
                 if (argConfig.depends) {
                     _.forEach(argConfig.depends, (depArgValue, depArgName) => {
-                        this.shapePropsControlStates[argName].shown = this.item.shapeProps[depArgName] === depArgValue;
+                        const shown = this.item.shapeProps[depArgName] === depArgValue;
+                        if (!this.shapePropsControlStates[argName]) {
+                            this.shapePropsControlStates[argName] = {shown: shown};
+                        } else {
+                            this.shapePropsControlStates[argName].shown = shown;
+                        }
                     });
                 }
             });

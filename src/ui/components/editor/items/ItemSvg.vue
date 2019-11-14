@@ -6,6 +6,7 @@
     <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
     >
         <component
+            :key="`item-component-${item.id}-${item.shape}`"
             v-if="shapeComponent && item.visible"
             :is="shapeComponent"
             :item="item"
@@ -65,13 +66,13 @@ export default {
 
     mounted() {
         this.switchShape(this.item.shape);
-        EventBus.subscribeForItemChanged(this.item.id, this.redrawItem);
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
         EventBus.subscribeForItemSelected(this.item.id, this.onItemSelected);
         EventBus.subscribeForItemDeselected(this.item.id, this.onItemDeselected);
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.redrawItem);
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
         EventBus.unsubscribeForItemSelected(this.item.id, this.onItemSelected);
         EventBus.unsubscribeForItemDeselected(this.item.id, this.onItemDeselected);
     },
@@ -98,7 +99,10 @@ export default {
             }
         },
 
-        redrawItem() {
+        onItemChanged() {
+            if (this.oldShape !== this.item.shape) {
+                this.switchShape(this.item.shape);
+            }
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.$forceUpdate();
@@ -122,17 +126,6 @@ export default {
                 eventName: eventName,
                 args: arguments
             });
-        }
-    },
-
-    watch: {
-        item: {
-            deep: true,
-            handler(newItem) {
-                if (this.oldShape !== newItem.shape) {
-                    this.switchShape(newItem.shape);
-                }
-            }
         }
     }
 }

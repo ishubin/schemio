@@ -41,7 +41,7 @@
                             ></connector-svg>
 
                         <item-svg 
-                            :key="item.id"
+                            :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
@@ -100,7 +100,7 @@
                             ></connector-svg>
 
                         <item-svg
-                            :key="item.id"
+                            :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"

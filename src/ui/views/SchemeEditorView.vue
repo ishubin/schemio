@@ -634,6 +634,9 @@ export default {
                         dstItem.shapeProps[shapePropName] = srcItem.shapeProps[shapePropName];
                     }
                 }
+            } else if (propertyPath === 'shape') {
+                dstItem.shape = srcItem.shape;
+                this.schemeContainer.enrichItemWithDefaults(dstItem);
             } else {
                 if (srcItem.hasOwnProperty(propertyPath) && dstItem.hasOwnProperty(propertyPath)) {
                     dstItem[propertyPath] = srcItem[propertyPath];

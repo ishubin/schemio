@@ -81,7 +81,7 @@ class SchemeContainer {
         }
     }
 
-    enrichItemWithDefaults(item) {
+    enrichItemWithDefaults(item, shape) {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0},
             visible: true,
