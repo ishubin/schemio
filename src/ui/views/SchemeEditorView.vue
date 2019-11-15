@@ -693,8 +693,10 @@ export default {
                         this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
                     }
                     this.updateRevision();
+                    this.restoreItemSelection();
                 }
                 this.updateHistoryState();
+
             }
         },
 
@@ -709,9 +711,23 @@ export default {
                         this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
                     }
                     this.updateRevision();
+                    this.restoreItemSelection();
                 }
                 this.updateHistoryState();
             }
+        },
+
+        restoreItemSelection() {
+            const selectedItemIds = _.map(this.schemeContainer.selectedItems, item => item.id);
+            this.schemeContainer.deselectAllItems();
+            this.schemeContainer.deselectAllConnectors();
+
+            _.forEach(selectedItemIds, itemId => {
+                const item = this.schemeContainer.findItemById(itemId);
+                if (item) {
+                    this.schemeContainer.selectItem(item, true);
+                }
+            });
         },
 
         updateHistoryState() {
