@@ -201,6 +201,7 @@ import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
 import Shape from './items/shapes/Shape';
+import htmlSanitize from '../../htmlSanitize';
 
 
 const EMPTY_OBJECT = {type: 'nothing'};
@@ -770,7 +771,7 @@ export default {
                 }, 50);
             }
             this.itemTextEditor.itemId = item.id;
-            this.itemTextEditor.text = item[textEditArea.property];
+            this.itemTextEditor.text = htmlSanitize(item[textEditArea.property]);
             this.itemTextEditor.property = textEditArea.property;
             this.itemTextEditor.style = textEditArea.style;
             if (textEditArea.area) {

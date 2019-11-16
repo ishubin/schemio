@@ -25,13 +25,21 @@
         </ul>
         <h3>{{schemeContainer.scheme.name}}</h3>
 
-        <div v-html="schemeContainer.scheme.description"></div>
+        <div v-html="sanitizedDescription"></div>
     </div>
 </template>
 
 <script>
+import htmlSanitize from '../../htmlSanitize.js';
+
 export default {
     props: ['schemeContainer'],
+
+    computed: {
+        sanitizedDescription() {
+            return htmlSanitize(this.schemeContainer.scheme.description);
+        }
+    }
 }
 </script>
 

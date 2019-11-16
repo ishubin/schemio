@@ -8,7 +8,7 @@
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <div class="item-text-container" v-html="item.text"
+            <div class="item-text-container" v-html="sanitizedItemText"
                 :style="textStyle"
                 ></div>
         </foreignObject>
@@ -16,6 +16,7 @@
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
+import htmlSanitize from '../../../../htmlSanitize';
 
 const computePath = (item) => {
     const rx = item.area.w / 2;
@@ -73,6 +74,10 @@ export default {
 
         textStyle() {
             return generateTextStyle(this.item);
+        },
+
+        sanitizedItemText() {
+            return htmlSanitize(this.item.text);
         }
     }
 }

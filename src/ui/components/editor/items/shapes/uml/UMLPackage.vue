@@ -12,8 +12,8 @@
 
         <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
-            <div class="item-text-container" v-html="item.name" :style="nameStyle"
-            ></div>
+            <div class="item-text-container" :style="nameStyle"
+            >{{item.name}}</div>
         </foreignObject>
     </g>
 </template>

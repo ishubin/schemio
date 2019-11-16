@@ -13,6 +13,7 @@
 import _ from 'lodash';
 import LinkTypes from '../../LinkTypes.js';
 import LinkEditPopupVue from '../../LinkEditPopup.vue';
+import htmlSanitize from '../../../../htmlSanitize';
 
 export default {
     props: ['item', 'hiddenTextProperty'],
@@ -65,9 +66,9 @@ export default {
         },
         linkHtml() {
             if (this.item.text && this.item.text.length > 0) {
-                return this.item.text;
+                return htmlSanitize(this.item.text);
             }
-            return this.item.shapeProps.url;
+            return htmlSanitize(this.item.shapeProps.url);
         },
 
         textOffset() {

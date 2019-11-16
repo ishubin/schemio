@@ -12,21 +12,22 @@
 
         <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" :y="textarea.y" :width="textarea.w" :height="textarea.h">
-            <div class="item-text-container" v-html="item.name"
+            <div class="item-text-container"
                 style="padding-top: 4px; text-align: center;"
                 :style="nameStyle"
-            ></div>
+            >{{item.name}}</div>
         </foreignObject>
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="textarea.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
-            <div class="item-text-container" v-html="item.text"
+            <div class="item-text-container" v-html="sanitizedItemText"
                 :style="textStyle"
                 ></div>
         </foreignObject>
     </g>
 </template>
 <script>
+import htmlSanitize from '../../../../../htmlSanitize';
 
 const calculateD = (item) => {
     let D = item.shapeProps.depth;
@@ -140,8 +141,11 @@ export default {
 
         nameStyle() {
             return generateNameStyle(this.item);
-        }
+        },
 
+        sanitizedItemText() {
+            return htmlSanitize(this.item.text);
+        }
     } 
 }
 </script>

@@ -7,7 +7,7 @@
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.tailLength)">
-            <div class="item-text-container" v-html="item.text"
+            <div class="item-text-container" v-html="sanitizedItemText"
                 :style="textStyle"
                 ></div>
         </foreignObject>
@@ -15,6 +15,7 @@
 </template>
 <script>
 import shortid from 'shortid';
+import htmlSanitize from '../../../../htmlSanitize';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -67,6 +68,10 @@ export default {
         },
         textStyle() {
             return generateTextStyle(this.item);
+        },
+
+        sanitizedItemText() {
+            return htmlSanitize(this.item.text);
         }
     }
 }

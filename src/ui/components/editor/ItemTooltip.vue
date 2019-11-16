@@ -1,11 +1,12 @@
 <template>
     <div class="item-tooltip" :style="tooltipStyle" data-type="item-tooltip">
         <h2>{{item.name}}</h2>
-        <div v-html="item.description"></div>
+        <div v-html="sanitizedItemDescription"></div>
     </div>
 </template>
 
 <script>
+import htmlSanitize from '../../htmlSanitize';
 export default {
     props: ['item', 'x', 'y'],
 
@@ -64,6 +65,9 @@ export default {
                 'max-width':    `${this.maxWidth}px`,
                 'max-height':   `${this.maxHeight}px`
             };
+        },
+        sanitizedItemDescription() {
+            return htmlSanitize(this.item.description);
         }
     }
 }

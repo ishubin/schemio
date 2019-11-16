@@ -6,7 +6,7 @@
     <div class="item-details">
         <h3>{{item.name}}</h3>
 
-        <div v-html="item.description"></div>
+        <div v-html="sanitizedItemDescription"></div>
 
         <div v-if="item.links && item.links.length > 0">
             <h5>Links</h5>
@@ -24,6 +24,7 @@
 
 <script>
 import linkTypes from './LinkTypes.js';
+import htmlSanitize from '../../htmlSanitize';
 
 export default {
     props: ['item', 'itemId'],
@@ -31,6 +32,12 @@ export default {
     methods: {
         getLinkCssClass(link) {
             return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
+        }
+    },
+    
+    computed: {
+        sanitizedItemDescription() {
+            return htmlSanitize(this.item.description);
         }
     }
 }
