@@ -60,6 +60,8 @@ const EventBus = new Vue({
                 CTRL_C: 'ctrl-c',
                 CTRL_V: 'ctrl-v',
                 CTRL_S: 'ctrl-s',
+                CTRL_Z: 'ctrl-z',
+                CTRL_SHIFT_Z: 'ctrl-shift-z',
                 UP: 'up',
                 DOWN: 'down',
                 LEFT: 'left',
@@ -146,6 +148,8 @@ keyMap[EventBus.KEY.DELETE] = event => event.key === 'Backspace' || event.key ==
 keyMap[EventBus.KEY.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrlKey);
 keyMap[EventBus.KEY.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
 keyMap[EventBus.KEY.CTRL_S] = event => event.key === 's' && (event.metaKey || event.ctrlKey);
+keyMap[EventBus.KEY.CTRL_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && (!event.shiftKey);
+keyMap[EventBus.KEY.CTRL_SHIFT_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && event.shiftKey;
 keyMap[EventBus.KEY.LEFT] = event => event.key === 'ArrowLeft';
 keyMap[EventBus.KEY.RIGHT] = event => event.key === 'ArrowRight';
 keyMap[EventBus.KEY.UP] = event => event.key === 'ArrowUp';

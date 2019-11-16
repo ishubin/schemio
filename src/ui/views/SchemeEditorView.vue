@@ -659,6 +659,10 @@ export default {
                     }
                 } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
+                } else if (EventBus.KEY.CTRL_Z === key) {
+                    this.historyUndo();
+                } else if (EventBus.KEY.CTRL_SHIFT_Z === key) {
+                    this.historyRedo();
                 }
             }
         },
