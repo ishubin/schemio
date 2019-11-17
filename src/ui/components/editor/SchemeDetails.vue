@@ -30,7 +30,7 @@
 </template>
 
 <script>
-import htmlSanitize from '../../htmlSanitize.js';
+import htmlSanitize from '../../../htmlSanitize.js';
 
 export default {
     props: ['schemeContainer'],

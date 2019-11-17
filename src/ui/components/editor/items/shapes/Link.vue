@@ -13,7 +13,7 @@
 import _ from 'lodash';
 import LinkTypes from '../../LinkTypes.js';
 import LinkEditPopupVue from '../../LinkEditPopup.vue';
-import htmlSanitize from '../../../../htmlSanitize';
+import htmlSanitize from '../../../../../htmlSanitize';
 
 export default {
     props: ['item', 'hiddenTextProperty'],

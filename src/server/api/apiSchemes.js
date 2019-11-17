@@ -6,6 +6,7 @@ const schemeStorage     = require('../storage/storageProvider.js').provideScheme
 const categoryStorage   = require('../storage/storageProvider.js').provideCategoryStorage();
 const _                 = require('lodash');
 const shortid           = require('shortid');
+const htmlSanitize      = require('../../htmlSanitize');
 
 const MISSING_PREVIEW_SVG = `
     <svg></svg>
@@ -13,7 +14,13 @@ const MISSING_PREVIEW_SVG = `
 
 
 function sanitizeScheme(scheme) {
+    scheme.description = htmlSanitize(scheme.description);
+
     _.forEach(scheme.items, item => {
+        item.name = htmlSanitize(item.name);
+        item.description = htmlSanitize(item.description);
+        item.text = htmlSanitize(item.text);
+
         item.meta = {};
         if (!item.hasOwnProperty('id')) {
             item.id = shortid.generate();
@@ -62,7 +69,7 @@ const ApiSchemes = {
         const requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
 
-        schemeStorage.createScheme(projectId, requestScheme).then(scheme => {
+        schemeStorage.createScheme(projectId, sanitizeScheme(requestScheme)).then(scheme => {
             res.json(scheme);
         }).catch(err => res.$apiError(err));
     },
@@ -72,7 +79,7 @@ const ApiSchemes = {
         const schemeId = req.params.schemeId;
         const requestScheme = req.body;
         requestScheme.modifiedDate = Date.now();
-        schemeStorage.saveScheme(projectId, schemeId, requestScheme).then(scheme => {
+        schemeStorage.saveScheme(projectId, schemeId, sanitizeScheme(requestScheme)).then(scheme => {
             res.json(scheme);
         }).catch(err => res.$apiError(err));
     },

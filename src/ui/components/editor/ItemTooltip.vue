@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import htmlSanitize from '../../htmlSanitize';
+import htmlSanitize from '../../../htmlSanitize';
 export default {
     props: ['item', 'x', 'y'],
 

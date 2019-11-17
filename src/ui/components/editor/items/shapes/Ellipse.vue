@@ -16,7 +16,7 @@
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
-import htmlSanitize from '../../../../htmlSanitize';
+import htmlSanitize from '../../../../../htmlSanitize';
 
 const computePath = (item) => {
     const rx = item.area.w / 2;

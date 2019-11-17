@@ -9,7 +9,7 @@
     </g>
 </template>
 <script>
-import htmlSanitize from '../../../../htmlSanitize';
+import htmlSanitize from '../../../../../htmlSanitize';
 const computePath = (item) => {
     const w = item.area.w;
     const h = item.area.h;

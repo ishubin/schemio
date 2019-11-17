@@ -1,4 +1,4 @@
-import htmlSanitize from '../src/ui/htmlSanitize.js';
+import htmlSanitize from '../src/htmlSanitize.js';
 import expect from 'expect';
 
 describe('htmlSanitize', () => {

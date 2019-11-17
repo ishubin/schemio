@@ -29,7 +29,7 @@
 </template>
 
 <script>
-import htmlSanitize from '../../../../../htmlSanitize';
+import htmlSanitize from '../../../../../../htmlSanitize';
 
 const computePath = (item) => {
     const W = item.area.w;

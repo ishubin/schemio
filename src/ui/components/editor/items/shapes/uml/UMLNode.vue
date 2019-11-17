@@ -27,7 +27,7 @@
     </g>
 </template>
 <script>
-import htmlSanitize from '../../../../../htmlSanitize';
+import htmlSanitize from '../../../../../../htmlSanitize';
 
 const calculateD = (item) => {
     let D = item.shapeProps.depth;

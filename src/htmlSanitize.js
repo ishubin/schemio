@@ -1,6 +1,6 @@
-import sanitizeHtml from 'sanitize-html';
+const sanitizeHtml = require('sanitize-html');
 
-export default function htmlSanitize(html) {
+module.exports = function (html) {
     return sanitizeHtml(html, {
         allowedTags: ['blockquote', 'code', 'div', 'em', 'li', 'ol', 'p', 'strong', 'b', 'i', 'u', 'ul', 'img'],
         allowedAttributes: {

@@ -201,7 +201,7 @@ import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
 import Shape from './items/shapes/Shape';
-import htmlSanitize from '../../htmlSanitize';
+import htmlSanitize from '../../../htmlSanitize';
 
 
 const EMPTY_OBJECT = {type: 'nothing'};
