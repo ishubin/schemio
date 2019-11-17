@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="rich-text-editor-container">
-        <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
+        <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
             <div class="editor-menubar">
                 <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
                     <i class="fas fa-bold"></i>
@@ -13,6 +13,9 @@
                 </span>
                 <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
                     <i class="fas fa-underline"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': isActive.link() }" @click="toggleLink(commands.link, getMarkAttrs('link'))">
+                    <i class="fas fa-link"></i>
                 </span>
                 <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
                     <i class="fas fa-code"></i>
@@ -50,7 +53,7 @@
         <modal v-if="enlarged" title="Text Editor" @close="enlarged = false" :width="enlargedWidth">
             <div class="textarea-enlarged-container">
                 <div :style="{height: 400 + 'px'}">
-                    <editor-menu-bar :editor="editor" v-slot="{ commands, isActive }">
+                    <editor-menu-bar :editor="editorLarge" v-slot="{ commands, isActive, getMarkAttrs }">
                         <div class="editor-menubar">
                             <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
                                 <i class="fas fa-bold"></i>
@@ -63,6 +66,9 @@
                             </span>
                             <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
                                 <i class="fas fa-underline"></i>
+                            </span>
+                            <span class="editor-icon" :class="{ 'is-active': isActive.link() }" @click="toggleLink(commands.link, getMarkAttrs('link'))">
+                                <i class="fas fa-link"></i>
                             </span>
                             <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
                                 <i class="fas fa-code"></i>
@@ -95,6 +101,11 @@
                     </div>
                 </div>
             </div>
+        </modal>
+
+
+        <modal v-if="linkModal.shown" title="Add Link" @close="linkModal.shown = false" primary-button="Save" @primary-submit="onLinkModalSubmit">
+            <input class="textfield" v-model="linkModal.url" placeholder="https://"  @keyup.enter="onLinkModalSubmit"/>
         </modal>
     </div>
 </template>
@@ -190,7 +201,12 @@ export default {
             enlarged: false,
             editorLarge: null,
             enlargedWidth: window.innerWidth - 100,
-            enlargedHeight: window.innerHeight - 440
+            enlargedHeight: window.innerHeight - 440,
+            linkModal: {
+                shown: false,
+                url: '',
+                linkCommand: null
+            }
         };
     },
 
@@ -199,6 +215,24 @@ export default {
             if (event.target.className.indexOf('editor-content') >= 0) {
                 this.editor.view.dom.focus();
             }
+        },
+
+        toggleLink(linkCommand, linkAttrs) {
+            this.linkModal.linkCommand = linkCommand;
+            if (linkAttrs.href) {
+                this.linkModal.url = linkAttrs.href.trim();
+            }
+            this.linkModal.shown = true;
+        },
+
+        onLinkModalSubmit() {
+            const url = this.linkModal.url.trim();
+            if (url) {
+                this.linkModal.linkCommand({ href: url });
+            } else {
+                this.linkModal.linkCommand({ href: null });
+            }
+            this.linkModal.shown = false;
         }
     },
 
