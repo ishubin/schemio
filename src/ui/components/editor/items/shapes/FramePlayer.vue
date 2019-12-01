@@ -77,6 +77,11 @@ export default {
         return null
     },
 
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
+
     args: {
         totalFrames: {type: 'number', value: 5, name: 'Total frames'},
         frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},

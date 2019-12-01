@@ -1365,3 +1365,38 @@ table.position-panel-table .property-label {
     margin-top: 0px;
     margin-bottom: 10px;
 }
+
+
+/****************** Language Markup ***************/
+pre.syntax-markup {
+    padding: 30px 10px 10px 10px;
+}
+pre.syntax-markup code {
+    padding: 0 !important;
+}
+pre.syntax-markup.syntax-theme-dark {
+    color: #ccc;
+}
+
+.syntax-theme-dark .hljs-strong,.syntax-theme-dark .hljs-emphasis{color:#a8a8a2}
+.syntax-theme-dark .hljs-bullet,.syntax-theme-dark .hljs-quote,.syntax-theme-dark .hljs-link,.syntax-theme-dark .hljs-number,.syntax-theme-dark .hljs-regexp,.syntax-theme-dark .hljs-literal{color:#6896ba}
+.syntax-theme-dark .hljs-code,.syntax-theme-dark .hljs-selector-class{color:#a6e22e}
+.syntax-theme-dark .hljs-emphasis{font-style:italic}
+.syntax-theme-dark .hljs-keyword,.syntax-theme-dark .hljs-selector-tag,.syntax-theme-dark .hljs-section,.syntax-theme-dark .hljs-attribute,.syntax-theme-dark .hljs-name,.syntax-theme-dark .hljs-variable{color:#cb7832}
+.syntax-theme-dark .hljs-params{color:#b9b9b9}
+.syntax-theme-dark .hljs-string{color:#6a8759}
+.syntax-theme-dark .hljs-subst,.syntax-theme-dark .hljs-type,.syntax-theme-dark .hljs-built_in,.syntax-theme-dark .hljs-builtin-name,.syntax-theme-dark .hljs-symbol,.syntax-theme-dark .hljs-selector-id,.syntax-theme-dark .hljs-selector-attr,.syntax-theme-dark .hljs-selector-pseudo,.syntax-theme-dark .hljs-template-tag,.syntax-theme-dark .hljs-template-variable,.syntax-theme-dark .hljs-addition{color:#e0c46c}
+.syntax-theme-dark .hljs-comment,.syntax-theme-dark .hljs-deletion,.syntax-theme-dark .hljs-meta{color:#7f7f7f}
+
+
+.syntax-theme-white .hljs-comment,.syntax-theme-white .hljs-quote {color:#655f6d}
+.syntax-theme-white .hljs-variable,.syntax-theme-white .hljs-template-variable,.syntax-theme-white .hljs-attribute,.syntax-theme-white .hljs-tag,.syntax-theme-white .hljs-name,.syntax-theme-white .hljs-regexp,.syntax-theme-white .hljs-link,.syntax-theme-white .hljs-name,.syntax-theme-white .hljs-name,.syntax-theme-white .hljs-selector-id,.syntax-theme-white .hljs-selector-class{color:#be4678}
+.syntax-theme-white .hljs-number,.syntax-theme-white .hljs-meta,.syntax-theme-white .hljs-built_in,.syntax-theme-white .hljs-builtin-name,.syntax-theme-white .hljs-literal,.syntax-theme-white .hljs-type,.syntax-theme-white .hljs-params{color:#aa573c}
+.syntax-theme-white .hljs-string,.syntax-theme-white .hljs-symbol,.syntax-theme-white .hljs-bullet{color:#2a9292}
+.syntax-theme-white .hljs-title,.syntax-theme-white .hljs-section{color:#576ddb}
+.syntax-theme-white .hljs-keyword,.syntax-theme-white .hljs-selector-tag{color:#955ae7}
+.syntax-theme-white .hljs-deletion,.syntax-theme-white .hljs-addition{color:#19171c;display:inline-block;width:100%}
+.syntax-theme-white .hljs-deletion{background-color:#be4678}
+.syntax-theme-white .hljs-addition{background-color:#2a9292}
+.syntax-theme-white .hljs-emphasis{font-style:italic}
+.syntax-theme-white .hljs-strong{font-weight:bold}

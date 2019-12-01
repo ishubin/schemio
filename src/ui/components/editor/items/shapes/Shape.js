@@ -5,6 +5,7 @@ import Ellipse from './Ellipse.vue';
 import Link from './Link.vue';
 import CommentShape from './CommentShape.vue';
 import FramePlayer from './FramePlayer.vue';
+import CodeBlock from './CodeBlock.vue';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
@@ -28,8 +29,14 @@ function defaultGetEventsFunc(item) {
     return [];
 }
 
+const defaultEditorProps = {
+    description: 'rich',
+    text: 'rich'
+};
+
 function enrichShape(shapeComponent) {
     return {
+        editorProps: shapeComponent.editorProps || defaultEditorProps,
         args: shapeComponent.args,
         computePath: shapeComponent.computePath,
         // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
@@ -50,6 +57,7 @@ const shapeReigstry = _.mapValues({
     uml_module: UMLModule,
     uml_package: UMLPackage,
     uml_node: UMLNode,
+    code_block: CodeBlock
 }, enrichShape);
 
 /**

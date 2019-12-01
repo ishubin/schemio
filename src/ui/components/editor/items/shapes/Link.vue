@@ -21,6 +21,10 @@ export default {
     computePath() {
         return null;
     },
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
 
     args: {
         url      : {type: 'string', value: '', name: 'URL'},

@@ -106,6 +106,11 @@ export default {
     computePath,
     identifyTextEditArea,
 
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
+
     args: {
         depth: {type: 'number', value: 20, name: 'Depth'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},

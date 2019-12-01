@@ -116,4 +116,10 @@ export default [{
         shape: 'frame_player',
         shapeProps: { }
     }, defaultItem)
+}, {
+    name: 'Code Block',
+    item: utils.extendObject({
+        shape: 'code_block',
+        shapeProps: { }
+    }, defaultItem)
 }];

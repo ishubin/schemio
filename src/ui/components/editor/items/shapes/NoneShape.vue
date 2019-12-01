@@ -19,6 +19,10 @@ export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
     args: {
         fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},

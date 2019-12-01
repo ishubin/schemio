@@ -48,6 +48,11 @@ export default {
 
     computePath,
     identifyTextEditArea,
+
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
     args: {
         cornerRadius: {type: 'number', value: 20, name: 'Corner radius'},
         tailLength: {type: 'number', value: 30, name: 'Tail Length'},
