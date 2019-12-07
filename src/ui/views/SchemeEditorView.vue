@@ -60,7 +60,7 @@
                 </div>
             </header-component>
 
-            <div class="scheme-container">
+            <div class="scheme-container" oncontextmenu="return false;">
                 <div v-if="schemeContainer">
                     <svg-editor
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
