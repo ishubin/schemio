@@ -21,35 +21,65 @@
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
         <div v-if="currentTab === 'shape'">
-            <select :value="item.shape" @input="onShapeChange(arguments[0].target.value)">
-                <option v-for="shape in knownShapes">{{shape}}</option>
-            </select>
-
-            <h5>Opacity</h5>
-            <input class="textfield" type="text" :value="item.opacity" @input="onOpacityChange(arguments[0].target.value)"/>
-
-
-            Blend Mode: 
-            <select :value="item.blendMode" @input="onBlendModeChange(arguments[0].target.value)">
-                <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
-            </select>
-
-
             <panel name="General">
-                <table>
+                <table class="properties-table">
                     <tbody>
                         <tr>
-                            <td width="50%">Cursor</td>
-                            <td width="50%">
+                            <td class="label" width="50%">Opacity</td>
+                            <td class="value" width="50%">
+                                <input class="textfield" type="text" :value="item.opacity" @input="onOpacityChange(arguments[0].target.value)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Blend mode</td>
+                            <td class="value" width="50%">
+                                <select :value="item.blendMode" @input="onBlendModeChange(arguments[0].target.value)">
+                                    <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Interaction Mode</td>
+                            <td class="value" width="50%">
+                                <select :value="item.interactionMode" @input="item.interactionMode = arguments[0].target.value; onInteractionModeChange()">
+                                    <option v-for="interactionMode in knownInteractionModes"
+                                        :value="interactionMode"
+                                        :key="interactionMode">{{interactionMode}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr v-if="item.interactionMode === 'tooltip'">
+                            <td class="label" width="50%">Tooltip Background</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="item.tooltipBackground" @input="onTooltipBackgroundChange"></color-picker>
+                            </td>
+                        </tr>
+                        <tr v-if="item.interactionMode === 'tooltip'">
+                            <td class="label" width="50%">Tooltip Color</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="item.tooltipColor" @input="onTooltipColorChange"></color-picker>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Cursor</td>
+                            <td class="value" width="50%">
                                 <select :value="item.cursor" @input="onCursorChange(arguments[0].target.value)">
                                     <option v-for="cursor in knownCursors">{{cursor}}</option>
                                 </select>
                             </td>
                         </tr>
                         <tr>
-                            <td width="50%">Visible</td>
-                            <td width="50%">
+                            <td class="label" width="50%">Visible</td>
+                            <td class="value" width="50%">
                                 <input class="checkbox" type="checkbox" :checked="item.visible" @input="onVisibleChange(arguments[0].target.checked)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Shape</td>
+                            <td class="value" width="50%">
+                                <select :value="item.shape" @input="onShapeChange(arguments[0].target.value)">
+                                    <option v-for="shape in knownShapes">{{shape}}</option>
+                                </select>
                             </td>
                         </tr>
                     </tbody>
@@ -57,11 +87,11 @@
             </panel>
 
             <panel name="Style">
-                <table>
+                <table class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
-                            <td width="50%">{{arg.name}}</td>
-                            <td width="50%">
+                            <td class="label" width="50%">{{arg.name}}</td>
+                            <td class="value" width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
@@ -89,6 +119,7 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
 import GeneralPanel from './GeneralPanel.vue';
@@ -100,7 +131,7 @@ import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import settingsStorage from '../../../settingsStorage.js';
-import _ from 'lodash';
+import Item from '../../../scheme/Item.js';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -146,7 +177,8 @@ export default {
                                 'exclusion', 'hue', 'saturation', 'color', 'luminosity'
             ],
 
-            shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};})
+            shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};}),
+            knownInteractionModes: Item.InteractionMode.values(),
         };
     },
 
@@ -213,6 +245,27 @@ export default {
         onVisibleChange(visible) {
             this.item.visible = visible;
             EventBus.emitItemChanged(this.item.id, 'visible');
+        },
+
+        onInteractionModeChange() {
+            if (this.item.interactionMode === 'tooltip') {
+                if (!this.item.tooltipBackground) {
+                    this.item.tooltipBackground = 'rgba(250, 250, 250, 1.0)';
+                }
+                if (!this.item.tooltipColor) {
+                    this.item.tooltipColor = 'rgba(30, 30, 30, 1.0)';
+                }
+            }
+            this.emitItemChanged('interactionMode');
+        },
+
+        onTooltipBackgroundChange(color) {
+            this.item.tooltipBackground = color;
+            this.emitItemChanged('tooltipBackground');
+        },
+        onTooltipColorChange(color) {
+            this.item.tooltipColor = color;
+            this.emitItemChanged('tooltipColor');
         },
 
         emitItemChanged(propertyPath) {

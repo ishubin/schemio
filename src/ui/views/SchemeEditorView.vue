@@ -89,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-right" :class="{expanded: sidePanelRightExpanded}">
+            <div class="side-panel side-panel-right" :class="{expanded: sidePanelRightExpanded && !itemTooltip.shown}">
                 <span class="side-panel-expander" @click="sidePanelRightExpanded = !sidePanelRightExpanded">
                     <i v-if="sidePanelRightExpanded" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>

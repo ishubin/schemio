@@ -128,7 +128,7 @@ export default {
     },
     components: {Modal, Editor, EditorContent, EditorMenuBar},
 
-    mounted() {
+    beforeMount() {
         this.editor = new Editor({
             extensions: [
                 new Blockquote(),

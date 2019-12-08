@@ -1,18 +1,27 @@
 <template>
-    <div class="item-tooltip" :style="tooltipStyle" data-type="item-tooltip">
-        <h2>{{item.name}}</h2>
+    <div class="item-tooltip" :id="domId" :style="tooltipStyle" data-type="item-tooltip">
+        <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}"><i class="fas fa-times"></i></span>
+        <h3 :style="{'color': tooltipColor}">{{item.name}}</h3>
         <div v-html="sanitizedItemDescription"></div>
     </div>
 </template>
 
 <script>
 import htmlSanitize from '../../../htmlSanitize';
+
 export default {
     props: ['item', 'x', 'y'],
 
-    mounted() {
+    beforeMount() {
         this.timeMounted = new Date().getTime();
         document.body.addEventListener('click', this.onBodyClick);
+    },
+    mounted() {
+        const rect = document.getElementById(this.domId).getBoundingClientRect();
+        const leftOverlap   = Math.min(0, window.innerWidth - this.x - rect.width);
+        const topOverlap    = Math.min(0, window.innerHeight - this.y - rect.height);
+        this.positionLeft = this.x + leftOverlap;
+        this.positionTop = this.y + topOverlap;
     },
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
@@ -21,15 +30,15 @@ export default {
         const maxWidth      = Math.min(400, window.innerWidth - 60);
         const maxHeight     = Math.min(500, window.innerHeight - 60);
 
-        const leftOverlap   = Math.min(0, window.innerWidth - this.x - maxWidth);
-        const topOverlap    = Math.min(0, window.innerHeight - this.y - maxHeight);
-
         return {
-            timeMounted:    0,
-            positionLeft:   this.x + leftOverlap,
-            positionTop:    this.y + topOverlap,
-            maxWidth:       maxWidth,
-            maxHeight:      maxHeight  
+            domId:              `item-tooltip-${this.item.id}`,
+            timeMounted:        0,
+            positionLeft:       this.x,
+            positionTop:        this.y,
+            maxWidth:           maxWidth,
+            maxHeight:          maxHeight,
+            tooltipBackground:  this.item.tooltipBackground || '#eeeeee',
+            tooltipColor:       this.item.tooltipColor || '#111111',
         };
     },
 
@@ -60,9 +69,10 @@ export default {
             return {
                 'left':         this.positionLeft + 'px',
                 'top':          this.positionTop + 'px',
-                'background':   '#eee',
+                'background':   this.tooltipBackground,
+                'color':        this.tooltipColor,
                 'padding':      '10px',
-                'max-width':    `${this.maxWidth}px`,
+                'width':        `${this.maxWidth}px`,
                 'max-height':   `${this.maxHeight}px`
             };
         },

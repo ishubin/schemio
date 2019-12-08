@@ -1,22 +1,5 @@
 <template>
     <div>
-        <div>
-            <table width="100%">
-                <tbody>
-                    <tr>
-                        <td width="50%">Interaction Mode</td>
-                        <td width="50%">
-                            <select :value="item.interactionMode" @input="item.interactionMode = arguments[0].target.value; emitChangeCommited();">
-                                <option v-for="interactionMode in knownInteractionModes"
-                                    :value="interactionMode"
-                                    :key="interactionMode">{{interactionMode}}</option>
-                            </select>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
         <panel name="Events">
             <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
                 <div class="behavior-event">
@@ -92,7 +75,6 @@ import Dropdown from '../../Dropdown.vue';
 import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
-import Item from '../../../scheme/Item.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import EventBus from '../EventBus.js';
@@ -118,7 +100,6 @@ export default {
             itemMap: this.createItemMap(),
             items: items,
             behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
-            knownInteractionModes: Item.InteractionMode.values(),
         };
     },
 
