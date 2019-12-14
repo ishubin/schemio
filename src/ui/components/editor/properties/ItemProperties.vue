@@ -96,7 +96,15 @@
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
 
-                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                <div v-if="arg.type === 'image'" class="image-property-container">
+                                    <input class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+                                    <div class="upload-button-container">
+                                        <div class="upload-button">
+                                            <i class="fas fa-file-upload icon"></i>
+                                            <input type="file" @change="onShapePropInputFileUploaded(argName, arguments[0])"/>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div v-if="arg.type === 'image'">
                                     <img :src="item.shapeProps[argName]" style="max-width: 60px; max-height: 60px;"/>
                                 </div>
@@ -120,6 +128,7 @@
 
 <script>
 import _ from 'lodash';
+import apiClient from '../../../apiClient';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
 import GeneralPanel from './GeneralPanel.vue';
@@ -285,6 +294,18 @@ export default {
                     });
                 }
             });
+        },
+
+        onShapePropInputFileUploaded(argName, event) {
+            const file = event.target.files[0];
+            if (file) {
+                apiClient.uploadFile(this.projectId, file)
+                .then(imageUrl => {
+                    this.item.shapeProps[argName] = imageUrl;
+                }).catch(err => {
+                    console.error('Could not upload file', err);
+                });
+            }
         }
     },
 

@@ -767,6 +767,38 @@ ul.button-group li .toggle-button .small-letter {
     box-shadow: none;
 }
 
+.image-property-container {
+    position: relative;
+    padding-right: 22px;
+}
+.image-property-container .upload-button-container {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+}
+.image-property-container .upload-button {
+    position: relative;
+    overflow: hidden;
+    width: 19px;
+    height: 23px;
+    padding: 2px;
+    background: #bbb;
+    border: 1px solid #333;
+    cursor: pointer;
+}
+.image-property-container .upload-button input[type='file']{
+    position: absolute;
+    cursor: pointer;
+    width: 100px;
+    height: 100px;
+    opacity: 0;
+    left: -20px;
+    top: -20px;
+}
+.image-property-container .upload-button .icon{
+    font-size: 17px;
+}
+
 
 /*************** Properties Table (Item shape props) ****************/
 .properties-table {
