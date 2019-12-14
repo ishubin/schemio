@@ -50,58 +50,56 @@
 
 
 
-        <modal v-if="enlarged" title="Text Editor" @close="enlarged = false" :width="enlargedWidth">
-            <div class="textarea-enlarged-container">
-                <div :style="{height: 400 + 'px'}">
-                    <editor-menu-bar :editor="editorLarge" v-slot="{ commands, isActive, getMarkAttrs }">
-                        <div class="editor-menubar">
-                            <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
-                                <i class="fas fa-bold"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.italic() }" @click="commands.italic">
-                                <i class="fas fa-italic"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.strike() }" @click="commands.strike">
-                                <i class="fas fa-strikethrough"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
-                                <i class="fas fa-underline"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.link() }" @click="toggleLink(commands.link, getMarkAttrs('link'))">
-                                <i class="fas fa-link"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
-                                <i class="fas fa-code"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 1 }) }" @click="commands.heading({level: 1})">
-                                H1
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 2 }) }" @click="commands.heading({level: 2})">
-                                H2
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 3 }) }" @click="commands.heading({level: 3})">
-                                H3
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.bullet_list() }" @click="commands.bullet_list">
-                                <i class="fas fa-list-ul"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
-                                <i class="fas fa-list-ol"></i>
-                            </span>
-                            <span class="editor-icon" :class="{ 'is-active': isActive.blockquote() }" @click="commands.blockquote">
-                                <i class="fas fa-quote-left"></i>
-                            </span>
-                        </div>
-                    </editor-menu-bar>
-                    <div class="editor-frame" :style="{height: enlargedHeight+'px'}">
-                        <div class="editor-content" :style="{width, height: enlargedHeight+'px'}">
-                            <editor-content :editor="editorLarge" />
-                        </div>
-                        <span class="editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
+        <div class="textarea-enlarged-container" v-if="enlarged">
+            <div class="textarea-enlarged-top-panel">
+                <editor-menu-bar :editor="editorLarge" v-slot="{ commands, isActive, getMarkAttrs }">
+                    <div class="editor-menubar">
+                        <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
+                            <i class="fas fa-bold"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.italic() }" @click="commands.italic">
+                            <i class="fas fa-italic"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.strike() }" @click="commands.strike">
+                            <i class="fas fa-strikethrough"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
+                            <i class="fas fa-underline"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.link() }" @click="toggleLink(commands.link, getMarkAttrs('link'))">
+                            <i class="fas fa-link"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
+                            <i class="fas fa-code"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 1 }) }" @click="commands.heading({level: 1})">
+                            H1
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 2 }) }" @click="commands.heading({level: 2})">
+                            H2
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 3 }) }" @click="commands.heading({level: 3})">
+                            H3
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.bullet_list() }" @click="commands.bullet_list">
+                            <i class="fas fa-list-ul"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
+                            <i class="fas fa-list-ol"></i>
+                        </span>
+                        <span class="editor-icon" :class="{ 'is-active': isActive.blockquote() }" @click="commands.blockquote">
+                            <i class="fas fa-quote-left"></i>
+                        </span>
                     </div>
+                </editor-menu-bar>
+                <span class="btn btn-secondary action-close" @click="enlarged = false">Close</span>
+            </div>
+            <div class="editor-frame">
+                <div class="editor-content" @click="onEditorClick">
+                    <editor-content :editor="editorLarge" />
                 </div>
             </div>
-        </modal>
+        </div>
 
 
         <modal v-if="linkModal.shown" title="Add Link" @close="linkModal.shown = false" primary-button="Save" @primary-submit="onLinkModalSubmit">
@@ -201,7 +199,7 @@ export default {
             enlarged: false,
             editorLarge: null,
             enlargedWidth: window.innerWidth - 100,
-            enlargedHeight: window.innerHeight - 440,
+            enlargedHeight: window.innerHeight - 340,
             linkModal: {
                 shown: false,
                 url: '',
@@ -216,6 +214,13 @@ export default {
                 this.editor.view.dom.focus();
             }
         },
+
+        onLargeEditorClick(event) {
+            if (event.target.className.indexOf('editor-content') >= 0) {
+                this.editorLarge.view.dom.focus();
+            }
+        },
+
 
         toggleLink(linkCommand, linkAttrs) {
             this.linkModal.linkCommand = linkCommand;
