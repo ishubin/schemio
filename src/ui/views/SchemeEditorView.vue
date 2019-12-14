@@ -654,9 +654,6 @@ export default {
                     this.schemeContainer.copySelectedItems();
                 } else if (key === EventBus.KEY.CTRL_V) {
                     var items = this.schemeContainer.pasteSelectedItems();
-                    if (items.length > 0) {
-                        this.onActiveItemSelected(items[0]);
-                    }
                 } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
                 } else if (EventBus.KEY.CTRL_Z === key) {

@@ -223,12 +223,12 @@ export default {
         },
 
         onArtSelected(art) {
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, {
+            const item = {
                 id: shortid.generate(),
                 cursor: 'default',
                 opacity: 1.0,
                 blendMode: 'normal',
-                name: 'Art',
+                name: art.name,
                 description: '',
                 text: '',
                 links: [],
@@ -238,7 +238,10 @@ export default {
                     strokeSize: 0,
                     backgroundImage: art.url
                 }
-            });
+            };
+            const shape = Shape.make(item.shape);
+            this.enrichItemWithShapeProps(item, shape);
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
         onItemSelected(item) {
@@ -262,6 +265,7 @@ export default {
             const item = utils.clone(this.linkCreation.item);
             item.shapeProps.url = link.url;
             item.text = link.title;
+            item.shapeProps.icon = link.type;
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 

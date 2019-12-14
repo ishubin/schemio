@@ -87,10 +87,10 @@ export default {
         textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
         textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
         textHorizontalAlign: {type:'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal align'},
-        textVerticalAlign: {type:'choice', value: 'center', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
+        textVerticalAlign: {type:'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
         backgroundImage: {type: 'image', value: '', name: 'Image Background'},
         showName: {type: 'boolean', value: false, name: 'Show Name'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
+        namePosition: {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
     data() {

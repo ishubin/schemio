@@ -840,7 +840,7 @@ ul.button-group li .toggle-button .small-letter {
 
 /******************* Create Item Menu *****************/
 .item-menu {
-    padding: 5px;
+    padding: 5px 5px 15px 5px;
     position: relative;
 }
 .item-menu .btn {
@@ -868,6 +868,9 @@ ul.button-group li .toggle-button .small-letter {
 }
 .item-menu .item-container.selected {
     background: #aaa;
+}
+.art-pack {
+    padding: 2px 2px 15px 2px;
 }
 .art-pack-author {
     font-size: 12px;
