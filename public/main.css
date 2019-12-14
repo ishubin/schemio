@@ -855,8 +855,8 @@ ul.button-group li .toggle-button .small-letter {
 }
 .item-menu .item-container img {
     display: block;
-    width: 100%;
-    max-height: 100px;
+    max-width: 60px;
+    max-height: 60px;
     text-align: center;
 }
 .item-menu .item-container span {
@@ -867,6 +867,9 @@ ul.button-group li .toggle-button .small-letter {
 }
 .item-menu .item-container.selected {
     background: #aaa;
+}
+.art-pack-author {
+    font-size: 12px;
 }
 
 /******************** Connectors *********************/

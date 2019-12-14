@@ -44,6 +44,10 @@ export default {
         return axios.get(`/v1/projects/${projectId}/art`).then(unwrapAxios);
     },
 
+    getGlobalArt() {
+        return axios.get(`/v1/art`).then(unwrapAxios);
+    },
+
     saveArt(projectId, artId, art) {
         return axios.put(`/v1/projects/${projectId}/art/${artId}`, art).then(unwrapAxios);
     },

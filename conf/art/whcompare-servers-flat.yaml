@@ -1,0 +1,76 @@
+name: WHCompare Servers Flat
+author: WHCompare
+link: https://www.iconfinder.com/WHCompare
+
+icons:
+  - name: browser
+    description:
+    url: /images/art/whcompare-servers-flat/browser.svg
+
+  - name: cdn
+    description:
+    url: /images/art/whcompare-servers-flat/cdn.svg
+
+  - name: connection
+    description:
+    url: /images/art/whcompare-servers-flat/connection.svg
+
+  - name: desktop
+    description:
+    url: /images/art/whcompare-servers-flat/desktop.svg
+
+  - name: hdd
+    description:
+    url: /images/art/whcompare-servers-flat/hdd.svg
+
+  - name: headset
+    description:
+    url: /images/art/whcompare-servers-flat/headset.svg
+
+  - name: http-2
+    description:
+    url: /images/art/whcompare-servers-flat/http-2.svg
+
+  - name: ip
+    description:
+    url: /images/art/whcompare-servers-flat/ip.svg
+
+  - name: server-cloud
+    description:
+    url: /images/art/whcompare-servers-flat/server-cloud.svg
+
+  - name: server-gauge
+    description:
+    url: /images/art/whcompare-servers-flat/server-gauge.svg
+
+  - name: server-protection
+    description:
+    url: /images/art/whcompare-servers-flat/server-protection.svg
+
+  - name: server-wordpress
+    description:
+    url: /images/art/whcompare-servers-flat/server-wordpress.svg
+
+  - name: sftp
+    description:
+    url: /images/art/whcompare-servers-flat/sftp.svg
+
+  - name: shared-hosting
+    description:
+    url: /images/art/whcompare-servers-flat/shared-hosting.svg
+
+  - name: ssd-dark
+    description:
+    url: /images/art/whcompare-servers-flat/ssd-dark.svg
+
+  - name: ssd-gray
+    description:
+    url: /images/art/whcompare-servers-flat/ssd-gray.svg
+
+  - name: ssl
+    description:
+    url: /images/art/whcompare-servers-flat/ssl.svg
+
+  - name: user
+    description:
+    url: /images/art/whcompare-servers-flat/user.svg

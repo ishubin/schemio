@@ -1,0 +1,136 @@
+name: WHCompare Servers Isometric
+author: WHCompare
+link: https://www.iconfinder.com/WHCompare
+
+icons:
+  - name: analytics
+    description: Analytics, Graphs, Diagrams
+    url: /images/art/whcompare-isometric/analytics.svg
+
+  - name: backup
+    description: Backups
+    url: /images/art/whcompare-isometric/backup.svg
+
+  - name: build-http
+    description: Builder, Assemble, Build, Website, Construct
+    url: /images/art/whcompare-isometric/build-http.svg
+
+  - name: builder
+    description: Builder, Assemble, Construct
+    url: /images/art/whcompare-isometric/builder.svg
+
+  - name: cdn
+    description:
+    url: /images/art/whcompare-isometric/cdn.svg
+
+  - name: computer-02
+    description:
+    url: /images/art/whcompare-isometric/computer-02.svg
+
+  - name: computer
+    description:
+    url: /images/art/whcompare-isometric/computer.svg
+
+  - name: connection
+    description:
+    url: /images/art/whcompare-isometric/connection.svg
+
+  - name: db-cache
+    description:
+    url: /images/art/whcompare-isometric/db-cache.svg
+
+  - name: db-cloud
+    description:
+    url: /images/art/whcompare-isometric/db-cloud.svg
+
+  - name: db
+    description:
+    url: /images/art/whcompare-isometric/db.svg
+
+  - name: email
+    description:
+    url: /images/art/whcompare-isometric/email.svg
+
+  - name: firewall
+    description:
+    url: /images/art/whcompare-isometric/firewall.svg
+
+  - name: http-2
+    description:
+    url: /images/art/whcompare-isometric/http-2.svg
+
+  - name: laptop-01
+    description:
+    url: /images/art/whcompare-isometric/laptop-01.svg
+
+  - name: laptop-02
+    description:
+    url: /images/art/whcompare-isometric/laptop-02.svg
+
+  - name: laptop-03
+    description:
+    url: /images/art/whcompare-isometric/laptop-03.svg
+
+  - name: laptop-04
+    description:
+    url: /images/art/whcompare-isometric/laptop-04.svg
+
+  - name: laptop-email
+    description:
+    url: /images/art/whcompare-isometric/laptop-email.svg
+
+  - name: migration-racks
+    description:
+    url: /images/art/whcompare-isometric/migration-racks.svg
+
+  - name: migration
+    description:
+    url: /images/art/whcompare-isometric/migration.svg
+
+  - name: rack
+    description:
+    url: /images/art/whcompare-isometric/rack.svg
+
+  - name: raid
+    description:
+    url: /images/art/whcompare-isometric/raid.svg
+
+  - name: server-01
+    description:
+    url: /images/art/whcompare-isometric/server-01.svg
+
+  - name: server-02
+    description:
+    url: /images/art/whcompare-isometric/server-02.svg
+
+  - name: server-03
+    description:
+    url: /images/art/whcompare-isometric/server-03.svg
+
+  - name: server-cloud
+    description:
+    url: /images/art/whcompare-isometric/server-cloud.svg
+
+  - name: server-connected
+    description:
+    url: /images/art/whcompare-isometric/server-connected.svg
+
+  - name: server-firewall
+    description:
+    url: /images/art/whcompare-isometric/server-firewall.svg
+
+  - name: server-secure
+    description:
+    url: /images/art/whcompare-isometric/server-secure.svg
+
+  - name: servers-stacked
+    description:
+    url: /images/art/whcompare-isometric/servers-stacked.svg
+
+  - name: speed
+    description:
+    url: /images/art/whcompare-isometric/speed.svg
+
+  - name: support
+    description:
+    url: /images/art/whcompare-isometric/support.svg

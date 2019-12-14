@@ -2,9 +2,22 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const artStorage     = require('../storage/storageProvider.js').provideArtStorage();
-const _                 = require('lodash');
-const fs                = require('fs-extra');
+const artStorage    = require('../storage/storageProvider.js').provideArtStorage();
+const fs            = require('fs-extra');
+const yaml          = require('js-yaml');
+
+const globalArt = [];
+
+
+// Loading global art from config
+fs.readdir('conf/art', function (err, files) {
+    files.forEach(function (file) {
+        console.log('Loading gloabl art', file);
+        const artContent = yaml.safeLoad(fs.readFileSync(`conf/art/${file}`, 'utf8'));
+        globalArt.push(artContent);
+    });
+});
+
 
 
 function artFromRequest(req) {
@@ -59,6 +72,10 @@ const ApiArt = {
         }).catch(err => {
             res.$apiError(err, 'Could not delete art');
         });
+    },
+
+    getGlobalArt(req, res) {
+        res.json(globalArt);
     }
 };
 

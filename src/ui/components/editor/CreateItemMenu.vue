@@ -20,7 +20,7 @@
             </div>
         </panel>
 
-        <panel name="Art">
+        <panel name="Project Art">
             <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
             <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
             <div class="item-menu">
@@ -28,8 +28,21 @@
                     v-for="art in artList"
                     v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
                     @click="onArtSelected(art)">
-                    <img width="60px" height="60px" :src="art.url"/>
-                    <span>{{art.name}}</span>
+                    <img :src="art.url"/>
+                </div>
+            </div>
+        </panel>
+
+        <panel v-for="artPack in artPacks" :name="artPack.name">
+            <div class="art-pack">
+                <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
+                <div class="item-menu">
+                    <div class="item-container"
+                        v-for="icon in artPack.icons"
+                        v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
+                        @click="onArtSelected(icon)">
+                        <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
+                    </div>
                 </div>
             </div>
         </panel>
@@ -69,7 +82,7 @@ import LinkEditPopup from './LinkEditPopup.vue';
 export default {
     props: ['projectId'],
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup},
-    mounted() {
+    beforeMount() {
         this.reloadArt();
     },
     data() {
@@ -78,6 +91,7 @@ export default {
             createImageModalShown: false,
             customArtUploadModalShown: false,
             menu: 'main',
+            artPacks: [],
             artList: [],
             searchKeyword: '',
             errorMessage: null,
@@ -125,8 +139,22 @@ export default {
             })
         },
         reloadArt() {
+            this.artPacks = [];
             apiClient.getAllArt(this.projectId).then(artList => {
                 this.artList = artList;
+            });
+            apiClient.getGlobalArt().then(globalArt => {
+                _.forEach(globalArt, artPack => {
+                    _.forEach(artPack.icons, icon => {
+                        if (!icon.name) {
+                            icon.name = 'Unnamed';
+                        }
+                        if (!icon.description) {
+                            icon.description = '';
+                        }
+                    })
+                });
+                this.artPacks = globalArt;
             });
         },
 

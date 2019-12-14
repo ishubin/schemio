@@ -57,6 +57,7 @@ app.post('/v1/projects/:projectId/art',         [middleware.projectWritePermissi
 app.put('/v1/projects/:projectId/art/:artId',   [middleware.projectWritePermission],    apiArt.saveArt);
 app.delete('/v1/projects/:projectId/art/:artId',[middleware.projectWritePermission],    apiArt.deleteArt);
 app.get('/v1/projects/:projectId/art',          [middleware.projectReadPermission],     apiArt.getArt);
+app.get('/v1/art', apiArt.getGlobalArt);
 
 app.post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
 app.get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission], apiFiles.downloadFile);
