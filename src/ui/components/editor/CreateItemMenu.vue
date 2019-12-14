@@ -9,13 +9,8 @@
 
         <panel v-for="panel in itemPanels" :name="panel.name">
             <div class="item-menu">
-                <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"   :title="item.name" class="item-container" @click="onItemSelected(item)">
-                    <svg v-if="item.svg" width="40px" height="30px" v-html="item.svg"></svg>
-                    <svg v-if="!item.svg && item.shapeComponent" width="40px" height="30px">
-                        <g :transform="`translate(${item.item.area.x}, ${item.item.area.y})`">
-                            <component :is="item.shapeComponent" :item="item.item"></component>
-                        </g>
-                    </svg>
+                <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemSelected(item)">
+                    <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                 </div>
             </div>
         </panel>
@@ -27,6 +22,8 @@
                 <div class="item-container"
                     v-for="art in artList"
                     v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
+                    @mouseover="showPreviewArt(art)"
+                    @mouseleave="stopPreviewArt(art)"
                     @click="onArtSelected(art)">
                     <img :src="art.url"/>
                 </div>
@@ -40,6 +37,8 @@
                     <div class="item-container"
                         v-for="icon in artPack.icons"
                         v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
+                        @mouseover="showPreviewArt(icon)"
+                        @mouseleave="stopPreviewArt(icon)"
                         @click="onArtSelected(icon)">
                         <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
                     </div>
@@ -58,6 +57,27 @@
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" :project-id="projectId" @submit-link="startCreatingLink" @close="linkCreation.popupShown = false"/>
 
+        <div v-if="previewItem.shown" class="preview-item">
+            <div  class="item-container">
+                <div v-if="previewItem.item">
+                    <h4>{{previewItem.item.name}}</h4>
+                    <svg v-if="previewItem.item.shapeComponent" width="150px" height="120px">
+                        <g v-if="previewItem.item.previewItem" :transform="`translate(${previewItem.item.previewItem.area.x}, ${previewItem.item.previewItem.area.y})`">
+                            <component :is="previewItem.item.shapeComponent" :item="previewItem.item.previewItem"></component>
+                        </g>
+                        <g v-else :transform="`translate(${previewItem.item.item.area.x}, ${previewItem.item.item.area.y})`">
+                            <component :is="previewItem.item.shapeComponent" :item="previewItem.item.item"></component>
+                        </g>
+                    </svg>
+                </div>
+                <div v-if="previewItem.artIcon">
+                    <h4>{{previewItem.artIcon.name}}</h4>
+                    <img class="preview-art" :src="previewItem.artIcon.url"/>
+                </div>
+
+                <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -108,6 +128,13 @@ export default {
             linkCreation: {
                 popupShown: false,
                 item: null
+            },
+            previewItem: {
+                shown: false,
+                item: null,
+                artIcon: null,
+                y: 50,
+                description: null
             }
         }
     },
@@ -118,25 +145,33 @@ export default {
          */
         prepareItemsForMenu(items) {
             return _.map(items, item => {
-                item.item.area = {x: 6, y: 6, w: 32, h: 22};
+                item.item.area = {x: 6, y: 6, w: 140, h: 90};
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
-                        if (shape.args) {
-                            if (!item.item.shapeProps) {
-                                item.item.shapeProps = {};
-                            }
-                            _.forEach(shape.args, (shapeArg, shapeArgName) => {
-                                if (!item.item.shapeProps.hasOwnProperty(shapeArgName)) {
-                                    item.item.shapeProps[shapeArgName] = shapeArg.value;
-                                }
-                            });
-                        }
+                        this.enrichItemWithShapeProps(item.item, shape);
                         item.shapeComponent = shape.component;
+
+                        if (item.previewItem) {
+                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90};
+                            this.enrichItemWithShapeProps(item.previewItem, shape);
+                        }
                     }
                 }
                 return item;
             })
+        },
+        enrichItemWithShapeProps(item, shape) {
+            if (shape.args) {
+                if (!item.shapeProps) {
+                    item.shapeProps = {};
+                }
+                _.forEach(shape.args, (shapeArg, shapeArgName) => {
+                    if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
+                        item.shapeProps[shapeArgName] = shapeArg.value;
+                    }
+                });
+            }
         },
         reloadArt() {
             this.artPacks = [];
@@ -156,6 +191,30 @@ export default {
                 });
                 this.artPacks = globalArt;
             });
+        },
+
+        showPreviewItem(item) {
+            this.previewItem.item = item;
+            this.previewItem.artIcon = null;
+            this.previewItem.description = item.description;
+            this.previewItem.shown = true;
+        },
+        stopPreviewItem(item) {
+            if (this.previewItem.item &&this.previewItem.item.name === item.name) {
+                this.previewItem.shown = false;
+            }
+        },
+
+        showPreviewArt(artIcon) {
+            this.previewItem.item = null;
+            this.previewItem.artIcon = artIcon;
+            this.previewItem.description = artIcon.description;
+            this.previewItem.shown = true;
+        },
+        stopPreviewArt(artIcon) {
+            if (this.previewItem.artIcon &&this.previewItem.artIcon.name === artIcon.name) {
+                this.previewItem.shown = false;
+            }
         },
 
         onArtCreated(art) {

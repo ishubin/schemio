@@ -4,7 +4,7 @@
             <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
                 :style="iconStyle"
                 ><i :class="iconClass"></i></foreignObject>
-            <foreignObject :x="textOffset" y="0" :width="item.area.w - textOffset" :height="item.area.h" v-html="linkHtml" :style="style"></foreignObject>
+            <foreignObject v-if="textWidth > 0" :x="textOffset" y="0" :width="textWidth" :height="item.area.h" v-html="linkHtml" :style="style"></foreignObject>
         </a>
     </g>
     
@@ -50,6 +50,12 @@ export default {
                 event.preventDefault();
             }
             return false;
+        },
+        calculateTextOffset() {
+            if (this.item.shapeProps.showIcon) {
+                return this.item.shapeProps.fontSize * 1.4;
+            }
+            return 0;
         }
     },
 
@@ -76,10 +82,10 @@ export default {
         },
 
         textOffset() {
-            if (this.item.shapeProps.showIcon) {
-                return this.item.shapeProps.fontSize * 1.4;
-            }
-            return 0;
+            return this.calculateTextOffset();
+        },
+        textWidth() {
+            return this.item.area.w - this.calculateTextOffset();
         },
 
         iconClass() {

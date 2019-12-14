@@ -841,6 +841,7 @@ ul.button-group li .toggle-button .small-letter {
 /******************* Create Item Menu *****************/
 .item-menu {
     padding: 5px;
+    position: relative;
 }
 .item-menu .btn {
     font-size: 12px;
@@ -869,6 +870,25 @@ ul.button-group li .toggle-button .small-letter {
     background: #aaa;
 }
 .art-pack-author {
+    font-size: 12px;
+}
+
+.create-item-menu .preview-item {
+    position: absolute;
+    padding: 5px;
+    width: 160px;
+    background: #eee;
+    right: -160px;
+    top: 60px;
+}
+.create-item-menu .preview-item h4 {
+    margin: 5px 0 5px 0;
+}
+.create-item-menu .preview-item img.preview-art {
+    max-height: 100px;
+    max-width: 100%;
+}
+.create-item-menu .preview-item .preview-item-description {
     font-size: 12px;
 }
 

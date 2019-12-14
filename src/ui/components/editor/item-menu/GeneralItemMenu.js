@@ -12,28 +12,31 @@ const defaultItem = {
 
 export default [{
     name: 'Rect',
-    svg: `<rect x="3" y="6" width="32" height="22" stroke-width="2" stroke="rgba(30,30,30,1.0)" fill="rgba(240,240,240,1.0)"></rect>`,
+    iconUrl: '/images/items/rect.svg',
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {}
     }, defaultItem)
 }, {
     name: 'Rounded Rect',
+    iconUrl: '/images/items/rounded-rect.svg',
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {cornerRadius: 20}
     }, defaultItem)
 }, {
     name: 'Ellipse',
+    iconUrl: '/images/items/ellipse.svg',
     item: utils.extendObject({
         shape: 'ellipse',
         shapeProps: {}
     }, defaultItem)
 }, {
     name: 'Overlay',
-    svg: `
-        <path fill="#999" d="M 3 30  l 15 -6  l 20 0   l -15 6 Z"></path>
-        <path fill="#777" style="opacity: 0.5" d="M 3 25  l 15 -6  l 20 0   l -15 6 Z"></path>
+    iconUrl: '/images/items/overlay.svg',
+    description: `
+        It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
+        E.g. you can select it, trigger events or connect it to other items on the page.
     `,
     item: utils.extendObject({
         shape: 'rect',
@@ -71,6 +74,10 @@ export default [{
 }, {
     name: 'Image',
     imageProperty: 'shapeProps.backgroundImage',
+    iconUrl: '/images/items/image.svg',
+    description: `
+        It lets you uppload an image or specify a link to external image
+    `,
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {
@@ -80,9 +87,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Comment',
-    svg: `
-        <path fill="rgba(240,240,240,1.0)" stroke-width="2" stroke="rgba(30,30,30,1.0)" d="M 34 26  L 28 20  L 6 20   a 5 5 0 0 1 -5 -5  L 1 6  a 5 5 0 0 1 5 -5   L 29 1  a 5 5 0 0 1 5 5 Z"></path>
-    `,
+    iconUrl: '/images/items/comment.svg',
     shapeProps: {
         fontSize: 8,
         cornerRadius: 5,
@@ -96,30 +101,45 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Text',
-    svg: `<text x="14" y="25" width="32" height="22" stroke-width="0" fill="#111" style="font-size:32px; font-family: Georgia; font-weight:bold;">A</text>`,
+    iconUrl: '/images/items/text.svg',
     item: utils.extendObject({
         shape: 'none',
         text: 'Text ...',
         shapeProps: { }
     }, defaultItem)
+
 }, {
     name: 'Link',
-    svg: `<foreignObject x="0" y="0" width="38" height="28"><i class="fas fa-link" style="font-size: 26px;"></i></foreignObject>`,
+    iconUrl: '/images/items/link.svg',
     item: utils.extendObject({
         shape: 'link',
         shapeProps: { }
+    }, defaultItem),
+    previewItem: utils.extendObject({
+        shape: 'link',
+        shapeProps: {
+            url: 'http://example.com'
+        },
+        text: 'http://example.com',
     }, defaultItem)
+
 }, {
     name: 'Frame Player',
-    svg: `<foreignObject x="0" y="0" width="38" height="28"><i class="fas fa-film" style="font-size: 28px;"></i></foreignObject>`,
+    iconUrl: '/images/items/frame-player.svg',
     item: utils.extendObject({
         shape: 'frame_player',
         shapeProps: { }
     }, defaultItem)
 }, {
     name: 'Code Block',
+    iconUrl: '/images/items/code-block.svg',
     item: utils.extendObject({
         shape: 'code_block',
         shapeProps: { }
+    }, defaultItem),
+    previewItem: utils.extendObject({
+        shape: 'code_block',
+        shapeProps: { },
+        text: 'var x = 123.0;'
     }, defaultItem)
 }];
