@@ -94,7 +94,7 @@ const ApiSchemes = {
 
     findSchemes(req, res) {
         const projectId = req.params.projectId;
-        var query = {
+        const query = {
             query: req.query.q ? req.query.q.trim() : null,
             includeParent: false
         };
@@ -109,6 +109,10 @@ const ApiSchemes = {
 
         if (req.query.hasOwnProperty('includeSubcategories')) {
             query.includeSubcategories = true;
+        }
+
+        if (req.query.tag) {
+            query.tag = req.query.tag;
         }
 
         schemeStorage.findSchemes(projectId, query).then(searchResult => {
@@ -141,9 +145,7 @@ const ApiSchemes = {
         const schemeId = req.params.schemeId;
         schemeStorage.getSchemePreview(projectId, schemeId)
         .then(preview => {
-            res.set({
-                'Content-Type': 'image/svg+xml'
-            });
+            res.set('Content-Type', 'image/svg+xml');
             if (preview) {
                 res.send(preview.content);
             } else {

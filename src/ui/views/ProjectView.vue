@@ -30,6 +30,13 @@
                             :use-router="true"
                         />
 
+                        <div class="tag-filter-container">
+                            <ul class="tag-filter">
+                                <li v-if="filterTag"><span class="tag selected" @click="removeTagFilter()">{{filterTag}}</span></li>
+                                <li v-for="tag in tags" v-if="tag !== filterTag"><span class="tag" @click="toggleFilterByTag(tag)">{{tag}}</span></li>
+                            </ul>
+                        </div>
+
                         <ul class="schemes">
                             <li v-for="scheme in searchResult.results">
                                 <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}">
@@ -66,7 +73,7 @@ const RESULTS_PER_PAGE = 20;
 export default {
     components: {HeaderComponent, CategoryTree, Pagination},
 
-    mounted() {
+    beforeMount() {
         this.init();
     },
 
@@ -74,6 +81,8 @@ export default {
         return {
             projectId: this.$route.params.projectId,
             project: null,
+            tags: [],
+            filterTag: null,
             query: '',
             urlPrefix: null,
             searchResult: null,
@@ -87,12 +96,14 @@ export default {
 
     methods: {
         init() {
+            apiClient.getTags(this.projectId).then(tags => this.tags = tags);
             apiClient.getProject(this.projectId).then(project => this.project = project);
             apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
                 this.currentCategory = category;
             });
 
             this.currentPage = parseInt(this.$route.query.page) || 1;
+            this.filterTag = this.$route.query.tag || null;
             this.query = this.$route.query.q || '';
 
             let urlPrefix = `/projects/${this.projectId}/`;
@@ -115,6 +126,7 @@ export default {
             });
             this.searchSchemes();
         },
+
         searchSchemes() {
             let offset = 0;
             if (this.currentPage > 0) {
@@ -124,7 +136,8 @@ export default {
                 query: this.query,
                 categoryId: this.currentCategoryId,
                 offset: offset,
-                includeSubcategories: true
+                includeSubcategories: true,
+                tag: this.filterTag
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
@@ -132,12 +145,32 @@ export default {
         },
 
         onSearchClicked() {
-            let url = `/projects/${this.projectId}?q=${encodeURIComponent(this.query)}&page=${this.currentPage}`;
+            this.toggleSearch();
+        },
+        
+        toggleSearch() {
+            const query = {
+                q: this.query,
+                page: this.currentPage
+            };
+            query.q = this.query;
             if (this.currentCategoryId) {
-                url += `&category=${encodeURIComponent(this.currentCategoryId)}`;
+                query.category = this.currentCategoryId;
+            }
+            if (this.filterTag) {
+                query.tag = this.filterTag;
             }
 
-            this.$router.push({path: url});
+            this.$router.push({path: `/projects/${this.projectId}`, query: query});
+        },
+
+        removeTagFilter() {
+            this.filterTag = null;
+        },
+
+        toggleFilterByTag(tag) {
+            this.filterTag = tag;
+            this.toggleSearch();
         },
 
         expandToCategory(categoryId) {

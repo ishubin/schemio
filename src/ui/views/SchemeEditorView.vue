@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
-            <header-component :project-id="projectId" :category="currentCategory">
+            <header-component :project-id="projectId" :project="project" :category="currentCategory">
                 <div slot="middle-section">
                     <ul class="button-group">
                         <li v-for="knownMode in knownModes">
@@ -182,7 +182,7 @@ export default {
         ItemTooltip
     },
 
-    mounted() {
+    beforeMount() {
         window.onbeforeunload = this.onBrowseClose;
         this.init();
         EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -215,6 +215,7 @@ export default {
     data() {
         return {
             projectId: this.$route.params.projectId,
+            project: null,
             user: null,
             schemeId: null,
 
@@ -296,6 +297,10 @@ export default {
                 }
             });
             this.schemeId = this.$route.params.schemeId;
+
+            apiClient.getProject(this.projectId).then(project => {
+                this.project = project;
+            });
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
                 history = new History({size: 30});
                 document._history = history;

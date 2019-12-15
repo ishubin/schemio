@@ -61,7 +61,9 @@ class MongoSchemeStorage {
         if (query.query && query.query.length > 0) {
             mongoQuery['$text'] = {'$search': mongo.sanitizeString(query.query)};
         }
-
+        if (query.tag){
+            mongoQuery['indexedTags'] = query.tag;
+        }
 
         var offset = 0;
         if (query.offset) {
@@ -152,18 +154,29 @@ class MongoSchemeStorage {
         });
     }
 
-    saveScheme(projectId, schemeId, scheme) {
+    extractTagsFromScheme(scheme) {
+        const tagsMap = {};
         if (scheme.tags) {
-            var tags = [].concat(scheme.tags);
-            _.forEach(scheme.items, item => {
-                if (item.tags) {
-                    tags = tags.concat(item.tags);
-                }
+            _.forEach(scheme.tags, tag => {
+                tagsMap[tag] = true;
             });
         }
-        this.saveTags(tags);
+        _.forEach(scheme.items, item => {
+            if (item.tags) {
+                _.forEach(item.tags, tag => {
+                    tagsMap[tag] = true;
+                });
+            }
+        });
+        return _.keys(tagsMap);
+    }
+
+    saveScheme(projectId, schemeId, scheme) {
+        const tags = this.extractTagsFromScheme(scheme);
+        this.saveTags(projectId, tags);
 
         scheme.itemsText = this.combineItemsText(scheme.items);
+        scheme.indexedTags = tags;
         scheme.version = CURRENT_SCHEME_VERSION;
         scheme.projectId = projectId;
 

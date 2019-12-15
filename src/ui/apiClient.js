@@ -91,6 +91,9 @@ export default {
         if (filters.includeSubcategories) {
             url = `${url}&includeSubcategories=true`;
         }
+        if (filters.tag) {
+            url = `${url}&tag=${encodeURIComponent(filters.tag)}`;
+        }
 
         return axios.get(url).then(unwrapAxios);
     },

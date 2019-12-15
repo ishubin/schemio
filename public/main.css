@@ -84,6 +84,10 @@ h5 {
 .header .header-middle-section {
     display: inline-block;
 }
+.header a {
+    color: #eee;
+    text-decoration: none;
+}
 .header a.header-caption {
     display: inline-block;
     position: relative;
@@ -1348,7 +1352,36 @@ table.position-panel-table .property-label {
     padding-left: 15px;
 }
 
-
+/****************** Tag Filter ********************/
+.tag-filter-container ul.tag-filter {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.tag-filter-container ul.tag-filter li {
+    margin: 5px;
+    display: inline;
+}
+.tag-filter-container ul.tag-filter li .tag {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #ddd;
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+}
+.tag-filter-container ul.tag-filter li .tag:hover {
+    background: #999;
+    color: white;
+}
+.tag-filter-container ul.tag-filter li .tag.selected {
+    background: #333;
+    color: white;
+}
+.tag-filter-container ul.tag-filter li .tag.selected:hover {
+    background: #999;
+    color: white;
+}
 
 /************* Behavior Properties **********************/
 .behavior-container {

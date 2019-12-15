@@ -7,6 +7,7 @@
         <router-link :to="{path: '/'}" class="header-caption">
             <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
         </router-link>
+        <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>
         <ul>
             <li v-if="user">
                 <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
@@ -44,6 +45,7 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 export default {
     props: {
         projectId:  {type: String, default: null},
+        project:    {type: Object, default: null},
         category:   {type: Object, default: null}
     },
 
