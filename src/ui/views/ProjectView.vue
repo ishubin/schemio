@@ -199,10 +199,12 @@ export default {
 
     filters: {
         shortDescription(text) {
-            if (text.length > 200) {
-                return text.substr(0, 200) + '...';
+            // first replacing paragraphs with white space. Otherwise it will join both sentences without a space
+            const sanitizedText = text.replace(/<p>/g, ' ').replace(/<[^>]+>/g, '');
+            if (sanitizedText.length > 200) {
+                return sanitizedText.substr(0, 200) + '...';
             } else {
-                return text;
+                return sanitizedText;
             }
         },
         formatDateAndTime(dateInMillis) {
