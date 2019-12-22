@@ -1,5 +1,6 @@
 
 const projectStorage = require('../storage/storageProvider.js').provideProjectStorage();
+const _ = require('lodash');
 
 const ApiProjects = {
     createProject(req, res) {
@@ -39,12 +40,25 @@ const ApiProjects = {
         projectStorage.getProject(projectId, userLogin)
         .then(project => {
             if (project) {
-                res.json(project);
+                const projectResponse = {
+                    id:             project.id,
+                    name:           project.name,
+                    description:    project.description,
+                    createdDate:    project.createdDate,
+                    permissions: {
+                        read:   true,
+                        write:  false,
+                    }
+                };
+                if (userLogin && _.indexOf(project.write, userLogin) >= 0) {
+                    projectResponse.permissions.write = true;
+                }
+                res.json(projectResponse);
             } else {
                 return Promise.reject('Not authorized');
             }
         })
-        .catch(res.$apiError)
+        .catch(res.$apiError);
     }
 
 };
