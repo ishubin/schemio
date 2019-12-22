@@ -41,15 +41,11 @@ class MongoCategoryStorage {
         return chain.then(parentCategory => {
             var ancestors = [];
             if (parentCategory) {
-                ancestors = parentCategory.ancestors.concat({
-                    name: parentCategory.name,
-                    id: parentCategory.id
-                });
+                ancestors = parentCategory.ancestors.concat(parentCategory.id);
             }
 
             var categoryData = {
                 name,
-                lname: name.toLowerCase(),
                 id,
                 projectId,
                 parentId,

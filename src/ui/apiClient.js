@@ -102,6 +102,13 @@ export default {
         return axios.get(`/v1/projects/${projectId}/tags`).then(unwrapAxios);
     },
 
+    createCategory(projectId, categoryName, parentCategoryId) {
+        return axios.post(`/v1/projects/${projectId}/categories`, {
+            name: categoryName,
+            parentId: parentCategoryId
+        }).then(unwrapAxios);
+    },
+
     getCategory(projectId, parentCategoryId) {
         var id = parentCategoryId ? parentCategoryId : '';
         return axios.get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);

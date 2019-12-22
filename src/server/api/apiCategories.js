@@ -11,8 +11,10 @@ const ApiCategories = {
 
     createCategory(req, res) {
         const projectId = req.params.projectId;
-        let category = req.body;
-        categoryStorage.createCategory(projectId, category.name, category.id, category.parentId).then(category => {
+        const category = req.body;
+        const categoryId = shortid.generate();
+
+        categoryStorage.createCategory(projectId, category.name, categoryId, category.parentId).then(category => {
             res.json(category);
         }).catch(err => res.$apiError(err));
     },

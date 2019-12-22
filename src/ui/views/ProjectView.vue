@@ -9,10 +9,18 @@
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
+
+                    <div v-if="project && project.permissions.write">
+                        <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
+                    </div>
+
                     <category-tree v-for="category in categories"
                         :category="category"
                         :selected-category-id="currentCategoryId"
-                        :url-prefix="urlPrefix"/>
+                        :url-prefix="urlPrefix"
+                        :write-permissions="project && project.permissions.write"
+                        @add-category="onAddCategoryClicked"
+                        />
                 </div>
                 <div class="search-results">
                     <h3 v-if="project">{{project.name}}</h3>
@@ -60,6 +68,16 @@
                 </div>
             </div>
         </div>
+
+        <modal :title="createCategoryModalTitle" v-if="createCategoryModal.shown"
+            @close="createCategoryModal.shown = false" primary-button="Create"
+            @primary-submit="onCreateCategorySubmited"
+            >
+            <h5>Name</h5>
+            <input class="textfield" v-model="createCategoryModal.categoryName"/>
+
+            <div v-if="createCategoryModal.errorMessage" class="msg msg-error">{{createCategoryModal.errorMessage}}</div>
+        </modal>
     </div>
 </template>
 
@@ -69,12 +87,13 @@ import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
 import utils from '../utils.js';
 import Pagination from '../components/Pagination.vue';
+import Modal from '../components/Modal.vue';
 
 //TODO Align it with the server side
 const RESULTS_PER_PAGE = 20;
 
 export default {
-    components: {HeaderComponent, CategoryTree, Pagination},
+    components: {HeaderComponent, CategoryTree, Pagination, Modal},
 
     beforeMount() {
         this.init();
@@ -93,7 +112,14 @@ export default {
             currentCategoryId: null,
             currentPage: 1,
             totalPages: 0,
-            categories: []
+            categories: [],
+
+            createCategoryModal: {
+                shown: false,
+                categoryName: '',
+                parentCategory: null,
+                errorMessage: null
+            }
         };
     },
 
@@ -121,14 +147,17 @@ export default {
             });
 
             this.urlPrefix = urlPrefix;
+            this.reloadCategoryTree();
+            this.searchSchemes();
+        },
 
-            apiClient.getCategoryTree(this.projectId).then(categories => {
+        reloadCategoryTree() {
+            return apiClient.getCategoryTree(this.projectId).then(categories => {
                 this.categories = categories;
                 if (this.currentCategoryId) {
                     this.expandToCategory(this.currentCategoryId);
                 }
             });
-            this.searchSchemes();
         },
 
         searchSchemes() {
@@ -177,6 +206,35 @@ export default {
             this.toggleSearch();
         },
 
+        onAddCategoryClicked(parentCategory) {
+            this.createCategoryModal.name = '';
+            this.createCategoryModal.parentCategory = parentCategory;
+            this.createCategoryModal.errorMessage = null;
+            this.createCategoryModal.shown = true;
+        },
+
+        onCreateCategorySubmited() {
+            const name = this.createCategoryModal.categoryName.trim();
+            if (name) {
+                let parentCategoryId = null;
+                if (this.createCategoryModal.parentCategory) {
+                    parentCategoryId = this.createCategoryModal.parentCategory.id;
+                }
+                apiClient.createCategory(this.projectId, name, parentCategoryId)
+                .then(category => {
+                    return this.reloadCategoryTree();
+                })
+                .then(() => {
+                    this.createCategoryModal.shown = false;
+                })
+                .catch(err => {
+                    this.createCategoryModal.errorMessage = 'Could not add a category';
+                });
+            } else {
+                this.createCategoryModal.errorMessage = 'Category should not be empty';
+            }
+        },
+
         expandToCategory(categoryId) {
             for (let i = 0; i < this.categories.length; i++) {
                 this._expandToCategory(this.categories[i], categoryId);
@@ -219,6 +277,15 @@ export default {
     watch:{
         $route(to, from) {
             this.init();
+        }
+    },
+
+    computed: {
+        createCategoryModalTitle() {
+            if (this.createCategoryModal.parentCategory) {
+                return `Create sub-category for "${this.createCategoryModal.parentCategory.name}"`;
+            }
+            return 'Create category';
         }
     }
 }

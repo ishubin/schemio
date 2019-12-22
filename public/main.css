@@ -297,6 +297,9 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid #7e3e3e;
 }
 
+.btn.btn-small {
+    padding: 1px 2px;
+}
 
 
 
@@ -1332,12 +1335,23 @@ table.position-panel-table .property-label {
 }
 
 .search-view .category-tree .category-selector {
-    margin: 2px;
+    position: relative;
+}
+.search-view .category-tree .category-selector .category-menu {
+    position: absolute;
+    display: none;
+    right: 0;
+    top: 0;
+}
+.search-view .category-tree .category-selector:hover > .category-menu {
+    display: inline-block;
 }
 .search-view .category-tree .category-selector a, .search-view .category-tree .category-selector a:visited {
+    display: block;
+    width: 100%;
     color: #246c8f;
     text-decoration: none;
-    padding: 2px 4px 2px 4px;
+    padding: 2px 60px 2px 4px;
     cursor: pointer;
     cursor: hand;
 }
