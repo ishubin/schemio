@@ -8,7 +8,7 @@
             <router-link :to="{path: categoryFullUrl}">{{category.name}}</router-link>
             <div v-if="writePermissions" class="category-menu">
                 <span class="btn btn-secondary btn-small" title="Add sub-category" @click="onAddCategoryClicked(category)"><i class="fas fa-folder-plus"></i></span>
-                <span class="btn btn-secondary btn-small" title="Move to another category" @click="onMoveCategoryClicked(category)"><i class="fas fa-people-carry"></i></span>
+                <span class="btn btn-secondary btn-small" title="Edit category" @click="onEditCategoryClicked(category)"><i class="fas fa-pen-square"></i></span>
                 <span class="btn btn-secondary btn-small" title="Delete category" @click="onDeleteCategoryClicked(category)"><i class="fas fa-trash-alt"></i></span>
             </div>
         </div>
@@ -19,8 +19,8 @@
                 :url-prefix="urlPrefix"
                 :write-permissions="writePermissions"
                 @add-category="onAddCategoryClicked"
-                @move-category="onMoveCategoryClicked"
-                @deletee-category="onDeleteCategoryClicked"
+                @edit-category="onEditCategoryClicked"
+                @delete-category="onDeleteCategoryClicked"
                 />
         </div>
     </div>
@@ -48,8 +48,8 @@ export default {
             this.$emit('add-category', category);
         },
 
-        onMoveCategoryClicked(category) {
-            this.$emit('move-category', category);
+        onEditCategoryClicked(category) {
+            this.$emit('edit-category', category);
         },
 
         onDeleteCategoryClicked(category) {

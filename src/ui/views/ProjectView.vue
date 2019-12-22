@@ -20,6 +20,7 @@
                         :url-prefix="urlPrefix"
                         :write-permissions="project && project.permissions.write"
                         @add-category="onAddCategoryClicked"
+                        @delete-category="onDeleteCategoryClicked"
                         />
                 </div>
                 <div class="search-results">
@@ -78,6 +79,17 @@
 
             <div v-if="createCategoryModal.errorMessage" class="msg msg-error">{{createCategoryModal.errorMessage}}</div>
         </modal>
+
+        <modal :title="`Delete category ${deleteCategoryModal.categoryName}`" v-if="deleteCategoryModal.shown" primary-button="Delete" 
+            @primary-submit="onConfirmDeleteCategoryClicked"
+            @close="deleteCategoryModal.shown = false"
+            >
+            <p>
+                Are you sure you want to delete <b><i>"{{deleteCategoryModal.categoryName}}"</i></b> category?
+                This will delete all of it's sub-categories and schemes.
+            </p>
+            <div v-if="deleteCategoryModal.errorMessage" class="msg msg-error">{{deleteCategoryModal.errorMessage}}</div>
+        </modal>
     </div>
 </template>
 
@@ -118,6 +130,13 @@ export default {
                 shown: false,
                 categoryName: '',
                 parentCategory: null,
+                errorMessage: null
+            },
+
+            deleteCategoryModal: {
+                shown: false,
+                categoryName: '',
+                category: null,
                 errorMessage: null
             }
         };
@@ -213,6 +232,33 @@ export default {
             this.createCategoryModal.shown = true;
         },
 
+        onDeleteCategoryClicked(category) {
+            this.deleteCategoryModal.category = category;
+            this.deleteCategoryModal.errorMessage = null;
+            this.deleteCategoryModal.categoryName = category.name;
+            this.deleteCategoryModal.shown = true;
+        },
+
+        onConfirmDeleteCategoryClicked() {
+            if (this.deleteCategoryModal.category) {
+                const isCurrentCategoryInDeletedTree = this.currentCategoryId && this.isInCategoryTree(this.currentCategoryId, this.deleteCategoryModal.category);
+
+                apiClient.deleteCategory(this.projectId, this.deleteCategoryModal.category.id).then(() => {
+                    this.deleteCategoryModal.shown = false;
+                }).then(() => {
+                    if (isCurrentCategoryInDeletedTree) {
+                        this.currentCategoryId = null;
+                        this.$router.push({path: this.$route.path, query: {}});
+                    } else {
+                        return this.reloadCategoryTree()
+                    }
+                })
+                .catch(err => {
+                    this.deleteCategoryModal.errorMessage = 'Internal Server Error. Could not delete category';
+                });
+            }
+        },
+
         onCreateCategorySubmited() {
             const name = this.createCategoryModal.categoryName.trim();
             if (name) {
@@ -221,9 +267,7 @@ export default {
                     parentCategoryId = this.createCategoryModal.parentCategory.id;
                 }
                 apiClient.createCategory(this.projectId, name, parentCategoryId)
-                .then(category => {
-                    return this.reloadCategoryTree();
-                })
+                .then(() => this.reloadCategoryTree())
                 .then(() => {
                     this.createCategoryModal.shown = false;
                 })
@@ -233,6 +277,23 @@ export default {
             } else {
                 this.createCategoryModal.errorMessage = 'Category should not be empty';
             }
+        },
+
+        isInCategoryTree(categoryId, category) {
+            if (category) {
+                if (categoryId === category.id) {
+                    return true;
+                }
+
+                if (category.childCategories.length > 0) {
+                    for (let i = 0; i < category.childCategories.length; i++) {
+                        if (this.isInCategoryTree(categoryId, category.childCategories[i])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         },
 
         expandToCategory(categoryId) {

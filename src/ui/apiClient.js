@@ -109,6 +109,10 @@ export default {
         }).then(unwrapAxios);
     },
 
+    deleteCategory(projectId, categoryId) {
+        return axios.delete(`/v1/projects/${projectId}/categories/${categoryId}`).then(unwrapAxios);
+    },
+
     getCategory(projectId, parentCategoryId) {
         var id = parentCategoryId ? parentCategoryId : '';
         return axios.get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
