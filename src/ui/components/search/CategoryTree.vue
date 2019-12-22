@@ -9,7 +9,7 @@
                 <a>{{category.name}}</a>
             </router-link>
         </div>
-        <div class="category-children" v-if="category.childCategories.length > 0 && category.expanded">
+        <div class="category-children" v-if="category.childCategories.length > 0">
             <category-tree v-for="childCategory in category.childCategories"
                 :category="childCategory"
                 :selected-category-id="selectedCategoryId"
