@@ -105,8 +105,8 @@
                     </ul>
                     <div class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer">
-                            <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :schemeContainer="schemeContainer"></scheme-properties>
-                            <scheme-details v-else :schemeContainer="schemeContainer"></scheme-details>
+                            <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :scheme-container="schemeContainer"></scheme-properties>
+                            <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
                             <item-properties :key="`${selectedItem.id}-${schemeRevision}`" :revision="schemeRevision" :project-id="projectId" :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"

@@ -4,17 +4,15 @@
 
 <template lang="html">
     <div class="category-tree">
-        <div class="category-selector" :class="{selected: category.id === selectedCategoryId}">
-            <router-link :to="{path: createCategoryUrl()}">
+        <div class="category-selector" :class="{'selected': category.id === selectedCategoryId}">
+            <router-link :to="{path: categoryFullUrl}">
                 <a>{{category.name}}</a>
             </router-link>
         </div>
         <div class="category-children" v-if="category.childCategories.length > 0 && category.expanded">
             <category-tree v-for="childCategory in category.childCategories"
-                :key="childCategory.id"
                 :category="childCategory"
                 :selected-category-id="selectedCategoryId"
-                :base-url="baseUrl"
                 :url-prefix="urlPrefix"
                 @category-selected="$emit('category-selected', arguments[0])"
                 />
@@ -26,7 +24,7 @@
 import _ from 'lodash';
 
 export default {
-    props: ['category', 'selectedCategoryId', 'urlPrefix', 'baseUrl'],
+    props: ['category', 'selectedCategoryId', 'urlPrefix'],
     name: 'category-tree',
 
     data() {
@@ -34,12 +32,8 @@ export default {
             collapsed: true
         };
     },
-    methods: {
-        onCategoryClicked() {
-            this.$emit('category-selected', this.category);
-        },
-
-        createCategoryUrl() {
+    computed: {
+        categoryFullUrl() {
             let link = this.urlPrefix;
             if (this.category.id !== this.selectedCategoryId) {
                 let parameterSplit = '?';

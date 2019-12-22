@@ -9,7 +9,10 @@
             <div class="search-layout">
                 <div class="search-attributes-panel">
                     <h4>Categories</h4>
-                    <category-tree v-for="category in categories" :key="category.id" :category="category" :selected-category-id="currentCategoryId" :base-url="`/projects/${projectId}`" :url-prefix="urlPrefix"/>
+                    <category-tree v-for="category in categories"
+                        :category="category"
+                        :selected-category-id="currentCategoryId"
+                        :url-prefix="urlPrefix"/>
                 </div>
                 <div class="search-results">
                     <h3 v-if="project">{{project.name}}</h3>
@@ -87,7 +90,7 @@ export default {
             urlPrefix: null,
             searchResult: null,
             currentCategory: null,
-            currentCategoryId: this.$route.query.category || null,
+            currentCategoryId: null,
             currentPage: 1,
             totalPages: 0,
             categories: []
@@ -96,6 +99,7 @@ export default {
 
     methods: {
         init() {
+            this.currentCategoryId = this.$route.query.category || null;
             apiClient.getTags(this.projectId).then(tags => this.tags = tags);
             apiClient.getProject(this.projectId).then(project => this.project = project);
             apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
@@ -214,6 +218,7 @@ export default {
 
     watch:{
         $route(to, from) {
+            console.log('Router changed');
             this.init();
         }
     }
