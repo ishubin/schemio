@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :style="{'opacity': connector.opacity}">
+    <g :style="{'opacity': connector.opacity/100.0}">
             
         <path :d="svgPath" class="item-connector"
             :class="{selected: selected}"

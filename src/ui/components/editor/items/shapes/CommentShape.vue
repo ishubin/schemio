@@ -95,7 +95,7 @@ export default {
         tailLength: {type: 'number', value: 30, name: 'Tail Length'},
         tailWidth: {type: 'number', value: 40, name: 'Tail Width'},
         tailSide: {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
-        tailPosition: {type: 'number', value: 0, name: 'Tail Position', min: 0, max: 100.0},
+        tailPosition: {type: 'number', value: 0, name: 'Tail Position (%)', min: 0, max: 100.0},
         strokeColor: {type: 'color', value: 'rgba(100,100,100,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 1, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(230,230,230,1.0)', name: 'Fill color'},

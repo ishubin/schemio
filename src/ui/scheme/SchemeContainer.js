@@ -84,6 +84,7 @@ class SchemeContainer {
     enrichItemWithDefaults(item, shape) {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0},
+            opacity: 100.0,
             visible: true,
             blendMode: 'normal',
             text: '',
@@ -244,7 +245,7 @@ class SchemeContainer {
     enrichConnectorWithDefaultStyle(connector) {
         utils.extendObject(connector, {
             name: '',
-            opacity: 1.0,
+            opacity: 100.0,
             color: '#333',
             width: 1,
             pattern: Connector.Pattern.LINE,

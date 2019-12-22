@@ -10,7 +10,7 @@
             v-if="shapeComponent && item.visible"
             :is="shapeComponent"
             :item="item"
-            :style="{'opacity': item.opacity, 'mix-blend-mode': item.blendMode}"
+            :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
             :hidden-text-property="hiddenTextProperty"
             @custom-event="onShapeCustomEvent">
         </component>
