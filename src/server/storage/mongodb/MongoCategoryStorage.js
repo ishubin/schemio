@@ -66,6 +66,15 @@ class MongoCategoryStorage {
         });
     }
 
+    updateCategory(projectId, categoryId, newCategoryName) {
+        return this._categories().updateOne({
+            id: mongo.sanitizeString(categoryId),
+            projectId: mongo.sanitizeString(projectId)
+        }, {
+            $set: {name: newCategoryName}
+        });
+    }
+
     getCategories(projectId, parentId) {
         return this._categories().find({
             parentId: mongo.sanitizeString(parentId),

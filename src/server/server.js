@@ -67,6 +67,7 @@ app.get('/v1/projects/:projectId/category-tree',                [middleware.proj
 app.get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission], apiCategories.getRootCategory);
 app.get('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectReadPermission], apiCategories.getCategory);
 app.post('/v1/projects/:projectId/categories',                  [middleware.projectWritePermission],  apiCategories.createCategory);
+app.put('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectWritePermission],  apiCategories.updateCategory);
 app.delete('/v1/projects/:projectId/categories/:categoryId',    [middleware.projectWritePermission],  apiCategories.deleteCategory);
 app.put('/v1/projects/:projectId/category-structure',           [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
 

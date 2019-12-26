@@ -20,6 +20,7 @@
                         :url-prefix="urlPrefix"
                         :write-permissions="project && project.permissions.write"
                         @add-category="onAddCategoryClicked"
+                        @edit-category="onEditCategoryClicked"
                         @delete-category="onDeleteCategoryClicked"
                         />
                 </div>
@@ -90,6 +91,15 @@
             </p>
             <div v-if="deleteCategoryModal.errorMessage" class="msg msg-error">{{deleteCategoryModal.errorMessage}}</div>
         </modal>
+
+        <modal title="Edit category" v-if="editCategoryModal.shown" primary-button="Update"
+            @primary-submit="onConfirmUpdateCategoryClicked"
+            @close="editCategoryModal.shown = false"
+            >
+            <h5>Name</h5>
+            <input class="textfield" v-model="editCategoryModal.categoryName"/>
+            <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
+        </modal>
     </div>
 </template>
 
@@ -134,6 +144,13 @@ export default {
             },
 
             deleteCategoryModal: {
+                shown: false,
+                categoryName: '',
+                category: null,
+                errorMessage: null
+            },
+
+            editCategoryModal: {
                 shown: false,
                 categoryName: '',
                 category: null,
@@ -232,11 +249,34 @@ export default {
             this.createCategoryModal.shown = true;
         },
 
+        onEditCategoryClicked(category) {
+            this.editCategoryModal.categoryName = category.name;
+            this.editCategoryModal.category = category;
+            this.editCategoryModal.errorMessage = null;
+            this.editCategoryModal.shown = true;
+        },
+
         onDeleteCategoryClicked(category) {
             this.deleteCategoryModal.category = category;
             this.deleteCategoryModal.errorMessage = null;
             this.deleteCategoryModal.categoryName = category.name;
             this.deleteCategoryModal.shown = true;
+        },
+
+        onConfirmUpdateCategoryClicked() {
+            if (this.editCategoryModal.category) {
+                const newName = this.editCategoryModal.categoryName.trim();
+                if (newName) {
+                    apiClient.updateCategory(this.projectId, this.editCategoryModal.category.id, {
+                        name: newName
+                    }).then(() => {
+                        this.editCategoryModal.shown = false;
+                        return this.reloadCategoryTree()
+                    }).catch(err => {
+                        this.editCategoryModal.errorMessage = 'Internal Server Error. Could not update category';
+                    });
+                }
+            }
         },
 
         onConfirmDeleteCategoryClicked() {

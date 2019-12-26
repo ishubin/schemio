@@ -118,6 +118,16 @@ export default {
         return axios.get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
     },
 
+    updateCategory(projectId, categoryId, category) {
+        if (category && category.name) {
+            return axios.put(`/v1/projects/${projectId}/categories/${categoryId}`, {
+                name: category.name
+            }).then(unwrapAxios);
+        } else {
+            return Promise.reject('Incorrect category');
+        }
+    },
+
     getCategoryTree(projectId) {
         return axios.get(`/v1/projects/${projectId}/category-tree`).then(unwrapAxios);
     },

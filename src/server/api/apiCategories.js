@@ -45,6 +45,21 @@ const ApiCategories = {
         }).catch(err => res.$apiError(err));
     },
 
+    updateCategory(req, res) {
+        const projectId = req.params.projectId;
+        const categoryId = req.params.categoryId;
+        const updateRequest = req.body;
+
+        if (updateRequest && updateRequest.name) {
+            categoryStorage.updateCategory(projectId, categoryId, updateRequest.name)
+            .then(() => {
+                res.json({result: 'updated'});
+            })
+        } else {
+            res.$badRequest();
+        }
+    },
+
     getCategoryTree(req, res) {
         const projectId = req.params.projectId;
         categoryStorage.getCategoryTree(projectId).then(tree => {
