@@ -128,6 +128,13 @@ export default {
         }
     },
 
+    moveCategory(projectId, categoryId, newParentCategoryId) {
+        return axios.post(`/v1/projects/${projectId}/move-category`, {
+            categoryId: categoryId,
+            destinationCategoryId: newParentCategoryId
+        }).then(unwrapAxios);
+    },
+
     getCategoryTree(projectId) {
         return axios.get(`/v1/projects/${projectId}/category-tree`).then(unwrapAxios);
     },

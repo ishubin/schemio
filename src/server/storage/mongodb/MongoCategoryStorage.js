@@ -101,6 +101,86 @@ class MongoCategoryStorage {
     }
 
 
+    // Converts list of all categories into tree structure
+    getCategoryTree(projectId) {
+        return this._categories().find({projectId: mongo.sanitizeString(projectId)}).toArray()
+        .then(categories => {
+            return this._categoryArrayToTree(categories)
+        });
+    }
+    
+    /**
+     * Move a category into another category as its child
+     * This is NOT FINISHED YET.
+     * @param {String} projectId 
+     * @param {String} categoryId 
+     * @param {String} destinationCategoryId 
+     */
+    moveCategory(projectId, categoryId, destinationCategoryId) {
+        //TODO finish and optimize moveCategory implementation. The following needs to be done:
+        // - moving to top level
+        // - updating category ancestors for all related schemes
+        
+        if (categoryId === destinationCategoryId) {
+            return Promise.reject('Destination and origin should not match');
+        }
+
+        return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(destinationCategoryId)})
+        .then(parentCategory => {
+            const ancestors = parentCategory.ancestors.concat([destinationCategoryId]);
+            return this._categories().updateOne(
+                {projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)},
+                {$set: {parentId: destinationCategoryId, ancestors: ancestors}}
+            ).then(() => ancestors);
+        }).then(ancestors => {
+            return this._categories().find({projectId: mongo.sanitizeString(projectId), ancestors: mongo.sanitizeString(categoryId)}).toArray()
+            .then(categories => {
+                let promise = Promise.resolve(null);
+                _.forEach(categories, category => {
+                    promise = promise.then(this._createCategoryAncestorUpdatePromise(projectId, category, ancestors, categoryId, destinationCategoryId));
+                });
+                return promise;
+            });
+        });
+    }
+
+    _createCategoryAncestorUpdatePromise(projectId, category, parentAncestors, categoryId, destinationCategoryId) {
+        const i = _.indexOf(category.ancestors, categoryId);
+        let ancestors = _.clone(category.ancestors);
+        if (i >= 0) {
+            ancestors.splice(0, i);
+        } 
+        ancestors = parentAncestors.concat(ancestors);
+        return this._categories().updateOne({projectId: mongo.sanitizeString(projectId), id: category.id}, {$set: {ancestors: ancestors}});
+    }
+
+    _categoryArrayToTree(categories) {
+        const map = {};
+        const topCategories = [];
+
+        categories.sort(this._categoryComparator);
+
+        _.forEach(categories, category => {
+            const cat = {
+                name: category.name,
+                id: category.id,
+                childCategories: []
+            };
+            map[category.id] = cat;
+
+            if (!category.parentId) {
+                topCategories.push(cat);
+            } else {
+                if (map.hasOwnProperty(category.parentId)) {
+                    map[category.parentId].childCategories.push(cat);
+                }
+            }
+
+        });
+
+        return topCategories;
+    }
+
     _categoryComparator(a, b) {
         if ( a.ancestors.length < b.ancestors.length ){
             return -1;
@@ -116,36 +196,6 @@ class MongoCategoryStorage {
             return -1;
         }
         return 0;
-    }
-
-    // Converts list of all categories into tree structure
-    getCategoryTree(projectId) {
-        return this._categories().find({projectId: mongo.sanitizeString(projectId)}).toArray().then(categories => {
-            const map = {};
-            const topCategories = [];
-
-            categories.sort(this._categoryComparator);
-
-            _.forEach(categories, category => {
-                const cat = {
-                    name: category.name,
-                    id: category.id,
-                    childCategories: []
-                };
-                map[category.id] = cat;
-
-                if (!category.parentId) {
-                    topCategories.push(cat);
-                } else {
-                    if (map.hasOwnProperty(category.parentId)) {
-                        map[category.parentId].childCategories.push(cat);
-                    }
-                }
-
-            });
-
-            return topCategories;
-        });
     }
 }
 

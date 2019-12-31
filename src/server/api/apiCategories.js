@@ -97,6 +97,18 @@ const ApiCategories = {
         } else {
             res.$badRequest('Categories are empty');
         }
+    },
+
+    moveCategory(req, res) {
+        const projectId = req.params.projectId;
+        const moveRequest = req.body;
+        if (moveRequest && moveRequest.categoryId && moveRequest.destinationCategoryId) {
+            categoryStorage.moveCategory(projectId, moveRequest.categoryId, moveRequest.destinationCategoryId).then(tree => {
+                res.json(tree);
+            }).catch(err => res.$apiError(err));
+        } else {
+            res.$badRequest();
+        }
     }
 }
 

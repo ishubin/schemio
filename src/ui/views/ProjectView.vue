@@ -14,14 +14,15 @@
                         <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
                     </div>
 
-                    <category-tree v-for="category in categories"
-                        :category="category"
+                    <category-tree
+                        :categories="categories"
                         :selected-category-id="currentCategoryId"
                         :url-prefix="urlPrefix"
                         :write-permissions="project && project.permissions.write"
                         @add-category="onAddCategoryClicked"
                         @edit-category="onEditCategoryClicked"
                         @delete-category="onDeleteCategoryClicked"
+                        @moved-category="onCategoryMoveRequested"
                         />
                 </div>
                 <div class="search-results">
@@ -100,10 +101,19 @@
             <input class="textfield" v-model="editCategoryModal.categoryName"/>
             <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
         </modal>
+
+        <modal title="Move category" v-if="moveCategoryModal.shown" primary-button="Move"
+            @primary-submit="onConfirmMoveCategoryClicked"
+            @close="moveCategoryModal.shown = false"
+            >
+            Are you sure you want to move <b><i>"{{moveCategoryModal.category.name}}"</i></b> category to <b><i>"{{moveCategoryModal.newParentCategory.name}}"</i></b>
+            <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
+        </modal>
     </div>
 </template>
 
 <script>
+import _ from 'lodash';
 import HeaderComponent from '../components/Header.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
@@ -155,6 +165,13 @@ export default {
                 categoryName: '',
                 category: null,
                 errorMessage: null
+            },
+
+            moveCategoryModal: {
+                shown: false,
+                category: null,
+                newParentCategory: null,
+                errorMessage: null
             }
         };
     },
@@ -188,11 +205,10 @@ export default {
         },
 
         reloadCategoryTree() {
-            return apiClient.getCategoryTree(this.projectId).then(categories => {
+            return apiClient.getCategoryTree(this.projectId)
+            .then(this.enrichCategories)
+            .then(categories => {
                 this.categories = categories;
-                if (this.currentCategoryId) {
-                    this.expandToCategory(this.currentCategoryId);
-                }
             });
         },
 
@@ -263,6 +279,13 @@ export default {
             this.deleteCategoryModal.shown = true;
         },
 
+        onCategoryMoveRequested(category, newParentCategory) {
+            console.log('Requested to move category', category, newParentCategory);
+            this.moveCategoryModal.category = category;
+            this.moveCategoryModal.newParentCategory = newParentCategory;
+            this.moveCategoryModal.shown = true;
+        },
+
         onConfirmUpdateCategoryClicked() {
             if (this.editCategoryModal.category) {
                 const newName = this.editCategoryModal.categoryName.trim();
@@ -276,6 +299,18 @@ export default {
                         this.editCategoryModal.errorMessage = 'Internal Server Error. Could not update category';
                     });
                 }
+            }
+        },
+
+        onConfirmMoveCategoryClicked() {
+            if (this.moveCategoryModal.category && this.moveCategoryModal.newParentCategory) {
+                apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, this.moveCategoryModal.newParentCategory.id)
+                .then(categories => {
+                    this.moveCategoryModal.shown = false;
+                    this.categories = categories;
+                }).catch(err => {
+                    this.moveCategoryModal.errorMessage = 'Internal Server Error. Could not move category';
+                });
             }
         },
 
@@ -336,27 +371,16 @@ export default {
             return false;
         },
 
-        expandToCategory(categoryId) {
-            for (let i = 0; i < this.categories.length; i++) {
-                this._expandToCategory(this.categories[i], categoryId);
-            };
-        },
-
-        _expandToCategory(category, categoryId) {
-            if (category.id === categoryId) {
-                category.expanded = true;
-                return true;
-            }
-
-            if (category.childCategories.length > 0) {
-                for (let i = 0; i < category.childCategories.length; i++) {
-                    if (this._expandToCategory(category.childCategories[i], categoryId)) {
-                        category.expanded = true;
-                        return true;
-                    }
+        enrichCategories(categories, parentId) {
+            _.forEach(categories, category => {
+                if (parentId) {
+                    category.parentId = parentId;
                 }
-            }
-            return false;
+                if (category.childCategories) {
+                    this.enrichCategories(category.childCategories, category.id);
+                }
+            });
+            return categories;
         }
     },
 
