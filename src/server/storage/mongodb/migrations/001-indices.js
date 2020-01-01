@@ -5,13 +5,13 @@ module.exports = {
         return Promise.resolve(null).then(() =>
             db.collection('migrations').createIndex({id: 1}, {unique: true})
         ).then(() =>
-            db.collection('categories').createIndex({id: 1}, {unique: true})
+            db.collection('categories').createIndex({projectId: 1, id: 1}, {unique: true})
         ).then(() =>
-            db.collection('categories').createIndex({parentId: 1, lname: 1}, {unique: true})
+            db.collection('schemes').createIndex({projectId: 1, id: 1}, {unique: true})
         ).then(() =>
             db.collection('schemes').createIndex({name: "text", description: "text", itemsText: "text"})
         ).then(() =>
-            db.collection('schemes').createIndex({projectId: 1})
+            db.collection('projects').createIndex({projectId: 1}, {unique: true})
         ).then(() =>
             db.collection('projects').createIndex({name: "text", description: "text"})
         );

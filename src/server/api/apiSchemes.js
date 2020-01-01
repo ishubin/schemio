@@ -84,6 +84,17 @@ const ApiSchemes = {
         }).catch(err => res.$apiError(err));
     },
 
+    patchScheme(req, res) {
+        const operations = req.body;
+        if (Array.isArray(operations)) {
+            schemeStorage.patchScheme(projectId, schemeId, operations).then(scheme => {
+                res.json(scheme);
+            }).catch(err => res.$apiError(err));
+        } else {
+            res.$badRequest();
+        }
+    },
+
     deleteScheme(req, res) {
         const projectId = req.params.projectId;
         const schemeId = req.params.schemeId;

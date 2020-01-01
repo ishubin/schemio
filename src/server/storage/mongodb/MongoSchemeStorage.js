@@ -98,21 +98,30 @@ class MongoSchemeStorage {
         scheme.id = shortid.generate();
         scheme.version = CURRENT_SCHEME_VERSION;
 
-        var promise = Promise.resolve(null);
+        scheme.itemsText = this.combineItemsText(scheme.items);
+        scheme.projectId = projectId;
+
+        return this._enrichSchemeWithCategoryData(projectId, scheme)
+        .then(enrichedScheme => {
+            return this._schemes().insertOne(enrichedScheme).then(result => {
+                return scheme;
+            });
+        });
+    }
+
+    _enrichSchemeWithCategoryData(projectId, scheme) {
+        let promise = Promise.resolve(null);
         if (scheme.categoryId) {
             promise = this._categories().findOne({
                 id: scheme.categoryId,
                 projectId: mongo.sanitizeString(projectId)
             }).then(category => {
                 if (!category) {
-                    throw new Error(`Category does not exist: ${scheme.categoryId}`);
+                    return Promise.reject(`Category does not exist: ${scheme.categoryId}`);
                 }
                 return category;
             })
         }
-
-        scheme.itemsText = this.combineItemsText(scheme.items);
-        scheme.projectId = projectId;
 
         return promise.then(category => {
             if (category) {
@@ -120,9 +129,8 @@ class MongoSchemeStorage {
             } else {
                 scheme.allSubCategoryIds = [];
             }
-            return this._schemes().insertOne(scheme).then(result => {
-                return scheme;
-            });
+
+            return scheme;
         });
     }
 
@@ -180,10 +188,13 @@ class MongoSchemeStorage {
         scheme.version = CURRENT_SCHEME_VERSION;
         scheme.projectId = projectId;
 
-        return this._schemes().updateOne({
-            id: schemeId,
-            projectId: mongo.sanitizeString(projectId)
-        }, {$set: scheme});
+        return this._enrichSchemeWithCategoryData(projectId, scheme)
+        .then(enrichedScheme => {
+            return this._schemes().updateOne({
+                id: mongo.sanitizeString(schemeId),
+                projectId: mongo.sanitizeString(projectId)
+            }, {$set: enrichedScheme});
+        });
     }
 
     getTags(projectId) {

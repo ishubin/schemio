@@ -3,7 +3,30 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="">
+    <div>
+        <ul class="category-breadcrumb" v-if="schemeContainer.scheme.category">
+            <li>
+                <router-link :to="{path: '/'}">
+                    <a href="#"><i class="fas fa-home"></i></a>
+                </router-link>
+                <i class="fas fa-angle-right"></i>
+            </li>
+            <li v-for="category in schemeContainer.scheme.category.ancestors">
+                <router-link :to="{ path: `/projects/${projectId}?category=${category.id}` }">
+                    <a href="#">{{category.name}}</a>
+                </router-link>
+                <i class="fas fa-angle-right"></i>
+            </li>
+            <li>
+                <router-link :to="{ path: `/projects/${projectId}?category=${schemeContainer.scheme.category.id}` }">
+                    <a href="#">{{schemeContainer.scheme.category.name}}</a>
+                </router-link>
+            </li>
+            <li>
+                <span class="link" title="Move to another category" @click="showMoveToCategoryModal"><i class="fas fa-edit"></i></span>
+            </li>
+        </ul>
+
         <div v-if="schemeContainer.scheme">
             <h5 class="section">Name</h5>
             <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..." @change="onPropertyChange('name')"/>
@@ -29,6 +52,17 @@
                 >
                 Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
             </modal>
+
+
+            <modal v-if="moveToCategoryModal.shown"
+                title="Move to Category"
+                @close="moveToCategoryModal.shown = false"
+                >
+                <p>Select category:</p>
+                <div style="max-height: 400px; overflow: auto;">
+                    <simple-category-tree :categories="moveToCategoryModal.categories" @category-selected="onMovedToCategoryClicked"/>
+                </div>
+            </modal>
         </div>
     </div>
 </template>
@@ -39,10 +73,11 @@ import apiClient from '../../apiClient.js';
 import EventBus from './EventBus.js';
 import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
+import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 
 export default {
     props: ['projectId', 'schemeContainer'],
-    components: {VueTagsInput, Modal, RichTextEditor},
+    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree},
     mounted() {
         apiClient.getTags(this.projectId).then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {
@@ -54,7 +89,11 @@ export default {
         return {
             schemeTag: '',
             existingSchemeTags: [],
-            showDeleteSchemeWarning: false
+            showDeleteSchemeWarning: false,
+            moveToCategoryModal: {
+                shown: false,
+                categories: []
+            }
         }
     },
 
@@ -72,6 +111,23 @@ export default {
         deleteScheme() {
             apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
                 window.location = '/';
+            });
+        },
+
+        showMoveToCategoryModal() {
+            apiClient.getCategoryTree(this.projectId).then(categories => {
+                this.moveToCategoryModal.categories = categories;
+                this.moveToCategoryModal.shown = true;
+            })
+        },
+
+        onMovedToCategoryClicked(category) {
+            const scheme = this.schemeContainer.scheme;
+            scheme.categoryId = category.id;
+
+            apiClient.saveScheme(this.projectId, this.schemeContainer.scheme.id, scheme).then(() => {
+                this.moveToCategoryModal.shown = false;
+                location.reload();
             });
         }
     },

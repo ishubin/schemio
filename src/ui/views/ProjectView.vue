@@ -259,7 +259,7 @@ export default {
         },
 
         onAddCategoryClicked(parentCategory) {
-            this.createCategoryModal.name = '';
+            this.createCategoryModal.categoryName = '';
             this.createCategoryModal.parentCategory = parentCategory;
             this.createCategoryModal.errorMessage = null;
             this.createCategoryModal.shown = true;

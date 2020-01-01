@@ -41,7 +41,10 @@ class MongoCategoryStorage {
         return chain.then(parentCategory => {
             var ancestors = [];
             if (parentCategory) {
-                ancestors = parentCategory.ancestors.concat(parentCategory.id);
+                ancestors = parentCategory.ancestors.concat({
+                    name: parentCategory.name,
+                    id: parentCategory.id
+                });
             }
 
             var categoryData = {
@@ -72,6 +75,22 @@ class MongoCategoryStorage {
             projectId: mongo.sanitizeString(projectId)
         }, {
             $set: {name: newCategoryName}
+        }).then(() => {
+            return this._categories().find({'ancestors.id': mongo.sanitizeString(categoryId)}).toArray()
+            .then(categories => {
+                let promise = Promise.resolve(null);
+                _.forEach(categories, category => {
+                    const ancestors = _.map(category.ancestors, ancestor => {
+                        if (ancestor.id === categoryId) {
+                            return {name: newCategoryName, id: categoryId};
+                        }
+                        return ancestor;
+                    });
+
+                    promise = promise.then(() => this._categories().updateOne({projectId: mongo.sanitizeString(projectId), id: category.id}, {$set: {ancestors: ancestors}}));
+                });
+                return promise;
+            });
         });
     }
 
