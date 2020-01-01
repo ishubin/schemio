@@ -2,7 +2,7 @@ import utils from '../../../../ui/utils.js';
 
 const defaultItem = {
     cursor: 'default',
-    opacity: 1.0,
+    opacity: 100.0,
     blendMode: 'normal',
     name: '',
     description: '',

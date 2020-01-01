@@ -26,6 +26,9 @@
                 <span class="link" title="Move to another category" @click="showMoveToCategoryModal"><i class="fas fa-edit"></i></span>
             </li>
         </ul>
+        <div v-else>
+            <span class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
+        </div>
 
         <div v-if="schemeContainer.scheme">
             <h5 class="section">Name</h5>
@@ -59,6 +62,7 @@
                 @close="moveToCategoryModal.shown = false"
                 >
                 <p>Select category:</p>
+                <span class="btn btn-secondary" @click="onMovedToCategoryClicked(null)">Make Uncategorized</span>
                 <div style="max-height: 400px; overflow: auto;">
                     <simple-category-tree :categories="moveToCategoryModal.categories" @category-selected="onMovedToCategoryClicked"/>
                 </div>
@@ -123,8 +127,11 @@ export default {
 
         onMovedToCategoryClicked(category) {
             const scheme = this.schemeContainer.scheme;
-            scheme.categoryId = category.id;
-
+            if (category) {
+                scheme.categoryId = category.id;
+            } else {
+                scheme.categoryId = null;
+            }
             apiClient.saveScheme(this.projectId, this.schemeContainer.scheme.id, scheme).then(() => {
                 this.moveToCategoryModal.shown = false;
                 location.reload();
