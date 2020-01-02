@@ -2,9 +2,7 @@
     <g>
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="{'font-size': item.shapeProps.fontSize + 'px', 'padding-left': item.shapeProps.textPaddingLeft+'px', 'padding-right': item.shapeProps.textPaddingRight+'px', 'padding-top': item.shapeProps.textPaddingTop+'px', 'padding-bottom': item.shapeProps.textPaddingBottom+'px' }"
-                ></div>
+            <div class="item-text-container" v-html="sanitizedItemText" :style="textStyle" ></div>
         </foreignObject>
     </g>
 </template>
@@ -24,6 +22,7 @@ export default {
         text: 'rich'
     },
     args: {
+        textColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text Color'},
         fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
@@ -34,6 +33,17 @@ export default {
     computed: {
         sanitizedItemText() {
             return htmlSanitize(this.item.text);
+        },
+
+        textStyle() {
+            return {
+                'color':            this.item.shapeProps.textColor,
+                'font-size':        this.item.shapeProps.fontSize + 'px',
+                'padding-left':     this.item.shapeProps.textPaddingLeft+'px',
+                'padding-right':    this.item.shapeProps.textPaddingRight+'px',
+                'padding-top':      this.item.shapeProps.textPaddingTop+'px',
+                'padding-bottom':   this.item.shapeProps.textPaddingBottom+'px'
+            };
         }
     }
 

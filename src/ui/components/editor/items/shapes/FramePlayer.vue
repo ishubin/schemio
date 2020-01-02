@@ -1,74 +1,58 @@
 <template>
     <g>
-        <foreignObject x="2" y="65" width="130" height="30">
-            <div :style="textStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+        <foreignObject x="0" :y="0" v-if="hiddenTextProperty !== 'name'" 
+            :width="item.area.w" :height="topOffset">
+            <div :style="textStyle">{{item.name}}</div>
         </foreignObject>
 
-        <circle cx="20" cy="30" r="15"
-            :fill="item.shapeProps.fillColor"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="1"/>
-        <path d="M 6 12  L 0 6   L 6 0"
-            transform="translate(16 24)"
-            fill="none"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="3"
-        />
-        <circle cx="20" cy="30" r="15"
-            @click="onClickedLeft"
-            fill="rgba(255, 255, 255, 0)"
-            stroke="rgba(255, 255, 255, 0)"
-            stroke-width="1"
-            style="cursor: pointer"/>
+        <g v-for="(button,buttonIndex) in buttons">
+            <circle 
+                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2 + 2"
+                :cy="buttonSize/2 + 2 + topOffset"
+                :r="buttonSize/2"
+                :fill="item.shapeProps.fillColor"
+                :stroke="item.shapeProps.strokeColor"
+                stroke-width="1"/>
 
-            
-        <circle cx="54" cy="30" r="15"
-            :fill="item.shapeProps.fillColor"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="1"/>
-        <path d="M 0 12  L 0 0  L 9 6 Z"
-            v-if="!isPlaying"
-            transform="translate(52 24)"
-            :fill="item.shapeProps.strokeColor"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="3"
-        />
-        <path d="M 0 0  L 0 12  M 8 0 L 8 12"
-            v-if="isPlaying"
-            transform="translate(50 24)"
-            :fill="item.shapeProps.strokeColor"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="4"
-        />
-        <circle cx="54" cy="30" r="15"
-            @click="onClickedTogglePlay"
-            fill="rgba(255, 255, 255, 0)"
-            stroke="rgba(255, 255, 255, 0)"
-            stroke-width="1"
-            style="cursor: pointer"/>
+            <foreignObject 
+                :x="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + 2"
+                :y="1 + topOffset"
+                :width="buttonSize"
+                :height="buttonSize">
+                <div style="width: 100%; height: 100%; text-align: center; vertical-align: middle;">
+                    <i :class="[isPlaying?button.iconPlaying:button.icon]" :style="{'font-size':buttonFontSize, 'color': item.shapeProps.strokeColor}"></i>
+                </div>
+            </foreignObject>
 
+            <circle 
+                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2 + 2"
+                :cy="buttonSize/2 + 2 + topOffset"
+                :r="buttonSize/2"
+                @click="onClickedButton(buttonIndex)"
+                fill="rgba(255, 255, 255, 0)"
+                stroke="rgba(255, 255, 255, 0)"
+                stroke-width="1"
+                style="cursor: pointer"/>
+        </g>
 
-        <circle cx="88" cy="30" r="15" @click="onClickedRight"
-            :fill="item.shapeProps.fillColor"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="1"/>
-        <path d="M 0 12  L 6 6   L 0 0"
-            transform="translate(85 24)"
-            fill="none"
-            :stroke="item.shapeProps.strokeColor"
-            stroke-width="3"
-        />
-        <circle cx="88" cy="30" r="15" @click="onClickedRight"
-            fill="rgba(255, 255, 255, 0)"
-            stroke="rgba(255, 255, 255, 0)"
-            stroke-width="1"
-            style="cursor: pointer"/>
+        <foreignObject x="0" :y="buttonSize + 6 + topOffset" 
+            :width="item.area.w" height="30">
+            <div :style="textStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+        </foreignObject>
     </g>
 </template>
 
 
 
 <script>
+
+
+function generateTextStyle(item) {
+    return {
+        'text-align':   'center',
+        'font-size':    item.shapeProps.fontSize + 'px'
+    };
+}
 
 export default {
     props: ['item', 'hiddenTextProperty'],
@@ -77,6 +61,12 @@ export default {
         return null
     },
 
+    identifyTextEditArea(item, itemX, itemY) {
+        return {
+            property: 'name',
+            style: generateTextStyle(item)
+        }
+    },
     editorProps: {
         description: 'rich',
         text: 'rich'
@@ -111,11 +101,52 @@ export default {
         return {
             currentFrame: 1,
             isPlaying: false,
-            intervalId: null
+            intervalId: null,
+
+            topOffset: 30,
+            buttonSize: 20,
+            buttonSpaceSize: 4,
+            buttonFontSize: '10px',
+
+            buttons: [{
+                icon: 'fas fa-fast-backward',
+                iconPlaying: 'fas fa-fast-backward',
+                click: () => {this.onClickedToBegin()}
+            }, {
+                icon: 'fas fa-step-backward',
+                iconPlaying: 'fas fa-step-backward',
+                click: () => {this.onClickedLeft()}
+            }, {
+                icon: 'fas fa-play',
+                iconPlaying: 'fas fa-pause',
+                click: () => {this.onClickedTogglePlay()}
+            }, {
+                icon: 'fas fa-step-forward',
+                iconPlaying: 'fas fa-step-forward',
+                click: () => {this.onClickedRight()}
+            }, {
+                icon: 'fas fa-fast-forward',
+                iconPlaying: 'fas fa-fast-forward',
+                click: () => {this.onClickedToEnd()}
+            }]
         };
     },
 
     methods: {
+        onClickedButton(buttonIndex) {
+            this.buttons[buttonIndex].click();
+        },
+
+        onClickedToBegin() {
+            this.currentFrame = 1;
+            this.emitCurrentFrameEvent();
+        },
+
+        onClickedToEnd() {
+            this.currentFrame = this.item.shapeProps.totalFrames;
+            this.emitCurrentFrameEvent();
+        },
+
         onClickedLeft() {
             if (this.currentFrame > 1) {
                 this.currentFrame -= 1;
@@ -166,10 +197,11 @@ export default {
 
     computed: {
         textStyle() {
-            return {
-                'text-align': 'center',
-                'font-size': this.item.shapeProps.fontSize + 'px'
-            };
+            return generateTextStyle(this.item)
+        },
+
+        leftOffset() {
+            return this.item.area.w / 2 - (this.buttonSize*2.5 + this.buttonSpaceSize*2);
         }
     }
 }
