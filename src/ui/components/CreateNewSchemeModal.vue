@@ -5,7 +5,7 @@
 <template lang="html">
     <modal title="New Scheme" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
        <h5>Name</h5>
-       <input class="textfield" type="text" v-model="schemeName" placeholder="Name..."/>
+       <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="schemeName" placeholder="Name..."/>
 
        <h5>Description</h5>
        <textarea class="textfield" v-model="schemeDescription"></textarea>
@@ -29,6 +29,8 @@
                 </tr>
             </tbody>
         </table>
+
+        <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
     </modal>
 </template>
 
@@ -50,13 +52,20 @@ export default {
         return {
             schemeName: this.name,
             schemeDescription: this.description,
-            imageUrl: ''
+            imageUrl: '',
+
+            mandatoryFields: {
+                name: {
+                    highlight: false
+                }
+            },
+            errorMessage: null
         }
     },
     methods: {
         submitNewScheme() {
             const name = this.schemeName.trim();
-            if (name.length > 0) {
+            if (name) {
                 const items = [];
                 if (this.imageUrl.trim().length > 0) {
                     items.push({
@@ -83,6 +92,9 @@ export default {
                 }).then(scheme => {
                     this.$emit('scheme-created', scheme);
                 });
+            } else {
+                this.mandatoryFields.name.highlight = true;
+                this.errorMessage = 'Scheme name should not be empty';
             }
         },
 

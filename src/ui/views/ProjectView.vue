@@ -77,7 +77,7 @@
             @primary-submit="onCreateCategorySubmited"
             >
             <h5>Name</h5>
-            <input class="textfield" v-model="createCategoryModal.categoryName"/>
+            <input class="textfield" v-model="createCategoryModal.categoryName" :class="{'missing-field-error' : createCategoryModal.mandatoryFields.name.highlight}"/>
 
             <div v-if="createCategoryModal.errorMessage" class="msg msg-error">{{createCategoryModal.errorMessage}}</div>
         </modal>
@@ -98,7 +98,7 @@
             @close="editCategoryModal.shown = false"
             >
             <h5>Name</h5>
-            <input class="textfield" v-model="editCategoryModal.categoryName"/>
+            <input class="textfield" v-model="editCategoryModal.categoryName" :class="{'missing-field-error' : editCategoryModal.mandatoryFields.name.highlight}"/>
             <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
         </modal>
 
@@ -150,7 +150,12 @@ export default {
                 shown: false,
                 categoryName: '',
                 parentCategory: null,
-                errorMessage: null
+                errorMessage: null,
+                mandatoryFields: {
+                    name: {
+                        highlight: false
+                    }
+                }
             },
 
             deleteCategoryModal: {
@@ -164,7 +169,12 @@ export default {
                 shown: false,
                 categoryName: '',
                 category: null,
-                errorMessage: null
+                errorMessage: null,
+                mandatoryFields: {
+                    name: {
+                        highlight: false
+                    }
+                }
             },
 
             moveCategoryModal: {
@@ -263,6 +273,7 @@ export default {
             this.createCategoryModal.parentCategory = parentCategory;
             this.createCategoryModal.errorMessage = null;
             this.createCategoryModal.shown = true;
+            this.createCategoryModal.mandatoryFields.name.highlight = false;
         },
 
         onEditCategoryClicked(category) {
@@ -270,6 +281,7 @@ export default {
             this.editCategoryModal.category = category;
             this.editCategoryModal.errorMessage = null;
             this.editCategoryModal.shown = true;
+            this.editCategoryModal.mandatoryFields.name.highlight = false;
         },
 
         onDeleteCategoryClicked(category) {
@@ -298,6 +310,9 @@ export default {
                     }).catch(err => {
                         this.editCategoryModal.errorMessage = 'Internal Server Error. Could not update category';
                     });
+                } else {
+                    this.editCategoryModal.errorMessage = 'Name should not be empty';
+                    this.editCategoryModal.mandatoryFields.name.highlight = true;
                 }
             }
         },
@@ -351,6 +366,7 @@ export default {
                 });
             } else {
                 this.createCategoryModal.errorMessage = 'Category should not be empty';
+                this.createCategoryModal.mandatoryFields.name.highlight = true;
             }
         },
 
