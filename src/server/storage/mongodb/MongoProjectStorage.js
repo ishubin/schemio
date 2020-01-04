@@ -22,7 +22,9 @@ class MongoProjectStorage {
             isPublic: project.isPublic ? true: false
         };
 
-        return this._projects().insertOne(newProject).then(result => newProject);
+        return this._projects().insertOne(newProject)
+        .then(result => newProject)
+        .catch(err => Promise.reject(err.errmsg));
     }
 
 

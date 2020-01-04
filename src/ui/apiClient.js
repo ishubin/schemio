@@ -11,6 +11,14 @@ function unwrapAxios(response) {
     return response.data;
 }
 
+function unwrapAxiosError(err) {
+    if (err.response && err.response.data) {
+        return Promise.reject(err.response.data);
+    } else {
+        return Promise.reject(err);
+    }
+}
+
 export default {
     getCurrentUser() {
         return axios.get('/v1/user').then(unwrapAxios).catch(err => {
@@ -19,7 +27,7 @@ export default {
     },
 
     createProject(project) {
-        return axios.post('/v1/projects', project).then(unwrapAxios);
+        return axios.post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     findProjects(filters) {

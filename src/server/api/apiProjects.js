@@ -9,7 +9,15 @@ const ApiProjects = {
             // sepcifying access rights
             project.write = [req.session.userLogin];
             project.read = [req.session.userLogin];
-            projectStorage.createProject(project).then(project => res.json(project)).catch(err => res.$apiError(err, 'Could not store project'));
+            projectStorage.createProject(project)
+            .then(project => res.json(project))
+            .catch(err => {
+                if (typeof err === 'string' && err.indexOf('duplicate') >=0 && err.indexOf('name_1') >=0) {
+                    res.$apiError(err, `Project "${project.name}" already exists`);
+                } else {
+                    res.$apiError(err, 'Something went wrong, was not able to create a project');
+                }
+            });
         } else {
             res.$apiError('Project name should not be empty');
         }

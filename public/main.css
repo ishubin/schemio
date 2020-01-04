@@ -322,7 +322,10 @@ input.textfield.textfield-small {
     padding: 1px;
     font-size: 12px;
 }
-
+input.textfield.missing-field-error {
+    border: 1px solid #f55;
+    box-shadow: 0 0 5px #f55;
+}
 
 /******************* Pagination *********************/
 ul.pagination {

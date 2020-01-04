@@ -3,7 +3,8 @@
         <header-component/>
         <div class="middle-content">
             <h4>Name:</h4>
-            <input class="textfield" type="text" v-model="name"/>
+            <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="name"/>
+            <div class="msg msg-error" v-if="mandatoryFields.name.errorMessage">{{mandatoryFields.name.errorMessage}}</div>
 
             <h4>Description:</h4>
             <textarea class="textfield" name="description" id="project-description" cols="30" rows="10" v-model="description"></textarea>
@@ -19,6 +20,8 @@
             </ul>
 
             <span class="btn btn-primary" @click="submitProject()">Create Project</span>
+
+            <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
     </div>
 </template>
@@ -31,9 +34,17 @@ export default {
 
     data() {
        return {
-           name: '',
-           description: '',
-           isPublic: true
+            name: '',
+            description: '',
+            isPublic: true,
+
+            mandatoryFields: {
+                name: {
+                    highlight: false,
+                    errorMessage: null
+                }
+            },
+            errorMessage: null
        };
     },
 
@@ -47,7 +58,17 @@ export default {
                     isPublic: this.isPublic
                 }).then(project => {
                     window.location = `/projects/${project.id}`;
+                }).catch(err => {
+                    console.log('ERERR', err.response);
+                    if (err.error) {
+                        this.errorMessage = err.error;
+                    } else {
+                        this.errorMessage = 'Not able to create a project';
+                    }
                 });
+            } else {
+                this.mandatoryFields.name.highlight = true;
+                this.mandatoryFields.name.errorMessage = 'Name should not be empty';
             }
         }
     }
