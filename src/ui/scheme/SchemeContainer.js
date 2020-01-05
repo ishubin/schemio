@@ -258,6 +258,9 @@ class SchemeContainer {
             source: {
                 type: Connector.CapType.EMPTY,
                 size: 5
+            },
+            meta: {
+                animations: {}
             }
         });
     }
