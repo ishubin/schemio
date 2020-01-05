@@ -158,11 +158,17 @@
             @close="contextMenu.show = false"
         >
             <ul>
-                <li @click="$emit('clicked-add-item-link', contextMenu.item)">
-                    <i class="fas fa-link"></i> Add link
+                <li @click="$emit('clicked-bring-to-front')">
+                    Bring to Front
+                </li>
+                <li @click="$emit('clicked-bring-to-back')">
+                    Bring to Back
                 </li>
                 <li @click="$emit('clicked-start-connecting', contextMenu.item)">
                     <i class="fas fa-network-wired"></i> Connect
+                </li>
+                <li @click="$emit('clicked-add-item-link', contextMenu.item)">
+                    <i class="fas fa-link"></i> Add link
                 </li>
                 <li @click="$emit('clicked-add-item-to-item', contextMenu.item)">
                     <i class="far fa-plus-square"></i> Add item

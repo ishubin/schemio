@@ -52,16 +52,17 @@ function identifyTextEditArea(item, itemX, itemY) {
 
 function generateTextStyle(item) {
     return {
-        'font-size': item.shapeProps.fontSize + 'px',
-        'padding-left': item.shapeProps.textPaddingLeft + 'px',
-        'padding-right': item.shapeProps.textPaddingRight + 'px',
-        'padding-top': item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom': item.shapeProps.textPaddingBottom + 'px',
-        'text-align': item.shapeProps.textHorizontalAlign,
-        'vertical-align': item.shapeProps.textVerticalAlign,
-        'display': 'table-cell',
-        'width': item.area.w + 'px',
-        'height': item.area.h + 'px',
+        'color':            item.shapeProps.textColor,  
+        'font-size':        item.shapeProps.fontSize + 'px',
+        'padding-left':     item.shapeProps.textPaddingLeft + 'px',
+        'padding-right':    item.shapeProps.textPaddingRight + 'px',
+        'padding-top':      item.shapeProps.textPaddingTop + 'px',
+        'padding-bottom':   item.shapeProps.textPaddingBottom + 'px',
+        'text-align':       item.shapeProps.textHorizontalAlign,
+        'vertical-align':   item.shapeProps.textVerticalAlign,
+        'display':          'table-cell',
+        'width':            item.area.w + 'px',
+        'height':           item.area.h + 'px',
     };
 }
 
@@ -81,6 +82,8 @@ export default {
 
         fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
+
+        textColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
         fontSize: {type: 'number', value: 16, name: 'Font Size'},
         textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
         textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},

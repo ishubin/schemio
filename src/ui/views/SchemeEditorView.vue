@@ -49,8 +49,6 @@
                     </ul>
                     <ul class="button-group" v-if="selectedItem && mode === 'edit'">
                         <li>
-                            <span title="Bring to Front" class="toggle-button" @click="bringSelectedItemsToFront()">F</span>
-                            <span title="Bring to Back" class="toggle-button" @click="bringSelectedItemsToBack()">B</span>
                             <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                                 <i class="fas fa-object-group"></i>
                             </span>
@@ -72,6 +70,8 @@
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
                         @clicked-start-connecting="onClickedStartConnecting"
+                        @clicked-bring-to-front="bringSelectedItemsToFront()"
+                        @clicked-bring-to-back="bringSelectedItemsToBack()"
                         @deleted-items="onSelectedItemsAndConnectorsDelete()"
                         ></svg-editor>
                 </div>

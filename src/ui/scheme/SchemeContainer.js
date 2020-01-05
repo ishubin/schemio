@@ -91,7 +91,8 @@ class SchemeContainer {
             description: '',
             
             interactionMode: Item.InteractionMode.SIDE_PANEL,
-            shapeProps: {}
+            shapeProps: {},
+            behavior: []
         };
         if (item.shape) {
             const shape = Shape.find(item.shape);
