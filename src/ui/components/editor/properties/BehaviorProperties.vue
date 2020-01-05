@@ -41,6 +41,9 @@
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
                                 <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(action.element) }}</span>
                             </dropdown>
+                            <span v-if="action.method !== 'set' && action.args && action.args.length > 0"
+                                @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
+                                >(...)</span>
                         </div>
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
@@ -63,6 +66,12 @@
 
         </panel>
 
+        <function-arguments-editor v-if="functionArgumentsEditor.shown"
+            :function-description="functionArgumentsEditor.functionDescription"
+            :args="functionArgumentsEditor.args"
+            @close="functionArgumentsEditor.shown = false"
+            @argument-changed="onFunctionArgumentsEditorChange"
+        />
     </div>
 </template>
 
@@ -77,6 +86,7 @@ import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
+import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 
 const supportedProperties = {
@@ -88,7 +98,7 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())
@@ -100,6 +110,13 @@ export default {
             itemMap: this.createItemMap(),
             items: items,
             behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
+            functionArgumentsEditor: {
+                shown: false,
+                functionDescription: null,
+                behaviorIndex: 0,
+                actionIndex: 0,
+                args: []
+            }
         };
     },
 
@@ -279,6 +296,9 @@ export default {
 
         onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
             const action = this.item.behavior[behaviorIndex].do[actionIndex];
+            if (!action) {
+                return;
+            }
             if (methodOption.method === 'set') {
                 action.method = methodOption.method;
                 const args = [];
@@ -291,9 +311,21 @@ export default {
                 action.args = args;
             } else {
                 action.method = methodOption.method;
-                action.args = [];
+                action.args = this.getDefaultArgsForMethod(action, methodOption.method);
             }
             this.emitChangeCommited();
+        },
+
+        getDefaultArgsForMethod(action, method) {
+            if (action.element && action.element.item && action.element.connector) {
+                if (Functions.connector[method]) {
+                    const functionArgs = Functions.connector[method].args;
+                    if (functionArgs) {
+                        return _.map(functionArgs, arg => arg.value);
+                    }
+                }
+            }
+            return [];
         },
 
         getArgumentDescriptionForElement(element, propertyPath) {
@@ -330,6 +362,42 @@ export default {
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(affinityId);
         },
+
+        showFunctionArgumentsEditor(action, behaviorIndex, actionIndex) {
+            let functionDescription = null;
+            if (action.element) {
+                if (action.element.item) {
+                    if (action.element.connector) {
+                        functionDescription = Functions.connector[action.method];
+                    } else {
+                        functionDescription = Functions.item[action.method];
+                    }
+                }
+            }
+
+            if (!functionDescription) {
+                functionDescription = {
+                    args: []
+                };
+            }
+            this.functionArgumentsEditor.functionDescription = functionDescription;
+            this.functionArgumentsEditor.args = action.args;
+            this.functionArgumentsEditor.behaviorIndex = behaviorIndex;
+            this.functionArgumentsEditor.actionIndex = actionIndex;
+            this.functionArgumentsEditor.shown = true;
+        },
+
+        onFunctionArgumentsEditorChange(argIndex, value) {
+            const behaviorIndex = this.functionArgumentsEditor.behaviorIndex
+            const actionIndex   = this.functionArgumentsEditor.actionIndex;
+
+            if (behaviorIndex < this.item.behavior.length) {
+                const behavior = this.item.behavior[behaviorIndex];
+                if (actionIndex < behavior.do.length) {
+                    behavior.do[actionIndex].args[argIndex] = value;
+                }
+            }
+        }
     },
 
     filters: {

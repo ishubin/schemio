@@ -1,7 +1,7 @@
-import SetFunction from "./SetFunction";
-import HideFunction from "./HideFunction";
-import ShowFunction from "./ShowFunction";
-
+import SetFunction from './SetFunction';
+import HideFunction from './HideFunction';
+import ShowFunction from './ShowFunction';
+import PlayEffectPulseFunction from './connectors/PlayEffectPulseFunction';
 
 export default {
     item: {
@@ -10,7 +10,8 @@ export default {
         set: SetFunction,
     },
     connector: {
-        set: SetFunction
+        set: SetFunction,
+        playEffectPulse: PlayEffectPulseFunction
     },
     scheme: {
     }
