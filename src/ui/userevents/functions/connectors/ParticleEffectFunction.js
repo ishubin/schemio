@@ -19,7 +19,7 @@ function svg(name, args, childElements) {
     return element;
 }
 
-class PulseEffectAnimation {
+class ParticleEffectAnimation {
     constructor(connector, args) {
         this.connector = connector;
         this.args = args;
@@ -113,7 +113,7 @@ class PulseEffectAnimation {
 }
 
 export default {
-    name: 'Play Pulse Effect',
+    name: 'Particle Effect',
     args: {
         particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
         color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
@@ -124,7 +124,7 @@ export default {
 
     execute(connector, args) {
         if (connector) {
-            AnimationRegistry.play(new PulseEffectAnimation(connector, args))
+            AnimationRegistry.play(new ParticleEffectAnimation(connector, args))
         }
     }
 };
