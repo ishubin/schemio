@@ -24,15 +24,15 @@ describe('UserEvents Compiler', () => {
         const action = compiler.compileActions(schemeContainer, selfItem, [{
             element: {item: 'self'},
             method: 'set',
-            args: ['opacity', 0.5]
+            args: { field: 'opacity', value: 0.5}
         }, {
             element: {item: 'abc'},
             method: 'set',
-            args: ['shapeProps.strokeSize', 2]
+            args: { field: 'shapeProps.strokeSize', value: 2}
         }, {
             element: {item: 'abc'},
             method: 'set',
-            args: ['shapeProps.text', 'Blah']
+            args: {field: 'shapeProps.text', value: 'Blah'}
         }]);
 
         action();
@@ -88,15 +88,15 @@ describe('UserEvents Compiler', () => {
         const action = compiler.compileActions(schemeContainer, selfItem, [{
             element: {item: 'self', connector: 'c1'},
             method: 'set',
-            args: ['style.opacity', 0.5]
+            args: { field: 'style.opacity', value: 0.5}
         }, {
             element: {item: 'abc', connector: 'b1'},
             method: 'set',
-            args: ['style.color', '#abc']
+            args: {field: 'style.color', value: '#abc'}
         }, {
             element: {item: 'abc', connector: 'b2'},
             method: 'set',
-            args: ['style.color', '#f00']
+            args: {field: 'style.color', value: '#f00'}
         }]);
 
         action();
