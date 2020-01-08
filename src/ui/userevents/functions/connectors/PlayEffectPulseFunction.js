@@ -20,16 +20,16 @@ function svg(name, args, childElements) {
 }
 
 class PulseEffectAnimation {
-    constructor(connector, [particleSize, color, speed, particlesCount, offsetTime]) {
+    constructor(connector, args) {
         this.connector = connector;
+        this.args = args;
         this.domContainer = null;
         this.domConnectorPath = null;
         this.particles = [];
         this.timeToNextParticle = 0.0;
-        this.particlesLeft = particlesCount;
+        this.particlesLeft = args.particlesCount;
         this.totalPathLength = 0;
         this.id = shortid.generate();
-        this.args = { particleSize, color, speed, particlesCount, offsetTime };
     }
 
     // is invoked before playing. must return status whether it has succeeded initializing animation elements
@@ -114,13 +114,13 @@ class PulseEffectAnimation {
 
 export default {
     name: 'Play Pulse Effect',
-    args: [
-        {name: 'Particle Size',     type: 'number', value: 10},
-        {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        {name: 'Speed',             type: 'number', value: 60},
-        {name: 'Particles',         type: 'number', value: 1},
-        {name: 'Offset time (sec)', type: 'number', value: 0.5},
-    ],
+    args: {
+        particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
+        color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        speed:          {name: 'Speed',             type: 'number', value: 60},
+        particlesCount: {name: 'Particles',         type: 'number', value: 1},
+        offsetTime:     {name: 'Offset time (sec)', type: 'number', value: 0.5},
+    },
 
     execute(connector, args) {
         if (connector) {

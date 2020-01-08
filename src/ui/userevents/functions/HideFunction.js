@@ -1,7 +1,7 @@
 
 export default {
     name: 'Hide',
-    args: [],
+    args: {},
 
     execute(item, args) {
         if (item) {

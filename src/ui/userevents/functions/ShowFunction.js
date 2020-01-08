@@ -2,7 +2,7 @@
 
 export default {
     name: 'Show',
-    args: [],
+    args: {},
 
     execute(item, args) {
         if (item) {

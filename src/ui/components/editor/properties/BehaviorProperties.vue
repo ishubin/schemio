@@ -38,19 +38,19 @@
                                 :options="createMethodSuggestionsForElement(action.element)"
                                 @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                                 >
-                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args[0] | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
                                 <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(action.element) }}</span>
                             </dropdown>
-                            <span v-if="action.method !== 'set' && action.args && action.args.length > 0"
+                            <span v-if="action.method !== 'set' && action.args && Object.keys(action.args).length > 0"
                                 @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
                                 >(...)</span>
                         </div>
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
                         <set-argument-editor v-if="action.method === 'set'"
-                            :key="action.args[0]"
-                            :argument-description="getArgumentDescriptionForElement(action.element, action.args[0])"
-                            :argument-value="action.args[1]"
+                            :key="action.args.field"
+                            :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
+                            :argument-value="action.args.value"
                             @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
                             />
                     </div>
@@ -115,7 +115,7 @@ export default {
                 functionDescription: null,
                 behaviorIndex: 0,
                 actionIndex: 0,
-                args: []
+                args: {}
             }
         };
     },
@@ -279,7 +279,7 @@ export default {
             behavior.do.push({
                 element: {item: 'self'},
                 method: 'show',
-                args: []
+                args: {}
             });
             this.emitChangeCommited();
         },
@@ -301,12 +301,14 @@ export default {
             }
             if (methodOption.method === 'set') {
                 action.method = methodOption.method;
-                const args = [];
-                args[0] = methodOption.fieldPath;
+                const args = {
+                    field: methodOption.fieldPath,
+                    value: ''
+                };
 
                 const element = this.findElement(action.element);
                 if (element) {
-                    args[1] = utils.getObjectProperty(element, methodOption.fieldPath);
+                    args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                 }
                 action.args = args;
             } else {
@@ -321,11 +323,17 @@ export default {
                 if (Functions.connector[method]) {
                     const functionArgs = Functions.connector[method].args;
                     if (functionArgs) {
-                        return _.map(functionArgs, arg => arg.value);
+                        const args = {};
+
+                        _.forEach(functionArgs, (arg, argName) => {
+                            args[argName] = arg.value;
+                        });
+
+                        return args;
                     }
                 }
             }
-            return [];
+            return {};
         },
 
         getArgumentDescriptionForElement(element, propertyPath) {
@@ -345,8 +353,8 @@ export default {
         },
 
         onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
-            this.item.behavior[behaviorIndex].do[actionIndex].args[1] = value;
-            const propertyName = this.item.behavior[behaviorIndex].do[actionIndex].args[0];
+            this.item.behavior[behaviorIndex].do[actionIndex].args.value = value;
+            const propertyName = this.item.behavior[behaviorIndex].do[actionIndex].args.field;
             this.emitChangeCommited(`${this.item.id}.shapeProps.${propertyName}`);
         },
 
@@ -377,7 +385,7 @@ export default {
 
             if (!functionDescription) {
                 functionDescription = {
-                    args: []
+                    args: {}
                 };
             }
             this.functionArgumentsEditor.functionDescription = functionDescription;
@@ -387,14 +395,14 @@ export default {
             this.functionArgumentsEditor.shown = true;
         },
 
-        onFunctionArgumentsEditorChange(argIndex, value) {
+        onFunctionArgumentsEditorChange(argName, value) {
             const behaviorIndex = this.functionArgumentsEditor.behaviorIndex
             const actionIndex   = this.functionArgumentsEditor.actionIndex;
 
             if (behaviorIndex < this.item.behavior.length) {
                 const behavior = this.item.behavior[behaviorIndex];
                 if (actionIndex < behavior.do.length) {
-                    behavior.do[actionIndex].args[argIndex] = value;
+                    behavior.do[actionIndex].args[argName] = value;
                 }
             }
         }
