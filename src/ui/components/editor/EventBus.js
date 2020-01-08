@@ -127,7 +127,7 @@ const EventBus = new Vue({
         subscribeForConnectorDeselected(connectorId, callback) {this.$on(this._connectorDeselectedEvent(connectorId), callback)},
         unsubscribeForConnectorDeselected(connectorId, callback) {this.$off(this._connectorDeselectedEvent(connectorId), callback)},
         _connectorDeselectedEvent(connectorId) {return `${EventBus.CONNECTOR_DESELECTED}/${connectorId}`},
-        
+
         emitRightClickedItem(item, mouseX, mouseY) {
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
         },

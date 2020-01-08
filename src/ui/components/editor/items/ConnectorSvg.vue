@@ -4,7 +4,7 @@
 
 <template lang="html">
     <g :style="{'opacity': connector.opacity/100.0}">
-            
+
         <path :id="`connector-${connector.id}-path`" :d="svgPath" class="item-connector"
             :class="{selected: selected}"
             :stroke="connector.color"
@@ -36,24 +36,7 @@
             />
         </g>
 
-        <g v-if="connector.meta && connector.meta.animations">
-            <g v-for="(animation, animationName) in connector.meta.animations">
-                <g v-if="animationName === 'effect-pulse' && connector.meta.points && connector.meta.points.length > 1">
-                    <circle :id="`animation-${animation.id}-circle`" :r="animation.size" :fill="animation.color">
-                        <animateMotion
-                            :id="animation.id"
-                            :dur="animation.duration"
-                            repeatCount="indefinite"
-                            restart="always"
-                            keyPoints="0;1"
-                            keyTimes="0;1"
-                            calcMode="linear">
-                            <mpath :xlink:href="`#connector-${connector.id}-path`"/>
-                        </animateMotion>
-                    </circle>
-                </g>
-            </g>
-        </g>
+        <g :id="`animation-container-connector-${connector.id}`"></g>
 
     </g>
 </template>
@@ -202,9 +185,6 @@ export default {
             }
             this.strokeDashArray = dashArray;
         },
-        stopAnimation(animationName) {
-            console.log('Should stop animation', animationName);
-        }
     },
     watch: {
         connector: {
