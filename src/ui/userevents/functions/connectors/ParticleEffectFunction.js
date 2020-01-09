@@ -2,6 +2,8 @@ import shortid from 'shortid';
 import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
 
+const PI_2 = Math.PI * 2.0;
+
 function _enrichDomElement(element, args, childElements) {
     if (args) {
         _.forEach(args, (value, argName) => {
@@ -93,20 +95,60 @@ class ParticleEffectAnimation {
                 this.particles.splice(i, 1);
                 i = i - 1;
             } else {
-                const point = this.domConnectorPath.getPointAtLength(this.particles[i].pathPosition);
-                
-                let scale = 1.0;
-                if (this.particles[i].pathPosition < this.growthDistance && this.growthDistance >= 1.0) {
-                    scale = Math.max(0, Math.min(1.0, 1.0 - (this.growthDistance - this.particles[i].pathPosition) / this.growthDistance));
-                }
-                if (this.particles[i].pathPosition > this.totalPathLength - this.declineDistance && this.declineDistance >= 1.0) {
-                    scale = Math.max(0, Math.min(1.0, (this.totalPathLength - this.particles[i].pathPosition) / this.declineDistance));
-                }
-
-                this.particles[i].domParticle.setAttribute('transform', `translate(${point.x} ${point.y}) scale(${scale} ${scale})`);
+                this.playParticle(this.particles[i], dt);
             }
         }
         return true;
+    }
+
+    createParticle() {
+        const point = this.domConnectorPath.getPointAtLength(0);
+        const domParticle = this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color);
+        domParticle.setAttribute('transform', `translate(${point.x} ${point.y})`);
+        this.domContainer.appendChild(domParticle);
+        
+        let floatAngle = 0;
+        if (this.args.floatFactor > 0) {
+            floatAngle = Math.random() * PI_2;
+        }
+
+        let floatAngleDirection = 1;
+        if (Math.random() >= 0.5) {
+            floatAngleDirection = -1;
+        }
+
+        this.particles.push({
+            pathPosition: 0.0,
+            domParticle,
+            floatAngle,
+            floatAngleDirection
+        });
+
+        this.particlesLeft -= 1;
+    }
+
+    playParticle(particle, dt) {
+        const point = this.domConnectorPath.getPointAtLength(particle.pathPosition);
+        let x = point.x;
+        let y = point.y;
+
+        if (this.args.floatFactor > 0) {
+            particle.floatAngle += particle.floatAngleDirection * this.args.speed * dt / 10000.0;
+            if (particle.floatAngle > PI_2) {
+                particle.floatAngle -= PI_2;
+            }
+            x = point.x + this.args.floatFactor * Math.cos(particle.floatAngle);
+            y = point.y + this.args.floatFactor * Math.sin(particle.floatAngle);
+        }
+
+        let scale = 1.0;
+        if (particle.pathPosition < this.growthDistance && this.growthDistance >= 1.0) {
+            scale = Math.max(0, Math.min(1.0, 1.0 - (this.growthDistance - particle.pathPosition) / this.growthDistance));
+        } else if (particle.pathPosition > this.totalPathLength - this.declineDistance && this.declineDistance >= 1.0) {
+            scale = Math.max(0, Math.min(1.0, (this.totalPathLength - particle.pathPosition) / this.declineDistance));
+        }
+
+        particle.domParticle.setAttribute('transform', `translate(${x} ${y}) scale(${scale} ${scale})`);
     }
 
     // invoked when animation is instructed to remove its elements from dom.
@@ -120,20 +162,6 @@ class ParticleEffectAnimation {
         });
 
         this.cleanupDomElements = [];
-    }
-
-    createParticle() {
-        const point = this.domConnectorPath.getPointAtLength(0);
-        const domParticle = this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color);
-        domParticle.setAttribute('transform', `translate(${point.x} ${point.y})`);
-        this.domContainer.appendChild(domParticle);
-
-        this.particles.push({
-            pathPosition: 0.0,
-            domParticle
-        });
-
-        this.particlesLeft -= 1;
     }
 
     createParticleDom(type, size, color) {
@@ -168,6 +196,7 @@ export default {
         offsetTime:     {name: 'Offset time (sec)', type: 'number', value: 0.5},
         growthDistance: {name: 'Growth Distance',   type: 'number', value: 30},
         declineDistance:{name: 'Decline Distance',  type: 'number', value: 30},
+        floatFactor:    {name: 'Float Factor',      type: 'number', value: 5}
     },
 
     execute(connector, args) {
