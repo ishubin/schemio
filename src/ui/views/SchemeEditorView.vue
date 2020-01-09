@@ -169,6 +169,7 @@ import snapshotSvg from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from '../components/editor/items/shapes/Shape.js';
+import AnimationsRegistry from '../animations/AnimationRegistry';
 
 
 let history = new History({size: 30});
@@ -773,6 +774,12 @@ export default {
             hasher.changeURLHash(hasher.encodeURLHash({
                 m: value
             }));
+            if (value === 'view') {
+                AnimationsRegistry.enableAnimations();
+            } else {
+                AnimationsRegistry.disableAnimations();
+                AnimationsRegistry.stopAllAnimations();
+            }
         },
 
         searchKeyword(keyword) {

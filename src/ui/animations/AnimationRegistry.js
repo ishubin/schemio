@@ -18,15 +18,16 @@ function loopCycle(timeMarker, deltaTime) {
     if (animationsEnabled) {
         let i = 0;
         while (i < animations.length) {
+            let animation = animations[i];
             let status = true;
             try {
-                status = animations[i].play(deltaTime);
+                status = animation.play(deltaTime);
             } catch(e) {
                 status = false;
             }
             if (!status) {
                 try {
-                    animations[i].destroy();
+                    animation.destroy();
                 } catch(e) {
                 }
                 animations.splice(i, 1);
@@ -73,6 +74,18 @@ export default {
     },
 
     stopAllAnimations() {
+        const animations = this.animations;
+        this.animations = [];
+        _.forEach(animations, animation => {
+            animation.destroy();
+        });
+    },
+
+    disableAnimations() {
         animationsEnabled = false;
+    },
+
+    enableAnimations() {
+        animationsEnabled = true;
     }
 };

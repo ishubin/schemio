@@ -88,7 +88,9 @@ class ParticleEffectAnimation {
 
     // invoked when animation is instructed to remove its elements from dom.
     destroy() {
-        console.error('not implemented yet');
+        _.forEach(this.particles, particle => {
+            this.domContainer.removeChild(particle.domParticle);
+        });
     }
 
     createParticle() {
