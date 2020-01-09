@@ -108,7 +108,7 @@ class ParticleEffectAnimation {
         this.domContainer.appendChild(domParticle);
         
         let floatAngle = 0;
-        if (this.args.floatFactor > 0) {
+        if (this.args.floatRadius > 0) {
             floatAngle = Math.random() * PI_2;
         }
 
@@ -132,13 +132,13 @@ class ParticleEffectAnimation {
         let x = point.x;
         let y = point.y;
 
-        if (this.args.floatFactor > 0) {
-            particle.floatAngle += particle.floatAngleDirection * this.args.speed * dt / 10000.0;
+        if (this.args.floatRadius > 0) {
+            particle.floatAngle += particle.floatAngleDirection * this.args.speed * dt / 50000.0;
             if (particle.floatAngle > PI_2) {
                 particle.floatAngle -= PI_2;
             }
-            x = point.x + this.args.floatFactor * Math.cos(particle.floatAngle);
-            y = point.y + this.args.floatFactor * Math.sin(particle.floatAngle);
+            x = point.x + this.args.floatRadius * Math.cos(particle.floatAngle);
+            y = point.y + this.args.floatRadius * Math.sin(particle.floatAngle);
         }
 
         let scale = 1.0;
@@ -196,7 +196,7 @@ export default {
         offsetTime:     {name: 'Offset time (sec)', type: 'number', value: 0.5},
         growthDistance: {name: 'Growth Distance',   type: 'number', value: 30},
         declineDistance:{name: 'Decline Distance',  type: 'number', value: 30},
-        floatFactor:    {name: 'Float Factor',      type: 'number', value: 5}
+        floatRadius:    {name: 'Float Radius',      type: 'number', value: 5}
     },
 
     execute(connector, args) {
