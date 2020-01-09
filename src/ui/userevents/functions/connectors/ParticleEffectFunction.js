@@ -29,6 +29,8 @@ class ParticleEffectAnimation {
         this.timeToNextParticle = 0.0;
         this.particlesLeft = args.particlesCount;
         this.totalPathLength = 0;
+        this.growthDistance = args.growthDistance;
+        this.declineDistance = args.declineDistance;
         this.id = shortid.generate();
     }
 
@@ -42,7 +44,9 @@ class ParticleEffectAnimation {
         }
         
         this.totalPathLength = this.domConnectorPath.getTotalLength();
-
+        const midPath = this.totalPathLength/2;
+        this.growthDistance = Math.min(this.growthDistance, midPath);
+        this.declineDistance = Math.min(this.declineDistance, midPath);
 
         // this.domContainer.appendChild(svg('defs', {}, [
         //     svg('filter', {id: `blur-filter-${this.id}`}, [
@@ -80,9 +84,17 @@ class ParticleEffectAnimation {
 
                 this.particles[i].domParticle.setAttribute('cx', point.x);
                 this.particles[i].domParticle.setAttribute('cy', point.y);
+
+                if (this.particles[i].pathPosition < this.growthDistance && this.growthDistance >= 1.0) {
+                    const size = this.args.particleSize * (1.0 - (this.growthDistance - this.particles[i].pathPosition) / this.growthDistance);
+                    this.particles[i].domParticle.setAttribute('r', size/2);
+                }
+                if (this.particles[i].pathPosition > this.totalPathLength - this.declineDistance && this.declineDistance >= 1.0) {
+                    const size = this.args.particleSize * (this.totalPathLength - this.particles[i].pathPosition) / this.declineDistance;
+                    this.particles[i].domParticle.setAttribute('r', size/2);
+                }
             }
         }
-
         return true;
     }
 
@@ -122,6 +134,8 @@ export default {
         speed:          {name: 'Speed',             type: 'number', value: 60},
         particlesCount: {name: 'Particles',         type: 'number', value: 1},
         offsetTime:     {name: 'Offset time (sec)', type: 'number', value: 0.5},
+        growthDistance: {name: 'Growth Distance',   type: 'number', value: 30},
+        declineDistance:{name: 'Decline Distance',  type: 'number', value: 30},
     },
 
     execute(connector, args) {
