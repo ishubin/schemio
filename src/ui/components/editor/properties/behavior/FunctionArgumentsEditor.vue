@@ -15,7 +15,7 @@
                         @input="argumentValues[argName] = arguments[0].target.checked; emitArgumentChange(argName)"/>
 
                     <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
-                        @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);"/>
+                        @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);">
                         <option v-for="option in arg.options">{{option}}</option>
                     </select>
                 </td>

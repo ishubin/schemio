@@ -2,9 +2,7 @@ import shortid from 'shortid';
 import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
 
-
-function svg(name, args, childElements) {
-    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+function _enrichDomElement(element, args, childElements) {
     if (args) {
         _.forEach(args, (value, argName) => {
             element.setAttribute(argName, value);
@@ -16,6 +14,17 @@ function svg(name, args, childElements) {
             element.appendChild(childElement);
         })
     }
+}
+
+function svg(name, args, childElements) {
+    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
+    _enrichDomElement(element, args, childElements);
+    return element;
+}
+
+function html(name, args, childElements) {
+    const element = document.createElement(name);
+    _enrichDomElement(element, args, childElements);
     return element;
 }
 
@@ -32,6 +41,7 @@ class ParticleEffectAnimation {
         this.growthDistance = args.growthDistance;
         this.declineDistance = args.declineDistance;
         this.id = shortid.generate();
+        this.cleanupDomElements = [];
     }
 
     // is invoked before playing. must return status whether it has succeeded initializing animation elements
@@ -48,14 +58,17 @@ class ParticleEffectAnimation {
         this.growthDistance = Math.min(this.growthDistance, midPath);
         this.declineDistance = Math.min(this.declineDistance, midPath);
 
-        // this.domContainer.appendChild(svg('defs', {}, [
-        //     svg('filter', {id: `blur-filter-${this.id}`}, [
-        //         svg('feGaussianBlur', {
-        //             in: 'SourceGraphic',
-        //             stdDeviation: '2'
-        //         })
-        //     ])
-        // ]));
+        const graidentDefs = svg('defs', {});
+        graidentDefs.innerHTML = `
+            <radialGradient id="animation-particle-effect-gradient-${this.id}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+            <stop offset="0%" style="stop-color:${this.args.color};
+            stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${this.args.color};stop-opacity:0" />
+            </radialGradient>
+        `;
+        this.domContainer.appendChild(graidentDefs);
+        this.cleanupDomElements.push(graidentDefs);
+
         return true;
     }
 
@@ -81,18 +94,16 @@ class ParticleEffectAnimation {
                 i = i - 1;
             } else {
                 const point = this.domConnectorPath.getPointAtLength(this.particles[i].pathPosition);
-
-                this.particles[i].domParticle.setAttribute('cx', point.x);
-                this.particles[i].domParticle.setAttribute('cy', point.y);
-
+                
+                let scale = 1.0;
                 if (this.particles[i].pathPosition < this.growthDistance && this.growthDistance >= 1.0) {
-                    const size = this.args.particleSize * (1.0 - (this.growthDistance - this.particles[i].pathPosition) / this.growthDistance);
-                    this.particles[i].domParticle.setAttribute('r', size/2);
+                    scale = Math.max(0, Math.min(1.0, 1.0 - (this.growthDistance - this.particles[i].pathPosition) / this.growthDistance));
                 }
                 if (this.particles[i].pathPosition > this.totalPathLength - this.declineDistance && this.declineDistance >= 1.0) {
-                    const size = this.args.particleSize * (this.totalPathLength - this.particles[i].pathPosition) / this.declineDistance;
-                    this.particles[i].domParticle.setAttribute('r', size/2);
+                    scale = Math.max(0, Math.min(1.0, (this.totalPathLength - this.particles[i].pathPosition) / this.declineDistance));
                 }
+
+                this.particles[i].domParticle.setAttribute('transform', `translate(${point.x} ${point.y}) scale(${scale} ${scale})`);
             }
         }
         return true;
@@ -103,18 +114,18 @@ class ParticleEffectAnimation {
         _.forEach(this.particles, particle => {
             this.domContainer.removeChild(particle.domParticle);
         });
+
+        _.forEach(this.cleanupDomElements, domElement => {
+            this.domContainer.removeChild(domElement);
+        });
+
+        this.cleanupDomElements = [];
     }
 
     createParticle() {
         const point = this.domConnectorPath.getPointAtLength(0);
-        const domParticle = svg('circle', {
-            cx: point.x,
-            cy: point.y,
-            r: this.args.particleSize / 2,
-            fill: this.args.color,
-            // style: `filter: url(#blur-filter-${this.id});`
-        });
-
+        const domParticle = this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color);
+        domParticle.setAttribute('transform', `translate(${point.x} ${point.y})`);
         this.domContainer.appendChild(domParticle);
 
         this.particles.push({
@@ -124,11 +135,32 @@ class ParticleEffectAnimation {
 
         this.particlesLeft -= 1;
     }
+
+    createParticleDom(type, size, color) {
+        if (type === 'circle') {
+            return svg('circle', { cx: 0, cy: 0, r: size / 2, fill: color});
+        } else if (type === 'message') {
+            const icon = html('i', {class: 'fas fa-envelope', style: `color: ${color}; font-size: ${Math.floor(size)}px;`});
+            const particle = svg('foreignObject', { width: 100, height: 100, x: -size/2, y: -size/2 }, [icon]);
+            const rect = icon.getBoundingClientRect();
+            if (rect) {
+                particle.setAttribute('x', -rect.width/2);
+                particle.setAttribute('y', -rect.height/2);
+            }
+            return particle;
+        } else {
+            return svg('circle', { cx: 0, cy: 0, r: size / 2, fill: `url(#animation-particle-effect-gradient-${this.id})`});
+        }
+    }
+
 }
 
 export default {
     name: 'Particle Effect',
     args: {
+        particleType:   {name: 'Particle Type',     type: 'choice', value: 'blur-circle', options: [
+            'blur-circle', 'circle', 'rect', 'message'
+        ]},
         particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
         color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
         speed:          {name: 'Speed',             type: 'number', value: 60},
