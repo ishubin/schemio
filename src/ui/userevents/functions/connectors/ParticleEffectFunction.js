@@ -167,6 +167,8 @@ class ParticleEffectAnimation {
     createParticleDom(type, size, color) {
         if (type === 'circle') {
             return svg('circle', { cx: 0, cy: 0, r: size / 2, fill: color});
+        } else if (type === 'rect') {
+            return svg('rect', {x: -size/2, y: -size/2, width: size, height: size, fill: color, stroke: 'none'});
         } else if (type === 'message') {
             const icon = html('i', {class: 'fas fa-envelope', style: `color: ${color}; font-size: ${Math.floor(size)}px;`});
             const particle = svg('foreignObject', { width: 100, height: 100, x: -size/2, y: -size/2 }, [icon]);
