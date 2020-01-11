@@ -39,7 +39,7 @@
                                 @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span v-else><i class="fas fa-caret-right"></i> {{action.method | toPrettyMethod(action.element) }}</span>
+                                <span v-else> <i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
                             </dropdown>
                             <span v-if="action.method !== 'set' && action.args && Object.keys(action.args).length > 0"
                                 @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
@@ -204,7 +204,7 @@ export default {
                             options.push({
                                 method: funcId,
                                 name: func.name,
-                                iconClass: 'fas fa-dice-d6'
+                                iconClass: 'fas fa-play'
                             });
                         }
                     });
