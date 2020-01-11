@@ -63,8 +63,8 @@ class ParticleEffectAnimation {
         const graidentDefs = svg('defs', {});
         graidentDefs.innerHTML = `
             <radialGradient id="animation-particle-effect-gradient-${this.id}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-            <stop offset="0%" style="stop-color:${this.args.color};
-            stop-opacity:1" />
+            <stop offset="0%" style="stop-color:${this.args.color};stop-opacity:1" />
+            <stop offset="25%" style="stop-color:${this.args.color};stop-opacity:1" />
             <stop offset="100%" style="stop-color:${this.args.color};stop-opacity:0" />
             </radialGradient>
         `;
@@ -189,7 +189,7 @@ export default {
     name: 'Particle Effect',
     args: {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'blur-circle', options: [
-            'blur-circle', 'circle', 'rect', 'message'
+            'spot', 'circle', 'rect', 'message'
         ]},
         particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
         color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
