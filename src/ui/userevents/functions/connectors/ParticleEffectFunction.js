@@ -1,37 +1,14 @@
 import shortid from 'shortid';
 import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
+import Animation from '../../../animations/Animation';
 
 const PI_2 = Math.PI * 2.0;
 
-function _enrichDomElement(element, args, childElements) {
-    if (args) {
-        _.forEach(args, (value, argName) => {
-            element.setAttribute(argName, value);
-        })
-    }
 
-    if (childElements) {
-        _.forEach(childElements, childElement => {
-            element.appendChild(childElement);
-        })
-    }
-}
-
-function svg(name, args, childElements) {
-    const element = document.createElementNS('http://www.w3.org/2000/svg', name);
-    _enrichDomElement(element, args, childElements);
-    return element;
-}
-
-function html(name, args, childElements) {
-    const element = document.createElement(name);
-    _enrichDomElement(element, args, childElements);
-    return element;
-}
-
-class ParticleEffectAnimation {
+class ParticleEffectAnimation extends Animation {
     constructor(connector, args) {
+        super();
         this.connector = connector;
         this.args = args;
         this.domContainer = null;
@@ -46,7 +23,6 @@ class ParticleEffectAnimation {
         this.cleanupDomElements = [];
     }
 
-    // is invoked before playing. must return status whether it has succeeded initializing animation elements
     init() {
         this.domContainer = document.getElementById(`animation-container-connector-${this.connector.id}`);
         this.domConnectorPath = document.getElementById(`connector-${this.connector.id}-path`);
@@ -60,7 +36,7 @@ class ParticleEffectAnimation {
         this.growthDistance = Math.min(this.growthDistance, midPath);
         this.declineDistance = Math.min(this.declineDistance, midPath);
 
-        const graidentDefs = svg('defs', {});
+        const graidentDefs = this.svg('defs', {});
         graidentDefs.innerHTML = `
             <radialGradient id="animation-particle-effect-gradient-${this.id}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
             <stop offset="0%" style="stop-color:${this.args.color};stop-opacity:1" />
@@ -74,7 +50,6 @@ class ParticleEffectAnimation {
         return true;
     }
 
-    // returns true or false whether animation should proceed. in case it returns false - it means that animation has finished and it will invoke destroy function
     play(dt) {
         if (this.particles.length === 0 && this.particlesLeft <= 0) {
             return false;
@@ -151,7 +126,6 @@ class ParticleEffectAnimation {
         particle.domParticle.setAttribute('transform', `translate(${x} ${y}) scale(${scale} ${scale})`);
     }
 
-    // invoked when animation is instructed to remove its elements from dom.
     destroy() {
         _.forEach(this.particles, particle => {
             this.domContainer.removeChild(particle.domParticle);
@@ -166,12 +140,12 @@ class ParticleEffectAnimation {
 
     createParticleDom(type, size, color) {
         if (type === 'circle') {
-            return svg('circle', { cx: 0, cy: 0, r: size / 2, fill: color});
+            return this.svg('circle', { cx: 0, cy: 0, r: size / 2, fill: color});
         } else if (type === 'rect') {
-            return svg('rect', {x: -size/2, y: -size/2, width: size, height: size, fill: color, stroke: 'none'});
+            return this.svg('rect', {x: -size/2, y: -size/2, width: size, height: size, fill: color, stroke: 'none'});
         } else if (type === 'message') {
-            const icon = html('i', {class: 'fas fa-envelope', style: `color: ${color}; font-size: ${Math.floor(size)}px;`});
-            const particle = svg('foreignObject', { width: 100, height: 100, x: -size/2, y: -size/2 }, [icon]);
+            const icon = this.html('i', {class: 'fas fa-envelope', style: `color: ${color}; font-size: ${Math.floor(size)}px;`});
+            const particle = this.svg('foreignObject', { width: 100, height: 100, x: -size/2, y: -size/2 }, [icon]);
             const rect = icon.getBoundingClientRect();
             if (rect) {
                 particle.setAttribute('x', -rect.width/2);
@@ -179,7 +153,7 @@ class ParticleEffectAnimation {
             }
             return particle;
         } else {
-            return svg('circle', { cx: 0, cy: 0, r: size / 2, fill: `url(#animation-particle-effect-gradient-${this.id})`});
+            return this.svg('circle', { cx: 0, cy: 0, r: size / 2, fill: `url(#animation-particle-effect-gradient-${this.id})`});
         }
     }
 
