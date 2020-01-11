@@ -8,15 +8,35 @@
 </template>
 <script>
 import htmlSanitize from '../../../../../htmlSanitize';
-const computePath = (item) => {
+
+function computePath(item) {
     const w = item.area.w;
     const h = item.area.h;
     return `M 0 0  L ${w} 0  L ${w} ${h}  M 0 ${h} Z`;
+}
+
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'text',
+        style: generateTextStyle(item)
+    }
 };
+
+function generateTextStyle(item) {
+    return {
+        'color':            item.shapeProps.textColor,
+        'font-size':        item.shapeProps.fontSize + 'px',
+        'padding-left':     item.shapeProps.textPaddingLeft+'px',
+        'padding-right':    item.shapeProps.textPaddingRight+'px',
+        'padding-top':      item.shapeProps.textPaddingTop+'px',
+        'padding-bottom':   item.shapeProps.textPaddingBottom+'px'
+    };
+}
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    identifyTextEditArea,
     editorProps: {
         description: 'rich',
         text: 'rich'
@@ -36,14 +56,7 @@ export default {
         },
 
         textStyle() {
-            return {
-                'color':            this.item.shapeProps.textColor,
-                'font-size':        this.item.shapeProps.fontSize + 'px',
-                'padding-left':     this.item.shapeProps.textPaddingLeft+'px',
-                'padding-right':    this.item.shapeProps.textPaddingRight+'px',
-                'padding-top':      this.item.shapeProps.textPaddingTop+'px',
-                'padding-bottom':   this.item.shapeProps.textPaddingBottom+'px'
-            };
+            return generateTextStyle(this.item);
         }
     }
 
