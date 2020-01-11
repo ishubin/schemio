@@ -21,7 +21,11 @@ function loopCycle(timeMarker, deltaTime) {
             let animation = animations[i];
             let status = true;
             try {
-                status = animation.play(deltaTime);
+                if (animation.enabled) {
+                    status = animation.play(deltaTime);
+                } else {
+                    status = false;
+                }
             } catch(e) {
                 status = false;
             }
@@ -57,8 +61,10 @@ export default {
     /**
      * 
      * @param {Animation} animation
+     * @param {String} entityId Id of item or connector. It is needed in order to be able to stop all animations for a specific item/connector
      */
-    play(animation) {
+    play(animation, entityId) {
+        animation.entityId = entityId;
         let success = false;
         try {
             success = animation.init();
@@ -87,5 +93,13 @@ export default {
 
     enableAnimations() {
         animationsEnabled = true;
+    },
+
+    stopAllAnimationsForEntity(entityId) {
+        _.forEach(animations, animation => {
+            if (animation.entityId === entityId) {
+                animation.enabled = false;
+            }
+        });
     }
 };

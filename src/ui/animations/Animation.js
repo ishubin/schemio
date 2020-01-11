@@ -1,4 +1,10 @@
 export default class Animation { 
+
+    constructor() {
+        this.enabled = true;
+        this.entityId = null;
+    }
+
     /**
      * Invoked before playing. 
      * @returns Boolean status whether it has succeeded initializing animation elements

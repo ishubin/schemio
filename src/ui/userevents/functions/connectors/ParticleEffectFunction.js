@@ -177,7 +177,7 @@ export default {
 
     execute(connector, args) {
         if (connector) {
-            AnimationRegistry.play(new ParticleEffectAnimation(connector, args))
+            AnimationRegistry.play(new ParticleEffectAnimation(connector, args), connector.id);
         }
     }
 };

@@ -72,7 +72,7 @@ export default {
 
     execute(connector, args) {
         if (connector) {
-            AnimationRegistry.play(new CrawlEffectAnimation(connector, args))
+            AnimationRegistry.play(new CrawlEffectAnimation(connector, args), connector.id);
         }
     }
 };
