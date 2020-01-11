@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
 import Animation from '../../../animations/Animation';
 
@@ -9,8 +10,15 @@ class CrawlEffectAnimation extends Animation {
         this.args = args;
         this.domContainer = null;
         this.domConnectorPath = null;
-        this.domAnimationPath = null;
-
+        this.originalPathDomAttributes = {};
+        this.animationDomAttributes = {
+            'stroke-dasharray': this.args.length,
+            'stroke-dashoffset': 0,
+            'stroke-width': this.args.strokeWidth || 1,
+            'stroke': this.args.color,
+            'fill': 'none',
+            'stroke-linejoin': 'round',
+        };
         this.time = 0.0;
     }
 
@@ -22,24 +30,19 @@ class CrawlEffectAnimation extends Animation {
             return false;
         }
 
-        const pathText = this.domConnectorPath.getAttribute('d');
-        
-        this.domAnimationPath = this.svg('path', {
-            'd': pathText,
-            'stroke-width': this.args.strokeWidth || 1,
-            'stroke': this.args.color,
-            'fill': 'none',
-            'stroke-linejoin': 'round',
-            'stroke-dasharray': this.args.length
+        _.forEach(this.domConnectorPath.getAttributeNames(), attrName => {
+            this.originalPathDomAttributes[attrName] = this.domConnectorPath.getAttribute(attrName);
         });
-
-        this.domContainer.appendChild(this.domAnimationPath);
+        
+        _.forEach(this.animationDomAttributes, (value, name) => {
+            this.domConnectorPath.setAttribute(name, value);
+        });
         return true;
     }
 
     play(dt) {
         this.time += dt;
-        this.domAnimationPath.setAttribute('stroke-dashoffset', Math.floor(-this.time * this.args.speed / 1000.0));
+        this.domConnectorPath.setAttribute('stroke-dashoffset', Math.floor(-this.time * this.args.speed / 1000.0));
 
         if (this.time > this.args.duration * 1000.0) {
             return false;
@@ -48,7 +51,12 @@ class CrawlEffectAnimation extends Animation {
     }
 
     destroy() {
-        this.domContainer.removeChild(this.domAnimationPath);
+        _.forEach(this.animationDomAttributes, (value, name) => {
+            this.domConnectorPath.removeAttribute(name);
+        });
+        _.forEach(this.originalPathDomAttributes, (value, name) => {
+            this.domConnectorPath.setAttribute(name, value);
+        });
     }
 }
 
