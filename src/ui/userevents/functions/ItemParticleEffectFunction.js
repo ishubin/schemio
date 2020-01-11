@@ -130,11 +130,12 @@ class ItemParticleEffectAnimation extends Animation {
     playParticle(particle, dt) {
         particle.lifeTime += dt/1000.0;
 
-        let scale = 1.0;
         particle.position.x += particle.direction.x * this.args.speed * dt / 1000.0;
         particle.position.y += particle.direction.y * this.args.speed * dt / 1000.0;
 
+        let scale = 1.0;
         let opacity = 1;
+
         if (this.args.lifeTime > 0.0) {
             const lifeTimePercent = 100.0 * particle.lifeTime / this.args.lifeTime
             if (lifeTimePercent < this.args.fadeIn) {
@@ -143,6 +144,11 @@ class ItemParticleEffectAnimation extends Animation {
                 opacity = (100 - lifeTimePercent) / (100 - this.args.fadeOut);
             }
 
+            if (lifeTimePercent < this.args.growth) {
+                scale = lifeTimePercent / this.args.growth;
+            } else if (lifeTimePercent > this.args.decline && this.args.decline < 99.999) {
+                scale = (100 - lifeTimePercent) / (100 - this.args.decline);
+            }
         }
         
         particle.domParticle.setAttribute('style', `opacity: ${opacity}`);
@@ -194,8 +200,8 @@ export default {
         speed:          {name: 'Speed',             type: 'number', value: 60},
         lifeTime:       {name: 'Life Time (sec)',   type: 'number', value: 1.0},
         birthTime:      {name: 'Birth time (sec)',  type: 'number',   value: 0.3},
-        growthTime:     {name: 'Growth time (sec)', type: 'number', value: 0.1},
-        declineTime:    {name: 'Decline time (sec)',type: 'number', value: 0.1},
+        growth:         {name: 'Growth to (%)',     type: 'number', value: 0.1},
+        decline:        {name: 'Decline from (%)',  type: 'number', value: 0.1},
         fadeIn:         {name: 'Fade in (%)',       type: 'number', value: 1},
         fadeOut:        {name: 'Fade out (%)',      type: 'number', value: 50}
     },
