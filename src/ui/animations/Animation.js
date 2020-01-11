@@ -1,8 +1,10 @@
+import shortid from 'shortid';
 export default class Animation { 
 
     constructor() {
         this.enabled = true;
         this.entityId = null;
+        this.id = shortid.generate();
     }
 
     /**

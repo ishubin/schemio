@@ -5,13 +5,15 @@ import ZoomToItFunction from './ZoomToItFunction';
 import ParticleEffectFunction from './connectors/ParticleEffectFunction';
 import CrawlEffectFunction from './connectors/CrawlEffectFunction';
 import StopAllAnimationsFunction from './StopAllAnimationsFunction';
+import ItemParticleEffectFunction from './ItemParticleEffectFunction';
 
 export default {
     item: {
         hide:               HideFunction,
         show:               ShowFunction,
         set:                SetFunction,
-        zoomToIt:           ZoomToItFunction
+        zoomToIt:           ZoomToItFunction,
+        particleEffect:     ItemParticleEffectFunction
     },
     connector: {
         set:                SetFunction,

@@ -1,4 +1,3 @@
-import shortid from 'shortid';
 import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
 import Animation from '../../../animations/Animation';
@@ -19,7 +18,6 @@ class ParticleEffectAnimation extends Animation {
         this.totalPathLength = 0;
         this.growthDistance = args.growthDistance;
         this.declineDistance = args.declineDistance;
-        this.id = shortid.generate();
         this.cleanupDomElements = [];
     }
 
@@ -162,7 +160,7 @@ class ParticleEffectAnimation extends Animation {
 export default {
     name: 'Particle Effect',
     args: {
-        particleType:   {name: 'Particle Type',     type: 'choice', value: 'blur-circle', options: [
+        particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
             'spot', 'circle', 'rect', 'message'
         ]},
         particleSize:   {name: 'Particle Size',     type: 'number', value: 10},

@@ -319,18 +319,24 @@ export default {
         },
 
         getDefaultArgsForMethod(action, method) {
-            if (action.element && action.element.item && action.element.connector) {
-                if (Functions.connector[method]) {
-                    const functionArgs = Functions.connector[method].args;
-                    if (functionArgs) {
-                        const args = {};
+            let functions = Functions.scheme;
+            if (action.element) {
+                if (action.element.item && action.element.connector) {
+                    functions = Functions.connector;
+                } else if (action.element.item) {
+                    functions = Functions.item;
+                }
+            }
+            if (functions[method]) {
+                const functionArgs = functions[method].args;
+                if (functionArgs) {
+                    const args = {};
 
-                        _.forEach(functionArgs, (arg, argName) => {
-                            args[argName] = arg.value;
-                        });
+                    _.forEach(functionArgs, (arg, argName) => {
+                        args[argName] = arg.value;
+                    });
 
-                        return args;
-                    }
+                    return args;
                 }
             }
             return {};
