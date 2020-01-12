@@ -6,6 +6,7 @@ import ParticleEffectFunction from './connectors/ParticleEffectFunction';
 import CrawlEffectFunction from './connectors/CrawlEffectFunction';
 import StopAllAnimationsFunction from './StopAllAnimationsFunction';
 import ItemParticleEffectFunction from './ItemParticleEffectFunction';
+import BlinkEffectFunction from './BlinkEffectFunction';
 
 export default {
     item: {
@@ -13,7 +14,8 @@ export default {
         show:               ShowFunction,
         set:                SetFunction,
         zoomToIt:           ZoomToItFunction,
-        particleEffect:     ItemParticleEffectFunction
+        particleEffect:     ItemParticleEffectFunction,
+        blinkEffect:        BlinkEffectFunction
     },
     connector: {
         set:                SetFunction,

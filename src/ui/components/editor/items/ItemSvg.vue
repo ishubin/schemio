@@ -15,6 +15,8 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
+        <g :id="`animation-container-${item.id}`"></g>
+
         <path v-if="itemSvgPath"
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
@@ -56,7 +58,6 @@
             </g>
         </g>
 
-        <g :id="`animation-container-${item.id}`"></g>
     </g>
 </template>
 
