@@ -233,7 +233,7 @@ export default {
             itemListShown: false,
             schemeChanged: false, //used in order to render Save button
 
-            shouldSnapToGrid: false,
+            shouldSnapToGrid: true,
 
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
@@ -572,7 +572,24 @@ export default {
             this.currentTab = 'Item';
             this.tabs[1].disabled = false;
             this.tabs[2].disabled = true;
-            this.sidePanelRightExpanded = true;
+
+            // Checking whether an item has any information in it.
+            if (this.mode === 'view') {
+                if (this.selectedItem && this.selectedItem.description) {
+                    /*
+                    This is very dirty but it is the simplest way to check if the item has a proper description
+                    If would only check for non-empty strings, then it would still show side panel 
+                    even when description is an empty parahraph like "<p></p>"
+                    This happens when you use rich text editor and delete the entire description.
+                    Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
+                    */
+                    if (this.selectedItem.description.trim().length > 8) {
+                        this.sidePanelRightExpanded = true;
+                    }
+                }
+            } else {
+                this.sidePanelRightExpanded = true;
+            }
         },
 
         onAnyItemDeselected(itemId) {
