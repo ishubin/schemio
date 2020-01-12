@@ -1,26 +1,29 @@
 <template>
-    <modal @close="$emit('close')">
-        <table>
-            <tr v-for="(arg, argName) in functionDescription.args">
-                <td>{{arg.name}}</td>
-                <td>
-                    <input v-if="arg.type === 'string' || arg.type === 'number' || arg.type === 'image'"
-                        :value="argumentValues[argName]"
-                        @input="argumentValues[argName] = arguments[0].target.value; emitArgumentChange(argName)"/>
+    <modal @close="$emit('close')" :width="400">
+        <div style="max-height: 400px; overflow: auto;">
+            <table class="properties-table">
+                <tr v-for="(arg, argName) in functionDescription.args">
+                    <td class="label" width="50%">{{arg.name}}</td>
+                    <td class="value" width="50%">
+                        <input v-if="arg.type === 'string' || arg.type === 'number' || arg.type === 'image'"
+                            class="textfield"
+                            :value="argumentValues[argName]"
+                            @input="argumentValues[argName] = arguments[0].target.value; emitArgumentChange(argName)"/>
 
-                    <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
-                        @input="argumentValues[argName] = arguments[0]; emitArgumentChange(argName)"/>
+                        <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
+                            @input="argumentValues[argName] = arguments[0]; emitArgumentChange(argName)"/>
 
-                    <input v-if="arg.type === 'boolean'" type="checkbox" :value="argumentValues[argName]"
-                        @input="argumentValues[argName] = arguments[0].target.checked; emitArgumentChange(argName)"/>
+                        <input v-if="arg.type === 'boolean'" type="checkbox" :value="argumentValues[argName]"
+                            @input="argumentValues[argName] = arguments[0].target.checked; emitArgumentChange(argName)"/>
 
-                    <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
-                        @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);">
-                        <option v-for="option in arg.options">{{option}}</option>
-                    </select>
-                </td>
-            </tr>
-        </table>
+                        <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
+                            @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);">
+                            <option v-for="option in arg.options">{{option}}</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </modal>
 </template>
 <script>

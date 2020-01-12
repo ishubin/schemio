@@ -1226,9 +1226,14 @@ ul.category-breadcrumb li i {
 }
 .dropdown-container .dropdown-click-area {
     display: inline-block;
-    padding: 0;
-    margin: 0;
+    padding: 2px 4px;
+    margin: 1px;
     cursor: pointer;
+}
+.dropdown-container .dropdown-click-area:hover {
+    background: #fff;
+    border: 1px solid #777;
+    margin: 0;
 }
 .dropdown-container .dropdown-popup {
     position: fixed;
@@ -1477,6 +1482,18 @@ table.position-panel-table .property-label {
 }
 .behavior-container:hover .behavior-event-add-action {
     visibility: visible;
+}
+
+.behavior-action-container .action-method-arguments-expand {
+    display: inline-block;
+    padding: 2px 4px;
+    margin: 1px;
+    cursor: pointer;
+}
+.behavior-action-container .action-method-arguments-expand:hover {
+    margin: 0;
+    border: 1px solid #777;
+    background: white;
 }
 
 /***************** Element Picker ****************/

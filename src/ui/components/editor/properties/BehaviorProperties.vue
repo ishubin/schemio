@@ -42,6 +42,7 @@
                                 <span v-else> <i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
                             </dropdown>
                             <span v-if="action.method !== 'set' && action.args && Object.keys(action.args).length > 0"
+                                class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
                                 >(...)</span>
                         </div>
