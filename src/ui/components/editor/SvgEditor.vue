@@ -299,15 +299,6 @@ export default {
             selectedItemLinks: [],
             lastHoveredItem: null,
 
-            animations: {
-                linksAppear: {
-                    timer: null,
-                    frame: 0,
-                    totalFrames: 30,
-                    intervalMs: 5
-                }
-            },
-
             multiSelectBox: null,
 
             contextMenu: {
@@ -603,26 +594,16 @@ export default {
         },
 
         startLinksAnimation() {
-            if (this.animations.linksAppear.timer) {
-                clearInterval(this.animations.linksAppear.timer);
-            }
-            this.animations.linksAppear.timer = null;
-            this.animations.linksAppear.frame = 0;
+            AnimationRegistry.play(new ValueAnimation({
+                durationMillis: 300,
 
-            this.animations.linksAppear.timer = setInterval(() => {
-                this.animations.linksAppear.frame += 1;
-
-                if (this.animations.linksAppear.frame >= this.animations.linksAppear.totalFrames) {
-                    clearInterval(this.animations.linksAppear.timer);
-                } else  {
-                    var t = this.animations.linksAppear.frame / this.animations.linksAppear.totalFrames;
-
+                update: (t) => {
                     _.forEach(this.selectedItemLinks, link => {
                         link.x = link.startX * (1.0 - t) + link.destinationX * t;
                         link.y = link.startY * (1.0 - t) + link.destinationY * t;
                     });
                 }
-           }, this.animations.linksAppear.intervalMs);
+            }));
         },
 
         generateItemLinks(item) {
