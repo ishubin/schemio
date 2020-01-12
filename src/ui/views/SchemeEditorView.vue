@@ -777,7 +777,6 @@ export default {
             if (value === 'view') {
                 AnimationsRegistry.enableAnimations();
             } else {
-                AnimationsRegistry.disableAnimations();
                 AnimationsRegistry.stopAllAnimations();
             }
         },

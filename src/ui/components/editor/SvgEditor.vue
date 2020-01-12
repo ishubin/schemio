@@ -208,6 +208,8 @@ import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
 import Shape from './items/shapes/Shape';
 import htmlSanitize from '../../../htmlSanitize';
+import AnimationRegistry from '../../animations/AnimationRegistry';
+import ValueAnimation from '../../animations/ValueAnimation';
 
 
 const EMPTY_OBJECT = {type: 'nothing'};
@@ -302,13 +304,6 @@ export default {
                     timer: null,
                     frame: 0,
                     totalFrames: 30,
-                    intervalMs: 5
-                },
-
-                bringToView: {
-                    timer: null,
-                    frame: 0,
-                    totalFrames: 25,
                     intervalMs: 5
                 }
             },
@@ -582,46 +577,29 @@ export default {
         onBringToView(area) {
             const headerHeight = 50;
             const sidePanelWidth = 400;
-            var newScale = 1.0;
+            let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
-                newScale = Math.floor(100.0 * Math.min((this.width - sidePanelWidth)/area.w, (this.height - headerHeight)/area.h)) / 100.0;
-                newScale = Math.max(0.05, Math.min(newScale, 1.0));
+                newZoom = Math.floor(100.0 * Math.min((this.width - sidePanelWidth)/area.w, (this.height - headerHeight)/area.h)) / 100.0;
+                newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
-            var Xo = (this.width - sidePanelWidth)/2 - (area.x + area.w/2) * newScale;
-            var Yo = (this.height)/2 - (area.y - headerHeight + area.h/2) *newScale;
+            const oldX = this.vOffsetX;
+            const oldY = this.vOffsetY;
+            const oldZoom = this.vZoom;
 
-            this.startBringToViewAnimation(Xo, Yo, newScale);
-        },
+            const destX = (this.width - sidePanelWidth)/2 - (area.x + area.w/2) * newZoom;
+            const destY = (this.height)/2 - (area.y - headerHeight + area.h/2) *newZoom;
 
-        startBringToViewAnimation(x, y, z) {
-            if (this.animations.bringToView.timer) {
-                clearInterval(this.animations.bringToView.timer);
-            }
-            this.animations.bringToView.timer = null;
-            this.animations.bringToView.frame = 0;
-
-            var originalX = this.vOffsetX;
-            var originalY = this.vOffsetY;
-            var originalZoom = this.vZoom;
-
-            this.animations.bringToView.timer = setInterval(() => {
-                this.animations.bringToView.frame += 1;
-
-                if (this.animations.bringToView.frame >= this.animations.bringToView.totalFrames) {
-                    clearInterval(this.animations.bringToView.timer);
-                    this.updateZoom(z);
-                    this.updateOffset(x, y);
-                } else  {
-                    var t = this.animations.bringToView.frame / this.animations.bringToView.totalFrames;
-
+            AnimationRegistry.play(new ValueAnimation({
+                durationMillis: 1000,
+                update: (t) => {
+                    this.updateZoom(oldZoom * (1.0 - t) + newZoom * t);
                     this.updateOffset(
-                        originalX * (1.0 - t) + x * t,
-                        originalY * (1.0 - t) + y * t
+                        oldX * (1.0 - t) + destX * t,
+                        oldY * (1.0 - t) + destY * t
                     );
-                    this.updateZoom(originalZoom * (1.0 - t) + z * t);
                 }
-           }, this.animations.linksAppear.intervalMs);
+            }));
         },
 
         startLinksAnimation() {
