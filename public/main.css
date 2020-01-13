@@ -372,7 +372,6 @@ ul.pagination li a.current {
 /********************* Svg editor *******************/
 
 .svg-editor svg {
-    background: #fff;
     position: fixed;
     top: 0;
     left: 0;
@@ -384,7 +383,6 @@ ul.pagination li a.current {
     user-select: none;
 }
 svg .grid line {
-    stroke: #eee;
     stroke-width: 1;
 }
 svg rect.multi-select-box {

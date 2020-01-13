@@ -11,13 +11,19 @@ import EventBus from '../components/editor/EventBus.js';
 import Connector from './Connector.js';
 import Item from './Item.js';
 
+
+const defaultSchemeStyle = {
+    backgroundColor:    'rgba(240,240,240,1.0)',
+    gridColor:          'rgba(128,128,128,0.2)',
+};
+
 /*
 Providing access to scheme elements and provides modifiers for it
 */
 class SchemeContainer {
     /**
      * 
-     * @param {*} scheme 
+     * @param {Scheme} scheme 
      * @param {EventBus} eventBus 
      */
     constructor(scheme, eventBus) {
@@ -33,10 +39,23 @@ class SchemeContainer {
         this.itemMap = {};
         this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.copyBuffer = [];
+        this.enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
 
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    }
+    
+    enrichSchemeWithDefaults(scheme) {
+        if (!scheme.style) {
+            scheme.style = {};
+        }
+
+        _.forEach(defaultSchemeStyle, (value, name) => {
+            if (!scheme.style[name]) {
+                scheme.style[name] = value;
+            }
+        });
     }
 
     reindexItems() {

@@ -31,20 +31,42 @@
         </div>
 
         <div v-if="schemeContainer.scheme">
-            <h5 class="section">Name</h5>
-            <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..." @change="onPropertyChange('name')"/>
+            <panel name="General">
+                <h5 class="section">Name</h5>
+                <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..." @change="onPropertyChange('name')"/>
 
-            <h5 class="section">Tags</h5>
-            <vue-tags-input v-model="schemeTag"
-                :tags="schemeTags"
-                :autocomplete-items="filteredSchemeTags"
-                @tags-changed="onSchemeTagChange"
-                ></vue-tags-input>
+                <h5 class="section">Tags</h5>
+                <vue-tags-input v-model="schemeTag"
+                    :tags="schemeTags"
+                    :autocomplete-items="filteredSchemeTags"
+                    @tags-changed="onSchemeTagChange"
+                    ></vue-tags-input>
 
-            <h5 class="section">Description</h5>
-            <rich-text-editor v-model="schemeContainer.scheme.description"
-                @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
-                ></rich-text-editor>
+                <h5 class="section">Description</h5>
+                <rich-text-editor v-model="schemeContainer.scheme.description"
+                    @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
+                    ></rich-text-editor>
+            </panel>
+
+
+            <panel name="Style">
+                <table class="properties-table">
+                    <tbody>
+                        <tr>
+                            <td class="label" width="50%">Background</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="schemeContainer.scheme.style.backgroundColor" @input="schemeContainer.scheme.style.backgroundColor = arguments[0]"></color-picker>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Grid</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="schemeContainer.scheme.style.gridColor" @input="schemeContainer.scheme.style.gridColor = arguments[0]"></color-picker>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
 
             <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
 
@@ -78,10 +100,12 @@ import EventBus from './EventBus.js';
 import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
 import SimpleCategoryTree from '../SimpleCategoryTree.vue';
+import ColorPicker from '../editor/ColorPicker.vue';
+import Panel from '../editor/Panel.vue';
 
 export default {
     props: ['projectId', 'schemeContainer'],
-    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree},
+    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
     mounted() {
         apiClient.getTags(this.projectId).then(tags => {
             this.existingSchemeTags = _.map(tags, tag => {

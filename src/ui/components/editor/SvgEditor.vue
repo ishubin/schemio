@@ -10,7 +10,7 @@
             :width="width+'px'"
             :height="height+'px'"
             :class="['mode-' + mode, 'state-' + (state? state.name: 'unknown')]"
-            :style="{cursor: cursor}"
+            :style="{cursor: cursor, background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
@@ -71,8 +71,12 @@
 
             <g v-if="mode === 'edit'">
                 <g class="grid" data-preview-ignore="true" :transform="gridTransform">
-                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height"/>
-                    <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"/>
+                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height" 
+                        :stroke="schemeContainer.scheme.style.gridColor"
+                    />
+                    <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"
+                        :stroke="schemeContainer.scheme.style.gridColor"
+                    />
                 </g>
                 <g data-type="scene-transform" :transform="transformSvg">
                     <g v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-container"
