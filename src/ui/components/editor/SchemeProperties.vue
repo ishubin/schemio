@@ -68,7 +68,9 @@
                 </table>
             </panel>
 
-            <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+            <panel name="Operations">
+                <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+            </panel>
 
             <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
                 primaryButton="Delete"
