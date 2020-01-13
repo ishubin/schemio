@@ -2,7 +2,6 @@ import _ from 'lodash';
 import AnimationRegistry from '../../../animations/AnimationRegistry';
 import Animation from '../../../animations/Animation';
 
-
 class CrawlEffectAnimation extends Animation {
     constructor(connector, args) {
         super();
@@ -10,16 +9,10 @@ class CrawlEffectAnimation extends Animation {
         this.args = args;
         this.domContainer = null;
         this.domConnectorPath = null;
-        this.originalPathDomAttributes = {};
-        this.animationDomAttributes = {
-            'stroke-dasharray': this.args.length,
-            'stroke-dashoffset': 0,
-            'stroke-width': this.args.strokeWidth || 1,
-            'stroke': this.args.color,
-            'fill': 'none',
-            'stroke-linejoin': 'round',
-        };
         this.time = 0.0;
+        
+        this.backupOpacity = 1.0;
+        this.domAnimationPath = null;
     }
 
     init() {
@@ -29,20 +22,30 @@ class CrawlEffectAnimation extends Animation {
         if (!this.domContainer || !this.domConnectorPath) {
             return false;
         }
-
-        _.forEach(this.domConnectorPath.getAttributeNames(), attrName => {
-            this.originalPathDomAttributes[attrName] = this.domConnectorPath.getAttribute(attrName);
-        });
         
-        _.forEach(this.animationDomAttributes, (value, name) => {
-            this.domConnectorPath.setAttribute(name, value);
+        this.domAnimationPath = this.svg('path', {
+            'd': this.domConnectorPath.getAttribute('d'),
+            'stroke-dasharray': this.args.length,
+            'stroke-dashoffset': 0,
+            'stroke-width': this.args.strokeWidth || 1,
+            'stroke': this.args.color,
+            'fill': 'none',
+            'stroke-linejoin': 'round',
         });
+        this.domContainer.appendChild(this.domAnimationPath);
+
+        let opacity = window.getComputedStyle(this.domConnectorPath).opacity;
+        if (opacity && opacity > 0.0) {
+            this.backupOpacity = opacity;
+        }
+
+        this.domConnectorPath.style.opacity = 0.0;
         return true;
     }
 
     play(dt) {
         this.time += dt;
-        this.domConnectorPath.setAttribute('stroke-dashoffset', Math.floor(-this.time * this.args.speed / 1000.0));
+        this.domAnimationPath.setAttribute('stroke-dashoffset', Math.floor(-this.time * this.args.speed / 1000.0));
 
         if (this.time > this.args.duration * 1000.0) {
             return false;
@@ -51,12 +54,11 @@ class CrawlEffectAnimation extends Animation {
     }
 
     destroy() {
-        _.forEach(this.animationDomAttributes, (value, name) => {
-            this.domConnectorPath.removeAttribute(name);
-        });
-        _.forEach(this.originalPathDomAttributes, (value, name) => {
-            this.domConnectorPath.setAttribute(name, value);
-        });
+        if (this.domAnimationPath) {
+            this.domContainer.removeChild(this.domAnimationPath);
+        }
+
+        this.domConnectorPath.style.opacity = this.backupOpacity;
     }
 }
 
