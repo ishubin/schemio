@@ -57,7 +57,7 @@ export default [{
             do: [{
                 element: {item: 'self'},
                 method: 'set',
-                args: ['opacity', 0.5]
+                args: {field: 'opacity', value: 0.5}
             }]
         }, {
             on: {
@@ -68,7 +68,7 @@ export default [{
             do: [{
                 element: {item: 'self'},
                 method: 'set',
-                args: ['opacity', 0.1]
+                args: {field: 'opacity', value: 0.1}
             }]
         } ]
     }, defaultItem)
@@ -77,7 +77,7 @@ export default [{
     imageProperty: 'shapeProps.backgroundImage',
     iconUrl: '/images/items/image.svg',
     description: `
-        It lets you uppload an image or specify a link to external image
+        It lets you upload an image or specify a link to external image
     `,
     item: utils.extendObject({
         shape: 'rect',
@@ -142,5 +142,42 @@ export default [{
         shape: 'code_block',
         shapeProps: { },
         text: 'var x = 123.0;'
+    }, defaultItem)
+}, {
+    name: 'Button',
+    iconUrl: '/images/items/rounded-rect.svg',
+    item: utils.extendObject({
+        shape: 'rect',
+        cursor: 'pointer',
+        shapeProps: {
+            strokeSize: 1,
+            strokeColor: '#3377A0',
+            fillColor: '#209BC5',
+            nameColor: '#ffffff',
+            cornerRadius: 5,
+            showName: true,
+            namePosition: 'center'
+        },
+        behavior: [ {
+            on: {
+                element: {item: 'self'},
+                event: 'mousein',
+                args: []
+            },
+            do: [
+                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.fillColor', value: '#A6E5FB'} },
+                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.nameColor', value: '#234E71'} }
+            ]
+        }, {
+            on: {
+                element: {item: 'self'},
+                event: 'mouseout',
+                args: []
+            },
+            do: [
+                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.fillColor', value: '#209BC5'} },
+                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.nameColor', value: '#ffffff'} }
+            ]
+        } ]
     }, defaultItem)
 }];

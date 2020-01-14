@@ -44,10 +44,16 @@ const computePath = (item) => {
 };
 
 function identifyTextEditArea(item, itemX, itemY) {
+    if (item.shapeProps.showName && item.shapeProps.namePosition === 'center') {
+        return {
+            property: 'name',
+            style: generateNameStyle(item)
+        };
+    }
     return {
         property: 'text',
         style: generateTextStyle(item)
-    }
+    };
 };
 
 function generateTextStyle(item) {
@@ -63,6 +69,24 @@ function generateTextStyle(item) {
         'display':          'table-cell',
         'width':            item.area.w + 'px',
         'height':           item.area.h + 'px',
+    };
+}
+
+function generateNameStyle(item) {
+    let displace = 50;
+    if (item.shapeProps.namePosition === 'top') {
+        displace = 100;
+    } else if (item.shapeProps.namePosition === 'bottom') {
+        displace = 0;
+    }
+
+    return {
+        color: item.shapeProps.nameColor,
+        'text-align': 'center',
+        'vertical-align': 'middle',
+        position: 'relative',
+        top: `${displace}%`,
+        transform: `translateY(${-displace}%)`
     };
 }
 
@@ -119,21 +143,7 @@ export default {
         },
 
         nameStyle() {
-            let displace = 50;
-            if (this.item.shapeProps.namePosition === 'top') {
-                displace = 100;
-            } else if (this.item.shapeProps.namePosition === 'bottom') {
-                displace = 0;
-            }
-
-            return {
-                color: this.item.shapeProps.nameColor,
-                'text-align': 'center',
-                'vertical-align': 'middle',
-                position: 'relative',
-                top: `${displace}%`,
-                transform: `translateY(${-displace}%)`
-            };
+            return generateNameStyle(this.item);
         },
 
         nameArea() {

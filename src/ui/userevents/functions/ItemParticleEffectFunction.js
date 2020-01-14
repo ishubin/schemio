@@ -199,7 +199,7 @@ export default {
         color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
         speed:          {name: 'Speed',             type: 'number', value: 60},
         lifeTime:       {name: 'Life Time (sec)',   type: 'number', value: 1.0},
-        birthTime:      {name: 'Birth time (sec)',  type: 'number',   value: 0.3},
+        birthTime:      {name: 'Birth time (sec)',  type: 'number', value: 0.005},
         growth:         {name: 'Growth to (%)',     type: 'number', value: 0.1},
         decline:        {name: 'Decline from (%)',  type: 'number', value: 0.1},
         fadeIn:         {name: 'Fade in (%)',       type: 'number', value: 1},
