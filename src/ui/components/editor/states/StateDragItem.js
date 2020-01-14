@@ -164,6 +164,8 @@ export default class StateDragItem extends State {
             } else {
                 this.handleItemLeftMouseDown(x, y, mx, my, object.item, event);
             }
+        } else if (object.connectorStarter) {
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (event.srcElement.id === 'svg_plot') {

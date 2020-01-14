@@ -404,7 +404,17 @@ export default {
                     }
                 }
 
-
+                const connectorStarterItemId = element.getAttribute('data-connector-starter-item-id');
+                if (connectorStarterItemId) {
+                    const item = this.schemeContainer.findItemById(connectorStarterItemId);
+                    if (item) {
+                        return {
+                            connectorStarter: {
+                                item
+                            }
+                        };
+                    }
+                }
             }
             return EMPTY_OBJECT;
         },

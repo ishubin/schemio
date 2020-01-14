@@ -406,6 +406,15 @@ svg .boundary-box-dragger:hover {
     opacity: 0.5;
 }
 
+svg .boundary-box-connector-starter {
+    stroke: 'none';
+    fill: #9cc1f8;
+    opacity: 0.6;
+}
+svg .boundary-box-connector-starter:hover {
+    opacity: 1;
+}
+
 svg rect.item-search-highlight {
     stroke-width: 2;
     stroke: #faa;
