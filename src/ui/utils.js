@@ -41,7 +41,8 @@ function sanitizeScheme(scheme) {
         tags: scheme.tags,
         modifiedDate: scheme.modifiedDate,
         categoryId: scheme.categoryId,
-        items: items
+        items: items,
+        style: scheme.style || {}
     }
 }
 

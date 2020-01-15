@@ -25,7 +25,7 @@
                     </div>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                    <ul class="button-group">
+                    <ul class="button-group" v-if="mode === 'edit'">
                         <li>
                             <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
                         </li>
@@ -39,7 +39,7 @@
                             <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="fas fa-bullseye"></i></span>
                         </li>
                     </ul>
-                    <ul class="button-group">
+                    <ul class="button-group" v-if="mode === 'edit'">
                         <li>
                             <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
                                 <i class="fas fa-magnet"></i>
@@ -54,7 +54,7 @@
                             </span>
                         </li>
                     </ul>
-                    <span class="btn btn-secondary" v-if="schemeChanged" @click="saveScheme()">Save</span>
+                    <span class="btn btn-secondary" v-if="schemeChanged && mode === 'edit'" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
 
@@ -303,12 +303,12 @@ export default {
                 this.project = project;
             });
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
-                history = new History({size: 30});
-                document._history = history;
-                history.commit(scheme);
-
                 this.currentCategory = scheme.category;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
+
+                history.commit(scheme);
+                history = new History({size: 30});
+                document._history = history;
 
                 var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {

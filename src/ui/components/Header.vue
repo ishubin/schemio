@@ -7,15 +7,20 @@
         <router-link :to="{path: '/'}" class="header-caption">
             <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
         </router-link>
+
+        <div class="hamburger-menu">
+            <span title="Menu"><i class="fas fa-bars"></i></span>
+            <ul>
+                <li v-if="user">
+                    <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
+                </li>
+                <li v-if="user && projectId">
+                    <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
+                </li>
+            </ul>
+        </div>
+
         <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>
-        <ul>
-            <li v-if="user">
-                <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
-            </li>
-            <li v-if="user && projectId">
-                <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
-            </li>
-        </ul>
 
         <div class="header-middle-section">
             <slot name="middle-section"></slot>

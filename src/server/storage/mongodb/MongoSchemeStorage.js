@@ -147,7 +147,8 @@ class MongoSchemeStorage {
                     tags: scheme.tags,
                     modifiedDate: scheme.modifiedDate,
                     categoryId: scheme.categoryId,
-                    items: scheme.items
+                    items: scheme.items,
+                    style: scheme.style || {}
                 };
             } else {
                 return null;

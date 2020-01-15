@@ -107,26 +107,42 @@ h5 {
     left: 8px;
     top: 8px;
 }
-.header > ul {
-    display: inline;
-    list-style: none;
+.header .hamburger-menu {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.header .hamburger-menu span {
+    cursor: pointer;
+}
+.header .hamburger-menu > ul {
+    position: absolute;
+    display: none;
     margin: 0;
     padding: 0;
+    background: #fff;
+    list-style: none;
 }
-.header > ul > li {
-    display: inline;
+.header .hamburger-menu:hover > ul {
+    display: block;
 }
-.header > ul > li span, .header > ul > li a {
-    display: inline-block;
-    padding: 8px 10px;
-    cursor: pointer;
+.header .hamburger-menu > ul li {
+    padding: 0;
+    margin: 0;
+}
+.header .hamburger-menu > ul li a, .header .hamburger-menu > ul li span {
+    display: block;
+    padding: 6px 8px;
     text-decoration: none;
-    color: white;
+    color: #333;
+    font-weight: normal;
+    white-space: nowrap;
 }
-.header > ul > li span:hover, .header > ul > li a:hover {
-    background: #56a7db;
+.header .hamburger-menu > ul li a:hover, .header .hamburger-menu > ul li span:hover {
+    color: #fff;
+    background: #2472ab;
 }
-
 
 ul.categories, ul.schemes {
     list-style: none;

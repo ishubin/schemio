@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="search-view">
-        <header-component :project-id="projectId" :category="currentCategory"/>
+        <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
         <div class="content-wrapper">
             <div class="search-layout">
                 <div class="search-attributes-panel">
