@@ -70,6 +70,7 @@
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
             :function-description="functionArgumentsEditor.functionDescription"
             :args="functionArgumentsEditor.args"
+            :scheme-container="schemeContainer"
             @close="functionArgumentsEditor.shown = false"
             @argument-changed="onFunctionArgumentsEditorChange"
         />

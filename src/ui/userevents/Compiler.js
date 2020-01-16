@@ -2,9 +2,9 @@
 import _ from 'lodash';
 import knownFunctions from './functions/Functions.js';
 
-function createCallable(knownFunction, item, args) {
+function createCallable(knownFunction, item, args, schemeContainer) {
     return () => {
-        knownFunction.execute(item, args);
+        knownFunction.execute(item, args, schemeContainer);
     };
 }
 
@@ -71,7 +71,7 @@ export default class Compiler {
                 if (action.element) {
                     const element = this.findElement(schemeContainer, selfItem, action.element);
                     if (element) {
-                        funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args));
+                        funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args, schemeContainer));
                     }
                 }
             }

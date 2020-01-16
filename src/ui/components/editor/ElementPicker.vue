@@ -18,7 +18,12 @@ import _ from 'lodash';
 import shortid from 'shortid';
 
 export default {
-    props: ['element', 'selfItem', 'schemeContainer'],
+    props: {
+        element:            {type: Object},
+        selfItem:           {type: Object},
+        schemeContainer:    {type: Object},
+        useSelf:            {type: Boolean, default: true}
+    },
 
     components: {Dropdown},
 
@@ -46,12 +51,15 @@ export default {
                 name: 'Pick...',
                 id: 'pick',
                 type: 'pick'
-            },{
-                iconClass: 'fas fa-cube',
-                name: 'self',
-                id: 'self',
-                type: 'item'
             }];
+            if (this.useSelf) {
+                options.push({
+                    iconClass: 'fas fa-cube',
+                    name: 'self',
+                    id: 'self',
+                    type: 'item'
+                });
+            }
 
             _.forEach(this.schemeContainer.getItems(), item => {
                 options.push({
@@ -100,7 +108,7 @@ export default {
 
     computed: {
         enrichedElement() {
-            if (this.element.item) {
+            if (this.element && this.element.item) {
                 let item = null;
                 if (this.element.item === 'self') {
                     item = this.selfItem;
@@ -120,7 +128,7 @@ export default {
                         }
                     } else {
                         return {
-                            name: this.selfItem.id === item.id ? 'self' : item.name,
+                            name: (this.selfItem && this.selfItem.id === item.id) ? 'self' : item.name,
                             type: 'item',
                             iconClass: 'fas fa-cube'
                         }
@@ -134,8 +142,7 @@ export default {
                 };
             }
             return {
-                name: 'page',
-                type: 'item',
+                name: '',
                 iconClass: 'far fa-file'
             };
         }

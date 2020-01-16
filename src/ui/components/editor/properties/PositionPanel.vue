@@ -25,12 +25,12 @@
                         <span class="property-label">x:</span> <input class="textfield textfield-small" type="text" v-model="x"/>
                     </td>
                     <td class="property-row">
-                        <span class="property-label">W:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
+                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="property-row">
-                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
+                        <span class="property-label">W:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
                     </td>
                     <td class="property-row">
                         <span class="property-label">H:</span> <input class="textfield textfield-small" type="text" v-model="h"/>

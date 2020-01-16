@@ -2,10 +2,11 @@ import AnimationRegistry from '../animations/AnimationRegistry';
 import Animation from '../animations/Animation';
 
 class MoveAnimation extends Animation {
-    constructor(item, args) {
+    constructor(item, args, schemeContainer) {
         super();
         this.item = item;
         this.args = args;
+        this.schemeContainer = schemeContainer;
         this.elapsedTime = 0.0;
         this.originalPosition = {
             x: this.item.area.x,
@@ -15,9 +16,33 @@ class MoveAnimation extends Animation {
             x: parseFloat(args.x),
             y: parseFloat(args.y),
         }
+
+        this.domPath = null;
+        this.pathTotalLength = 1.0;
+        this.offsetX = 0;
+        this.offsetY = 0;
     }
 
     init() {
+        if (this.args.animate && this.args.usePath && this.args.path) {
+            if (this.args.path.connector) {
+                this.domPath = document.getElementById(`connector-${this.args.path.connector}-path`);
+                this.offsetX = -this.item.area.w/2;
+                this.offsetY = -this.item.area.h/2;
+            } else if (this.args.path.item) {
+                this.domPath = document.getElementById(`item-svg-path-${this.args.path.item}`);
+
+                const otherItem = this.schemeContainer.findItemById(this.args.path.item);
+                if (otherItem) {
+                    this.offsetX = otherItem.area.x - this.item.area.w/2;
+                    this.offsetY = otherItem.area.y - this.item.area.h/2;
+                }
+            }
+
+            if (this.domPath) {
+                this.pathTotalLength = this.domPath.getTotalLength();
+            }
+        }
         return true;
     }
 
@@ -26,19 +51,60 @@ class MoveAnimation extends Animation {
             this.elapsedTime += dt;
 
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
-            const smoothedT = Math.sin(t*Math.PI/2.0);
 
-            this.item.area.x = this.originalPosition.x * (1.0 - smoothedT) + this.destinationPosition.x * smoothedT;
-            this.item.area.y = this.originalPosition.y * (1.0 - smoothedT) + this.destinationPosition.y * smoothedT;
+            const convertedT = this.convertTime(t);
+
+            if (this.domPath) {
+                let point = null;
+                if (convertedT < 1.0) {
+                    point = this.domPath.getPointAtLength(convertedT * this.pathTotalLength);
+                } else {
+                    point = this.domPath.getPointAtLength((2.0 - convertedT) * this.pathTotalLength);
+                }
+                this.item.area.x = point.x + this.offsetX; 
+                this.item.area.y = point.y + this.offsetY;
+            } else {
+                this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
+                this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
+            }
 
             if (t < 1.0) {
                 return true;
+            } else {
+                if (this.domPath) {
+                    const point = this.domPath.getPointAtLength(this.pathTotalLength);
+                    this.item.area.x = point.x + this.offsetX;
+                    this.item.area.y = point.y + this.offsetY;
+                } else {
+                    this.item.area.x = this.destinationPosition.x;
+                    this.item.area.y = this.destinationPosition.y;
+                }
+                return false;
             }
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
         }
         return false;
+    }
+
+    /**
+     * This fuction converts t according to movement type. This is needed in order to get smooth animation or any other effect.
+     * @param {Float} t - time of animation in ratio to animation length (from 0.0 to 1.0)
+     */
+    convertTime(t) {
+        if (this.args.movement === 'smooth') {
+            return Math.sin(t*Math.PI/2.0);
+        } else if (this.args.movement === 'ease-in') {
+            return t*t;
+        } else if (this.args.movement === 'ease-out') {
+            return 1 - (t-1)*(t-1);
+        } else if (this.args.movement === 'ease-in-out') {
+            return 0.5 - Math.cos(t * Math.PI) / 2;
+        } else if (this.args.movement === 'bounce') {
+            return 1 - Math.pow(3, -10 * t) * Math.cos(10 * Math.PI *t);
+        }
+        return t;
     }
 
     destroy() {
@@ -48,15 +114,18 @@ class MoveAnimation extends Animation {
 export default {
     name: 'Move',
     args: {
-        x:          {name: 'X',             type: 'number', value: 50},
-        y:          {name: 'Y',             type: 'number', value: 50},
-        animate:    {name: 'Animate',       type: 'boolean',value: false},
-        duration:   {name: 'Duration (sec)',type: 'number', value: 2.0},
+        x:          {name: 'X',                 type: 'number', value: 50},
+        y:          {name: 'Y',                 type: 'number', value: 50},
+        animate:    {name: 'Animate',           type: 'boolean',value: false},
+        duration:   {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
+        movement:   {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
+        usePath:    {name: 'Move Along Path',   type: 'boolean',value: false, depends: {animate: true}},
+        path:       {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}}
     },
 
-    execute(item, args) {
+    execute(item, args, schemeContainer) {
         if (item) {
-            AnimationRegistry.play(new MoveAnimation(item, args), item.id);
+            AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer), item.id);
         }
     }
 };

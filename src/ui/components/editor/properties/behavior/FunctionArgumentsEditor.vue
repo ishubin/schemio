@@ -20,6 +20,13 @@
                             @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);">
                             <option v-for="option in arg.options">{{option}}</option>
                         </select>
+
+                        <element-picker v-if="arg.type === 'element'"
+                            :scheme-container="schemeContainer"
+                            :element="argumentValues[argName]"
+                            :use-self="false"
+                            @selected="onElementSelected(argName, arguments[0])"
+                        />
                     </td>
                 </tr>
             </table>
@@ -31,10 +38,11 @@ import _ from 'lodash';
 import Dropdown from '../../../Dropdown.vue';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import Modal from '../../../Modal.vue';
+import ElementPicker from '../../ElementPicker.vue';
 
 export default {
-    props: ['functionDescription', 'args'],
-    components: {Modal, ColorPicker},
+    props: ['functionDescription', 'args', 'schemeContainer'],
+    components: {Modal, ColorPicker, ElementPicker},
 
     data() {
         const argumentValues = {};
@@ -57,6 +65,11 @@ export default {
 
         onCheckboxChange(argName, event) {
             this.argumentValues[argName] = event.target.checked;
+            this.emitArgumentChange(argName);
+        },
+
+        onElementSelected(argName, element) {
+            this.argumentValues[argName] = element;
             this.emitArgumentChange(argName);
         }
     }
