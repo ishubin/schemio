@@ -13,8 +13,8 @@
                         <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
                             @input="argumentValues[argName] = arguments[0]; emitArgumentChange(argName)"/>
 
-                        <input v-if="arg.type === 'boolean'" type="checkbox" :value="argumentValues[argName]"
-                            @input="argumentValues[argName] = arguments[0].target.checked; emitArgumentChange(argName)"/>
+                        <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
+                            @input="onCheckboxChange(argName, arguments[0])"/>
 
                         <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
                             @input="argumentValues[argName]=arguments[0].target.value; emitArgumentChange(argName);">
@@ -51,8 +51,13 @@ export default {
     },
 
     methods: {
-        emitArgumentChange(argIndex) {
-            this.$emit('argument-changed', argIndex, this.argumentValues[argIndex]);
+        emitArgumentChange(argName) {
+            this.$emit('argument-changed', argName, this.argumentValues[argName]);
+        },
+
+        onCheckboxChange(argName, event) {
+            this.argumentValues[argName] = event.target.checked;
+            this.emitArgumentChange(argName);
         }
     }
 }
