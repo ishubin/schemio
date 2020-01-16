@@ -7,6 +7,7 @@
     "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
     "init-dev": "mkdir -p uploads",
     "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/",
+    "build-standalone": "webpack --config webpack.standalone.js",
     "start-dev-demo": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev-demo; babel-node src/server/server.js'",
     "build-dev-demo": "npm run init-dev; webpack --config webpack.build.dev.demo.js; cp src/ui/index.html public/; cp -r static-demo/public-images public/",
     "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
