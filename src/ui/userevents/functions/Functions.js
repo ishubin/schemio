@@ -17,7 +17,8 @@ export default {
         zoomToIt:           ZoomToItFunction,
         particleEffect:     ItemParticleEffectFunction,
         blinkEffect:        BlinkEffectFunction,
-        move:               ItemMoveFunction
+        move:               ItemMoveFunction,
+        stopAllAnimations:  StopAllAnimationsFunction
     },
     connector: {
         set:                SetFunction,

@@ -125,7 +125,12 @@ export default {
 
     execute(item, args, schemeContainer) {
         if (item) {
-            AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer), item.id);
+            if (args.animate) {
+                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer), item.id);
+            } else {
+                item.area.x = args.x;
+                item.area.y = args.y;
+            }
         }
     }
 };
