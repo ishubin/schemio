@@ -403,6 +403,9 @@ class SchemeContainer {
         _.forEach(this.selectedConnectorWrappers, cw => {
             if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
                 const connector = cw.sourceItem.connectors[cw.connectorIndex];
+                if (connector.meta) {
+                    connector.meta.selected = false;
+                }
                 this.eventBus.emitConnectorDeselected(connector.id, connector);
             }
         });
