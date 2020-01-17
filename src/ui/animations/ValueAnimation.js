@@ -32,8 +32,7 @@ export default class ValueAnimation extends Animation {
 
         const t = this.elapsedTime / this.durationMillis;
 
-        // trying to make a smooth animation using sine function
-        this.updateCallback(Math.sin(t * Math.PI / 2.0));
+        this.updateCallback(1 - (t-1)*(t-1));
         return true;
     }
 
