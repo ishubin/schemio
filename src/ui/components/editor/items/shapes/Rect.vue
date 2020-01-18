@@ -104,7 +104,7 @@ export default {
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
 
-        fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
+        fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
 
         textColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
