@@ -90,12 +90,16 @@ import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
+import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
+import settingsStorage from '../../../settingsStorage';
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
 };
 
 const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
+
+const behaviorCollapseStateStorage = new LimitedSettingsStorage(settingsStorage, 'behavior-collapse', 400);
 
 export default {
     props: ['item', 'schemeContainer'],
@@ -108,10 +112,16 @@ export default {
             .sortBy(item => item.name)
             .value();
 
+        const behaviorsMetas = _.map(this.item.behavior, this.createBehaviorMeta);
+        _.forEach(behaviorsMetas, (meta, index) => {
+            const collapsed = behaviorCollapseStateStorage.get(`${this.schemeContainer.scheme.id}/${this.item.id}/${index}`, 0);
+            meta.collapsed = collapsed === 1 ? true: false;
+        });
+
         return {
             itemMap: this.createItemMap(),
             items: items,
-            behaviorsMetas: _.map(this.item.behavior, this.createBehaviorMeta),
+            behaviorsMetas: behaviorsMetas,
             functionArgumentsEditor: {
                 shown: false,
                 functionDescription: null,
@@ -131,7 +141,10 @@ export default {
         },
 
         toggleBehaviorCollapse(behaviorIndex) {
+            //TODO save its state in local storage
             this.behaviorsMetas[behaviorIndex].collapsed = !this.behaviorsMetas[behaviorIndex].collapsed;
+            // guiStateStorage.save()
+            behaviorCollapseStateStorage.save(`${this.schemeContainer.scheme.id}/${this.item.id}/${behaviorIndex}`, this.behaviorsMetas[behaviorIndex].collapsed ? 1 : 0);
         },
 
         findElement(element) {
