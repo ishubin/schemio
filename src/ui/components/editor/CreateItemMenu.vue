@@ -226,7 +226,7 @@ export default {
             const item = {
                 id: shortid.generate(),
                 cursor: 'default',
-                opacity: 1.0,
+                opacity: 100,
                 blendMode: 'normal',
                 name: art.name,
                 description: '',
