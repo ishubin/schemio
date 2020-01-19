@@ -244,7 +244,6 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
-        EventBus.$on(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
@@ -267,7 +266,6 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
-        EventBus.$off(EventBus.REBUILD_CONNECTORS, this.onRebuildConnectors);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
@@ -320,19 +318,55 @@ export default {
                 text: '',
                 style: {},
                 area: {x: 0, y: 0, w: 0, h: 0}
-            }
+            },
+
+            // used in order to limit offset in 'view' mode
+            cameraLimit: { x1: -this.width, y1: -this.height, x2: this.width, y2: this.height }
         };
     },
     methods: {
+        updateCameraLimit() {
+            const items = this.schemeContainer.getItems();
+            if (items.length === 0) {
+                return;
+            }
+
+            let minX = items[0].area.x,
+                minY = items[0].area.y,
+                maxX = items[0].area.x + items[0].area.w,
+                maxY = items[0].area.y + items[0].area.h;
+
+            _.forEach(items, item => {
+                minX = Math.min(minX, item.area.x);
+                minY = Math.min(minY, item.area.y);
+                maxX = Math.max(maxX, item.area.x + item.area.w);
+                maxY = Math.max(maxY, item.area.y + item.area.h);
+            });
+            this.cameraLimit.x1 = -maxX;
+            this.cameraLimit.y1 = -maxY;
+            this.cameraLimit.x2 = (this.width - minX);
+            this.cameraLimit.y2 = (this.height - minY);
+        },
+
         updateOffset(x, y) {
-            this.vOffsetX = x;
-            this.vOffsetY = y;
-            this.$emit('offset-updated', x, y);
+            if (this.mode === 'view') {
+                this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(x, this.cameraLimit.x2));
+                this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(y, this.cameraLimit.y2));
+            } else {
+                this.vOffsetX = x;
+                this.vOffsetY = y;
+            }
+            this.$emit('offset-updated', this.vOffsetX, this.vOffsetY);
         },
 
         dragOffset(dx, dy) {
-            this.vOffsetX += dx;
-            this.vOffsetY += dy;
+            if (this.mode === 'view') {
+                this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(this.vOffsetX + dx, this.cameraLimit.x2));
+                this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(this.vOffsetY + dy, this.cameraLimit.y2));
+            } else {
+                this.vOffsetX += dx;
+                this.vOffsetY += dy;
+            }
             this.$emit('offset-updated', this.vOffsetX, this.vOffsetY);
         },
 
@@ -465,6 +499,7 @@ export default {
             this.state.reset();
         },
         switchStateInteract() {
+            this.updateCameraLimit();
             this.state = this.states.interact;
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.reindexUserEvents();
@@ -545,10 +580,6 @@ export default {
             EventBus.emitSchemeChangeCommited();
             this.$emit('deleted-items');
             this.$forceUpdate();
-        },
-
-        onRebuildConnectors() {
-            this.schemeContainer.buildConnectors();
         },
 
         onMultiSelectBoxAppear(multiSelectBox) {
