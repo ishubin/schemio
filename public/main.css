@@ -402,20 +402,18 @@ svg .grid line {
     stroke-width: 1;
 }
 svg rect.multi-select-box {
-    stroke-width: 1;
+    stroke-width: 2;
     stroke: #faa;
-    stroke-dasharray: 2 4;
+    stroke-dasharray: 4 4;
     fill: none;
 }
 svg rect.boundary-box {
     stroke-width: 1;
-    stroke: #faa;
     fill: rgba(255, 255, 255, 0.01);
     opacity: 0.5;
 }
 svg .boundary-box-dragger {
     stroke: none;
-    fill: #faa;
     cursor: pointer;
 }
 svg .boundary-box-dragger:hover {
@@ -424,7 +422,6 @@ svg .boundary-box-dragger:hover {
 
 svg .boundary-box-connector-starter {
     stroke: 'none';
-    fill: #9cc1f8;
     opacity: 0.6;
 }
 svg .boundary-box-connector-starter:hover {
@@ -962,17 +959,8 @@ svg.mode-edit .item-connector-hover-area {
 svg.mode-edit .item-connector-hover-area:hover {
     cursor: pointer;
 }
-svg.mode-edit .item-connector.selected {
-    stroke: #55f;
-}
 svg.mode-edit .item-connector-reroute {
     cursor: pointer;
-}
-svg.mode-edit .item-connector-reroute.selected {
-    fill: #55f;
-}
-svg.mode-edit .item-connector-reroute:hover, svg.mode-edit .item-connector-reroute.selected:hover {
-    fill: #55c7ff;
 }
 
 

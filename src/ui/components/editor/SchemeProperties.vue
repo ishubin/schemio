@@ -64,6 +64,12 @@
                                 <color-picker :color="schemeContainer.scheme.style.gridColor" @input="schemeContainer.scheme.style.gridColor = arguments[0]"></color-picker>
                             </td>
                         </tr>
+                        <tr>
+                            <td class="label" width="50%">Bound Box</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="schemeContainer.scheme.style.boundaryBoxColor" @input="schemeContainer.scheme.style.boundaryBoxColor = arguments[0]"></color-picker>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </panel>

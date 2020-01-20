@@ -5,20 +5,38 @@
 <template lang="html">
     <g :style="{'opacity': connector.opacity/100.0}">
 
+        <g v-if="selected">
+            <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" :stroke-width="strokeWidth + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
+            <g v-for="end in ends">
+                <circle v-if="end.type === 'circle'"
+                    :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                    :cx="end.x" :cy="end.y"
+                    :r="3 + end.r"
+                    :fill="boundaryBoxColor" />
+                <path v-if="end.type === 'path'"
+                    :d="end.path"
+                    :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                    :stroke-width="strokeWidth + selectedStrokeOutline"
+                    :fill="boundaryBoxColor"
+                    :stroke="boundaryBoxColor"
+                    stroke-linejoin="round"
+                />
+            </g>
+        </g>
+
+
         <path :id="`connector-${connector.id}-path`" :d="svgPath" class="item-connector"
-            :class="{selected: selected}"
             :stroke="connector.color"
-            :stroke-width="connector.width" fill="none"
+            :stroke-width="strokeWidth" fill="none"
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
         />
 
         <g v-for="end in ends">
-            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector" :class="{selected: selected}"/>
+            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector"/>
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 class="item-connector"
-                :class="{selected: selected}"
                 :stroke="connector.color"
                 :stroke-width="connector.width"
                 :fill="end.fill"
@@ -26,20 +44,18 @@
             />
         </g>
 
-        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" :stroke-width="connector.width + 3" fill="rgba(0,0,0,0.0)"/>
+        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="rgba(0,0,0,0.0)"/>
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'"
                 :data-connector-index="sourceItem.id+'/'+connectorIndex"
                 :cx="end.x" :cy="end.y"
                 :r="end.r"
                 fill="rgba(0,0,0,0.0)"
-                class="item-connector-hover-area"
-                :class="{selected: selected}"/>
+                class="item-connector-hover-area" />
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 :data-connector-index="sourceItem.id+'/'+connectorIndex"
                 class="item-connector-hover-area"
-                :class="{selected: selected}"
                 :stroke="connector.color"
                 :stroke-width="connector.width"
                 fill="rgba(0,0,0,0.0)"
@@ -48,11 +64,10 @@
         </g>
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes && selected" data-preview-ignore="true">
-            <circle :cx="point.x" :cy="point.y" r="5"
+            <circle :cx="point.x" :cy="point.y" :r="strokeWidth + selectedStrokeOutline"
                 :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
                 class="item-connector-reroute"
-                :class="{selected: selected}"
-                :fill="connector.color"
+                :fill="boundaryBoxColor"
             />
         </g>
 
@@ -67,7 +82,7 @@ import Connector from '../../../scheme/Connector.js';
 import _ from 'lodash';
 
 export default {
-    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
+    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem', 'mode', 'boundaryBoxColor'],
 
     mounted() {
         this.generateStrokeDashArray();
@@ -255,6 +270,14 @@ export default {
             this.recompute()
         }
     },
+    computed: {
+        strokeWidth() {
+            return parseFloat(this.connector.width);
+        },
+        selectedStrokeOutline() {
+            return Math.max(8, Math.min(20, parseFloat(this.connector.width) * 0.3));
+        }
+    }
 }
 </script>
 

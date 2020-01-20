@@ -31,13 +31,14 @@
 
                         <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
                             :key="connectorIndex"
-                            :connectorIndex="connectorIndex"
-                            :sourceItem="item"
+                            :connector-index="connectorIndex"
+                            :source-item="item"
                             :connector="connector"
                             :zoom="vZoom"
-                            :offsetX="vOffsetX"
-                            :offsetY="vOffsetY"
-                            :showReroutes="mode === 'edit'"
+                            :offset-x="vOffsetX"
+                            :offset-y="vOffsetY"
+                            :show-reroutes="mode === 'edit'"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             ></connector-svg>
 
                         <item-svg 
@@ -46,6 +47,7 @@
                             :mode="mode"
                             :scheme-container="schemeContainer"
                             :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -101,6 +103,8 @@
                             :offsetX="vOffsetX"
                             :offsetY="vOffsetY"
                             :showReroutes="mode === 'edit'"
+                            :mode="mode"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             ></connector-svg>
 
                         <item-svg
@@ -108,6 +112,7 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
 
@@ -115,6 +120,7 @@
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
                         <rect class="boundary-box"
+                            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
                             :x="schemeContainer.activeBoundaryBox.x"
                             :y="schemeContainer.activeBoundaryBox.y"
                             :width="schemeContainer.activeBoundaryBox.w"
@@ -225,7 +231,7 @@ const behaviorCompiler = new Compiler();
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
     components: {ConnectorSvg, ItemSvg, ContextMenu},
-    mounted() {
+    beforeMount() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
         this.vZoom = parseFloat(this.zoom);
@@ -250,7 +256,9 @@ export default {
         EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
 
-        var svgElement = document.getElementById('svg_plot');
+    },
+    mounted() {
+        const svgElement = document.getElementById('svg_plot');
         if (svgElement) {
             svgElement.addEventListener('mousewheel', this.mouseWheel);
         }

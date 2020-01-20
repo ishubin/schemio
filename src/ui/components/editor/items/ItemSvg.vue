@@ -31,6 +31,7 @@
                 <!-- Drawing boundary edit box -->
                 <rect class="boundary-box"
                     :data-item-id="item.id"
+                    :stroke="schemeContainer.scheme.style.boundaryBoxColor"
                     x="0"
                     y="0"
                     :width="item.area.w"
@@ -40,6 +41,7 @@
                     <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
                         :data-dragger-item-id="item.id"
                         data-dragger-type="rotation"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         :cx="dragger.x"
                         :cy="-60/safeZoom"
                         :rx="dragger.s/safeZoom"
@@ -49,6 +51,7 @@
                     <rect v-if="!dragger.rotation" class="boundary-box-dragger"
                         :data-dragger-item-id="item.id"
                         :data-dragger-index="draggerIndex"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         :x="dragger.x - dragger.s / safeZoom"
                         :y="dragger.y - dragger.s / safeZoom"
                         :width="dragger.s * 2 / safeZoom"
@@ -61,21 +64,25 @@
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${item.area.w/2 + 3/safeZoom}  ${item.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                         :data-connector-starter-item-id="item.id"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${item.area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
                         :data-connector-starter-item-id="item.id"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${item.area.w + 20/safeZoom}  ${item.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
                         :data-connector-starter-item-id="item.id"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${-20/safeZoom}  ${item.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
                         :data-connector-starter-item-id="item.id"
+                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
                         d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
                 </g>
             </g>
@@ -90,7 +97,7 @@ import EventBus from '../EventBus.js';
 
 
 export default {
-    props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer'],
+    props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer', 'boundaryBoxColor'],
 
     mounted() {
         this.switchShape(this.item.shape);
