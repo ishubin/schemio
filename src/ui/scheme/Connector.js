@@ -2,6 +2,7 @@ import utils from '../utils.js';
 
 const Type = {
     STRAIGHT: 'straight',
+    SMOOTH: 'smooth',
 
     values() {
         return utils.enumerateConstants(this);

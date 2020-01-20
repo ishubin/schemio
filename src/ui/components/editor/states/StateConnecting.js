@@ -4,6 +4,7 @@
 
 import State from './State.js';
 import shortid from 'shortid';
+import Connector from '../../../scheme/Connector.js';
 
 export default class StateConnecting extends State {
     constructor(editor, eventBus) {
@@ -76,6 +77,7 @@ export default class StateConnecting extends State {
         }
         this.connector = {
             id: shortid.generate(),
+            connectorType: Connector.Type.SMOOTH,
             reroutes: [{
                 x: item.area.x, y: item.area.y
             }],

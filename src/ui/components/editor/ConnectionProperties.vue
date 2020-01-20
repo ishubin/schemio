@@ -10,6 +10,11 @@
         <h5>Opacity</h5>
         <input class="textfield" type="text" v-model="connector.opacity"/>
 
+        <h5>Type</h5>
+        <select v-model="connector.connectorType">
+            <option v-for="type in connectorTypes">{{type}}</option>
+        </select>
+
         <h5>Source</h5>
         Style:
         <select v-model="connector.source.type">
@@ -57,6 +62,7 @@ export default {
         return {
             knownCapStyleTypes: Connector.CapType.values(),
             knownPatterns: Connector.Pattern.values(),
+            connectorTypes: Connector.Type.values()
         };
     },
     methods: {

@@ -44,6 +44,7 @@
 <script>
 import EventBus from '../EventBus.js';
 import Connector from '../../../scheme/Connector.js';
+import _ from 'lodash';
 
 export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem'],
@@ -139,7 +140,7 @@ export default {
         },
 
         computeStraightSvgPath(points) {
-            var path = `M ${points[0].x} ${points[0].y}`
+            let path = `M ${points[0].x} ${points[0].y}`
 
             for (var i = 1; i < points.length; i++) {
                 path += ` L ${points[i].x} ${points[i].y}`;
@@ -147,7 +148,44 @@ export default {
             return path;
         },
 
+        controlPoint(current, p1, p2) {
+            const smoothing = 0.1;
+            return {
+                x: current.x + (p1.x - p2.x) * smoothing,
+                y: current.y + (p1.y - p2.y) * smoothing
+            };
+        },
+
+        bezierCurve(points, i) {
+            const previous      = points[i - 1] || points[i];
+            const prePrevious   = points[i - 2] || points[i];
+            const next          = points[i + 1] || points[i];
+            const cpStart       = this.controlPoint(previous, points[i], prePrevious);
+            const cpEnd         = this.controlPoint(points[i], previous, next);
+            return `C ${cpStart.x},${cpStart.y} ${cpEnd.x},${cpEnd.y} ${points[i].x},${points[i].y}`;
+        },
+
+        computeSmoothSvgPath(points) {
+            let path = ''; 
+
+            _.forEach(points, (point, i) => {
+                if (i === 0) {
+                    path = `M ${points[0].x} ${points[0].y}`;
+                } else {
+                    path = `${path} ${this.bezierCurve(points, i)}`;
+                }
+            });
+            return path;
+        },
+
         computeSvgPath(points) {
+            if (points.length < 2) {
+                return '';
+            }
+
+            if (this.connector.connectorType === Connector.Type.SMOOTH) {
+                return this.computeSmoothSvgPath(points);
+            }
             return this.computeStraightSvgPath(points);
         },
 
