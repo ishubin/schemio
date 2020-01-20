@@ -43,11 +43,12 @@
     "vue": "^2.6.10",
     "vue-axios": "^2.0.2",
     "vue-color": "2.7.0",
-    "vue-loader": "^13.0.2",
+    "vue-loader": "^15.8.3",
     "vue-router": "^2.7.0",
     "vue-template-compiler": "^2.6.10",
-    "webpack": "^3.4.1",
-    "webpack-dev-server": "^3.1.14"
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
   },
   "dependencies": {
     "body-parser": "^1.18.2",
