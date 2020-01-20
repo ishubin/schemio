@@ -1447,16 +1447,17 @@ table.position-panel-table .property-label {
     left: 4px;
     top: 0;
 }
-.behavior-event .behavior-menu .icon-delete {
+.behavior-event .behavior-right-menu {
+    position: absolute;
     display: none;
-    opacity: 0.6;
+    right: 4px;
+    top: 0;
+}
+.behavior-event:hover .behavior-right-menu {
+    display: block;
+}
+.behavior-event .behavior-right-menu .icon-delete {
     color: #f55;
-}
-.behavior-event:hover .behavior-menu .icon-event {
-    display: none;
-}
-.behavior-event:hover .behavior-menu .icon-delete {
-    display: inline-block;
 }
 .behavior-event .dropdown-click-area {
     font-size: 14px;

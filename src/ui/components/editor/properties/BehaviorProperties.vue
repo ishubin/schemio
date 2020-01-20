@@ -8,6 +8,15 @@
                             <i class="fas" :class="[behaviorsMetas[behaviorIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
                         </span>
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
+                    </div>
+                    <div class="behavior-right-menu">
+                        <span class="link"
+                            v-if="behaviorIndex > 0"
+                            @click="moveBehaviorInOrder(behaviorIndex, behaviorIndex - 1)"><i class="fas fa-caret-up"></i></span>
+                        <span class="link"
+                            v-if="behaviorIndex < item.behavior.length - 1"
+                            @click="moveBehaviorInOrder(behaviorIndex, behaviorIndex + 1)"
+                            ><i class="fas fa-caret-down"></i></span>
                         <span class="link icon-delete" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
                     </div>
                     <dropdown
@@ -141,10 +150,24 @@ export default {
         },
 
         toggleBehaviorCollapse(behaviorIndex) {
-            //TODO save its state in local storage
             this.behaviorsMetas[behaviorIndex].collapsed = !this.behaviorsMetas[behaviorIndex].collapsed;
-            // guiStateStorage.save()
             behaviorCollapseStateStorage.save(`${this.schemeContainer.scheme.id}/${this.item.id}/${behaviorIndex}`, this.behaviorsMetas[behaviorIndex].collapsed ? 1 : 0);
+        },
+
+        moveBehaviorInOrder(srcIndex, dstIndex)  {
+            if (dstIndex < 0 || dstIndex >= this.item.behavior.length) {
+                return;
+            }
+
+            let temp = this.item.behavior[srcIndex];
+            this.item.behavior[srcIndex] = this.item.behavior[dstIndex];
+            this.item.behavior[dstIndex] = temp;
+
+            temp = this.behaviorsMetas[srcIndex];
+            this.behaviorsMetas[srcIndex] = this.behaviorsMetas[dstIndex];
+            this.behaviorsMetas[dstIndex] = temp;
+
+            this.$forceUpdate();
         },
 
         findElement(element) {
