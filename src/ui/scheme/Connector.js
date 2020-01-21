@@ -16,6 +16,16 @@ const Pattern = {
 
     values() {
         return utils.enumerateConstants(this);
+    },
+
+    generateStrokeDashArray(pattern, width) {
+        let dashArray = '';
+        if (pattern === this.DOTTED) {
+            dashArray =  width + ' ' + (width * 2);
+        } else if (pattern === this.DASHED) {
+            dashArray = (width * 4) + ' ' + (width * 4);
+        }
+        return dashArray;
     }
 };
 

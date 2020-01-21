@@ -214,14 +214,7 @@ export default {
             this.ends = this.computeCaps(this.connector);
         },
         generateStrokeDashArray() {
-            var dashArray = '';
-            var w = this.connector.width;
-            if (this.connector.pattern === Connector.Pattern.DOTTED) {
-                dashArray =  w + ' ' + (w * 2);
-            } else if (this.connector.pattern === Connector.Pattern.DASHED) {
-                dashArray = (w * 4) + ' ' + (w * 4);
-            }
-            this.strokeDashArray = dashArray;
+            this.strokeDashArray = Connector.Pattern.generateStrokeDashArray(this.connector.patter, this.connector.width);
         },
     },
     watch: {

@@ -769,13 +769,6 @@ ul.button-group li .toggle-button .small-letter {
     font-size: 14px;
     padding: 2px 5px 2px 5px;
 }
-.property-row {
-    position: relative;
-}
-.property-row .property-label {
-    padding-left: 25px;
-    font-size: 14px;
-}
 .color-picker {
     display: inline-block;
 }
@@ -835,6 +828,8 @@ ul.button-group li .toggle-button .small-letter {
 
 /*************** Properties Table (Item shape props) ****************/
 .properties-table {
+    margin-top: 10px;
+    margin-bottom: 10px;
     border-collapse: collapse;
     width: 100%;
 }

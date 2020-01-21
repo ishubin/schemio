@@ -4,7 +4,6 @@
 
 import Vue from 'vue';
 import _ from 'lodash';
-import { request } from 'https';
 
 const EventBus = new Vue({
     data() {

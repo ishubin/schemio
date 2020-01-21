@@ -14,7 +14,7 @@
                 <ul>
                     <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
                         <i v-if="option.iconClass" :class="option.iconClass"/>
-                        <span> {{option.name}} </span>
+                        <span :style="option.style || {}"> {{option.name}} </span>
                     </li>
                 </ul>
             </div>
