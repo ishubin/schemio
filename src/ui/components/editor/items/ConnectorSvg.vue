@@ -12,7 +12,6 @@
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
         />
-        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="none"/>
 
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector" :class="{selected: selected}"/>
@@ -23,6 +22,27 @@
                 :stroke="connector.color"
                 :stroke-width="connector.width"
                 :fill="end.fill"
+                stroke-linejoin="round"
+            />
+        </g>
+
+        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" stroke-width="10" fill="rgba(0,0,0,0.0)"/>
+        <g v-for="end in ends">
+            <circle v-if="end.type === 'circle'"
+                :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                :cx="end.x" :cy="end.y"
+                :r="end.r"
+                fill="rgba(0,0,0,0.0)"
+                class="item-connector-hover-area"
+                :class="{selected: selected}"/>
+            <path v-if="end.type === 'path'"
+                :d="end.path"
+                :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                class="item-connector-hover-area"
+                :class="{selected: selected}"
+                :stroke="connector.color"
+                :stroke-width="connector.width"
+                fill="rgba(0,0,0,0.0)"
                 stroke-linejoin="round"
             />
         </g>
@@ -133,7 +153,7 @@ export default {
                 return {
                     type: 'path',
                     path: path,
-                    fill: close ? '#fff' : 'none'
+                    fill: close ? this.connector.color : 'none'
                 }
             }
             return null;
