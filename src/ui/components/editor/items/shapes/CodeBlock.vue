@@ -11,7 +11,7 @@
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <pre class="syntax-markup" :class="[`syntax-theme-${item.shapeProps.theme}`]"><code :id="domId" :class="[item.shapeProps.syntax]" :style="textStyle">{{item.text}}</code></pre>
+            <pre class="syntax-markup" :class="[`syntax-theme-${item.shapeProps.theme}`]"><code :style="textStyle">{{item.text}}</code></pre>
         </foreignObject>
 
 
@@ -25,14 +25,7 @@
     </g>
 </template>
 <script>
-import hljs from 'highlight.js';
 import _ from 'lodash';
-import shortid from 'shortid';
-import htmlSanitize from '../../../../../htmlSanitize';
-import EventBus from '../../EventBus';
-
-const prismLanguages = ['bash', 'javascript', 'java', 'c', 'cpp', 'scala', 'python', 'json', 'yaml'];
-const supportedLanguages = ['text'].concat(prismLanguages);
 
 
 const computePath = (item) => {
@@ -85,33 +78,19 @@ export default {
         text: 'simple'
     },
     args: {
-        syntax: {type: 'choice', value: 'javascript', name: 'Syntax', options: supportedLanguages},
-        theme: {type: 'choice', value: 'dark', name: 'Theme', options: ['white', 'dark']},
-
-        fillColor: {type: 'color', value: themes.dark.fillColor, name: 'Fill color'},
-        nameColor: {type: 'color', value: themes.dark.nameColor, name: 'Name color'},
-        strokeColor: {type: 'color', value: themes.dark.strokeColor, name: 'Stroke color'},
-        strokeSize: {type: 'number', value: 1, name: 'Stroke size'},
-        cornerRadius: {type: 'number', value: 4, name: 'Corner radius'},
-        fontSize: {type: 'number', value: 14, name: 'Font Size'},
-        textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
-        textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
-        textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
-        textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
+        fillColor:          {type: 'color', value: 'rgba(240, 240, 240, 1.0)', name: 'Fill color'},
+        textColor:          {type: 'color', value: 'rgba(30, 30, 30, 1.0)', name: 'Text color'},
+        nameColor:          {type: 'color', value: 'rgba(30, 30, 30, 1.0)', name: 'Name color'},
+        strokeColor:        {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
+        strokeSize:         {type: 'number', value: 1, name: 'Stroke size'},
+        cornerRadius:       {type: 'number', value: 4, name: 'Corner radius'},
+        fontSize:           {type: 'number', value: 14, name: 'Font Size'},
+        textPaddingLeft:    {type: 'number', value: 10, name: 'Text Padding Left'},
+        textPaddingRight:   {type: 'number', value: 10, name: 'Text Padding Right'},
+        textPaddingTop:     {type: 'number', value: 10, name: 'Text Padding Top'},
+        textPaddingBottom:  {type: 'number', value: 10, name: 'Text Padding Bottom'},
     },
 
-    mounted() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        this.highlightIt();
-    },
-    beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-    },
-    data() {
-        return {
-            domId: 'codeblock-' + shortid.generate()
-        }
-    },
     computed: {
         textStyle() {
             return generateTextStyle(this.item);
@@ -133,29 +112,5 @@ export default {
             };
         }
     },
-    methods: {
-        highlightIt() {
-            const element = document.getElementById(this.domId);
-            if (element) {
-                // hljs.highlightBlock(element);
-                const code = document.createElement('code');
-                code.setAttribute('class', this.item.shapeProps.syntax);
-                code.appendChild(document.createTextNode(this.item.text));
-                hljs.highlightBlock(code);
-                element.innerHTML = code.innerHTML;
-            }
-        },
-        onItemChanged(propertyPath) {
-            if (propertyPath === 'shapeProps.syntax' || propertyPath === 'text') {
-                this.highlightIt();
-            } else if (propertyPath === 'shapeProps.theme') {
-                if (themes[this.item.shapeProps.theme]) {
-                    _.forEach(themes[this.item.shapeProps.theme], (value, key) => {
-                        this.item.shapeProps[key] = value;
-                    });
-                }
-            }
-        }
-    }
 }
 </script>
