@@ -17,7 +17,7 @@ module.exports = {
         }
     },
     optimization: {
-        minimize: true
+        minimize: false
     },
     module: {
         // Special compilation rules

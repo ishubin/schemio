@@ -3,24 +3,21 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Vue from 'vue';
-import SchemeContainer from '../ui/scheme/SchemeContainer';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
-import EventBus from '../ui/components/editor/EventBus';
 
-window.schemioViewScheme = (id, scheme) => {
+window.schemioViewScheme = (id, scheme, opts) => {
+    const options = opts || {};
+
     new Vue({
         components: {StandaloneSchemeView},
         data() {
             return {
-                schemeContainer: new SchemeContainer(scheme, EventBus)
+                scheme,
+                width: parseInt(options.width) || 800,
+                height: parseInt(options.height) || 400,
             };
         },
-        template: `
-        <div>
-            <standalone-scheme-view :scheme-container="schemeContainer"/>
-        </div>
-        `
+        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height"/>'
     }).$mount(`#${id}`);
-
 }
 

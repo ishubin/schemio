@@ -87,6 +87,7 @@ class StateInteract extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
+            event.preventDefault();
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
