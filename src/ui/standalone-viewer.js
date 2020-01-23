@@ -5,6 +5,14 @@
 import Vue from 'vue';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
 
+
+function objProperty(obj, field, defaultValue) {
+    if (obj && obj.hasOwnProperty(field)) {
+        return obj[field];
+    }
+    return defaultValue;
+}
+
 window.schemioViewScheme = (id, scheme, opts) => {
     const options = opts || {};
 
@@ -15,9 +23,13 @@ window.schemioViewScheme = (id, scheme, opts) => {
                 scheme,
                 width: parseInt(options.width) || 800,
                 height: parseInt(options.height) || 400,
+                offsetX: parseInt(options.offsetX) || 0,
+                offsetY: parseInt(options.offsetY) || 0,
+                zoom: Math.max(0.00005, parseFloat(options.zoom) || 1.0),
+                autoZoom: objProperty(options, 'autoZoom', true)
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height"/>'
+        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom"/>'
     }).$mount(`#${id}`);
 }
 

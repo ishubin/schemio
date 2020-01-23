@@ -369,7 +369,7 @@ export default {
                 }
             }
 
-            this.zoomToItems(this.schemeContainer.scheme.items);
+            this.zoomToItems(this.schemeContainer.getItems());
         },
 
         zoomToItems(items) {

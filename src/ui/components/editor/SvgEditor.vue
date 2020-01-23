@@ -620,10 +620,9 @@ export default {
 
         onBringToView(area) {
             const headerHeight = 50;
-            const sidePanelWidth = 400;
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
-                newZoom = Math.floor(100.0 * Math.min((this.width - sidePanelWidth)/area.w, (this.height - headerHeight)/area.h)) / 100.0;
+                newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height - headerHeight)/area.h)) / 100.0;
                 newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
@@ -631,7 +630,7 @@ export default {
             const oldY = this.vOffsetY;
             const oldZoom = this.vZoom;
 
-            const destX = (this.width - sidePanelWidth)/2 - (area.x + area.w/2) * newZoom;
+            const destX = this.width/2 - (area.x + area.w/2) * newZoom;
             const destY = (this.height)/2 - (area.y - headerHeight + area.h/2) *newZoom;
 
             AnimationRegistry.play(new ValueAnimation({
