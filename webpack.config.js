@@ -1,9 +1,13 @@
+const { VueLoaderPlugin } = require('vue-loader');
+const path = require('path');
 module.exports = {
     // This is the "main" file which should include all other modules
     entry: './src/ui/main.js',
     // Where should the compiled file go?
     output: {
-        filename: 'dist/schemio-ui.js'
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: 'dist/schemio-ui.js',
+        filename: 'schemio-ui.js'
     },
     resolve: {
         alias: {
@@ -12,7 +16,7 @@ module.exports = {
     },
     module: {
         // Special compilation rules
-        loaders: [
+        rules: [
             {
                 // Ask webpack to check: If this file ends with .js, then apply some transforms
                 test: /\.js$/,
@@ -32,5 +36,8 @@ module.exports = {
                 }
             }
         ]
-    }
+    },
+    plugins: [
+        new VueLoaderPlugin()
+    ]
 };

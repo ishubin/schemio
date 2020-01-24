@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r}, ${item.area.w/2}, ${item.area.h/2})`"
+    <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
     >
         <component
             :key="`item-component-${item.id}-${item.shape}`"
@@ -26,17 +26,31 @@
             stroke="rgba(255, 255, 255, 0)"
             fill="rgba(255, 255, 255, 0)" />
 
+        <rect class="boundary-box"
+            v-if="mode === 'edit'"
+            data-preview-ignore="true"
+            :data-item-id="item.id"
+            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
+            fill="none"
+            x="0"
+            y="0"
+            :width="item.area.w"
+            :height="item.area.h"
+        />
+
+        <g v-if="item.childItems">
+            <item-svg v-for="childItem in item.childItems"
+                :key="`${childItem.id}-${childItem.shape}`"
+                :item="childItem"
+                :mode="mode"
+                :scheme-container="schemeContainer"
+                :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom"/>
+        </g>    
+
         <g v-if="mode === 'edit'">
             <g class="item-container" data-preview-ignore="true">
                 <!-- Drawing boundary edit box -->
-                <rect class="boundary-box"
-                    :data-item-id="item.id"
-                    :stroke="schemeContainer.scheme.style.boundaryBoxColor"
-                    x="0"
-                    y="0"
-                    :width="item.area.w"
-                    :height="item.area.h"
-                />
                 <g v-if="selected" v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers()">
                     <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
                         :data-dragger-item-id="item.id"
@@ -97,6 +111,7 @@ import EventBus from '../EventBus.js';
 
 
 export default {
+    name: 'item-svg',
     props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer', 'boundaryBoxColor'],
 
     mounted() {

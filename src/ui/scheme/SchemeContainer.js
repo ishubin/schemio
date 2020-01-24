@@ -7,7 +7,6 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import EventBus from '../components/editor/EventBus.js';
 import Connector from './Connector.js';
 import Item from './Item.js';
 
@@ -17,6 +16,20 @@ const defaultSchemeStyle = {
     gridColor:          'rgba(128,128,128,0.2)',
     boundaryBoxColor:   'rgba(36, 182, 255, 0.8)'
 };
+
+
+function visitItems(items, callback, transformationAreas) {
+    let tAreas = transformationAreas || [];
+    if (items) {
+        for (let i = 0; i < items.length; i++) {
+            callback(items[i], tAreas);
+            if (items[i].childItems) {
+                let childTransformationAreas = tAreas.concat([items[i].area]);
+                visitItems(items[i].childItems, callback, childTransformationAreas);
+            }
+        }
+    }
+}
 
 /*
 Providing access to scheme elements and provides modifiers for it
@@ -60,45 +73,90 @@ class SchemeContainer {
     }
 
     reindexItems() {
-        //TODO optimize itemMap to not reconstruct it with every change
+        //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex and rebuild connectors only for effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
         this._destinationToSourceLookup = {};
-        var items = this.scheme.items;
-        if (items.length > 0) {
-            this.schemeBoundaryBox.x = items[0].area.x;
-            this.schemeBoundaryBox.y = items[0].area.y;
-            this.schemeBoundaryBox.w = items[0].area.w;
-            this.schemeBoundaryBox.h = items[0].area.h;
 
-            _.forEach(items, item => {
+        let schemeBoundaryBox = null;
+        const itemsWithConnectors = [];
+        if (this.scheme.items.length > 0) {
+            visitItems(this.scheme.items, (item, transformationAreas) => {
                 this.enrichItemWithDefaults(item);
                 if (!item.meta) {
                     item.meta = {};
                 }
+                item.meta.transformationAreas = transformationAreas;
+
                 if (item.id) {
                     this.itemMap[item.id] = item;
                 }
+                if (!schemeBoundaryBox) {
+                    schemeBoundaryBox = {
+                        x: item.area.x,
+                        y: item.area.y,
+                        w: item.area.w,
+                        h: item.area.h,
+                    }
+                }
+                
+                // const itemArea = this.calculateItemWorldArea(item);
+                // if (schemeBoundaryBox.x > itemArea.x) {
+                //     schemeBoundaryBox.x = itemArea.x;
+                // }
+                // if (schemeBoundaryBox.x + schemeBoundaryBox.w < itemArea.x + itemArea.w) {
+                //     schemeBoundaryBox.w = itemArea.x + itemArea.w - schemeBoundaryBox.x;
+                // }
+                // if (schemeBoundaryBox.y > itemArea.y) {
+                //     schemeBoundaryBox.y = itemArea.y;
+                // }
+                // if (schemeBoundaryBox.y + schemeBoundaryBox.h < itemArea.y + itemArea.h) {
+                //     schemeBoundaryBox.h = itemArea.y + itemArea.h - schemeBoundaryBox.y;
+                // }
 
-                if (this.schemeBoundaryBox.x > item.area.x) {
-                    this.schemeBoundaryBox.x = item.area.x;
-                }
-                if (this.schemeBoundaryBox.x + this.schemeBoundaryBox.w < item.area.x + item.area.w) {
-                    this.schemeBoundaryBox.w = item.area.x + item.area.w - this.schemeBoundaryBox.x;
-                }
-                if (this.schemeBoundaryBox.y > item.area.y) {
-                    this.schemeBoundaryBox.y = item.area.y;
-                }
-                if (this.schemeBoundaryBox.y + this.schemeBoundaryBox.h < item.area.y + item.area.h) {
-                    this.schemeBoundaryBox.h = item.area.y + item.area.h - this.schemeBoundaryBox.y;
+                if (item.connectors) {
+                    itemsWithConnectors.push(item);
                 }
             });
 
-            _.forEach(items, item => {
+            this.schemeBoundaryBox = schemeBoundaryBox;
+
+            _.forEach(itemsWithConnectors, item => {
                 this.buildItemConnectors(item);
             });
         } else {
             this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         }
+    }
+
+    /**
+     * This function should only be called after indexing of items is finished
+     * because it relies on item having its transformationAreas assigned in its 'meta' object
+     * It converts the point inside the item from its local coords to world coords
+     * @param {Item} item 
+     */
+    worldPointOnItem(x, y, item) {
+        if (!item.area) {
+            return {x: 0, y: 0};
+        }
+
+
+        /*
+        how to calculate item top-let cornenr position
+        i - level of children (i-1 is the parent item)
+        P[i]' = P[i-1]' + X[i] * K[i-1] + Y[i] * K[i-1]
+
+        how to calculate point on item
+        P(Pi) = P[i]' + Xp * K[i] + Yp * L[i]
+        */
+
+        let angle = item.area.r * Math.PI/180,
+            cosa = Math.cos(angle),
+            sina = Math.sin(angle);
+
+        return {
+            x: item.area.x + x * cosa + y * sina,
+            y: item.area.y + x * sina - y * cosa
+        };
     }
 
     enrichItemWithDefaults(item, shape) {

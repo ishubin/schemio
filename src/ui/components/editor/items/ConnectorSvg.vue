@@ -44,7 +44,7 @@
             />
         </g>
 
-        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="rgba(0,0,0,0.0)"/>
+        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="none"/>
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'"
                 :data-connector-index="sourceItem.id+'/'+connectorIndex"
