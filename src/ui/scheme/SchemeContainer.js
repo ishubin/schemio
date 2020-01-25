@@ -18,15 +18,35 @@ const defaultSchemeStyle = {
 };
 
 
-function visitItems(items, callback, transformationAreas) {
-    let tAreas = transformationAreas || [];
-    if (items) {
-        for (let i = 0; i < items.length; i++) {
-            callback(items[i], tAreas);
-            if (items[i].childItems) {
-                let childTransformationAreas = tAreas.concat([items[i].area]);
-                visitItems(items[i].childItems, callback, childTransformationAreas);
-            }
+/*
+how to calculate item top-let corner position
+i - level of children (i-1 is the parent item)
+P[i]' = P[i-1]' + X[i] * K[i-1] + Y[i] * L[i-1]
+
+how to calculate point on item
+P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
+*/
+
+const _zeroTransform = {x: 0, y: 0, angle: 0};
+
+function visitItems(items, callback, transform) {
+    if (!items) {
+        return;
+    }
+    if (!transform) {
+        transform = _zeroTransform;
+    }
+    let cosa = Math.cos(transform.angle * Math.PI / 180);
+    let sina = Math.sin(transform.angle * Math.PI / 180);
+
+    for (let i = 0; i < items.length; i++) {
+        callback(items[i], transform);
+        if (items[i].childItems) {
+            visitItems(items[i].childItems, callback, {
+                x:      transform.x + items[i].area.x * cosa - items[i].area.y * sina,
+                y:      transform.y + items[i].area.x * sina + items[i].area.y * cosa,
+                angle:  transform.angle + items[i].area.r
+            });
         }
     }
 }
@@ -80,12 +100,14 @@ class SchemeContainer {
         let schemeBoundaryBox = null;
         const itemsWithConnectors = [];
         if (this.scheme.items.length > 0) {
-            visitItems(this.scheme.items, (item, transformationAreas) => {
+            visitItems(this.scheme.items, (item, transform) => {
                 this.enrichItemWithDefaults(item);
                 if (!item.meta) {
                     item.meta = {};
                 }
-                item.meta.transformationAreas = transformationAreas;
+                item.meta.transform = transform;
+
+                const p2 = this.worldPointOnItem(item.area.w, item.area.h, item);
 
                 if (item.id) {
                     this.itemMap[item.id] = item;
@@ -99,19 +121,27 @@ class SchemeContainer {
                     }
                 }
                 
-                // const itemArea = this.calculateItemWorldArea(item);
-                // if (schemeBoundaryBox.x > itemArea.x) {
-                //     schemeBoundaryBox.x = itemArea.x;
-                // }
-                // if (schemeBoundaryBox.x + schemeBoundaryBox.w < itemArea.x + itemArea.w) {
-                //     schemeBoundaryBox.w = itemArea.x + itemArea.w - schemeBoundaryBox.x;
-                // }
-                // if (schemeBoundaryBox.y > itemArea.y) {
-                //     schemeBoundaryBox.y = itemArea.y;
-                // }
-                // if (schemeBoundaryBox.y + schemeBoundaryBox.h < itemArea.y + itemArea.h) {
-                //     schemeBoundaryBox.h = itemArea.y + itemArea.h - schemeBoundaryBox.y;
-                // }
+                const points = [
+                    this.worldPointOnItem(0, 0, item),
+                    this.worldPointOnItem(item.area.w, 0, item),
+                    this.worldPointOnItem(item.area.w, item.area.h, item),
+                    this.worldPointOnItem(0, item.area.h, item),
+                ]
+
+                _.forEach(points, point => {
+                    if (schemeBoundaryBox.x > point.x) {
+                        schemeBoundaryBox.x = point.x;
+                    }
+                    if (schemeBoundaryBox.x + schemeBoundaryBox.w < point.x) {
+                        schemeBoundaryBox.w = point.x - schemeBoundaryBox.x;
+                    }
+                    if (schemeBoundaryBox.y > point.y) {
+                        schemeBoundaryBox.y = point.y;
+                    }
+                    if (schemeBoundaryBox.y + schemeBoundaryBox.h < point.y) {
+                        schemeBoundaryBox.h = point.y + - schemeBoundaryBox.y;
+                    }
+                });
 
                 if (item.connectors) {
                     itemsWithConnectors.push(item);
@@ -138,24 +168,23 @@ class SchemeContainer {
         if (!item.area) {
             return {x: 0, y: 0};
         }
+        
+        let transform = _zeroTransform;
+        if (item.meta && item.meta.transform) {
+            transform = item.meta.transform;
+        }
 
 
-        /*
-        how to calculate item top-let cornenr position
-        i - level of children (i-1 is the parent item)
-        P[i]' = P[i-1]' + X[i] * K[i-1] + Y[i] * K[i-1]
-
-        how to calculate point on item
-        P(Pi) = P[i]' + Xp * K[i] + Yp * L[i]
-        */
-
-        let angle = item.area.r * Math.PI/180,
+        let tAngle = transform.angle * Math.PI/180,
+            cosTA = Math.cos(tAngle),
+            sinTA = Math.sin(tAngle),
+            angle = (transform.angle + item.area.r) * Math.PI/180,
             cosa = Math.cos(angle),
             sina = Math.sin(angle);
 
         return {
-            x: item.area.x + x * cosa + y * sina,
-            y: item.area.y + x * sina - y * cosa
+            x: transform.x + item.area.x * cosTA - item.area.y * sinTA  + x * cosa - y * sina,
+            y: transform.y + item.area.x * sinTA + item.area.y * cosTA  + x * sina + y * cosa,
         };
     }
 

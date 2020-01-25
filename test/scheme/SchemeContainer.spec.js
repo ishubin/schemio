@@ -17,8 +17,8 @@ describe('SchemeContainer', () => {
             area: {x: 100, y: 200, r: 45, w: 100, h: 100}
         });
 
-        expect(Math.floor(point.x)).toBe(135);
-        expect(Math.floor(point.y)).toBe(207);
+        expect(Math.floor(point.x)).toBe(107);
+        expect(Math.floor(point.y)).toBe(235);
     });
 
 
@@ -34,8 +34,8 @@ describe('SchemeContainer', () => {
 
         const point = schemeContainer.worldPointOnItem(30, 20, schemeContainer.findItemById('asd'));
 
-        expect(Math.floor(point.x)).toBe(-10);
-        expect(Math.floor(point.y)).toBe(0);
+        expect(Math.floor(point.x)).toBe(40);
+        expect(Math.floor(point.y)).toBe(10);
     });
 
 
@@ -74,7 +74,7 @@ describe('SchemeContainer', () => {
         
         // It should calculate boundary box properly including the child elements and their world coords.
         expect(schemeContainer.schemeBoundaryBox).toStrictEqual({
-            x: 10, y: 0, w: 140, h: 200
+            x: 10, y: 0, w: 140, h: 50
         });
     });
 
