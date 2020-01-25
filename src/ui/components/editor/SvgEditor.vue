@@ -18,9 +18,10 @@
 
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="(item, itemIndex) in interactiveSchemeContainer.getItems()" class="item-container"
+                    <g v-for="(item, itemIndex) in interactiveSchemeContainer.scheme.items" class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         <!-- Drawing search highlight box -->
+                        <!-- TODO refactor it. It should be available for all item levels (childItems) -->
                         <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
                             :x="item.area.x - 5"
                             :y="item.area.y - 5"
@@ -81,7 +82,7 @@
                     />
                 </g>
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-container"
+                    <g v-for="(item, itemIndex) in schemeContainer.scheme.items" class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
@@ -130,6 +131,7 @@
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
+                        <!-- TODO change the way connector hitbox is rendered -->
                         <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
                             :data-item-id="item.id"
                             :x="item.area.x"
@@ -334,26 +336,17 @@ export default {
     },
     methods: {
         updateCameraLimit() {
-            const items = this.schemeContainer.getItems();
-            if (items.length === 0) {
-                return;
-            }
+            let limits = null;
 
-            let minX = items[0].area.x,
-                minY = items[0].area.y,
-                maxX = items[0].area.x + items[0].area.w,
-                maxY = items[0].area.y + items[0].area.h;
+            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
 
-            _.forEach(items, item => {
-                minX = Math.min(minX, item.area.x);
-                minY = Math.min(minY, item.area.y);
-                maxX = Math.max(maxX, item.area.x + item.area.w);
-                maxY = Math.max(maxY, item.area.y + item.area.h);
-            });
+            let maxX = boundingBox.x + boundingBox.w,
+                maxY = boundingBox.y + boundingBox.h;
+
             this.cameraLimit.x1 = -maxX;
             this.cameraLimit.y1 = -maxY;
-            this.cameraLimit.x2 = (this.width - minX);
-            this.cameraLimit.y2 = (this.height - minY);
+            this.cameraLimit.x2 = (this.width - boundingBox.x);
+            this.cameraLimit.y2 = (this.height - boundingBox.y);
         },
 
         updateOffset(x, y) {

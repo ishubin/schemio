@@ -8,6 +8,31 @@ const EventBusStub = {
     emitItemDeselected() {}
 };
 
+const schemeThreeLevel = {
+    items: [{
+        id: 'qwe',
+        name: 'Parent item',
+        shape: 'rect',
+        area: {x: 10, y: 0, w: 100, h: 50},
+        childItems: [{
+            id: 'asd',
+            name: 'Child item',
+            shape: 'comment',
+            area: {x: 20, y: 0, w: 10, h: 5},
+            childItems: [{
+                area: {x: 60, y: 0, w: 60, h: 25},
+                id: 'zxc',
+                name: 'child sub-item',
+                shape: 'ellipse'
+            }]
+        }, {
+            area: {x: 20, y: 20, w: 10, h: 10},
+            id: 'ert',
+            name: 'Child item 2',
+            shape: 'ellipse'
+        }]
+    }]
+};
 
 describe('SchemeContainer', () => {
     it('should calculate world point on item', () => {
@@ -40,42 +65,21 @@ describe('SchemeContainer', () => {
 
 
     it('should reindex all items including child items', () => {
-        const scheme = {
-            items: [{
-                id: 'qwe',
-                name: 'Parent item',
-                shape: 'rect',
-                area: {x: 10, y: 0, w: 100, h: 50},
-                childItems: [{
-                    id: 'asd',
-                    name: 'Child item',
-                    shape: 'comment',
-                    area: {x: 20, y: 0, w: 10, h: 5},
-                    childItems: [{
-                        area: {x: 60, y: 0, w: 60, h: 25},
-                        id: 'zxc',
-                        name: 'child sub-item',
-                        shape: 'ellipse'
-                    }]
-                }, {
-                    area: {x: 20, y: 20, w: 10, h: 10},
-                    id: 'ert',
-                    name: 'Child item 2',
-                    shape: 'ellipse'
-                }]
-            }]
-        };
-        const schemeContainer = new SchemeContainer(scheme, EventBusStub);
+        const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
 
         expect(schemeContainer.findItemById('qwe').name).toStrictEqual('Parent item');
         expect(schemeContainer.findItemById('asd').name).toStrictEqual('Child item');
         expect(schemeContainer.findItemById('zxc').name).toStrictEqual('child sub-item');
         expect(schemeContainer.findItemById('ert').name).toStrictEqual('Child item 2');
         
-        // It should calculate boundary box properly including the child elements and their world coords.
-        expect(schemeContainer.schemeBoundaryBox).toStrictEqual({
+        expect(schemeContainer.getItems()).toHaveLength(4);
+    });
+
+    it('It should calculate boundary box properly including the child elements and their world coord.', () => {
+        const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
+        
+        expect(schemeContainer.getBoundingBoxOfItems(schemeContainer.getItems())).toStrictEqual({
             x: 10, y: 0, w: 140, h: 50
         });
     });
-
 });

@@ -351,7 +351,7 @@ export default {
         },
 
         createSchemePreview() {
-            var area = this.getBoundingBoxOfItems(this.schemeContainer.scheme.items);
+            var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
 
             snapshotSvg(500, 400, '#svg_plot', area).then(svgCode => {
                 apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
@@ -374,37 +374,12 @@ export default {
 
         zoomToItems(items) {
             if (items && items.length > 0) {
-                let area = this.getBoundingBoxOfItems(items);
+                let area = this.schemeContainer.getBoundingBoxOfItems(items);
                 if (area) {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
             }
         },
-
-        getBoundingBoxOfItems(items) {
-            var area = null;
-
-            _.forEach(items, item => {
-                if (!area) {
-                    area = {x: item.area.x, y: item.area.y, w: item.area.w, h: item.area.h};
-                } else {
-                    if (area.x > item.area.x) {
-                        area.x = item.area.x;
-                    }
-                    if (area.y > item.area.y) {
-                        area.y = item.area.y;
-                    }
-                    if (area.x + area.w < item.area.x + item.area.w) {
-                        area.w = item.area.x + item.area.w - area.x;
-                    }
-                    if (area.y + area.h < item.area.y + item.area.h) {
-                        area.h = item.area.y + item.area.h - area.y;
-                    }
-                }
-            });
-            return area;
-        },
-
 
         toggleSearchedItems() {
             this.zoomToItems(this.searchHighlights);

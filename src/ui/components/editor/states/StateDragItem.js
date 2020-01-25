@@ -46,10 +46,12 @@ export default class StateDragItem extends State {
         // used in order to drag screen when user holds spacebar
         this.shouldDragScreen = false;
         this.originalOffset = {x: 0, y: 0};
+        this.reindexNeeded = false;
     }
 
     reset() {
         this.updateCursor('default');
+        this.reindexNeeded = false;
         this.startedDragging = false;
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
@@ -96,6 +98,7 @@ export default class StateDragItem extends State {
                 if (!item.locked) {
                     item.area.x += dx;
                     item.area.y += dy;
+                    this.reindexNeeded = true;
                 }
             });
             this.rebuildConnectorsInCache();
@@ -107,6 +110,7 @@ export default class StateDragItem extends State {
         this.originalPoint.y = y;
         this.startedDragging = true;
         this.wasMouseMoved = false;
+        this.reindexNeeded = false;
     }
 
     initDraggingForItem(item, x, y) {
@@ -315,6 +319,9 @@ export default class StateDragItem extends State {
         if (this.startedDragging && this.wasMouseMoved) {
             this.eventBus.emitSchemeChangeCommited();
         }
+        if (this.reindexNeeded) {
+            this.schemeContainer.reindexItems();
+        }
         this.reset();
     }
 
@@ -349,6 +356,7 @@ export default class StateDragItem extends State {
             //snapping to grid
             item.area.x = this.snapX(item.area.x);
             item.area.y = this.snapY(item.area.y);
+            this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
         }
     }
@@ -386,6 +394,7 @@ export default class StateDragItem extends State {
                 this.fillConnectorsBuildCache([this.sourceItem]);
             }
             this.rebuildConnectorsInCache();
+            this.reindexNeeded = true;
             this.eventBus.emitItemChanged(this.sourceItem.id);
         }
     }
@@ -434,6 +443,7 @@ export default class StateDragItem extends State {
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+            this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
         }
     }

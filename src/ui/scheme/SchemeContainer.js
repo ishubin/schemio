@@ -69,8 +69,8 @@ class SchemeContainer {
         this.selectedItems = [];
         this.selectedConnectorWrappers = [];
         this.activeBoundaryBox = null;
-        this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
         this.itemMap = {};
+        this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
         this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.copyBuffer = [];
         this.enrichSchemeWithDefaults(this.scheme);
@@ -96,66 +96,32 @@ class SchemeContainer {
         //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex and rebuild connectors only for effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
         this._destinationToSourceLookup = {};
+        this._itemArray = [];
 
-        let schemeBoundaryBox = null;
         const itemsWithConnectors = [];
-        if (this.scheme.items.length > 0) {
-            visitItems(this.scheme.items, (item, transform) => {
-                this.enrichItemWithDefaults(item);
-                if (!item.meta) {
-                    item.meta = {};
-                }
-                item.meta.transform = transform;
-
-                const p2 = this.worldPointOnItem(item.area.w, item.area.h, item);
-
-                if (item.id) {
-                    this.itemMap[item.id] = item;
-                }
-                if (!schemeBoundaryBox) {
-                    schemeBoundaryBox = {
-                        x: item.area.x,
-                        y: item.area.y,
-                        w: item.area.w,
-                        h: item.area.h,
-                    }
-                }
-                
-                const points = [
-                    this.worldPointOnItem(0, 0, item),
-                    this.worldPointOnItem(item.area.w, 0, item),
-                    this.worldPointOnItem(item.area.w, item.area.h, item),
-                    this.worldPointOnItem(0, item.area.h, item),
-                ]
-
-                _.forEach(points, point => {
-                    if (schemeBoundaryBox.x > point.x) {
-                        schemeBoundaryBox.x = point.x;
-                    }
-                    if (schemeBoundaryBox.x + schemeBoundaryBox.w < point.x) {
-                        schemeBoundaryBox.w = point.x - schemeBoundaryBox.x;
-                    }
-                    if (schemeBoundaryBox.y > point.y) {
-                        schemeBoundaryBox.y = point.y;
-                    }
-                    if (schemeBoundaryBox.y + schemeBoundaryBox.h < point.y) {
-                        schemeBoundaryBox.h = point.y + - schemeBoundaryBox.y;
-                    }
-                });
-
-                if (item.connectors) {
-                    itemsWithConnectors.push(item);
-                }
-            });
-
-            this.schemeBoundaryBox = schemeBoundaryBox;
-
-            _.forEach(itemsWithConnectors, item => {
-                this.buildItemConnectors(item);
-            });
-        } else {
-            this.schemeBoundaryBox = {x: 0, y: 0, w: 100, h: 100};
+        if (!this.scheme.items) {
+            return;
         }
+        visitItems(this.scheme.items, (item, transform) => {
+            this._itemArray.push(item);
+            this.enrichItemWithDefaults(item);
+            if (!item.meta) {
+                item.meta = {};
+            }
+            item.meta.transform = transform;
+
+            if (item.id) {
+                this.itemMap[item.id] = item;
+            }
+
+            if (item.connectors) {
+                itemsWithConnectors.push(item);
+            }
+        });
+
+        _.forEach(itemsWithConnectors, item => {
+            this.buildItemConnectors(item);
+        });
     }
 
     /**
@@ -186,6 +152,48 @@ class SchemeContainer {
             x: transform.x + item.area.x * cosTA - item.area.y * sinTA  + x * cosa - y * sina,
             y: transform.y + item.area.x * sinTA + item.area.y * cosTA  + x * sina + y * cosa,
         };
+    }
+
+    getBoundingBoxOfItems(items) {
+        if (!items || items.length === 0) {
+            return {x: 0, y: 0, w: 0, h: 0};
+        }
+
+        let schemeBoundaryBox = null;
+        _.forEach(items, item => {
+            const points = [
+                this.worldPointOnItem(0, 0, item),
+                this.worldPointOnItem(item.area.w, 0, item),
+                this.worldPointOnItem(item.area.w, item.area.h, item),
+                this.worldPointOnItem(0, item.area.h, item),
+            ];
+
+            _.forEach(points, point => {
+                if (!schemeBoundaryBox) {
+                    schemeBoundaryBox = {
+                        x: point.x,
+                        y: point.y,
+                        w: 0,
+                        h: 0,
+                    }
+                } else {
+                    if (schemeBoundaryBox.x > point.x) {
+                        schemeBoundaryBox.x = point.x;
+                    }
+                    if (schemeBoundaryBox.x + schemeBoundaryBox.w < point.x) {
+                        schemeBoundaryBox.w = point.x - schemeBoundaryBox.x;
+                    }
+                    if (schemeBoundaryBox.y > point.y) {
+                        schemeBoundaryBox.y = point.y;
+                    }
+                    if (schemeBoundaryBox.y + schemeBoundaryBox.h < point.y) {
+                        schemeBoundaryBox.h = point.y + - schemeBoundaryBox.y;
+                    }
+                }
+            });
+        }) ;
+
+        return schemeBoundaryBox;
     }
 
     enrichItemWithDefaults(item, shape) {
@@ -463,7 +471,7 @@ class SchemeContainer {
     }
 
     getItems() {
-        return this.scheme.items;
+        return this._itemArray;
     }
 
     setActiveBoundaryBox(area) {
