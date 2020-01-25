@@ -59,10 +59,27 @@ describe('SchemeContainer', () => {
 
         const point = schemeContainer.worldPointOnItem(30, 20, schemeContainer.findItemById('asd'));
 
-        expect(Math.floor(point.x)).toBe(40);
-        expect(Math.floor(point.y)).toBe(10);
+        expect(Math.round(point.x)).toBe(40);
+        expect(Math.round(point.y)).toBe(10);
     });
 
+
+    it('should calculate local point on sub item from given world point', () => {
+        const schemeContainer = new SchemeContainer({items: [{
+            id: 'qwe',
+            area: {x: 100, y: 20, w: 100, h: 100, r: 90},
+            childItems: [{
+                id: 'asd',
+                area: {x: 10, y: 30, w: 10, h: 10, r: 90}
+            }]
+        }]}, EventBusStub);
+
+        const point = schemeContainer.localPointOnItem(40, 10, schemeContainer.findItemById('asd'));
+        console.log('Local p', point);
+
+        expect(Math.round(point.x)).toBe(30);
+        expect(Math.round(point.y)).toBe(20);
+    });
 
     it('should reindex all items including child items', () => {
         const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);

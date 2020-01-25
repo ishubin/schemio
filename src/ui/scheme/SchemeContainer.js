@@ -29,7 +29,7 @@ P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
 
 const _zeroTransform = {x: 0, y: 0, angle: 0};
 
-function visitItems(items, callback, transform) {
+function visitItems(items, callback, transform, parentItem) {
     if (!items) {
         return;
     }
@@ -40,13 +40,13 @@ function visitItems(items, callback, transform) {
     let sina = Math.sin(transform.angle * Math.PI / 180);
 
     for (let i = 0; i < items.length; i++) {
-        callback(items[i], transform);
+        callback(items[i], transform, parentItem);
         if (items[i].childItems) {
             visitItems(items[i].childItems, callback, {
                 x:      transform.x + items[i].area.x * cosa - items[i].area.y * sina,
                 y:      transform.y + items[i].area.x * sina + items[i].area.y * cosa,
                 angle:  transform.angle + items[i].area.r
-            });
+            }, items[i]);
         }
     }
 }
@@ -102,13 +102,16 @@ class SchemeContainer {
         if (!this.scheme.items) {
             return;
         }
-        visitItems(this.scheme.items, (item, transform) => {
+        visitItems(this.scheme.items, (item, transform, parentItem) => {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
             if (!item.meta) {
                 item.meta = {};
             }
             item.meta.transform = transform;
+            if (parentItem) {
+                item.meta.parentId = parentItem.id;
+            }
 
             if (item.id) {
                 this.itemMap[item.id] = item;
@@ -128,6 +131,9 @@ class SchemeContainer {
      * This function should only be called after indexing of items is finished
      * because it relies on item having its transformationAreas assigned in its 'meta' object
      * It converts the point inside the item from its local coords to world coords
+     * 
+     * @param {Number} x local position x
+     * @param {Number} y local position y
      * @param {Item} item 
      */
     worldPointOnItem(x, y, item) {
@@ -140,7 +146,6 @@ class SchemeContainer {
             transform = item.meta.transform;
         }
 
-
         let tAngle = transform.angle * Math.PI/180,
             cosTA = Math.cos(tAngle),
             sinTA = Math.sin(tAngle),
@@ -151,6 +156,38 @@ class SchemeContainer {
         return {
             x: transform.x + item.area.x * cosTA - item.area.y * sinTA  + x * cosa - y * sina,
             y: transform.y + item.area.x * sinTA + item.area.y * cosTA  + x * sina + y * cosa,
+        };
+    }
+
+    /**
+     * Converts world point to local item coords
+     * @param {Number} x world position x
+     * @param {Number} y world position y
+     * @param {Item} item 
+     */
+    localPointOnItem(x, y, item) {
+        if (!item.area) {
+            return {x: 0, y: 0};
+        }
+        
+        let transform = _zeroTransform;
+        if (item.meta && item.meta.transform) {
+            transform = item.meta.transform;
+        }
+
+        let tAngle = transform.angle * Math.PI/180,
+            cosTA = Math.cos(tAngle),
+            sinTA = Math.sin(tAngle),
+            angle = (transform.angle + item.area.r) * Math.PI/180,
+            cosa = Math.cos(angle),
+            sina = Math.sin(angle),
+            tx = transform.x + item.area.x * cosTA - item.area.y * sinTA,
+            ty = transform.y + item.area.x * sinTA + item.area.y * cosTA;
+
+
+        return {
+            x: (y - ty)*sina + (x - tx)*cosa,
+            y: (y - ty)*cosa - (x - tx)*sina
         };
     }
 
