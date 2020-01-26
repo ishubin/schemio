@@ -706,7 +706,7 @@ export default {
             return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
         },
 
-        //OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event
+        //TODO OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event
         provideBoundingBoxDraggers(item) {
             return this.schemeContainer.provideBoundingBoxDraggers(item);
         },

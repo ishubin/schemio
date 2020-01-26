@@ -431,49 +431,91 @@ export default class StateDragItem extends State {
     }
 
     dragByDragger(item, dragger, x, y) {
-        var nx = item.area.x;
-        var ny = item.area.y;
-        var nw = item.area.w;
-        var nh = item.area.h;
+        let nx = item.area.x,
+            ny = item.area.y,
+            nw = item.area.w,
+            nh = item.area.h,
+            dx = x - this.originalPoint.x,
+            dy = y - this.originalPoint.y,
+            change = 0;
 
-        let change = 0;
+        let p0 = this.schemeContainer.worldPointOnItem(0, 0, item);
+        let p1 = this.schemeContainer.worldPointOnItem(1, 0, item);
+        let p2 = this.schemeContainer.worldPointOnItem(0, 1, item);
+
+        let parentItem = null;
+        if (item.meta.parentId) {
+            parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+        }
+
+        if (parentItem) {
+            // bringing all points to the transform of the parent item
+            p0 = this.schemeContainer.localPointOnItem(p0.x, p0.y, parentItem);
+            p1 = this.schemeContainer.localPointOnItem(p1.x, p1.y, parentItem);
+            p2 = this.schemeContainer.localPointOnItem(p2.x, p2.y, parentItem);
+
+            let parentP0 = this.schemeContainer.worldPointOnItem(0, 0, parentItem);
+            const mouseDeltaInLocalTransform = this.schemeContainer.localPointOnItem(dx + parentP0.x, dy + parentP0.y, parentItem);
+            dx = mouseDeltaInLocalTransform.x;
+            dy = mouseDeltaInLocalTransform.y;
+        }
+
+        const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
+        const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
+
 
         _.forEach(dragger.edges, edge => {
-            //TODO calculate dragging of rotated item edges properly
-            /*
-            the problem here is that by dragging any of the draggers - the center of the item moves.
-            This causes it to "squeze" the item from both sides instead of just dragging the single edge.
-            */
-            const tx = x - this.originalPoint.x;
-            const ty = y - this.originalPoint.y;
-            const cs = Math.cos(-item.area.r * Math.PI / 180); 
-            const sn = Math.sin(-item.area.r * Math.PI / 180);
-            const dx = tx * cs - ty * sn;
-            const dy = tx * sn + ty * cs;
-            change += Math.abs(dx) + Math.abs(dy);
             if (edge === 'top') {
-                ny = this.snapY(item.meta.itemOriginalArea.y + dy);
-                nh = item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h - ny;
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
+                nx = item.meta.itemOriginalArea.x + projection * bottomVector.x;
+                ny = item.meta.itemOriginalArea.y + projection * bottomVector.y;
+                nh = item.meta.itemOriginalArea.h - projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+                change += Math.abs(projection);
             } else if (edge === 'bottom') {
-                nh = this.snapY(item.meta.itemOriginalArea.y + item.meta.itemOriginalArea.h + dy) - item.meta.itemOriginalArea.y;
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
+                nh = item.meta.itemOriginalArea.h + projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+                change += Math.abs(projection);
             } else if (edge === 'left') {
-                nx = this.snapX(item.meta.itemOriginalArea.x + dx);
-                nw = item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w - nx;
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
+                nx = item.meta.itemOriginalArea.x + projection * rightVector.x;
+                ny = item.meta.itemOriginalArea.y + projection * rightVector.y;
+                nw = item.meta.itemOriginalArea.w - projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+                change += Math.abs(projection);
             } else if (edge === 'right') {
-                nw = this.snapX(item.meta.itemOriginalArea.x + item.meta.itemOriginalArea.w + dx) - item.meta.itemOriginalArea.x;
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
+                nw = item.meta.itemOriginalArea.w + projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+                change += Math.abs(projection);
             }
         });
         if (change > 0) {
             if (this.connectorsBuildChache === null) {
                 this.fillConnectorsBuildCache([item]);
             }
-            this.rebuildConnectorsInCache();
-        }
-        if (nw > 0 && nh > 0) {
             item.area.x = nx;
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+            this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
         }
