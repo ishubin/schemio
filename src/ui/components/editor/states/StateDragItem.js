@@ -100,13 +100,20 @@ export default class StateDragItem extends State {
             x: item.area.x,
             y: item.area.y,
             w: item.area.w,
-            h: item.area.h
+            h: item.area.h,
+            r: item.area.r
         };
         this.wasMouseMoved = false;
     }
 
     initItemRotation(item, x, y) {
-        item.meta.originalRotation = item.area.r;
+        item.meta.itemOriginalArea = {
+            x: item.area.x,
+            y: item.area.y,
+            w: item.area.w,
+            h: item.area.h,
+            r: item.area.r
+        };
         this.sourceItem = item;
         this.rotatingItem = true;
         this.wasMouseMoved = false;
@@ -241,7 +248,7 @@ export default class StateDragItem extends State {
                 if (this.dragger && !this.dragger.item.locked) {
                     this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
                 } else if (this.rotatingItem) {
-                    this.rotateItem(x, y, event);
+                    this.rotateItem(x, y, this.sourceItem, event);
                 } else if (this.schemeContainer.selectedItems.length > 0) {
                     var dx = x - this.originalPoint.x,
                         dy = y - this.originalPoint.y;
@@ -406,28 +413,88 @@ export default class StateDragItem extends State {
         }
     }
 
-    rotateItem(x, y, event) {
-        if (this.sourceItem) {
-            const cx = this.sourceItem.area.x + this.sourceItem.area.w/2;
-            const cy = this.sourceItem.area.y + this.sourceItem.area.h/2;
-
-            const v1x = this.originalPoint.x - cx;
-            const v1y = this.originalPoint.y - cy;
-            const v2x = x - cx;
-            const v2y = y - cy;
-
-            let angle = this.sourceItem.meta.originalRotation + (Math.atan2(v2y, v2x) - Math.atan2(v1y, v1x)) * 180.0/Math.PI
-            if (!isMultiSelectKey(event)) {
-                angle = Math.round(angle / 5) * 5;
-            }
-            this.sourceItem.area.r = Math.round(angle);
-            if (this.connectorsBuildChache === null) {
-                this.fillConnectorsBuildCache([this.sourceItem]);
-            }
-            this.rebuildConnectorsInCache();
-            this.reindexNeeded = true;
-            this.eventBus.emitItemChanged(this.sourceItem.id);
+    worldPointOnOriginalItem(x, y, item) {
+        if (!item.meta.itemOriginalArea) {
+            return {x: 0, y: 0};
         }
+        
+        let transform = {x: 0, y: 0, angle: 0};
+        if (item.meta && item.meta.transform) {
+            transform = item.meta.transform;
+        }
+
+        let tAngle = transform.angle * Math.PI/180,
+            cosTA = Math.cos(tAngle),
+            sinTA = Math.sin(tAngle),
+            angle = (transform.angle + item.meta.itemOriginalArea.r) * Math.PI/180,
+            cosa = Math.cos(angle),
+            sina = Math.sin(angle);
+
+        return {
+            x: transform.x + item.meta.itemOriginalArea.x * cosTA - item.meta.itemOriginalArea.y * sinTA  + x * cosa - y * sina,
+            y: transform.y + item.meta.itemOriginalArea.x * sinTA + item.meta.itemOriginalArea.y * cosTA  + x * sina + y * cosa,
+        };
+    }
+
+    rotateItem(x, y, item, event) {
+        const c = this.worldPointOnOriginalItem(item.area.w/2, item.area.h/2, item);
+        const p0 = this.worldPointOnOriginalItem(0, 0, item)
+
+        const v1x = this.originalPoint.x - c.x;
+        const v1y = this.originalPoint.y - c.y;
+        const v2x = x - c.x;
+        const v2y = y - c.y;
+        const v1SquareLength = v1x * v1x + v1y * v1y;
+        const v2SquareLength = v2x * v2x + v2y * v2y;
+        
+        if (v1SquareLength < 0.0001 || v2SquareLength < 0.0001) {
+            return;
+        }
+
+        // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
+        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
+
+        let cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
+        let angle = direction * Math.acos(cosa);
+        let angleConverted = angle * 180 / Math.PI;
+        
+        if (isNaN(angleConverted)) {
+            return;
+        }
+        if (!isMultiSelectKey(event)) {
+            angleConverted = Math.round(angleConverted/ 5) * 5;
+            angle = angleConverted * Math.PI / 180;
+        }
+
+        item.area.r = item.meta.itemOriginalArea.r + angleConverted;
+
+        const ax = p0.x - c.x;
+        const ay = p0.y - c.y;
+        cosa = Math.cos(angle);
+        const sina = Math.sin(angle);
+        const bx = ax * cosa - ay * sina;
+        const by = ax * sina + ay * cosa;
+        let np0x = c.x + bx;
+        let np0y = c.y + by;
+
+        if (item.meta.parentId) {
+            const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+            if (parentItem) {
+               let np = this.schemeContainer.localPointOnItem(np0x, np0y, parentItem);
+               np0x = np.x;
+               np0y = np.y;
+            }
+        }
+
+        item.area.x = np0x;
+        item.area.y = np0y;
+
+        if (this.connectorsBuildChache === null) {
+            this.fillConnectorsBuildCache([item]);
+        }
+        this.rebuildConnectorsInCache();
+        this.reindexNeeded = true;
+        this.eventBus.emitItemChanged(item.id);
     }
 
     dragByDragger(item, dragger, x, y) {
