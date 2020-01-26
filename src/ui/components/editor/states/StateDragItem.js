@@ -65,6 +65,7 @@ export default class StateDragItem extends State {
 
     keyPressed(key, keyOptions) {
         var delta = keyOptions.ctrlCmdPressed ? 10: 1;
+
         if (EventBus.KEY.LEFT === key) {
             this.dragItemsByKeyboard(-delta, 0);
         } else if (EventBus.KEY.RIGHT === key) {
@@ -73,11 +74,7 @@ export default class StateDragItem extends State {
             this.dragItemsByKeyboard(0, -delta);
         } else if (EventBus.KEY.DOWN === key) {
             this.dragItemsByKeyboard(0, delta);
-        }
-    }
-
-    keyPressed(key, keyOptions) {
-        if (key === EventBus.KEY.SPACE && !this.startedDragging) {
+        } else if (key === EventBus.KEY.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
             this.updateCursor('grab');
         }
@@ -87,21 +84,6 @@ export default class StateDragItem extends State {
         if (key === EventBus.KEY.SPACE) {
             this.shouldDragScreen = false;
             this.updateCursor('default');
-        }
-    }
-
-    dragItemsByKeyboard(dx, dy) {
-        // don't need to drag by keyboard if already started dragging by mouse
-        if (!this.startedDragging) {
-            this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
-            _.forEach(this.schemeContainer.selectedItems, item => {
-                if (!item.locked) {
-                    item.area.x += dx;
-                    item.area.y += dy;
-                    this.reindexNeeded = true;
-                }
-            });
-            this.rebuildConnectorsInCache();
         }
     }
 
@@ -348,6 +330,32 @@ export default class StateDragItem extends State {
         this.multiSelectBox = {x, y, w: 0, h: 0};
     }
 
+    dragItemsByKeyboard(dx, dy) {
+        // don't need to drag by keyboard if already started dragging by mouse
+        if (!this.startedDragging) {
+            this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
+            _.forEach(this.schemeContainer.selectedItems, item => {
+                if (!item.locked) {
+                    if (item.meta.parentId) {
+                        const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+                        if (parentItem) {
+                            const localPoint            = this.schemeContainer.localPointOnItem(item.area.x + dx, item.area.y + dy, parentItem);
+                            const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.area.x, item.area.y, parentItem);
+                            item.area.x = item.area.x + localPoint.x - localOriginalPoint.x;
+                            item.area.y = item.area.y + localPoint.y - localOriginalPoint.y;
+                        }
+                    } else {
+                        item.area.x += dx;
+                        item.area.y += dy;
+                    }
+
+                    this.reindexNeeded = true;
+                }
+            });
+            this.rebuildConnectorsInCache();
+        }
+    }
+
     dragItem(item, dx, dy) {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             if (item.meta.parentId) {
@@ -355,7 +363,6 @@ export default class StateDragItem extends State {
                 if (parentItem) {
                     const localPoint            = this.schemeContainer.localPointOnItem(this.snapX(item.meta.itemOriginalArea.x + dx), this.snapY(item.meta.itemOriginalArea.y + dy), parentItem);
                     const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.meta.itemOriginalArea.x, item.meta.itemOriginalArea.y, parentItem);
-                    // console.log('Delta: ', dx, dy, 'Item', parentItem.name, 'LocalPoint', localPoint.x, localPoint.y);
                     item.area.x = item.meta.itemOriginalArea.x + localPoint.x - localOriginalPoint.x;
                     item.area.y = item.meta.itemOriginalArea.y + localPoint.y - localOriginalPoint.y;
                 }
