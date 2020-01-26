@@ -29,24 +29,27 @@ P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
 
 const _zeroTransform = {x: 0, y: 0, angle: 0};
 
-function visitItems(items, callback, transform, parentItem) {
+function visitItems(items, callback, transform, parentItem, ancestorIds) {
     if (!items) {
         return;
     }
     if (!transform) {
         transform = _zeroTransform;
     }
+    if (!ancestorIds) {
+        ancestorIds = [];
+    }
     let cosa = Math.cos(transform.angle * Math.PI / 180);
     let sina = Math.sin(transform.angle * Math.PI / 180);
 
     for (let i = 0; i < items.length; i++) {
-        callback(items[i], transform, parentItem);
+        callback(items[i], transform, parentItem, ancestorIds);
         if (items[i].childItems) {
             visitItems(items[i].childItems, callback, {
                 x:      transform.x + items[i].area.x * cosa - items[i].area.y * sina,
                 y:      transform.y + items[i].area.x * sina + items[i].area.y * cosa,
                 angle:  transform.angle + items[i].area.r
-            }, items[i]);
+            }, items[i], ancestorIds.concat([items[i].id]));
         }
     }
 }
@@ -102,13 +105,14 @@ class SchemeContainer {
         if (!this.scheme.items) {
             return;
         }
-        visitItems(this.scheme.items, (item, transform, parentItem) => {
+        visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
             if (!item.meta) {
                 item.meta = {};
             }
             item.meta.transform = transform;
+            item.meta.ancestorIds = ancestorIds;
             if (parentItem) {
                 item.meta.parentId = parentItem.id;
             }
@@ -594,6 +598,24 @@ class SchemeContainer {
         if (!isAlreadyIn) {
             this.selectedItems.push(item);
             item.meta.selected = true;
+        }
+
+        this.sortSelectedItemsByAncestors();
+    }
+
+    sortSelectedItemsByAncestors() {
+        if (this.selectedItems) {
+            this.selectedItems = this.selectedItems.sort((a, b) => {
+                let la = 0;
+                let lb = 0;
+                if (a.meta.ancestorIds) {
+                    la = a.meta.ancestorIds.length;
+                }
+                if (b.meta.ancestorIds) {
+                    lb = b.meta.ancestorIds.length;
+                }
+                return la - lb;
+            });
         }
     }
 

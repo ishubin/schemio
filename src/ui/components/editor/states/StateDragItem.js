@@ -249,9 +249,17 @@ export default class StateDragItem extends State {
                     if (this.connectorsBuildChache === null) {
                         this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
                     }
+
+                    // storing ids of dragged items in a map
+                    // this way we will be able to figure out whether any items ancestors was dragged already
+                    // so that we can skip dragging of item
+                    const itemDraggedIds = {};
                     _.forEach(this.schemeContainer.selectedItems, item => {
+                        itemDraggedIds[item.id] = 1;
                         if (!item.locked) {
-                            this.dragItem(item, dx, dy);
+                            if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                                this.dragItem(item, dx, dy);
+                            }
                         }
                     });
                     this.rebuildConnectorsInCache();
@@ -334,22 +342,30 @@ export default class StateDragItem extends State {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
             this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
+            // storing ids of dragged items in a map
+            // this way we will be able to figure out whether any items ancestors was dragged already
+            // so that we can skip dragging of item
+            const itemDraggedIds = {};
             _.forEach(this.schemeContainer.selectedItems, item => {
+                itemDraggedIds[item.id] = 1;
                 if (!item.locked) {
-                    if (item.meta.parentId) {
-                        const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
-                        if (parentItem) {
-                            const localPoint            = this.schemeContainer.localPointOnItem(item.area.x + dx, item.area.y + dy, parentItem);
-                            const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.area.x, item.area.y, parentItem);
-                            item.area.x = item.area.x + localPoint.x - localOriginalPoint.x;
-                            item.area.y = item.area.y + localPoint.y - localOriginalPoint.y;
+                    // checking whether any of ancestors were dragged already
+                    if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                        if (item.meta.parentId) {
+                            const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+                            if (parentItem) {
+                                const localPoint            = this.schemeContainer.localPointOnItem(item.area.x + dx, item.area.y + dy, parentItem);
+                                const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.area.x, item.area.y, parentItem);
+                                item.area.x = item.area.x + localPoint.x - localOriginalPoint.x;
+                                item.area.y = item.area.y + localPoint.y - localOriginalPoint.y;
+                            }
+                        } else {
+                            item.area.x += dx;
+                            item.area.y += dy;
                         }
-                    } else {
-                        item.area.x += dx;
-                        item.area.y += dy;
-                    }
 
-                    this.reindexNeeded = true;
+                        this.reindexNeeded = true;
+                    }
                 }
             });
             this.rebuildConnectorsInCache();
