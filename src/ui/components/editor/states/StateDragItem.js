@@ -350,12 +350,20 @@ export default class StateDragItem extends State {
 
     dragItem(item, dx, dy) {
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-            item.area.x = item.meta.itemOriginalArea.x + dx;
-            item.area.y = item.meta.itemOriginalArea.y + dy;
+            if (item.meta.parentId) {
+                const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+                if (parentItem) {
+                    const localPoint            = this.schemeContainer.localPointOnItem(this.snapX(item.meta.itemOriginalArea.x + dx), this.snapY(item.meta.itemOriginalArea.y + dy), parentItem);
+                    const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.meta.itemOriginalArea.x, item.meta.itemOriginalArea.y, parentItem);
+                    // console.log('Delta: ', dx, dy, 'Item', parentItem.name, 'LocalPoint', localPoint.x, localPoint.y);
+                    item.area.x = item.meta.itemOriginalArea.x + localPoint.x - localOriginalPoint.x;
+                    item.area.y = item.meta.itemOriginalArea.y + localPoint.y - localOriginalPoint.y;
+                }
+            } else {
+                item.area.x = this.snapX(item.meta.itemOriginalArea.x + dx);
+                item.area.y = this.snapY(item.meta.itemOriginalArea.y + dy);
+            }
 
-            //snapping to grid
-            item.area.x = this.snapX(item.area.x);
-            item.area.y = this.snapY(item.area.y);
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
         }
