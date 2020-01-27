@@ -353,15 +353,8 @@ class SchemeContainer {
     }
 
     closestPointToSvgPath(item, path, globalPoint) {
-        // in order to include rotation into closest point finding we need to first bring the global point into local transform
-        // by rotating it around the center of an item
-        
-        const rotatedPoint = utils.rotatePointAroundCenter(globalPoint.x, globalPoint.y, -item.area.r, item.area.x + item.area.w/2, item.area.y + item.area.h/2);
-
-        const localPoint = {
-            x: rotatedPoint.x - item.area.x,
-            y: rotatedPoint.y - item.area.y
-        };
+        // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
+        const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
         if (!this.shadowSvgPath) {
             this.shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -395,8 +388,7 @@ class SchemeContainer {
             rightSegment[1] = rightSegment[0] + segmentWidth;
         }
         
-        const rotatedBackPoint = utils.rotatePointAroundCenter(closestPoint.x, closestPoint.y, item.area.r, item.area.w/2, item.area.h/2);
-        return {x: Math.round(rotatedBackPoint.x + item.area.x), y: Math.round(rotatedBackPoint.y + item.area.y)};
+        return this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
     }
 
     enrichConnectorWithDefaultStyle(connector) {

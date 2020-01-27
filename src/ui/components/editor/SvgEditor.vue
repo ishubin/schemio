@@ -183,16 +183,20 @@
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
-                        <!-- TODO change the way connector hitbox is rendered -->
-                        <rect v-for="(item, itemIndex) in schemeContainer.getItems()" class="item-hitbox" data-preview-ignore="true"
-                            :data-item-id="item.id"
-                            :x="item.area.x"
-                            :y="item.area.y"
-                            :width="item.area.w"
-                            :height="item.area.h"
-                            fill="rgba(255, 255, 255, 0.0)"
-                            stroke="none"
-                            ></rect>
+                        <!-- TODO change the way connector hitbox is rendered to use its shape instead -->
+                        <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.angle})`">
+                            <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
+                                <rect class="item-hitbox" data-preview-ignore="true"
+                                    :data-item-id="item.id"
+                                    :x="0"
+                                    :y="0"
+                                    :width="item.area.w"
+                                    :height="item.area.h"
+                                    fill="rgba(255, 0, 255, 0.0)"
+                                    stroke="none"
+                                    ></rect>
+                            </g>
+                        </g>
                     </g>
                 </g>
 
