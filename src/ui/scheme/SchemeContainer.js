@@ -645,34 +645,72 @@ class SchemeContainer {
         });
     }
 
-    bringSelectedItemsToBack() {
+    /**
+     * This is a recursive functions that goes through all sub-items
+     * @param {Array} itemArray 
+     */
+    bringSelectedItemsToBack(itemArray) {
+        // let i = 0;
+        // let lastItems = [];
+        // while (i < this.scheme.items.length) {
+        //     if (this.scheme.items[i].meta.selected) {
+        //         lastItems.push(this.scheme.items[i]);
+        //         this.scheme.items.splice(i, 1);
+        //     } else {
+        //         i++;
+        //     }
+        // }
+
+        if (!itemArray) {
+            itemArray = this.scheme.items;
+        }
         let i = 0;
         let lastItems = [];
-        while (i < this.scheme.items.length) {
-            if (this.scheme.items[i].meta.selected) {
-                lastItems.push(this.scheme.items[i]);
-                this.scheme.items.splice(i, 1);
+        while (i < itemArray.length) {
+            if (itemArray[i].childItems) {
+                this.bringSelectedItemsToFront(itemArray[i].childItems);
+            }
+
+            if (itemArray[i].meta.selected) {
+                lastItems.push(itemArray[i]);
+                itemArray.splice(i, 1);
             } else {
                 i++;
             }
         }
 
-        this.scheme.items = lastItems.concat(this.scheme.items);
+        _.forEach(lastItems, item => {
+            itemArray.splice(0, 0, item);
+        });
+       // this.scheme.items = lastItems.concat(this.scheme.items);
     }
 
-    bringSelectedItemsToFront() {
+    /**
+     * This is a recursive functions that goes through all sub-items
+     * @param {Array} itemArray 
+     */
+    bringSelectedItemsToFront(itemArray) {
+        if (!itemArray) {
+            itemArray = this.scheme.items;
+        }
         let i = 0;
         let topItems = [];
-        while (i < this.scheme.items.length) {
-            if (this.scheme.items[i].meta.selected) {
-                topItems.push(this.scheme.items[i]);
-                this.scheme.items.splice(i, 1);
+        while (i < itemArray.length) {
+            if (itemArray[i].childItems) {
+                this.bringSelectedItemsToFront(itemArray[i].childItems);
+            }
+
+            if (itemArray[i].meta.selected) {
+                topItems.push(itemArray[i]);
+                itemArray.splice(i, 1);
             } else {
                 i++;
             }
         }
 
-        this.scheme.items = this.scheme.items.concat(topItems);
+        _.forEach(topItems, item => {
+            itemArray.push(item);
+        });
     }
 
     provideBoundingBoxDraggers(item) {
