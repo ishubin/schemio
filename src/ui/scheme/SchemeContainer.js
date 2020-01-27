@@ -623,8 +623,22 @@ class SchemeContainer {
     }
 
     selectByBoundaryBox(box) {
-        _.forEach(this.scheme.items, item => {
-            if (myMath.isAreaInArea(item.area, box)) {
+        _.forEach(this.getItems(), item => {
+            const points = [ 
+                {x: 0, y: 0}, 
+                {x: item.area.w, y: 0},
+                {x: item.area.w, y: item.area.h},
+                {x: 0, y: item.area.h},
+            ];
+
+            let isInArea = true;
+
+            for(let i = 0; i < points.length && isInArea; i++) {
+                const wolrdPoint = this.worldPointOnItem(points[i].x, points[i].y, item);
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
+            }
+
+            if (isInArea) {
                 this.selectedItems.push(item);
                 item.meta.selected = true;
             }
