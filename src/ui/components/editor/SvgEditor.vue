@@ -129,6 +129,58 @@
                         />
                     </g>
 
+
+                    <g v-for="item in schemeContainer.selectedItems" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.angle})`">
+                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
+                            <g v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)">
+                                <path :d="`M 0 0 L ${item.area.w} 0  L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`" stroke-width="1" fill="none" :stroke="schemeContainer.scheme.style.boundaryBoxColor" style="opacity: 0.4;"/>
+                                <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
+                                    :data-dragger-item-id="item.id"
+                                    data-dragger-type="rotation"
+                                    :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                    :cx="dragger.x"
+                                    :cy="-60/safeZoom"
+                                    :rx="dragger.s/safeZoom"
+                                    :ry="dragger.s/safeZoom"
+                                />
+
+                                <rect v-if="!dragger.rotation" class="boundary-box-dragger"
+                                    :data-dragger-item-id="item.id"
+                                    :data-dragger-index="draggerIndex"
+                                    :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                    :x="dragger.x - dragger.s / safeZoom"
+                                    :y="dragger.y - dragger.s / safeZoom"
+                                    :width="dragger.s * 2 / safeZoom"
+                                    :height="dragger.s * 2 / safeZoom"
+                                />
+                            </g>
+
+                            <path class="boundary-box-connector-starter"
+                                :transform="`translate(${item.area.w/2 + 3/safeZoom}  ${item.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
+                                :data-connector-starter-item-id="item.id"
+                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+
+                            <path class="boundary-box-connector-starter"
+                                :transform="`translate(${item.area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
+                                :data-connector-starter-item-id="item.id"
+                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+
+                            <path class="boundary-box-connector-starter"
+                                :transform="`translate(${item.area.w + 20/safeZoom}  ${item.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
+                                :data-connector-starter-item-id="item.id"
+                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+
+                            <path class="boundary-box-connector-starter"
+                                :transform="`translate(${-20/safeZoom}  ${item.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
+                                :data-connector-starter-item-id="item.id"
+                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+                        </g>
+                    </g>
+
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
                         <!-- TODO change the way connector hitbox is rendered -->
@@ -906,6 +958,13 @@ export default {
             let x = Math.ceil(this.vOffsetX % (20 * this.vZoom));
             let y = Math.ceil(this.vOffsetY % (20 * this.vZoom));
             return `translate(${x} ${y})`;
+        },
+
+        safeZoom() {
+            if (this.vZoom > 0.001) {
+                return this.vZoom;
+            }
+            return 1.0;
         }
     },
     filters: {

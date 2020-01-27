@@ -48,60 +48,6 @@
                 :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom"/>
         </g>    
 
-        <g v-if="mode === 'edit'">
-            <g class="item-container" data-preview-ignore="true">
-                <!-- Drawing boundary edit box -->
-                <g v-if="selected" v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers()">
-                    <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
-                        :data-dragger-item-id="item.id"
-                        data-dragger-type="rotation"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        :cx="dragger.x"
-                        :cy="-60/safeZoom"
-                        :rx="dragger.s/safeZoom"
-                        :ry="dragger.s/safeZoom"
-                    />
-
-                    <rect v-if="!dragger.rotation" class="boundary-box-dragger"
-                        :data-dragger-item-id="item.id"
-                        :data-dragger-index="draggerIndex"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        :x="dragger.x - dragger.s / safeZoom"
-                        :y="dragger.y - dragger.s / safeZoom"
-                        :width="dragger.s * 2 / safeZoom"
-                        :height="dragger.s * 2 / safeZoom"
-                    />
-
-                </g>
-
-                <g v-if="selected">
-                    <path class="boundary-box-connector-starter"
-                        :transform="`translate(${item.area.w/2 + 3/safeZoom}  ${item.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
-                        :data-connector-starter-item-id="item.id"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                    <path class="boundary-box-connector-starter"
-                        :transform="`translate(${item.area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
-                        :data-connector-starter-item-id="item.id"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                    <path class="boundary-box-connector-starter"
-                        :transform="`translate(${item.area.w + 20/safeZoom}  ${item.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
-                        :data-connector-starter-item-id="item.id"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                    <path class="boundary-box-connector-starter"
-                        :transform="`translate(${-20/safeZoom}  ${item.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
-                        :data-connector-starter-item-id="item.id"
-                        :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-                </g>
-            </g>
-        </g>
-
     </g>
 </template>
 
@@ -117,14 +63,10 @@ export default {
     mounted() {
         this.switchShape(this.item.shape);
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.subscribeForItemSelected(this.item.id, this.onItemSelected);
-        EventBus.subscribeForItemDeselected(this.item.id, this.onItemDeselected);
     },
 
     beforeDestroy() {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.unsubscribeForItemSelected(this.item.id, this.onItemSelected);
-        EventBus.unsubscribeForItemDeselected(this.item.id, this.onItemDeselected);
     },
 
     data() {
@@ -132,7 +74,6 @@ export default {
             shapeComponent: null,
             oldShape: this.item.shape,
             itemSvgPath: null,
-            selected: false,
             hiddenTextProperty: this.item.meta.hiddenTextProperty || null
         };
     },
@@ -156,18 +97,6 @@ export default {
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.$forceUpdate();
-        },
-
-        provideBoundingBoxDraggers() {
-            return this.schemeContainer.provideBoundingBoxDraggers(this.item);
-        },
-
-        onItemSelected() {
-            this.selected = true;
-        },
-
-        onItemDeselected() {
-            this.selected = false;
         },
 
         onShapeCustomEvent(eventName, ...args) {
