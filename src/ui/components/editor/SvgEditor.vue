@@ -29,19 +29,6 @@
                             :height="item.area.h + 10"
                         />
 
-
-                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
-                            :key="connectorIndex"
-                            :connector-index="connectorIndex"
-                            :source-item="item"
-                            :connector="connector"
-                            :zoom="vZoom"
-                            :offset-x="vOffsetX"
-                            :offset-y="vOffsetY"
-                            :show-reroutes="mode === 'edit'"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            ></connector-svg>
-
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
@@ -51,6 +38,23 @@
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
+
+                    <!--TODO optimize rendering of connectors -->
+                    <g v-for="item in schemeContainer.getItems()">
+                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                            :key="connector.id"
+                            :connectorIndex="connectorIndex"
+                            :sourceItem="item"
+                            :connector="connector"
+                            :zoom="vZoom"
+                            :offsetX="vOffsetX"
+                            :offsetY="vOffsetY"
+                            :showReroutes="mode === 'edit'"
+                            :mode="mode"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                            ></connector-svg>
+                    </g>
+
                 </g>
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
@@ -94,7 +98,17 @@
                             :height="item.area.h + 10"
                         />
 
+                        <item-svg
+                            :key="`${item.id}-${item.shape}`"
+                            :item="item"
+                            :mode="mode"
+                            :scheme-container="schemeContainer"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                    </g>
 
+                    <!--TODO optimize rendering of connectors -->
+                    <g v-for="item in schemeContainer.getItems()">
                         <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
                             :key="connector.id"
                             :connectorIndex="connectorIndex"
@@ -107,16 +121,7 @@
                             :mode="mode"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             ></connector-svg>
-
-                        <item-svg
-                            :key="`${item.id}-${item.shape}`"
-                            :item="item"
-                            :mode="mode"
-                            :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
-
 
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
