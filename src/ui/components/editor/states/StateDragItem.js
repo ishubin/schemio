@@ -371,6 +371,7 @@ export default class StateDragItem extends State {
                             item.area.y += dy;
                         }
 
+                        this.schemeContainer.updateChildTransforms(item);
                         this.reindexNeeded = true;
                     }
                 }
@@ -396,6 +397,8 @@ export default class StateDragItem extends State {
 
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
+
+            this.schemeContainer.updateChildTransforms(item);
         }
     }
 
@@ -492,6 +495,7 @@ export default class StateDragItem extends State {
         if (this.connectorsBuildChache === null) {
             this.fillConnectorsBuildCache([item]);
         }
+        this.schemeContainer.updateChildTransforms(item);
         this.rebuildConnectorsInCache();
         this.reindexNeeded = true;
         this.eventBus.emitItemChanged(item.id);
@@ -576,12 +580,14 @@ export default class StateDragItem extends State {
         });
         if (change > 0) {
             if (this.connectorsBuildChache === null) {
+                // TODO optimize: don't do it here. prepare connectors upfront at the moment when drag is initiated on mouseDown
                 this.fillConnectorsBuildCache([item]);
             }
             item.area.x = nx;
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+            this.schemeContainer.updateChildTransforms(item);
             this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
@@ -595,20 +601,32 @@ export default class StateDragItem extends State {
         });
     }
 
+    /**
+     * This is a recursive function that puts all the connectors related to an item (incomming & outgoing) into a temporary cache.
+     * It is used in order to optimize performance for such things like dragging or resizing items.
+     * @param {Array} items 
+     */
     fillConnectorsBuildCache(items) {
         this.connectorsBuildChache = {};
+        this._fillConnectorsBuildCache(items, this.connectorsBuildChache);
+    }
+
+    _fillConnectorsBuildCache(items, cache) {
         _.forEach(items, item => {
+            if (item.childItems) {
+                this._fillConnectorsBuildCache(item.childItems, cache);
+            }
             _.forEach(item.connectors, (connector, connectorIndex) => {
-                this.connectorsBuildChache[item.id + "|" + connectorIndex] = {item, connector};
+                cache[`${item.id}|${connectorIndex}`] = {item, connector};
             });
             _.forEach(this.schemeContainer.getConnectingSourceItemIds(item.id), sourceId => {
-                var sourceItem = this.schemeContainer.findItemById(sourceId);
+                const sourceItem = this.schemeContainer.findItemById(sourceId);
                 if (sourceItem) {
                     _.forEach(sourceItem.connectors, (connector, connectorIndex) => {
-                        this.schemeContainer.buildConnector(sourceItem, connector);
-                        var key = `${sourceItem.id}|${connectorIndex}`;
-                        if (!this.connectorsBuildChache.hasOwnProperty(key)) {
-                            this.connectorsBuildChache[key] = {item: sourceItem, connector};
+                        // this.schemeContainer.buildConnector(sourceItem, connector);
+                        const key = `${sourceItem.id}|${connectorIndex}`;
+                        if (!cache.hasOwnProperty(key)) {
+                            cache[key] = {item: sourceItem, connector};
                         }
                     });
                 }

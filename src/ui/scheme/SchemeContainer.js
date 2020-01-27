@@ -95,6 +95,30 @@ class SchemeContainer {
         });
     }
 
+    /**
+     * Recalculates transform for each child item of specified item.
+     * It is needed when user drags an item that has sub-items.
+     * Since connectors need to be rebuilt with the correct transform this needs to adjusted each time the item position is changed
+     * @param {Item} mainItem 
+     */
+    updateChildTransforms(mainItem) {
+        if (mainItem.childItems && mainItem.meta && mainItem.meta.transform) {
+            let cosa = Math.cos(mainItem.meta.transform.angle * Math.PI / 180);
+            let sina = Math.sin(mainItem.meta.transform.angle * Math.PI / 180);
+            const recalculatedTransform  = {
+                x:      mainItem.meta.transform.x + mainItem.area.x * cosa - mainItem.area.y * sina,
+                y:      mainItem.meta.transform.y + mainItem.area.x * sina + mainItem.area.y * cosa,
+                angle:  mainItem.meta.transform.angle + mainItem.area.r
+            };
+            visitItems(mainItem.childItems, (item, transform, parentItem, ancestorIds) => {
+                if (!item.meta) {
+                    item.meta = {};
+                }
+                item.meta.transform = transform;
+            }, recalculatedTransform, mainItem.meta.ancestorIds);
+        }
+    }
+
     reindexItems() {
         //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex and rebuild connectors only for effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
