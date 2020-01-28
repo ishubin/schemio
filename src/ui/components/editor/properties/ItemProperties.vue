@@ -4,6 +4,8 @@
 
 <template lang="html">
     <div class="item-properties">
+        <item-selector :scheme-container="schemeContainer"/>
+
         <ul class="button-group">
             <li v-for="tab in tabs">
                 <span class="toggle-button" @click="currentTab = tab.name"
@@ -141,6 +143,7 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import settingsStorage from '../../../settingsStorage.js';
 import Item from '../../../scheme/Item.js';
+import ItemSelector from '../ItemSelector.vue';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -157,7 +160,7 @@ const tabsSettingsStorage = settingsStorage.createStorageWithAllowedValues(
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
+    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, ItemSelector},
 
     beforeMount() {
         this.currentTab = tabsSettingsStorage.get();

@@ -133,8 +133,17 @@ class SchemeContainer {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
             if (!item.meta) {
-                item.meta = {};
+                item.meta = {
+                    collapsed: false, // used only for item tree selector
+                    collapseBitMask: 0 // used in item tree selector and stores information about parent items collapse state
+                };
             }
+            if (!parentItem) {
+                item.meta.collapseBitMask = 0;
+            } else {
+                item.meta.collapseBitMask = (parentItem.meta.collapseBitMask << ancestorIds.length) | (parentItem.meta.collapsed ? 1: 0)
+            }
+
             item.meta.transform = transform;
             item.meta.ancestorIds = ancestorIds;
             if (parentItem) {
