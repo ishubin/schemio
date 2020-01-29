@@ -1599,11 +1599,38 @@ table.position-panel-table .property-label {
     min-width: 50px;
 }
 .item-selector .item-row .item.selected {
-    background: #2472ab;
+    background: #a4cdeb;
 }
 
-.item-selector .item-row .item.selected .item-name {
-    color: white;
+.item-selector .item-row .item .item-right-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.item-selector .item-row .item .item-right-panel .icon .icon-unlocked {
+    opacity: 0.3;
+}
+.item-selector .item-row .item .item-right-panel .icon .icon-locked {
+    opacity: 0.6;
+}
+.item-selector .item-row .item .item-right-panel .icon .icon-visible {
+    opacity: 0.6;
+}
+.item-selector .item-row .item .item-right-panel .icon .icon-invisible {
+    opacity: 0.3;
+}
+
+
+.item-selector .item-row .droppable-line {
+    height: 4px;
+    background: red;
+}
+
+.item-selector .item-row.item-droppable-highlight {
+    opacity: 0.5;
 }
 
 /****************** Language Markup ***************/

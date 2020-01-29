@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="item-properties">
-        <item-selector :scheme-container="schemeContainer"/>
+        <item-selector :scheme-container="schemeContainer" :key="schemeContainer.revision"/>
 
         <ul class="button-group">
             <li v-for="tab in tabs">

@@ -99,7 +99,7 @@
                         />
 
                         <item-svg
-                            :key="`${item.id}-${item.shape}`"
+                            :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
