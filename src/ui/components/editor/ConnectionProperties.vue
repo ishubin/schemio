@@ -67,7 +67,7 @@
                     <td class="label" width="50%">Pattern</td>
                     <td class="value" width="50%">
                         <dropdown :value="connector.pattern" :options="patternOptions"
-                            @selected="connector.pattern = arguments[0].name">
+                            @selected="connector.pattern = arguments[0].name; onConnectorChange()">
                             <span :style="{'background-image': `url(/images/line-patterns/${connector.pattern}.svg)`, 'display': 'block', 'height': '20px', 'width': '140px', 'background-repeat': 'no-repeat'}"></span>
                         </dropdown>
                     </td>

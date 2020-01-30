@@ -249,7 +249,7 @@ export default {
             this.ends = this.computeCaps(this.connector);
         },
         generateStrokeDashArray() {
-            this.strokeDashArray = Connector.Pattern.generateStrokeDashArray(this.connector.patter, this.connector.width);
+            this.strokeDashArray = Connector.Pattern.generateStrokeDashArray(this.connector.pattern, this.connector.width);
         },
     },
     watch: {
