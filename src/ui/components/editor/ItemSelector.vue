@@ -20,7 +20,12 @@
                         <i v-if="item.meta.collapsed" class="fas fa-angle-right"></i>
                         <i v-else class="fas fa-angle-down"></i>
                     </span>
-                    <div class="item-name" @click="onItemClicked(item, arguments[0])">{{item.name}}</div>
+
+                    <div class="item-name" @mousedown="onItemClicked(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
+                        <span v-if="item.id !== nameEdit.itemId">{{item.name}}</span>
+                        <input v-if="item.id === nameEdit.itemId" v-model="nameEdit.name" type="text" data-type="item-name-edit-in-place"/>
+                    </div>
+
                     <div class="item-right-panel">
                         <span class="icon" @click="toggleItemLock(item)">
                             <i v-if="item.locked" class="fas fa-lock icon-locked"></i>
@@ -80,12 +85,23 @@ export default {
                 destinationId: null,
                 dropInside: false,
                 clearTimeoutId: null
+            },
+            nameEdit: {
+                itemId: null,
+                name: ''
             }
         };
     },
 
     methods: {
+        // This function is needed in order to handle clicking outside of the company
+        // this way we are able to cancel item name in-place editing and dragging states
         onMouseUp(event) {
+            // checking whether it wasn't clicking inside the item name input control
+            if (!event.target || event.target.getAttribute('data-type') !== 'item-name-edit-in-place') {
+                this.nameEdit.itemId = null;
+            }
+
             if (this.dragging.item) {
                 this.clearTimeoutId = setTimeout(() => {
                     this.dragging.item = null;
@@ -95,7 +111,17 @@ export default {
         },
 
         onItemClicked(item, event) {
+            // canceling in-place name edit
+            if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
+                this.nameEdit.itemId = null;
+            }
+
             this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+        },
+
+        onItemDoubleClicked(item) {
+            this.nameEdit.name = item.name;
+            this.nameEdit.itemId = item.id;
         },
 
         toggleItemCollapseState(item) {
@@ -154,6 +180,20 @@ export default {
 
         onAnyItemDeselected() {
             this.$forceUpdate();
+        }
+    },
+
+    watch: {
+        nameEdit: {
+            deep: true,
+            handler() {
+                if (this.nameEdit.itemId) {
+                    const item = this.schemeContainer.findItemById(this.nameEdit.itemId);
+                    if (item) {
+                        item.name = this.nameEdit.name;
+                    }
+                }
+            }
         }
     }
 }
