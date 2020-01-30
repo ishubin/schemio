@@ -4,8 +4,6 @@
 
 <template lang="html">
     <div class="item-properties">
-        <item-selector :scheme-container="schemeContainer" :key="schemeContainer.revision"/>
-
         <ul class="button-group">
             <li v-for="tab in tabs">
                 <span class="toggle-button" @click="currentTab = tab.name"
@@ -18,7 +16,7 @@
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}-${revision}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}-${revision}`" :projectId="projectId" :item="item"/>
         <connections-panel v-if="currentTab === 'description'" :key="`connections-panel-${item.id}-${revision}`" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item" @ungroup-item="$emit('ungroup-item')"/>
+        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item" @ungroup-item="ungroupItem(item)"/>
 
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
@@ -143,7 +141,6 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import settingsStorage from '../../../settingsStorage.js';
 import Item from '../../../scheme/Item.js';
-import ItemSelector from '../ItemSelector.vue';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -160,7 +157,7 @@ const tabsSettingsStorage = settingsStorage.createStorageWithAllowedValues(
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, ItemSelector},
+    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {
         this.currentTab = tabsSettingsStorage.get();
@@ -309,6 +306,10 @@ export default {
                     console.error('Could not upload file', err);
                 });
             }
+        },
+
+        ungroupItem(item) {
+            this.schemeContainer.ungroupItem(item);
         }
     },
 

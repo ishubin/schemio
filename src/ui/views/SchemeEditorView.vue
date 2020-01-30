@@ -47,9 +47,9 @@
                             </span>
                         </li>
                     </ul>
-                    <ul class="button-group" v-if="selectedItem && mode === 'edit'">
+                    <ul class="button-group" v-if="schemeContainer && schemeContainer.selectedItems.length > 1 && mode === 'edit'">
                         <li>
-                            <span title="Group Items" class="toggle-button" v-if="schemeContainer.selectedItems.length > 1" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
+                            <span title="Group Items" class="toggle-button" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
                                 <i class="fas fa-object-group"></i>
                             </span>
                         </li>
@@ -109,14 +109,22 @@
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <item-properties :key="`${selectedItem.id}-${schemeRevision}`" :revision="schemeRevision" :project-id="projectId" :item="selectedItem" :scheme-container="schemeContainer"  v-if="selectedItem && mode === 'edit'"
-                                @ungroup-item="ungroupItem(selectedItem)"
-                            />
-                            <item-details :item="selectedItem" :itemId="selectedItem.id" v-if="selectedItem && mode !== 'edit'"/>
+                            <panel name="Items">
+                                <div class="item-selector-container" style="max-height: 200px;">
+                                    <item-selector :scheme-container="schemeContainer" :key="schemeContainer.revision"/>
+                                </div>
+                            </panel>
 
-                            <p v-if="!selectedItem">
-                                No item selected
-                            </p>
+                            <item-properties v-if="schemeContainer.selectedItems.length > 0 && mode === 'edit'"
+                                :key="`${schemeRevision}`"
+                                :item="schemeContainer.selectedItems[0]"
+                                :revision="schemeRevision"
+                                :project-id="projectId"
+                                :scheme-container="schemeContainer" 
+                            />
+                            <item-details v-if="schemeContainer.selectedItems.length > 0 && mode !== 'edit'"
+                                :item="schemeContainer.selectedItems[0]"
+                                />
                         </div>
                         <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                     </div>
@@ -170,6 +178,8 @@ import hasher from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import AnimationsRegistry from '../animations/AnimationRegistry';
+import Panel from '../components/editor/Panel.vue';
+import ItemSelector from '../components/editor/ItemSelector.vue';
 
 
 let history = new History({size: 30});
@@ -180,7 +190,7 @@ export default {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, ConnectionProperties,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
-        ItemTooltip
+        ItemTooltip, Panel, ItemSelector
     },
 
     beforeMount() {
@@ -192,7 +202,6 @@ export default {
         EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
         EventBus.$on(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
@@ -208,7 +217,6 @@ export default {
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$off(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
@@ -241,7 +249,6 @@ export default {
             searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
-            selectedItem: null,
             selectedConnector: null,
             offsetX: 0,
             offsetY: 0,
@@ -268,7 +275,6 @@ export default {
                 name: 'Scheme'
             }, {
                 name: 'Item',
-                disabled: true
             }, {
                 name: 'Connection',
                 disabled: true
@@ -334,10 +340,6 @@ export default {
 
         toggleMode(mode) {
             this.mode = mode;
-        },
-
-        ungroupItem(item) {
-            this.schemeContainer.ungroupItem(item);
         },
 
         saveScheme() {
@@ -469,7 +471,6 @@ export default {
         },
 
         onSelectedItemsAndConnectorsDelete() {
-            this.selectedItem = null;
             this.selectedConnector = null;
         },
 
@@ -543,14 +544,11 @@ export default {
         },
 
         onAnyItemSelected(itemId) {
-            this.selectedItem = this.schemeContainer.findItemById(itemId);
-            this.currentTab = 'Item';
-            this.tabs[1].disabled = false;
-            this.tabs[2].disabled = true;
-
             // Checking whether an item has any information in it.
             if (this.mode === 'view') {
-                if (this.selectedItem && this.selectedItem.description) {
+                this.currentTab = 'Item';
+                this.tabs[2].disabled = true;
+                if (this.schemeContainer.selectedItems.length > 0 && this.schemeContainer.selectedItems[0].description) {
                     /*
                     This is very dirty but it is the simplest way to check if the item has a proper description
                     If would only check for non-empty strings, then it would still show side panel 
@@ -558,30 +556,16 @@ export default {
                     This happens when you use rich text editor and delete the entire description.
                     Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
                     */
-                    if (this.selectedItem.description.trim().length > 8) {
+                    if (this.schemeContainer.selectedItems[0].description.trim().length > 8) {
                         this.sidePanelRightExpanded = true;
                     }
                 }
-            } else {
-                this.sidePanelRightExpanded = true;
-            }
-        },
-
-        onAnyItemDeselected(itemId) {
-            if (this.selectedItem !== null && this.selectedItem.id === itemId) {
-                this.selectedItem = null;
-                if (this.currentTab === 'Item') {
-                    this.currentTab = 'Scheme';
-                }
-                this.tabs[1].disabled = true;
             }
         },
 
         onAnyConnectorSelected(connectorId, connector) {
             this.selectedConnector = connector;
             this.currentTab = 'Connection';
-            this.selectedItem = null;
-            this.tabs[1].disabled = true;
             this.tabs[2].disabled = false;
             this.schemeContainer.deselectAllItems();
         },
@@ -613,6 +597,8 @@ export default {
             if (this.schemeContainer.selectedItems.length > 1 && propertyPath) {
                 const item = this.schemeContainer.findItemById(itemId);
                 if (item) {
+                    // Iterating through all other selected items and trying to apply the same change
+                    // this is needed so that user is able to perform bulk changes to multiple items at once
                     _.forEach(this.schemeContainer.selectedItems, selectedItem => {
                         if (selectedItem.id !== itemId) {
                             this.applySameChangeToItem(item, selectedItem, propertyPath);
@@ -687,10 +673,6 @@ export default {
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
-                    // Reloading selected item, since the scheme was fully reloaded
-                    if (this.selectedItem) {
-                        this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
-                    }
                     this.updateRevision();
                     this.restoreItemSelection();
                 }
@@ -705,10 +687,6 @@ export default {
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
-                    // Reloading selected item, since the scheme was fully reloaded
-                    if (this.selectedItem) {
-                        this.selectedItem = this.schemeContainer.findItemById(this.selectedItem.id);
-                    }
                     this.updateRevision();
                     this.restoreItemSelection();
                 }

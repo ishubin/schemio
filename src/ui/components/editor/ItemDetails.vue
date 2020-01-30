@@ -27,7 +27,7 @@ import linkTypes from './LinkTypes.js';
 import htmlSanitize from '../../../htmlSanitize';
 
 export default {
-    props: ['item', 'itemId'],
+    props: ['item'],
 
     methods: {
         getLinkCssClass(link) {

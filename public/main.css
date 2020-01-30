@@ -1572,6 +1572,13 @@ table.position-panel-table .property-label {
 }
 
 /***************** Item Selector *********************/
+.item-selector-container {
+    overflow: scroll;
+    background: white;
+    border: 1px solid #999;
+    padding: 2px;
+}
+
 .item-selector .item-row {
     white-space: nowrap;
 }

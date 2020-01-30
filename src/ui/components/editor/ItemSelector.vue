@@ -44,6 +44,7 @@
 
 <script>
 import {forEach} from 'lodash';
+import EventBus from './EventBus';
 
 
 function visitItems(items, parentItem, callback) {
@@ -62,9 +63,13 @@ export default {
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
     },
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
     },
     data() {
         return {
@@ -141,6 +146,14 @@ export default {
 
             this.dragging.item = null;
             this.dragging.destinationId = null;
+        },
+
+        onAnyItemSelected() {
+            this.$forceUpdate();
+        },
+
+        onAnyItemDeselected() {
+            this.$forceUpdate();
         }
     }
 }

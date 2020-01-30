@@ -938,7 +938,7 @@ class SchemeContainer {
         if (item.group) {
             var group = item.group;
             item.group = null;
-            var leftoverGroupItems = _.filter(this.scheme.items, otherItem => {return otherItem.group === group});
+            var leftoverGroupItems = _.filter(this.scheme.getItems(), otherItem => {return otherItem.group === group});
             if (leftoverGroupItems.length === 1) {
                 leftoverGroupItems[0].group = null;
             }
