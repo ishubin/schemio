@@ -149,6 +149,8 @@ class SchemeContainer {
             item.meta.ancestorIds = ancestorIds;
             if (parentItem) {
                 item.meta.parentId = parentItem.id;
+            } else {
+                item.meta.parentId = null;
             }
 
             if (item.id) {
@@ -272,33 +274,50 @@ class SchemeContainer {
         return schemeBoundaryBox;
     }
 
-    remountItemInsideOtherItem(itemId, otherItemId) {
+    remountItemInsideOtherItem(itemId, otherItemId, position) {
+        if (!position) {
+            position = 0;
+        }
         const item = this.findItemById(itemId);
-        const otherItem = this.findItemById(otherItemId);
-
-        if (!item || !otherItem) {
+        if (!item) {
             return;
         }
 
-        //checking if item is moved into its own child items. It should be protected from such move, otherwise it is going to be a eternal loop
-        if (_.indexOf(otherItem.meta.ancestorIds, item.id) >= 0) {
+        let otherItem = null;
+        if (otherItemId) {
+            otherItem = this.findItemById(otherItemId);
+            if (!otherItem) {
+                return;
+            }
+        }
+
+        //checking if item is moved into its own child items. It should be protected from such move, otherwise it is going to be an eternal loop
+        if (otherItem && _.indexOf(otherItem.meta.ancestorIds, item.id) >= 0) {
             return;
         }
 
         // Recalculating item area so that its world coords would match under new transform
         const worldPoint = this.worldPointOnItem(0, 0, item);
-        const newLocalPoint = this.localPointOnItem(worldPoint.x, worldPoint.y, otherItem);
+        let newLocalPoint = {
+            x: worldPoint.x, y: worldPoint.y
+        }
+        if (otherItem) {
+            newLocalPoint = this.localPointOnItem(worldPoint.x, worldPoint.y, otherItem);
+        }
 
         let parentItem = null;
-        let parentAngleCorrection = 0;
+        let angleCorrection = 0;
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
             parentItem = this.findItemById(item.meta.parentId);
             if (!parentItem) {
                 return;
             }
-            parentAngleCorrection = parentItem.meta.transform.angle + parentItem.area.r;
+            angleCorrection += parentItem.meta.transform.angle + parentItem.area.r;
             itemsArray = parentItem.childItems;
+        }
+        if (otherItem && otherItem.meta && otherItem.meta.transform) {
+            angleCorrection -= otherItem.meta.transform.angle + otherItem.area.r;
         }
 
         const index = _.findIndex(itemsArray, it => it.id === itemId);
@@ -309,33 +328,47 @@ class SchemeContainer {
         // removing item from its original position in array
         itemsArray.splice(index, 1);
 
-        if (!otherItem.childItems) {
-            otherItem.childItems = [];
+        let newItemsArray = this.scheme.items;
+        if (otherItem) {
+            if (!otherItem.childItems) {
+                otherItem.childItems = [];
+            }
+            newItemsArray = otherItem.childItems;
         }
-
-        otherItem.childItems.splice(0, 0, item);
+        newItemsArray.splice(position, 0, item);
 
         item.area.x = newLocalPoint.x;
         item.area.y = newLocalPoint.y;
-        item.area.r -= otherItem.area.r - parentAngleCorrection;
-        if (otherItem.meta && otherItem.meta.transform) {
-            item.area.r -= otherItem.meta.transform.angle;
-        }
+        item.area.r += angleCorrection;
 
         this.reindexItems();
-        if (parentItem) {
-            this.eventBus.emitItemChanged(parentItem.id);
-            this.eventBus.emitItemChanged(itemId);
-            this.eventBus.emitItemChanged(otherItemId);
-        }
     }
 
     remountItemAfterOtherItem(itemId, otherItemId) {
-        const item = this.findItemById(itemId);
         const otherItem = this.findItemById(otherItemId);
-        if (!item || !otherItem) {
+        if (!otherItem) {
             return;
         }
+        let itemsArray = this.scheme.items;
+        let parent = null;
+        if (otherItem.meta.parentId) {
+            parent = this.findItemById(otherItem.meta.parentId);
+            if (!parent) {
+                return;
+            }
+            if (!parent.childItems) {
+                parent.childItems = [];
+            }
+
+            itemsArray = parent.childItems;
+        }
+
+        const index = _.findIndex(itemsArray, it => it.id === otherItemId);
+        if (index < 0) {
+            return;
+        }
+
+        this.remountItemInsideOtherItem(itemId, parent, index + 1);
     }
 
     enrichItemWithDefaults(item, shape) {
