@@ -11,10 +11,12 @@ function leadingZero(number) {
 }
 
 function sanitizeItem(oldItem) {
-    var item = {};
+    let item = {};
     _.forEach(oldItem, (value, field) => {
         if (field === 'connectors') {
             item.connectors = _.map(value, sanitizeConnector);
+        } else if (field === 'childItems') {
+            item[field] = _.map(value, sanitizeItem);
         } else if (field !== 'meta') {
             item[field] = value;
         }

@@ -34,3 +34,47 @@ describe('Utils.getOpbjectProperty', () => {
         expect(utils.getObjectProperty(obj, 'data.array.length')).toBeUndefined();
     });
 });
+
+
+describe('Utils.sanitizeScheme', () => {
+    it('should remove meta objects from all items and sub-items', () => {
+        const scheme = {
+            id: '123',
+            name: 'some scheme',
+            description: 'some description',
+            tags: ['a', 'b'],
+            modifiedDate: 123,
+            categoryId: 'rty',
+            style: {},
+            someUnknownField: {},
+            items: [{
+                id: 'qwe',
+                name: 'parent item',
+                meta: {blah: 123},
+                childItems: [{
+                    id: 'asd',
+                    name: 'child item',
+                    meta: {asdasd: 'qwqrqrwr'}
+                }]
+            }]
+        }
+
+        expect(utils.sanitizeScheme(scheme)).toStrictEqual({
+            id: '123',
+            name: 'some scheme',
+            description: 'some description',
+            tags: ['a', 'b'],
+            modifiedDate: 123,
+            categoryId: 'rty',
+            style: {},
+            items: [{
+                id: 'qwe',
+                name: 'parent item',
+                childItems: [{
+                    id: 'asd',
+                    name: 'child item'
+                }]
+            }]
+        });
+    });
+});
