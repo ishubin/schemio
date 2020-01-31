@@ -586,14 +586,46 @@ class SchemeContainer {
         return this.selectedItems;
     }
 
+
+    _deleteItem(item) {
+        let itemsArray = this.scheme.items;
+        if (item.meta.parentId) {
+            const parentItem = this.findItemById(item.meta.parentId);
+            if (!parentItem || !parentItem.childItems) {
+                return;
+            }
+            itemsArray = parentItem.childItems;
+        }
+
+        const index = _.findIndex(itemsArray, it => it.id === item.id);
+        if (index < 0) {
+            return;
+        }
+
+        itemsArray.splice(index, 1);
+
+        this.removeConnectorsForItem(item);
+        if (item.childItems) {
+            this._removeConnectorsForAllSubItems(item.childItems);
+        }
+    }
+
+    _removeConnectorsForAllSubItems(items) {
+        _.forEach(items, item => {
+            this.removeConnectorsForItem(item);
+            if (item.childItems) {
+                this._removeConnectorsForAllSubItems(item.childItems);
+            }
+        });
+    }
+
     deleteSelectedItemsAndConnectors() {
-        var removed = 0;
+        let removed = 0;
         if (this.selectedItems && this.selectedItems.length > 0) {
             _.forEach(this.selectedItems, item => {
-                this.removeConnectorsForItem(item);
+                this._deleteItem(item);
             });
 
-            _.remove(this.scheme.items, item => _.includes(this.selectedItems, item));
             this.selectedItems = [];
             removed += 1;
         }
