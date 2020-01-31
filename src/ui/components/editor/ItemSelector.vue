@@ -22,8 +22,14 @@
                     </span>
 
                     <div class="item-name" @mousedown="onItemClicked(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
-                        <span v-if="item.id !== nameEdit.itemId">{{item.name}}</span>
-                        <input v-if="item.id === nameEdit.itemId" v-model="nameEdit.name" type="text" data-type="item-name-edit-in-place"/>
+                        <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
+                        <input v-if="item.id === nameEdit.itemId"
+                            id="item-selector-name-edit-input"
+                            v-model="nameEdit.name"
+                            type="text"
+                            data-type="item-name-edit-in-place"
+                            @keydown.enter="cancelNameEdit()"
+                            @keydown.esc="cancelNameEdit()"/>
                     </div>
 
                     <div class="item-right-panel">
@@ -110,6 +116,10 @@ export default {
             }
         },
 
+        cancelNameEdit() {
+            this.nameEdit.itemId = null;
+        },
+
         onItemClicked(item, event) {
             // canceling in-place name edit
             if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
@@ -122,6 +132,12 @@ export default {
         onItemDoubleClicked(item) {
             this.nameEdit.name = item.name;
             this.nameEdit.itemId = item.id;
+            this.$nextTick(() => {
+                const input = document.getElementById('item-selector-name-edit-input');
+                if (input) {
+                    input.focus();
+                }
+            });
         },
 
         toggleItemCollapseState(item) {
