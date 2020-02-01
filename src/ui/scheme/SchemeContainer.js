@@ -984,24 +984,47 @@ class SchemeContainer {
     pasteSelectedItems() {
         this.deselectAllItems();
 
-        var newItems = [];
+        const copiedItemIds = {};
+        _.forEach(this.copyBuffer, item => {
+            // checking whether any of ancestors were already copied for this item
+            // as we don't need to copy it twice
+            if (!_.find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
+                copiedItemIds[item.id] = 1;
+                const worldPoint = this.worldPointOnItem(0, 0, item);
 
-        _.forEach(this.copyBuffer, originalItem => {
-            var item = JSON.parse(JSON.stringify(originalItem));
-            item.area.x += -50;
-            item.area.y += -50;
-            item.meta = {
-                hovered: false,
-                selected: false
-            };
-            delete item.id;
-            item.connectors = [];
-            item = this.addItem(item);
-            this.selectItem(item, true);
-            newItems.push(item);
+                const newItem = this.copyItem(item);
+                newItem.area.x = worldPoint.x;
+                newItem.area.y = worldPoint.y;
+                if (item.meta.transform) {
+                    newItem.area.r += item.meta.transform.angle;
+                }
+
+                this.scheme.items.push(newItem);
+                this.selectItem(item, true);
+            }
         });
 
-        return newItems;
+        this.reindexItems();
+    }
+
+    copyItem(oldItem) {
+        const newItem = {
+            id: shortid.generate(),
+            meta: {
+                hovered: false,
+                selected: false
+            }
+        };
+
+        _.forEach(oldItem, (value, field) => {
+            if (field === 'childItems') {
+                newItem[field] = _.map(value, childItem => this.copyItem(childItem));
+            } else if (field !== 'connectors' && field !== 'id' && field !== 'meta') {
+                newItem[field] = utils.clone(value);
+            }
+        });
+
+        return newItem;
     }
 }
 

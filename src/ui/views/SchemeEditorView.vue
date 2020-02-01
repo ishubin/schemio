@@ -637,7 +637,7 @@ export default {
                 if (key === EventBus.KEY.CTRL_C) {
                     this.schemeContainer.copySelectedItems();
                 } else if (key === EventBus.KEY.CTRL_V) {
-                    var items = this.schemeContainer.pasteSelectedItems();
+                    this.schemeContainer.pasteSelectedItems();
                 } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
                 } else if (EventBus.KEY.CTRL_Z === key) {
