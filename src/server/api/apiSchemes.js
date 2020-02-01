@@ -12,22 +12,31 @@ const MISSING_PREVIEW_SVG = `
     <svg></svg>
 `;
 
+function sanitizeItem(item) {
+    item.name = htmlSanitize(item.name);
+    item.description = htmlSanitize(item.description);
+    item.text = htmlSanitize(item.text);
+
+    item.meta = {};
+    if (!item.hasOwnProperty('id')) {
+        item.id = shortid.generate();
+    }
+    if (!item.hasOwnProperty('tags')) {
+        item.tags = [];
+    }
+
+    if (item.childItems) {
+        _.forEach(item.childItems, childItem => {
+            sanitizeItem(childItem);
+        })
+    }
+}
 
 function sanitizeScheme(scheme) {
     scheme.description = htmlSanitize(scheme.description);
 
     _.forEach(scheme.items, item => {
-        item.name = htmlSanitize(item.name);
-        item.description = htmlSanitize(item.description);
-        item.text = htmlSanitize(item.text);
-
-        item.meta = {};
-        if (!item.hasOwnProperty('id')) {
-            item.id = shortid.generate();
-        }
-        if (!item.hasOwnProperty('tags')) {
-            item.tags = [];
-        }
+        sanitizeItem(item);
     });
     return scheme;
 }

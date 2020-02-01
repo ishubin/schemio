@@ -38,7 +38,12 @@ class MongoSchemeStorage {
             if (item.properties) {
                 text += '\n' + item.properties;
             }
+
+            if (item.childItems) {
+                text += '\n' + this.combineItemsText(item.childItems);
+            }
         });
+
         return text;
     }
 
