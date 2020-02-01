@@ -11,6 +11,16 @@ function isEventRightClick(event) {
     return event.button === 2;
 }
 
+
+function visitItems(items, callback) {
+    _.forEach(items, item => {
+        callback(item);
+        if (item.childItems) {
+            visitItems(item.childItems, callback);
+        }
+    })
+}
+
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
  * @param {MouseEvent} event 
@@ -257,18 +267,8 @@ export default class StateDragItem extends State {
                         this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
                     }
 
-                    // storing ids of dragged items in a map
-                    // this way we will be able to figure out whether any items ancestors was dragged already
-                    // so that we can skip dragging of item
-                    const itemDraggedIds = {};
-                    _.forEach(this.schemeContainer.selectedItems, item => {
-                        itemDraggedIds[item.id] = 1;
-                        if (!item.locked) {
-                            if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
-                                this.dragItem(item, dx, dy);
-                            }
-                        }
-                    });
+                    this.dragItems(this.schemeContainer.selectedItems, dx, dy);
+
                     this.rebuildConnectorsInCache();
                 } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
                     this.dragReroute(x, y);
@@ -377,6 +377,60 @@ export default class StateDragItem extends State {
                 }
             });
             this.rebuildConnectorsInCache();
+        }
+    }
+    
+    dragItems(items, dx, dy) {
+        // storing ids of dragged items in a map
+        // this way we will be able to figure out whether any items ancestors was dragged already
+        // so that we can skip dragging of item
+        const itemDraggedIds = {};
+        
+        //storing world points of items so that after all the items are dragged we can re-adjust reroutes for affected connectors (only in case both of their items are dragged equally)
+        const itemWorldPoints = {};
+        visitItems(items, item => {
+            itemWorldPoints[item.id] = this.schemeContainer.worldPointOnItem(0, 0, item);
+        });
+
+        _.forEach(items, item => {
+            itemDraggedIds[item.id] = 1;
+            if (!item.locked) {
+                if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                    this.dragItem(item, dx, dy);
+                }
+            }
+        });
+
+        // re-adjusting connector reroutes
+        visitItems(items, item => {
+            const oldP1 = itemWorldPoints[item.id];
+            if (item.connectors && oldP1) {
+                const newP1 = this.schemeContainer.worldPointOnItem(0, 0, item);
+                _.forEach(item.connectors, connector => {
+                    if (connector.itemId) {
+                        const oldP2 = itemWorldPoints[connector.itemId];
+                        const otherItem = this.schemeContainer.findItemById(connector.itemId);
+                        if (oldP2 && otherItem) {
+                            const newP2 = this.schemeContainer.worldPointOnItem(0, 0, otherItem);
+                            const diff = Math.abs(newP1.x - oldP1.x - (newP2.x - oldP2.x)) + Math.abs(newP1.y - oldP1.y - (newP2.y - oldP2.y));
+                            // console.log(diff1, diff2, oldP1, newP1, oldP2, newP2, dx, dy);
+                            if (diff < 0.00001) {
+                                //re-adjusting connector reroutes
+                                this.readjustConnectorReroutes(connector, newP1.x - oldP1.x, newP1.y - oldP1.y);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    readjustConnectorReroutes(connector, dx, dy) {
+        if (connector.reroutes) {
+            _.forEach(connector.reroutes, reroute => {
+                reroute.x += dx;
+                reroute.y += dy;
+            });
         }
     }
 
