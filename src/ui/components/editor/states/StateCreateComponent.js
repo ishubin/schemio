@@ -46,9 +46,12 @@ export default class StateCreateComponent extends State {
             this.updateComponentArea(this.snapX(x), this.snapY(y));
             this.schemeContainer.setActiveBoundaryBox(null);
             
-            _.forEach(this.schemeContainer.selectItems, item => this.eventBus.emitItemDeselected(item.id));
+            const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.component.area);
+            this.schemeContainer.deselectAllItems();
+            if (parentItem) {
+                this.schemeContainer.remountItemInsideOtherItem(this.component.id, parentItem.id);
+            }
             this.schemeContainer.selectItem(this.component);
-            this.eventBus.emitItemSelected(this.component.id);
             this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
             this.eventBus.emitItemChanged(this.component.id);
             this.eventBus.emitSchemeChangeCommited();
@@ -56,6 +59,41 @@ export default class StateCreateComponent extends State {
         } else {
             this.cancel();
         }
+    }
+
+    /**
+     * Searches for item that is able to fit item inside it and that has the min area out of all specified items
+     * @param {*} items 
+     * @param {*} area 
+     * @returns {Item}
+     */
+    findItemSuitableForParent(items, area) {
+        let maxArea = -1;
+        let itemFound = null;
+
+        _.forEach(items, item => {
+            const points = [
+                { x: area.x,  y: area.y },
+                { x: area.x + area.w,  y: area.y },
+                { x: area.x + area.w,  y: area.y + area.h},
+                { x: area.x,  y: area.y + area.h},
+            ];
+
+            let fitsInside = true;
+            for (let i = 0; i < points.length && fitsInside; i++) {
+                const localPoint = this.schemeContainer.localPointOnItem(points[i].x, points[i].y, item);
+                fitsInside = localPoint.x >= 0 && localPoint.y >= 0 && localPoint.x <= item.area.w && localPoint.y <= item.area.h;
+            }
+
+            if (fitsInside) {
+                if (maxArea < 0 || maxArea > item.area.w*item.area.h) {
+                    itemFound = item;
+                    maxArea = item.area.w * item.area.h;
+                }
+            }
+        });
+
+        return itemFound;
     }
 
     updateComponentArea(x, y) {

@@ -413,7 +413,6 @@ export default class StateDragItem extends State {
                         if (oldP2 && otherItem) {
                             const newP2 = this.schemeContainer.worldPointOnItem(0, 0, otherItem);
                             const diff = Math.abs(newP1.x - oldP1.x - (newP2.x - oldP2.x)) + Math.abs(newP1.y - oldP1.y - (newP2.y - oldP2.y));
-                            // console.log(diff1, diff2, oldP1, newP1, oldP2, newP2, dx, dy);
                             if (diff < 0.00001) {
                                 //re-adjusting connector reroutes
                                 this.readjustConnectorReroutes(connector, newP1.x - oldP1.x, newP1.y - oldP1.y);
