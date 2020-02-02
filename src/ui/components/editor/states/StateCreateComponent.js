@@ -119,7 +119,7 @@ export default class StateCreateComponent extends State {
      * @param {string} name 
      */
     findProperComponentName(name) {
-        const itemNames = _.map(this.schemeContainer.scheme.items, item => item.name);
+        const itemNames = _.map(this.schemeContainer.getItems(), item => item.name);
         return collections.giveUniqueName(name, itemNames);
     }
 }
