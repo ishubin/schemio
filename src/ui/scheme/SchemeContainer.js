@@ -879,30 +879,6 @@ class SchemeContainer {
         });
     }
 
-    provideBoundingBoxDraggers(item) {
-        // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
-        var s = 5;
-        return [{
-            x: 0, y: 0, s: s, edges: ['top', 'left']
-        },{
-            x: item.area.w, y:0, s: s, edges: ['top', 'right']
-        },{
-            x: item.area.w, y: item.area.h, s: s, edges: ['bottom', 'right']
-        },{
-            x: 0, y: item.area.h, s: s, edges: ['bottom', 'left']
-        }, {
-            x: Math.floor(item.area.w / 2), y: 0, s: s, edges: ['top']
-        },{
-            x: Math.floor(item.area.w / 2), y: item.area.h, s: s, edges: ['bottom']
-        },{
-            x: item.area.w, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
-        },{
-            x: 0, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
-        }, {
-            x: item.area.w/2, y: - 30, s, rotation: true
-        }];
-    }
-
     /**
     Adds a reroute in specified connector and returns an index (in the reroutes array)
     */

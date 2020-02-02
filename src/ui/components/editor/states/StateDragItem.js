@@ -256,7 +256,7 @@ export default class StateDragItem extends State {
                 this.reset();
             } else {
                 if (this.dragger && !this.dragger.item.locked) {
-                    this.dragByDragger(this.dragger.item, this.dragger.dragger, x, y);
+                    this.dragByDragger(this.dragger.item, this.dragger.edges, x, y);
                 } else if (this.rotatingItem) {
                     this.rotateItem(x, y, this.sourceItem, event);
                 } else if (this.schemeContainer.selectedItems.length > 0) {
@@ -554,7 +554,7 @@ export default class StateDragItem extends State {
         this.eventBus.emitItemChanged(item.id);
     }
 
-    dragByDragger(item, dragger, x, y) {
+    dragByDragger(item, draggerEdges, x, y) {
         let nx = item.area.x,
             ny = item.area.y,
             nw = item.area.w,
@@ -587,13 +587,11 @@ export default class StateDragItem extends State {
         const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
         const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
 
-
-        _.forEach(dragger.edges, edge => {
+        _.forEach(draggerEdges, edge => {
             if (edge === 'top') {
                 // This should be a vector multiplication, so in case we introduce scale into transform,
                 // we should also divide by the length of bottomVector
                 const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
-                nx = item.meta.itemOriginalArea.x + projection * bottomVector.x;
                 ny = item.meta.itemOriginalArea.y + projection * bottomVector.y;
                 nh = item.meta.itemOriginalArea.h - projection;
                 if (nh < 0) {
@@ -614,7 +612,6 @@ export default class StateDragItem extends State {
                 // we should also divide by the length of bottomVector
                 const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
                 nx = item.meta.itemOriginalArea.x + projection * rightVector.x;
-                ny = item.meta.itemOriginalArea.y + projection * rightVector.y;
                 nw = item.meta.itemOriginalArea.w - projection;
                 if (nw < 0) {
                     nw = 0;

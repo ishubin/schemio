@@ -137,18 +137,17 @@
 
                     <g v-for="item in schemeContainer.selectedItems" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.angle})`">
                         <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
+                            <path :d="`M 0 0 L ${item.area.w} 0  L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`" stroke-width="1" fill="none" :stroke="schemeContainer.scheme.style.boundaryBoxColor" style="opacity: 0.4;"/>
+                            <ellipse class="boundary-box-dragger rotational-dragger"
+                                :data-dragger-item-id="item.id"
+                                data-dragger-type="rotation"
+                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
+                                :cx="item.area.w / 2"
+                                :cy="-60/safeZoom"
+                                :rx="5/safeZoom"
+                                :ry="5/safeZoom"
+                            />
                             <g v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)">
-                                <path :d="`M 0 0 L ${item.area.w} 0  L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`" stroke-width="1" fill="none" :stroke="schemeContainer.scheme.style.boundaryBoxColor" style="opacity: 0.4;"/>
-                                <ellipse v-if="dragger.rotation" class="boundary-box-dragger rotational-dragger"
-                                    :data-dragger-item-id="item.id"
-                                    data-dragger-type="rotation"
-                                    :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                    :cx="dragger.x"
-                                    :cy="-60/safeZoom"
-                                    :rx="dragger.s/safeZoom"
-                                    :ry="dragger.s/safeZoom"
-                                />
-
                                 <rect v-if="!dragger.rotation" class="boundary-box-dragger"
                                     :data-dragger-item-id="item.id"
                                     :data-dragger-index="draggerIndex"
@@ -290,6 +289,16 @@ const LINK_FONT_SYMBOL_SIZE = 10;
 
 const userEventBus = new UserEventBus();
 const behaviorCompiler = new Compiler();
+const allDraggerEdges = [
+    ['top', 'left'],
+    ['top'],
+    ['top', 'right'],
+    ['right'],
+    ['bottom', 'right'],
+    ['bottom'],
+    ['bottom', 'left'],
+    ['left']
+];
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
@@ -491,10 +500,11 @@ export default {
                             }
                         };
                     } else {
+
                         return {
                             dragger: {
                                 item,
-                                dragger: this.provideBoundingBoxDraggers(item)[element.getAttribute('data-dragger-index')]
+                                edges: allDraggerEdges[parseInt(element.getAttribute('data-dragger-index'))]
                             }
                         };
                     }
@@ -767,10 +777,28 @@ export default {
             return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
         },
 
-        //TODO OPTIMIZE: cache draggers to not construct them every single time, especially on mouse move event
         provideBoundingBoxDraggers(item) {
-            return this.schemeContainer.provideBoundingBoxDraggers(item);
+            // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
+            var s = 5;
+            return [{
+                x: 0, y: 0, s: s, edges: ['top', 'left']
+            }, {
+                x: Math.floor(item.area.w / 2), y: 0, s: s, edges: ['top']
+            },{
+                x: item.area.w, y:0, s: s, edges: ['top', 'right']
+            },{
+                x: item.area.w, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
+            },{
+                x: item.area.w, y: item.area.h, s: s, edges: ['bottom', 'right']
+            },{
+                x: Math.floor(item.area.w / 2), y: item.area.h, s: s, edges: ['bottom']
+            },{
+                x: 0, y: item.area.h, s: s, edges: ['bottom', 'left']
+            },{
+                x: 0, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
+            }];
         },
+
         toLocalPoint(mouseX, mouseY) {
             return {
                 x: (mouseX - this.vOffsetX) / this.vZoom,
