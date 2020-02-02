@@ -392,11 +392,19 @@ export default class StateDragItem extends State {
             itemWorldPoints[item.id] = this.schemeContainer.worldPointOnItem(0, 0, item);
         });
 
-        _.forEach(items, item => {
+
+        let realDx = dx, realDy = dy;
+        _.forEach(items, (item, itemIndex) => {
             itemDraggedIds[item.id] = 1;
             if (!item.locked) {
                 if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
-                    this.dragItem(item, dx, dy);
+                    // only snapping x and y in case it is first item in the selection
+                    this.dragItem(item, realDx, realDy, itemIndex === 0);
+                    if(itemIndex === 0) {
+                        //adjusting real dx and dy to what the item was actually moved
+                        realDx = item.area.x - item.meta.itemOriginalArea.x;
+                        realDy = item.area.y - item.meta.itemOriginalArea.y;
+                    }
                 }
             }
         });
@@ -433,19 +441,32 @@ export default class StateDragItem extends State {
         }
     }
 
-    dragItem(item, dx, dy) {
+    dragItem(item, dx, dy, useSnap) {
+        const snapItByX = (x) => {
+            if (useSnap) {
+                return this.snapX(x);
+            }
+            return x;
+        };
+        const snapItByY = (y) => {
+            if (useSnap) {
+                return this.snapX(y);
+            }
+            return y;
+        };
+
         if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
             if (item.meta.parentId) {
                 const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
                 if (parentItem) {
-                    const localPoint            = this.schemeContainer.localPointOnItem(this.snapX(item.meta.itemOriginalArea.x + dx), this.snapY(item.meta.itemOriginalArea.y + dy), parentItem);
+                    const localPoint            = this.schemeContainer.localPointOnItem(snapItByX(item.meta.itemOriginalArea.x + dx), snapItByY(item.meta.itemOriginalArea.y + dy), parentItem);
                     const localOriginalPoint    = this.schemeContainer.localPointOnItem(item.meta.itemOriginalArea.x, item.meta.itemOriginalArea.y, parentItem);
                     item.area.x = item.meta.itemOriginalArea.x + localPoint.x - localOriginalPoint.x;
                     item.area.y = item.meta.itemOriginalArea.y + localPoint.y - localOriginalPoint.y;
                 }
             } else {
-                item.area.x = this.snapX(item.meta.itemOriginalArea.x + dx);
-                item.area.y = this.snapY(item.meta.itemOriginalArea.y + dy);
+                item.area.x = snapItByX(item.meta.itemOriginalArea.x + dx);
+                item.area.y = snapItByY(item.meta.itemOriginalArea.y + dy);
             }
 
             this.reindexNeeded = true;
