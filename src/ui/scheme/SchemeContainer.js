@@ -375,6 +375,7 @@ class SchemeContainer {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0},
             opacity: 100.0,
+            selfOpacity: 100.0,
             visible: true,
             blendMode: 'normal',
             text: '',

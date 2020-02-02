@@ -31,6 +31,12 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="label" width="50%">Self Opacity</td>
+                            <td class="value" width="50%">
+                                <input class="textfield" type="text" :value="item.selfOpacity" @input="onSelfOpacityChange(arguments[0].target.value)"/>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="label" width="50%">Blend mode</td>
                             <td class="value" width="50%">
                                 <select :value="item.blendMode" @input="onBlendModeChange(arguments[0].target.value)">
@@ -239,6 +245,16 @@ export default {
                 this.item.opacity = value;
             }
             EventBus.emitItemChanged(this.item.id, 'opacity');
+        },
+
+        onSelfOpacityChange(opacity) {
+            const value = parseFloat(opacity);
+            if (isNaN(value)) {
+                this.item.selfOpacity = 0;
+            } else {
+                this.item.selfOpacity = value;
+            }
+            EventBus.emitItemChanged(this.item.id, 'selfOpacity');
         },
 
         onBlendModeChange(blendMode) {
