@@ -33,6 +33,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'N-Polygon',
+    iconUrl: '/images/items/npolygon.svg',
+    item: utils.extendObject({
+        shape: 'npoly',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Overlay',
     iconUrl: '/images/items/overlay.svg',
     description: `

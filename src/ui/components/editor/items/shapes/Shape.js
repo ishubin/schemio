@@ -6,6 +6,7 @@ import Link from './Link.vue';
 import CommentShape from './CommentShape.vue';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
+import NPolygon from './NPolygon.vue';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
@@ -53,6 +54,7 @@ const shapeReigstry = _.mapValues({
     comment: CommentShape,
     frame_player: FramePlayer,
     link: Link,
+    npoly: NPolygon,
     uml_object: UMLObject,
     uml_module: UMLModule,
     uml_package: UMLPackage,
