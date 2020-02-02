@@ -495,15 +495,15 @@ export default class StateDragItem extends State {
             return {x: 0, y: 0};
         }
         
-        let transform = {x: 0, y: 0, angle: 0};
+        let transform = {x: 0, y: 0, r: 0};
         if (item.meta && item.meta.transform) {
             transform = item.meta.transform;
         }
 
-        let tAngle = transform.angle * Math.PI/180,
+        let tAngle = transform.r * Math.PI/180,
             cosTA = Math.cos(tAngle),
             sinTA = Math.sin(tAngle),
-            angle = (transform.angle + item.meta.itemOriginalArea.r) * Math.PI/180,
+            angle = (transform.r + item.meta.itemOriginalArea.r) * Math.PI/180,
             cosa = Math.cos(angle),
             sina = Math.sin(angle);
 

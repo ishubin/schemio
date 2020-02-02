@@ -135,7 +135,7 @@
                     </g>
 
 
-                    <g v-for="item in schemeContainer.selectedItems" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.angle})`">
+                    <g v-for="item in schemeContainer.selectedItems" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
                         <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
                             <path :d="`M 0 0 L ${item.area.w} 0  L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`" stroke-width="1" fill="none" :stroke="schemeContainer.scheme.style.boundaryBoxColor" style="opacity: 0.4;"/>
                             <ellipse class="boundary-box-dragger rotational-dragger"
@@ -188,7 +188,7 @@
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
                         <!-- TODO change the way connector hitbox is rendered to use its shape instead -->
-                        <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.angle})`">
+                        <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
                             <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
                                 <rect class="item-hitbox" data-preview-ignore="true"
                                     :data-item-id="item.id"

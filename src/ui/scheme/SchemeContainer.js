@@ -27,7 +27,7 @@ how to calculate point on item
 P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
 */
 
-const _zeroTransform = {x: 0, y: 0, angle: 0};
+const _zeroTransform = {x: 0, y: 0, r: 0};
 
 function visitItems(items, callback, transform, parentItem, ancestorIds) {
     if (!items) {
@@ -39,8 +39,8 @@ function visitItems(items, callback, transform, parentItem, ancestorIds) {
     if (!ancestorIds) {
         ancestorIds = [];
     }
-    let cosa = Math.cos(transform.angle * Math.PI / 180);
-    let sina = Math.sin(transform.angle * Math.PI / 180);
+    let cosa = Math.cos(transform.r * Math.PI / 180);
+    let sina = Math.sin(transform.r * Math.PI / 180);
 
     for (let i = 0; i < items.length; i++) {
         callback(items[i], transform, parentItem, ancestorIds);
@@ -48,7 +48,7 @@ function visitItems(items, callback, transform, parentItem, ancestorIds) {
             visitItems(items[i].childItems, callback, {
                 x:      transform.x + items[i].area.x * cosa - items[i].area.y * sina,
                 y:      transform.y + items[i].area.x * sina + items[i].area.y * cosa,
-                angle:  transform.angle + items[i].area.r
+                r:  transform.r + items[i].area.r
             }, items[i], ancestorIds.concat([items[i].id]));
         }
     }
@@ -104,12 +104,12 @@ class SchemeContainer {
      */
     updateChildTransforms(mainItem) {
         if (mainItem.childItems && mainItem.meta && mainItem.meta.transform) {
-            let cosa = Math.cos(mainItem.meta.transform.angle * Math.PI / 180);
-            let sina = Math.sin(mainItem.meta.transform.angle * Math.PI / 180);
+            let cosa = Math.cos(mainItem.meta.transform.r * Math.PI / 180);
+            let sina = Math.sin(mainItem.meta.transform.r * Math.PI / 180);
             const recalculatedTransform  = {
                 x:      mainItem.meta.transform.x + mainItem.area.x * cosa - mainItem.area.y * sina,
                 y:      mainItem.meta.transform.y + mainItem.area.x * sina + mainItem.area.y * cosa,
-                angle:  mainItem.meta.transform.angle + mainItem.area.r
+                r:  mainItem.meta.transform.r + mainItem.area.r
             };
             visitItems(mainItem.childItems, (item, transform, parentItem, ancestorIds) => {
                 if (!item.meta) {
@@ -187,10 +187,10 @@ class SchemeContainer {
             transform = item.meta.transform;
         }
 
-        let tAngle = transform.angle * Math.PI/180,
+        let tAngle = transform.r * Math.PI/180,
             cosTA = Math.cos(tAngle),
             sinTA = Math.sin(tAngle),
-            angle = (transform.angle + item.area.r) * Math.PI/180,
+            angle = (transform.r + item.area.r) * Math.PI/180,
             cosa = Math.cos(angle),
             sina = Math.sin(angle);
 
@@ -216,10 +216,10 @@ class SchemeContainer {
             transform = item.meta.transform;
         }
 
-        let tAngle = transform.angle * Math.PI/180,
+        let tAngle = transform.r * Math.PI/180,
             cosTA = Math.cos(tAngle),
             sinTA = Math.sin(tAngle),
-            angle = (transform.angle + item.area.r) * Math.PI/180,
+            angle = (transform.r + item.area.r) * Math.PI/180,
             cosa = Math.cos(angle),
             sina = Math.sin(angle),
             tx = transform.x + item.area.x * cosTA - item.area.y * sinTA,
@@ -313,11 +313,11 @@ class SchemeContainer {
             if (!parentItem) {
                 return;
             }
-            angleCorrection += parentItem.meta.transform.angle + parentItem.area.r;
+            angleCorrection += parentItem.meta.transform.r + parentItem.area.r;
             itemsArray = parentItem.childItems;
         }
         if (otherItem && otherItem.meta && otherItem.meta.transform) {
-            angleCorrection -= otherItem.meta.transform.angle + otherItem.area.r;
+            angleCorrection -= otherItem.meta.transform.r + otherItem.area.r;
         }
 
         const index = _.findIndex(itemsArray, it => it.id === itemId);
@@ -973,7 +973,7 @@ class SchemeContainer {
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
                 if (item.meta.transform) {
-                    newItem.area.r += item.meta.transform.angle;
+                    newItem.area.r += item.meta.transform.r;
                 }
 
                 this.scheme.items.push(newItem);
