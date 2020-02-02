@@ -6,10 +6,39 @@
             :stroke-dasharray="strokeDashArray"
             :fill="item.shapeProps.fillColor"></path>
 
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
+            x="0" y="0" :width="item.area.w" :height="item.area.h">
+            <div class="item-text-container" v-html="sanitizedItemText"
+                :style="textStyle"
+                ></div>
+        </foreignObject>
     </g>
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
+import htmlSanitize from '../../../../../htmlSanitize';
+
+function identifyTextEditArea(item, itemX, itemY) {
+    return {
+        property: 'text',
+        style: generateTextStyle(item),
+    }
+};
+
+function generateTextStyle(item) {
+    return {
+        'padding-left': item.shapeProps.textPaddingLeft+'px',
+        'padding-right': item.shapeProps.textPaddingRight+'px',
+        'padding-top': item.shapeProps.textPaddingTop+'px',
+        'padding-bottom': item.shapeProps.textPaddingBottom+'px',
+        'text-align': 'center',
+        'vertical-align': 'middle',
+        'position': 'relative',
+        'top': '50%',
+        'transform': 'translateY(-50%)',
+        'font-size': item.shapeProps.fontSize + 'px'
+    };
+}
 
 const computePath = (item) => {
     const cx = item.area.w/2;
@@ -31,6 +60,13 @@ const computePath = (item) => {
 export default {
     props: ['item', 'hiddenTextProperty'],
 
+    identifyTextEditArea,
+
+    editorProps: {
+        description: 'rich',
+        text: 'rich'
+    },
+
     computePath,
     args: {
         corners: {type: 'number', value: 6, name: 'Corners'},
@@ -50,6 +86,14 @@ export default {
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
+
+        textStyle() {
+            return generateTextStyle(this.item);
+        },
+
+        sanitizedItemText() {
+            return htmlSanitize(this.item.text);
+        }
     }
 }
 </script>
