@@ -6,16 +6,16 @@
     <g :style="{'opacity': connector.opacity/100.0}">
 
         <g v-if="selected">
-            <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" :stroke-width="strokeWidth + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
+            <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="strokeWidth + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
             <g v-for="end in ends">
                 <circle v-if="end.type === 'circle'"
-                    :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                    :data-connector-id="connector.id"
                     :cx="end.x" :cy="end.y"
                     :r="3 + end.r"
                     :fill="boundaryBoxColor" />
                 <path v-if="end.type === 'path'"
                     :d="end.path"
-                    :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                    :data-connector-id="connector.id"
                     :stroke-width="strokeWidth + selectedStrokeOutline"
                     :fill="boundaryBoxColor"
                     :stroke="boundaryBoxColor"
@@ -44,17 +44,17 @@
             />
         </g>
 
-        <path :d="svgPath" :data-connector-index="sourceItem.id+'/'+connectorIndex" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="none"/>
+        <path :d="svgPath" :data-connector-id="connector.id" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="none"/>
         <g v-for="end in ends">
             <circle v-if="end.type === 'circle'"
-                :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                :data-connector-id="connector.id"
                 :cx="end.x" :cy="end.y"
                 :r="end.r"
                 fill="rgba(0,0,0,0.0)"
                 class="item-connector-hover-area" />
             <path v-if="end.type === 'path'"
                 :d="end.path"
-                :data-connector-index="sourceItem.id+'/'+connectorIndex"
+                :data-connector-id="connector.id"
                 class="item-connector-hover-area"
                 :stroke="connector.color"
                 :stroke-width="connector.width"
@@ -65,7 +65,7 @@
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes && selected" data-preview-ignore="true">
             <circle :cx="point.x" :cy="point.y" :r="strokeWidth + selectedStrokeOutline"
-                :data-reroute-index="sourceItem.id+'/'+connectorIndex +'/'+rerouteIndex"
+                :data-reroute-index="connector.id +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :fill="boundaryBoxColor"
             />
@@ -82,7 +82,7 @@ import Connector from '../../../scheme/Connector.js';
 import _ from 'lodash';
 
 export default {
-    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'connectorIndex', 'sourceItem', 'mode', 'boundaryBoxColor'],
+    props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'sourceItem', 'mode', 'boundaryBoxColor'],
 
     mounted() {
         this.generateStrokeDashArray();

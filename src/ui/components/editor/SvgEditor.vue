@@ -41,9 +41,8 @@
 
                     <!--TODO optimize rendering of connectors -->
                     <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta && item.visible"
+                        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
                             :key="connector.id"
-                            :connectorIndex="connectorIndex"
                             :sourceItem="item"
                             :connector="connector"
                             :zoom="vZoom"
@@ -109,9 +108,8 @@
 
                     <!--TODO optimize rendering of connectors -->
                     <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta && item.visible"
+                        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
                             :key="connector.id"
-                            :connectorIndex="connectorIndex"
                             :sourceItem="item"
                             :connector="connector"
                             :zoom="vZoom"
@@ -467,27 +465,28 @@ export default {
                     }
                 }
 
-                var connectorIndex = element.getAttribute('data-connector-index');
-                if (connectorIndex) {
-                    var path = connectorIndex.split('/');
-                    var sourceItem = this.schemeContainer.findItemById(path[0]);
-                    return {
-                        connector: sourceItem.connectors[path[1]],
-                        connectorIndex: path[1],
-                        sourceItem
+                const connectorId = element.getAttribute('data-connector-id');
+                if (connectorId) {
+                    const connector = this.schemeContainer.findConnectorById(connectorId);
+                    if (connector) {
+                        return {
+                            connector,
+                        };
                     }
                 }
 
-                var rerouteIndex = element.getAttribute('data-reroute-index');
+                const rerouteIndex = element.getAttribute('data-reroute-index');
                 if (rerouteIndex) {
-                    var path = rerouteIndex.split('/');
-                    var sourceItem = this.schemeContainer.findItemById(path[0]);
-                    return {
-                        connector: sourceItem.connectors[path[1]],
-                        connectorIndex: path[1],
-                        rerouteId: path[2],
-                        sourceItem
-                    };
+                    const path = rerouteIndex.split('/');
+                    const connectorId = path[0];
+                    const connector = this.schemeContainer.findConnectorById(connectorId);
+                    if (connector) {
+                        return {
+                            connector,
+                            rerouteId: path[1],
+                        };
+                    }
+
                 }
 
                 const draggerItemId = element.getAttribute('data-dragger-item-id');

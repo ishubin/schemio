@@ -225,22 +225,25 @@ export default class StateDragItem extends State {
     }
 
     handleConnectorMouseDown(x, y, mx, my, object, event) {
+        const sourceItem = this.schemeContainer.findItemById(object.connector.meta.sourceItemId);
+
         if (isMultiSelectKey(event)) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
-                this.schemeContainer.buildConnector(object.sourceItem, object.connector);
+
+                this.schemeContainer.buildConnector(sourceItem, object.connector);
                 this.eventBus.emitConnectorChanged(object.connector.id);
             } else {
-                var rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
-                this.initDraggingForReroute(object.sourceItem, object.connector, rerouteId, x, y);
+                const rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.connector);
+                this.initDraggingForReroute(sourceItem, object.connector, rerouteId, x, y);
                 this.eventBus.emitConnectorChanged(object.connector.id);
             }
         } else {
-            this.schemeContainer.selectConnector(object.sourceItem, object.connectorIndex, false);
+            this.schemeContainer.selectConnector(object.connector, false);
             this.deselectAllItems();
             this.eventBus.emitConnectorSelected(object.connector.id, object.connector);
             if (object.rerouteId >= 0) {
-                this.initDraggingForReroute(object.sourceItem, object.connector, object.rerouteId, x, y);
+                this.initDraggingForReroute(sourceItem, object.connector, object.rerouteId, x, y);
             }
         }
     }
@@ -328,11 +331,11 @@ export default class StateDragItem extends State {
         } else if (object.connector) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);
-                this.schemeContainer.buildConnector(object.sourceItem, object.connector);
+                this.schemeContainer.buildConnector(this.schemeContainer.findItemById(object.connector.meta.sourceItemId), object.connector);
                 this.eventBus.emitConnectorChanged(object.connector.id);
                 this.eventBus.emitSchemeChangeCommited();
             } else {
-                this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.sourceItem, object.connector);
+                this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.connector);
                 this.eventBus.emitConnectorChanged(object.connector.id);
                 this.eventBus.emitSchemeChangeCommited();
             }
@@ -687,17 +690,15 @@ export default class StateDragItem extends State {
             if (item.childItems) {
                 this._fillConnectorsBuildCache(item.childItems, cache);
             }
-            _.forEach(item.connectors, (connector, connectorIndex) => {
-                cache[`${item.id}|${connectorIndex}`] = {item, connector};
+            _.forEach(item.connectors, connector => {
+                cache[connector.id] = {item, connector};
             });
             _.forEach(this.schemeContainer.getConnectingSourceItemIds(item.id), sourceId => {
                 const sourceItem = this.schemeContainer.findItemById(sourceId);
                 if (sourceItem) {
-                    _.forEach(sourceItem.connectors, (connector, connectorIndex) => {
-                        // this.schemeContainer.buildConnector(sourceItem, connector);
-                        const key = `${sourceItem.id}|${connectorIndex}`;
-                        if (!cache.hasOwnProperty(key)) {
-                            cache[key] = {item: sourceItem, connector};
+                    _.forEach(sourceItem.connectors, connector => {
+                        if (!cache.hasOwnProperty(connector.id)) {
+                            cache[connector.id] = {item: sourceItem, connector};
                         }
                     });
                 }

@@ -70,18 +70,20 @@ class SchemeContainer {
         this.scheme = scheme;
         this.eventBus = eventBus;
         this.selectedItems = [];
-        this.selectedConnectorWrappers = [];
+        this.selectedConnectors = [];
         this.activeBoundaryBox = null;
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
         this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.copyBuffer = [];
-        this.enrichSchemeWithDefaults(this.scheme);
-        this.reindexItems();
+        this.connectorsMap  = {}; //used for quick access to connector by id
         this.revision = 0;
 
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+        this.enrichSchemeWithDefaults(this.scheme);
+        this.reindexItems();
     }
     
     enrichSchemeWithDefaults(scheme) {
@@ -125,6 +127,7 @@ class SchemeContainer {
         this.itemMap = {};
         this._destinationToSourceLookup = {};
         this._itemArray = [];
+        this.connectorsMap = {};
 
         const itemsWithConnectors = [];
         if (!this.scheme.items) {
@@ -157,7 +160,7 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.connectors) {
+            if (item.connectors && item.connectors.length > 0) {
                 itemsWithConnectors.push(item);
             }
         });
@@ -419,12 +422,17 @@ class SchemeContainer {
     }
 
     buildConnector(sourceItem, connector) {
+        if (!sourceItem) {
+            return;
+        }
         if (!connector.meta) {
             connector.meta = {};
         }
         if (!connector.id || connector.id.length === 0) {
             connector.id = shortid.generate();
         }
+
+        connector.meta.sourceItemId = sourceItem.id;
         const points = [];
 
         this.enrichConnectorWithDefaultStyle(connector);
@@ -466,6 +474,7 @@ class SchemeContainer {
             connector.meta = {};
         }
         connector.meta.points = points;
+        this.connectorsMap[connector.id] = connector;
     }
 
     findEdgePoint(item, nextPoint) {
@@ -630,10 +639,14 @@ class SchemeContainer {
             this.selectedItems = [];
             removed += 1;
         }
-        if (this.selectedConnectorWrappers && this.selectedConnectorWrappers.length > 0) {
-            _.forEach(this.selectedConnectorWrappers, cw => {
-                if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
-                    cw.sourceItem.connectors.splice(cw.connectorIndex, 1);
+        if (this.selectedConnectors) {
+            _.forEach(this.selectedConnectors, connector => {
+                const sourceItem = this.findItemById(connector.meta.sourceItemId);
+                if (sourceItem && sourceItem.connectors) {
+                    const connectorIndex = _.findIndex(sourceItem.connectors, c => c.id === connector.id);
+                    if (connectorIndex >= 0) {
+                        sourceItem.connectors.splice(connectorIndex, 1);
+                    }
                 }
             });
             removed += 1;
@@ -678,34 +691,28 @@ class SchemeContainer {
         this.activeBoundaryBox = area;
     }
 
-    selectConnector(sourceItem, connectorIndex, inclusive) {
+    selectConnector(connector, inclusive) {
         // only select connector that do have meta, otherwise it would be imposible to click them
         if (inclusive) {
             throw new Error('not supported yet');
         } else {
             this.deselectAllConnectors();
 
-            if (sourceItem.connectors && sourceItem.connectors.length > connectorIndex) {
-                var connector = sourceItem.connectors[connectorIndex];
-                if (connector.meta && !connector.meta.selected) {
-                    connector.meta.selected = true;
-                    this.selectedConnectorWrappers.push({ sourceItem, connectorIndex });
-                }
+            if (connector.meta && !connector.meta.selected) {
+                connector.meta.selected = true;
+                this.selectedConnectors.push(connector);
             }
         }
     }
 
     deselectAllConnectors() {
-        _.forEach(this.selectedConnectorWrappers, cw => {
-            if (cw.sourceItem.connectors && cw.sourceItem.connectors.length > cw.connectorIndex) {
-                const connector = cw.sourceItem.connectors[cw.connectorIndex];
-                if (connector.meta) {
-                    connector.meta.selected = false;
-                }
-                this.eventBus.emitConnectorDeselected(connector.id, connector);
+        _.forEach(this.selectedConnectors, connector => {
+            if (connector.meta) {
+                connector.meta.selected = false;
             }
+            this.eventBus.emitConnectorDeselected(connector.id, connector);
         });
-        this.selectedConnectorWrappers = [];
+        this.selectedConnectors = [];
     }
 
     isItemSelected(item) {
@@ -883,7 +890,7 @@ class SchemeContainer {
     /**
     Adds a reroute in specified connector and returns an index (in the reroutes array)
     */
-    addReroute(x, y, sourceItem, connector) {
+    addReroute(x, y, connector) {
         if (!connector.reroutes) {
             connector.reroutes = [];
         }
@@ -897,7 +904,10 @@ class SchemeContainer {
             x: x,
             y: y
         });
-        this.buildConnector(sourceItem, connector);
+        const sourceItem = this.findItemById(connector.meta.sourceItemId);
+        if (sourceItem) {
+            this.buildConnector(sourceItem, connector);
+        }
         return id;
     }
 
@@ -924,12 +934,11 @@ class SchemeContainer {
     }
 
     findItemById(itemId) {
-        var item = this.itemMap[itemId];
-        if (item) {
-            return item;
-        } else {
-            return _.find(this.scheme.items, item => item.id === itemId);
-        }
+        return this.itemMap[itemId];
+    }
+
+    findConnectorById(connectorId) {
+        return this.connectorsMap[connectorId];
     }
 
     getConnectingSourceItemIds(destinationId) {
