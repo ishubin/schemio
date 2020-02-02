@@ -41,7 +41,7 @@
 
                     <!--TODO optimize rendering of connectors -->
                     <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta && item.visible"
                             :key="connector.id"
                             :connectorIndex="connectorIndex"
                             :sourceItem="item"
@@ -109,7 +109,7 @@
 
                     <!--TODO optimize rendering of connectors -->
                     <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta"
+                        <connector-svg  v-for="(connector,connectorIndex) in item.connectors" v-if="connector.meta && item.visible"
                             :key="connector.id"
                             :connectorIndex="connectorIndex"
                             :sourceItem="item"
