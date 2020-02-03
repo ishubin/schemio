@@ -75,7 +75,7 @@ export default [{
     `,
     item: utils.extendObject({
         shape: 'rect',
-        opacity: 0.2,
+        opacity: 10,
         cursor: 'pointer',
         shapeProps: {
             strokeSize: 1,
@@ -91,7 +91,7 @@ export default [{
             do: [{
                 element: {item: 'self'},
                 method: 'set',
-                args: {field: 'opacity', value: 0.5}
+                args: {field: 'opacity', value: 50}
             }]
         }, {
             on: {
@@ -102,7 +102,7 @@ export default [{
             do: [{
                 element: {item: 'self'},
                 method: 'set',
-                args: {field: 'opacity', value: 0.1}
+                args: {field: 'opacity', value: 10}
             }]
         } ]
     }, defaultItem)
