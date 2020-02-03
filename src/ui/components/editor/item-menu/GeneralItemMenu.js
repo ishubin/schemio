@@ -40,6 +40,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Curly Bracket',
+    iconUrl: '/images/items/npolygon.svg',
+    item: utils.extendObject({
+        shape: 'bracket',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Overlay',
     iconUrl: '/images/items/overlay.svg',
     description: `
