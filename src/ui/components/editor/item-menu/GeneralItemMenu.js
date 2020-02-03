@@ -41,10 +41,30 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Curly Bracket',
-    iconUrl: '/images/items/npolygon.svg',
+    iconUrl: '/images/items/curly-bracket.svg',
     item: utils.extendObject({
         shape: 'bracket',
-        shapeProps: {}
+        shapeProps: {
+            style: 'curly'
+        }
+    }, defaultItem)
+}, {
+    name: 'Square Bracket',
+    iconUrl: '/images/items/square-bracket.svg',
+    item: utils.extendObject({
+        shape: 'bracket',
+        shapeProps: {
+            style: 'square'
+        }
+    }, defaultItem)
+}, {
+    name: 'Round Bracket',
+    iconUrl: '/images/items/round-bracket.svg',
+    item: utils.extendObject({
+        shape: 'bracket',
+        shapeProps: {
+            style: 'round'
+        }
     }, defaultItem)
 }, {
     name: 'Overlay',
