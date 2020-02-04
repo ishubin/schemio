@@ -90,10 +90,36 @@ function generateNameStyle(item) {
     };
 }
 
+function makeCornerRadiusControlPoint(item) {
+    return {
+        x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
+        y: 0
+    };
+}
+
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+
+    controlPoints: {
+        make(item, pointId) {
+            if (!pointId) {
+                return {
+                    cornerRadius: makeCornerRadiusControlPoint(item),
+                };
+            } else if (pointId === 'cornerRadius') {
+                return makeCornerRadiusControlPoint(item);
+            }
+        },
+        handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+            // console.log('ahdnle drag', item, controlPointName, originalX, originalY, dx, dy);
+            if (controlPointName === 'cornerRadius') {
+                item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+            }
+        }
+    },
+
     identifyTextEditArea,
     editorProps: {
         description: 'rich',

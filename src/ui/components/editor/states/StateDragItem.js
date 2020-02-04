@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
+import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import _ from 'lodash';
 
@@ -41,6 +42,7 @@ export default class StateDragItem extends State {
         this.schemeContainer = editor.schemeContainer;
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;
+        this.controlPoint = null; // stores coords for item control point
         this.selectedConnector = null;
         this.selectedRerouteId = -1;
         this.sourceItem = null; // source item for a connector
@@ -68,6 +70,7 @@ export default class StateDragItem extends State {
         this.dragger = null;
         this.rotatingItem = false;
         this.sourceItem = null;
+        this.controlPoint = null;
         this.multiSelectBox = null;
         this.connectorsBuildChache = null;
         this.wasMouseMoved = false;
@@ -169,10 +172,28 @@ export default class StateDragItem extends State {
             }
         } else if (object.connectorStarter) {
             EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item);
-        } else {
+        } else if (object.controlPoint) {
+            this.initDraggingForControlPoint(object.controlPoint, x, y);
+        }else {
             //enabling multi select box only if user clicked in the empty area.
             if (event.srcElement.id === 'svg_plot') {
                 this.initMulitSelectBox(x, y);
+            }
+        }
+    }
+
+    initDraggingForControlPoint(controlPointDef, x, y) {
+        const controlPoint = controlPointDef.item.meta.controlPoints[controlPointDef.pointId];
+        if (controlPoint) {
+            this.reset();
+            this.originalPoint.x = x;
+            this.originalPoint.y = y;
+            this.startedDragging = true;
+            this.sourceItem = controlPointDef.item;
+            this.controlPoint = {
+                id: controlPointDef.pointId,
+                originalX: controlPoint.x,
+                originalY: controlPoint.y,
             }
         }
     }
@@ -262,6 +283,8 @@ export default class StateDragItem extends State {
                     this.dragByDragger(this.dragger.item, this.dragger.edges, x, y);
                 } else if (this.rotatingItem) {
                     this.rotateItem(x, y, this.sourceItem, event);
+                } else if (this.controlPoint) {
+                    this.handleControlPointDrag(x, y);
                 } else if (this.schemeContainer.selectedItems.length > 0) {
                     var dx = x - this.originalPoint.x,
                         dy = y - this.originalPoint.y;
@@ -339,6 +362,22 @@ export default class StateDragItem extends State {
                 this.eventBus.emitConnectorChanged(object.connector.id);
                 this.eventBus.emitSchemeChangeCommited();
             }
+        }
+    }
+
+    handleControlPointDrag(x, y) {
+        const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
+        const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
+        const dx = localPoint2.x - localPoint.x,
+              dy = localPoint2.y - localPoint.y;
+
+        const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
+        if (controlPoint) {
+            const shape = Shape.find(this.sourceItem.shape);
+            shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy);
+            const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
+            this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
+            this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
         }
     }
 

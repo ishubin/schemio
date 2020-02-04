@@ -156,6 +156,15 @@
                                     :height="dragger.s * 2 / safeZoom"
                                 />
                             </g>
+                            
+                            <!-- rendering item custom control points -->
+                            <circle v-for="(controlPoint, controlPointName) in item.meta.controlPoints"
+                                class="boundary-box-dragger"
+                                :data-control-point-item-id="item.id"
+                                :data-control-point-id="controlPointName"
+                                :cx="controlPoint.x" :cy="controlPoint.y"
+                                :r="5/safeZoom"
+                                />
 
                             <path class="boundary-box-connector-starter"
                                 :transform="`translate(${item.area.w/2 + 3/safeZoom}  ${item.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
@@ -520,6 +529,18 @@ export default {
                         };
                     }
                 }
+                const controlPointId = element.getAttribute('data-control-point-id');
+                if (controlPointId) {
+                    const item = this.schemeContainer.findItemById(element.getAttribute('data-control-point-item-id'));
+                    if (item) {
+                        return {
+                            controlPoint: {
+                                pointId: controlPointId,
+                                item
+                            }
+                        };
+                    }
+                }
             }
             return EMPTY_OBJECT;
         },
@@ -780,21 +801,21 @@ export default {
             // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
             var s = 5;
             return [{
-                x: 0, y: 0, s: s, edges: ['top', 'left']
+                x: -10/this.safeZoom, y: -10/this.safeZoom, s: s, edges: ['top', 'left']
             }, {
-                x: Math.floor(item.area.w / 2), y: 0, s: s, edges: ['top']
+                x: Math.floor(item.area.w / 2), y: -10/this.safeZoom, s: s, edges: ['top']
             },{
-                x: item.area.w, y:0, s: s, edges: ['top', 'right']
+                x: item.area.w + 10/this.safeZoom, y: -10/this.safeZoom, s: s, edges: ['top', 'right']
             },{
-                x: item.area.w, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
+                x: item.area.w + 10/this.safeZoom, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
             },{
-                x: item.area.w, y: item.area.h, s: s, edges: ['bottom', 'right']
+                x: item.area.w + 10/this.safeZoom, y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom', 'right']
             },{
-                x: Math.floor(item.area.w / 2), y: item.area.h, s: s, edges: ['bottom']
+                x: Math.floor(item.area.w / 2), y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom']
             },{
-                x: 0, y: item.area.h, s: s, edges: ['bottom', 'left']
+                x: -10/this.safeZoom, y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom', 'left']
             },{
-                x: 0, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
+                x: -10/this.safeZoom, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
             }];
         },
 

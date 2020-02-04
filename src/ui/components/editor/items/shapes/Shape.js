@@ -44,6 +44,7 @@ function enrichShape(shapeComponent) {
         // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
         identifyTextEditArea: shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
         getEvents: shapeComponent.getEvents || defaultGetEventsFunc,
+        controlPoints: shapeComponent.controlPoints || null,
         component: shapeComponent
     };
 }

@@ -136,25 +136,7 @@ class SchemeContainer {
         visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
-            if (!item.meta) {
-                item.meta = {
-                    collapsed: false, // used only for item tree selector
-                    collapseBitMask: 0 // used in item tree selector and stores information about parent items collapse state
-                };
-            }
-            if (!parentItem) {
-                item.meta.collapseBitMask = 0;
-            } else {
-                item.meta.collapseBitMask = (parentItem.meta.collapseBitMask << ancestorIds.length) | (parentItem.meta.collapsed ? 1: 0)
-            }
-
-            item.meta.transform = transform;
-            item.meta.ancestorIds = ancestorIds;
-            if (parentItem) {
-                item.meta.parentId = parentItem.id;
-            } else {
-                item.meta.parentId = null;
-            }
+            this.enrichItemMeta(item, transform, parentItem, ancestorIds);
 
             if (item.id) {
                 this.itemMap[item.id] = item;
@@ -169,6 +151,34 @@ class SchemeContainer {
             this.buildItemConnectors(item);
         });
         this.revision += 1;
+    }
+
+    enrichItemMeta(item, transform, parentItem, ancestorIds) {
+        if (!item.meta) {
+            item.meta = {
+                collapsed: false, // used only for item tree selector
+                collapseBitMask: 0 // used in item tree selector and stores information about parent items collapse state
+            };
+        }
+
+        item.meta.transform = transform;
+        item.meta.ancestorIds = ancestorIds;
+        if (!parentItem) {
+            item.meta.collapseBitMask = 0;
+        } else {
+            item.meta.collapseBitMask = (parentItem.meta.collapseBitMask << ancestorIds.length) | (parentItem.meta.collapsed ? 1: 0)
+        }
+
+        if (parentItem) {
+            item.meta.parentId = parentItem.id;
+        } else {
+            item.meta.parentId = null;
+        }
+
+        const shape = Shape.find(item.shape);
+        if (shape && shape.controlPoints) {
+            item.meta.controlPoints = shape.controlPoints.make(item);
+        }
     }
 
     /**
