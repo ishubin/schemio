@@ -378,6 +378,7 @@ export default class StateDragItem extends State {
             const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
             this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
             this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
+            this.eventBus.emitItemChanged(this.sourceItem.id);
         }
     }
 

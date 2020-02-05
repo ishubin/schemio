@@ -680,11 +680,11 @@ class SchemeContainer {
 
     addItem(item) {
         if (!item.hasOwnProperty('meta')) {
-            item.meta = {
-                hovered: false,
-                selected: false
-            };
+            item.meta = {}
         }
+        item.meta.hovered = false;
+        item.meta.selected = false;
+        item.meta.controlPoints = [];
         if (!item.id) {
             item.id = shortid.generate();
         }

@@ -407,6 +407,13 @@ svg rect.multi-select-box {
     stroke-dasharray: 4 4;
     fill: none;
 }
+svg .item-control-point {
+    opacity: 0.5;
+    cursor: pointer;
+}
+svg .item-control-point:hover {
+    opacity: 1;
+}
 svg rect.boundary-box {
     stroke-width: 1;
     fill: rgba(255, 255, 255, 0.01);

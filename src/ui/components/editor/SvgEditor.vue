@@ -132,65 +132,7 @@
                         />
                     </g>
 
-
-                    <g v-for="item in schemeContainer.selectedItems" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
-                        <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
-                            <path :d="`M 0 0 L ${item.area.w} 0  L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`" stroke-width="1" fill="none" :stroke="schemeContainer.scheme.style.boundaryBoxColor" style="opacity: 0.4;"/>
-                            <ellipse class="boundary-box-dragger rotational-dragger"
-                                :data-dragger-item-id="item.id"
-                                data-dragger-type="rotation"
-                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                :cx="item.area.w / 2"
-                                :cy="-60/safeZoom"
-                                :rx="5/safeZoom"
-                                :ry="5/safeZoom"
-                            />
-                            <g v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)">
-                                <rect v-if="!dragger.rotation" class="boundary-box-dragger"
-                                    :data-dragger-item-id="item.id"
-                                    :data-dragger-index="draggerIndex"
-                                    :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                    :x="dragger.x - dragger.s / safeZoom"
-                                    :y="dragger.y - dragger.s / safeZoom"
-                                    :width="dragger.s * 2 / safeZoom"
-                                    :height="dragger.s * 2 / safeZoom"
-                                />
-                            </g>
-                            
-                            <!-- rendering item custom control points -->
-                            <circle v-for="(controlPoint, controlPointName) in item.meta.controlPoints"
-                                class="boundary-box-dragger"
-                                :data-control-point-item-id="item.id"
-                                :data-control-point-id="controlPointName"
-                                :cx="controlPoint.x" :cy="controlPoint.y"
-                                :r="5/safeZoom"
-                                />
-
-                            <path class="boundary-box-connector-starter"
-                                :transform="`translate(${item.area.w/2 + 3/safeZoom}  ${item.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
-                                :data-connector-starter-item-id="item.id"
-                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                            <path class="boundary-box-connector-starter"
-                                :transform="`translate(${item.area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
-                                :data-connector-starter-item-id="item.id"
-                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                            <path class="boundary-box-connector-starter"
-                                :transform="`translate(${item.area.w + 20/safeZoom}  ${item.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
-                                :data-connector-starter-item-id="item.id"
-                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-
-                            <path class="boundary-box-connector-starter"
-                                :transform="`translate(${-20/safeZoom}  ${item.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
-                                :data-connector-starter-item-id="item.id"
-                                :fill="schemeContainer.scheme.style.boundaryBoxColor"
-                                d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-                        </g>
-                    </g>
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" :item="item" :zoom="vZoom" :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
@@ -277,6 +219,7 @@ import StateCreateComponent from './states/StateCreateComponent.js';
 import StateConnecting from './states/StateConnecting.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
+import ItemEditBox from './ItemEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
 import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
@@ -309,7 +252,7 @@ const allDraggerEdges = [
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
-    components: {ConnectorSvg, ItemSvg, ContextMenu},
+    components: {ConnectorSvg, ItemSvg, ContextMenu, ItemEditBox},
     beforeMount() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
@@ -797,28 +740,6 @@ export default {
             return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
         },
 
-        provideBoundingBoxDraggers(item) {
-            // OPTIMIZE: should not construct entire array of draggers each time, as it is used in mouseMove event
-            var s = 5;
-            return [{
-                x: -10/this.safeZoom, y: -10/this.safeZoom, s: s, edges: ['top', 'left']
-            }, {
-                x: Math.floor(item.area.w / 2), y: -10/this.safeZoom, s: s, edges: ['top']
-            },{
-                x: item.area.w + 10/this.safeZoom, y: -10/this.safeZoom, s: s, edges: ['top', 'right']
-            },{
-                x: item.area.w + 10/this.safeZoom, y: Math.floor(item.area.h / 2), s: s, edges: ['right']
-            },{
-                x: item.area.w + 10/this.safeZoom, y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom', 'right']
-            },{
-                x: Math.floor(item.area.w / 2), y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom']
-            },{
-                x: -10/this.safeZoom, y: item.area.h + 10/this.safeZoom, s: s, edges: ['bottom', 'left']
-            },{
-                x: -10/this.safeZoom, y: Math.floor(item.area.h / 2), s: s, edges: ['left']
-            }];
-        },
-
         toLocalPoint(mouseX, mouseY) {
             return {
                 x: (mouseX - this.vOffsetX) / this.vZoom,
@@ -1016,13 +937,6 @@ export default {
             let y = Math.ceil(this.vOffsetY % (20 * this.vZoom));
             return `translate(${x} ${y})`;
         },
-
-        safeZoom() {
-            if (this.vZoom > 0.001) {
-                return this.vZoom;
-            }
-            return 1.0;
-        }
     },
     filters: {
         formatLinkTitle(link) {

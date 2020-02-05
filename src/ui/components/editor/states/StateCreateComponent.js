@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
+import Shape from '../items/shapes/Shape';
 import _ from 'lodash';
 import collections from '../../../collections.js';
 
@@ -31,6 +32,7 @@ export default class StateCreateComponent extends State {
         this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
         this.component.name = this.findProperComponentName(this.component.name);
         this.schemeContainer.addItem(this.component);
+        this.refreshControlPoints(this.component);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.component.area);
     }
@@ -111,6 +113,14 @@ export default class StateCreateComponent extends State {
         } else {
             this.component.area.h = this.originalPoint.y - y;
             this.component.area.y = y;
+        }
+        this.refreshControlPoints(this.component);
+    }
+
+    refreshControlPoints(item) {
+        const shape = Shape.find(item.shape);
+        if (shape && shape.controlPoints) {
+            item.meta.controlPoints = shape.controlPoints.make(item);
         }
     }
 
