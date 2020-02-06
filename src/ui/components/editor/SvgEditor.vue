@@ -814,15 +814,16 @@ export default {
             this.itemTextEditor.text = htmlSanitize(item[textEditArea.property]);
             this.itemTextEditor.property = textEditArea.property;
             this.itemTextEditor.style = textEditArea.style;
+            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
             if (textEditArea.area) {
                 this.itemTextEditor.area = textEditArea.area;
-                this.itemTextEditor.area.x = item.area.x + textEditArea.area.x;
-                this.itemTextEditor.area.y = item.area.y + textEditArea.area.y;
+                this.itemTextEditor.area.x = worldPoint.x + textEditArea.area.x;
+                this.itemTextEditor.area.y = worldPoint.y + textEditArea.area.y;
                 this.itemTextEditor.area.w = textEditArea.area.w;
                 this.itemTextEditor.area.h = textEditArea.area.h;
             } else {
-                this.itemTextEditor.area.x = item.area.x;
-                this.itemTextEditor.area.y = item.area.y;
+                this.itemTextEditor.area.x = worldPoint.x;
+                this.itemTextEditor.area.y = worldPoint.y;
                 this.itemTextEditor.area.w = item.area.w;
                 this.itemTextEditor.area.h = item.area.h;
             }
