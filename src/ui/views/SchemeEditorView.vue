@@ -109,7 +109,7 @@
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
                         <div v-if="currentTab === 'Item'">
-                            <panel name="Items">
+                            <panel name="Items" v-if="mode === 'edit'">
                                 <div class="item-selector-container" style="max-height: 200px;">
                                     <item-selector :scheme-container="schemeContainer" :key="schemeContainer.revision"/>
                                 </div>
@@ -546,8 +546,6 @@ export default {
         onAnyItemSelected(itemId) {
             // Checking whether an item has any information in it.
             if (this.mode === 'view') {
-                this.currentTab = 'Item';
-                this.tabs[2].disabled = true;
                 if (this.schemeContainer.selectedItems.length > 0 && this.schemeContainer.selectedItems[0].description) {
                     /*
                     This is very dirty but it is the simplest way to check if the item has a proper description
@@ -558,6 +556,8 @@ export default {
                     */
                     if (this.schemeContainer.selectedItems[0].description.trim().length > 8) {
                         this.sidePanelRightExpanded = true;
+                        this.currentTab = 'Item';
+                        this.tabs[2].disabled = true;
                     }
                 }
             }
