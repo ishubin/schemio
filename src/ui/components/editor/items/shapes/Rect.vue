@@ -38,7 +38,7 @@ import htmlSanitize from '../../../../../htmlSanitize';
 const computePath = (item) => {
     const W = item.area.w;
     const H = item.area.h;
-    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/2, item.area.h/2);
 
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
@@ -113,7 +113,6 @@ export default {
             }
         },
         handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-            // console.log('ahdnle drag', item, controlPointName, originalX, originalY, dx, dy);
             if (controlPointName === 'cornerRadius') {
                 item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
             }
