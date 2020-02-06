@@ -381,7 +381,11 @@ class SchemeContainer {
             return;
         }
 
-        this.remountItemInsideOtherItem(itemId, parent, index + 1);
+        let parentId = null;
+        if (parent) {
+            parentId = parent.id;
+        }
+        this.remountItemInsideOtherItem(itemId, parentId, index + 1);
     }
 
     enrichItemWithDefaults(item, shape) {
