@@ -78,6 +78,8 @@ class SchemeContainer {
         this.copyBuffer = [];
         this.connectorsMap  = {}; //used for quick access to connector by id
         this.revision = 0;
+        this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
+        this.worldItems = []; // used for storing top-level items with default area
 
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -128,6 +130,8 @@ class SchemeContainer {
         this._destinationToSourceLookup = {};
         this._itemArray = [];
         this.connectorsMap = {};
+        this.viewportItems = [];
+        this.worldItems = [];
 
         const itemsWithConnectors = [];
         if (!this.scheme.items) {
@@ -137,6 +141,15 @@ class SchemeContainer {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transform, parentItem, ancestorIds);
+
+            // only storing top-level items 
+            if (!parentItem) {
+                if (item.area.type === 'viewport') {
+                    this.viewportItems.push(item);
+                } else {
+                    this.worldItems.push(item);
+                }
+            }
 
             if (item.id) {
                 this.itemMap[item.id] = item;
@@ -390,7 +403,7 @@ class SchemeContainer {
 
     enrichItemWithDefaults(item, shape) {
         const props = {
-            area: {x:0, y: 0, w: 0, h: 0, r: 0},
+            area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
             opacity: 100.0,
             selfOpacity: 100.0,
             visible: true,

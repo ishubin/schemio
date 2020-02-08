@@ -58,17 +58,17 @@ function identifyTextEditArea(item, itemX, itemY) {
 
 function generateTextStyle(item) {
     return {
-        'color':            item.shapeProps.textColor,  
-        'font-size':        item.shapeProps.fontSize + 'px',
-        'padding-left':     item.shapeProps.textPaddingLeft + 'px',
-        'padding-right':    item.shapeProps.textPaddingRight + 'px',
-        'padding-top':      item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom':   item.shapeProps.textPaddingBottom + 'px',
-        'text-align':       item.shapeProps.textHorizontalAlign,
-        'vertical-align':   item.shapeProps.textVerticalAlign,
-        'display':          'table-cell',
-        'width':            item.area.w + 'px',
-        'height':           item.area.h + 'px',
+        'color'           : item.shapeProps.textColor,
+        'font-size'       : item.shapeProps.fontSize + 'px',
+        'padding-left'    : item.shapeProps.textPaddingLeft + 'px',
+        'padding-right'   : item.shapeProps.textPaddingRight + 'px',
+        'padding-top'     : item.shapeProps.textPaddingTop + 'px',
+        'padding-bottom'  : item.shapeProps.textPaddingBottom + 'px',
+        'text-align'      : item.shapeProps.textHorizontalAlign,
+        'vertical-align'  : item.shapeProps.textVerticalAlign,
+        'display'         : 'table-cell',
+        'width'           : item.area.w + 'px',
+        'height'          : item.area.h + 'px',
     };
 }
 
@@ -81,12 +81,13 @@ function generateNameStyle(item) {
     }
 
     return {
-        color: item.shapeProps.nameColor,
-        'text-align': 'center',
-        'vertical-align': 'middle',
-        position: 'relative',
-        top: `${displace}%`,
-        transform: `translateY(${-displace}%)`
+        color               : item.shapeProps.nameColor,
+        'text-align'        : 'center',
+        'font-size'         : item.shapeProps.fontSize + 'px',
+        'vertical-align'    : 'middle',
+        position            : 'relative',
+        top                 : `${displace}%`,
+        transform           : `translateY(${-displace}%)`
     };
 }
 

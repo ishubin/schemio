@@ -64,6 +64,8 @@
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
                         :mode="mode"
                         :should-snap-to-grid="shouldSnapToGrid"
+                        :viewport-top="40"
+                        :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
                         @zoom-updated="onUpdateZoom"
                         @offset-updated="onUpdateOffset"
                         @clicked-add-item-to-item="onActiveItemAppendItem"
@@ -375,8 +377,13 @@ export default {
         },
 
         zoomToItems(items) {
-            if (items && items.length > 0) {
-                let area = this.schemeContainer.getBoundingBoxOfItems(items);
+            if (!items) {
+                return;
+            }
+
+            const zoomableItems = _.filter(items, item => item.area.type !== 'viewport');
+            if (zoomableItems.length > 0) {
+                let area = this.schemeContainer.getBoundingBoxOfItems(zoomableItems);
                 if (area) {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
@@ -410,7 +417,7 @@ export default {
 
             var newItem = {
                 type: item.type,
-                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h },
+                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h, type: 'relative' },
                 shape: item.shape,
                 shapeProps: utils.clone(item.shapeProps),
                 properties: '',
@@ -594,6 +601,12 @@ export default {
 
         onItemChange(itemId, propertyPath) {
             this.schemeChanged = true;
+
+            if (propertyPath === 'area.type') {
+                // need to preform a full reindex since item was moved in/out viewport/world coords
+                this.schemeContainer.reindexItems();
+            }
+
             if (this.schemeContainer.selectedItems.length > 1 && propertyPath) {
                 const item = this.schemeContainer.findItemById(itemId);
                 if (item) {

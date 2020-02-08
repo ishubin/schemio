@@ -39,6 +39,12 @@
             </tbody>
         </table>
         <span class="property-label"><i class="fas fa-sync"></i>: </span> <input class="textfield textfield-small" type="text" v-model="r"/>
+        <br/>
+        <span class="property-label">Type:</span>
+        <select v-model="type">
+            <option v-for="knownType in knownTypes">{{knownType}}</option>
+
+        </select>
 
     </panel>
 </template>
@@ -66,11 +72,12 @@ export default {
             w: this.item.area.w,
             h: this.item.area.h,
             r: this.item.area.r,
+            type: this.item.area.type,
 
             itemLocked: this.item.locked || false,
             itemGroup: this.item.group,
 
-            isSelfOriginatedEvent: false, // using this flag in order to avoid processing of item changes that were triggered from this component
+            knownTypes: ['relative', 'viewport']
         };
     },
 
@@ -86,22 +93,17 @@ export default {
         },
 
         onItemChanged() {
-            if (!this.isSelfOriginatedEvent) {
-                this.x = this.item.area.x;
-                this.y = this.item.area.y;
-                this.w = this.item.area.w;
-                this.h = this.item.area.h;
-                this.r = this.item.area.r;
-            } else {
-                this.isSelfOriginatedEvent = false;
-            }
+            this.x = this.item.area.x;
+            this.y = this.item.area.y;
+            this.w = this.item.area.w;
+            this.h = this.item.area.h;
+            this.r = this.item.area.r;
+            this.type = this.item.area.type;
         },
 
         updateAreaProperty(propertyName, textValue) {
             if (textValue.length > 0) {
                 this.item.area[propertyName] = parseFloat(textValue);
-
-                this.isSelfOriginatedEvent = true;
                 EventBus.emitItemChanged(this.item.id);
             }
         }
@@ -122,6 +124,10 @@ export default {
         },
         r(text) {
             this.updateAreaProperty('r', text);
+        },
+        type(text) {
+            this.item.area.type = text;
+            EventBus.emitItemChanged(this.item.id, 'area.type');
         }
     }
 }

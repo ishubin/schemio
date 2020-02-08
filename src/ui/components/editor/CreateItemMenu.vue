@@ -145,7 +145,7 @@ export default {
          */
         prepareItemsForMenu(items) {
             return _.map(items, item => {
-                item.item.area = {x: 6, y: 6, w: 140, h: 90};
+                item.item.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
@@ -153,7 +153,7 @@ export default {
                         item.shapeComponent = shape.component;
 
                         if (item.previewItem) {
-                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90};
+                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
                             this.enrichItemWithShapeProps(item.previewItem, shape);
                         }
                     }
@@ -233,7 +233,7 @@ export default {
                 text: '',
                 links: [],
                 shape: 'rect',
-                area: { x: 0, y: 0, w: 0, h: 0 },
+                area: { x: 0, y: 0, w: 0, h: 0, type: 'relative'},
                 shapeProps: {
                     strokeSize: 0,
                     backgroundImage: art.url
@@ -254,7 +254,7 @@ export default {
             } else {
                 const newItem = utils.clone(item.item);
                 newItem.id = shortid.generate();
-                newItem.area = { x: 0, y: 0, w: 0, h: 0 };
+                newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
                 newItem.name = item.name;
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
@@ -276,7 +276,7 @@ export default {
                 if (this.width > 1 && this.height > 1) {
                     const newItem = utils.clone(this.selectedImageItem.item);
                     newItem.id = shortid.generate();
-                    newItem.area = { x: 0, y: 0, w: 0, h: 0 };
+                    newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
 
                     utils.setObjectProperty(newItem, this.selectedImageItem.imageProperty, imageUrl);
                     EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);

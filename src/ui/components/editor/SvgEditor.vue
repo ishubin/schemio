@@ -18,7 +18,7 @@
 
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="(item, itemIndex) in interactiveSchemeContainer.scheme.items" class="item-container"
+                    <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         <!-- Drawing search highlight box -->
                         <!-- TODO refactor it. It should be available for all item levels (childItems) -->
@@ -53,8 +53,31 @@
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             ></connector-svg>
                     </g>
-
                 </g>
+
+                <g :transform="viewportTransform">
+                    <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
+                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        <!-- Drawing search highlight box -->
+                        <!-- TODO refactor it. It should be available for all item levels (childItems) -->
+                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
+                            :x="item.area.x - 5"
+                            :y="item.area.y - 5"
+                            :width="item.area.w + 10"
+                            :height="item.area.h + 10"
+                        />
+
+                        <item-svg 
+                            :key="`${item.id}-${item.shape}`"
+                            :item="item"
+                            :mode="mode"
+                            :scheme-container="schemeContainer"
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                            @custom-event="onItemCustomEvent"/>
+                    </g>
+                </g>
+
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
@@ -85,7 +108,7 @@
                     />
                 </g>
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="(item, itemIndex) in schemeContainer.scheme.items" class="item-container"
+                    <g v-for="item in schemeContainer.worldItems" class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
@@ -132,7 +155,10 @@
                         />
                     </g>
 
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" :item="item" :zoom="vZoom" :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport'"
+                        :item="item"
+                        :zoom="vZoom"
+                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
                     <g v-if="state && state.name === 'connecting'">
@@ -153,13 +179,40 @@
                     </g>
                 </g>
 
+
+                <g :transform="viewportTransform">
+                    <g v-for="item in schemeContainer.viewportItems" class="item-container"
+                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        >
+
+                        <!-- Drawing search highlight box -->
+                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
+                            :x="item.area.x - 5"
+                            :y="item.area.y - 5"
+                            :width="item.area.w + 10"
+                            :height="item.area.h + 10"
+                        />
+
+                        <item-svg
+                            :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
+                            :item="item"
+                            :mode="mode"
+                            :scheme-container="schemeContainer"
+                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                    </g>
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport'"
+                        :item="item"
+                        :zoom="1"
+                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                </g>
+
                 <!-- Item Text Editor -->    
-                <g v-if="itemTextEditor.shown" :transform="transformSvg">
+                <g v-if="itemTextEditor.shown" :transform="itemTextEditor.area.type === 'viewport' ? viewportTransform : transformSvg">
                     <foreignObject :x="itemTextEditor.area.x" :y="itemTextEditor.area.y" :width="itemTextEditor.area.w" :height="itemTextEditor.area.h">
                         <div id="item-text-editor" class="item-text-container" :style="itemTextEditor.style" v-html="itemTextEditor.text" contenteditable="true"></div>
                     </foreignObject>
                 </g>
-
 
 
                 <g v-if="multiSelectBox">
@@ -251,7 +304,7 @@ const allDraggerEdges = [
 ];
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'zoom', 'shouldSnapToGrid'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'viewportTop', 'viewportLeft', 'zoom', 'shouldSnapToGrid'],
     components: {ConnectorSvg, ItemSvg, ContextMenu, ItemEditBox},
     beforeMount() {
         this.vOffsetX = parseInt(this.offsetX);
@@ -347,7 +400,7 @@ export default {
                 itemId: null,
                 text: '',
                 style: {},
-                area: {x: 0, y: 0, w: 0, h: 0}
+                area: {x: 0, y: 0, w: 0, h: 0, type: 'relative'}
             },
 
             // used in order to limit offset in 'view' mode
@@ -814,6 +867,7 @@ export default {
             this.itemTextEditor.text = htmlSanitize(item[textEditArea.property]);
             this.itemTextEditor.property = textEditArea.property;
             this.itemTextEditor.style = textEditArea.style;
+            this.itemTextEditor.area.type = item.area.type;
             const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
             if (textEditArea.area) {
                 this.itemTextEditor.area = textEditArea.area;
@@ -919,6 +973,9 @@ export default {
             var y = Math.floor(this.vOffsetY || 0);
             var scale = this.vZoom || 1.0;
             return `translate(${x} ${y}) scale(${scale} ${scale})`;
+        },
+        viewportTransform() {
+            return `translate(${this.viewportLeft} ${this.viewportTop})`;
         },
         gridStep() {
             return 20 * this.vZoom;
