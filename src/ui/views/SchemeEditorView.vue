@@ -110,7 +110,7 @@
                             <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :scheme-container="schemeContainer"></scheme-properties>
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
-                        <div v-if="currentTab === 'Item'">
+                        <div v-if="currentTab === 'Items'">
                             <panel name="Items" v-if="mode === 'edit'">
                                 <div class="item-selector-container" style="max-height: 200px;">
                                     <item-selector :scheme-container="schemeContainer" :key="schemeContainer.revision"/>
@@ -278,7 +278,7 @@ export default {
             tabs: [{
                 name: 'Scheme'
             }, {
-                name: 'Item',
+                name: 'Items',
             }, {
                 name: 'Connection',
                 disabled: true
@@ -322,6 +322,7 @@ export default {
 
                 const schemeSettings = schemeSettingsStorage.get(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {
+                    this.currentTab = schemeSettings.currentTab;
                     this.offsetX = schemeSettings.screenPosition.offsetX;
                     this.offsetY = schemeSettings.screenPosition.offsetY;
                     this.zoom = schemeSettings.screenPosition.zoom;
@@ -538,12 +539,13 @@ export default {
 
             this.offsetSaveTimerId = setTimeout(()=> {
                 this.offsetSaveTimerId = null;
-                this.saveOffset();
+                this.saveSchemeSettings();
             }, 200);
         },
 
-        saveOffset() {
+        saveSchemeSettings() {
             schemeSettingsStorage.save(this.schemeContainer.scheme.id, {
+                currentTab: this.currentTab,
                 screenPosition: {
                     offsetX: this.offsetX,
                     offsetY: this.offsetY,
@@ -764,6 +766,10 @@ export default {
             } else {
                 AnimationsRegistry.stopAllAnimations();
             }
+        },
+
+        currentTab(newValue) {
+            this.saveSchemeSettings();
         },
 
         searchKeyword(keyword) {
