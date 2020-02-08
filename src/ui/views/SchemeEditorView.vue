@@ -174,7 +174,6 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
-import settingsStorage from '../settingsStorage.js';
 import snapshotSvg from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
@@ -182,10 +181,13 @@ import Shape from '../components/editor/items/shapes/Shape.js';
 import AnimationsRegistry from '../animations/AnimationRegistry';
 import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
+import LimitedSettingsStorage from '../LimitedSettingsStorage';
 
 
 let history = new History({size: 30});
 
+
+const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'scheme-settings', 40);
 
 export default {
     components: {
@@ -318,7 +320,7 @@ export default {
                 history = new History({size: 30});
                 document._history = history;
 
-                var schemeSettings = settingsStorage.getSchemeSettings(this.schemeId);
+                const schemeSettings = schemeSettingsStorage.get(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {
                     this.offsetX = schemeSettings.screenPosition.offsetX;
                     this.offsetY = schemeSettings.screenPosition.offsetY;
@@ -541,7 +543,7 @@ export default {
         },
 
         saveOffset() {
-            settingsStorage.saveSchemeSettings(this.schemeContainer.scheme.id, {
+            schemeSettingsStorage.save(this.schemeContainer.scheme.id, {
                 screenPosition: {
                     offsetX: this.offsetX,
                     offsetY: this.offsetY,

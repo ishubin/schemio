@@ -4,12 +4,12 @@ export default class LimitedSettingsStorage {
 
     /**
      * 
-     * @param {SettingsStorage} settingsStorage 
+     * @param {Storage} localStorage 
      * @param {String} name 
      * @param {Number} limit Amount of objects to be stored in settings storage
      */
-    constructor(settingsStorage, name, limit) {
-        this.settingsStorage = settingsStorage;
+    constructor(localStorage, name, limit) {
+        this.storage = localStorage;
         this.name = name;
         this.limit = limit;
         this.items = {};
@@ -19,8 +19,21 @@ export default class LimitedSettingsStorage {
         this.loadFromSettingsStorage();
     }
 
+    _saveItem(itemName, obj) {
+        this.storage.setItem(itemName, JSON.stringify(obj));
+    }
+
+    _getItem(name, defaultValue) {
+        const encodedJson = this.storage.getItem(name);
+        if (encodedJson) {
+            return JSON.parse(encodedJson);
+        } else {
+            return defaultValue;
+        }
+    }
+
     loadFromSettingsStorage() {
-        const that = this.settingsStorage.getItem(`LSS-${this.name}`);
+        const that = this._getItem(`LSS-${this.name}`);
         if (that && that.items && that.amountOfElements && that.revision) {
             this.items = that.items;
             this.amountOfElements = that.amountOfElements;
@@ -29,7 +42,7 @@ export default class LimitedSettingsStorage {
     }
 
     saveToSettingsStorage() {
-        this.settingsStorage.saveItem(`LSS-${this.name}`, {
+        this._saveItem(`LSS-${this.name}`, {
             items: this.items,
             amountOfElements: this.amountOfElements,
             revision: this.revision

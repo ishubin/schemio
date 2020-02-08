@@ -3,7 +3,7 @@ import LimitedSettingsStorage from '../src/ui/LimitedSettingsStorage';
 
 const storageStub = {
     getItem(){},
-    saveItem(){}
+    setItem(){}
 };
 
 describe('LimitedSettingsStorage', () => {

@@ -145,8 +145,8 @@ import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
-import settingsStorage from '../../../settingsStorage.js';
 import Item from '../../../scheme/Item.js';
+import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -155,18 +155,21 @@ const ALL_TABS = [
     {name: 'behavior', icon: 'far fa-hand-point-up'}
 ];
 
-const tabsSettingsStorage = settingsStorage.createStorageWithAllowedValues(
-    'item-properties-current-tab',
-    _.chain(ALL_TABS).map(x => x.name).value(),
-    0
-);
+const ALL_TABS_NAMES = _.map(ALL_TABS, tab => tab.name);
+
+const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
+const TAB_STORAGE = 'tab';
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {
-        this.currentTab = tabsSettingsStorage.get();
+        let tab = tabsSettingsStorage.get(TAB_STORAGE, ALL_TABS_NAMES[0]);
+        if (_.indexOf(ALL_TABS_NAMES, tab) < 0) {
+            tab = ALL_TABS_NAMES[0];
+        }
+        this.currentTab = tab;
     },
 
     mounted() {
@@ -331,7 +334,7 @@ export default {
 
     watch: {
         currentTab(value) {
-            tabsSettingsStorage.save(value);
+            tabsSettingsStorage.save(TAB_STORAGE, value);
         }
     }
 }

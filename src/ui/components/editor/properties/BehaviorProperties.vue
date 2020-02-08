@@ -100,7 +100,6 @@ import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
-import settingsStorage from '../../../settingsStorage';
 
 const supportedProperties = {
     opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
@@ -108,7 +107,7 @@ const supportedProperties = {
 
 const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
 
-const behaviorCollapseStateStorage = new LimitedSettingsStorage(settingsStorage, 'behavior-collapse', 400);
+const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
 
 export default {
     props: ['item', 'schemeContainer'],
