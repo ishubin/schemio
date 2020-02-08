@@ -118,7 +118,7 @@
                             </panel>
 
                             <item-properties v-if="schemeContainer.selectedItems.length > 0 && mode === 'edit'"
-                                :key="`${schemeRevision}`"
+                                :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}`"
                                 :item="schemeContainer.selectedItems[0]"
                                 :revision="schemeRevision"
                                 :project-id="projectId"
