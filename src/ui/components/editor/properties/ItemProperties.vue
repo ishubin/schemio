@@ -158,14 +158,13 @@ const ALL_TABS = [
 const ALL_TABS_NAMES = _.map(ALL_TABS, tab => tab.name);
 
 const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
-const TAB_STORAGE = 'tab';
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
     components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {
-        let tab = tabsSettingsStorage.get(TAB_STORAGE, ALL_TABS_NAMES[0]);
+        let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
         if (_.indexOf(ALL_TABS_NAMES, tab) < 0) {
             tab = ALL_TABS_NAMES[0];
         }
@@ -334,7 +333,7 @@ export default {
 
     watch: {
         currentTab(value) {
-            tabsSettingsStorage.save(TAB_STORAGE, value);
+            tabsSettingsStorage.save(this.schemeContainer.scheme.id, value);
         }
     }
 }
