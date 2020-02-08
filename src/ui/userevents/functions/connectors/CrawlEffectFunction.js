@@ -58,7 +58,9 @@ class CrawlEffectAnimation extends Animation {
             this.domContainer.removeChild(this.domAnimationPath);
         }
 
-        this.domConnectorPath.style.opacity = this.backupOpacity;
+        if (this.domConnectorPath) {
+            this.domConnectorPath.style.opacity = this.backupOpacity;
+        }
     }
 }
 

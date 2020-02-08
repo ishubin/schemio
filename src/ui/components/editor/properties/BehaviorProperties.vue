@@ -170,12 +170,11 @@ export default {
         },
 
         findElement(element) {
+            if (element.connector) {
+                return this.schemeContainer.findConnectorById(element.connector);
+            }
             if (element.item) {
-                const item = this.findItem(element.item);
-                if (element.connector && item && item.connectors) {
-                    return _.find(item.connectors, connector => connector.id === element.connector);
-                }
-                return item;
+                return this.findItem(element.item);
             }
             return null;
         },
@@ -227,48 +226,45 @@ export default {
         },
 
         createMethodSuggestionsForElement(element) {
+            const options = [];
+            let scope = 'item';
+            if (element.connector) {
+                scope = 'connector';
+            }
+            options.push({
+                method: 'set',
+                name: 'Opacity',
+                fieldPath: 'opacity',
+                iconClass: 'fas fa-cog'
+            });
+
             if (element.item) {
                 const item = this.findItem(element.item);
-                if (item) {
-                    let scope = 'item';
-                    if (element.connector) {
-                        scope = 'connector';
-                    }
-
-                    const options = [];
-                    _.forEach(Functions[scope], (func, funcId) => {
-                        if (funcId !== 'set') {
-                            options.push({
-                                method: funcId,
-                                name: func.name,
-                                iconClass: 'fas fa-play'
-                            });
-                        }
+                if (!item) {
+                    return [];
+                }
+                const shape = Shape.find(item.shape);
+                if (shape) {
+                    _.forEach(shape.args, (arg, argName) => {
+                        options.push({
+                            method: 'set',
+                            name: arg.name,
+                            fieldPath: `shapeProps.${argName}`,
+                            iconClass: 'fas fa-cog'
+                        });
                     });
-                    options.push({
-                        method: 'set',
-                        name: 'Opacity',
-                        fieldPath: 'opacity',
-                        iconClass: 'fas fa-cog'
-                    });
-
-                    if (!element.connector) {
-                        const shape = Shape.find(item.shape);
-                        if (shape) {
-                            _.forEach(shape.args, (arg, argName) => {
-                                options.push({
-                                    method: 'set',
-                                    name: arg.name,
-                                    fieldPath: `shapeProps.${argName}`,
-                                    iconClass: 'fas fa-cog'
-                                });
-                            });
-                        }
-                    }
-                    return options;
                 }
             }
-            return [];
+            _.forEach(Functions[scope], (func, funcId) => {
+                if (funcId !== 'set') {
+                    options.push({
+                        method: funcId,
+                        name: func.name,
+                        iconClass: 'fas fa-play'
+                    });
+                }
+            });
+            return options;
         },
 
         addBehavior() {
@@ -357,12 +353,11 @@ export default {
 
         getDefaultArgsForMethod(action, method) {
             let functions = Functions.scheme;
-            if (action.element) {
-                if (action.element.item && action.element.connector) {
-                    functions = Functions.connector;
-                } else if (action.element.item) {
-                    functions = Functions.item;
-                }
+            if (action.element && action.element.item) {
+                functions = Functions.item;
+            }
+            if (action.element && action.element.connector) {
+                functions = Functions.connector;
             }
             if (functions[method]) {
                 const functionArgs = functions[method].args;
@@ -418,11 +413,10 @@ export default {
             let functionDescription = null;
             if (action.element) {
                 if (action.element.item) {
-                    if (action.element.connector) {
-                        functionDescription = Functions.connector[action.method];
-                    } else {
-                        functionDescription = Functions.item[action.method];
-                    }
+                    functionDescription = Functions.item[action.method];
+                }
+                if (action.element.connector) {
+                    functionDescription = Functions.connector[action.method];
                 }
             }
 
@@ -478,9 +472,9 @@ export default {
             let scope = 'page';
             if (element && element.item) {
                 scope = 'item';
-                if (element.connector) {
-                    scope = 'connector';
-                }
+            }
+            if (element && element.connector) {
+                scope = 'connector';
             }
             if (Functions[scope][method]) {
                 return Functions[scope][method].name;

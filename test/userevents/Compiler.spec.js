@@ -82,19 +82,31 @@ describe('UserEvents Compiler', () => {
                 if (id === 'abc') {
                     return abcItem;
                 }
+            },
+
+            findConnectorById(id) {
+                if (id === 'c1') {
+                    return selfItem.connectors[0];
+                }
+                if (id === 'b1') {
+                    return abcItem.connectors[0];
+                }
+                if (id === 'b2') {
+                    return abcItem.connectors[1];
+                }
             }
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            element: {item: 'self', connector: 'c1'},
+            element: {connector: 'c1'},
             method: 'set',
             args: { field: 'style.opacity', value: 0.5}
         }, {
-            element: {item: 'abc', connector: 'b1'},
+            element: {connector: 'b1'},
             method: 'set',
             args: {field: 'style.color', value: '#abc'}
         }, {
-            element: {item: 'abc', connector: 'b2'},
+            element: {connector: 'b2'},
             method: 'set',
             args: {field: 'style.color', value: '#f00'}
         }]);

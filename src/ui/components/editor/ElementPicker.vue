@@ -45,7 +45,6 @@ export default {
 
     methods: {
         collectAllOptions() {
-            //TODO cache it so that it doesn't have to collect all elements every time it appears
             const options = [{
                 iconClass: 'fas fa-crosshairs',
                 name: 'Pick...',
@@ -69,11 +68,10 @@ export default {
                     type: 'item'
                 });
                 if (item.connectors) {
-                    _.forEach(item.connectors, connector => {
+                    _.forEach(item.connectors, (connector, connectorIndex) => {
                         options.push({
                             iconClass: 'fas fa-link',
-                            name: connector.name || 'unnamed connector',
-                            itemId: item.id,
+                            name: connector.name || `${item.name} #${connectorIndex}`,
                             id: connector.id,
                             type: 'connector'
                         });
@@ -96,9 +94,8 @@ export default {
                     });
                 } else if (option.type === 'connector') {
                     this.$emit('selected', {
-                        item: option.itemId,
                         connector: option.id
-                    })
+                    });
                 } else {
                     console.error(option.type + ' is not supported');
                 }
@@ -117,26 +114,31 @@ export default {
                 }
 
                 if (item) {
-                    if (this.element.connector && item.connectors) {
-                        const connector = _.find(item.connectors, connector => connector.id === this.element.connector);
-                        if (connector) {
-                            return {
-                                name: connector.name || connector.id,
-                                type: 'connector',
-                                iconClass: 'fas fa-link'
-                            };
-                        }
-                    } else {
-                        return {
-                            name: (this.selfItem && this.selfItem.id === item.id) ? 'self' : item.name,
-                            type: 'item',
-                            iconClass: 'fas fa-cube'
-                        }
-                    }
+                    return {
+                        name: (this.selfItem && this.selfItem.id === item.id) ? 'self' : item.name,
+                        type: 'item',
+                        iconClass: 'fas fa-cube'
+                    };
                 } 
 
                 return {
                     name: 'no item',
+                    type: 'error',
+                    iconClass: 'fas fa-exclamation-triangle'
+                };
+            }
+            if (this.element && this.element.connector) {
+                const connector = this.schemeContainer.findConnectorById(this.element.connector);
+                if (connector) {
+                    return {
+                        name: connector.name || connector.id,
+                        type: 'connector',
+                        iconClass: 'fas fa-link'
+                    };
+                }
+
+                return {
+                    name: 'no connector',
                     type: 'error',
                     iconClass: 'fas fa-exclamation-triangle'
                 };
