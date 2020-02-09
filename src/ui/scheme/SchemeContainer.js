@@ -204,26 +204,7 @@ class SchemeContainer {
      * @param {Item} item 
      */
     worldPointOnItem(x, y, item) {
-        if (!item.area) {
-            return {x: 0, y: 0};
-        }
-        
-        let transform = _zeroTransform;
-        if (item.meta && item.meta.transform) {
-            transform = item.meta.transform;
-        }
-
-        let tAngle = transform.r * Math.PI/180,
-            cosTA = Math.cos(tAngle),
-            sinTA = Math.sin(tAngle),
-            angle = (transform.r + item.area.r) * Math.PI/180,
-            cosa = Math.cos(angle),
-            sina = Math.sin(angle);
-
-        return {
-            x: transform.x + item.area.x * cosTA - item.area.y * sinTA  + x * cosa - y * sina,
-            y: transform.y + item.area.x * sinTA + item.area.y * cosTA  + x * sina + y * cosa,
-        };
+        return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
     }
 
     /**
@@ -233,29 +214,7 @@ class SchemeContainer {
      * @param {Item} item 
      */
     localPointOnItem(x, y, item) {
-        if (!item.area) {
-            return {x: 0, y: 0};
-        }
-        
-        let transform = _zeroTransform;
-        if (item.meta && item.meta.transform) {
-            transform = item.meta.transform;
-        }
-
-        let tAngle = transform.r * Math.PI/180,
-            cosTA = Math.cos(tAngle),
-            sinTA = Math.sin(tAngle),
-            angle = (transform.r + item.area.r) * Math.PI/180,
-            cosa = Math.cos(angle),
-            sina = Math.sin(angle),
-            tx = transform.x + item.area.x * cosTA - item.area.y * sinTA,
-            ty = transform.y + item.area.x * sinTA + item.area.y * cosTA;
-
-
-        return {
-            x: (y - ty)*sina + (x - tx)*cosa,
-            y: (y - ty)*cosa - (x - tx)*sina
-        };
+        return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
     }
 
     getBoundingBoxOfItems(items) {
@@ -471,29 +430,32 @@ class SchemeContainer {
 
         if (connector.reroutes && connector.reroutes.length > 0) {
             const sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0]);
-            points.push(sourcePoint);
+            points.push(this.localPointOnItem(sourcePoint.x, sourcePoint.y, sourceItem));
 
             for (let i = 0; i < connector.reroutes.length; i++) {
                 if (!connector.reroutes[i].disabled) {
                     const x = connector.reroutes[i].x;
                     const y = connector.reroutes[i].y;
-                    points.push({ x, y });
+                    points.push(this.localPointOnItem(x, y, sourceItem));
                 }
             }
             if (destinationItem) {
-                points.push(this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]));
+                const point = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]);
+                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
             }
         } else {
             if (destinationItem) {
-                points.push(this.findEdgePoint(sourceItem, {
+                let point = this.findEdgePoint(sourceItem, {
                     x: destinationItem.area.x + destinationItem.area.w /2,
                     y: destinationItem.area.y + destinationItem.area.h /2,
-                }));
+                });
+                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
 
-                points.push(this.findEdgePoint(destinationItem, {
+                point = this.findEdgePoint(destinationItem, {
                     x: sourceItem.area.x + sourceItem.area.w /2,
                     y: sourceItem.area.y + sourceItem.area.h /2,
-                }));
+                });
+                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
             }
         }
 

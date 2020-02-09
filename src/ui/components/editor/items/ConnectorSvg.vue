@@ -64,7 +64,7 @@
         </g>
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes && selected" data-preview-ignore="true">
-            <circle :cx="point.x" :cy="point.y" :r="strokeWidth + selectedStrokeOutline"
+            <circle :cx="toLocal(point).x" :cy="toLocal(point).y" :r="strokeWidth + selectedStrokeOutline"
                 :data-reroute-index="connector.id +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :fill="boundaryBoxColor"
@@ -80,6 +80,7 @@
 import EventBus from '../EventBus.js';
 import Connector from '../../../scheme/Connector.js';
 import _ from 'lodash';
+import myMath from '../../../myMath';
 
 export default {
     props: ['connector', 'offsetX', 'offsetY', 'zoom', 'showReroutes', 'sourceItem', 'mode', 'boundaryBoxColor'],
@@ -250,6 +251,13 @@ export default {
         },
         generateStrokeDashArray() {
             this.strokeDashArray = Connector.Pattern.generateStrokeDashArray(this.connector.pattern, this.connector.width);
+        },
+        toLocal(point) {
+            let transform = null;
+            if (this.sourceItem.meta && this.sourceItem.meta.transform) {
+                transform = this.sourceItem.meta.transform;
+            }
+            return myMath.localPointInArea(point.x, point.y, this.sourceItem.area, transform);
         },
     },
     watch: {

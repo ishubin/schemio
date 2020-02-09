@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+const _zeroTransform = {x: 0, y: 0, r: 0};
+
 export default {
     isPointInArea(x, y, area) {
         return x >= area.x && x <= (area.x + area.w)
@@ -42,5 +44,52 @@ export default {
         var Ly = segmentPointB.y - segmentPointA.y;
 
         return (Lx*Lx + Ly*Ly) > ((Ax + Bx) * (Ax + Bx) + (Ay + By) * (Ay + By));
+    },
+
+    worldPointInArea(x, y, area, transform) {
+        if (!area) {
+            return {x: 0, y: 0};
+        }
+        
+        if (!transform) {
+            transform = _zeroTransform;
+        }
+
+        let tAngle = transform.r * Math.PI/180,
+            cosTA = Math.cos(tAngle),
+            sinTA = Math.sin(tAngle),
+            angle = (transform.r + area.r) * Math.PI/180,
+            cosa = Math.cos(angle),
+            sina = Math.sin(angle);
+
+        return {
+            x: transform.x + area.x * cosTA - area.y * sinTA  + x * cosa - y * sina,
+            y: transform.y + area.x * sinTA + area.y * cosTA  + x * sina + y * cosa,
+        };
+    },
+
+    localPointInArea(x, y, area, transform) {
+        if (!area) {
+            return {x: 0, y: 0};
+        }
+        
+        if (!transform) {
+            transform = _zeroTransform;
+        }
+
+        let tAngle = transform.r * Math.PI/180,
+            cosTA = Math.cos(tAngle),
+            sinTA = Math.sin(tAngle),
+            angle = (transform.r + area.r) * Math.PI/180,
+            cosa = Math.cos(angle),
+            sina = Math.sin(angle),
+            tx = transform.x + area.x * cosTA - area.y * sinTA,
+            ty = transform.y + area.x * sinTA + area.y * cosTA;
+
+
+        return {
+            x: (y - ty)*sina + (x - tx)*cosa,
+            y: (y - ty)*cosa - (x - tx)*sina
+        };
     }
 }

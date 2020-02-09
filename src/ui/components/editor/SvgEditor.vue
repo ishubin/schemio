@@ -38,21 +38,6 @@
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
-
-                    <!--TODO optimize rendering of connectors -->
-                    <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
-                            :key="connector.id"
-                            :sourceItem="item"
-                            :connector="connector"
-                            :zoom="vZoom"
-                            :offsetX="vOffsetX"
-                            :offsetY="vOffsetY"
-                            :showReroutes="mode === 'edit'"
-                            :mode="mode"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            ></connector-svg>
-                    </g>
                 </g>
 
                 <g :transform="viewportTransform">
@@ -127,21 +112,6 @@
                             :scheme-container="schemeContainer"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
-                    </g>
-
-                    <!--TODO optimize rendering of connectors -->
-                    <g v-for="item in schemeContainer.getItems()">
-                        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
-                            :key="connector.id"
-                            :sourceItem="item"
-                            :connector="connector"
-                            :zoom="vZoom"
-                            :offsetX="vOffsetX"
-                            :offsetY="vOffsetY"
-                            :showReroutes="mode === 'edit'"
-                            :mode="mode"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            ></connector-svg>
                     </g>
 
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
@@ -274,7 +244,6 @@ import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
-import ConnectorSvg from './items/ConnectorSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
@@ -305,7 +274,7 @@ const allDraggerEdges = [
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'viewportTop', 'viewportLeft', 'zoom', 'shouldSnapToGrid'],
-    components: {ConnectorSvg, ItemSvg, ContextMenu, ItemEditBox},
+    components: {ItemSvg, ContextMenu, ItemEditBox},
     beforeMount() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);

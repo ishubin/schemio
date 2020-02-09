@@ -6,6 +6,19 @@
     <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
     >
+
+        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
+            :key="connector.id"
+            :sourceItem="item"
+            :connector="connector"
+            :zoom="zoom"
+            :offsetX="offsetX"
+            :offsetY="offsetY"
+            :showReroutes="mode === 'edit'"
+            :mode="mode"
+            :boundary-box-color="boundaryBoxColor"
+            ></connector-svg>
+
         <component
             :key="`item-component-${item.id}-${item.shape}`"
             v-if="shapeComponent && item.visible"
@@ -55,11 +68,14 @@
 <script>
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
+import ConnectorSvg from './ConnectorSvg.vue';
+import myMath from '../../../myMath';
 
 
 export default {
     name: 'item-svg',
     props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer', 'boundaryBoxColor'],
+    components: {ConnectorSvg},
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -108,14 +124,18 @@ export default {
             });
         }
     },
-    computed: {
-        safeZoom() {
-            if (this.zoom > 0.001) {
-                return this.zoom;
-            }
-            return 1.0;
-        }
-    }
+    // computed: {
+    //     reverseTransform() {
+    //         let r = -this.item.area.r;
+    //         if (this.item.meta && this.item.meta.transform) {
+    //             r -= this.item.meta.transform.r;
+    //         }
+    //         const transform = this.item.meta && this.item.meta.transform ? this.item.meta.transform : null;
+
+    //         const worldPoint = myMath.worldPointInArea(0, 0, this.item.area, transform);
+    //         return `translate(${-worldPoint.x},${-worldPoint.y}) rotate(${r})`;
+    //     }
+    // }
 }
 </script>
 
