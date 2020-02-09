@@ -710,7 +710,7 @@ class SchemeContainer {
     }
 
     /**
-     * Selects a specifies item and deselects any other items that were selected previously
+     * Selects a specified item and deselects any other items that were selected previously
      * @param {SchemeItem} item 
      * @param {boolean} inclusive Flag that specifies whether it should deselect other items
      */
@@ -726,8 +726,9 @@ class SchemeContainer {
                 }
             });
             item.meta.selected = true;
-            this.selectedItems = [item];
+            this.selectedItems = [];
 
+            this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         }
 

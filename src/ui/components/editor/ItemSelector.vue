@@ -152,6 +152,7 @@ export default {
 
         toggleItemVisibility(item) {
             item.visible = !item.visible;
+            EventBus.emitItemChanged(item.id, 'visible');
             this.$forceUpdate();
         },
 
