@@ -7,6 +7,16 @@
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
     >
 
+        <component
+            :key="`item-component-${item.id}-${item.shape}`"
+            v-if="shapeComponent && item.visible"
+            :is="shapeComponent"
+            :item="item"
+            :style="{'opacity': item.selfOpacity/100.0}"
+            :hidden-text-property="hiddenTextProperty"
+            @custom-event="onShapeCustomEvent">
+        </component>
+
         <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
             :key="connector.id"
             :sourceItem="item"
@@ -19,15 +29,6 @@
             :boundary-box-color="boundaryBoxColor"
             ></connector-svg>
 
-        <component
-            :key="`item-component-${item.id}-${item.shape}`"
-            v-if="shapeComponent && item.visible"
-            :is="shapeComponent"
-            :item="item"
-            :style="{'opacity': item.selfOpacity/100.0}"
-            :hidden-text-property="hiddenTextProperty"
-            @custom-event="onShapeCustomEvent">
-        </component>
 
         <g :id="`animation-container-${item.id}`"></g>
 
