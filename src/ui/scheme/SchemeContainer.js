@@ -886,7 +886,11 @@ class SchemeContainer {
 
         var id = connector.reroutes.length;
         if (connector.reroutes.length > 0) {
-            id = this.findMatchingRerouteSegment(x, y, connector);
+            const item = this.findItemById(connector.meta.sourceItemId);
+            if (item) {
+                const localPoint = this.localPointOnItem(x, y, item);
+                id = this.findMatchingRerouteSegment(localPoint.x, localPoint.y, connector);
+            }
         }
 
         connector.reroutes.splice(id, 0, {
