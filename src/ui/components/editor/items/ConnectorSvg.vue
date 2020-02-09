@@ -3,8 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :style="{'opacity': connector.opacity/100.0}">
-
+    <g>
         <g v-if="selected">
             <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="strokeWidth + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
             <g v-for="end in ends">
@@ -23,6 +22,9 @@
                 />
             </g>
         </g>
+        <g v-if="mode==='edit' && !selected && connector.opacity < 10">
+            <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="1" :stroke="boundaryBoxColor" stroke-dasharray="5 5" fill="none" style="opacity: 0.5"/>
+        </g>
 
 
         <path :id="`connector-${connector.id}-path`" :d="svgPath" class="item-connector"
@@ -30,9 +32,11 @@
             :stroke-width="strokeWidth" fill="none"
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
+            :style="{'opacity': connector.opacity/100.0}"
         />
 
-        <g v-for="end in ends">
+        <g v-for="end in ends" :style="{'opacity': connector.opacity/100.0}">
+            
             <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector"/>
             <path v-if="end.type === 'path'"
                 :d="end.path"
@@ -45,7 +49,7 @@
         </g>
 
         <path :d="svgPath" :data-connector-id="connector.id" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="none"/>
-        <g v-for="end in ends">
+        <g v-for="end in ends" :style="{'opacity': connector.opacity/100.0}">
             <circle v-if="end.type === 'circle'"
                 :data-connector-id="connector.id"
                 :cx="end.x" :cy="end.y"
