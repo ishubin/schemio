@@ -22,12 +22,13 @@
                 />
             </g>
         </g>
-        <g v-if="mode==='edit' && !selected && connector.opacity < 10">
+        <g v-if="mode==='edit' && !selected && (connector.opacity < 10 || !connector.visible)">
             <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="1" :stroke="boundaryBoxColor" stroke-dasharray="5 5" fill="none" style="opacity: 0.5"/>
         </g>
 
 
         <path :id="`connector-${connector.id}-path`" :d="svgPath" class="item-connector"
+            v-if="connector.visible"
             :stroke="connector.color"
             :stroke-width="strokeWidth" fill="none"
             :stroke-dasharray="strokeDashArray"
@@ -35,7 +36,9 @@
             :style="{'opacity': connector.opacity/100.0}"
         />
 
-        <g v-for="end in ends" :style="{'opacity': connector.opacity/100.0}">
+        <g v-for="end in ends"
+            :style="{'opacity': connector.opacity/100.0}"
+            v-if="connector.visible">
             
             <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector"/>
             <path v-if="end.type === 'path'"

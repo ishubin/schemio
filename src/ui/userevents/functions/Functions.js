@@ -22,6 +22,7 @@ export default {
     },
     connector: {
         set:                SetFunction,
+        show:               ShowFunction,
         particleEffect:     ParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
         stopAllAnimations:  StopAllAnimationsFunction

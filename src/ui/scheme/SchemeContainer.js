@@ -528,6 +528,7 @@ class SchemeContainer {
         utils.extendObject(connector, {
             name: '',
             opacity: 100.0,
+            visible: true,
             color: '#333',
             width: 1,
             pattern: Connector.Pattern.LINE,

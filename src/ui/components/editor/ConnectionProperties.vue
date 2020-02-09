@@ -18,6 +18,12 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="label" width="50%">Visible</td>
+                    <td class="value" width="50%">
+                        <input type="checkbox" v-model="connector.visible"/>
+                    </td>
+                </tr>
+                <tr>
                     <td class="label" width="50%">Opacity</td>
                     <td class="value" width="50%">
                         <input class="textfield" type="text" v-model="connector.opacity"/>
