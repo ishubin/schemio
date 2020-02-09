@@ -92,7 +92,7 @@
                 </table>
             </panel>
 
-            <panel name="Style">
+            <panel name="Properties">
                 <table class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
