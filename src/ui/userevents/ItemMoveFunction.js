@@ -21,11 +21,16 @@ class MoveAnimation extends Animation {
         this.pathTotalLength = 1.0;
         this.offsetX = 0;
         this.offsetY = 0;
+        this.connectorSourceItem = null;
     }
 
     init() {
         if (this.args.animate && this.args.usePath && this.args.path) {
             if (this.args.path.connector) {
+                const connector = this.schemeContainer.findConnectorById(this.args.path.connector);
+                if (connector) {
+                    this.connectorSourceItem = this.schemeContainer.findItemById(connector.meta.sourceItemId);
+                }
                 this.domPath = document.getElementById(`connector-${this.args.path.connector}-path`);
                 this.offsetX = -this.item.area.w/2;
                 this.offsetY = -this.item.area.h/2;
@@ -61,8 +66,21 @@ class MoveAnimation extends Animation {
                 } else {
                     point = this.domPath.getPointAtLength((2.0 - convertedT) * this.pathTotalLength);
                 }
-                this.item.area.x = point.x + this.offsetX; 
-                this.item.area.y = point.y + this.offsetY;
+                let worldPoint = point;
+                if (this.connectorSourceItem) {
+                    worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.connectorSourceItem);
+                }
+
+                // bringing transform back from world to local so that also works correctly for sub-items
+                let localPoint = worldPoint;
+                if (this.item.meta && this.item.meta.parentId) {
+                    const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
+                    if (parentItem) {
+                        localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+                    }
+                }
+                this.item.area.x = localPoint.x + this.offsetX;
+                this.item.area.y = localPoint.y + this.offsetY;
             } else {
                 this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
                 this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
