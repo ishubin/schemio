@@ -1,40 +1,5 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
-import Animation from '../../animations/Animation';
-
-class ShowAnimation extends Animation {
-    constructor(item, args) {
-        super();
-        this.item = item;
-        this.args = args;
-        this.time = 0;
-    }
-
-    init() {
-        this.item.opacity = 0.0;
-        this.item.visible = true;
-        return true;
-    }
-
-    play(dt) {
-        this.time += dt;
-        if (this.time > this.args.animationDuration * 1000.0) {
-            return false;
-        }
-        let t = 0.0;
-        if (this.args.animationDuration > 0.00001) {
-            t = this.time / (this.args.animationDuration * 1000.0);
-        }
-
-        // using ease-out animation
-        this.item.opacity = 100.0 * (1 - (t-1)*(t-1));
-        return true;
-    }
-
-    destroy() {
-        this.item.visible = true;
-        this.item.opacity = 100.0;
-    }
-}
+import ValueAnimation from '../../animations/ValueAnimation';
 
 export default {
     name: 'Show',
@@ -44,12 +9,26 @@ export default {
     },
 
     execute(item, args) {
-        if (item) {
-            if (args.animated) {
-                AnimationRegistry.play(new ShowAnimation(item, args), item.id);
-            } else {
-                item.visible = true;
-            }
+        if (!item) {
+            return;
+        }
+        if (args.animated) {
+            AnimationRegistry.play(new ValueAnimation({
+                durationMillis: args.animationDuration * 1000.0,
+                init() {
+                    item.opacity = 0.0;
+                    item.visible = true;
+                },
+                update(t) {
+                    item.opacity = 100.0 * t;
+                },
+                destroy() {
+                    item.visible = true;
+                    item.opacity = 100.0;
+                }
+            }), item.id);
+        } else {
+            item.visible = true;
         }
     }
 };

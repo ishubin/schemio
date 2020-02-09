@@ -22,6 +22,7 @@ export default {
     },
     connector: {
         set:                SetFunction,
+        hide:               HideFunction,
         show:               ShowFunction,
         particleEffect:     ParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
