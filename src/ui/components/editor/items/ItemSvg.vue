@@ -124,19 +124,7 @@ export default {
                 args: arguments
             });
         }
-    },
-    // computed: {
-    //     reverseTransform() {
-    //         let r = -this.item.area.r;
-    //         if (this.item.meta && this.item.meta.transform) {
-    //             r -= this.item.meta.transform.r;
-    //         }
-    //         const transform = this.item.meta && this.item.meta.transform ? this.item.meta.transform : null;
-
-    //         const worldPoint = myMath.worldPointInArea(0, 0, this.item.area, transform);
-    //         return `translate(${-worldPoint.x},${-worldPoint.y}) rotate(${r})`;
-    //     }
-    // }
+    }
 }
 </script>
 

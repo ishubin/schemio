@@ -6,6 +6,7 @@ import State from './State.js';
 import shortid from 'shortid';
 import Connector from '../../../scheme/Connector.js';
 
+
 export default class StateConnecting extends State {
     constructor(editor, eventBus) {
         super(editor, eventBus);
@@ -98,5 +99,6 @@ export default class StateConnecting extends State {
         }
         this.schemeContainer.buildConnector(item, this.connector);
         this.sourceItem.connectors.push(this.connector);
+        this.eventBus.emitItemChanged(this.sourceItem.id);
     }
 }

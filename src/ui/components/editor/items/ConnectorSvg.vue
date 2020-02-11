@@ -5,7 +5,7 @@
 <template lang="html">
     <g>
         <g v-if="selected">
-            <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="strokeWidth + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
+            <path :d="svgPath" :data-connector-id="connector.id" :stroke-width="connector.width + selectedStrokeOutline" :stroke="boundaryBoxColor" fill="none"/>
             <g v-for="end in ends">
                 <circle v-if="end.type === 'circle'"
                     :data-connector-id="connector.id"
@@ -15,7 +15,7 @@
                 <path v-if="end.type === 'path'"
                     :d="end.path"
                     :data-connector-id="connector.id"
-                    :stroke-width="strokeWidth + selectedStrokeOutline"
+                    :stroke-width="connector.width + selectedStrokeOutline"
                     :fill="boundaryBoxColor"
                     :stroke="boundaryBoxColor"
                     stroke-linejoin="round"
@@ -30,7 +30,7 @@
         <path :id="`connector-${connector.id}-path`" :d="svgPath" class="item-connector"
             v-if="connector.visible"
             :stroke="connector.color"
-            :stroke-width="strokeWidth" fill="none"
+            :stroke-width="connector.width" fill="none"
             :stroke-dasharray="strokeDashArray"
             stroke-linejoin="round"
             :style="{'opacity': connector.opacity/100.0}"
@@ -51,7 +51,7 @@
             />
         </g>
 
-        <path :d="svgPath" :data-connector-id="connector.id" class="item-connector-hover-area" :stroke-width="strokeWidth + selectedStrokeOutline" fill="none"/>
+        <path :d="svgPath" :data-connector-id="connector.id" class="item-connector-hover-area" :stroke-width="connector.width + selectedStrokeOutline" fill="none"/>
         <g v-for="end in ends" :style="{'opacity': connector.opacity/100.0}">
             <circle v-if="end.type === 'circle'"
                 :data-connector-id="connector.id"
@@ -71,7 +71,7 @@
         </g>
 
         <g v-for="(point, rerouteIndex) in connector.reroutes" v-if="showReroutes && selected" data-preview-ignore="true">
-            <circle :cx="toLocal(point).x" :cy="toLocal(point).y" :r="strokeWidth + selectedStrokeOutline"
+            <circle :cx="toLocal(point).x" :cy="toLocal(point).y" :r="connector.width + selectedStrokeOutline"
                 :data-reroute-index="connector.id +'/'+rerouteIndex"
                 class="item-connector-reroute"
                 :fill="boundaryBoxColor"
@@ -286,9 +286,6 @@ export default {
         }
     },
     computed: {
-        strokeWidth() {
-            return parseFloat(this.connector.width);
-        },
         selectedStrokeOutline() {
             return Math.max(8, Math.min(20, parseFloat(this.connector.width) * 0.3));
         }

@@ -20,19 +20,19 @@
                 <tr>
                     <td class="label" width="50%">Visible</td>
                     <td class="value" width="50%">
-                        <input type="checkbox" v-model="connector.visible"/>
+                        <input type="checkbox" :value="connector.visible" @input="onPropertyChange(parseInt(arguments[0].target.value), 'visible')"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Opacity</td>
                     <td class="value" width="50%">
-                        <input class="textfield" type="text" v-model="connector.opacity"/>
+                        <input class="textfield" type="text" :value="connector.opacity" @input="onPropertyChange(parseInt(arguments[0].target.value), 'opacity')"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Source Type</td>
                     <td class="value" width="50%">
-                        <select v-model="connector.source.type">
+                        <select :value="connector.source.type" @change="onPropertyChange(arguments[0].target.value, 'source', 'type')">
                             <option v-for="type in knownCapStyleTypes">{{type}}</option>
                         </select>
                     </td>
@@ -40,13 +40,13 @@
                 <tr>
                     <td class="label" width="50%">Source Size</td>
                     <td class="value" width="50%">
-                        <input class="textfield" type="text" v-model="connector.source.size"/>
+                        <input class="textfield" type="text" :value="connector.source.size" @input="onPropertyChange(parseInt(arguments[0].target.value), 'source', 'size')"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Destination Type</td>
                     <td class="value" width="50%">
-                        <select v-model="connector.destination.type">
+                        <select :value="connector.destination.type" @change="onPropertyChange(arguments[0].target.value, 'destination', 'type')">
                             <option v-for="type in knownCapStyleTypes">{{type}}</option>
                         </select>
                     </td>
@@ -54,19 +54,19 @@
                 <tr>
                     <td class="label" width="50%">Destination Size</td>
                     <td class="value" width="50%">
-                        <input class="textfield" type="text" v-model="connector.destination.size"/>
+                        <input class="textfield" type="text" :value="connector.destination.size" @input="onPropertyChange(parseInt(arguments[0].target.value), 'destination', 'size')"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Color</td>
                     <td class="value" width="50%">
-                        <color-picker :color="connector.color" @input="connector.color = arguments[0];"></color-picker>
+                        <color-picker :color="connector.color" @input="onPropertyChange(arguments[0], 'color');"></color-picker>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Stroke size</td>
                     <td class="value" width="50%">
-                        <input class="textfield" type="text" v-model="connector.width">
+                        <input class="textfield" type="text" :value="connector.width" @input="onPropertyChange(parseInt(arguments[0].target.value), 'width')"/>
                     </td>
                 </tr>
                 <tr>
@@ -105,6 +105,15 @@ export default {
     methods: {
         onConnectorChange() {
             EventBus.emitConnectorChanged(this.connector.id);
+        },
+
+        onPropertyChange(value, field, subField) {
+            if (subField) {
+                this.connector[field][subField] = value;
+            } else {
+                this.connector[field] = value;
+            }
+            this.onConnectorChange();
         }
     },
     computed: {
