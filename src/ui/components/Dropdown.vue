@@ -8,7 +8,7 @@
             <slot></slot>
         </div>
 
-        <div class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
+        <div :id="`dropdown-${id}`" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
             <input class="dropdown-search" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
             <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
@@ -24,6 +24,7 @@
 
 <script>
 import _ from 'lodash';
+import shortid from 'shortid';
 
 export default {
     /* options is an array of {name and any other fields} */
@@ -36,24 +37,43 @@ export default {
     },
     data() {
         return {
+            id: shortid.generate(),
             shown: false,
             lastTimeClicked: 0,
             searchKeyword: '',
             x: 0, y: 0,
             maxHeight: 300,
             searchTextfieldHeight: 30,
-            maxWidth: 150
+            maxWidth: 150,
+            elementRect: null
         };
     },
     methods: {
         toggleDropdown(event) {
-            //console.log(event.target.getBoundingClientRect());
             const bbRect = event.target.getBoundingClientRect();
-            let originalX = Math.max(0, bbRect.x);
-            let originalY = Math.max(0, bbRect.bottom);
+            this.elementRect = bbRect;
 
-            let rightSide = originalX + this.maxWidth;
-            let bottomSide = originalY + this.maxHeight + this.searchTextfieldHeight;
+            this.lastTimeClicked = new Date().getTime();
+            this.shown = !this.shown;
+            if (this.shown) {
+                this.$nextTick(() => {
+                    this.readjustDropdownPopup();
+                });
+            }
+        },
+        
+        readjustDropdownPopup() {
+            const popup = document.getElementById(`dropdown-${this.id}`);
+            if (!popup || !this.elementRect) {
+                return;
+            }
+            const width = popup.getBoundingClientRect().width;
+            const height = popup.getBoundingClientRect().height;
+            let originalX = Math.max(0, this.elementRect.x);
+            let originalY = Math.max(0, this.elementRect.bottom);
+
+            let rightSide = originalX + width;
+            let bottomSide = originalY + height + this.searchTextfieldHeight;
             let dx = 0, dy = 0;
             if (rightSide > window.innerWidth) {
                 dx = window.innerWidth - rightSide;
@@ -64,10 +84,6 @@ export default {
 
             this.x = originalX + dx;
             this.y = originalY + dy;
-
-
-            this.lastTimeClicked = new Date().getTime();
-            this.shown = !this.shown;
         },
 
         onOptionClicked(option) {
