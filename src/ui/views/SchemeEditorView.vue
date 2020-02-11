@@ -316,8 +316,8 @@ export default {
                 this.currentCategory = scheme.category;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
-                history.commit(scheme);
                 history = new History({size: 30});
+                history.commit(scheme);
                 document._history = history;
 
                 const schemeSettings = schemeSettingsStorage.get(this.schemeId);
