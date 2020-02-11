@@ -47,13 +47,6 @@
                             </span>
                         </li>
                     </ul>
-                    <ul class="button-group" v-if="schemeContainer && schemeContainer.selectedItems.length > 1 && mode === 'edit'">
-                        <li>
-                            <span title="Group Items" class="toggle-button" @click="schemeContainer.groupSelectedItems(); schemeChanged = true;">
-                                <i class="fas fa-object-group"></i>
-                            </span>
-                        </li>
-                    </ul>
                     <span class="btn btn-secondary" v-if="schemeChanged && mode === 'edit'" @click="saveScheme()">Save</span>
                 </div>
             </header-component>

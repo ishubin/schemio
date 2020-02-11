@@ -751,15 +751,6 @@ class SchemeContainer {
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         }
-
-        if (item.group && item.group.length > 0) {
-            _.forEach(this.scheme.items, otherItem => {
-                if (otherItem.group === item.group && otherItem.id !== item.id) {
-                    this.selectItemInclusive(otherItem);
-                    this.eventBus.emitItemSelected(otherItem.id);
-                }
-            });
-        }
     }
 
     selectItemInclusive(item) {
@@ -972,24 +963,6 @@ class SchemeContainer {
 
     getConnectingSourceItemIds(destinationId) {
         return this._destinationToSourceLookup[destinationId];
-    }
-
-    groupSelectedItems() {
-        var groupId = shortid.generate();
-        _.forEach(this.selectedItems, item => {
-            item.group = groupId;
-        })
-    }
-
-    ungroupItem(item) {
-        if (item.group) {
-            var group = item.group;
-            item.group = null;
-            var leftoverGroupItems = _.filter(this.scheme.getItems(), otherItem => {return otherItem.group === group});
-            if (leftoverGroupItems.length === 1) {
-                leftoverGroupItems[0].group = null;
-            }
-        }
     }
 
     copySelectedItems() {
