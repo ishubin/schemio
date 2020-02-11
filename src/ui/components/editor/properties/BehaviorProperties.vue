@@ -1,5 +1,13 @@
 <template>
     <div>
+        <panel name="Groups">
+            <vue-tags-input v-model="itemGroup"
+                :tags="itemGroups"
+                :autocomplete-items="filteredItemGroupsSuggestions"
+                @tags-changed="onItemGroupsChange"
+                ></vue-tags-input>
+        </panel>
+
         <panel name="Events">
             <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
                 <div class="behavior-event">
@@ -89,6 +97,7 @@
 <script>
 import _ from 'lodash';
 import shortid from 'shortid';
+import VueTagsInput from '@johmun/vue-tags-input';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
@@ -112,7 +121,7 @@ const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStor
 export default {
     props: ['item', 'schemeContainer'],
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
 
     data() {
         const items = _.chain(this.schemeContainer.getItems())
@@ -136,7 +145,9 @@ export default {
                 behaviorIndex: 0,
                 actionIndex: 0,
                 args: {}
-            }
+            },
+            itemGroup: '',
+            existingItemGroups: _.map(this.schemeContainer.itemGroups, group => {return {text: group}})
         };
     },
 
@@ -146,6 +157,11 @@ export default {
                 collapsed: behavior.do && behavior.do.length > 0, // collapsing behaviors that do not have any actions
                 eventOptions: this.createEventOptions(behavior),
             };
+        },
+
+        onItemGroupsChange(newGroups) {
+            this.item.groups = _.map(newGroups, group => group.text);
+            this.schemeContainer.reindexItems();
         },
 
         toggleBehaviorCollapse(behaviorIndex) {
@@ -312,7 +328,7 @@ export default {
             behavior.do.push({
                 element: {item: 'self'},
                 method: 'show',
-                args: {}
+                args: _.mapValues(Functions.item.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
         },
@@ -353,7 +369,7 @@ export default {
 
         getDefaultArgsForMethod(action, method) {
             let functions = Functions.scheme;
-            if (action.element && action.element.item) {
+            if (action.element && (action.element.item || action.element.itemGroup)) {
                 functions = Functions.item;
             }
             if (action.element && action.element.connector) {
@@ -412,7 +428,7 @@ export default {
         showFunctionArgumentsEditor(action, behaviorIndex, actionIndex) {
             let functionDescription = null;
             if (action.element) {
-                if (action.element.item) {
+                if (action.element.item || action.element.itemGroup) {
                     functionDescription = Functions.item[action.method];
                 }
                 if (action.element.connector) {
@@ -470,7 +486,7 @@ export default {
 
         toPrettyMethod(method, element) {
             let scope = 'page';
-            if (element && element.item) {
+            if (element && (element.item || element.itemGroup)) {
                 scope = 'item';
             }
             if (element && element.connector) {
@@ -504,6 +520,15 @@ export default {
                 }
             }
             return propertyPath;
+        }
+    },
+
+    computed: {
+        filteredItemGroupsSuggestions() {
+            return this.existingItemGroups.filter(i => new RegExp(this.itemGroup, 'i').test(i.text));
+        },
+        itemGroups() {
+            return _.map(this.item.groups, group => {return {text: group}});
         }
     }
 }

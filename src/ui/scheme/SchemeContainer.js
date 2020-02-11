@@ -81,6 +81,9 @@ class SchemeContainer {
         this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
         this.worldItems = []; // used for storing top-level items with default area
 
+        this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
+        this.itemGroups = []; // stores groups from all items
+
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
@@ -132,6 +135,7 @@ class SchemeContainer {
         this.connectorsMap = {};
         this.viewportItems = [];
         this.worldItems = [];
+        this._itemGroupsToIds = {};
 
         const itemsWithConnectors = [];
         if (!this.scheme.items) {
@@ -141,6 +145,9 @@ class SchemeContainer {
             this._itemArray.push(item);
             this.enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transform, parentItem, ancestorIds);
+            if (item.groups) {
+                this.indexItemGroups(item.id, item.groups);
+            }
 
             // only storing top-level items 
             if (!parentItem) {
@@ -160,10 +167,22 @@ class SchemeContainer {
             }
         });
 
+        this.itemGroups = _.keys(this._itemGroupsToIds);
+        this.itemGroups.sort();
+
         _.forEach(itemsWithConnectors, item => {
             this.buildItemConnectors(item);
         });
         this.revision += 1;
+    }
+
+    indexItemGroups(itemId, groups) {
+        _.forEach(groups, group => {
+            if (!this._itemGroupsToIds.hasOwnProperty(group)) {
+                this._itemGroupsToIds[group] = [];
+            }
+            this._itemGroupsToIds[group].push(itemId);
+        })
     }
 
     enrichItemMeta(item, transform, parentItem, ancestorIds) {
@@ -363,6 +382,7 @@ class SchemeContainer {
     enrichItemWithDefaults(item, shape) {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
+            groups: [],
             opacity: 100.0,
             selfOpacity: 100.0,
             visible: true,
@@ -930,6 +950,20 @@ class SchemeContainer {
 
     findItemById(itemId) {
         return this.itemMap[itemId];
+    }
+
+    findItemsByGroup(group) {
+        const itemIds = this._itemGroupsToIds[group];
+        const items = [];
+        if (itemIds) {
+            _.forEach(itemIds, id => {
+                const item = this.findItemById(id);
+                if (item) {
+                    items.push(item);
+                }
+            })
+        }
+        return items;
     }
 
     findConnectorById(connectorId) {

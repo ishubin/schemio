@@ -78,6 +78,15 @@ export default {
                     });
                 }
             });
+
+            _.forEach(this.schemeContainer.itemGroups, group => {
+                options.push({
+                    iconClass: 'fas fa-cubes',
+                    name: group,
+                    id: group,
+                    type: 'item-group'
+                });
+            });
             return options;
         },
 
@@ -95,6 +104,10 @@ export default {
                 } else if (option.type === 'connector') {
                     this.$emit('selected', {
                         connector: option.id
+                    });
+                } else if (option.type === 'item-group') {
+                    this.$emit('selected', {
+                        itemGroup: option.id
                     });
                 } else {
                     console.error(option.type + ' is not supported');
@@ -127,6 +140,7 @@ export default {
                     iconClass: 'fas fa-exclamation-triangle'
                 };
             }
+
             if (this.element && this.element.connector) {
                 const connector = this.schemeContainer.findConnectorById(this.element.connector);
                 if (connector) {
@@ -141,6 +155,14 @@ export default {
                     name: 'no connector',
                     type: 'error',
                     iconClass: 'fas fa-exclamation-triangle'
+                };
+            }
+            
+            if (this.element && this.element.itemGroup) {
+                return {
+                    name: this.element.itemGroup,
+                    type: 'item-group',
+                    iconClass: 'fas fa-cubes'
                 };
             }
             return {

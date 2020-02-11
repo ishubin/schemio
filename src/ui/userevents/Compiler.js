@@ -16,16 +16,19 @@ export default class Compiler {
      * @param {SchemeItem} selfItem 
      * @param {Object} element contains a selector for an elemment (item, connector) e.g. {item: "self", connector: "345et2"}
      */
-    findElement(schemeContainer, selfItem, element) {
+    findElements(schemeContainer, selfItem, element) {
         if (element.item) {
             if (element.item === 'self') {
-                return selfItem;
+                return [selfItem];
             } else {
-                return schemeContainer.findItemById(element.item);
+                return [schemeContainer.findItemById(element.item)];
             }
         }
         if (element.connector) {
-            return schemeContainer.findConnectorById(element.connector);
+            return [schemeContainer.findConnectorById(element.connector)];
+        }
+        if (element.itemGroup) {
+            return schemeContainer.findItemsByGroup(element.itemGroup);
         }
         return null;
     }
@@ -43,15 +46,17 @@ export default class Compiler {
             let scope = 'page';
             if (action.element && action.element.connector) {
                 scope = 'connector';
-            } else if (action.element && action.element.item) {
+            } else if (action.element && (action.element.item || action.element.itemGroup)) {
                 scope = 'item';
             }
 
             if (knownFunctions[scope].hasOwnProperty(action.method)) {
                 if (action.element) {
-                    const element = this.findElement(schemeContainer, selfItem, action.element);
-                    if (element) {
-                        funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args, schemeContainer));
+                    const elements = this.findElements(schemeContainer, selfItem, action.element);
+                    if (elements) {
+                        _.forEach(elements, element => {
+                            funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args, schemeContainer));
+                        });
                     }
                 }
             }

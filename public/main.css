@@ -1517,6 +1517,9 @@ table.position-panel-table .property-label {
 .element-picker .picked-element.picked-element-type-connector {
     color: #0250a8;
 }
+.element-picker .picked-element.picked-element-type-item-group {
+    color: #950cd5;
+}
 .element-picker .picked-element.picked-element-type-error {
     color: #9b0b0b;
     font-weight: bold;

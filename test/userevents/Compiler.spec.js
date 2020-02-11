@@ -138,4 +138,55 @@ describe('UserEvents Compiler', () => {
             }]
         });
     });
+
+
+
+    it('should compile actions for item groups', () => {
+        const compiler = new Compiler();
+        const selfItem = {id: 'self-item-id'};
+        const items = [{
+            id: 'qwe',
+            opacity: 1.0
+        }, {
+            id: 'zxc',
+            opacity: 0.6
+        }, {
+            id: 'ert',
+            opacity: 1.0
+        }];
+        const schemeContainer = {
+            findItemsByGroup(group) {
+                if (group === 'my-group') {
+                    return [items[0], items[1]];
+                } else if (group === 'another-group') {
+                    return [items[2]];
+                }
+                return [];
+            }
+        };
+
+        const action = compiler.compileActions(schemeContainer, selfItem, [{
+            element: {itemGroup: 'my-group'},
+            method: 'set',
+            args: { field: 'opacity', value: 0.5}
+        }, {
+            element: {itemGroup: 'another-group'},
+            method: 'set',
+            args: { field: 'someField', value: 'blah'}
+        }]);
+
+        action();
+
+        expect(items).toStrictEqual([{
+            id: 'qwe',
+            opacity: 0.5
+        }, {
+            id: 'zxc',
+            opacity: 0.5
+        }, {
+            id: 'ert',
+            opacity: 1.0,
+            someField: 'blah'
+        }]);
+    });
 });
