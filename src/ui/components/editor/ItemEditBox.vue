@@ -67,10 +67,10 @@ export default {
     props: ['item', 'zoom', 'boundaryBoxColor'],
 
     mounted() {
-        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onItemChanged);
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
-        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onItemChanged);
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
     data() {
@@ -79,13 +79,8 @@ export default {
     },
 
     methods: {
-        // unfortunatelly Vue is not able to spot the change when user selects another item
-        // the trick is that the first item in SchemeContainr.selectedItems array is getting replaced
-        // and Vue is not noticing the change
-        onItemChanged(itemId) {
-            if (itemId === this.item.id) {
-                this.$forceUpdate();
-            }
+        onItemChanged() {
+            this.$forceUpdate();
         },
 
         provideBoundingBoxDraggers(item) {

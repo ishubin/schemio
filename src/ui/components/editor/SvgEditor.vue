@@ -126,6 +126,7 @@
                     </g>
 
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport'"
+                        :key="`item-edit-box-${item.id}`"
                         :item="item"
                         :zoom="vZoom"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
