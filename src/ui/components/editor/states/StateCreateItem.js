@@ -7,55 +7,55 @@ import Shape from '../items/shapes/Shape';
 import _ from 'lodash';
 import collections from '../../../collections.js';
 
-export default class StateCreateComponent extends State {
+export default class StateCreateItem extends State {
     constructor(editor, eventBus) {
         super(editor, eventBus);
-        this.name = 'create-component';
-        this.component = null;
+        this.name = 'create-item';
+        this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;
         this.schemeContainer = editor.schemeContainer;
     }
 
     reset() {
-        this.component = null;
+        this.item = null;
         this.addedToScheme = false;
         this.updateCursor('default');
     }
 
-    setComponent(component) {
-        this.component = component;
+    setItem(item) {
+        this.item = item;
         this.updateCursor('crosshair');
     }
 
     mouseDown(x, y, mx, my, object, event) {
         this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
-        this.component.name = this.findProperComponentName(this.component.name);
-        this.schemeContainer.addItem(this.component);
-        this.refreshControlPoints(this.component);
+        this.item.name = this.findProperItemName(this.item.name);
+        this.schemeContainer.addItem(this.item);
+        this.refreshControlPoints(this.item);
         this.addedToScheme = true;
-        this.schemeContainer.setActiveBoundaryBox(this.component.area);
+        this.schemeContainer.setActiveBoundaryBox(this.item.area);
     }
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
-            this.updateComponentArea(this.snapX(x), this.snapY(y));
+            this.updateItemArea(this.snapX(x), this.snapY(y));
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
-            this.updateComponentArea(this.snapX(x), this.snapY(y));
+            this.updateItemArea(this.snapX(x), this.snapY(y));
             this.schemeContainer.setActiveBoundaryBox(null);
             
-            const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.component.area);
+            const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.item.area);
             this.schemeContainer.deselectAllItems();
             if (parentItem) {
-                this.schemeContainer.remountItemInsideOtherItem(this.component.id, parentItem.id);
+                this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
             }
-            this.schemeContainer.selectItem(this.component);
+            this.schemeContainer.selectItem(this.item);
             this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
-            this.eventBus.emitItemChanged(this.component.id);
+            this.eventBus.emitItemChanged(this.item.id);
             this.eventBus.emitSchemeChangeCommited();
             this.reset();
         } else {
@@ -98,23 +98,23 @@ export default class StateCreateComponent extends State {
         return itemFound;
     }
 
-    updateComponentArea(x, y) {
+    updateItemArea(x, y) {
         if (x > this.originalPoint.x) {
-            this.component.area.w = x - this.originalPoint.x;
-            this.component.area.x = this.originalPoint.x;
+            this.item.area.w = x - this.originalPoint.x;
+            this.item.area.x = this.originalPoint.x;
         } else {
-            this.component.area.w = this.originalPoint.x - x;
-            this.component.area.x = x;
+            this.item.area.w = this.originalPoint.x - x;
+            this.item.area.x = x;
         }
 
         if (y > this.originalPoint.y) {
-            this.component.area.h = y - this.originalPoint.y;
-            this.component.area.y = this.originalPoint.y;
+            this.item.area.h = y - this.originalPoint.y;
+            this.item.area.y = this.originalPoint.y;
         } else {
-            this.component.area.h = this.originalPoint.y - y;
-            this.component.area.y = y;
+            this.item.area.h = this.originalPoint.y - y;
+            this.item.area.y = y;
         }
-        this.refreshControlPoints(this.component);
+        this.refreshControlPoints(this.item);
     }
 
     refreshControlPoints(item) {
@@ -128,7 +128,7 @@ export default class StateCreateComponent extends State {
      * Searches for all item names and adds numeric index so that it becomes unique in the scheme
      * @param {string} name 
      */
-    findProperComponentName(name) {
+    findProperItemName(name) {
         const itemNames = _.map(this.schemeContainer.getItems(), item => item.name);
         return collections.giveUniqueName(name, itemNames);
     }

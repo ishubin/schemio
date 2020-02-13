@@ -234,7 +234,7 @@
 <script>
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
-import StateCreateComponent from './states/StateCreateComponent.js';
+import StateCreateItem from './states/StateCreateItem.js';
 import StateConnecting from './states/StateConnecting.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
@@ -281,7 +281,7 @@ export default {
             this.switchStateInteract();
         }
 
-        EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
+        EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
@@ -305,7 +305,7 @@ export default {
     },
     beforeDestroy(){
         this.mouseEventsEnabled = false;
-        EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateComponent);
+        EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
@@ -327,9 +327,10 @@ export default {
     },
     data() {
         return {
+            // TODO move them outside of Vue component. They don't have to be reactive
             states: {
                 interact: new StateInteract(this, EventBus, userEventBus),
-                createComponent: new StateCreateComponent(this, EventBus),
+                createItem: new StateCreateItem(this, EventBus),
                 dragItem: new StateDragItem(this, EventBus),
                 connecting: new StateConnecting(this, EventBus),
                 pickElement: new StatePickElement(this, EventBus)
@@ -566,10 +567,10 @@ export default {
             this.state.reset();
             this.state.setElementPickCallback(elementPickCallback);
         },
-        onSwitchStateCreateComponent(component) {
-            this.state = this.states.createComponent;
+        onSwitchStateCreateItem(item) {
+            this.state = this.states.createItem;
             this.state.reset();
-            this.state.setComponent(component);
+            this.state.setItem(item);
         },
         onSwitchStateConnecting(item) {
             this.state = this.states.connecting;

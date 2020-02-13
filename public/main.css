@@ -512,7 +512,7 @@ svg foreignObject .item-text-container > p:first-child {
 
 /**************************************/
 /* Hover state in create component state */
-svg.state-create-component {
+svg.state-create-item {
     cursor: crosshair;
 }
 
