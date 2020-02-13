@@ -5,8 +5,8 @@
         - drag and drop (reorder items or move into different parent)
  -->
 <template>
-    <div class="item-selector">
-        <div v-for="item in schemeContainer.getItems()" :key="item.id">
+    <div :id="`item-selector-${itemSelectorId}`" class="item-selector"  :style="{'max-height': `${maxHeight}px`}">
+        <div v-for="item in schemeContainer.getItems()" :key="item.id" :id="`item-selector-${itemSelectorId}-row-${item.id}`">
             <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
                 <div class="item"
                     v-if="item.meta.collapseBitMask === 0"
@@ -56,6 +56,7 @@
 <script>
 import {forEach} from 'lodash';
 import EventBus from './EventBus';
+import shortid from 'shortid';
 
 
 function visitItems(items, parentItem, callback) {
@@ -70,12 +71,13 @@ function visitItems(items, parentItem, callback) {
 }
 
 export default {
-    props: ['schemeContainer'],
+    props: ['schemeContainer', 'maxHeight'],
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        this.scrollToSelection();
     },
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
@@ -84,6 +86,7 @@ export default {
     },
     data() {
         return {
+            itemSelectorId: shortid.generate(),
             dragging: {
                 // the item that is dragged,
                 item: null,
@@ -100,6 +103,18 @@ export default {
     },
 
     methods: {
+        scrollToSelection() {
+            if (this.schemeContainer.selectedItems.length === 1) {
+                const itemId = this.schemeContainer.selectedItems[0].id;
+                const rowDom = document.getElementById(`item-selector-${this.itemSelectorId}-row-${itemId}`);
+                const itemSelectorDom = document.getElementById(`item-selector-${this.itemSelectorId}`);
+                if (rowDom && itemSelectorDom) {
+                    const topPos = rowDom.offsetTop - itemSelectorDom.offsetTop;
+                    itemSelectorDom.scrollTop = Math.max(0, topPos - 20);
+                }
+            }
+        },
+
         // This function is needed in order to handle clicking outside of the company
         // this way we are able to cancel item name in-place editing and dragging states
         onMouseUp(event) {
@@ -192,6 +207,7 @@ export default {
         },
 
         onAnyItemSelected() {
+            this.scrollToSelection();
             this.$forceUpdate();
         },
 
