@@ -398,6 +398,14 @@ ul.pagination li a.current {
     -ms-user-select: none;
     user-select: none;
 }
+.svg-editor svg foreignObject h1,
+.svg-editor svg foreignObject h2,
+.svg-editor svg foreignObject h3,
+.svg-editor svg foreignObject h4,
+.svg-editor svg foreignObject h4,
+.svg-editor svg foreignObject h6 {
+    color: unset;
+}
 svg .grid line {
     stroke-width: 1;
 }

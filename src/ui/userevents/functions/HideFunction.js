@@ -24,7 +24,7 @@ export default {
                 }
             }), item.id);
         } else {
-            item.visible = true;
+            item.visible = false;
         }
     }
 };
