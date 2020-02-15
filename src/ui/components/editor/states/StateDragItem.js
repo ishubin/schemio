@@ -356,7 +356,11 @@ export default class StateDragItem extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
+            if (object.item.shape === 'curve') {
+                this.eventBus.emitCurveEdited(object.item);
+            } else {
+                this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
+            }
         } else if (object.connector) {
             if (object.rerouteId >= 0) {
                 object.connector.reroutes.splice(object.rerouteId, 1);

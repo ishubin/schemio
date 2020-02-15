@@ -186,7 +186,7 @@
                     </foreignObject>
                 </g>
 
-                <g v-if="state && state.name === 'edit-curve' && curveEditItem" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
+                <g v-if="state && state.name === 'edit-curve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
                     <curve-edit-box 
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
@@ -305,7 +305,7 @@ export default {
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurvEditRequested);
+        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
 
     },
     mounted() {
@@ -330,7 +330,7 @@ export default {
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurvEditRequested);
+        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -584,7 +584,7 @@ export default {
         },
         onSwitchStateCreateItem(item) {
             if (item.shape === 'curve') {
-                this.curveEditItem = null;
+                this.curveEditItem = item;
                 this.state = this.states.editCurve;
             } else {
                 this.state = this.states.createItem;
@@ -598,7 +598,10 @@ export default {
             this.state.setSourceItem(item);
         },
 
-        onCurvEditRequested(item) {
+        onCurveEditRequested(item) {
+            this.state = this.states.editCurve;
+            this.state.reset();
+            this.state.setItem(item);
             this.curveEditItem = item;
         },
 

@@ -30,7 +30,9 @@ export default class StateEditCurve extends State {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
         }
-        this.submitItem();
+        if (this.item.shapeProps.points.length > 0) {
+            this.submitItem();
+        }
         super.cancel();
     }
 
@@ -52,7 +54,6 @@ export default class StateEditCurve extends State {
 
         this.schemeContainer.addItem(this.item);
         this.addedToScheme = true;
-        this.eventBus.emitCurveEdited(this.item);
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -139,28 +140,26 @@ export default class StateEditCurve extends State {
             return;
         }
 
-        let minX = this.item.shapeProps.points[0].x,
-            minY = this.item.shapeProps.points[0].y,
+        let minX = this.item.shapeProps.points[0].x + this.item.area.x,
+            minY = this.item.shapeProps.points[0].y + this.item.area.y,
             maxX = minX,
             maxY = minY;
 
         forEach(this.item.shapeProps.points, point => {
-            minX = Math.min(minX, point.x);
-            minY = Math.min(minY, point.y);
-            maxX = Math.max(maxX, point.x);
-            maxY = Math.max(maxY, point.y);
+            minX = Math.min(minX, point.x + this.item.area.x);
+            minY = Math.min(minY, point.y + this.item.area.y);
+            maxX = Math.max(maxX, point.x + this.item.area.x);
+            maxY = Math.max(maxY, point.y + this.item.area.y);
             if (point.t === 'B') {
-                minX = Math.min(minX, point.x1, point.x2);
-                minY = Math.min(minY, point.y1, point.y2);
-                maxX = Math.max(maxX, point.x1, point.x2);
-                maxY = Math.max(maxY, point.y2, point.y2);
+                minX = Math.min(minX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
+                minY = Math.min(minY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
+                maxX = Math.max(maxX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
+                maxY = Math.max(maxY, point.y2 + this.item.area.y, point.y2 + this.item.area.y);
             }
         });
 
         const dx = this.item.area.x - minX;
         const dy = this.item.area.y - minY;
-        const nw = maxX - minX;
-        const nh = maxY - minY;
         this.item.area.x = minX;
         this.item.area.y = minY;
         this.item.area.w = maxX - minX;
