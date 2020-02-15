@@ -6,6 +6,7 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import _ from 'lodash';
+import utils from '../../../utils';
 
 
 function isEventRightClick(event) {
@@ -117,6 +118,11 @@ export default class StateDragItem extends State {
             r: item.area.r
         };
         this.wasMouseMoved = false;
+
+        if (item.shape === 'curve') {
+            // storing original points so that they can be readjusted in case the item is resized
+            item.meta.originalCurvePoints = utils.clone(item.shapeProps.points);
+        }
     }
 
     initItemRotation(item, x, y) {
@@ -701,11 +707,37 @@ export default class StateDragItem extends State {
             item.area.y = ny;
             item.area.w = nw;
             item.area.h = nh;
+            if (item.shape === 'curve') {
+                this.readjustCurveItemPoints(item);
+            }
             this.schemeContainer.updateChildTransforms(item);
             this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
         }
+    }
+
+    readjustCurveItemPoints(item) {
+        if (!item.meta.itemOriginalArea || item.meta.itemOriginalArea.w < 0.0001 || item.meta.itemOriginalArea.h < 0.0001) {
+            return;
+        }
+        if (item.area.w < 0.0001 || item.area.h < 0.0001) {
+            return;
+        }
+        if (!item.meta.originalCurvePoints) {
+            return;
+        }
+
+        _.forEach(item.meta.originalCurvePoints, (point, index) => {
+            item.shapeProps.points[index].x = point.x * item.area.w / item.meta.itemOriginalArea.w;
+            item.shapeProps.points[index].y = point.y * item.area.h / item.meta.itemOriginalArea.h;
+            if (point.t === 'B') {
+                item.shapeProps.points[index].x1 = point.x1 * item.area.w / item.meta.itemOriginalArea.w;
+                item.shapeProps.points[index].y1 = point.y1 * item.area.h / item.meta.itemOriginalArea.h;
+                item.shapeProps.points[index].x2 = point.x2 * item.area.w / item.meta.itemOriginalArea.w;
+                item.shapeProps.points[index].y2 = point.y2 * item.area.h / item.meta.itemOriginalArea.h;
+            }
+        });
     }
 
     rebuildConnectorsInCache() {
