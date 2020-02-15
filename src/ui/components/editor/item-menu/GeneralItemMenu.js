@@ -40,6 +40,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Curve',
+    iconUrl: '/images/items/curve.svg',
+    item: utils.extendObject({
+        shape: 'curve',
+        shapeProps: { }
+    }, defaultItem)
+}, {
     name: 'Curly Bracket',
     iconUrl: '/images/items/curly-bracket.svg',
     item: utils.extendObject({

@@ -3,6 +3,7 @@ import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
 import Ellipse from './Ellipse.vue';
 import Link from './Link.vue';
+import Curve from './Curve.vue';
 import CommentShape from './CommentShape.vue';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
@@ -55,6 +56,7 @@ const shapeReigstry = _.mapValues({
     ellipse: Ellipse,
     comment: CommentShape,
     frame_player: FramePlayer,
+    curve: Curve,
     link: Link,
     npoly: NPolygon,
     bracket: Bracket,

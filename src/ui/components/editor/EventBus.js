@@ -66,7 +66,9 @@ const EventBus = new Vue({
                 LEFT: 'left',
                 RIGHT: 'right',
                 SPACE: 'space'
-            }
+            },
+
+            CURVE_EDITED: 'curve-edited'
         };
     },
     methods: {
@@ -137,6 +139,10 @@ const EventBus = new Vue({
 
         emitElementPickRequested(elementPickCallback) {
             this.$emit(EventBus.ELEMENT_PICK_REQUESTED, elementPickCallback);
+        },
+
+        emitCurveEdited(item) {
+            this.$emit(EventBus.CURVE_EDITED, item);
         }
     }
 });

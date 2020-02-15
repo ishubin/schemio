@@ -186,6 +186,14 @@
                     </foreignObject>
                 </g>
 
+                <g v-if="state && state.name === 'edit-curve' && curveEditItem" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
+                    <curve-edit-box 
+                        :key="`item-curve-edit-box-${curveEditItem.id}`"
+                        :item="curveEditItem"
+                        :zoom="1"
+                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"/>
+                </g>
+
 
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
@@ -235,10 +243,12 @@
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
+import StateEditCurve from './states/StateEditCurve.js';
 import StateConnecting from './states/StateConnecting.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
+import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
@@ -270,7 +280,7 @@ const allDraggerEdges = [
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'viewportTop', 'viewportLeft', 'zoom', 'shouldSnapToGrid'],
-    components: {ItemSvg, ContextMenu, ItemEditBox},
+    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox},
     beforeMount() {
         this.vOffsetX = parseInt(this.offsetX);
         this.vOffsetY = parseInt(this.offsetY);
@@ -295,6 +305,7 @@ export default {
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
+        EventBus.$on(EventBus.CURVE_EDITED, this.onCurvEditRequested);
 
     },
     mounted() {
@@ -319,6 +330,7 @@ export default {
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
+        EventBus.$off(EventBus.CURVE_EDITED, this.onCurvEditRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -331,6 +343,7 @@ export default {
             states: {
                 interact: new StateInteract(this, EventBus, userEventBus),
                 createItem: new StateCreateItem(this, EventBus),
+                editCurve: new StateEditCurve(this, EventBus),
                 dragItem: new StateDragItem(this, EventBus),
                 connecting: new StateConnecting(this, EventBus),
                 pickElement: new StatePickElement(this, EventBus)
@@ -367,6 +380,8 @@ export default {
                 style: {},
                 area: {x: 0, y: 0, w: 0, h: 0, type: 'relative'}
             },
+
+            curveEditItem: null,
 
             // used in order to limit offset in 'view' mode
             cameraLimit: { x1: -this.width, y1: -this.height, x2: this.width, y2: this.height }
@@ -568,7 +583,12 @@ export default {
             this.state.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateItem(item) {
-            this.state = this.states.createItem;
+            if (item.shape === 'curve') {
+                this.curveEditItem = null;
+                this.state = this.states.editCurve;
+            } else {
+                this.state = this.states.createItem;
+            }
             this.state.reset();
             this.state.setItem(item);
         },
@@ -576,6 +596,10 @@ export default {
             this.state = this.states.connecting;
             this.state.reset();
             this.state.setSourceItem(item);
+        },
+
+        onCurvEditRequested(item) {
+            this.curveEditItem = item;
         },
 
         reindexUserEvents() {
