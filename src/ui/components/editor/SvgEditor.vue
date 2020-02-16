@@ -654,8 +654,6 @@ export default {
                                         itemId = item.id;
                                     }
                                     userEventBus.subscribeItemEvent(itemId, rule.on.event, rule.on.args, eventCallback);
-                                } else {
-                                    //TODO handle connector user events
                                 }
                             }
                         }

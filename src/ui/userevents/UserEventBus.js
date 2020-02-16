@@ -38,7 +38,7 @@ export default class UserEventBus {
             _.forEach(itemSubs[eventName], subscriber => {
                 
                 if (this.matchesArgs(args, subscriber.args)) {
-                    subscriber.callback.apply(null, args);
+                    subscriber.callback.apply(null, [this]);
                 }
             })
         }

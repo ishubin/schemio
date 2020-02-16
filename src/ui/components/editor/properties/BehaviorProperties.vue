@@ -31,7 +31,8 @@
                         :options="behaviorsMetas[behaviorIndex].eventOptions"
                         @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
                         >
-                        <span>{{behavior.on.event | toPrettyEventName}}</span>
+                        <span v-if="isStandardEvent(behavior.on.event)">{{behavior.on.event | toPrettyEventName}}</span>
+                        <input v-else type="text" :value="behavior.on.event" @input="behavior.on.event = arguments[0].target.value"/>
                     </dropdown>
                 </div>
                 <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
@@ -56,9 +57,10 @@
                                 @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span v-else> <i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
+                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
+                                <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
                             </dropdown>
-                            <span v-if="action.method !== 'set' && action.args && Object.keys(action.args).length > 0"
+                            <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                 class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
                                 >(...)</span>
@@ -79,9 +81,7 @@
                 </div>
             </div>
 
-
             <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
-
         </panel>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
@@ -115,6 +115,7 @@ const supportedProperties = {
 };
 
 const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
+const standardItemEventIds = _.map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
 
@@ -237,6 +238,11 @@ export default {
                         eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(item)).map(event => {return {id: event.name, name: event.name}}).value());
                     }
                 }
+
+                eventOptions.push({
+                    id: 'custom-event',
+                    name: 'Custom event ...'
+                });
             }
             return eventOptions;
         },
@@ -247,18 +253,30 @@ export default {
             if (element.connector) {
                 scope = 'connector';
             }
-            options.push({
-                method: 'set',
-                name: 'Opacity',
-                fieldPath: 'opacity',
-                iconClass: 'fas fa-cog'
+            _.forEach(Functions[scope], (func, funcId) => {
+                if (funcId !== 'set') {
+                    options.push({
+                        method: funcId,
+                        name: func.name,
+                        iconClass: 'fas fa-play'
+                    });
+                }
             });
-
             if (element.item) {
                 const item = this.findItem(element.item);
                 if (!item) {
                     return [];
                 }
+
+                _.forEach(this.collectAllItemCustomEvents(item), customEvent => {
+                    options.push({
+                        method: 'custom-event',
+                        name: customEvent,
+                        event: customEvent,
+                        iconClass: 'fas fa-play'
+                    });
+                });
+
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     _.forEach(shape.args, (arg, argName) => {
@@ -271,16 +289,36 @@ export default {
                     });
                 }
             }
-            _.forEach(Functions[scope], (func, funcId) => {
-                if (funcId !== 'set') {
-                    options.push({
-                        method: funcId,
-                        name: func.name,
-                        iconClass: 'fas fa-play'
-                    });
-                }
+            options.push({
+                method: 'set',
+                name: 'Opacity',
+                fieldPath: 'opacity',
+                iconClass: 'fas fa-cog'
             });
+
             return options;
+        },
+
+        collectAllItemCustomEvents(item) {
+            if (!item.behavior) {
+                return [];
+            }
+            const filteredBehavior = _.filter(item.behavior, behavior => {
+                if (!behavior.on.element || !behavior.on.event) {
+                    return false;
+                }
+                // checking that it is it's own event
+                if (behavior.on.element.item !== 'self' && behavior.on.element.item !== item.id) {
+                    return false;
+                }
+                return !this.isStandardEvent(behavior.on.event);
+            });
+
+            return _.uniq(_.map(filteredBehavior, behavior => behavior.on.event));
+        },
+
+        isStandardEvent(event) {
+            return _.indexOf(standardItemEventIds, event) >= 0;
         },
 
         addBehavior() {
@@ -315,7 +353,11 @@ export default {
         },
 
         onBehaviorEventSelected(behaviorIndex, eventOption) {
-            this.item.behavior[behaviorIndex].on.event = eventOption.id;
+            if (eventOption.id === 'custom-event') {
+                this.item.behavior[behaviorIndex].on.event = 'Unknown event...';
+            } else {
+                this.item.behavior[behaviorIndex].on.event = eventOption.id;
+            }
             this.emitChangeCommited();
         },
 
@@ -360,6 +402,9 @@ export default {
                     args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                 }
                 action.args = args;
+            } else if (methodOption.method === 'custom-event') {
+                action.method = 'sendEvent';
+                action.args = {event: methodOption.event};
             } else {
                 action.method = methodOption.method;
                 action.args = this.getDefaultArgsForMethod(action, methodOption.method);

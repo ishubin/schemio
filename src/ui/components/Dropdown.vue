@@ -74,16 +74,17 @@ export default {
 
             let rightSide = originalX + width;
             let bottomSide = originalY + height + this.searchTextfieldHeight;
-            let dx = 0, dy = 0;
             if (rightSide > window.innerWidth) {
-                dx = window.innerWidth - rightSide;
-            }
-            if (bottomSide > window.innerHeight) {
-                dy = window.innerHeight - bottomSide;
+                this.x = originalX + window - rightSide;
+            } else {
+                this.x = originalX;
             }
 
-            this.x = originalX + dx;
-            this.y = originalY + dy;
+            if (bottomSide > window.innerHeight) {
+                this.y = this.elementRect.top - height;
+            } else {
+                this.y = originalY;
+            }
         },
 
         onOptionClicked(option) {

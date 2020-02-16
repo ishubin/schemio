@@ -3,8 +3,8 @@ import _ from 'lodash';
 import knownFunctions from './functions/Functions.js';
 
 function createCallable(knownFunction, item, args, schemeContainer) {
-    return () => {
-        knownFunction.execute(item, args, schemeContainer);
+    return (userEventBus) => {
+        knownFunction.execute(item, args, schemeContainer, userEventBus);
     };
 }
 
@@ -62,9 +62,9 @@ export default class Compiler {
             }
         });
 
-        return () => {
+        return (userEventBus) => {
             _.forEach(funcs, func => {
-                func();
+                func(userEventBus);
             })
         };
     }

@@ -1,6 +1,7 @@
 import SetFunction from './SetFunction';
 import HideFunction from './HideFunction';
 import ShowFunction from './ShowFunction';
+import SendEventFunction from './SendEventFunction';
 import ZoomToItFunction from './ZoomToItFunction';
 import ParticleEffectFunction from './connectors/ParticleEffectFunction';
 import CrawlEffectFunction from './connectors/CrawlEffectFunction';
@@ -18,7 +19,8 @@ export default {
         particleEffect:     ItemParticleEffectFunction,
         blinkEffect:        BlinkEffectFunction,
         move:               ItemMoveFunction,
-        stopAllAnimations:  StopAllAnimationsFunction
+        stopAllAnimations:  StopAllAnimationsFunction,
+        sendEvent:          SendEventFunction
     },
     connector: {
         set:                SetFunction,
@@ -26,7 +28,8 @@ export default {
         show:               ShowFunction,
         particleEffect:     ParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
-        stopAllAnimations:  StopAllAnimationsFunction
+        stopAllAnimations:  StopAllAnimationsFunction,
+        sendEvent:          SendEventFunction
     },
     scheme: {
     }
