@@ -5,6 +5,8 @@
 import State from './State.js';
 import {forEach} from 'lodash';
 import utils from '../../../utils';
+import myMath from '../../../myMath.js';
+import Shape from '../items/shapes/Shape.js';
 
 
 function isEventRightClick(event) {
@@ -25,6 +27,7 @@ export default class StateEditCurve extends State {
         this.shouldJoinClosedPoints = false;
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
+        this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
 
     reset() {
@@ -66,6 +69,16 @@ export default class StateEditCurve extends State {
 
         this.schemeContainer.addItem(this.item);
         this.addedToScheme = true;
+    }
+
+    mouseDoubleClick(x, y, mx, my, object, event) {
+        if (this.creatingNewPoints) {
+            return;
+        }
+        if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
+            return;
+        }
+        this.insertPointAtCoords(x, y);
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -184,6 +197,45 @@ export default class StateEditCurve extends State {
         this.eventBus.emitItemChanged(this.item.id);
     }
 
+    insertPointAtCoords(x, y) {
+        const shape = Shape.find(this.item.shape);
+        if (!shape) {
+            return;
+        }
+        this.shadowSvgPath.setAttribute('d', shape.computePath(this.item));
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
+        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
+
+        // checking how far away from the curve stroke has the user clicked
+        const dx = localPoint.x - closestPoint.x;
+        const dy = localPoint.y - closestPoint.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d <= parseInt(this.item.shapeProps.strokeSize) + 1) {
+            const index = this.findClosestLineSegment(closestPoint.distance, this.item.shapeProps.points, this.shadowSvgPath);
+            this.item.shapeProps.points.splice(index + 1, 0, {
+                x: closestPoint.x,
+                y: closestPoint.y,
+                t: 'L'
+            });
+            if (this.item.shapeProps.points[index].t === 'B') {
+                this.convertPointToBeizer(index + 1);
+            }
+            this.eventBus.emitItemChanged(this.item.id);
+        }
+    }
+
+    findClosestLineSegment(distanceOnPath, points, svgPath) {
+        let i = points.length - 1;
+        while(i > 0) {
+            const closestPoint = myMath.closestPointOnPath(points[i].x, points[i].y, svgPath);
+            if (closestPoint.distance < distanceOnPath) {
+                return i;
+            }
+            i--;
+        }
+        return 0;
+    }
+
     convertPointToSimple(pointIndex) {
         const point = this.item.shapeProps.points[pointIndex];
         if (!point) {
@@ -215,8 +267,8 @@ export default class StateEditCurve extends State {
                 prevPointId = this.item.shapeProps.points.length + prevPointId;
             }
             let nextPointId = pointIndex + 1;
-            if (pointIndex >= this.item.shapeProps.points.length) {
-                pointIndex -= this.item.shapeProps.points.length;
+            if (nextPointId >= this.item.shapeProps.points.length - 1) {
+                nextPointId -= this.item.shapeProps.points.length - 1;
             }
 
             dx = (this.item.shapeProps.points[nextPointId].x - this.item.shapeProps.points[prevPointId].x) / 4;

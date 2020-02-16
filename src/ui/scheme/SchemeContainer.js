@@ -513,34 +513,7 @@ class SchemeContainer {
             this.shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         }
         this.shadowSvgPath.setAttribute('d', path);
-        const pathLength = this.shadowSvgPath.getTotalLength();
-
-        const leftSegment = [0, pathLength / 2];
-        const rightSegment = [pathLength / 2, pathLength]
-        let segmentWidth = pathLength / 2;
-
-        let closestPoint = this.shadowSvgPath.getPointAtLength(0);
-
-        while(segmentWidth > 1) {
-            const middle = segmentWidth / 2;
-            let pointLeft = this.shadowSvgPath.getPointAtLength(leftSegment[0] + middle);
-            let pointRight = this.shadowSvgPath.getPointAtLength(rightSegment[0] + middle);
-            let distanceLeft = (localPoint.x - pointLeft.x)*(localPoint.x - pointLeft.x) + (localPoint.y - pointLeft.y) * (localPoint.y - pointLeft.y);
-            let distanceRight = (localPoint.x - pointRight.x)*(localPoint.x - pointRight.x) + (localPoint.y - pointRight.y) * (localPoint.y - pointRight.y);
-
-            segmentWidth = middle;
-            if (distanceLeft < distanceRight) {
-                closestPoint = pointLeft;
-                leftSegment[1] = leftSegment[0] + segmentWidth;
-            } else {
-                closestPoint = pointRight;
-                leftSegment[0] = rightSegment[0];
-                leftSegment[1] = leftSegment[0] + segmentWidth;
-            }
-            rightSegment[0] = leftSegment[1];
-            rightSegment[1] = rightSegment[0] + segmentWidth;
-        }
-        
+        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
         return this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
     }
 
