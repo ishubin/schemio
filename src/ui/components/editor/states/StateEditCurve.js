@@ -4,6 +4,12 @@
 
 import State from './State.js';
 import {forEach} from 'lodash';
+import utils from '../../../utils';
+
+
+function isEventRightClick(event) {
+    return event.button === 2;
+}
 
 
 export default class StateEditCurve extends State {
@@ -17,12 +23,18 @@ export default class StateEditCurve extends State {
         this.originalClickPoint = {x: 0, y: 0};
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
+        this.draggedObject = null;
+        this.draggedObjectOriginalPoint = null;
     }
 
     reset() {
         this.item = null;
+        this.candidatePointSubmited = false;
+        this.shouldJoinClosedPoints = false;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
+        this.draggedObject = null;
+        this.draggedObjectOriginalPoint = null;
     }
 
     cancel() {
@@ -79,6 +91,13 @@ export default class StateEditCurve extends State {
             }
 
             this.candidatePointSubmited = true;
+        } else {
+            if (isEventRightClick(event)) {
+                this.handleRightClick(x, y, mx, my, object);
+            } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
+                this.draggedObjectOriginalPoint = utils.clone(this.item.shapeProps.points[object.pointIndex]);
+                this.draggedObject = object;
+            }
         }
     }
 
@@ -111,6 +130,10 @@ export default class StateEditCurve extends State {
                 }
             }
             this.eventBus.emitItemChanged(this.item.id);
+        } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
+            this.handleCurvePointDrag(x, y);
+        } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
+            this.handleCurveControlPointDrag(x, y, event);
         }
     }
 
@@ -124,6 +147,121 @@ export default class StateEditCurve extends State {
                 this.eventBus.emitItemChanged(this.item.id);
             }
         }
+
+        this.draggedObject = null;
+        this.draggedObjectOriginalPoint = null;
+    }
+
+    handleRightClick(x, y, mx, my, object) {
+        if (object && object.type === 'curve-point') {
+            const point = this.item.shapeProps.points[object.pointIndex];
+            if (!point) {
+                return;
+            }
+
+            const menuOptions = [{
+                name: 'Delete point',
+                clicked: () => this.deletePoint(object.pointIndex)
+            }];
+            if (point.t === 'L') {
+                menuOptions.push({
+                    name: 'Convert to beizer point',
+                    clicked: () => this.convertPointToBeizer(object.pointIndex)
+                });
+            }
+            if (point.t === 'B') {
+                menuOptions.push({
+                    name: 'Convert to simple point',
+                    clicked: () => this.convertPointToSimple(object.pointIndex)
+                });
+            }
+            this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+        }
+    }
+
+    deletePoint(pointIndex) {
+        this.item.shapeProps.points.splice(pointIndex, 1);
+        this.eventBus.emitItemChanged(this.item.id);
+    }
+
+    convertPointToSimple(pointIndex) {
+        const point = this.item.shapeProps.points[pointIndex];
+        if (!point) {
+            return;
+        }
+        point.t = 'L';
+        if (point.hasOwnProperty('x1')) {
+            delete point.x1;
+            delete point.y1;
+        }
+        if (point.hasOwnProperty('x2')) {
+            delete point.x2;
+            delete point.y2;
+        }
+        this.eventBus.emitItemChanged(this.item.id);
+    }
+
+    convertPointToBeizer(pointIndex) {
+        const point = this.item.shapeProps.points[pointIndex];
+        if (!point) {
+            return;
+        }
+        
+        let dx = 10, dy = 0;
+        if (this.item.shapeProps.points.length > 2) {
+            // calculating dx and dy via previos and next points
+            let prevPointId = pointIndex - 1;
+            if (prevPointId < 0) {
+                prevPointId = this.item.shapeProps.points.length + prevPointId;
+            }
+            let nextPointId = pointIndex + 1;
+            if (pointIndex >= this.item.shapeProps.points.length) {
+                pointIndex -= this.item.shapeProps.points.length;
+            }
+
+            dx = (this.item.shapeProps.points[nextPointId].x - this.item.shapeProps.points[prevPointId].x) / 4;
+            dy = (this.item.shapeProps.points[nextPointId].y - this.item.shapeProps.points[prevPointId].y) / 4;
+        }
+
+        point.x1 = point.x - dx;
+        point.y1 = point.y - dy;
+        point.x2 = point.x + dx;
+        point.y2 = point.y + dy;
+        point.t = 'B';
+        this.eventBus.emitItemChanged(this.item.id);
+    }
+
+    handleCurvePointDrag(x, y) {
+        const localOiriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
+        const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
+        curvePoint.x = this.draggedObjectOriginalPoint.x + localPoint.x - localOiriginalPoint.x;
+        curvePoint.y = this.draggedObjectOriginalPoint.y + localPoint.y - localOiriginalPoint.y;
+        if (curvePoint.t === 'B') {
+            curvePoint.x1 = this.draggedObjectOriginalPoint.x1 + localPoint.x - localOiriginalPoint.x;
+            curvePoint.y1 = this.draggedObjectOriginalPoint.y1 + localPoint.y - localOiriginalPoint.y;
+            curvePoint.x2 = this.draggedObjectOriginalPoint.x2 + localPoint.x - localOiriginalPoint.x;
+            curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOiriginalPoint.y;
+        }
+        this.eventBus.emitItemChanged(this.item.id);
+    }
+
+    handleCurveControlPointDrag(x, y, event) {
+        const localOiriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
+        const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
+        
+        const index = this.draggedObject.controlPointIndex;
+        const oppositeIndex = index === 1 ? 2: 1;
+        
+        curvePoint[`x${index}`] = this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOiriginalPoint.x;
+        curvePoint[`y${index}`] = this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOiriginalPoint.y;
+        
+        if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
+            curvePoint[`x${oppositeIndex}`] = curvePoint.x * 2 - curvePoint[`x${index}`];
+            curvePoint[`y${oppositeIndex}`] = curvePoint.y * 2 - curvePoint[`y${index}`];
+        }
+        this.eventBus.emitItemChanged(this.item.id);
     }
 
     submitItem() {

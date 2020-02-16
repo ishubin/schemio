@@ -68,7 +68,9 @@ const EventBus = new Vue({
                 SPACE: 'space'
             },
 
-            CURVE_EDITED: 'curve-edited'
+            CURVE_EDITED: 'curve-edited',
+
+            CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested'
         };
     },
     methods: {
@@ -143,6 +145,10 @@ const EventBus = new Vue({
 
         emitCurveEdited(item) {
             this.$emit(EventBus.CURVE_EDITED, item);
+        },
+
+        emitCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
+            this.$emit(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, mouseX, mouseY, menuOptions);
         }
     }
 });

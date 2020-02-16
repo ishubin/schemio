@@ -125,7 +125,7 @@
                         />
                     </g>
 
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport'"
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state && state.name !== 'edit-curve'"
                         :key="`item-edit-box-${item.id}`"
                         :item="item"
                         :zoom="vZoom"
@@ -172,7 +172,7 @@
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
                     </g>
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport'"
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state && state.name !== 'edit-curve'"
                         :key="`item-edit-box-${item.id}`"
                         :item="item"
                         :zoom="1"
@@ -232,6 +232,18 @@
                 </li>
                 <li @click="deleteSelectedItemsAndConnectors()">
                     <i class="fa fa-times"></i> Delete
+                </li>
+            </ul>
+        </context-menu>
+
+        <context-menu v-if="customContextMenu.show"
+            :mouse-x="customContextMenu.mouseX"
+            :mouse-y="customContextMenu.mouseY"
+            @close="customContextMenu.show = false"
+        >
+            <ul>
+                <li v-for="(option, optionIndex) in customContextMenu.menuOptions" @click="onCustomMenuOptionSelected(optionIndex)">
+                    {{option.name}}
                 </li>
             </ul>
         </context-menu>
@@ -306,6 +318,7 @@ export default {
         EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
 
     },
     mounted() {
@@ -331,6 +344,7 @@ export default {
         EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -370,6 +384,12 @@ export default {
                 item: null,
                 mouseX: 0, mouseY: 0,
                 selectedMultipleItems: false
+            },
+
+            customContextMenu: {
+                show: false,
+                mouseX: 0, mouseY: 0,
+                menuOptions: []
             },
 
             itemTextEditor: {
@@ -443,6 +463,20 @@ export default {
 
         identifyElement(element) {
             if (element) {
+                const elementType = element.getAttribute('data-type');
+                if (elementType === 'curve-point') {
+                    return {
+                        type: elementType,
+                        pointIndex: parseInt(element.getAttribute('data-curve-point-index'))
+                    };
+                } else if (elementType === 'curve-control-point') {
+                    return {
+                        type: elementType,
+                        pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
+                        controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
+                    };
+                }
+
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
                     return {
@@ -884,6 +918,20 @@ export default {
             this.switchStatePickElement(elementPickCallback);
         },
 
+        onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
+            this.customContextMenu.menuOptions = menuOptions;
+            this.customContextMenu.show = true;
+            this.customContextMenu.mouseX = mouseX;
+            this.customContextMenu.mouseY = mouseY;
+        },
+
+        onCustomMenuOptionSelected(optionIndex) {
+            const option = this.customContextMenu.menuOptions[optionIndex];
+            if (option) {
+                option.clicked();
+            }
+            this.customContextMenu.show = false;
+        },
         // Converts world coordinates to item local coordinates (takes items rotation and translation into account)
         calculateItemLocalPoint(item, x, y) {
             // Rotating a world point around item center in the opposite direction
