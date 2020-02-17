@@ -5,6 +5,7 @@
 import State from './State.js';
 import shortid from 'shortid';
 import Connector from '../../../scheme/Connector.js';
+import recentPropsChanges from '../../../history/recentPropsChanges';
 
 
 export default class StateConnecting extends State {
@@ -97,6 +98,8 @@ export default class StateConnecting extends State {
                 smooth: false
             }
         }
+        
+        recentPropsChanges.applyConnectorProps(this.connector);
         this.schemeContainer.buildConnector(item, this.connector);
         this.sourceItem.connectors.push(this.connector);
         this.eventBus.emitItemChanged(this.sourceItem.id);

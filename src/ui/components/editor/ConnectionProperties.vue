@@ -12,7 +12,7 @@
                 <tr>
                     <td class="label" width="50%">Type</td>
                     <td class="value" width="50%">
-                        <select v-model="connector.connectorType">
+                        <select :value="connector.connectorType" @change="onPropertyChange(arguments[0].target.value, 'connectorType')">
                             <option v-for="type in connectorTypes">{{type}}</option>
                         </select>
                     </td>
@@ -73,7 +73,7 @@
                     <td class="label" width="50%">Pattern</td>
                     <td class="value" width="50%">
                         <dropdown :value="connector.pattern" :options="patternOptions"
-                            @selected="connector.pattern = arguments[0].name; onConnectorChange()">
+                            @selected="onPropertyChange(arguments[0].name, 'pattern')">
                             <span :style="{'background-image': `url(/images/line-patterns/${connector.pattern}.svg)`, 'display': 'block', 'height': '20px', 'width': '140px', 'background-repeat': 'no-repeat'}"></span>
                         </dropdown>
                     </td>
@@ -89,6 +89,7 @@ import EventBus from './EventBus.js';
 import Connector from './../../scheme/Connector.js';
 import Dropdown from '../Dropdown.vue';
 import _ from 'lodash';
+import recentPropsChanges from '../../history/recentPropsChanges';
 
 
 export default {
@@ -108,10 +109,16 @@ export default {
         },
 
         onPropertyChange(value, field, subField) {
+            let propertyPath = field;
             if (subField) {
                 this.connector[field][subField] = value;
+                propertyPath += '.' + subField;
             } else {
                 this.connector[field] = value;
+            }
+
+            if (propertyPath !== 'visible' && propertyPath !== 'opacity') {
+                recentPropsChanges.registerConnectorProp(propertyPath, value);
             }
             this.onConnectorChange();
         }

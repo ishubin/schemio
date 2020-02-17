@@ -601,7 +601,10 @@ export default {
             const item = this.schemeContainer.findItemById(itemId);
             if (item && propertyPath) {
                 const value = utils.getObjectProperty(item, propertyPath);
-                recentPropsChanges.registerItemProp(item.shape, propertyPath, value);
+
+                if (propertyPath && propertyPath.indexOf('shapeProps.') === 0) {
+                    recentPropsChanges.registerItemProp(item.shape, propertyPath, value);
+                }
             }
 
             if (propertyPath === 'area.type') {
