@@ -173,6 +173,7 @@ import AnimationsRegistry from '../animations/AnimationRegistry';
 import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import recentPropsChanges from '../history/recentPropsChanges';
 
 
 let history = new History({size: 30});
@@ -597,22 +598,25 @@ export default {
         onItemChange(itemId, propertyPath) {
             this.schemeChanged = true;
 
+            const item = this.schemeContainer.findItemById(itemId);
+            if (item && propertyPath) {
+                const value = utils.getObjectProperty(item, propertyPath);
+                recentPropsChanges.registerItemProp(item.shape, propertyPath, value);
+            }
+
             if (propertyPath === 'area.type') {
                 // need to preform a full reindex since item was moved in/out viewport/world coords
                 this.schemeContainer.reindexItems();
             }
 
-            if (this.schemeContainer.selectedItems.length > 1 && propertyPath) {
-                const item = this.schemeContainer.findItemById(itemId);
-                if (item) {
-                    // Iterating through all other selected items and trying to apply the same change
-                    // this is needed so that user is able to perform bulk changes to multiple items at once
-                    _.forEach(this.schemeContainer.selectedItems, selectedItem => {
-                        if (selectedItem.id !== itemId) {
-                            this.applySameChangeToItem(item, selectedItem, propertyPath);
-                        }
-                    });
-                }
+            if (item && this.schemeContainer.selectedItems.length > 1 && propertyPath) {
+                // Iterating through all other selected items and trying to apply the same change
+                // this is needed so that user is able to perform bulk changes to multiple items at once
+                _.forEach(this.schemeContainer.selectedItems, selectedItem => {
+                    if (selectedItem.id !== itemId) {
+                        this.applySameChangeToItem(item, selectedItem, propertyPath);
+                    }
+                });
             }
         },
 

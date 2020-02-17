@@ -16,7 +16,7 @@ export default [{
     iconUrl: '/images/items/rect.svg',
     item: utils.extendObject({
         shape: 'rect',
-        shapeProps: {}
+        shapeProps: {cornerRadius: 0}
     }, defaultItem)
 }, {
     name: 'Rounded Rect',

@@ -96,6 +96,7 @@ import generalItems from './item-menu/GeneralItemMenu.js';
 import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
+import recentPropsChanges from '../../history/recentPropsChanges';
 
 
 
@@ -146,6 +147,10 @@ export default {
         prepareItemsForMenu(items) {
             return _.map(items, item => {
                 item.item.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
+                if (item.item.shapeProps) {
+                    // this will be needed later so that it is able to override recent shapeProps changes
+                    item.overidingShapeProps = utils.clone(item.item.shapeProps);
+                }
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
@@ -256,6 +261,15 @@ export default {
                 newItem.id = shortid.generate();
                 newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
                 newItem.name = item.name;
+                recentPropsChanges.applyItemProps(newItem, newItem.shape);
+
+                // resetting back to shapeProps that are defined in the menu
+                if (item.overidingShapeProps) {
+                    const resetShapeProps = utils.clone(item.overidingShapeProps);
+                    _.forEach(resetShapeProps, (value, key) => {
+                        newItem.shapeProps[key] = value;
+                    });
+                }
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
         },
@@ -266,6 +280,7 @@ export default {
             item.shapeProps.url = link.url;
             item.text = link.title;
             item.shapeProps.icon = link.type;
+            recentPropsChanges.applyItemProps(item, item.shape);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
