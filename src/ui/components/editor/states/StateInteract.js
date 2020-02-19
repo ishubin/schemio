@@ -109,7 +109,6 @@ class StateInteract extends State {
         }
     }
 
-
     handleItemHoverEvents(object) {
         if (object && object.item) {
             if (!this.currentHoveredItem) {

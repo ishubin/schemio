@@ -60,7 +60,9 @@
                 :mode="mode"
                 :scheme-container="schemeContainer"
                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom"/>
+                :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom"
+                @custom-event="$emit('custom-event', arguments[0])"
+                />
         </g>    
 
     </g>

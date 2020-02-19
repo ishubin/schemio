@@ -7,6 +7,7 @@ import Curve from './Curve.vue';
 import CommentShape from './CommentShape.vue';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
+import Button from './Button.vue';
 import NPolygon from './NPolygon.vue';
 import Bracket from './Bracket.vue';
 import UMLObject from './uml/UMLObject.vue';
@@ -60,6 +61,7 @@ const shapeReigstry = _.mapValues({
     link: Link,
     npoly: NPolygon,
     bracket: Bracket,
+    button: Button,
     uml_object: UMLObject,
     uml_module: UMLModule,
     uml_package: UMLPackage,

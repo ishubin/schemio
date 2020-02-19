@@ -188,37 +188,16 @@ export default [{
     name: 'Button',
     iconUrl: '/images/items/rounded-rect.svg',
     item: utils.extendObject({
-        shape: 'rect',
+        shape: 'button',
         cursor: 'pointer',
         shapeProps: {
             strokeSize: 1,
             strokeColor: '#3377A0',
             fillColor: '#209BC5',
-            nameColor: '#ffffff',
+            hoverFillColor: '#236CAB',
+            textColor: '#ffffff',
+            hoverTextColor: '#ffffff',
             cornerRadius: 5,
-            showName: true,
-            namePosition: 'center'
         },
-        behavior: [ {
-            on: {
-                element: {item: 'self'},
-                event: 'mousein',
-                args: []
-            },
-            do: [
-                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.fillColor', value: '#A6E5FB'} },
-                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.nameColor', value: '#234E71'} }
-            ]
-        }, {
-            on: {
-                element: {item: 'self'},
-                event: 'mouseout',
-                args: []
-            },
-            do: [
-                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.fillColor', value: '#209BC5'} },
-                { element: {item: 'self'}, method: 'set', args: {field: 'shapeProps.nameColor', value: '#ffffff'} }
-            ]
-        } ]
     }, defaultItem)
 }];
