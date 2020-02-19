@@ -29,6 +29,9 @@ export default {
             }), item.id);
         } else {
             item.visible = true;
+            if (item.opacity < 0.5) {
+                item.opacity = 100.0;
+            }
         }
     }
 };
