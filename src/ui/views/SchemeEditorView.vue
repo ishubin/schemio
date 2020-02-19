@@ -337,6 +337,11 @@ export default {
 
         toggleMode(mode) {
             this.mode = mode;
+            if (mode === 'view') {
+                this.sidePanelRightExpanded = false;
+            } else if (mode === 'edit') {
+                this.sidePanelRightExpanded = true;
+            }
         },
 
         saveScheme() {
