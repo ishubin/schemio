@@ -207,6 +207,7 @@
         </svg>
 
         <context-menu v-if="contextMenu.show"
+            :key="contextMenu.id"
             :mouse-x="contextMenu.mouseX"
             :mouse-y="contextMenu.mouseY"
             @close="contextMenu.show = false"
@@ -237,6 +238,7 @@
         </context-menu>
 
         <context-menu v-if="customContextMenu.show"
+            :key="customContextMenu.id"
             :mouse-x="customContextMenu.mouseX"
             :mouse-y="customContextMenu.mouseY"
             @close="customContextMenu.show = false"
@@ -272,7 +274,7 @@ import Shape from './items/shapes/Shape';
 import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
-
+import shortid from 'shortid';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -380,6 +382,7 @@ export default {
             multiSelectBox: null,
 
             contextMenu: {
+                id: shortid.generate(),
                 show: false,
                 item: null,
                 mouseX: 0, mouseY: 0,
@@ -387,6 +390,7 @@ export default {
             },
 
             customContextMenu: {
+                id: shortid.generate(),
                 show: false,
                 mouseX: 0, mouseY: 0,
                 menuOptions: []
@@ -839,6 +843,7 @@ export default {
             this.contextMenu.mouseY = mouseY;
             this.contextMenu.selectedMultipleItems = this.schemeContainer.selectedItems.length > 1;
             this.contextMenu.show = true;
+            this.contextMenu.id = shortid.generate();
         },
 
         onItemInEditorTextEditTriggered(item, x, y) {
@@ -921,6 +926,7 @@ export default {
             this.customContextMenu.show = true;
             this.customContextMenu.mouseX = mouseX;
             this.customContextMenu.mouseY = mouseY;
+            this.customContextMenu.id = shortid.generate();
         },
 
         onCustomMenuOptionSelected(optionIndex) {
