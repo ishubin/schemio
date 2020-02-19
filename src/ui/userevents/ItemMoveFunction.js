@@ -57,53 +57,58 @@ class MoveAnimation extends Animation {
 
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
 
-            const convertedT = this.convertTime(t);
-
-            if (this.domPath) {
-                let point = null;
-                if (convertedT < 1.0) {
-                    point = this.domPath.getPointAtLength(convertedT * this.pathTotalLength);
-                } else {
-                    point = this.domPath.getPointAtLength((2.0 - convertedT) * this.pathTotalLength);
-                }
-                let worldPoint = point;
-                if (this.connectorSourceItem) {
-                    worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.connectorSourceItem);
-                }
-
-                // bringing transform back from world to local so that also works correctly for sub-items
-                let localPoint = worldPoint;
-                if (this.item.meta && this.item.meta.parentId) {
-                    const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
-                    if (parentItem) {
-                        localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
-                    }
-                }
-                this.item.area.x = localPoint.x + this.offsetX;
-                this.item.area.y = localPoint.y + this.offsetY;
-            } else {
-                this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
-                this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
-            }
-
-            if (t < 1.0) {
-                return true;
-            } else {
+            if (t >= 1.0){
                 if (this.domPath) {
-                    const point = this.domPath.getPointAtLength(this.pathTotalLength);
-                    this.item.area.x = point.x + this.offsetX;
-                    this.item.area.y = point.y + this.offsetY;
+                    if (this.args.reverse) {
+                        this.moveToPathLength(0);
+                    } else {
+                        this.moveToPathLength(this.pathTotalLength);
+                    }
                 } else {
                     this.item.area.x = this.destinationPosition.x;
                     this.item.area.y = this.destinationPosition.y;
                 }
                 return false;
             }
+
+            const convertedT = this.convertTime(t);
+
+            if (this.domPath) {
+                if (this.args.reverse) {
+                    this.moveToPathLength((1.0 - convertedT) * this.pathTotalLength);
+                } else {
+                    this.moveToPathLength(convertedT * this.pathTotalLength);
+                }
+            } else {
+                this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
+                this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
+            }
+
+            return true;
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
         }
         return false;
+    }
+
+    moveToPathLength(length) {
+        const point = this.domPath.getPointAtLength(length);
+        let worldPoint = point;
+        if (this.connectorSourceItem) {
+            worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.connectorSourceItem);
+        }
+
+        // bringing transform back from world to local so that also works correctly for sub-items
+        let localPoint = worldPoint;
+        if (this.item.meta && this.item.meta.parentId) {
+            const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
+            if (parentItem) {
+                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+            }
+        }
+        this.item.area.x = localPoint.x + this.offsetX;
+        this.item.area.y = localPoint.y + this.offsetY;
     }
 
     /**
@@ -138,7 +143,8 @@ export default {
         duration:   {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
         movement:   {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
         usePath:    {name: 'Move Along Path',   type: 'boolean',value: false, depends: {animate: true}},
-        path:       {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}}
+        path:       {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}},
+        reverse:    {name: 'Reverse',           type: 'boolean',value: false, depends: {animate: true, usePath: true}}
     },
 
     execute(item, args, schemeContainer) {
