@@ -110,7 +110,11 @@ export default {
                 const itemSelectorDom = document.getElementById(`item-selector-${this.itemSelectorId}`);
                 if (rowDom && itemSelectorDom) {
                     const topPos = rowDom.offsetTop - itemSelectorDom.offsetTop;
-                    itemSelectorDom.scrollTop = Math.max(0, topPos - 20);
+                    const height = itemSelectorDom.getBoundingClientRect().height;
+                    const offsetWithinScroll = topPos - itemSelectorDom.scrollTop;
+                    if (offsetWithinScroll < -5 || offsetWithinScroll > height - 5) {
+                        itemSelectorDom.scrollTop = Math.max(0, topPos - 20);
+                    }
                 }
             }
         },
