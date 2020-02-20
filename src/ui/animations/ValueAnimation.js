@@ -47,4 +47,10 @@ export default class ValueAnimation extends Animation {
         return true;
     }
 
+    destroy() {
+        if (this.destroyCallback) {
+            this.destroyCallback();
+        }
+    }
+
 }

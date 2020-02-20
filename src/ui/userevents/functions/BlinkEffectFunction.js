@@ -3,10 +3,11 @@ import Animation from '../../animations/Animation';
 
 
 class BlinkEffectAnimation extends Animation {
-    constructor(item, args) {
+    constructor(item, args, resultCallback) {
         super();
         this.item = item;
         this.args = args;
+        this.resultCallback = resultCallback;
         this.elapsedTime = 0.0;
         this.domContainer = null;
         this.domBlinker = null;
@@ -42,6 +43,9 @@ class BlinkEffectAnimation extends Animation {
     }
 
     destroy() {
+        if (!this.args.inBackground) {
+            this.resultCallback();
+        }
         this.domContainer.removeChild(this.domBlinker);
     }
 
@@ -50,16 +54,21 @@ class BlinkEffectAnimation extends Animation {
 export default {
     name: 'Blink Effect',
     args: {
-        color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        speed:          {name: 'Speed',             type: 'number', value: 50},
-        duration:       {name: 'Duration (sec)',    type: 'number', value: 5.0},
-        minOpacity:     {name: 'Min Opacity (%)',   type: 'number', value: 5},
-        maxOpacity:     {name: 'Max Opacity (%)',   type: 'number', value: 80},
+        color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        speed           : {name: 'Speed',             type: 'number', value: 50},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 5.0},
+        minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
+        maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80},
+        inBackground    : {name: 'In Background', type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other acctions'}
     },
 
-    execute(item, args) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new BlinkEffectAnimation(item, args), item.id);
+            AnimationRegistry.play(new BlinkEffectAnimation(item, args, resultCallback), item.id);
+
+            if (args.inBackground) {
+                resultCallback();
+            }
         }
     }
 }

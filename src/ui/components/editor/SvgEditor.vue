@@ -19,6 +19,7 @@
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
                     <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
+                        v-if="item.visible"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         <!-- Drawing search highlight box -->
                         <!-- TODO refactor it. It should be available for all item levels (childItems) -->
@@ -42,6 +43,7 @@
 
                 <g :transform="viewportTransform">
                     <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
+                        v-if="item.visible"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         <!-- Drawing search highlight box -->
                         <!-- TODO refactor it. It should be available for all item levels (childItems) -->
@@ -966,6 +968,7 @@ export default {
     watch: {
         mode(newMode) {
             if (newMode === 'edit') {
+                userEventBus.clear();
                 this.removeDrawnLinks();
                 this.switchStateDragItem();
             } else if (newMode === 'view') {

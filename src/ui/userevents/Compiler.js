@@ -2,12 +2,6 @@
 import _ from 'lodash';
 import knownFunctions from './functions/Functions.js';
 
-function createCallable(knownFunction, item, args, schemeContainer) {
-    return (userEventBus) => {
-        knownFunction.execute(item, args, schemeContainer, userEventBus);
-    };
-}
-
 
 export default class Compiler {
     /**
@@ -55,17 +49,38 @@ export default class Compiler {
                     const elements = this.findElements(schemeContainer, selfItem, action.element);
                     if (elements) {
                         _.forEach(elements, element => {
-                            funcs.push(createCallable(knownFunctions[scope][action.method], element, action.args, schemeContainer));
+                            funcs.push({
+                                func: knownFunctions[scope][action.method],
+                                element,
+                                args: action.args
+                            });
                         });
                     }
                 }
             }
         });
 
-        return (userEventBus) => {
-            _.forEach(funcs, func => {
-                func(userEventBus);
-            })
+        return (userEventBus, revision) => {
+            if (funcs.length < 1) {
+                return;
+            }
+
+            let index = 0;
+            let resultCallback = () => {
+                index += 1;
+                if (index >= funcs.length) {
+                    return;
+                }
+
+                let f = funcs[index];
+                if (userEventBus.isActionAllowed(revision)) {
+                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, resultCallback);
+                } else {
+                }
+            };
+            if (userEventBus.isActionAllowed(revision)) {
+                funcs[0].func.execute(funcs[0].element, funcs[0].args, schemeContainer, userEventBus, resultCallback);
+            }
         };
     }
 }

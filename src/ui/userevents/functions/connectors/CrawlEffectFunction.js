@@ -3,10 +3,11 @@ import AnimationRegistry from '../../../animations/AnimationRegistry';
 import Animation from '../../../animations/Animation';
 
 class CrawlEffectAnimation extends Animation {
-    constructor(connector, args) {
+    constructor(connector, args, resultCallback) {
         super();
         this.connector = connector;
         this.args = args;
+        this.resultCallback = resultCallback;
         this.domContainer = null;
         this.domConnectorPath = null;
         this.time = 0.0;
@@ -54,6 +55,9 @@ class CrawlEffectAnimation extends Animation {
     }
 
     destroy() {
+        if (!this.args.inBackground) {
+            this.resultCallback();
+        }
         if (this.domAnimationPath) {
             this.domContainer.removeChild(this.domAnimationPath);
         }
@@ -67,16 +71,20 @@ class CrawlEffectAnimation extends Animation {
 export default {
     name: 'Crawl Effect',
     args: {
-        length:         {name: 'Length',            type: 'number', value: 10},
-        color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        speed:          {name: 'Speed',             type: 'number', value: 60},
-        duration:       {name: 'Duration (sec)',    type: 'number', value: 2.0},
-        strokeWidth:    {name: 'Stroke Width',      type: 'number', value: 3}
+        length        : {name: 'Length',            type: 'number', value: 10},
+        color         : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        speed         : {name: 'Speed',             type: 'number', value: 60},
+        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0},
+        strokeWidth   : {name: 'Stroke Width',      type: 'number', value: 3},
+        inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
-    execute(connector, args) {
+    execute(connector, args, schemeContainer, userEventBus, resultCallback) {
         if (connector) {
-            AnimationRegistry.play(new CrawlEffectAnimation(connector, args), connector.id);
+            AnimationRegistry.play(new CrawlEffectAnimation(connector, args, resultCallback), connector.id);
+        }
+        if (args.inBackground) {
+            resultCallback();
         }
     }
 };

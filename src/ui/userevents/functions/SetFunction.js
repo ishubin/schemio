@@ -8,9 +8,11 @@ export default {
     // and its arguments are handled seprately
     args: {},
 
-    execute(item, args) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item && args.hasOwnProperty('field') && args.hasOwnProperty('value')) {
             utils.setObjectProperty(item, args.field, args.value);
         }
+
+        resultCallback();
     }
 };

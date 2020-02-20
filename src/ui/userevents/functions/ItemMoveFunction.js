@@ -1,12 +1,13 @@
-import AnimationRegistry from '../animations/AnimationRegistry';
-import Animation from '../animations/Animation';
+import AnimationRegistry from '../../animations/AnimationRegistry';
+import Animation from '../../animations/Animation';
 
 class MoveAnimation extends Animation {
-    constructor(item, args, schemeContainer) {
+    constructor(item, args, schemeContainer, resultCallback) {
         super();
         this.item = item;
         this.args = args;
         this.schemeContainer = schemeContainer;
+        this.resultCallback = resultCallback;
         this.elapsedTime = 0.0;
         this.originalPosition = {
             x: this.item.area.x,
@@ -131,30 +132,37 @@ class MoveAnimation extends Animation {
     }
 
     destroy() {
+        if (!this.args.inBackground) {
+            this.resultCallback();
+        }
     }
 }
 
 export default {
     name: 'Move',
     args: {
-        x:          {name: 'X',                 type: 'number', value: 50},
-        y:          {name: 'Y',                 type: 'number', value: 50},
-        animate:    {name: 'Animate',           type: 'boolean',value: false},
-        duration:   {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
-        movement:   {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
-        usePath:    {name: 'Move Along Path',   type: 'boolean',value: false, depends: {animate: true}},
-        path:       {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}},
-        reverse:    {name: 'Reverse',           type: 'boolean',value: false, depends: {animate: true, usePath: true}}
+        x               : {name: 'X',                 type: 'number', value: 50},
+        y               : {name: 'Y',                 type: 'number', value: 50},
+        animate         : {name: 'Animate',           type: 'boolean',value: false},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
+        movement        : {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
+        usePath         : {name: 'Move Along Path',   type: 'boolean',value: false, depends: {animate: true}},
+        path            : {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}},
+        reverse         : {name: 'Reverse',           type: 'boolean',value: false, depends: {animate: true, usePath: true}},
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
-    execute(item, args, schemeContainer) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animate) {
-                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer), item.id);
+                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id);
             } else {
                 item.area.x = args.x;
                 item.area.y = args.y;
             }
+        }
+        if (args.inBackground) {
+            resultCallback();
         }
     }
 };

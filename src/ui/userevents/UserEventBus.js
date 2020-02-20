@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import shortid from 'shortid';
 
 /**
  * This UserEventBus is used in order to track and handle events that emitted in interactive mode
@@ -7,6 +8,7 @@ import _ from 'lodash';
 export default class UserEventBus {
     constructor() {
         this.itemEventSubscribers = {};
+        this.revision = shortid.generate();
     }
 
     subscribeItemEvent(itemId, eventName, args, callback) {
@@ -38,7 +40,7 @@ export default class UserEventBus {
             _.forEach(itemSubs[eventName], subscriber => {
                 
                 if (this.matchesArgs(args, subscriber.args)) {
-                    subscriber.callback.apply(null, [this]);
+                    subscriber.callback.apply(null, [this, this.revision]);
                 }
             })
         }
@@ -46,6 +48,7 @@ export default class UserEventBus {
 
     clear() {
         this.itemEventSubscribers = {}
+        this.revision = shortid.generate();
     }
 
 
@@ -80,5 +83,9 @@ export default class UserEventBus {
         } else {
             return argPattern == realValue;
         }
+    }
+
+    isActionAllowed(revision) {
+        return this.revision === revision;
     }
 };

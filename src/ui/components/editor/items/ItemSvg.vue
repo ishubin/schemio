@@ -55,6 +55,7 @@
 
         <g v-if="item.childItems && item.visible">
             <item-svg v-for="childItem in item.childItems"
+                v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}-${schemeContainer.revision}`"
                 :item="childItem"
                 :mode="mode"

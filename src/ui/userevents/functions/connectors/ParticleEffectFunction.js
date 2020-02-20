@@ -6,10 +6,11 @@ const PI_2 = Math.PI * 2.0;
 
 
 class ParticleEffectAnimation extends Animation {
-    constructor(connector, args) {
+    constructor(connector, args, resultCallback) {
         super();
         this.connector = connector;
         this.args = args;
+        this.resultCallback = resultCallback;
         this.domContainer = null;
         this.domConnectorPath = null;
         this.particles = [];
@@ -125,6 +126,9 @@ class ParticleEffectAnimation extends Animation {
     }
 
     destroy() {
+        if (!this.args.inBackground) {
+            this.resultCallback();
+        }
         _.forEach(this.particles, particle => {
             this.domContainer.removeChild(particle.domParticle);
         });
@@ -163,19 +167,23 @@ export default {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
             'spot', 'circle', 'rect', 'message'
         ]},
-        particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
-        color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        speed:          {name: 'Speed',             type: 'number', value: 60},
-        particlesCount: {name: 'Particles',         type: 'number', value: 1},
-        offsetTime:     {name: 'Offset time (sec)', type: 'number', value: 0.5},
-        growthDistance: {name: 'Growth Distance',   type: 'number', value: 30},
-        declineDistance:{name: 'Decline Distance',  type: 'number', value: 30},
-        floatRadius:    {name: 'Float Radius',      type: 'number', value: 5}
+        particleSize    : {name: 'Particle Size',     type: 'number', value: 10},
+        color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        speed           : {name: 'Speed',             type: 'number', value: 60},
+        particlesCount  : {name: 'Particles',         type: 'number', value: 1},
+        offsetTime      : {name: 'Offset time (sec)', type: 'number', value: 0.5},
+        growthDistance  : {name: 'Growth Distance',   type: 'number', value: 30},
+        declineDistance : {name: 'Decline Distance',  type: 'number', value: 30},
+        floatRadius     : {name: 'Float Radius',      type: 'number', value: 5},
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
-    execute(connector, args) {
+    execute(connector, args, schemeContainer, userEventBus, resultCallback) {
         if (connector) {
-            AnimationRegistry.play(new ParticleEffectAnimation(connector, args), connector.id);
+            AnimationRegistry.play(new ParticleEffectAnimation(connector, args, resultCallback), connector.id);
+        }
+        if (args.inBackground) {
+            resultCallback();
         }
     }
 };

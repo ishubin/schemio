@@ -2,6 +2,11 @@
 import Compiler from '../../src/ui/userevents/Compiler.js';
 import expect from 'expect';
 
+const mockedUserEventBus = {
+    isActionAllowed() {
+        return true;
+    }
+}
 
 describe('UserEvents Compiler', () => {
     it('should compile simple actions for items', () => {
@@ -35,7 +40,7 @@ describe('UserEvents Compiler', () => {
             args: {field: 'shapeProps.text', value: 'Blah'}
         }]);
 
-        action();
+        action(mockedUserEventBus);
 
         expect(selfItem).toStrictEqual({
             id: 'qwe',
@@ -111,7 +116,7 @@ describe('UserEvents Compiler', () => {
             args: {field: 'style.color', value: '#f00'}
         }]);
 
-        action();
+        action(mockedUserEventBus);
 
         expect(selfItem).toStrictEqual({
             id: 'qwe',
@@ -175,7 +180,7 @@ describe('UserEvents Compiler', () => {
             args: { field: 'someField', value: 'blah'}
         }]);
 
-        action();
+        action(mockedUserEventBus);
 
         expect(items).toStrictEqual([{
             id: 'qwe',

@@ -7,7 +7,7 @@ export default {
     name: 'Zoom To It',
     args: {},
 
-    execute(item, args) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item && item.area) {
             const points = [
                 { x: 0, y: 0 },
@@ -43,6 +43,7 @@ export default {
                 h: maxPoint.y - minPoint.y
             });
         }
+        resultCallback();
     }
 };
 

@@ -4,11 +4,12 @@ import ValueAnimation from '../../animations/ValueAnimation';
 export default {
     name: 'Hide',
     args: {
-        animated: {name: 'Animated', type: 'boolean', value: true},
-        animationDuration: {name: 'Animation duration (sec)', type: 'number', value: 0.5},
+        animated            : {name: 'Animated', type: 'boolean', value: true},
+        animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5},
+        inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other acctions'}
     },
 
-    execute(item, args) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (!item) {
             return;
         }
@@ -21,10 +22,18 @@ export default {
                 },
                 destroy() {
                     item.visible = false;
+                    if (!args.inBackground) {
+                        resultCallback();
+                    }
                 }
             }), item.id);
+
+            if (args.inBackground) {
+                resultCallback();
+            }
         } else {
             item.visible = false;
+            resultCallback();
         }
     }
 };

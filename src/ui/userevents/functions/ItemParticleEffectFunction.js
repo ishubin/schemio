@@ -23,10 +23,11 @@ function calculateCenterOfPath(svgPath) {
 
 
 class ItemParticleEffectAnimation extends Animation {
-    constructor(item, args) {
+    constructor(item, args, resultCallback) {
         super();
         this.item = item;
         this.args = args;
+        this.resultCallback = resultCallback;
         this.domContainer = null;
         this.domItemPath = null;
         this.particles = [];
@@ -156,6 +157,9 @@ class ItemParticleEffectAnimation extends Animation {
     }
 
     destroy() {
+        if (!this.args.inBackground) {
+            this.resultCallback();
+        }
         _.forEach(this.particles, particle => {
             this.domContainer.removeChild(particle.domParticle);
         });
@@ -194,21 +198,25 @@ export default {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
             'spot', 'circle', 'rect', 'message'
         ]},
-        particlesCount: {name: 'Particles',         type: 'number', value: 100},
-        particleSize:   {name: 'Particle Size',     type: 'number', value: 10},
-        color:          {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        speed:          {name: 'Speed',             type: 'number', value: 60},
-        lifeTime:       {name: 'Life Time (sec)',   type: 'number', value: 1.0},
-        birthTime:      {name: 'Birth time (sec)',  type: 'number', value: 0.005},
-        growth:         {name: 'Growth to (%)',     type: 'number', value: 0.1},
-        decline:        {name: 'Decline from (%)',  type: 'number', value: 0.1},
-        fadeIn:         {name: 'Fade in (%)',       type: 'number', value: 1},
-        fadeOut:        {name: 'Fade out (%)',      type: 'number', value: 50}
+        particlesCount    : {name: 'Particles',         type: 'number', value: 100},
+        particleSize      : {name: 'Particle Size',     type: 'number', value: 10},
+        color             : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        speed             : {name: 'Speed',             type: 'number', value: 60},
+        lifeTime          : {name: 'Life Time (sec)',   type: 'number', value: 1.0},
+        birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.005},
+        growth            : {name: 'Growth to (%)',     type: 'number', value: 0.1},
+        decline           : {name: 'Decline from (%)',  type: 'number', value: 0.1},
+        fadeIn            : {name: 'Fade in (%)',       type: 'number', value: 1},
+        fadeOut           : {name: 'Fade out (%)',      type: 'number', value: 50},
+        inBackground      : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
-    execute(item, args) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new ItemParticleEffectAnimation(item, args), item.id);
+            AnimationRegistry.play(new ItemParticleEffectAnimation(item, args, resultCallback), item.id);
+        }
+        if (this.args.inBackground) {
+            this.resultCallback();
         }
     }
 }
