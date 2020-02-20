@@ -367,8 +367,14 @@ export default {
                 behavior.do = [];
             }
 
+            let element = {item: 'self'};
+
+            if (behavior.do.length > 0) {
+                // picking element from the last action
+                element = utils.clone(behavior.do[behavior.do.length - 1].element);
+            }
             behavior.do.push({
-                element: {item: 'self'},
+                element,
                 method: 'show',
                 args: _.mapValues(Functions.item.show.args, arg => arg.value)
             });
