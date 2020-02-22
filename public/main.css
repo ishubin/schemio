@@ -1566,6 +1566,12 @@ table.position-panel-table .property-label {
     border: 1px solid #777;
     background: white;
 }
+.behavior-action-container.dragged {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    margin: 0;
+}
 
 /***************** Element Picker ****************/
 .element-picker .picked-element.picked-element-type-item {

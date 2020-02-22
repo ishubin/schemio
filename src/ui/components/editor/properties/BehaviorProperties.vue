@@ -44,11 +44,17 @@
                         <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex === actionIndex"
                             v-html="dragging.action">
                         </div>
-                        <div class="behavior-action-container" :id="`behavior-action-container-${item.id}-${behaviorIndex}-${actionIndex}`"  @dragover="onDragOverToAction(behaviorIndex, actionIndex, arguments[0])">
+                        <div class="behavior-action-container"
+                            :id="`behavior-action-container-${item.id}-${behaviorIndex}-${actionIndex}`"
+                            @dragover="onDragOverToAction(behaviorIndex, actionIndex, arguments[0])"
+                            :class="{'dragged': dragging.readyToDrop && behaviorIndex === dragging.behaviorIndex && actionIndex === dragging.actionIndex}"
+                            draggable="true"
+                            @dragstart="onActionDragStarted(behaviorIndex, actionIndex)"
+                            >
                             <div class="icon-container">
                                 <span class="icon-action"><i class="fas fa-circle"></i></span>
                                 <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
-                                <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(behaviorIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
+                                <span class="link icon-move"><i class="fas fa-arrows-alt"/></span>
                             </div>
                             <div>
                                 <element-picker
