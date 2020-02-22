@@ -119,7 +119,7 @@ export default {
             }
         },
 
-        // This function is needed in order to handle clicking outside of the company
+        // This function is needed in order to handle clicking outside of the component
         // this way we are able to cancel item name in-place editing and dragging states
         onMouseUp(event) {
             // checking whether it wasn't clicking inside the item name input control

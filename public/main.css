@@ -1503,6 +1503,10 @@ table.position-panel-table .property-label {
 .behavior-action-container > div {
     display: inline-block;
 }
+.behavior-action-container > div.behavior-drop-highlight {
+    display: block;
+    opacity: 0.5;
+}
 .behavior-action-container .dropdown-click-area {
     font-size: 14px;
 }
@@ -1510,12 +1514,15 @@ table.position-panel-table .property-label {
     white-space: nowrap;
 }
 .behavior-action-container .icon-container {
+    white-space: nowrap;
     position: absolute;
-    left: 20px;
+    left: 5px;
     top: 0;
 }
 .behavior-action-container .icon-container .icon-action {
     display: inline-block;
+    position: relative;
+    left: 15px;
     font-size: 8px;
     opacity: 0.3;
 }
@@ -1524,11 +1531,18 @@ table.position-panel-table .property-label {
     opacity: 0.6;
     color: #f55;
 }
+.behavior-action-container .icon-container .icon-move {
+    display: none;
+    cursor: grab;
+}
 .behavior-action-container:hover .icon-container .icon-action {
     display: none;
 }
 .behavior-action-container:hover .icon-container .icon-delete {
-    display: block;
+    display: inline-block;
+}
+.behavior-action-container:hover .icon-container .icon-move {
+    display: inline-block;
 }
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div @dragend="onDragEnd">
         <panel name="Groups">
             <vue-tags-input v-model="itemGroup"
                 :tags="itemGroups"
@@ -10,7 +10,7 @@
 
         <panel name="Events">
             <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
-                <div class="behavior-event">
+                <div class="behavior-event" @dragover="onDragOverToEvent(behaviorIndex)">
                     <div class="behavior-menu">
                         <span class="link icon-collapse" @click="toggleBehaviorCollapse(behaviorIndex)">
                             <i class="fas" :class="[behaviorsMetas[behaviorIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
@@ -35,45 +35,60 @@
                         <input v-else type="text" :value="behavior.on.event" @input="behavior.on.event = arguments[0].target.value"/>
                     </dropdown>
                 </div>
+
                 <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
-                    <div class="behavior-action-container" v-for="(action, actionIndex) in behavior.do">
-                        <div class="icon-container">
-                            <span class="icon-action"><i class="fas fa-circle"></i></span>
-                            <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex === 0 && (!behavior.do || behavior.do.length === 0)"
+                        v-html="dragging.action">
+                    </div>
+                    <div v-for="(action, actionIndex) in behavior.do">
+                        <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex === actionIndex"
+                            v-html="dragging.action">
                         </div>
-                        <div>
-                            <element-picker
-                                :element="action.element" 
-                                :scheme-container="schemeContainer"
-                                :self-item="item"
-                                @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                        <div class="behavior-action-container" :id="`behavior-action-container-${item.id}-${behaviorIndex}-${actionIndex}`"  @dragover="onDragOverToAction(behaviorIndex, actionIndex, arguments[0])">
+                            <div class="icon-container">
+                                <span class="icon-action"><i class="fas fa-circle"></i></span>
+                                <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                                <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(behaviorIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
+                            </div>
+                            <div>
+                                <element-picker
+                                    :element="action.element" 
+                                    :scheme-container="schemeContainer"
+                                    :self-item="item"
+                                    @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                                    />
+                            </div>
+                            <span>: </span>
+                            <div>
+                                <dropdown
+                                    :key="action.element.item + ' ' + (action.element.connector||'')"
+                                    :options="createMethodSuggestionsForElement(action.element)"
+                                    @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                                    >
+                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                    <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
+                                    <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
+                                </dropdown>
+                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
+                                    class="action-method-arguments-expand"
+                                    @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
+                                    >(...)</span>
+                            </div>
+                            <span v-if="action.method === 'set'" class="function-brackets"> = </span>
+
+                            <set-argument-editor v-if="action.method === 'set'"
+                                :key="action.args.field"
+                                :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
+                                :argument-value="action.args.value"
+                                @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
                                 />
                         </div>
-                        <span>: </span>
-                        <div>
-                            <dropdown
-                                :key="action.element.item + ' ' + (action.element.connector||'')"
-                                :options="createMethodSuggestionsForElement(action.element)"
-                                @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
-                                >
-                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
-                                <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
-                            </dropdown>
-                            <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
-                                class="action-method-arguments-expand"
-                                @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
-                                >(...)</span>
-                        </div>
-                        <span v-if="action.method === 'set'" class="function-brackets"> = </span>
-
-                        <set-argument-editor v-if="action.method === 'set'"
-                            :key="action.args.field"
-                            :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
-                            :argument-value="action.args.value"
-                            @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
-                            />
                     </div>
+
+                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex > 0 && dragging.dropTo.actionIndex >= behavior.do.length"
+                        v-html="dragging.action">
+                    </div>
+
                     <div class="behavior-event-add-action">
                         <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
                         <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
@@ -124,6 +139,13 @@ export default {
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
 
+    mounted() {
+        document.body.addEventListener('mouseup', this.onMouseUp);
+    },
+    beforeDestroy() {
+        document.body.removeEventListener('mouseup', this.onMouseUp);
+    },
+
     data() {
         const items = _.chain(this.schemeContainer.getItems())
             .map(item => {return {id: item.id, name: item.name || 'Unnamed'}})
@@ -148,7 +170,18 @@ export default {
                 args: {}
             },
             itemGroup: '',
-            existingItemGroups: _.map(this.schemeContainer.itemGroups, group => {return {text: group}})
+            existingItemGroups: _.map(this.schemeContainer.itemGroups, group => {return {text: group}}),
+
+            dragging: {
+                action: null,
+                behaviorIndex: -1,
+                actionIndex: -1,
+                readyToDrop: false,
+                dropTo: {
+                    behaviorIndex: -1,
+                    actionIndex: -1,
+                }
+            }
         };
     },
 
@@ -509,24 +542,94 @@ export default {
                     behavior.do[actionIndex].args[argName] = value;
                 }
             }
+        },
+
+        onActionDragStarted(behaviorIndex, actionIndex) {
+            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+            let name = 'Drop here';
+            const domActionContainer = document.getElementById(`behavior-action-container-${this.item.id}-${behaviorIndex}-${actionIndex}`);
+            if (domActionContainer) {
+                name = domActionContainer.innerHTML;
+            }
+            this.dragging.action = name;
+
+
+            this.dragging.behaviorIndex = behaviorIndex;
+            this.dragging.actionIndex = actionIndex;
+            this.dragging.dropTo.behaviorIndex = -1;
+            this.dragging.dropTo.actionIndex = -1;
+        },
+
+        onDragOverToEvent(behaviorIndex) {
+            this.dragging.dropTo.behaviorIndex = behaviorIndex;
+            this.dragging.dropTo.actionIndex = 0;
+            this.dragging.readyToDrop = !(this.dragging.behaviorIndex === behaviorIndex && this.dragging.actionIndex === 0);
+        },
+
+        onDragOverToAction(behaviorIndex, actionIndex, event) {
+            this.dragging.dropTo.behaviorIndex = behaviorIndex;
+            this.dragging.dropTo.actionIndex = actionIndex;
+
+            const domActionContainer = event.target.closest('.behavior-action-container');
+            if (domActionContainer) {
+                const containerRect = domActionContainer.getBoundingClientRect();
+                const midLine = containerRect.top + containerRect.height / 2;
+                const offsetToMid = event.clientY - midLine;
+                if (offsetToMid > 0) {
+                    this.dragging.dropTo.actionIndex = actionIndex + 1;
+                }
+            }
+            let readyToDrop = true;
+            
+            if (this.dragging.behaviorIndex === this.dragging.dropTo.behaviorIndex) {
+                if (this.dragging.actionIndex === this.dragging.dropTo.actionIndex || this.dragging.actionIndex === this.dragging.dropTo.actionIndex - 1) {
+                    readyToDrop = false;
+                }
+            }
+            this.dragging.readyToDrop = readyToDrop;
+        },
+
+        onMouseUp() {
+            if (this.dragging.action) {
+                this.$nextTick(() => {
+                    this.resetDragging();
+                });
+            }
+        },
+
+        onDragEnd() {
+            if (this.dragging.behaviorIndex >= 0 && this.dragging.actionIndex >= 0 && this.dragging.dropTo.behaviorIndex >= 0 && this.dragging.dropTo.actionIndex >= 0) {
+                this.moveAction(this.dragging.behaviorIndex, this.dragging.actionIndex, this.dragging.dropTo.behaviorIndex, this.dragging.dropTo.actionIndex);
+            }
+            this.resetDragging();
+        },
+
+        resetDragging() {
+            this.dragging.action = null;
+            this.dragging.behaviorIndex = -1;
+            this.dragging.actionIndex = -1;
+            this.dragging.readyToDrop = false;
+            this.dragging.dropTo.behaviorIndex = -1;
+            this.dragging.dropTo.actionIndex = -1;
+        },
+
+        moveAction(srcBehaviorIndex, srcActionIndex, dstBehaviorIndex, dstActionIndex) {
+            if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
+                return;
+            }
+            const action = this.item.behavior[srcBehaviorIndex].do.splice(srcActionIndex, 1)[0];
+
+            if (srcBehaviorIndex === dstBehaviorIndex && dstActionIndex > srcActionIndex) {
+                // since the item was removed from the same array, we need to adjust the new destination position in the array
+                dstActionIndex -= 1;
+            }
+            this.item.behavior[dstBehaviorIndex].do.splice(dstActionIndex, 0, action);
+
+            this.emitChangeCommited();
         }
     },
 
     filters: {
-        toOriginatorPrettyName(originator, itemMap) {
-            if (originator === 'self') {
-                return 'Self';
-            } else if (originator) {
-                if (itemMap[originator]) {
-                    return itemMap[originator].name || 'Unnamed';
-                } else {
-                    return originator;
-                }
-            } else {
-                return 'Page';
-            }
-        },
-
         toPrettyEventName(event) {
             if (Events.standardEvents[event]) {
                 return Events.standardEvents[event].name;
