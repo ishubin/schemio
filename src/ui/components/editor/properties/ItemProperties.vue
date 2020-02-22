@@ -45,7 +45,13 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="label" width="50%">Interaction Mode</td>
+                            <td class="label" width="50%">
+                                Interaction Mode
+                                <tooltip>
+                                    Specifies item default behavior on click. 
+                                    "side-panel" or "tooltip" modes are only used in case item has a non-empty description
+                                </tooltip>
+                            </td>
                             <td class="value" width="50%">
                                 <select :value="item.interactionMode" @input="item.interactionMode = arguments[0].target.value; onInteractionModeChange()">
                                     <option v-for="interactionMode in knownInteractionModes"
@@ -96,7 +102,10 @@
                 <table class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
-                            <td class="label" width="50%">{{arg.name}}</td>
+                            <td class="label" width="50%">
+                                {{arg.name}}
+                                <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                            </td>
                             <td class="value" width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
                                 <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
@@ -137,6 +146,7 @@ import _ from 'lodash';
 import apiClient from '../../../apiClient';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
+import Tooltip from '../../Tooltip.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
 import LinksPanel from './LinksPanel.vue';
@@ -161,7 +171,7 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
+    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);

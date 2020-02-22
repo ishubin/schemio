@@ -343,6 +343,35 @@ input.textfield.missing-field-error {
     box-shadow: 0 0 5px #f55;
 }
 
+/********************** Tooltip ************************/
+.tooltip {
+    display: inline-block;
+}
+.tooltip .tooltip-icon {
+    color: #555;
+    opacity: 0.4;
+}
+.tooltip .tooltip-wrapper {
+    display: none;
+    position: fixed;
+    z-index: 1000000;
+}
+.tooltip .tooltip-text {
+    display: block;
+    width: 200px;
+    background: #333;
+    color: #eee;
+    padding: 5px 7px;
+    border-radius: 4px;
+}
+.tooltip:hover .tooltip-wrapper {
+    display: block;
+}
+.tooltip:hover .tooltip-icon {
+    opacity: 1.0;
+}
+
+
 /******************* Pagination *********************/
 ul.pagination {
     list-style: none;

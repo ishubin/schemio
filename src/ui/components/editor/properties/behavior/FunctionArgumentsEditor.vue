@@ -3,7 +3,10 @@
         <div style="max-height: 400px; overflow: auto;">
             <table class="properties-table">
                 <tr v-for="(arg, argName) in functionDescription.args" v-if="argumentControlStates[argName] && argumentControlStates[argName].shown">
-                    <td class="label" width="50%">{{arg.name}}</td>
+                    <td class="label" width="50%">
+                        {{arg.name}}
+                        <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                    </td>
                     <td class="value" width="50%">
                         <input v-if="arg.type === 'string' || arg.type === 'number' || arg.type === 'image'"
                             class="textfield"
@@ -39,10 +42,11 @@ import Dropdown from '../../../Dropdown.vue';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import Modal from '../../../Modal.vue';
 import ElementPicker from '../../ElementPicker.vue';
+import Tooltip from '../../../Tooltip.vue';
 
 export default {
     props: ['functionDescription', 'args', 'schemeContainer'],
-    components: {Modal, ColorPicker, ElementPicker},
+    components: {Modal, ColorPicker, ElementPicker, Tooltip},
 
     beforeMount() {
         this.updateArgumentControlDependencies();
