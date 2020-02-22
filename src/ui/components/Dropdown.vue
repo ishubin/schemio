@@ -75,7 +75,7 @@ export default {
             let rightSide = originalX + width;
             let bottomSide = originalY + height + this.searchTextfieldHeight;
             if (rightSide > window.innerWidth) {
-                this.x = originalX + window - rightSide;
+                this.x = originalX + window.innerWidth - rightSide;
             } else {
                 this.x = originalX;
             }
