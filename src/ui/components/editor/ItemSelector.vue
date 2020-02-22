@@ -44,17 +44,15 @@
                     </div>
                 </div>
             </div>
-            <div class="item-row item-droppable-highlight" v-if="item.id === dragging.destinationId && dragging.item"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
-                <div class="item">
-                    <div class="item-name">{{dragging.item.name}}</div>
-                </div>
+            <div class="item-row" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
+                <div class="item" v-html="dragging.itemHtml"> </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import {forEach} from 'lodash';
+import {forEach, indexOf} from 'lodash';
 import EventBus from './EventBus';
 import shortid from 'shortid';
 
@@ -93,7 +91,9 @@ export default {
                 // the item to which the dragged item is supposed to be dropped
                 destinationId: null,
                 dropInside: false,
-                clearTimeoutId: null
+                clearTimeoutId: null,
+                readyToDrop: false,
+                itemHtml: 'Drop here'
             },
             nameEdit: {
                 itemId: null,
@@ -186,6 +186,10 @@ export default {
                 this.clearTimeoutId = null;
             }
             this.dragging.item = item;
+            const domItem = document.querySelector(`#item-selector-${this.itemSelectorId}-row-${item.id} .item-row .item`);
+            if (domItem) {
+                this.dragging.itemHtml = domItem.innerHTML;
+            }
             this.$forceUpdate();
         },
 
@@ -193,12 +197,22 @@ export default {
             if (!this.dragging.item || this.dragging.item.id === item.id) {
                 return;
             }
+
+            //checking whether the dragged item is one of ancestors of destination item
+            if (item.meta && item.meta.ancestorIds) {
+                if (indexOf(item.meta.ancestorIds, this.dragging.item.id) >= 0) {
+                    this.dragging.readyToDrop = false;
+                    return;
+                }
+            }
+
             this.dragging.destinationId = item.id;
             this.dragging.dropInside = event.offsetX > 50;
+            this.dragging.readyToDrop = true;
         },
 
         onDragEnd(event) {
-            if (this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
+            if (this.dragging.readyToDrop && this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
                 if (this.dragging.dropInside) {
                     this.schemeContainer.remountItemInsideOtherItem(this.dragging.item.id, this.dragging.destinationId);
                 } else {
