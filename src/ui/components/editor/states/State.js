@@ -55,14 +55,14 @@ class State {
             this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
             this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
             this.schemeContainer.screenTransform.scale = nz;
-            this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
+            this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
         } else {
             if (this.schemeContainer.screenTransform.scale > 0.05) {
                 nz = this.schemeContainer.screenTransform.scale / 1.02;
                 this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
                 this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
                 this.schemeContainer.screenTransform.scale = nz;
-                this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
+                this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
             }
         }
     }
@@ -81,7 +81,7 @@ class State {
 
         this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenSettings.x1, Math.min(sx, this.schemeContainer.screenSettings.x2));
         this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenSettings.y1, Math.min(sy, this.schemeContainer.screenSettings.y2));
-        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
+        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
     }
 
     snapX(value) {

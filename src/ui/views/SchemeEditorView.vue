@@ -761,8 +761,10 @@ export default {
             this.schemeChanged = true;
         },
 
-        onScreenTransformUpdated() {
-            this.zoom = '' + Math.round(this.schemeContainer.screenTransform.scale * 10000) / 100;
+        onScreenTransformUpdated(screenTransform) {
+            if (screenTransform) {
+                this.zoom = '' + Math.round(screenTransform.scale * 10000) / 100;
+            }
         },
     },
 

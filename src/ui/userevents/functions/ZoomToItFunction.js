@@ -84,7 +84,7 @@ export default {
                     if (!args.inBackground) {
                         resultCallback();
                     }
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                 }
             }));
             if (args.inBackground) {
@@ -95,6 +95,7 @@ export default {
             schemeContainer.screenTransform.x = destX;
             schemeContainer.screenTransform.y = destY;
             resultCallback();
+            EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
         }
     }
 };

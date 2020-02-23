@@ -715,7 +715,7 @@ export default {
                     this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
                 }, 
                 destroy: () => {
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
                 }
             }));
         },
