@@ -275,6 +275,7 @@ import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import shortid from 'shortid';
+import Events from '../../userevents/Events';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -611,25 +612,37 @@ export default {
 
         reindexUserEvents() {
             userEventBus.clear();
+
+            // ids of items that have subscribed for Init event
+            const itemsForInit = {};
+
             _.forEach(this.interactiveSchemeContainer.getItems(), item => {
                 if (item.behavior) {
                     _.forEach(item.behavior, rule => {
-                        if (rule.on) {
-                            const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, rule.do);
+                        if (!rule.on) {
+                            return;
+                        }
+                        const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, rule.do);
 
-                            if (rule.on.element && rule.on.element.item) {
-                                if (!rule.on.element.connector) {
-                                    let itemId = rule.on.element.item;
-                                    if (itemId === 'self') {
-                                        itemId = item.id;
-                                    }
-                                    userEventBus.subscribeItemEvent(itemId, rule.on.event, rule.on.args, eventCallback);
+                        if (rule.on.element && rule.on.element.item) {
+                            if (!rule.on.element.connector) {
+                                let itemId = rule.on.element.item;
+                                if (itemId === 'self') {
+                                    itemId = item.id;
                                 }
+                                if (rule.on.event === Events.standardEvents.init.id) {
+                                    itemsForInit[itemId] = 1;
+                                }
+                                userEventBus.subscribeItemEvent(itemId, rule.on.event, rule.on.args, eventCallback);
                             }
                         }
                     })
                 }
-            })
+            });
+
+            _.forEach(itemsForInit, (val, itemId) => {
+                userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+            });
         },
 
         onSvgItemLinkClick(url, event) {

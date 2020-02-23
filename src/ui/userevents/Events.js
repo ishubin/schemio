@@ -19,6 +19,10 @@ export default {
         clicked: {
             id: 'clicked',
             name: 'Clicked'
+        },
+        init: {
+            id: 'init',
+            name: 'Init'
         }
     }
 }
