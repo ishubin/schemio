@@ -306,6 +306,9 @@ export default {
                 this.currentCategory = scheme.category;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
+                this.schemeContainer.screenSettings.width = this.svgWidth;
+                this.schemeContainer.screenSettings.height = this.svgHeight;
+
                 history = new History({size: 30});
                 history.commit(scheme);
                 document._history = history;

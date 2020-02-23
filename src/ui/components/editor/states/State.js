@@ -79,8 +79,8 @@ class State {
         let sx = this.schemeContainer.screenTransform.x + dx;
         let sy = this.schemeContainer.screenTransform.y + dy;
 
-        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenLimit.x1, Math.min(sx, this.schemeContainer.screenLimit.x2));
-        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenLimit.y1, Math.min(sy, this.schemeContainer.screenLimit.y2));
+        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenSettings.x1, Math.min(sx, this.schemeContainer.screenSettings.x2));
+        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenSettings.y1, Math.min(sy, this.schemeContainer.screenSettings.y2));
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
     }
 

@@ -1,5 +1,22 @@
 import Animation from './Animation';
 
+
+
+function convertTime(t, type) {
+    if (type === 'smooth') {
+        return Math.sin(t*Math.PI/2.0);
+    } else if (type === 'ease-in') {
+        return t*t;
+    } else if (type === 'ease-out') {
+        return 1 - (t-1)*(t-1);
+    } else if (type === 'ease-in-out') {
+        return 0.5 - Math.cos(t * Math.PI) / 2;
+    } else if (type === 'bounce') {
+        return 1 - Math.pow(3, -10 * t) * Math.cos(10 * Math.PI *t);
+    }
+    return t;
+}
+
 export default class ValueAnimation extends Animation {
     constructor(settings) {
         super();
@@ -8,6 +25,7 @@ export default class ValueAnimation extends Animation {
         this.elapsedTime = 0;
         this.initCallback = null;
         this.destroyCallback = null;
+        this.animationType = 'ease-out';
         if (settings) {
             if (settings.durationMillis) {
                 this.durationMillis = settings.durationMillis;
@@ -20,6 +38,9 @@ export default class ValueAnimation extends Animation {
             }
             if (settings.destroy) {
                 this.destroyCallback = settings.destroy;
+            }
+            if (settings.animationType) {
+                this.animationType = settings.animationType;
             }
         }
     }
@@ -43,7 +64,7 @@ export default class ValueAnimation extends Animation {
 
         const t = this.elapsedTime / this.durationMillis;
 
-        this.updateCallback(1 - (t-1)*(t-1));
+        this.updateCallback(convertTime(t));
         return true;
     }
 

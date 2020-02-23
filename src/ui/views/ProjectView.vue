@@ -292,7 +292,6 @@ export default {
         },
 
         onCategoryMoveRequested(category, newParentCategory) {
-            console.log('Requested to move category', category, newParentCategory);
             this.moveCategoryModal.category = category;
             this.moveCategoryModal.newParentCategory = newParentCategory;
             this.moveCategoryModal.shown = true;
