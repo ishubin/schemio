@@ -5,7 +5,7 @@ export default {
     name: 'Show',
     args: {
         animated            : {name: 'Animated', type: 'boolean', value: true},
-        animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5},
+        animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other acctions'}
     },
 
