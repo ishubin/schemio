@@ -70,7 +70,9 @@ const EventBus = new Vue({
 
             CURVE_EDITED: 'curve-edited',
 
-            CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested'
+            CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
+
+            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated'
         };
     },
     methods: {

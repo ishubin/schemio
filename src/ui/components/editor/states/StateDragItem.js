@@ -151,7 +151,7 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
         this.originalPoint.x = mx;
         this.originalPoint.y = my;
-        this.originalOffset = {x: this.editor.vOffsetX, y: this.editor.vOffsetY};
+        this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -792,11 +792,8 @@ export default class StateDragItem extends State {
     }
 
     dragScreen(x, y) {
-        this.editor.updateOffset(
-            Math.floor(this.originalOffset.x + x - this.originalPoint.x),
-            Math.floor(this.originalOffset.y + y - this.originalPoint.y)
-        );
-        this.editor.$forceUpdate();
+        this.schemeContainer.screenTransform.x = Math.floor(this.originalOffset.x + x - this.originalPoint.x);
+        this.schemeContainer.screenTransform.y = Math.floor(this.originalOffset.y + y - this.originalPoint.y);
     }
 
 }

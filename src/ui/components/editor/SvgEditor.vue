@@ -17,7 +17,7 @@
             @dblclick="mouseDoubleClick">
 
             <g v-if="mode === 'view'">
-                <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvg">
+                <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvgInteractiveMode">
                     <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
                         v-if="item.visible"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
@@ -35,7 +35,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
@@ -59,7 +58,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
@@ -113,7 +111,7 @@
                             :mode="mode"
                             :scheme-container="schemeContainer"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                            />
                     </g>
 
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
@@ -130,7 +128,7 @@
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state && state.name !== 'edit-curve'"
                         :key="`item-edit-box-${item.id}`"
                         :item="item"
-                        :zoom="vZoom"
+                        :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
@@ -172,7 +170,7 @@
                             :mode="mode"
                             :scheme-container="schemeContainer"
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                            :offsetX="vOffsetX" :offsetY="vOffsetY" :zoom="vZoom"/>
+                            />
                     </g>
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state && state.name !== 'edit-curve'"
                         :key="`item-edit-box-${item.id}`"
@@ -295,12 +293,9 @@ const allDraggerEdges = [
 ];
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'offsetX', 'offsetY', 'viewportTop', 'viewportLeft', 'zoom', 'shouldSnapToGrid'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid'],
     components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox},
     beforeMount() {
-        this.vOffsetX = parseInt(this.offsetX);
-        this.vOffsetY = parseInt(this.offsetY);
-        this.vZoom = parseFloat(this.zoom);
         if (this.mode === 'edit') {
             this.switchStateDragItem();
         } else {
@@ -371,9 +366,6 @@ export default {
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: null,
-            vOffsetX: 0,
-            vOffsetY: 0,
-            vZoom: 1.0,
 
             cursor: 'default',
 
@@ -409,47 +401,9 @@ export default {
 
             curveEditItem: null,
 
-            // used in order to limit offset in 'view' mode
-            cameraLimit: { x1: -this.width, y1: -this.height, x2: this.width, y2: this.height }
         };
     },
     methods: {
-        updateCameraLimit() {
-            let limits = null;
-
-            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-
-            let maxX = boundingBox.x + boundingBox.w,
-                maxY = boundingBox.y + boundingBox.h;
-
-            this.cameraLimit.x1 = -maxX;
-            this.cameraLimit.y1 = -maxY;
-            this.cameraLimit.x2 = (this.width - boundingBox.x);
-            this.cameraLimit.y2 = (this.height - boundingBox.y);
-        },
-
-        updateOffset(x, y) {
-            if (this.mode === 'view') {
-                this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(x, this.cameraLimit.x2));
-                this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(y, this.cameraLimit.y2));
-            } else {
-                this.vOffsetX = x;
-                this.vOffsetY = y;
-            }
-            this.$emit('offset-updated', this.vOffsetX, this.vOffsetY);
-        },
-
-        dragOffset(dx, dy) {
-            if (this.mode === 'view') {
-                this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(this.vOffsetX + dx, this.cameraLimit.x2));
-                this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(this.vOffsetY + dy, this.cameraLimit.y2));
-            } else {
-                this.vOffsetX += dx;
-                this.vOffsetY += dy;
-            }
-            this.$emit('offset-updated', this.vOffsetX, this.vOffsetY);
-        },
-
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 targetOffsetX = rect.left + document.body.scrollLeft,
@@ -461,10 +415,6 @@ export default {
                 x: Math.round(offsetX),
                 y: Math.round(offsetY)
             }
-        },
-
-        updateZoom(zoom) {
-            this.$emit('zoom-updated', zoom);
         },
 
         identifyElement(element) {
@@ -607,9 +557,21 @@ export default {
             this.state.reset();
         },
         switchStateInteract() {
-            this.updateCameraLimit();
-            this.state = this.states.interact;
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
+            this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
+            this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
+            this.interactiveSchemeContainer.screenTransform.scale = this.schemeContainer.screenTransform.scale;
+            this.states.interact.schemeContainer = this.interactiveSchemeContainer;
+            this.state = this.states.interact;
+
+            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            let maxX = boundingBox.x + boundingBox.w,
+                maxY = boundingBox.y + boundingBox.h;
+            this.interactiveSchemeContainer.screenLimit.x1 = -maxX + 100;
+            this.interactiveSchemeContainer.screenLimit.y1 = -maxY + 50;
+            this.interactiveSchemeContainer.screenLimit.x2 = (this.width - boundingBox.x) - 100;
+            this.interactiveSchemeContainer.screenLimit.y2 = (this.height - boundingBox.y) - 50;
+
             this.reindexUserEvents();
             this.state.reset();
         },
@@ -736,9 +698,9 @@ export default {
                 newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
-            const oldX = this.vOffsetX;
-            const oldY = this.vOffsetY;
-            const oldZoom = this.vZoom;
+            const oldX = this.schemeContainer.screenTransform.x;
+            const oldY = this.schemeContainer.screenTransform.y;
+            const oldZoom = this.schemeContainer.screenTransform.scale;
 
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
             const destY = (this.height)/2 - (area.y - headerHeight + area.h/2) *newZoom;
@@ -746,11 +708,12 @@ export default {
             AnimationRegistry.play(new ValueAnimation({
                 durationMillis: 1000,
                 update: (t) => {
-                    this.updateZoom(oldZoom * (1.0 - t) + newZoom * t);
-                    this.updateOffset(
-                        oldX * (1.0 - t) + destX * t,
-                        oldY * (1.0 - t) + destY * t
-                    );
+                    this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
+                    this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
+                    this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
+                }, 
+                destroy: () => {
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
                 }
             }));
         },
@@ -825,8 +788,8 @@ export default {
 
         toLocalPoint(mouseX, mouseY) {
             return {
-                x: (mouseX - this.vOffsetX) / this.vZoom,
-                y: (mouseY - this.vOffsetY) / this.vZoom
+                x: (mouseX - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale,
+                y: (mouseY - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale
             };
         },
 
@@ -958,12 +921,12 @@ export default {
             };
         },
 
-        _x(x) { return x * this.vZoom + this.vOffsetX; },
-        _y(y) { return y * this.vZoom + this.vOffsetY; },
-        _z(v) { return v * this.vZoom; },
-        x_(x) { return x / this.vZoom - this.vOffsetX; },
-        y_(y) { return y / this.vZoom - this.vOffsetY; },
-        z_(v) { return v / this.vZoom; }
+        _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
+        _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
+        _z(v) { return v * this.schemeContainer.screenTransform.scale; },
+        x_(x) { return x / this.schemeContainer.screenTransform.scale - this.schemeContainer.screenTransform.x; },
+        y_(y) { return y / this.schemeContainer.screenTransform.scale - this.schemeContainer.screenTransform.y; },
+        z_(v) { return v / this.schemeContainer.screenTransform.scale; }
     },
     watch: {
         mode(newMode) {
@@ -975,45 +938,39 @@ export default {
                 this.switchStateInteract();
             }
         },
-        zoom(newZoom) {
-            var value = parseFloat(newZoom);
-            if (value > 0.05) {
-                this.vZoom = value;
-            }
-        },
-        offsetX(newOffsetX) {
-            this.vOffsetX = parseInt(newOffsetX);
-        },
-        offsetY(newOffsetY) {
-            this.vOffsetY = parseInt(newOffsetY);
-        },
     },
     computed: {
         transformSvg() {
-            var x = Math.floor(this.vOffsetX || 0);
-            var y = Math.floor(this.vOffsetY || 0);
-            var scale = this.vZoom || 1.0;
+            const x = Math.floor(this.schemeContainer.screenTransform.x || 0);
+            const y = Math.floor(this.schemeContainer.screenTransform.y || 0);
+            const scale = this.schemeContainer.screenTransform.scale || 1.0;
+            return `translate(${x} ${y}) scale(${scale} ${scale})`;
+        },
+        transformSvgInteractiveMode() {
+            const x = Math.floor(this.interactiveSchemeContainer.screenTransform.x || 0);
+            const y = Math.floor(this.interactiveSchemeContainer.screenTransform.y || 0);
+            const scale = this.interactiveSchemeContainer.screenTransform.scale || 1.0;
             return `translate(${x} ${y}) scale(${scale} ${scale})`;
         },
         viewportTransform() {
             return `translate(${this.viewportLeft} ${this.viewportTop})`;
         },
         gridStep() {
-            return 20 * this.vZoom;
+            return 20 * this.schemeContainer.screenTransform.scale;
         },
         gridCount() {
-            if (this.vZoom > 0.6) {
+            if (this.schemeContainer.screenTransform.scale > 0.6) {
                 return {
-                    x: Math.ceil(this.width / (20 *this.vZoom)),
-                    y: Math.ceil(this.height / (20 * this.vZoom))
+                    x: Math.ceil(this.width / (20 *this.schemeContainer.screenTransform.scale)),
+                    y: Math.ceil(this.height / (20 * this.schemeContainer.screenTransform.scale))
                 };
             } else {
                 return 0;
             }
         },
         gridTransform() {
-            let x = Math.ceil(this.vOffsetX % (20 * this.vZoom));
-            let y = Math.ceil(this.vOffsetY % (20 * this.vZoom));
+            let x = Math.ceil(this.schemeContainer.screenTransform.x % (20 * this.schemeContainer.screenTransform.scale));
+            let y = Math.ceil(this.schemeContainer.screenTransform.y % (20 * this.schemeContainer.screenTransform.scale));
             return `translate(${x} ${y})`;
         },
     },

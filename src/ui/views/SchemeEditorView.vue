@@ -21,7 +21,7 @@
                     </ul>
                     <div class="input-group">
                         <span class="input-group-item-inside"><i class="fas fa-search-plus" style="color: #999;"></i></span>
-                        <input class="textfield input-group-field" style="width: 65px; padding-left: 25px" type="text" v-model="zoom"/>
+                        <input class="textfield input-group-field" style="width: 85px; padding-left: 25px" type="text" v-model="zoom" @input="onZoomInput"/>
                     </div>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
@@ -54,13 +54,11 @@
             <div class="scheme-container" oncontextmenu="return false;">
                 <div v-if="schemeContainer">
                     <svg-editor
-                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight" :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom / 100.0"
+                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="mode"
                         :should-snap-to-grid="shouldSnapToGrid"
                         :viewport-top="40"
                         :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
-                        @zoom-updated="onUpdateZoom"
-                        @offset-updated="onUpdateOffset"
                         @clicked-add-item-to-item="onActiveItemAppendItem"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
@@ -203,6 +201,7 @@ export default {
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$on(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
+        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -216,6 +215,7 @@ export default {
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$off(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
+        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
     },
     data() {
         return {
@@ -246,8 +246,6 @@ export default {
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             selectedConnector: null,
-            offsetX: 0,
-            offsetY: 0,
             zoom: 100,
             mode: 'view',
             knownModes: ['view'],
@@ -315,9 +313,10 @@ export default {
                 const schemeSettings = schemeSettingsStorage.get(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {
                     this.currentTab = schemeSettings.currentTab;
-                    this.offsetX = schemeSettings.screenPosition.offsetX;
-                    this.offsetY = schemeSettings.screenPosition.offsetY;
+                    this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
+                    this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
                     this.zoom = schemeSettings.screenPosition.zoom;
+                    this.schemeContainer.screenTransform.scale = parseInt(this.zoom) / 100.0;
                 } else {
                     // Should automatically bring to view the entire scheme
                     setTimeout(() => {
@@ -387,6 +386,19 @@ export default {
                 if (area) {
                     EventBus.$emit(EventBus.BRING_TO_VIEW, area);
                 }
+            }
+        },
+
+        onZoomInput(event) {
+            const zoomText = event.target.value;
+            const zoom = parseInt(zoomText);
+
+            if (isNaN(zoom)) {
+                return;
+            }
+            if (zoom > 0) {
+                this.schemeContainer.screenTransform.scale = zoom / 100.0;
+                this.initOffsetSave();
             }
         },
 
@@ -524,8 +536,6 @@ export default {
         },
 
         onUpdateOffset(x, y) {
-            this.offsetX = x;
-            this.offsetY = y;
             this.initOffsetSave();
         },
 
@@ -544,8 +554,8 @@ export default {
             schemeSettingsStorage.save(this.schemeContainer.scheme.id, {
                 currentTab: this.currentTab,
                 screenPosition: {
-                    offsetX: this.offsetX,
-                    offsetY: this.offsetY,
+                    offsetX: this.schemeContainer.screenTransform.x,
+                    offsetY: this.schemeContainer.screenTransform.y,
                     zoom: this.zoom
                 }
             });
@@ -746,7 +756,11 @@ export default {
             this.schemeContainer.bringSelectedItemsToBack();
             this.commitHistory();
             this.schemeChanged = true;
-        }
+        },
+
+        onScreenTransformUpdated() {
+            this.zoom = '' + Math.round(this.schemeContainer.screenTransform.scale * 10000) / 100;
+        },
     },
 
     filters: {

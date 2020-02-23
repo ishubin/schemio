@@ -48,10 +48,9 @@ class StateInteract extends State {
     initScreenDrag(x, y) {
         this.startedDragging = true;
         this.initialClickPoint = {x, y};
-        this.originalOffset = {x: this.editor.vOffsetX, y: this.editor.vOffsetY};
-        this.originalZoom = this.editor.vZoom;
+        this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+        this.originalZoom = this.schemeContainer.screenTransform.scale;
     }
-    
     
 
     mouseUp(x, y, mx, my, object, event) {
@@ -134,11 +133,12 @@ class StateInteract extends State {
     }
 
     dragScreen(x, y) {
-        this.editor.updateOffset(
-            Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
-            Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
-        );
-        this.editor.$forceUpdate();
+        let sx = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
+        let sy = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
+        console.log(JSON.stringify(this.schemeContainer.screenLimit), sx, sy);
+        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenLimit.x1, Math.min(sx, this.schemeContainer.screenLimit.x2));
+        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenLimit.y1, Math.min(sy, this.schemeContainer.screenLimit.y2)); 
+        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
     }
 }
 

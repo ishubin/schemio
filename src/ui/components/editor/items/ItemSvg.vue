@@ -21,9 +21,9 @@
             :key="connector.id"
             :sourceItem="item"
             :connector="connector"
-            :zoom="zoom"
-            :offsetX="offsetX"
-            :offsetY="offsetY"
+            :zoom="schemeContainer.screenTransform.scale"
+            :offsetX="schemeContainer.screenTransform.x"
+            :offsetY="schemeContainer.screenTransform.y"
             :showReroutes="mode === 'edit'"
             :mode="mode"
             :boundary-box-color="boundaryBoxColor"
@@ -61,7 +61,6 @@
                 :mode="mode"
                 :scheme-container="schemeContainer"
                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                :offsetX="offsetX" :offsetY="offsetY" :zoom="zoom"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
         </g>    
@@ -78,7 +77,7 @@ import myMath from '../../../myMath';
 
 export default {
     name: 'item-svg',
-    props: ['item', 'offsetX', 'offsetY', 'zoom', 'mode', 'schemeContainer', 'boundaryBoxColor'],
+    props: ['item', 'mode', 'schemeContainer', 'boundaryBoxColor'],
     components: {ConnectorSvg},
 
     mounted() {

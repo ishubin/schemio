@@ -68,6 +68,8 @@ class SchemeContainer {
             throw new Error('Missing eventBus');
         }
         this.scheme = scheme;
+        this.screenTransform = {x: 0, y: 0, scale: 1.0};
+        this.screenLimit = {x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
         this.eventBus = eventBus;
         this.selectedItems = [];
         this.selectedConnectors = [];

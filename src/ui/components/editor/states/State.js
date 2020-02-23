@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+ import EventBus from '../EventBus';
+
 class State {
     /**
      * @param {object} editor 
@@ -9,6 +11,7 @@ class State {
      */
     constructor(editor, eventBus) {
         this.editor = editor;
+        this.schemeContainer = editor.schemeContainer;
         this.eventBus = eventBus;
         this.name = '';
     }
@@ -36,8 +39,7 @@ class State {
                 if (event.metaKey || event.ctrlKey) {
                     this.zoomByWheel(mx, my, event.deltaY);
                 } else {
-                    this.editor.dragOffset(event.deltaX, event.deltaY);
-                    this.editor.$forceUpdate();
+                    this.dragScreenOffset(event.deltaX, event.deltaY);
                 }
             }
         }
@@ -45,28 +47,41 @@ class State {
 
     zoomByWheel(mx, my, delta) {
         var nz = 0;
-        var xo = this.editor.vOffsetX;
-        var yo = this.editor.vOffsetY;
+        var xo = this.schemeContainer.screenTransform.x;
+        var yo = this.schemeContainer.screenTransform.y;
         if (delta < 0) {
-            nz = this.editor.vZoom * 1.05;
+            nz = this.schemeContainer.screenTransform.scale * 1.02;
 
-            this.editor.updateOffset(
-                mx - nz * (mx - xo) / this.editor.vZoom,
-                my - nz * (my - yo) / this.editor.vZoom
-            );
-            this.editor.updateZoom(nz);
+            this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
+            this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
+            this.schemeContainer.screenTransform.scale = nz;
+            this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
         } else {
-            if (this.editor.vZoom > 0.05) {
-                nz = this.editor.vZoom / 1.05;
-
-                this.editor.updateOffset(
-                    mx - nz * (mx - xo) / this.editor.vZoom,
-                    my - nz * (my - yo) / this.editor.vZoom
-                );
-                this.editor.updateZoom(nz);
+            if (this.schemeContainer.screenTransform.scale > 0.05) {
+                nz = this.schemeContainer.screenTransform.scale / 1.02;
+                this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
+                this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
+                this.schemeContainer.screenTransform.scale = nz;
+                this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
             }
         }
-        this.editor.$forceUpdate();
+    }
+
+    dragScreenOffset(dx, dy) {
+        // TODO camera limitatio0n in view mode
+        // if (this.mode === 'view') {
+        //     this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(this.vOffsetX + dx, this.cameraLimit.x2));
+        //     this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(this.vOffsetY + dy, this.cameraLimit.y2));
+        // } else {
+        //     this.vOffsetX += dx;
+        //     this.vOffsetY += dy;
+        // }
+        let sx = this.schemeContainer.screenTransform.x + dx;
+        let sy = this.schemeContainer.screenTransform.y + dy;
+
+        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenLimit.x1, Math.min(sx, this.schemeContainer.screenLimit.x2));
+        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenLimit.y1, Math.min(sy, this.schemeContainer.screenLimit.y2));
+        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED);
     }
 
     snapX(value) {
