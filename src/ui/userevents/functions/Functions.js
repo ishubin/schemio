@@ -9,6 +9,7 @@ import StopAllAnimationsFunction from './StopAllAnimationsFunction';
 import ItemParticleEffectFunction from './ItemParticleEffectFunction';
 import BlinkEffectFunction from './BlinkEffectFunction';
 import ItemMoveFunction from './ItemMoveFunction';
+import WaitFunction from './WaitFunction';
 
 export default {
     item: {
@@ -20,7 +21,8 @@ export default {
         blinkEffect:        BlinkEffectFunction,
         move:               ItemMoveFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
-        sendEvent:          SendEventFunction
+        sendEvent:          SendEventFunction,
+        wait:               WaitFunction
     },
     connector: {
         set:                SetFunction,
@@ -29,7 +31,8 @@ export default {
         particleEffect:     ParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
-        sendEvent:          SendEventFunction
+        sendEvent:          SendEventFunction,
+        wait:               WaitFunction
     },
     scheme: {
     }
