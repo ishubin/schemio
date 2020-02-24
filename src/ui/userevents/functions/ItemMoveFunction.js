@@ -60,11 +60,7 @@ class MoveAnimation extends Animation {
 
             if (t >= 1.0){
                 if (this.domPath) {
-                    if (this.args.reverse) {
-                        this.moveToPathLength(0);
-                    } else {
-                        this.moveToPathLength(this.pathTotalLength);
-                    }
+                    this.moveToPathLength(this.pathTotalLength * this.args.endPosition / 100.0);
                 } else {
                     this.item.area.x = this.destinationPosition.x;
                     this.item.area.y = this.destinationPosition.y;
@@ -75,11 +71,7 @@ class MoveAnimation extends Animation {
             const convertedT = this.convertTime(t);
 
             if (this.domPath) {
-                if (this.args.reverse) {
-                    this.moveToPathLength((1.0 - convertedT) * this.pathTotalLength);
-                } else {
-                    this.moveToPathLength(convertedT * this.pathTotalLength);
-                }
+                this.moveToPathLength(this.pathTotalLength * (this.args.startPosition * (1.0 - convertedT) + this.args.endPosition * convertedT) / 100.0);
             } else {
                 this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
                 this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
@@ -148,8 +140,9 @@ export default {
         movement        : {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
         usePath         : {name: 'Move Along Path',   type: 'boolean',value: false, depends: {animate: true}},
         path            : {name: 'Path',              type: 'element',value: null, depends: {animate: true, usePath: true}},
-        reverse         : {name: 'Reverse',           type: 'boolean',value: false, depends: {animate: true, usePath: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        startPosition   : {name: 'Start position (%)',type: 'number', value: 0, depends: {animate: true, usePath: true}, description: 'Initial position on the path in percentage to its total length'},
+        endPosition     : {name: 'End position (%)',  type: 'number', value: 100, depends: {animate: true, usePath: true}, description: 'Final position on the path in percentage to its total length'},
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
