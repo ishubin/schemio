@@ -36,36 +36,36 @@
             :style="{'opacity': connector.opacity/100.0}"
         />
 
-        <g v-for="end in ends"
-            :style="{'opacity': connector.opacity/100.0}"
-            v-if="connector.visible">
-            
-            <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector"/>
-            <path v-if="end.type === 'path'"
-                :d="end.path"
-                class="item-connector"
-                :stroke="connector.color"
-                :stroke-width="connector.width"
-                :fill="end.fill"
-                stroke-linejoin="round"
-            />
+        <g v-if="connector.visible" :style="{'opacity': connector.opacity/100.0}">
+            <g v-for="end in ends">
+                <circle v-if="end.type === 'circle'" :cx="end.x" :cy="end.y" :r="end.r" :fill="connector.color" class="item-connector"/>
+                <path v-if="end.type === 'path'"
+                    :d="end.path"
+                    class="item-connector"
+                    :stroke="connector.color"
+                    :stroke-width="connector.width"
+                    :fill="end.fill"
+                    stroke-linejoin="round"
+                />
+            </g>
         </g>
 
         <path :d="svgPath" :data-connector-id="connector.id" class="item-connector-hover-area" :stroke-width="connector.width + selectedStrokeOutline" fill="none"/>
-        <g v-for="end in ends" :style="{'opacity': connector.opacity/100.0}">
+        <g v-for="end in ends">
             <circle v-if="end.type === 'circle'"
                 :data-connector-id="connector.id"
                 :cx="end.x" :cy="end.y"
                 :r="end.r"
                 fill="rgba(0,0,0,0.0)"
+                stroke="rgba(0,0,0,0.0)"
                 class="item-connector-hover-area" />
             <path v-if="end.type === 'path'"
                 :d="end.path"
                 :data-connector-id="connector.id"
                 class="item-connector-hover-area"
-                :stroke="connector.color"
-                :stroke-width="connector.width"
+                stroke="rgba(0,0,0,0.0)"
                 fill="rgba(0,0,0,0.0)"
+                :stroke-width="connector.width"
                 stroke-linejoin="round"
             />
         </g>

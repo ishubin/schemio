@@ -20,7 +20,7 @@
                 <tr>
                     <td class="label" width="50%">Visible</td>
                     <td class="value" width="50%">
-                        <input type="checkbox" :value="connector.visible" @input="onPropertyChange(parseInt(arguments[0].target.value), 'visible')"/>
+                        <input type="checkbox" :checked="connector.visible" @input="onPropertyChange(arguments[0].target.checked, 'visible')"/>
                     </td>
                 </tr>
                 <tr>
