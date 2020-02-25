@@ -34,13 +34,11 @@ function isMultiSelectKey(event) {
 
 export default class StateDragItem extends State {
     /**
-     * @param {object} editor 
      * @param {EventBus} eventBus 
      */
-    constructor(editor, eventBus) {
-        super(editor, eventBus);
+    constructor(eventBus) {
+        super(eventBus);
         this.name = 'drag-item';
-        this.schemeContainer = editor.schemeContainer;
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;
         this.controlPoint = null; // stores coords for item control point

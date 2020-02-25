@@ -9,11 +9,10 @@ import recentPropsChanges from '../../../history/recentPropsChanges';
 
 
 export default class StateConnecting extends State {
-    constructor(editor, eventBus) {
-        super(editor, eventBus);
+    constructor(eventBus) {
+        super(eventBus);
         this.name = 'connecting';
         this.component = null;
-        this.schemeContainer = editor.schemeContainer;
         this.sourceItem = null;
         this.hoveredItem = null;
         this.connector = null;
@@ -49,6 +48,7 @@ export default class StateConnecting extends State {
                 this.connector.reroutes[this.connector.reroutes.length - 1].disabled = false;
             }
             this.schemeContainer.buildConnector(this.sourceItem, this.connector);
+            this.eventBus.emitConnectorChanged(this.connector.id);
         }
     }
 

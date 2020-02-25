@@ -6,14 +6,21 @@
 
 class State {
     /**
-     * @param {object} editor 
      * @param {EventBus} EventBus 
      */
-    constructor(editor, eventBus) {
-        this.editor = editor;
-        this.schemeContainer = editor.schemeContainer;
+    constructor(eventBus) {
+        this.schemeContainer = null;
         this.eventBus = eventBus;
         this.name = '';
+        this.editor = null;
+    }
+
+    setSchemeContainer(schemeContainer) {
+        this.schemeContainer = schemeContainer;
+    }
+
+    setEditor(editor) {
+        this.editor = editor;
     }
 
     reset() {}
@@ -68,14 +75,6 @@ class State {
     }
 
     dragScreenOffset(dx, dy) {
-        // TODO camera limitatio0n in view mode
-        // if (this.mode === 'view') {
-        //     this.vOffsetX = Math.max(this.cameraLimit.x1, Math.min(this.vOffsetX + dx, this.cameraLimit.x2));
-        //     this.vOffsetY = Math.max(this.cameraLimit.y1, Math.min(this.vOffsetY + dy, this.cameraLimit.y2));
-        // } else {
-        //     this.vOffsetX += dx;
-        //     this.vOffsetY += dy;
-        // }
         let sx = this.schemeContainer.screenTransform.x + dx;
         let sy = this.schemeContainer.screenTransform.y + dy;
 

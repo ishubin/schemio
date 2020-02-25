@@ -9,7 +9,7 @@
         <svg id="svg_plot" ref="svgDomElement"
             :width="width+'px'"
             :height="height+'px'"
-            :class="['mode-' + mode, 'state-' + (state? state.name: 'unknown')]"
+            :class="['mode-' + mode, 'state-' + state]"
             :style="{cursor: cursor, background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
@@ -125,14 +125,14 @@
                         />
                     </g>
 
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state && state.name !== 'edit-curve'"
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
                         :key="`item-edit-box-${item.id}`"
                         :item="item"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
-                    <g v-if="state && state.name === 'connecting'">
+                    <g v-if="state === 'connecting'">
                         <!-- TODO change the way connector hitbox is rendered to use its shape instead -->
                         <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
                             <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
@@ -172,7 +172,7 @@
                             :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             />
                     </g>
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state && state.name !== 'edit-curve'"
+                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
                         :key="`item-edit-box-${item.id}`"
                         :item="item"
                         :zoom="1"
@@ -186,7 +186,7 @@
                     </foreignObject>
                 </g>
 
-                <g v-if="state && state.name === 'edit-curve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
+                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
                     <curve-edit-box 
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
@@ -293,10 +293,25 @@ const allDraggerEdges = [
     ['left']
 ];
 
+
+const states = {
+    interact: new StateInteract(EventBus, userEventBus),
+    createItem: new StateCreateItem(EventBus),
+    editCurve: new StateEditCurve(EventBus),
+    dragItem: new StateDragItem(EventBus),
+    connecting: new StateConnecting(EventBus),
+    pickElement: new StatePickElement(EventBus)
+};
+let currentState = states.interact;
+
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid'],
     components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox},
     beforeMount() {
+        _.forEach(states, state => {
+            state.setSchemeContainer(this.schemeContainer);
+            state.setEditor(this);
+        })
         if (this.mode === 'edit') {
             this.switchStateDragItem();
         } else {
@@ -354,19 +369,11 @@ export default {
     data() {
         return {
             // TODO move them outside of Vue component. They don't have to be reactive
-            states: {
-                interact: new StateInteract(this, EventBus, userEventBus),
-                createItem: new StateCreateItem(this, EventBus),
-                editCurve: new StateEditCurve(this, EventBus),
-                dragItem: new StateDragItem(this, EventBus),
-                connecting: new StateConnecting(this, EventBus),
-                pickElement: new StatePickElement(this, EventBus)
-            },
 
             interactiveSchemeContainer: null,
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
-            state: null,
+            state: 'interact',
 
             cursor: 'default',
 
@@ -515,14 +522,14 @@ export default {
         mouseWheel(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
-            this.state.mouseWheel(p.x, p.y, coords.x, coords.y, event);
+            states[this.state].mouseWheel(p.x, p.y, coords.x, coords.y, event);
         },
         mouseMove(event) {
             if (this.mouseEventsEnabled) {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                this.state.mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
         mouseDown(event) {
@@ -530,7 +537,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                this.state.mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
         mouseUp(event) {
@@ -538,7 +545,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                this.state.mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
         mouseDoubleClick(event) {
@@ -546,24 +553,25 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                this.state.mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
             }
         },
         onCancelCurrentState() {
             if (this.mode === 'edit') {
-                this.state = this.states.dragItem;
+                this.state = 'dragItem';
             } else {
-                this.state = this.states.interact;
+                this.state = 'interact';
             }
-            this.state.reset();
+            states[this.state].reset();
         },
         switchStateInteract() {
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
             this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
             this.interactiveSchemeContainer.screenTransform.scale = this.schemeContainer.screenTransform.scale;
-            this.states.interact.schemeContainer = this.interactiveSchemeContainer;
-            this.state = this.states.interact;
+
+            states.interact.schemeContainer = this.interactiveSchemeContainer;
+            this.state = 'interact';
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
             let maxX = boundingBox.x + boundingBox.w,
@@ -576,37 +584,37 @@ export default {
             this.interactiveSchemeContainer.screenSettings.y2 = (this.height - boundingBox.y) - 50;
 
             this.reindexUserEvents();
-            this.state.reset();
+            states[this.state].reset();
         },
         switchStateDragItem() {
-            this.state = this.states.dragItem;
-            this.state.reset();
+            this.state = 'dragItem';
+            states.dragItem.reset();
         },
         switchStatePickElement(elementPickCallback) {
-            this.state = this.states.pickElement;
-            this.state.reset();
-            this.state.setElementPickCallback(elementPickCallback);
+            this.state = 'pickElement';
+            states.pickElement.reset();
+            states.pickElement.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateItem(item) {
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
-                this.state = this.states.editCurve;
+                this.state = 'editCurve';
             } else {
-                this.state = this.states.createItem;
+                this.state = 'createItem';
             }
-            this.state.reset();
-            this.state.setItem(item);
+            states[this.state].reset();
+            states[this.state].setItem(item);
         },
         onSwitchStateConnecting(item) {
-            this.state = this.states.connecting;
-            this.state.reset();
-            this.state.setSourceItem(item);
+            this.state = 'connecting';
+            states.connecting.reset();
+            states.connecting.setSourceItem(item);
         },
 
         onCurveEditRequested(item) {
-            this.state = this.states.editCurve;
-            this.state.reset();
-            this.state.setItem(item);
+            this.state = 'editCurve';
+            states.editCurve.reset();
+            states.editCurve.setItem(item);
             this.curveEditItem = item;
         },
 
@@ -655,17 +663,17 @@ export default {
 
         onKeyPress(key, keyOptions) {
             if (key === EventBus.KEY.ESCAPE) {
-                this.state.cancel();
+                states[this.state].cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
                 this.deleteSelectedItemsAndConnectors();
             } else {
-                this.state.keyPressed(key, keyOptions);
+                states[this.state].keyPressed(key, keyOptions);
             }
         },
 
         onKeyUp(key, keyOptions) {
             if (key !== EventBus.KEY.ESCAPE && key != EventBus.KEY.DELETE) {
-                this.state.keyUp(key, keyOptions);
+                states[this.state].keyUp(key, keyOptions);
             }
         },
 

@@ -16,9 +16,8 @@ describe('StateDragItem', () => {
             selectItem: sinon.fake(),
             deselectAllConnectors: sinon.fake()
         };
-        const state = new StateDragItem({
-            schemeContainer: schemeContainer
-        }, whateverEventBus);
+        const state = new StateDragItem(whateverEventBus);
+        state.setSchemeContainer(schemeContainer);
 
         const object = {
             item: {
@@ -44,9 +43,8 @@ describe('StateDragItem', () => {
             selectItem: sinon.fake(),
             deselectAllConnectors: sinon.fake()
         };
-        const state = new StateDragItem({
-            schemeContainer: schemeContainer
-        }, whateverEventBus);
+        const state = new StateDragItem(whateverEventBus);
+        state.setSchemeContainer(schemeContainer);
 
         const object = {
             item: {
@@ -72,9 +70,10 @@ describe('StateDragItem', () => {
             selectItem: sinon.fake(),
             deselectAllConnectors: sinon.fake()
         };
-        const state = new StateDragItem({
-            schemeContainer: schemeContainer
-        }, whateverEventBus);
+        const fakeEditor = {cursor: 'pointer'};
+        const state = new StateDragItem(whateverEventBus);
+        state.setSchemeContainer(schemeContainer);
+        state.setEditor(fakeEditor);
 
         const object = {
             item: {
@@ -105,9 +104,10 @@ describe('StateDragItem', () => {
             deselectAllConnectors: sinon.fake(),
             selectedItems: []
         };
-        const state = new StateDragItem({
-            schemeContainer: schemeContainer
-        }, whateverEventBus);
+        const fakeEditor = {cursor: 'pointer'};
+        const state = new StateDragItem(whateverEventBus);
+        state.setSchemeContainer(schemeContainer);
+        state.setEditor(fakeEditor);
 
         const object = {
             item: {

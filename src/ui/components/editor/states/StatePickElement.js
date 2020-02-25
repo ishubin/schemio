@@ -6,8 +6,8 @@ import State from './State.js';
 import EventBus from '../EventBus.js';
 
 export default class StatePickElement extends State {
-    constructor(editor, eventBus) {
-        super(editor, eventBus);
+    constructor(eventBus) {
+        super(eventBus);
         this.name = 'connecting';
         this.elementPickCallback = null;
     }

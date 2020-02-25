@@ -15,13 +15,12 @@ function isEventRightClick(event) {
 
 
 export default class StateEditCurve extends State {
-    constructor(editor, eventBus) {
-        super(editor, eventBus);
+    constructor(eventBus) {
+        super(eventBus);
         this.name = 'edit-curve';
         this.item = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
-        this.schemeContainer = editor.schemeContainer;
         this.originalClickPoint = {x: 0, y: 0};
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;

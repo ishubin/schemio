@@ -8,13 +8,12 @@ import _ from 'lodash';
 import collections from '../../../collections.js';
 
 export default class StateCreateItem extends State {
-    constructor(editor, eventBus) {
-        super(editor, eventBus);
+    constructor(eventBus) {
+        super(eventBus);
         this.name = 'create-item';
         this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;
-        this.schemeContainer = editor.schemeContainer;
     }
 
     reset() {

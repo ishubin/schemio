@@ -54,6 +54,7 @@
             <div class="scheme-container" oncontextmenu="return false;">
                 <div v-if="schemeContainer">
                     <svg-editor
+                        :key="schemeContainer.scheme.id"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="mode"
                         :should-snap-to-grid="shouldSnapToGrid"

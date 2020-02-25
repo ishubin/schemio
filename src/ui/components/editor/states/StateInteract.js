@@ -20,13 +20,12 @@ This state works as dragging the screen, zooming, selecting elements
 class StateInteract extends State {
     /**
      * 
-     * @param {*} editor 
+     * @param {EventBus} EventBus 
      * @param {UserEventBus} userEventBus 
      */
-    constructor(editor, eventBus, userEventBus) {
-        super(editor, eventBus);
+    constructor(eventBus, userEventBus) {
+        super(eventBus);
         this.name = 'interact';
-        this.schemeContainer = editor.schemeContainer;
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
