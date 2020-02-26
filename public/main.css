@@ -806,16 +806,7 @@ ul.button-group li .toggle-button .small-letter {
 }
 
 
-/**************************** Item Properties ***********************/
-
-.item-properties textarea {
-    width: 100%;
-    min-height: 150px;
-}
-.item-properties .btn {
-    font-size: 14px;
-    padding: 2px 5px 2px 5px;
-}
+/******************** Color Picker *******************************/
 .color-picker {
     display: inline-block;
 }
@@ -839,6 +830,26 @@ ul.button-group li .toggle-button .small-letter {
 .color-picker .vc-chrome {
     box-shadow: none;
 }
+.color-picker .color-picker-tooltip {
+    position: fixed;
+    z-index: 1000;
+    padding: 4px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+
+
+/**************************** Item Properties ***********************/
+.item-properties textarea {
+    width: 100%;
+    min-height: 150px;
+}
+.item-properties .btn {
+    font-size: 14px;
+    padding: 2px 5px 2px 5px;
+}
+
 
 .image-property-container {
     position: relative;
