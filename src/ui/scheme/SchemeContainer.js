@@ -34,7 +34,7 @@ function visitItems(items, callback, transform, parentItem, ancestorIds) {
         return;
     }
     if (!transform) {
-        transform = _zeroTransform;
+        transform = {x: 0, y: 0, r: 0};
     }
     if (!ancestorIds) {
         ancestorIds = [];
@@ -179,7 +179,7 @@ class SchemeContainer {
     }
 
     /**
-     * Used in case an item was moved. This is needed so that we only update transforms (in meta) for objects that are child of this item
+     * Used in case an item was moved. This is needed so that we only update transforms (in meta) for objects that are children of this item
      * @param {Item} item - item that was moved or rotated
      */
     reindexItemTransforms(item) {
@@ -187,7 +187,7 @@ class SchemeContainer {
             return;
         }
         const callback = (childItem, transform, parentItem, ancestorIds) => {
-            this.enrichItemMeta(childItem, transform, parentItem, ancestorIds);
+            childItem.meta.transform = transform;
         };
         const parentItem = this.findItemById(item.meta.parentId);
         visitItems(item.childItems, callback, item.meta.transform, parentItem, item.meta.ancestorIds);

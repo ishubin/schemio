@@ -105,6 +105,7 @@ class MoveAnimation extends Animation {
         }
         this.item.area.x = localPoint.x + this.offsetX;
         this.item.area.y = localPoint.y + this.offsetY;
+        this.schemeContainer.reindexItemTransforms(this.item);
     }
 
     /**

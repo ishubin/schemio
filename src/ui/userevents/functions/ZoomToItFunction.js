@@ -4,7 +4,31 @@ import {forEach} from 'lodash';
 import ValueAnimation from '../../animations/ValueAnimation';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 
-function calculateBoundingBox(item, offset) {
+/**
+ * Recreating item transform because in some weird cases when some of ancestors were moved,
+ * the transforms in item metas are not properly recalculated.
+ */
+function createItemTransform(item, schemeContainer) {
+    let transform = {x: 0, y: 0, r: 0};
+    if (item.meta.ancestorIds) {
+        for (let i = 0; i < item.meta.ancestorIds.length; i++) {
+            const ancestorItem = schemeContainer.findItemById(item.meta.ancestorIds[i]);
+            if (ancestorItem) {
+                let cosa = Math.cos(transform.r * Math.PI / 180);
+                let sina = Math.sin(transform.r * Math.PI / 180);
+                transform = {
+                    x:      transform.x + ancestorItem.area.x * cosa - ancestorItem.area.y * sina,
+                    y:      transform.y + ancestorItem.area.x * sina + ancestorItem.area.y * cosa,
+                    r:  transform.r + ancestorItem.area.r
+                };
+            }
+        }
+    }
+    return transform;
+}
+
+
+function calculateBoundingBox(item, schemeContainer, offset) {
     const points = [
         { x: 0, y: 0 },
         { x: item.area.w, y: 0 },
@@ -13,10 +37,7 @@ function calculateBoundingBox(item, offset) {
     ];
     let minPoint = null;
     let maxPoint = null;
-    let transform = {x: 0, y: 0, r: 0};
-    if (item.meta.transform) {
-        transform = item.meta.transform;
-    }
+    let transform = createItemTransform(item, schemeContainer);
 
     forEach(points, point => {
         const localPoint = myMath.worldPointInArea(point.x, point.y, item.area, transform);
@@ -101,7 +122,7 @@ export default {
             return;
         }
 
-        const area = calculateBoundingBox(item, 50);
+        const area = calculateBoundingBox(item, schemeContainer, 50);
 
         let newZoom = 1.0;
         const width = schemeContainer.screenSettings.width;
@@ -115,11 +136,11 @@ export default {
         let destY = height/2 - (area.y + area.h/2) * newZoom;
 
         if (args.closeEnough) {
-            if (isAreaInsideScreen(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale)) {
+            if (isAreaInsideScreen(area, width, height, 0, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale)) {
                 resultCallback();
                 return;
             } else {
-                const transform = findCloseEnoughTransform(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale, destX, destY, newZoom);
+                const transform = findCloseEnoughTransform(area, width, height, 0, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale, destX, destY, newZoom);
                 destX = transform.x;
                 destY = transform.y;
                 newZoom = transform.scale;
