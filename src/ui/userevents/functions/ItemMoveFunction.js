@@ -64,6 +64,7 @@ class MoveAnimation extends Animation {
                 } else {
                     this.item.area.x = this.destinationPosition.x;
                     this.item.area.y = this.destinationPosition.y;
+                    this.schemeContainer.reindexItemTransforms(this.item);
                 }
                 return false;
             }
@@ -75,12 +76,14 @@ class MoveAnimation extends Animation {
             } else {
                 this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
                 this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
+                this.schemeContainer.reindexItemTransforms(this.item);
             }
 
             return true;
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
+            this.schemeContainer.reindexItemTransforms(this.item);
         }
         return false;
     }
@@ -156,6 +159,7 @@ export default {
             } else {
                 item.area.x = args.x;
                 item.area.y = args.y;
+                schemeContainer.reindexItemTransforms(item);
             }
         }
         resultCallback();

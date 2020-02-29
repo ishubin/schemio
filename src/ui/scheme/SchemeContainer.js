@@ -178,6 +178,21 @@ class SchemeContainer {
         this.revision += 1;
     }
 
+    /**
+     * Used in case an item was moved. This is needed so that we only update transforms (in meta) for objects that are child of this item
+     * @param {Item} item - item that was moved or rotated
+     */
+    reindexItemTransforms(item) {
+        if (!item.childItems) {
+            return;
+        }
+        const callback = (childItem, transform, parentItem, ancestorIds) => {
+            this.enrichItemMeta(childItem, transform, parentItem, ancestorIds);
+        };
+        const parentItem = this.findItemById(item.meta.parentId);
+        visitItems(item.childItems, callback, item.meta.transform, parentItem, item.meta.ancestorIds);
+    }
+
     indexItemGroups(itemId, groups) {
         _.forEach(groups, group => {
             if (!this._itemGroupsToIds.hasOwnProperty(group)) {
