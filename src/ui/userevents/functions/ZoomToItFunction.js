@@ -115,10 +115,15 @@ export default {
         let destY = height/2 - (area.y + area.h/2) * newZoom;
 
         if (args.closeEnough) {
-            const transform = findCloseEnoughTransform(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale, destX, destY, newZoom);
-            destX = transform.x;
-            destY = transform.y;
-            newZoom = transform.scale;
+            if (isAreaInsideScreen(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale)) {
+                resultCallback();
+                return;
+            } else {
+                const transform = findCloseEnoughTransform(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale, destX, destY, newZoom);
+                destX = transform.x;
+                destY = transform.y;
+                newZoom = transform.scale;
+            }
         }
 
         if (args.animated) {
