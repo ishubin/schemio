@@ -942,10 +942,26 @@ class SchemeContainer {
 
     copySelectedItems() {
         this.copyBuffer = [].concat(this.selectedItems);
+        this.copyBuffer = [];
+        _.forEach(this.selectedItems, item => {
+            this.copyBuffer.push(utils.clone(item));
+        });
     }
 
     pasteSelectedItems() {
+        if (!this.copyBuffer || this.copyBuffer.length === 0) {
+            return;
+        }
         this.deselectAllItems();
+
+        let preserveParent = true;
+        let i = 1;
+        while(i < this.copyBuffer.length && preserveParent) {
+            if (this.copyBuffer[i].id !== this.copyBuffer[0].id) {
+                preserveParent = false;
+            }
+            i += 1;
+        }
 
         const copiedItemIds = {};
         _.forEach(this.copyBuffer, item => {
@@ -956,14 +972,27 @@ class SchemeContainer {
                 const worldPoint = this.worldPointOnItem(0, 0, item);
 
                 const newItem = this.copyItem(item);
+                newItem.name = item.name + ' copy';
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
                 if (item.meta.transform) {
                     newItem.area.r += item.meta.transform.r;
                 }
 
-                this.scheme.items.push(newItem);
-                this.selectItem(item, true);
+                let parentItems = this.scheme.items;
+                if (preserveParent) {
+                    if (item.meta && item.meta.parentId) {
+                        const parentItem = this.findItemById(item.meta.parentId);
+                        if (parentItem) {
+                            parentItems = parentItem.childItems;
+                            // modifying area back since we keep the same parent
+                            newItem.area = utils.clone(item.area);
+                        }
+                    }
+                }
+
+                parentItems.push(newItem);
+                this.selectItem(newItem, true);
             }
         });
 

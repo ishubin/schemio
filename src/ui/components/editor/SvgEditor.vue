@@ -231,6 +231,9 @@
                 <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
                     <i class="far fa-file"></i> Create scheme for this element...
                 </li>
+                <li @click="copySelectedItems()">
+                    Copy
+                </li>
                 <li @click="deleteSelectedItemsAndConnectors()">
                     <i class="fa fa-times"></i> Delete
                 </li>
@@ -412,6 +415,9 @@ export default {
         };
     },
     methods: {
+        copySelectedItems() {
+            this.schemeContainer.copySelectedItems();
+        },
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 targetOffsetX = rect.left + document.body.scrollLeft,
