@@ -1,6 +1,6 @@
 <template>
     <g>
-        <a class="item-link" @click="onLinkClick" :xlink:href="item.shapeProps.url">
+        <a class="item-link" @click="onLinkClick" :xlink:href="item.shapeProps.url" :target="target">
             <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
                 :style="iconStyle"
                 ><i :class="iconClass"></i></foreignObject>
@@ -28,6 +28,7 @@ export default {
 
     args: {
         url      : {type: 'string', value: '', name: 'URL'},
+        otherTab : {type: 'boolean',value: false, name: 'In Other Tab', description: 'Open the link in another tab'},
         color    : {type: 'color', value: '#047FE4', name: 'Color'},
         underline: {type: 'boolean', value: true, name: 'Underline'},
         bold     : {type: 'boolean', value: false, name: 'Bold'},
@@ -60,6 +61,13 @@ export default {
     },
 
     computed: {
+        target() {
+            if (this.item.shapeProps.otherTab) {
+                return '_blank';
+            }
+            return '_self';
+        },
+
         style() {
             return {
                 'font-weight': this.item.shapeProps.bold ? 'bold' : 'normal',
