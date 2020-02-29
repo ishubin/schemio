@@ -39,10 +39,57 @@ function calculateBoundingBox(item, offset) {
     };
 }
 
+/**
+ * This function searches (binary search) for position on screen where the element is visible close enough
+ * @param {*} area - are in world which needs to be brought into screen
+ * @param {*} width  - screen width
+ * @param {*} height  - screen height
+ * @param {*} screenOffset - offset in pixels from each side of the screen. This is needed in order to make it visualy more pleasant 
+ * @param {*} oldX  - old x of screen transform
+ * @param {*} oldY  - old y of screen transform
+ * @param {*} oldZoom  - old scale of screen transform
+ * @param {*} destX - x on screen transform in which area is fully centered and inside the view
+ * @param {*} destY - y on screen transform in which area is fully centered and inside the view
+ * @param {*} destZoom - scale on screen transform in which area is fully centered and inside the view
+ */
+function findCloseEnoughTransform(area, width, height, screenOffset, oldX, oldY, oldZoom, destX, destY, destZoom) {
+    const distance = Math.sqrt((destX - oldX)*(destX - oldX) + (destY - oldY)*(destY - oldY));
+    if (distance < 1) {
+        return {
+            x: destX,
+            y: destY,
+            scale: destZoom
+        };
+    }
+    
+    //testing it in the middle point
+    const midX = oldX + (destX - oldX) / 2;
+    const midY = oldY + (destY - oldY) / 2;
+    const midZoom = (destZoom + oldZoom) / 2;
+
+    if (isAreaInsideScreen(area, width, height, screenOffset, midX, midY, midZoom)) {
+        return findCloseEnoughTransform(area, width, height, screenOffset, oldX, oldY, oldZoom, midX, midY, midZoom);
+    } else {
+        return findCloseEnoughTransform(area, width, height, screenOffset, midX, midY, midZoom, destX, destY, destZoom);
+    }
+}
+
+function isAreaInsideScreen(area, width, height, screenOffset, screenX, screenY, scale) {
+    const x1 = area.x * scale + screenX;
+    const y1 = area.y * scale + screenY;
+    const x2 = (area.x + area.w) * scale + screenX;
+    const y2 = (area.y + area.h) * scale + screenY;
+    
+    return (x1 >= screenOffset && x1 <= width - screenOffset)
+            && (x2 >= screenOffset && x2 <= width - screenOffset)
+            && (y1 >= screenOffset && y1 <= height - screenOffset)
+            && (y2 >= screenOffset && y2 <= height - screenOffset);
+}
 
 export default {
     name: 'Zoom To It',
     args: {
+        closeEnough         : {name: 'Close Enough', type: 'boolean', value: false, description: 'If checked, then it will only zoom to item just enough for it to appear fully inside the screen. Otherwise it will bring it to the center of the screen'},
         animated            : {name: 'Animated', type: 'boolean', value: true},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
@@ -64,8 +111,15 @@ export default {
             newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
         }
 
-        const destX = width/2  - (area.x + area.w/2) * newZoom;
-        const destY = height/2 - (area.y + area.h/2) * newZoom;
+        let destX = width/2  - (area.x + area.w/2) * newZoom;
+        let destY = height/2 - (area.y + area.h/2) * newZoom;
+
+        if (args.closeEnough) {
+            const transform = findCloseEnoughTransform(area, width, height, 60, schemeContainer.screenTransform.x, schemeContainer.screenTransform.y, schemeContainer.screenTransform.scale, destX, destY, newZoom);
+            destX = transform.x;
+            destY = transform.y;
+            newZoom = transform.scale;
+        }
 
         if (args.animated) {
             const oldX = schemeContainer.screenTransform.x;
