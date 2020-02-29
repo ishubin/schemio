@@ -149,13 +149,15 @@ export default {
         if (item) {
             if (args.animate) {
                 AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id);
+                if (args.inBackground) {
+                    resultCallback();
+                }
+                return;
             } else {
                 item.area.x = args.x;
                 item.area.y = args.y;
             }
         }
-        if (args.inBackground) {
-            resultCallback();
-        }
+        resultCallback();
     }
 };
