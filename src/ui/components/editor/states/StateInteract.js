@@ -11,8 +11,6 @@ import Item from '../../../scheme/Item.js';
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
 const CLICKED = Events.standardEvents.clicked.id;
-const SELECTED = Events.standardEvents.selected.id;
-const DESELECTED = Events.standardEvents.deselected.id;
 
 /*
 This state works as dragging the screen, zooming, selecting elements
