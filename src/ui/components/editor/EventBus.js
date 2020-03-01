@@ -24,6 +24,7 @@ const EventBus = new Vue({
 
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
 
+            ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',
             ITEM_SELECTED: 'item-selected',
             ITEM_DESELECTED: 'item-deselected',
@@ -45,6 +46,12 @@ const EventBus = new Vue({
 
             // used to trigger display of item description as a tooltip (when in interactive mode)
             ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
+
+            // used to trigger side panel for specified item in interaction (view) mode
+            ITEM_SIDE_PANEL_TRIGGERED: 'item-side-panel-triggered',
+
+            // used in view mode in case item has links
+            ITEM_LINKS_SHOW_REQUESTED: 'item-links-show-requested',
 
             RIGHT_CLICKED_ITEM: 'right-clicked-item',
 

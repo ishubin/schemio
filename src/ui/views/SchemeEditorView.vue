@@ -102,6 +102,7 @@
                             <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :scheme-container="schemeContainer"></scheme-properties>
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
+
                         <div v-if="currentTab === 'Items'">
                             <panel name="Items" v-if="mode === 'edit'">
                                 <item-selector :scheme-container="schemeContainer" :max-height="200" :key="schemeContainer.revision"/>
@@ -114,9 +115,8 @@
                                 :project-id="projectId"
                                 :scheme-container="schemeContainer" 
                             />
-                            <item-details v-if="schemeContainer.selectedItems.length > 0 && mode !== 'edit'"
-                                :item="schemeContainer.selectedItems[0]"
-                                />
+                            <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+
                         </div>
                         <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                     </div>
@@ -193,28 +193,30 @@ export default {
         this.init();
         EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
+        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
         EventBus.$on(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EventBus.$on(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
+        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
         EventBus.$off(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EventBus.$off(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
     },
@@ -240,6 +242,9 @@ export default {
 
             shouldSnapToGrid: true,
 
+            // a reference to an item that was clicked in view mode
+            // this is used when the side panel for item is being requested
+            sidePanelItemForViewMode: null,
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
             schemeContainer: null,
@@ -565,26 +570,6 @@ export default {
             });
         },
 
-        onAnyItemSelected(itemId) {
-            // Checking whether an item has any information in it.
-            if (this.mode === 'view') {
-                if (this.schemeContainer.selectedItems.length > 0 && this.schemeContainer.selectedItems[0].description) {
-                    /*
-                    This is very dirty but it is the simplest way to check if the item has a proper description
-                    If would only check for non-empty strings, then it would still show side panel 
-                    even when description is an empty parahraph like "<p></p>"
-                    This happens when you use rich text editor and delete the entire description.
-                    Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
-                    */
-                    if (this.schemeContainer.selectedItems[0].description.trim().length > 8) {
-                        this.sidePanelRightExpanded = true;
-                        this.currentTab = 'Item';
-                        this.tabs[2].disabled = true;
-                    }
-                }
-            }
-        },
-
         onAnyConnectorSelected(connectorId, connector) {
             this.selectedConnector = connector;
             this.currentTab = 'Connection';
@@ -642,6 +627,11 @@ export default {
             }
         },
 
+        onAnyItemClicked(item) {
+            this.sidePanelItemForViewMode = null;
+            this.sidePanelRightExpanded = false;
+        },
+
         applySameChangeToItem(srcItem, dstItem, propertyPath) {
             if (propertyPath.indexOf('shapeProps.') === 0) {
                 const shapePropName = propertyPath.substr('shapeProps.'.length);
@@ -664,6 +654,7 @@ export default {
 
         onVoidClicked() {
             this.sidePanelRightExpanded = false;
+            this.sidePanelItemForViewMode = null;
         },
 
         onKeyPress(key, keyOptions) {
@@ -694,6 +685,13 @@ export default {
             this.itemTooltip.x = mouseX;
             this.itemTooltip.y = mouseY;
             this.itemTooltip.shown = true;
+        },
+
+        onItemSidePanelTriggered(item) {
+            this.sidePanelItemForViewMode = item;
+            this.sidePanelRightExpanded = true;
+            this.currentTab = 'Items';
+            this.tabs[2].disabled = true;
         },
 
         commitHistory(affinityId) {

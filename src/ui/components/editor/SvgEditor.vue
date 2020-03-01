@@ -326,9 +326,10 @@ export default {
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
+        EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
+        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
@@ -337,7 +338,6 @@ export default {
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -352,9 +352,10 @@ export default {
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
+        EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
+        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
@@ -380,7 +381,6 @@ export default {
 
             cursor: 'default',
 
-            activeItem: null,
             selectedItemLinks: [],
             lastHoveredItem: null,
 
@@ -684,7 +684,6 @@ export default {
         },
 
         deleteSelectedItemsAndConnectors() {
-            this.activeItem = null;
             this.schemeContainer.deleteSelectedItemsAndConnectors();
             EventBus.emitSchemeChangeCommited();
             this.$emit('deleted-items');
@@ -698,18 +697,18 @@ export default {
             this.multiSelectBox = null;
         },
 
-        onAnyItemSelected(itemId) {
-            const item = this.schemeContainer.findItemById(itemId);
-
+        onShowItemLinks(item) {
             if (this.mode === 'view') {
                 this.selectedItemLinks = this.generateItemLinks(item);
                 this.startLinksAnimation();
             }
-            this.activeItem = item;
         },
 
-        onAnyItemDeselected(item) {
-            this.activeItem = null;
+        onAnyItemClicked(item) {
+            this.removeDrawnLinks();
+        },
+
+        onVoidClicked(item) {
             this.removeDrawnLinks();
         },
 

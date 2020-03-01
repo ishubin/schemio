@@ -56,25 +56,15 @@ class StateInteract extends State {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
+                    this.eventBus.$emit(EventBus.ANY_ITEM_CLICKED, object.item);
                     this.emit(object.item, CLICKED);
-
-                    this.emit(object.item, SELECTED);
-                    _.forEach(this.schemeContainer.selectedItems, item => {
-                        if (item.id !== object.item.id) {
-                            this.emit(item, DESELECTED);
-                            this.eventBus.emitItemDeselected(item.id);
-                        }
-                    });
-                    
-                    this.handleItemClick(object.item, mx, my)
+                    this.handleItemClick(object.item, mx, my);
                 } else {
-                    //clicked in empty space and didn't drag screen, so we can deselect everything
-                    this.eventBus.$emit(EventBus.VOID_CLICKED);
-                    _.forEach(this.schemeContainer.selectedItems, item => {
-                        this.eventBus.emitItemDeselected(item.id)
-                        this.emit(item, DESELECTED);
-                    });
-                    this.schemeContainer.deselectAllItems();
+                    // checking whether user clicked on the item link or not
+                    // if it was item link - then we don't want to remove them from DOM
+                    if (!event.target || !event.target.closest('.item-link')) {
+                        this.eventBus.$emit(EventBus.VOID_CLICKED);
+                    }
                 }
             }
             this.dragScreen(mx, my);
@@ -98,12 +88,23 @@ class StateInteract extends State {
     }
 
     handleItemClick(item, mx, my) {
-        if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
-            // TODO Refactor this. it should not select item but instead should emit an event that the item side panel is shown
-            this.schemeContainer.selectItem(item, false);
-            this.eventBus.emitItemSelected(item.id);
-        } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
-            this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
+        if (item.links && item.links.length > 0) {
+            this.eventBus.$emit(EventBus.ITEM_LINKS_SHOW_REQUESTED, item);
+        }
+
+        /*
+        This is very dirty but it is the simplest way to check if the item has a proper description
+        If would only check for non-empty strings, then it would still show side panel 
+        even when description is an empty parahraph like "<p></p>"
+        This happens when you use rich text editor and delete the entire description.
+        Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
+        */
+        if (item.description.trim().length > 8) {
+            if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
+                this.eventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+            } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
+                this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
+            }
         }
     }
 
