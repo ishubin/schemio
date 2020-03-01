@@ -64,7 +64,7 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
                         <text class="item-link-icon" :class="['link-icon-' + link.type]"
                             :x="link.x - 6"
@@ -73,7 +73,7 @@
                             :title="link.title"
                             >{{link.shortTitle}}</text>
 
-                        <foreignObject :x="link.x + 16" :y="link.y - 11" :width="1000" height="30">
+                        <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
                             <span class="item-link-title">{{link | formatLinkTitle}}</span>
                         </foreignObject>
                     </a>
@@ -700,6 +700,17 @@ export default {
         onShowItemLinks(item) {
             if (this.mode === 'view') {
                 this.selectedItemLinks = this.generateItemLinks(item);
+                this.$nextTick(() => {
+                    //readjusting links width and height
+                    _.forEach(this.selectedItemLinks, (link, index) => {
+                        const domLinkTitle = document.querySelector(`#item-link-${index} span.item-link-title`);
+                        if (domLinkTitle) {
+                            const bbRect = domLinkTitle.getBoundingClientRect();
+                            link.width = bbRect.width;
+                            link.height = bbRect.height;
+                        }
+                    });
+                });
                 this.startLinksAnimation();
             }
         },
@@ -768,7 +779,7 @@ export default {
                 let startY = cy;
 
                 if (cy > this.height - 100 || cy < 100) {
-                    cy = this.vy_(this.height / 2);
+                    cy = this.height / 4;
                 }
 
                 let step = 40;
@@ -794,7 +805,9 @@ export default {
                         startX,
                         startY,
                         destinationX,
-                        destinationY: y0 + step * index
+                        destinationY: y0 + step * index,
+                        width: 1000,
+                        height: 30
                     };
                 });
             }
