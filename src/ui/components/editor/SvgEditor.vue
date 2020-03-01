@@ -760,30 +760,31 @@ export default {
         },
 
         generateItemLinks(item) {
-            let links = [];
             if (item.links && item.links.length > 0) {
-
-                let cx = this._x(item.area.w / 2 + item.area.x);
-                let cy = this._y(item.area.h / 2 + item.area.y);
+                const worldPointCenter = this.interactiveSchemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+                let cx = this._vx(worldPointCenter.x);
+                let cy = this._vy(worldPointCenter.y);
                 let startX = cx;
                 let startY = cy;
 
                 if (cy > this.height - 100 || cy < 100) {
-                    cy = this.y_(this.height / 2);
+                    cy = this.vy_(this.height / 2);
                 }
 
                 let step = 40;
                 let y0 = cy - item.links.length * step / 2;
-                let destinationX = this._x(item.area.x + item.area.w + 10);
+                const worldPointRight = this.interactiveSchemeContainer.worldPointOnItem(item.area.w, 0, item);
+                let destinationX = this._vx(worldPointRight.x) + 10;
 
                 // taking side panel into account
                 if (destinationX > this.width - 500) {
                     let maxLinkLength = _.chain(item.links).map(link => link.title ? link.title.length : link.url.length).max().value();
-                    destinationX = item.area.x - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
+                    const leftX = this._vx(this.interactiveSchemeContainer.worldPointOnItem(0, 0, item).x);
+                    destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
                 }
 
-                _.forEach(item.links, (link, index) => {
-                    let svgLink = {
+                return _.map(item.links, (link, index) => {
+                    return {
                         url: link.url,
                         type: link.type,
                         shortTitle: this.getFontAwesomeSymbolForLink(link),
@@ -795,11 +796,9 @@ export default {
                         destinationX,
                         destinationY: y0 + step * index
                     };
-
-                    links.push(svgLink);
                 });
             }
-            return links;
+            return [];
         },
 
         calculateLinkBackgroundRectWidth(link) {
@@ -949,12 +948,20 @@ export default {
             };
         },
 
+        //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
-        x_(x) { return x / this.schemeContainer.screenTransform.scale - this.schemeContainer.screenTransform.x; },
-        y_(y) { return y / this.schemeContainer.screenTransform.scale - this.schemeContainer.screenTransform.y; },
-        z_(v) { return v / this.schemeContainer.screenTransform.scale; }
+
+        //calculates coords from world to screen in view mode
+        _vx(x) { return x * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.x },
+        _vy(y) { return y * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.y; },
+        _vz(v) { return v * this.interactiveSchemeContainer.screenTransform.scale; },
+
+        //calculates from screen to world in view mode
+        vx_(x) { return x / this.interactiveSchemeContainer.screenTransform.scale - this.interactiveSchemeContainer.screenTransform.x; },
+        vy_(y) { return y / this.interactiveSchemeContainer.screenTransform.scale - this.interactiveSchemeContainer.screenTransform.y; },
+        vz_(v) { return v / this.interactiveSchemeContainer.screenTransform.scale; }
     },
     watch: {
         mode(newMode) {
