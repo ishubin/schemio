@@ -42,7 +42,7 @@
             fill="rgba(255, 255, 255, 0)" />
 
         <rect class="boundary-box"
-            v-if="mode === 'edit'"
+            v-if="mode === 'edit' && item.visible"
             data-preview-ignore="true"
             :data-item-id="item.id"
             :stroke="schemeContainer.scheme.style.boundaryBoxColor"
