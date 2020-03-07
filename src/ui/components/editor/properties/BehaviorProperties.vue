@@ -368,7 +368,7 @@ export default {
                 id: shortid.generate(),
                 on: {
                     element: {item: 'self'},
-                    event: 'mousein',
+                    event: 'clicked',
                     args: []
                 },
                 do: []
