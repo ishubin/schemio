@@ -166,5 +166,15 @@ export default {
         return axios.post(`/projects/${projectId}/files`, form).then(response => {
             return response.data.path;
         });
+    },
+
+    styles: {
+        saveStyle(name, shape, shapeProps) {
+            return axios.post(`/v1/user/styles`, { name, shape, shapeProps }).then(unwrapAxios);
+        },
+
+        getStylesForShape(shape) {
+            return axios.get(`/v1/user/styles/${shape}`).then(unwrapAxios);
+        }
     }
 }

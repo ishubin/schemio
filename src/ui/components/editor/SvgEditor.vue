@@ -338,6 +338,7 @@ export default {
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+        EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -364,6 +365,7 @@ export default {
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+        EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -941,6 +943,23 @@ export default {
             }
             this.customContextMenu.show = false;
         },
+
+        onShapeStyleApplied(shapeName, style) {
+            if (this.state === 'createItem' && states.createItem.item && states.createItem.item.shape === shapeName) {
+                const shape = Shape.find(shapeName);
+                if (!shape) {
+                    return;
+                }
+                const item = states.createItem.item;
+                _.forEach(shape.args, (arg, argName) => {
+                    item.shapeProps[argName] = arg.value;
+                });
+                _.forEach(style.shapeProps, (argValue, argName) => {
+                    item.shapeProps[argName] = argValue;
+                });
+            }
+        },
+
         // Converts world coordinates to item local coordinates (takes items rotation and translation into account)
         calculateItemLocalPoint(item, x, y) {
             // Rotating a world point around item center in the opposite direction
@@ -977,6 +996,9 @@ export default {
         vz_(v) { return v / this.interactiveSchemeContainer.screenTransform.scale; }
     },
     watch: {
+        state(newState) {
+            EventBus.$emit(EventBus.EDITOR_STATE_CHANGED, newState);
+        },
         mode(newMode) {
             if (newMode === 'edit') {
                 userEventBus.clear();

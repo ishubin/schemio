@@ -12,11 +12,6 @@
                     <i class="fas" :class="[itemLocked ? 'fa-lock' : 'fa-unlock']"></i>
                 </span>
             </li>
-            <li v-if="itemGroup">
-                <span class="toggle-button" @click="ungroupItem()">
-                    <i class="fas fa-object-ungroup"></i>
-                </span>
-            </li>
         </ul>
         <table class="position-panel-table">
             <tbody>
@@ -75,7 +70,6 @@ export default {
             type: this.item.area.type,
 
             itemLocked: this.item.locked || false,
-            itemGroup: this.item.group,
 
             knownTypes: ['relative', 'viewport']
         };
@@ -85,11 +79,6 @@ export default {
         toggleItemLock() {
             this.itemLocked = !this.itemLocked;
             this.item.locked = this.itemLocked;
-        },
-
-        ungroupItem() {
-            this.$emit('ungroup-item');
-            this.itemGroup = null;
         },
 
         onItemChanged() {

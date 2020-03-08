@@ -4,47 +4,63 @@
 
 <template lang="html">
     <div class="create-item-menu">
+        <div v-if="currentPanel === 'items'">
+            <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
-        <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
-
-        <panel v-for="panel in itemPanels" :name="panel.name">
-            <div class="item-menu">
-                <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemSelected(item)">
-                    <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
-                </div>
-            </div>
-        </panel>
-
-        <panel name="Project Art">
-            <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
-            <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
-            <div class="item-menu">
-                <div class="item-container"
-                    v-for="art in artList"
-                    v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
-                    @mouseover="showPreviewArt(art)"
-                    @mouseleave="stopPreviewArt(art)"
-                    @click="onArtSelected(art)">
-                    <img :src="art.url"/>
-                </div>
-            </div>
-        </panel>
-
-        <panel v-for="artPack in artPacks" :name="artPack.name">
-            <div class="art-pack">
-                <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
+            <panel v-for="panel in itemPanels" :name="panel.name">
                 <div class="item-menu">
-                    <div class="item-container"
-                        v-for="icon in artPack.icons"
-                        v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
-                        @mouseover="showPreviewArt(icon)"
-                        @mouseleave="stopPreviewArt(icon)"
-                        @click="onArtSelected(icon)">
-                        <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
+                    <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemSelected(item)">
+                        <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                     </div>
                 </div>
-            </div>
-        </panel>
+            </panel>
+
+            <panel name="Project Art">
+                <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
+                <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
+                <div class="item-menu">
+                    <div class="item-container"
+                        v-for="art in artList"
+                        v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
+                        @mouseover="showPreviewArt(art)"
+                        @mouseleave="stopPreviewArt(art)"
+                        @click="onArtSelected(art)">
+                        <img :src="art.url"/>
+                    </div>
+                </div>
+            </panel>
+
+            <panel v-for="artPack in artPacks" :name="artPack.name">
+                <div class="art-pack">
+                    <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
+                    <div class="item-menu">
+                        <div class="item-container"
+                            v-for="icon in artPack.icons"
+                            v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
+                            @mouseover="showPreviewArt(icon)"
+                            @mouseleave="stopPreviewArt(icon)"
+                            @click="onArtSelected(icon)">
+                            <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
+                        </div>
+                    </div>
+                </div>
+            </panel>
+        </div>
+        <div v-if="currentPanel === 'styles' && styleShapePreviewComponent">
+            <panel name="Styles">
+                <ul class="shape-styles-preview" v-for="styleItem in styleShapePreviewItems">
+                    <li>
+                        <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.style)">
+                            <svg width="140px" height="100px">
+                                <g :transform="`translate(${styleItem.item.area.x}, ${styleItem.item.area.y})`">
+                                    <component :is="styleShapePreviewComponent" :item="styleItem.item"></component>
+                                </g>
+                            </svg>
+                        </div>
+                    </li>
+                </ul>
+            </panel>
+        </div>
 
         <create-image-modal v-if="createImageModalShown" :project-id="projectId" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
 
@@ -99,43 +115,63 @@ import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 
 
+// this is used in order to cache user styles on the client side for all shapes
+const userStyles = {};
+
+
+const Panels = {
+    Items   : 'items',
+    Styles  : 'styles'
+};
 
 export default {
     props: ['projectId'],
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup},
     beforeMount() {
         this.reloadArt();
+        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
+    },
+    beforeDestroy() {
+        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
     data() {
         return {
-            selectedImageItem: null,
-            createImageModalShown: false,
-            customArtUploadModalShown: false,
-            menu: 'main',
-            artPacks: [],
-            artList: [],
-            searchKeyword: '',
-            errorMessage: null,
+            currentEditorState          : null,
+            selectedImageItem           : null,
+            createImageModalShown       : false,
+            customArtUploadModalShown   : false,
+            menu                        : 'main',
+            artPacks                    : [],
+            artList                     : [],
+            searchKeyword               : '',
+            errorMessage                : null,
 
-            editArtModalShown: false,
+            editArtModalShown           : false,
+            
+            // may be 'items' or 'styles'
+            currentPanel                : Panels.Items,
+            userStyles                  : userStyles,
+            currentStyleShape           : 'rect',
+            styleShapePreviewItems      : null,
+            styleShapePreviewComponent  : null,
 
             itemPanels: [{
-                name: 'General',
-                items: this.prepareItemsForMenu(generalItems)
+                name    : 'General',
+                items   : this.prepareItemsForMenu(generalItems)
             }, {
-                name: 'UML',
-                items: this.prepareItemsForMenu(umlItems)
+                name    : 'UML',
+                items   : this.prepareItemsForMenu(umlItems)
             }],
             linkCreation: {
-                popupShown: false,
-                item: null
+                popupShown    : false,
+                item          : null
             },
             previewItem: {
-                shown: false,
-                item: null,
-                artIcon: null,
-                y: 50,
-                description: null
+                shown         : false,
+                item          : null,
+                artIcon       : null,
+                y             : 50,
+                description   : null
             }
         }
     },
@@ -270,6 +306,8 @@ export default {
                         newItem.shapeProps[key] = value;
                     });
                 }
+
+                this.triggerStylesPanelForShape(newItem.shape);
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
         },
@@ -281,6 +319,7 @@ export default {
             item.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item, item.shape);
+            this.triggerStylesPanelForShape(item.shape);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
@@ -302,6 +341,67 @@ export default {
                 this.errorMessage = 'Could not load image. Check if the path is correct';
             };
             img.src = imageUrl;
+        },
+
+        onEditorStateChanged(state) {
+            this.currentEditorState = state;
+            if (state !== 'createItem') {
+                this.currentPanel = Panels.Items;
+            }
+        },
+
+        triggerStylesPanelForShape(shapeName) {
+            // checking if it already has some styles - we can switch to the styles panel and at the same time update the styles for this shape
+            // if not, then wait until we check on the server and then switch
+
+            if (this.userStyles.hasOwnProperty[shapeName] && this.userStyles[shapeName] && this.userStyles[shapeName].length > 0) {
+                this.prepareStyleItemPreviews(shapeName);
+                this.currentPanel = Panels.Styles;
+            }
+
+            apiClient.styles.getStylesForShape(shapeName).then(styles => {
+                userStyles[shapeName] = styles;
+                this.userStyles[shapeName] = styles;
+                if (this.currentEditorState === 'createItem' && styles && styles.length > 0) {
+                    this.prepareStyleItemPreviews(shapeName);
+                    this.currentPanel = Panels.Styles;
+                }
+            });
+        },
+
+        prepareStyleItemPreviews(shapeName) {
+            this.previewItem.shown = false;
+
+            const shape = Shape.find(shapeName);
+            if (!shape) {
+                return;
+            }
+            this.styleShapePreviewComponent = shape.component;
+
+            const styles = this.userStyles[shapeName];
+            this.styleShapePreviewItems = [];
+            _.forEach(styles, style => {
+                const item = {
+                    name: style.name,
+                    area: {x: 10, y: 10, w: 120, h: 80},
+                    shapeProps: {},
+                    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
+                };
+                this.enrichItemWithShapeProps(item, shape);
+                _.forEach(style.shapeProps, (propValue, propName) => {
+                    item.shapeProps[propName] = propValue;
+                });
+                this.styleShapePreviewItems.push({
+                    name: style.name,
+                    item,
+                    style,
+                    shape: shapeName
+                });
+            });
+        },
+
+        applyStyle(shape, style) {
+            EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, style);
         }
     }
 }

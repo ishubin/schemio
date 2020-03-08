@@ -16,7 +16,7 @@
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}-${revision}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}-${revision}`" :projectId="projectId" :item="item"/>
         <connections-panel v-if="currentTab === 'description'" :key="`connections-panel-${item.id}-${revision}`" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item" @ungroup-item="ungroupItem(item)"/>
+        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item"/>
 
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
@@ -137,7 +137,10 @@
                     </tbody>
                 </table>
             </panel>
+            <span class="btn btn-primary" @click="onSaveToStylesClicked">Save to styles</span>
         </div>
+
+        <save-style-modal v-if="saveStyleModalShown" :item="item" @close="saveStyleModalShown = false"/>
     </div>
 </template>
 
@@ -157,6 +160,7 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import Item from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
+import SaveStyleModal from './SaveStyleModal.vue';
 
 const ALL_TABS = [
     {name: 'description', icon: 'fas fa-paragraph'},
@@ -171,7 +175,7 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties},
+    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal},
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
@@ -206,6 +210,8 @@ export default {
 
             shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: Item.InteractionMode.values(),
+
+            saveStyleModalShown: false
         };
     },
 
@@ -336,8 +342,8 @@ export default {
             }
         },
 
-        ungroupItem(item) {
-            this.schemeContainer.ungroupItem(item);
+        onSaveToStylesClicked() {
+            this.saveStyleModalShown = true;
         }
     },
 

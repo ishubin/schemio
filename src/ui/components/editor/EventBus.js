@@ -11,6 +11,7 @@ const EventBus = new Vue({
             START_CREATING_COMPONENT: 'start-creating-component',
             START_CONNECTING_ITEM: 'start-connecting-item',
             PLACE_ITEM: 'place-item',
+            EDITOR_STATE_CHANGED: 'editor-state-changed',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
@@ -23,6 +24,9 @@ const EventBus = new Vue({
             SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
 
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
+
+            // triggered from CreateItemMenu component, when user clicks on any style from the list
+            SHAPE_STYLE_APPLIED: 'shape-style-applied',
 
             ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',

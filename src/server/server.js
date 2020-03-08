@@ -11,8 +11,9 @@ const apiUser               = require('./api/apiUser.js');
 const apiProjects           = require('./api/apiProjects.js');
 const apiSchemes            = require('./api/apiSchemes.js');
 const apiCategories         = require('./api/apiCategories.js');
-const apiFiles             = require('./api/apiFiles.js');
+const apiFiles              = require('./api/apiFiles.js');
 const apiArt                = require('./api/apiArt.js');
+const apiStyles             = require('./api/apiStyles.js');
 const session               = require('express-session');
 const mongo                 = require('./storage/mongodb/Mongo.js');
 const MongoStore            = require('connect-mongo')(session);
@@ -35,9 +36,11 @@ app.use(express.static('public'));
 app.use('/v1', [jsonBodyParser, middleware.api]);
 
 
-app.get('/v1/user', [middleware.auth], apiUser.getCurrentUser);
-app.post('/v1/login', apiUser.login);
-app.get('/user/logout', apiUser.logout);
+app.get('/v1/user',         [middleware.auth], apiUser.getCurrentUser);
+app.post('/v1/login',       apiUser.login);
+app.get('/user/logout',     apiUser.logout);
+app.post('/v1/user/styles',  [middleware.auth], apiStyles.addToStylingPalette);
+app.get('/v1/user/styles/:shape',  [middleware.auth], apiStyles.getShapeStylePalette);
 
 app.post('/v1/projects',            [middleware.auth], apiProjects.createProject);
 app.get('/v1/projects',             apiProjects.findProjects);

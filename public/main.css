@@ -1748,3 +1748,42 @@ pre.syntax-markup code {
 pre.syntax-markup.syntax-theme-dark {
     color: #ccc;
 }
+
+
+/******************* Styles Modal *********************/
+table.styles-args-table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+}
+
+table.styles-args-table td {
+    padding: 2px;
+}
+table.styles-args-table td.property-name {
+    padding-right: 10px;
+}
+table.styles-args-table td input.style-textfield {
+    border: none;
+    margin: 0;
+    width: 100%;
+    padding: 2px 4px;
+}
+
+/************** Shape Styles Preview ***************/
+ul.shape-styles-preview {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+ul.shape-styles-preview > li {
+    display: inline-block;
+}
+ul.shape-styles-preview > li > div.shape-style {
+    cursor: pointer;
+}
+ul.shape-styles-preview > li > div.shape-style:hover {
+    background: #2472ab;
+}
