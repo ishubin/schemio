@@ -1,6 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+:root {
+    --red-link: #C84A4A;
+    --red-link-hover: #EB5959;
+}
+
+
 html {
     overflow: hidden;
     height: 100%;
@@ -1783,7 +1790,18 @@ ul.shape-styles-preview > li {
 }
 ul.shape-styles-preview > li > div.shape-style {
     cursor: pointer;
+    position: relative;
 }
 ul.shape-styles-preview > li > div.shape-style:hover {
     background: #2472ab;
+}
+ul.shape-styles-preview > li > div.shape-style .link-remove-style {
+    position: absolute;
+    right: 2px;
+    top: 0px;
+    color: var(--red-link);
+    font-size: 20px;
+}
+ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
+    color: var(--red-link-hover);
 }

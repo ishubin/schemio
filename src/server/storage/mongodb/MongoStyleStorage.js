@@ -26,9 +26,17 @@ class MongoStyleStorage {
 
     getShapeStyles(userLogin, shape) {
         return this._styles().find({
-            userLogin: mongo.sanitizeString(userLogin),
-            shape: mongo.sanitizeString(shape)
+            userLogin   : mongo.sanitizeString(userLogin),
+            shape       : mongo.sanitizeString(shape)
         }).toArray();
+    }
+
+    deleteStyle(userLogin, shape, styleId) {
+        return this._styles().deleteOne({
+            userLogin   : mongo.sanitizeString(userLogin),
+            shape       : mongo.sanitizeString(shape),
+            id          : mongo.sanitizeString(styleId)
+        });
     }
 }
 

@@ -46,14 +46,17 @@
                 </div>
             </panel>
         </div>
-        <div v-if="currentPanel === 'styles' && styleShapePreviewComponent">
+        <div v-if="currentPanel === 'styles' && stylesPanel.previewComponent">
             <panel name="Styles">
-                <ul class="shape-styles-preview" v-for="styleItem in styleShapePreviewItems">
-                    <li>
+                <span class="link" @click="stylesPanel.isEdit = !stylesPanel.isEdit">Edit styles</span>
+                <ul class="shape-styles-preview">
+                    <li v-for="(styleItem, styleItemIndex) in stylesPanel.previewItems">
                         <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.style)">
+                            <span v-if="stylesPanel.isEdit" class="link link-remove-style" @click="removeUserStyle(styleItemIndex)"><i class="fas fa-times"/></span>
+
                             <svg width="140px" height="100px">
                                 <g :transform="`translate(${styleItem.item.area.x}, ${styleItem.item.area.y})`">
-                                    <component :is="styleShapePreviewComponent" :item="styleItem.item"></component>
+                                    <component :is="stylesPanel.previewComponent" :item="styleItem.item"></component>
                                 </g>
                             </svg>
                         </div>
@@ -150,10 +153,13 @@ export default {
             
             // may be 'items' or 'styles'
             currentPanel                : Panels.Items,
-            userStyles                  : userStyles,
-            currentStyleShape           : 'rect',
-            styleShapePreviewItems      : null,
-            styleShapePreviewComponent  : null,
+            stylesPanel: {
+                userStyles          : userStyles,
+                currentShape        : 'rect',
+                isEdit              : false,
+                previewItems        : null,
+                previewComponent    : null,
+            },
 
             itemPanels: [{
                 name    : 'General',
@@ -354,17 +360,19 @@ export default {
             // checking if it already has some styles - we can switch to the styles panel and at the same time update the styles for this shape
             // if not, then wait until we check on the server and then switch
 
-            if (this.userStyles.hasOwnProperty[shapeName] && this.userStyles[shapeName] && this.userStyles[shapeName].length > 0) {
+            if (this.stylesPanel.userStyles.hasOwnProperty[shapeName] && this.stylesPanel.userStyles[shapeName] && this.stylesPanel.userStyles[shapeName].length > 0) {
                 this.prepareStyleItemPreviews(shapeName);
                 this.currentPanel = Panels.Styles;
+                this.stylesPanel.isEdit = false;
             }
 
             apiClient.styles.getStylesForShape(shapeName).then(styles => {
                 userStyles[shapeName] = styles;
-                this.userStyles[shapeName] = styles;
+                this.stylesPanel.userStyles[shapeName] = styles;
                 if (this.currentEditorState === 'createItem' && styles && styles.length > 0) {
                     this.prepareStyleItemPreviews(shapeName);
                     this.currentPanel = Panels.Styles;
+                    this.stylesPanel.isEdit = false;
                 }
             });
         },
@@ -376,11 +384,10 @@ export default {
             if (!shape) {
                 return;
             }
-            this.styleShapePreviewComponent = shape.component;
+            this.stylesPanel.previewComponent = shape.component;
 
-            const styles = this.userStyles[shapeName];
-            this.styleShapePreviewItems = [];
-            _.forEach(styles, style => {
+            const styles = this.stylesPanel.userStyles[shapeName];
+            this.stylesPanel.previewItems = _.map(styles, style => {
                 const item = {
                     name: style.name,
                     area: {x: 10, y: 10, w: 120, h: 80},
@@ -391,17 +398,30 @@ export default {
                 _.forEach(style.shapeProps, (propValue, propName) => {
                     item.shapeProps[propName] = propValue;
                 });
-                this.styleShapePreviewItems.push({
+                return {
                     name: style.name,
                     item,
                     style,
                     shape: shapeName
-                });
+                };
             });
         },
 
         applyStyle(shape, style) {
             EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, style);
+        },
+
+        removeUserStyle(index) {
+            const previewItem = this.stylesPanel.previewItems[index];
+            if (!previewItem) {
+                return;
+            }
+            const style = this.stylesPanel.userStyles[previewItem.shape][index];
+
+            apiClient.styles.deleteStyle(previewItem.shape, style.id).then(() => {
+                this.stylesPanel.userStyles[previewItem.shape].splice(index, 1);
+                this.stylesPanel.previewItems.splice(index, 1);
+            });
         }
     }
 }

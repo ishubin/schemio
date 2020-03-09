@@ -8,42 +8,45 @@ const _ = require('lodash');
 
 module.exports = {
     addToStylingPalette(req, res) {
-        const userLogin = req.session.userLogin;
-        if (!userLogin) {
-            res.$notAuthorized();
-            return;
-        }
-        
-        const name = req.body.name;
-        const shape = req.body.shape;
-        const shapeProps = req.body.shapeProps;
+        const userLogin   = req.session.userLogin;
+        const name        = req.body.name;
+        const shape       = req.body.shape;
+        const shapeProps  = req.body.shapeProps;
+
         if (!shape || !shapeProps) {
             res.$badRequest();
             return;
         }
-        styleStorage.addStyle(userLogin, name, shape, shapeProps).then(() => {
+
+        styleStorage.addStyle(userLogin, name, shape, shapeProps).then(style => {
             res.json({
-                name, shape, shapeProps
+                id: style.id, name, shape, shapeProps
             });
-        });
+        }).catch(res.$apiError);
     },
 
     getShapeStylePalette(req, res) {
-        const userLogin = req.session.userLogin;
-        if (!userLogin) {
-            res.$notAuthorized();
-            return;
-        }
-        
-        const shape = req.params.shape;
+        const userLogin   = req.session.userLogin;
+        const shape       = req.params.shape;
 
         styleStorage.getShapeStyles(userLogin, shape).then(styles => {
             res.json(_.map(styles, style => {
                 return {
-                    name: style.name,
-                    shapeProps: style.shapeProps
+                    id            : style.id,
+                    name          : style.name,
+                    shapeProps    : style.shapeProps
                 };
             }));
-        });
+        }).catch(res.$apiError);
+    },
+
+    deleteStyle(req, res) {
+        const userLogin   = req.session.userLogin;
+        const shape       = req.params.shape;
+        const styleId     = req.params.styleId;
+
+        styleStorage.deleteStyle(userLogin, shape, styleId).then(() => {
+            res.json({status: 'ok'});
+        }).catch(res.$apiError);
     }
 };

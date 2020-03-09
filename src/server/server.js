@@ -41,6 +41,7 @@ app.post('/v1/login',       apiUser.login);
 app.get('/user/logout',     apiUser.logout);
 app.post('/v1/user/styles',  [middleware.auth], apiStyles.addToStylingPalette);
 app.get('/v1/user/styles/:shape',  [middleware.auth], apiStyles.getShapeStylePalette);
+app.delete('/v1/user/styles/:shape/:styleId',  [middleware.auth], apiStyles.deleteStyle);
 
 app.post('/v1/projects',            [middleware.auth], apiProjects.createProject);
 app.get('/v1/projects',             apiProjects.findProjects);

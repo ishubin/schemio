@@ -175,6 +175,10 @@ export default {
 
         getStylesForShape(shape) {
             return axios.get(`/v1/user/styles/${shape}`).then(unwrapAxios);
+        },
+
+        deleteStyle(shape, styleId) {
+            return axios.delete(`/v1/user/styles/${shape}/${styleId}`).then(unwrapAxios);
         }
     }
 }
