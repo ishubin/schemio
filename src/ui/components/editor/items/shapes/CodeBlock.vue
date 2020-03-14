@@ -50,6 +50,7 @@ function generateTextStyle(item) {
         'padding-right': item.shapeProps.textPaddingRight + 'px',
         'padding-top': item.shapeProps.textPaddingTop + 'px',
         'padding-bottom': item.shapeProps.textPaddingBottom + 'px',
+        'color': item.shapeProps.textColor,
         'width': item.area.w + 'px',
         'height': item.area.h + 'px',
     };
