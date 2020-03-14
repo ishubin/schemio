@@ -944,7 +944,7 @@ export default {
             this.customContextMenu.show = false;
         },
 
-        onShapeStyleApplied(shapeName, style) {
+        onShapeStyleApplied(shapeName, shapeProps) {
             if (this.state === 'createItem' && states.createItem.item && states.createItem.item.shape === shapeName) {
                 const shape = Shape.find(shapeName);
                 if (!shape) {
@@ -954,7 +954,7 @@ export default {
                 _.forEach(shape.args, (arg, argName) => {
                     item.shapeProps[argName] = arg.value;
                 });
-                _.forEach(style.shapeProps, (argValue, argName) => {
+                _.forEach(shapeProps, (argValue, argName) => {
                     item.shapeProps[argName] = argValue;
                 });
             }

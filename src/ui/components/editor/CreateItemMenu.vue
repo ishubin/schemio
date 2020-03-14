@@ -52,7 +52,7 @@
                 <span class="link" @click="stylesPanel.isEdit = !stylesPanel.isEdit"><i class="fas fa-edit"></i> Edit</span>
                 <ul class="shape-styles-preview">
                     <li v-for="(styleItem, styleItemIndex) in stylesPanel.previewItems">
-                        <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.style)">
+                        <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.item.shapeProps)">
                             <span v-if="stylesPanel.isEdit" class="link link-remove-style" @click="removeUserStyle(styleItemIndex)"><i class="fas fa-times"/></span>
 
                             <svg width="140px" height="100px">
@@ -408,8 +408,8 @@ export default {
             });
         },
 
-        applyStyle(shape, style) {
-            EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, style);
+        applyStyle(shape, shapeProps) {
+            EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, shapeProps);
         },
 
         removeUserStyle(index) {
