@@ -48,7 +48,8 @@
         </div>
         <div v-if="currentPanel === 'styles' && stylesPanel.previewComponent">
             <panel name="Styles">
-                <span class="link" @click="stylesPanel.isEdit = !stylesPanel.isEdit">Edit styles</span>
+                <span class="link" @click="switchBackToItemsList()"><i class="fas fa-angle-left"></i> Back</span>
+                <span class="link" @click="stylesPanel.isEdit = !stylesPanel.isEdit"><i class="fas fa-edit"></i> Edit</span>
                 <ul class="shape-styles-preview">
                     <li v-for="(styleItem, styleItemIndex) in stylesPanel.previewItems">
                         <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.style)">
@@ -313,7 +314,7 @@ export default {
                     });
                 }
 
-                this.triggerStylesPanelForShape(newItem.shape);
+                this.triggerStylesPanelForShape(newItem.shape, newItem);
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
         },
@@ -325,7 +326,7 @@ export default {
             item.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item, item.shape);
-            this.triggerStylesPanelForShape(item.shape);
+            this.triggerStylesPanelForShape(item.shape, item);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
@@ -356,12 +357,12 @@ export default {
             }
         },
 
-        triggerStylesPanelForShape(shapeName) {
+        triggerStylesPanelForShape(shapeName, item) {
             // checking if it already has some styles - we can switch to the styles panel and at the same time update the styles for this shape
             // if not, then wait until we check on the server and then switch
 
             if (this.stylesPanel.userStyles.hasOwnProperty[shapeName] && this.stylesPanel.userStyles[shapeName] && this.stylesPanel.userStyles[shapeName].length > 0) {
-                this.prepareStyleItemPreviews(shapeName);
+                this.prepareStyleItemPreviews(shapeName, item);
                 this.currentPanel = Panels.Styles;
                 this.stylesPanel.isEdit = false;
             }
@@ -370,14 +371,14 @@ export default {
                 userStyles[shapeName] = styles;
                 this.stylesPanel.userStyles[shapeName] = styles;
                 if (this.currentEditorState === 'createItem' && styles && styles.length > 0) {
-                    this.prepareStyleItemPreviews(shapeName);
+                    this.prepareStyleItemPreviews(shapeName, item);
                     this.currentPanel = Panels.Styles;
                     this.stylesPanel.isEdit = false;
                 }
             });
         },
 
-        prepareStyleItemPreviews(shapeName) {
+        prepareStyleItemPreviews(shapeName, originalItem) {
             this.previewItem.shown = false;
 
             const shape = Shape.find(shapeName);
@@ -391,7 +392,7 @@ export default {
                 const item = {
                     name: style.name,
                     area: {x: 10, y: 10, w: 120, h: 80},
-                    shapeProps: {},
+                    shapeProps: utils.clone(originalItem.shapeProps),
                     text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
                 };
                 this.enrichItemWithShapeProps(item, shape);
@@ -422,6 +423,11 @@ export default {
                 this.stylesPanel.userStyles[previewItem.shape].splice(index, 1);
                 this.stylesPanel.previewItems.splice(index, 1);
             });
+        },
+
+        switchBackToItemsList() {
+            this.currentPanel = Panels.Items;
+            this.stylesPanel.isEdit = false;
         }
     }
 }

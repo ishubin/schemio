@@ -138,6 +138,7 @@
                 </table>
             </panel>
             <span class="btn btn-primary" @click="onSaveToStylesClicked">Save to styles</span>
+            <span class="btn btn-primary" @click="onResetToDefaultsClicked">Reset to defaults</span>
         </div>
 
         <save-style-modal v-if="saveStyleModalShown" :item="item" @close="saveStyleModalShown = false"/>
@@ -344,6 +345,14 @@ export default {
 
         onSaveToStylesClicked() {
             this.saveStyleModalShown = true;
+        },
+
+        onResetToDefaultsClicked() {
+            const shape = Shape.find(this.item.shape);
+            _.forEach(shape.args, (arg, argName) => {
+                this.item.shapeProps[argName] = arg.value;
+            });
+            EventBus.emitItemChanged(this.item.id);
         }
     },
 

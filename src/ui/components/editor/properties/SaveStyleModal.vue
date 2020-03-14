@@ -8,9 +8,9 @@
                         <input type="checkbox" @change="allCheckboxChange"/>
                     </td>
                 </tr>
-                <tr v-for="property in properties">
+                <tr v-for="(property, propertyIndex) in properties">
                     <td class="checkbox">
-                        <input type="checkbox" :checked="property.selected"/>
+                        <input type="checkbox" :checked="property.selected" @change="propertyCheckboxChange(propertyIndex, arguments[0].target.checked)"/>
                     </td>
                     <td class="property-name">{{property.title}}</td>
                     <td class="property-value">
@@ -81,6 +81,10 @@ export default {
             forEach(this.properties, property => {
                 property.selected = event.target.checked;
             });
+        },
+
+        propertyCheckboxChange(propertyIndex, isChecked) {
+            this.properties[propertyIndex].selected = isChecked;
         }
     }
 }
