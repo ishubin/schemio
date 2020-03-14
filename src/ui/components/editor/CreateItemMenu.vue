@@ -46,24 +46,9 @@
                 </div>
             </panel>
         </div>
-        <div v-if="currentPanel === 'styles' && stylesPanel.previewComponent">
-            <panel name="Styles">
-                <span class="link" @click="switchBackToItemsList()"><i class="fas fa-angle-left"></i> Back</span>
-                <span class="link" @click="stylesPanel.isEdit = !stylesPanel.isEdit"><i class="fas fa-edit"></i> Edit</span>
-                <ul class="shape-styles-preview">
-                    <li v-for="(styleItem, styleItemIndex) in stylesPanel.previewItems">
-                        <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.item.shapeProps)">
-                            <span v-if="stylesPanel.isEdit" class="link link-remove-style" @click="removeUserStyle(styleItemIndex)"><i class="fas fa-times"/></span>
-
-                            <svg width="140px" height="100px">
-                                <g :transform="`translate(${styleItem.item.area.x}, ${styleItem.item.area.y})`">
-                                    <component :is="stylesPanel.previewComponent" :item="styleItem.item"></component>
-                                </g>
-                            </svg>
-                        </div>
-                    </li>
-                </ul>
-            </panel>
+        <div v-if="currentPanel === 'styles'">
+            <span class="link" @click="switchBackToItemsList()"><i class="fas fa-angle-left"></i> Back</span>
+            <styles-palette v-if="stylesPanel.item" :item="stylesPanel.item" @style-applied="applyStyle"/>
         </div>
 
         <create-image-modal v-if="createImageModalShown" :project-id="projectId" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
@@ -105,6 +90,7 @@
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
+import StylesPalette from './properties/StylesPalette.vue';
 import EditArtModal from './EditArtModal.vue';
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
@@ -119,10 +105,6 @@ import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 
 
-// this is used in order to cache user styles on the client side for all shapes
-const userStyles = {};
-
-
 const Panels = {
     Items   : 'items',
     Styles  : 'styles'
@@ -130,7 +112,7 @@ const Panels = {
 
 export default {
     props: ['projectId'],
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, StylesPalette},
     beforeMount() {
         this.reloadArt();
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
@@ -155,11 +137,7 @@ export default {
             // may be 'items' or 'styles'
             currentPanel                : Panels.Items,
             stylesPanel: {
-                userStyles          : userStyles,
-                currentShape        : 'rect',
-                isEdit              : false,
-                previewItems        : null,
-                previewComponent    : null,
+                item: null,
             },
 
             itemPanels: [{
@@ -358,71 +336,13 @@ export default {
         },
 
         triggerStylesPanelForShape(shapeName, item) {
-            // checking if it already has some styles - we can switch to the styles panel and at the same time update the styles for this shape
-            // if not, then wait until we check on the server and then switch
-
-            if (this.stylesPanel.userStyles.hasOwnProperty[shapeName] && this.stylesPanel.userStyles[shapeName] && this.stylesPanel.userStyles[shapeName].length > 0) {
-                this.prepareStyleItemPreviews(shapeName, item);
-                this.currentPanel = Panels.Styles;
-                this.stylesPanel.isEdit = false;
-            }
-
-            apiClient.styles.getStylesForShape(shapeName).then(styles => {
-                userStyles[shapeName] = styles;
-                this.stylesPanel.userStyles[shapeName] = styles;
-                if (this.currentEditorState === 'createItem' && styles && styles.length > 0) {
-                    this.prepareStyleItemPreviews(shapeName, item);
-                    this.currentPanel = Panels.Styles;
-                    this.stylesPanel.isEdit = false;
-                }
-            });
-        },
-
-        prepareStyleItemPreviews(shapeName, originalItem) {
+            this.currentPanel = Panels.Styles;
             this.previewItem.shown = false;
-
-            const shape = Shape.find(shapeName);
-            if (!shape) {
-                return;
-            }
-            this.stylesPanel.previewComponent = shape.component;
-
-            const styles = this.stylesPanel.userStyles[shapeName];
-            this.stylesPanel.previewItems = _.map(styles, style => {
-                const item = {
-                    name: style.name,
-                    area: {x: 10, y: 10, w: 120, h: 80},
-                    shapeProps: utils.clone(originalItem.shapeProps),
-                    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-                };
-                this.enrichItemWithShapeProps(item, shape);
-                _.forEach(style.shapeProps, (propValue, propName) => {
-                    item.shapeProps[propName] = propValue;
-                });
-                return {
-                    name: style.name,
-                    item,
-                    style,
-                    shape: shapeName
-                };
-            });
+            this.stylesPanel.item = item;
         },
 
         applyStyle(shape, shapeProps) {
             EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, shapeProps);
-        },
-
-        removeUserStyle(index) {
-            const previewItem = this.stylesPanel.previewItems[index];
-            if (!previewItem) {
-                return;
-            }
-            const style = this.stylesPanel.userStyles[previewItem.shape][index];
-
-            apiClient.styles.deleteStyle(previewItem.shape, style.id).then(() => {
-                this.stylesPanel.userStyles[previewItem.shape].splice(index, 1);
-                this.stylesPanel.previewItems.splice(index, 1);
-            });
         },
 
         switchBackToItemsList() {
