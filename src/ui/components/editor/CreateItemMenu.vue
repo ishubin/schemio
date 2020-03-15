@@ -9,7 +9,7 @@
 
             <panel v-for="panel in itemPanels" :name="panel.name">
                 <div class="item-menu">
-                    <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemSelected(item)">
+                    <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemPicked(item)">
                         <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
         </div>
         <div v-if="currentPanel === 'styles'">
             <span class="link" @click="switchBackToItemsList()"><i class="fas fa-angle-left"></i> Back</span>
-            <styles-palette v-if="stylesPanel.item" :item="stylesPanel.item" @style-applied="applyStyle"/>
+            <styles-palette v-if="stylesPanel.item" :item="stylesPanel.item" :key="'styles-palette-'+stylesPanel.id" @style-applied="applyStyle"/>
         </div>
 
         <create-image-modal v-if="createImageModalShown" :project-id="projectId" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
@@ -111,14 +111,18 @@ const Panels = {
 };
 
 export default {
-    props: ['projectId'],
+    props: ['projectId', 'schemeContainer'],
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, StylesPalette},
     beforeMount() {
         this.reloadArt();
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelected);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemDeselected);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelected);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemDeselected);
     },
     data() {
         return {
@@ -137,7 +141,8 @@ export default {
             // may be 'items' or 'styles'
             currentPanel                : Panels.Items,
             stylesPanel: {
-                item: null,
+                id    : shortid.generate(),
+                item  : null,
             },
 
             itemPanels: [{
@@ -270,7 +275,7 @@ export default {
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
-        onItemSelected(item) {
+        onItemPicked(item) {
             if (item.imageProperty) {
                 this.selectedImageItem = utils.clone(item);
                 this.createImageModalShown = true;
@@ -339,6 +344,7 @@ export default {
             this.currentPanel = Panels.Styles;
             this.previewItem.shown = false;
             this.stylesPanel.item = item;
+            this.stylesPanel.id = shortid.generate();
         },
 
         applyStyle(shape, shapeProps) {
@@ -348,6 +354,17 @@ export default {
         switchBackToItemsList() {
             this.currentPanel = Panels.Items;
             this.stylesPanel.isEdit = false;
+        },
+
+        onItemSelected(itemId) {
+            const item = this.schemeContainer.findItemById(itemId);
+            if (item) {
+                this.triggerStylesPanelForShape(item.shape, item);
+            }
+        },
+
+        onItemDeselected() {
+            this.currentPanel = Panels.Items;
         }
     }
 }

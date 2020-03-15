@@ -340,7 +340,9 @@ export default class StateDragItem extends State {
             // but when clicking left button and without movin a mouse - it should deselect other items
             if (!isEventRightClick(event) && ! isMultiSelectKey(event)) {
                 // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
-                this.schemeContainer.selectItem(object.item, false);
+                if (this.schemeContainer.selectedItems.length > 1 && this.schemeContainer.selectedItems[0].id !== object.item.id) {
+                    this.schemeContainer.selectItem(object.item, false);
+                }
             }
         } 
         if (this.startedDragging && this.wasMouseMoved) {

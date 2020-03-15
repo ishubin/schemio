@@ -957,7 +957,19 @@ export default {
                 _.forEach(shapeProps, (argValue, argName) => {
                     item.shapeProps[argName] = argValue;
                 });
+            } else if (this.state === 'dragItem') {
+                this.applyShapeStyleForSelectedItems(shapeName, shapeProps);
             }
+        },
+
+        applyShapeStyleForSelectedItems(shapeName, shapeProps) {
+            _.forEach(this.schemeContainer.selectedItems, item => {
+                if (item.shape === shapeName) {
+                    _.forEach(shapeProps, (argValue, argName) => {
+                        item.shapeProps[argName] = argValue;
+                    });
+                }
+            });
         },
 
         // Converts world coordinates to item local coordinates (takes items rotation and translation into account)
