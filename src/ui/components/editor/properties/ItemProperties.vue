@@ -20,6 +20,10 @@
 
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :item="item" :scheme-container="schemeContainer"/>
 
+        <div v-if="currentTab === 'styles'">
+            <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="applyStyle"/>
+        </div>
+
         <div v-if="currentTab === 'shape'">
             <panel name="General">
                 <table class="properties-table">
@@ -162,12 +166,14 @@ import StrokePattern from '../items/StrokePattern.js';
 import Item from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
+import StylesPalette from './StylesPalette.vue';
 
 const ALL_TABS = [
-    {name: 'description', icon: 'fas fa-paragraph'},
-    {name: 'shape', icon: 'fas fa-vector-square'},
-    {name: 'position', icon: 'fas fa-map-marker-alt'},
-    {name: 'behavior', icon: 'far fa-hand-point-up'}
+    {name: 'description',   icon: 'fas fa-paragraph'},
+    {name: 'shape',         icon: 'fas fa-vector-square'},
+    {name: 'position',      icon: 'fas fa-map-marker-alt'},
+    {name: 'behavior',      icon: 'far fa-hand-point-up'},
+    {name: 'styles',        icon: 'fas fa-palette'}
 ];
 
 const ALL_TABS_NAMES = _.map(ALL_TABS, tab => tab.name);
@@ -176,7 +182,7 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal},
+    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal, StylesPalette},
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
@@ -353,6 +359,14 @@ export default {
                 this.item.shapeProps[argName] = arg.value;
             });
             EventBus.emitItemChanged(this.item.id);
+        },
+
+        applyStyle(shapeName, shapeProps) {
+            if (this.item.shape === shapeName) {
+                _.forEach(shapeProps, (argValue, argName) => {
+                    this.item.shapeProps[argName] = argValue;
+                });
+            }
         }
     },
 

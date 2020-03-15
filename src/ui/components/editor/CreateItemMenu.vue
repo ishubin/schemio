@@ -116,13 +116,9 @@ export default {
     beforeMount() {
         this.reloadArt();
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemDeselected);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemDeselected);
     },
     data() {
         return {
@@ -355,17 +351,6 @@ export default {
             this.currentPanel = Panels.Items;
             this.stylesPanel.isEdit = false;
         },
-
-        onItemSelected(itemId) {
-            const item = this.schemeContainer.findItemById(itemId);
-            if (item) {
-                this.triggerStylesPanelForShape(item.shape, item);
-            }
-        },
-
-        onItemDeselected() {
-            this.currentPanel = Panels.Items;
-        }
     }
 }
 </script>
