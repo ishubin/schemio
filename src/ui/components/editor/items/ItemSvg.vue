@@ -32,7 +32,7 @@
 
         <g :id="`animation-container-${item.id}`"></g>
 
-        <path v-if="itemSvgPath"
+        <path v-if="itemSvgPath && shouldDrawEventLayer"
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
             :data-item-id="item.id"
@@ -46,7 +46,7 @@
             data-preview-ignore="true"
             :data-item-id="item.id"
             :stroke="schemeContainer.scheme.style.boundaryBoxColor"
-            fill="none"
+            fill="rgba(255,255,255,0.0)"
             x="0"
             y="0"
             :width="item.area.w"
@@ -91,10 +91,11 @@ export default {
 
     data() {
         return {
-            shapeComponent: null,
-            oldShape: this.item.shape,
-            itemSvgPath: null,
-            hiddenTextProperty: this.item.meta.hiddenTextProperty || null
+            shapeComponent        : null,
+            oldShape              : this.item.shape,
+            itemSvgPath           : null,
+            hiddenTextProperty    : this.item.meta.hiddenTextProperty || null,
+            shouldDrawEventLayer  : true
         };
     },
 
@@ -102,6 +103,9 @@ export default {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.make(shapeId);
+            if (shape.editorProps && shape.editorProps.ignoreEventLayer) {
+                this.shouldDrawEventLayer = false;
+            }
             if (shape.component) {
                 this.shapeComponent = shape.component;
                 this.itemSvgPath = shape.component.computePath(this.item);

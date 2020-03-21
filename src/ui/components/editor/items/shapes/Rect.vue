@@ -25,7 +25,6 @@
             <div class="item-text-container"
                 :style="nameStyle"
                 >{{item.name}}</div>
-
         </foreignObject>
 
     </g>

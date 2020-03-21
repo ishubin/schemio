@@ -81,37 +81,9 @@ export default [{
         E.g. you can select it, trigger events or connect it to other items on the page.
     `,
     item: utils.extendObject({
-        shape: 'rect',
-        opacity: 10,
+        shape: 'overlay',
         cursor: 'pointer',
-        shapeProps: {
-            strokeSize: 1,
-            strokeColor: '#000',
-            fillColor: '#fff'
-        },
-        behavior: [ {
-            on: {
-                element: {item: 'self'},
-                event: 'mousein', // simulates hover event only when cursor enters element
-                args: []
-            },
-            do: [{
-                element: {item: 'self'},
-                method: 'set',
-                args: {field: 'opacity', value: 50}
-            }]
-        }, {
-            on: {
-                element: {item: 'self'},
-                event: 'mouseout',
-                args: []
-            },
-            do: [{
-                element: {item: 'self'},
-                method: 'set',
-                args: {field: 'opacity', value: 10}
-            }]
-        } ]
+        shapeProps: { },
     }, defaultItem)
 }, {
     name: 'Image',

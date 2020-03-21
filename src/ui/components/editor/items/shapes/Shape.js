@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import NoneShape from './NoneShape.vue';
 import Rect from './Rect.vue';
+import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.vue';
 import Link from './Link.vue';
 import Curve from './Curve.vue';
@@ -55,6 +56,7 @@ const shapeReigstry = _.mapValues({
     none: NoneShape,
     rect: Rect,
     ellipse: Ellipse,
+    overlay: Overlay,
     comment: CommentShape,
     frame_player: FramePlayer,
     curve: Curve,
