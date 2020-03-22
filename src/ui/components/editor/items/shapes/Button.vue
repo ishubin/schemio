@@ -18,6 +18,7 @@
 <script>
 import StrokePattern from '../StrokePattern.js';
 import htmlSanitize from '../../../../../htmlSanitize';
+import EventBus from '../../EventBus';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -61,6 +62,13 @@ function makeCornerRadiusControlPoint(item) {
 export default {
     props: ['item', 'hiddenTextProperty'],
 
+    beforeMount() {
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
+    beforeDestroy() {
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
+
     computePath() {return null;},
     identifyTextEditArea,
 
@@ -87,7 +95,7 @@ export default {
         strokeColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         hoverStrokeColor      : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Hover Stroke color'},
         textColor             : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
-        hoverTextColor       : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Hover Text color'},
+        hoverTextColor        : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Hover Text color'},
         strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
         cornerRadius          : {type: 'number', value: '0', name: 'Corner radius'},
@@ -115,6 +123,9 @@ export default {
         },
         onMouseClick() {
             this.$emit('custom-event', 'clicked');
+        },
+        onItemChanged() {
+            this.fill = this.item.shapeProps.fillColor;
         }
     },
     computed: {

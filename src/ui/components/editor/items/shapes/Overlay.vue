@@ -22,6 +22,7 @@
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
+import EventBus from '../../EventBus';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -60,6 +61,13 @@ function makeCornerRadiusControlPoint(item) {
 export default {
     props: ['item', 'hiddenTextProperty'],
 
+    beforeMount() {
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
+    beforeDestroy() {
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+    },
+
     computePath,
 
     args: {
@@ -67,6 +75,8 @@ export default {
         hoverFillColor    : {type: 'color', value: 'rgba(100,200,255,0.3)', name: 'Hover Fill Color'},
         strokeColor       : {type: 'color', value: 'rgba(30,30,30,0.1)', name: 'Stroke Color'},
         hoverStrokeColor  : {type: 'color', value: 'rgba(30,30,30,0.2)', name: 'Hover Stroke Color'},
+        nameColor         : {type: 'color', value: 'rgba(0,0,0,0.6)', name: 'Name Color', depends: {showName: true}},
+        hoverNameColor    : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Hover Name Color', depends: {showName: true}},
         strokeSize        : {type: 'number', value: 2, name: 'Stroke Size'},
         hoverStrokeSize   : {type: 'number', value: 2, name: 'Hover Stroke Size'},
         strokePattern     : {type: 'stroke-pattern', value: 'solid', name: 'Stroke Pattern'},
@@ -74,8 +84,6 @@ export default {
         showName          : {type: 'boolean', value: true, name: 'Show Name'},
         namePosition      : {type: 'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name Position', depends: {showName: true}},
         fontSize          : {type: 'number', value: 16, name: 'Font Size'},
-        nameColor         : {type: 'color', value: 'rgba(0,0,0,0.6)', name: 'Name Color', depends: {showName: true}},
-        hoverNameColor    : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Hover Name Color', depends: {showName: true}},
     },
     controlPoints: {
         make(item, pointId) {
@@ -110,6 +118,12 @@ export default {
     },
 
     methods: {
+        onItemChanged() {
+            this.fill = this.item.shapeProps.fillColor;
+            this.stroke = this.item.shapeProps.strokeColor;
+            this.strokeSize = this.item.shapeProps.strokeSize;
+            this.nameColor = this.item.shapeProps.nameColor;
+        },
         onMouseOver() {
             this.fill = this.item.shapeProps.hoverFillColor;
             this.stroke = this.item.shapeProps.hoverStrokeColor;
