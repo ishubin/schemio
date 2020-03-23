@@ -5,7 +5,12 @@
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
         <div class="scheme-middle-container">
-            <header-component :project-id="projectId" :project="project" :category="currentCategory">
+            <header-component 
+                :project-id="projectId"
+                :project="project"
+                :category="currentCategory"
+                @export-svg-requested="exportAsSVG"
+                >
                 <div slot="middle-section">
                     <ul class="button-group">
                         <li v-for="knownMode in knownModes">
@@ -364,10 +369,8 @@ export default {
 
         createSchemePreview() {
             var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-
-            snapshotSvg(500, 400, '#svg_plot', area).then(svgCode => {
-                apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
-            });
+            const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
+            apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
         },
 
         // Zooms to selected items in edit mode
@@ -765,6 +768,13 @@ export default {
                 this.zoom = '' + Math.round(screenTransform.scale * 10000) / 100;
             }
         },
+
+        exportAsSVG() {
+            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
+            const newPage = window.open();
+            newPage.document.write(svgCode);
+        }
     },
 
     filters: {

@@ -258,7 +258,8 @@ class SchemeContainer {
             return {x: 0, y: 0, w: 0, h: 0};
         }
 
-        let schemeBoundaryBox = null;
+        let range = null;
+
         _.forEach(items, item => {
             const points = [
                 this.worldPointOnItem(0, 0, item),
@@ -268,29 +269,36 @@ class SchemeContainer {
             ];
 
             _.forEach(points, point => {
-                if (!schemeBoundaryBox) {
-                    schemeBoundaryBox = {
-                        x: point.x,
-                        y: point.y,
-                        w: 0,
-                        h: 0,
+                if (!range) {
+                    range = {
+                        x1: point.x,
+                        x2: point.x,
+                        y1: point.y,
+                        y2: point.y,
                     }
                 } else {
-                    if (schemeBoundaryBox.x > point.x) {
-                        schemeBoundaryBox.x = point.x;
+                    if (range.x1 > point.x) {
+                        range.x1 = point.x;
                     }
-                    if (schemeBoundaryBox.x + schemeBoundaryBox.w < point.x) {
-                        schemeBoundaryBox.w = point.x - schemeBoundaryBox.x;
+                    if (range.x2 < point.x) {
+                        range.x2 = point.x;
                     }
-                    if (schemeBoundaryBox.y > point.y) {
-                        schemeBoundaryBox.y = point.y;
+                    if (range.y1 > point.y) {
+                        range.y1 = point.y;
                     }
-                    if (schemeBoundaryBox.y + schemeBoundaryBox.h < point.y) {
-                        schemeBoundaryBox.h = point.y + - schemeBoundaryBox.y;
+                    if (range.y2 < point.y) {
+                        range.y2 = point.y;
                     }
                 }
             });
         }) ;
+
+        const schemeBoundaryBox = {
+            x: range.x1,
+            y: range.y1,
+            w: range.x2 - range.x1,
+            h: range.y2 - range.y1,
+        };
 
         return schemeBoundaryBox;
     }

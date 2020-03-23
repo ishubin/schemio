@@ -17,6 +17,9 @@
                 <li v-if="user && projectId">
                     <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
                 </li>
+                <li>
+                    <span @click="exportAsSVG"><i class="fas fa-file-export"></i> Export as SVG</span>
+                </li>
             </ul>
         </div>
 
@@ -96,6 +99,10 @@ export default {
         openNewSchemePopupSchemeCreated(scheme) {
             this.newSchemePopup.show = false;
             window.location.href = `/projects/${this.projectId}/schemes/${scheme.id}#m:edit`;
+        },
+
+        exportAsSVG() {
+            this.$emit('export-svg-requested');
         }
     }
 }
