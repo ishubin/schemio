@@ -34,5 +34,5 @@ export default function snapshotSvg(selector, viewArea) {
 
     filterOutPreviewSvgElements(svgElement);
 
-    return '<?xml version="1.0" ?>' + svgElement.outerHTML;
+    return '<?xml version="1.0" ?>' + svgElement.outerHTML.replace(/&nbsp;/g, ' ');
 }
