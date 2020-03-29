@@ -17,23 +17,31 @@
             <tbody>
                 <tr>
                     <td class="property-row">
-                        <span class="property-label">x:</span> <input class="textfield textfield-small" type="text" v-model="x"/>
+                        <number-textfield :value="x" name="x" @changed="updateAreaProperty('x', arguments[0])"/>
                     </td>
                     <td class="property-row">
-                        <span class="property-label">y:</span> <input class="textfield textfield-small" type="text" v-model="y"/>
+                        <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', arguments[0])"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="property-row">
-                        <span class="property-label">W:</span> <input class="textfield textfield-small" type="text" v-model="w"/>
+                        <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', arguments[0])"/>
                     </td>
                     <td class="property-row">
-                        <span class="property-label">H:</span> <input class="textfield textfield-small" type="text" v-model="h"/>
+                        <number-textfield :value="h" name="h" @changed="updateAreaProperty('h', arguments[0])"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="property-row">
+                        <number-textfield :value="r" icon="fas fa-sync-alt" @changed="updateAreaProperty('r', arguments[0])"/>
+                    </td>
+                    <td class="property-row">
                     </td>
                 </tr>
             </tbody>
         </table>
-        <span class="property-label"><i class="fas fa-sync"></i>: </span> <input class="textfield textfield-small" type="text" v-model="r"/>
+
+
         <br/>
         <span class="property-label">Type:</span>
         <select v-model="type">
@@ -47,10 +55,11 @@
 <script>
 import Panel from '../Panel.vue';
 import EventBus from '../EventBus.js';
+import NumberTextfield from '../../NumberTextfield.vue';
 
 export default {
     props: ['item'],
-    components: {Panel},
+    components: {Panel, NumberTextfield},
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
@@ -90,30 +99,14 @@ export default {
             this.type = this.item.area.type;
         },
 
-        updateAreaProperty(propertyName, textValue) {
-            if (textValue.length > 0) {
-                this.item.area[propertyName] = parseFloat(textValue);
-                EventBus.emitItemChanged(this.item.id);
-            }
+        updateAreaProperty(propertyName, value) {
+            this.item.area[propertyName] = value;
+            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.area.${propertyName}`);
         }
     },
 
     watch: {
-        x(text) {
-            this.updateAreaProperty('x', text);
-        },
-        y(text) {
-            this.updateAreaProperty('y', text);
-        },
-        w(text) {
-            this.updateAreaProperty('w', text);
-        },
-        h(text) {
-            this.updateAreaProperty('h', text);
-        },
-        r(text) {
-            this.updateAreaProperty('r', text);
-        },
         type(text) {
             this.item.area.type = text;
             EventBus.emitItemChanged(this.item.id, 'area.type');

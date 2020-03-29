@@ -5,6 +5,12 @@
 :root {
     --red-link: #C84A4A;
     --red-link-hover: #EB5959;
+
+    --controls-label: #868686;
+    --controls-background: #e0e0e0;
+    --controls-background-hover: #e5e5e5;
+    --controls-border-color: #979797;
+    --controls-color: #3b3b3b;
 }
 
 
@@ -348,6 +354,68 @@ input.textfield.textfield-small {
 input.textfield.missing-field-error {
     border: 1px solid #f55;
     box-shadow: 0 0 5px #f55;
+}
+
+/********************** Number Textfield **************/
+.number-textfield-container {
+    position: relative;
+    display: inline-block;
+    padding: 0;
+}
+.number-textfield-container > input {
+    margin: 0;
+    height: 26px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-right: 16px;
+    width: 100%;
+    font-size: 14px;
+    text-align: right;
+}
+.number-textfield-container > .label {
+    position: absolute;
+    display: inline-block;
+    padding: 4px 6px;
+    margin: 0;
+    top: 0;
+    left: 0;
+    color: var(--controls-label);
+}
+.number-textfield-container > .step-controls {
+    position: absolute;
+    top: -2px;
+    right: 1px;
+    list-style: none;
+    margin: 0;
+    padding: 0
+}
+.number-textfield-container > .step-controls li {
+    margin: 0;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+}
+.number-textfield-container > .step-controls li .step {
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: var(--controls-background);
+    color: var(--controls-color);
+    cursor: pointer;
+    overflow: hidden;
+}
+.number-textfield-container > .step-controls li .step:hover {
+    background: var(--controls-background--color);
+}
+.number-textfield-container > .step-controls > li:nth-child(1) .step {
+    border-bottom: 1px solid var(--controls-border-color);
+}
+.number-textfield-container > .step-controls li .step i {
+    margin: 0 2px 2px 2px;
+    padding: 0;
 }
 
 /********************** Tooltip ************************/
