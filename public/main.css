@@ -360,10 +360,12 @@ input.textfield.missing-field-error {
 .number-textfield-container {
     position: relative;
     display: inline-block;
+    width: 100%;
     padding: 0;
 }
 .number-textfield-container > input {
     margin: 0;
+    width: 100%;
     height: 26px;
     padding-top: 2px;
     padding-bottom: 2px;
@@ -371,6 +373,7 @@ input.textfield.missing-field-error {
     width: 100%;
     font-size: 14px;
     text-align: right;
+    border: 1px solid #999;
 }
 .number-textfield-container > .label {
     position: absolute;

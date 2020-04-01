@@ -31,13 +31,13 @@
                         <tr>
                             <td class="label" width="50%">Opacity</td>
                             <td class="value" width="50%">
-                                <input class="textfield" type="text" :value="item.opacity" @input="onOpacityChange(arguments[0].target.value)"/>
+                                <number-textfield :value="item.opacity" @changed="onOpacityChange"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Self Opacity</td>
                             <td class="value" width="50%">
-                                <input class="textfield" type="text" :value="item.selfOpacity" @input="onSelfOpacityChange(arguments[0].target.value)"/>
+                                <number-textfield :value="item.selfOpacity" @changed="onSelfOpacityChange"/>
                             </td>
                         </tr>
                         <tr>
@@ -112,7 +112,9 @@
                             </td>
                             <td class="value" width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
-                                <input v-if="arg.type === 'number'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
+
+                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" @changed="onStyleValueChange(argName, arguments[0])"/>
+
                                 <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
 
                                 <div v-if="arg.type === 'image'" class="image-property-container">
@@ -167,6 +169,7 @@ import Item from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
+import NumberTextfield from '../../NumberTextfield.vue';
 
 const ALL_TABS = [
     {name: 'description',   icon: 'fas fa-paragraph'},
@@ -182,7 +185,7 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal, StylesPalette},
+    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal, StylesPalette, NumberTextfield},
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
@@ -223,6 +226,12 @@ export default {
     },
 
     methods: {
+        onStyleValueChange(styleArgName, value) {
+            this.item.shapeProps[styleArgName] = value;
+            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
+            this.updateShapePropsDependencies();
+        },
         onStyleInputChange(styleArgName, componentArg, event) {
             const text = event.target.value;
             if (componentArg.type === 'number') {
