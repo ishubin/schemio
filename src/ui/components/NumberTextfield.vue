@@ -21,7 +21,9 @@ export default {
         value   : [Number, String, Object],
         format  : {type: String, default: 'float'},
         name    : {type: String, default: null},
-        icon    : {type: String, default: null}
+        icon    : {type: String, default: null},
+        min     : {type: Number, default: null},
+        max     : {type: Number, default: null}
     },
 
     mounted() {
@@ -41,7 +43,6 @@ export default {
     },
 
     methods: {
-
         textToFloat(text) {
             const value = parseFloat(text.replace(/[^\d.-]/g, ''));
             if (isFinite(value)) {
@@ -69,14 +70,31 @@ export default {
 
         onUserInput(event) {
             const text = event.target.value;
-            this.$emit('changed', this.textToNumber(text));
+            this.$emit('changed', this.enforceLimits(this.textToNumber(text)));
         },
 
         onStepClicked(factor) {
             let value = this.textToNumber(this.text);
             value = value + factor;
+            
+            value = this.enforceLimits(value);
+
             this.$emit('changed', value);
             this.text = '' + value;
+        },
+
+        enforceLimits(value) {
+            if (this.min !== null) {
+                if (value < this.min) {
+                    return this.min;
+                }
+            }
+            if (this.max !== null) {
+                if (value > this.max) {
+                    return this.max;
+                }
+            }
+            return value;
         }
     },
 

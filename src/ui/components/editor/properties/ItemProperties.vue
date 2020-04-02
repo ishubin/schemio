@@ -31,13 +31,13 @@
                         <tr>
                             <td class="label" width="50%">Opacity</td>
                             <td class="value" width="50%">
-                                <number-textfield :value="item.opacity" @changed="onOpacityChange"/>
+                                <number-textfield :value="item.opacity" @changed="onOpacityChange" :min="0" :max="100"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Self Opacity</td>
                             <td class="value" width="50%">
-                                <number-textfield :value="item.selfOpacity" @changed="onSelfOpacityChange"/>
+                                <number-textfield :value="item.selfOpacity" @changed="onSelfOpacityChange" :min="0" :max="100"/>
                             </td>
                         </tr>
                         <tr>
@@ -113,7 +113,7 @@
                             <td class="value" width="50%">
                                 <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
 
-                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" @changed="onStyleValueChange(argName, arguments[0])"/>
+                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" @changed="onStyleValueChange(argName, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
 
                                 <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
 
@@ -376,6 +376,20 @@ export default {
                     this.item.shapeProps[argName] = argValue;
                 });
             }
+        },
+
+        minForShapeProp(arg) {
+            if (arg.hasOwnProperty('min')) {
+                return arg.min;
+            }
+            return null;
+        },
+
+        maxForShapeProp(arg) {
+            if (arg.hasOwnProperty('max')) {
+                return arg.max;
+            }
+            return null;
         }
     },
 
