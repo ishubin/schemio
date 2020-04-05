@@ -119,12 +119,12 @@ import Modal from './Modal.vue';
 
 export default {
     props: {
-        value: {type: String},
-        id: {type: String},
-        width: {type: String, default: '100%'},
-        height: {type: String, default: '150px'}
+        value   : {type: String},
+        id      : {type: String},
+        width   : {type: String, default: '100%'},
+        height  : {type: String, default: '150px'}
     },
-    components: {Modal, Editor, EditorContent, EditorMenuBar},
+    components: {Modal, EditorContent, EditorMenuBar},
 
     beforeMount() {
         this.editor = new Editor({

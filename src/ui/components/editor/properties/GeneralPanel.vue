@@ -20,14 +20,14 @@
         <div v-if="descriptionType === 'rich'">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <rich-text-editor :id="item.id" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
             </div>
         </div>
 
         <div v-if="textType === 'rich'">
             <h5 class="section">Text</h5>
             <div class="textarea-wrapper">
-                <rich-text-editor :id="item.id" :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
+                <rich-text-editor :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
             </div>
         </div>
         <div v-if="textType === 'simple'">

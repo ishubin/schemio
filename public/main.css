@@ -11,6 +11,7 @@
     --controls-background-hover: #e5e5e5;
     --controls-border-color: #979797;
     --controls-color: #3b3b3b;
+    --min-paragraph-height: 18px;
 }
 
 
@@ -617,9 +618,11 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
     display: inline-block;
 }
 
-
-svg foreignObject .item-text-container > p:first-child {
+svg foreignObject .item-text-container p:first-child {
     margin-top: 0;
+}
+svg foreignObject .item-text-container p {
+    min-height: var(--min-paragraph-height);
 }
 
 
@@ -1334,6 +1337,11 @@ ul.category-breadcrumb li i {
 .rich-text-editor-container .ProseMirror > p:first-child {
     margin-top: 0;
 }
+.rich-text-editor-container .ProseMirror > p {
+    min-height: var(--min-paragraph-height);
+}
+
+
 .rich-text-editor-container .ProseMirror.ProseMirror-focused {
     outline: none;
 }

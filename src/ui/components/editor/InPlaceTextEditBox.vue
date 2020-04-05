@@ -1,7 +1,9 @@
 <template>
     <g :transform="textEditArea.type === 'viewport' ? viewportTransform : relativeTransform">
         <foreignObject :x="area.x" :y="area.y" :width="area.w" :height="area.h">
-            <div ref="itemTextContainer" id="item-in-place-text-editor" class="item-text-container" :style="textEditArea.style" v-html="text" contenteditable="true"></div>
+            <div id="item-in-place-text-editor" class="item-text-container" :style="textEditArea.style">
+                <editor-content :editor="editor" />
+            </div>
         </foreignObject>
     </g>
 </template>
@@ -10,18 +12,28 @@
 import EventBus from './EventBus';
 import htmlSanitize from '../../../htmlSanitize';
 import utils from '../../utils';
+import RichTextEditor from '../RichTextEditor.vue';
+import { Editor, EditorContent } from 'tiptap';
+import {
+    Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
+    TodoItem, TodoList, Bold, Code, Italic, Link, Strike, Underline, History,
+} from 'tiptap-extensions';
 
 
 export default {
     props: ['viewportTransform', 'relativeTransform', 'item', 'textEditArea', 'point'],
+    components: {RichTextEditor, EditorContent},
+
+    beforeMount() {
+        this.init();
+    },
 
     mounted() {
-        this.init();
     },
 
     data() {
         return {
-            text: '',
+            editor: null,
             area: {
                 x: 0, y: 0, w: 1, h: 1
             }
@@ -34,8 +46,8 @@ export default {
             EventBus.emitItemChanged(this.item.id);
 
             document.addEventListener('click', this.outsideClickListener);
-            this.text = htmlSanitize(this.item[this.textEditArea.property]);
-            this.$refs.itemTextContainer.focus();
+
+            this.editor = this.creatEditor(this.item[this.textEditArea.property]);
 
             if (this.textEditArea.area) {
                 this.area.x = this.point.x + this.textEditArea.area.x;
@@ -50,18 +62,28 @@ export default {
             }
         },
 
+        creatEditor(text) {
+            return new Editor({
+                extensions: [
+                    new Blockquote(), new CodeBlock(), new HardBreak(), new Heading({ levels: [1, 2, 3] }), new BulletList(), new OrderedList(), new ListItem(),
+                    new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Link(), new Strike(), new Underline(), new History(), ],
+
+                content: text,
+                onUpdate: (event) => {
+                    const content = event.getHTML();
+                    this.item[this.textEditArea.property] = content;
+                }
+            });
+        },
+
         outsideClickListener(event) {
             if (!utils.domHasParentNode(event.target, domElement => domElement.id === 'item-in-place-text-editor')) {
-                document.removeEventListener('click', this.itemTextEditorOutsideClickListener);
-                if (this.$refs.itemTextContainer) {
-                    this.item[this.textEditArea.property] = this.$refs.itemTextContainer.innerHTML;
-                }
+                document.removeEventListener('click', this.outsideClickListener);
                 this.item.meta.hiddenTextProperty = null;
                 EventBus.emitItemChanged(this.item.id);
                 this.$emit('close');
             }
         },
-
     }
 
 }

@@ -182,7 +182,9 @@
                 </g>
 
                 <!-- Item Text Editor -->    
-                <in-place-text-edit-box v-if="itemTextEditor.item && itemTextEditor.textEditArea" :item="itemTextEditor.item" :text-edit-area="itemTextEditor.textEditArea"
+                <in-place-text-edit-box v-if="itemTextEditor.item && itemTextEditor.textEditArea"
+                    :key="`in-place-text-edit-${itemTextEditor.item.id}`"
+                    :item="itemTextEditor.item" :text-edit-area="itemTextEditor.textEditArea"
                     :point="itemTextEditor.point"
                     :viewport-transform="viewportTransform"
                     :relative-transform="transformSvg"
