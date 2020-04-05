@@ -182,11 +182,12 @@
                 </g>
 
                 <!-- Item Text Editor -->    
-                <g v-if="itemTextEditor.shown" :transform="itemTextEditor.area.type === 'viewport' ? viewportTransform : transformSvg">
-                    <foreignObject :x="itemTextEditor.area.x" :y="itemTextEditor.area.y" :width="itemTextEditor.area.w" :height="itemTextEditor.area.h">
-                        <div id="item-text-editor" class="item-text-container" :style="itemTextEditor.style" v-html="itemTextEditor.text" contenteditable="true"></div>
-                    </foreignObject>
-                </g>
+                <in-place-text-edit-box v-if="itemTextEditor.item && itemTextEditor.textEditArea" :item="itemTextEditor.item" :text-edit-area="itemTextEditor.textEditArea"
+                    :point="itemTextEditor.point"
+                    :viewport-transform="viewportTransform"
+                    :relative-transform="transformSvg"
+                    @close="closeItemTextEditor"
+                    />
 
                 <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
                     <curve-edit-box 
@@ -275,6 +276,7 @@ import SchemeContainer from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
+import InPlaceTextEditBox from './InPlaceTextEditBox.vue';
 import Shape from './items/shapes/Shape';
 import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
@@ -311,7 +313,7 @@ let currentState = states.interact;
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid'],
-    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox},
+    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox},
     beforeMount() {
         _.forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -406,16 +408,12 @@ export default {
             },
 
             itemTextEditor: {
-                shown: false,
-                property: 'text',
-                itemId: null,
-                text: '',
-                style: {},
-                area: {x: 0, y: 0, w: 0, h: 0, type: 'relative'}
+                item            : null,
+                textEditArea    : null,
+                point           : null
             },
 
             curveEditItem: null,
-
         };
     },
     methods: {
@@ -860,66 +858,17 @@ export default {
         },
 
         displayItemTextEditor(item, x, y) {
+            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
             const itemPoint = this.calculateItemLocalPoint(item, x, y);
             const shape = Shape.make(item.shape);
-            const textEditArea = shape.identifyTextEditArea(item, itemPoint.x, itemPoint.y);
-
-            item.meta.hiddenTextProperty = textEditArea.property;
-            EventBus.emitItemChanged(item.id);
-            if (!this.itemTextEditor.shown) {
-                setTimeout(() => {
-                    document.addEventListener('click', this.itemTextEditorOutsideClickListener);
-                    const domElement = document.getElementById('item-text-editor');
-                    if (domElement) {
-                        domElement.focus();
-                    }
-                }, 50);
-            }
-            this.itemTextEditor.itemId = item.id;
-            this.itemTextEditor.text = htmlSanitize(item[textEditArea.property]);
-            this.itemTextEditor.property = textEditArea.property;
-            this.itemTextEditor.style = textEditArea.style;
-            this.itemTextEditor.area.type = item.area.type;
-            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
-            if (textEditArea.area) {
-                this.itemTextEditor.area = textEditArea.area;
-                this.itemTextEditor.area.x = worldPoint.x + textEditArea.area.x;
-                this.itemTextEditor.area.y = worldPoint.y + textEditArea.area.y;
-                this.itemTextEditor.area.w = textEditArea.area.w;
-                this.itemTextEditor.area.h = textEditArea.area.h;
-            } else {
-                this.itemTextEditor.area.x = worldPoint.x;
-                this.itemTextEditor.area.y = worldPoint.y;
-                this.itemTextEditor.area.w = item.area.w;
-                this.itemTextEditor.area.h = item.area.h;
-            }
-            this.itemTextEditor.shown = true;
+            this.itemTextEditor.textEditArea = shape.identifyTextEditArea(item, itemPoint.x, itemPoint.y);
+            this.itemTextEditor.item = item;
+            this.itemTextEditor.point = worldPoint;
         },
 
-        itemTextEditorOutsideClickListener(event) {
-            if (!this.hasParentNode(event.target, domElement => domElement.id === 'item-text-editor')) {
-                document.removeEventListener('click', this.itemTextEditorOutsideClickListener);
-                this.itemTextEditor.shown = false;
-                const item = this.schemeContainer.findItemById(this.itemTextEditor.itemId);
-                if (item) {
-                    const domElement = document.getElementById('item-text-editor');
-                    if (domElement) {
-                        item[this.itemTextEditor.property] = domElement.innerHTML;
-                    }
-                    item.meta.hiddenTextProperty = null;
-                    EventBus.emitItemChanged(item.id);
-                }
-            }
-        },
-
-        hasParentNode(domElement, callbackCheck) {
-            if (callbackCheck(domElement)) {
-                return true;
-            };
-            if (domElement.parentElement) {
-                return this.hasParentNode(domElement.parentElement, callbackCheck);
-            }
-            return false;
+        closeItemTextEditor() {
+            this.itemTextEditor.item = null;
+            this.itemTextEditor.textEditArea = null;
         },
 
         onItemCustomEvent(event) {

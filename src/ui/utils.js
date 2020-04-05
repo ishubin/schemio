@@ -173,6 +173,16 @@ function enumerateConstants(obj) {
     return props;
 }
 
+function domHasParentNode(domElement, callbackCheck) {
+    if (callbackCheck(domElement)) {
+        return true;
+    };
+    if (domElement.parentElement) {
+        return domHasParentNode(domElement.parentElement, callbackCheck);
+    }
+    return false;
+}
+
 
 module.exports = {
     formatDateAndTime,
@@ -183,5 +193,6 @@ module.exports = {
     setObjectProperty,
     rotateVector,
     rotatePointAroundCenter,
-    enumerateConstants
+    enumerateConstants,
+    domHasParentNode
 };
