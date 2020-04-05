@@ -12,6 +12,7 @@
     --controls-border-color: #979797;
     --controls-color: #3b3b3b;
     --min-paragraph-height: 18px;
+    --paragraph-top-margin: 0px;
 }
 
 
@@ -623,6 +624,9 @@ svg foreignObject .item-text-container p:first-child {
 }
 svg foreignObject .item-text-container p {
     min-height: var(--min-paragraph-height);
+    margin-top: var(--paragraph-top-margin);
+    margin-bottom: 0;
+    padding: 0;
 }
 
 
@@ -1339,6 +1343,9 @@ ul.category-breadcrumb li i {
 }
 .rich-text-editor-container .ProseMirror > p {
     min-height: var(--min-paragraph-height);
+    margin-top: var(--paragraph-top-margin);
+    margin-bottom: 0;
+    padding: 0;
 }
 
 

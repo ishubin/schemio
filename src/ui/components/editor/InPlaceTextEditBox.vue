@@ -72,6 +72,7 @@ export default {
                 onUpdate: (event) => {
                     const content = event.getHTML();
                     this.item[this.textEditArea.property] = content;
+                    EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${this.textEditArea.property}`);
                 }
             });
         },
