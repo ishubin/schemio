@@ -11,7 +11,7 @@ export default class UserEventBus {
         this.revision = shortid.generate();
     }
 
-    subscribeItemEvent(itemId, eventName, args, callback) {
+    subscribeItemEvent(itemId, eventName, callback) {
         if (!this.itemEventSubscribers.hasOwnProperty(itemId)) {
             this.itemEventSubscribers[itemId] = {};
         }
@@ -20,7 +20,7 @@ export default class UserEventBus {
             this.itemEventSubscribers[itemId][eventName] = [];
         }
 
-        this.itemEventSubscribers[itemId][eventName].push({args, callback});
+        this.itemEventSubscribers[itemId][eventName].push({callback});
     }
 
 
@@ -28,21 +28,13 @@ export default class UserEventBus {
      * Emits event that originated for a specific item
      * @param {string} itemId 
      * @param {string} eventName 
-     * @param {Array} args arguments of the event
      */
-    emitItemEvent(itemId, eventName, args) {
-        if (args === undefined) {
-            args = [];
-        }
-
+    emitItemEvent(itemId, eventName) {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             _.forEach(itemSubs[eventName], subscriber => {
-                
-                if (this.matchesArgs(args, subscriber.args)) {
-                    subscriber.callback.apply(null, [this, this.revision]);
-                }
-            })
+                subscriber.callback.apply(null, [this, this.revision]);
+            });
         }
     }
 
@@ -51,39 +43,6 @@ export default class UserEventBus {
         this.revision = shortid.generate();
     }
 
-
-    matchesArgs(eventArgs, subscriberArgs) {
-        for (let i = 0; i < subscriberArgs.length; i++) {
-            if (subscriberArgs[i]) {
-                if (i < eventArgs.length) {
-                    if (!this.argumentMatches(subscriberArgs[i], eventArgs[i])) {
-                        return false;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 
-     * @param {string} argPattern 
-     * @param {string} realValue 
-     */
-    argumentMatches(argPattern, realValue) {
-        if (!argPattern) {
-            //when it is empty we don't care
-            return true;
-        }
-
-        if (argPattern.charAt(0) === '=')  {
-            return argPattern.substr(1) == realValue;
-        } else {
-            return argPattern == realValue;
-        }
-    }
 
     isActionAllowed(revision) {
         return this.revision === revision;

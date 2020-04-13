@@ -6,7 +6,7 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        userEventBus.emitItemEvent(item.id, args.event, []);
+        userEventBus.emitItemEvent(item.id, args.event);
         resultCallback();
     }
 }

@@ -642,7 +642,7 @@ export default {
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
                         }
-                        userEventBus.subscribeItemEvent(item.id, event.event, [], eventCallback);
+                        userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
                     })
                 }
             });
@@ -863,7 +863,7 @@ export default {
         },
 
         onItemCustomEvent(event) {
-            userEventBus.emitItemEvent(event.itemId, event.eventName, event.args);
+            userEventBus.emitItemEvent(event.itemId, event.eventName);
         },
 
         onElementPickRequested(elementPickCallback) {
