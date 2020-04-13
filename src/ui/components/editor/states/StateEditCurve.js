@@ -343,7 +343,7 @@ export default class StateEditCurve extends State {
                 minX = Math.min(minX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
                 minY = Math.min(minY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
                 maxX = Math.max(maxX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
-                maxY = Math.max(maxY, point.y2 + this.item.area.y, point.y2 + this.item.area.y);
+                maxY = Math.max(maxY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
             }
         });
 
