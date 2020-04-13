@@ -8,19 +8,21 @@
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                     </td>
                     <td class="value" width="50%">
-                        <input v-if="arg.type === 'string' || arg.type === 'number' || arg.type === 'image'"
+                        <input v-if="arg.type === 'string' || arg.type === 'image'"
                             class="textfield"
                             :value="argumentValues[argName]"
-                            @input="onInputChange(argName, arguments[0])"/>
+                            @input="onValueChange(argName, arguments[0].target.value)"/>
+
+                        <number-textfield v-if="arg.type === 'number'" :value="argumentValues[argName]" @changed="onValueChange(argName, arguments[0])"/>
 
                         <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
-                            @input="onColorChange(argName, arguments[0])"/>
+                            @input="onValueChange(argName, arguments[0])"/>
 
                         <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
-                            @input="onCheckboxChange(argName, arguments[0])"/>
+                            @input="onValueChange(argName, arguments[0].target.checked)"/>
 
                         <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
-                            @input="onSelectChange(argName, arguments[0])">
+                            @input="onValueChange(argName, arguments[0].target.value)">
                             <option v-for="option in arg.options">{{option}}</option>
                         </select>
 
@@ -28,7 +30,7 @@
                             :scheme-container="schemeContainer"
                             :element="argumentValues[argName]"
                             :use-self="false"
-                            @selected="onElementSelected(argName, arguments[0])"
+                            @selected="onValueChange(argName, arguments[0])"
                         />
                     </td>
                 </tr>
@@ -43,10 +45,11 @@ import ColorPicker from '../../../editor/ColorPicker.vue';
 import Modal from '../../../Modal.vue';
 import ElementPicker from '../../ElementPicker.vue';
 import Tooltip from '../../../Tooltip.vue';
+import NumberTextfield from '../../../NumberTextfield.vue';
 
 export default {
     props: ['functionDescription', 'args', 'schemeContainer'],
-    components: {Modal, ColorPicker, ElementPicker, Tooltip},
+    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield},
 
     beforeMount() {
         this.updateArgumentControlDependencies();
@@ -83,20 +86,8 @@ export default {
             });
         },
 
-        onColorChange() {
-            this.argumentValues[argName] = color;
-            this.emitArgumentChange(argName);
-            this.updateArgumentControlDependencies();
-        },
-
-        onSelectChange(argName, event) {
-            this.argumentValues[argName] = event.target.value;
-            this.emitArgumentChange(argName);
-            this.updateArgumentControlDependencies();
-        },
-
-        onInputChange(argName, event) {
-            this.argumentValues[argName] = event.target.value;
+        onValueChange(argName, value) {
+            this.argumentValues[argName] = value;
             this.emitArgumentChange(argName);
             this.updateArgumentControlDependencies();
         },
@@ -104,18 +95,6 @@ export default {
         emitArgumentChange(argName) {
             this.$emit('argument-changed', argName, this.argumentValues[argName]);
         },
-
-        onCheckboxChange(argName, event) {
-            this.argumentValues[argName] = event.target.checked;
-            this.emitArgumentChange(argName);
-            this.updateArgumentControlDependencies();
-        },
-
-        onElementSelected(argName, element) {
-            this.argumentValues[argName] = element;
-            this.emitArgumentChange(argName);
-            this.updateArgumentControlDependencies();
-        }
     }
 }
 </script>
