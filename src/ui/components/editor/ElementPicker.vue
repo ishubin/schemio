@@ -17,9 +17,10 @@ import EventBus from './EventBus.js';
 import _ from 'lodash';
 import shortid from 'shortid';
 
+
 export default {
     props: {
-        element:            {type: Object},
+        element:            {type: String},
         selfItem:           {type: Object},
         schemeContainer:    {type: Object},
         useSelf:            {type: Boolean, default: true}
@@ -91,24 +92,18 @@ export default {
         },
 
         onElementSelected(option) {
-            if (option.type === 'pick') {
+            if (option.id === 'self') {
+                this.$emit('selected', 'self');
+            } else if (option.type === 'pick') {
                 this.pickElementRequestId = shortid.generate();
                 EventBus.emitElementPickRequested((element) => {
                     this.$emit('selected', element);
                 });
             } else {
-                if (option.type === 'item') {
-                    this.$emit('selected', {
-                        item: option.id
-                    });
-                } else if (option.type === 'connector') {
-                    this.$emit('selected', {
-                        connector: option.id
-                    });
+                if (option.type === 'item' || option.type === 'connector') {
+                    this.$emit('selected', `#${option.id}`);
                 } else if (option.type === 'item-group') {
-                    this.$emit('selected', {
-                        itemGroup: option.id
-                    });
+                    this.$emit('selected', `group: ${option.id}`);
                 } else {
                     console.error(option.type + ' is not supported');
                 }
@@ -118,56 +113,42 @@ export default {
 
     computed: {
         enrichedElement() {
-            if (this.element && this.element.item) {
-                let item = null;
-                if (this.element.item === 'self') {
-                    item = this.selfItem;
-                } else {
-                    item = this.schemeContainer.findItemById(this.element.item);
-                }
-
-                if (item) {
-                    return {
-                        name: (this.selfItem && this.selfItem.id === item.id) ? 'self' : item.name,
-                        type: 'item',
-                        iconClass: 'fas fa-cube'
-                    };
-                } 
-
+            if (this.element.startsWith('group:')) {
                 return {
-                    name: 'no item',
-                    type: 'error',
-                    iconClass: 'fas fa-exclamation-triangle'
-                };
-            }
-
-            if (this.element && this.element.connector) {
-                const connector = this.schemeContainer.findConnectorById(this.element.connector);
-                if (connector) {
-                    return {
-                        name: connector.name || connector.id,
-                        type: 'connector',
-                        iconClass: 'fas fa-link'
-                    };
-                }
-
-                return {
-                    name: 'no connector',
-                    type: 'error',
-                    iconClass: 'fas fa-exclamation-triangle'
-                };
-            }
-            
-            if (this.element && this.element.itemGroup) {
-                return {
-                    name: this.element.itemGroup,
+                    name: this.element.substr(6).trim(),
                     type: 'item-group',
                     iconClass: 'fas fa-cubes'
                 };
             }
+            if (this.element === 'self') {
+                return {
+                    name: 'self',
+                    iconClass: 'fas fa-cube',
+                    type: 'item'
+                };
+            }
+
+            const elements = this.schemeContainer.findElementsBySelector(this.element, this.selfItem);
+            if (elements && elements.length > 0) {
+                let firstElement = elements[0];
+
+                let iconClass = 'fas fa-cube';
+                let type = 'item';
+                if (!firstElement.shape) {
+                    iconClass = 'fas fa-link';
+                    type = 'connector';
+                }
+                return {
+                    name: firstElement.name || firstElement.id,
+                    iconClass,
+                    type
+                };
+            }
+
             return {
-                name: '',
-                iconClass: 'far fa-file'
+                name: 'no item',
+                type: 'error',
+                iconClass: 'fas fa-exclamation-triangle'
             };
         }
     }

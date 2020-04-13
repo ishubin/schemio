@@ -417,7 +417,9 @@ class SchemeContainer {
             
             interactionMode: Item.InteractionMode.SIDE_PANEL,
             shapeProps: {},
-            behavior: []
+            behavior: {
+                events: []
+            }
         };
         if (item.shape) {
             const shape = Shape.find(item.shape);
@@ -957,6 +959,39 @@ class SchemeContainer {
 
     findConnectorById(connectorId) {
         return this.connectorsMap[connectorId];
+    }
+
+    /**
+     * Finds items and connectors that match specified selector
+     * @param {String} selector contains a selector for an element
+     * @param {SchemeItem} selfItem 
+     */
+    findElementsBySelector(selector, selfItem) {
+        if (selector === 'self') {
+            return [selfItem];
+        }
+
+        if (selector.charAt(0) === '#') {
+            const id = selector.substr(1);
+            const item = this.findItemById(id);
+            if (item) {
+                return [item];
+            }
+
+            const connector = this.findConnectorById(id);
+            if (connector) {
+                return [connector];
+            }
+        } else {
+            const colonIndex = selector.indexOf(':');
+            if (colonIndex > 0) {
+                const expression = selector.substring(0, colonIndex);
+                if (expression === 'group') {
+                    return this.findItemsByGroup(selector.substr(colonIndex + 1).trim());
+                }
+            }
+        }
+        return null;
     }
 
     getConnectingSourceItemIds(destinationId) {

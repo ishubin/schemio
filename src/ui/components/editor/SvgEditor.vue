@@ -635,25 +635,14 @@ export default {
             const itemsForInit = {};
 
             _.forEach(this.interactiveSchemeContainer.getItems(), item => {
-                if (item.behavior) {
-                    _.forEach(item.behavior, rule => {
-                        if (!rule.on) {
-                            return;
-                        }
-                        const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, rule.do);
+                if (item.behavior && item.behavior.events) {
+                    _.forEach(item.behavior.events, event => {
+                        const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, event.actions);
 
-                        if (rule.on.element && rule.on.element.item) {
-                            if (!rule.on.element.connector) {
-                                let itemId = rule.on.element.item;
-                                if (itemId === 'self') {
-                                    itemId = item.id;
-                                }
-                                if (rule.on.event === Events.standardEvents.init.id) {
-                                    itemsForInit[itemId] = 1;
-                                }
-                                userEventBus.subscribeItemEvent(itemId, rule.on.event, rule.on.args, eventCallback);
-                            }
+                        if (event.event === Events.standardEvents.init.id) {
+                            itemsForInit[item.id] = 1;
                         }
+                        userEventBus.subscribeItemEvent(item.id, event.event, [], eventCallback);
                     })
                 }
             });

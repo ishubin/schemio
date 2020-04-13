@@ -1,6 +1,7 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 
+
 class MoveAnimation extends Animation {
     constructor(item, args, schemeContainer, resultCallback) {
         super();
@@ -27,21 +28,22 @@ class MoveAnimation extends Animation {
 
     init() {
         if (this.args.animate && this.args.usePath && this.args.path) {
-            if (this.args.path.connector) {
-                const connector = this.schemeContainer.findConnectorById(this.args.path.connector);
-                if (connector) {
-                    this.connectorSourceItem = this.schemeContainer.findItemById(connector.meta.sourceItemId);
-                }
-                this.domPath = document.getElementById(`connector-${this.args.path.connector}-path`);
-                this.offsetX = -this.item.area.w/2;
-                this.offsetY = -this.item.area.h/2;
-            } else if (this.args.path.item) {
-                this.domPath = document.getElementById(`item-svg-path-${this.args.path.item}`);
+            // TODO fix args.path to new element here
 
-                const otherItem = this.schemeContainer.findItemById(this.args.path.item);
-                if (otherItem) {
-                    this.offsetX = otherItem.area.x - this.item.area.w/2;
-                    this.offsetY = otherItem.area.y - this.item.area.h/2;
+            const elements = this.schemeContainer.findElementsBySelector(this.args.path, this.item);
+
+            if (elements && elements.length > 0) {
+                const element = elements[0];
+                if (element.shape) {
+                    this.domPath = document.getElementById(`item-svg-path-${element.id}`);
+                    this.offsetX = element.area.x - this.item.area.w/2;
+                    this.offsetY = element.area.y - this.item.area.h/2;
+                } else {
+                    // means it is a connector
+                    this.connectorSourceItem = this.schemeContainer.findItemById(element.meta.sourceItemId);
+                    this.domPath = document.getElementById(`connector-${element.id}-path`);
+                    this.offsetX = -this.item.area.w/2;
+                    this.offsetY = -this.item.area.h/2;
                 }
             }
 

@@ -9,51 +9,51 @@
         </panel>
 
         <panel name="Events">
-            <div class="behavior-container" v-for="(behavior, behaviorIndex) in item.behavior">
-                <div class="behavior-event" @dragover="onDragOverToEvent(behaviorIndex)">
+            <div class="behavior-container" v-for="(event, eventIndex) in item.behavior.events">
+                <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
                     <div class="behavior-menu">
-                        <span class="link icon-collapse" @click="toggleBehaviorCollapse(behaviorIndex)">
-                            <i class="fas" :class="[behaviorsMetas[behaviorIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
+                        <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
+                            <i class="fas" :class="[eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
                         </span>
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
                     </div>
                     <div class="behavior-right-menu">
                         <span class="link"
-                            v-if="behaviorIndex > 0"
-                            @click="moveBehaviorInOrder(behaviorIndex, behaviorIndex - 1)"><i class="fas fa-caret-up"></i></span>
+                            v-if="eventIndex > 0"
+                            @click="moveBehaviorInOrder(eventIndex, eventIndex - 1)"><i class="fas fa-caret-up"></i></span>
                         <span class="link"
-                            v-if="behaviorIndex < item.behavior.length - 1"
-                            @click="moveBehaviorInOrder(behaviorIndex, behaviorIndex + 1)"
+                            v-if="eventIndex < item.behavior.events.length - 1"
+                            @click="moveBehaviorInOrder(eventIndex, eventIndex + 1)"
                             ><i class="fas fa-caret-down"></i></span>
-                        <span class="link icon-delete" @click="removeBehavior(behaviorIndex)"><i class="fas fa-times"/></span>
+                        <span class="link icon-delete" @click="removeBehaviorEvent(eventIndex)"><i class="fas fa-times"/></span>
                     </div>
                     <dropdown
-                        :options="behaviorsMetas[behaviorIndex].eventOptions"
-                        @selected="onBehaviorEventSelected(behaviorIndex, arguments[0])"
+                        :options="eventOptions"
+                        @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
                         >
-                        <span v-if="isStandardEvent(behavior.on.event)">{{behavior.on.event | toPrettyEventName}}</span>
-                        <input v-else type="text" :value="behavior.on.event" @input="behavior.on.event = arguments[0].target.value"/>
+                        <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
+                        <input v-else type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
                     </dropdown>
                 </div>
 
-                <div v-if="!behaviorsMetas[behaviorIndex].collapsed">
-                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex === 0 && (!behavior.do || behavior.do.length === 0)"
+                <div v-if="!eventMetas[eventIndex].collapsed">
+                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"
                         v-html="dragging.action">
                     </div>
-                    <div v-for="(action, actionIndex) in behavior.do">
-                        <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex === actionIndex"
+                    <div v-for="(action, actionIndex) in event.actions">
+                        <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === actionIndex"
                             v-html="dragging.action">
                         </div>
                         <div class="behavior-action-container"
-                            :id="`behavior-action-container-${item.id}-${behaviorIndex}-${actionIndex}`"
-                            @dragover="onDragOverToAction(behaviorIndex, actionIndex, arguments[0])"
-                            :class="{'dragged': dragging.readyToDrop && behaviorIndex === dragging.behaviorIndex && actionIndex === dragging.actionIndex}"
+                            :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
+                            @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
+                            :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
                             draggable="true"
-                            @dragstart="onActionDragStarted(behaviorIndex, actionIndex)"
+                            @dragstart="onActionDragStarted(eventIndex, actionIndex)"
                             >
                             <div class="icon-container">
                                 <span class="icon-action"><i class="fas fa-circle"></i></span>
-                                <span class="link icon-delete" @click="removeAction(behaviorIndex, actionIndex)"><i class="fas fa-times"/></span>
+                                <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
                                 <span class="link icon-move"><i class="fas fa-arrows-alt"/></span>
                             </div>
                             <div>
@@ -61,7 +61,7 @@
                                     :element="action.element" 
                                     :scheme-container="schemeContainer"
                                     :self-item="item"
-                                    @selected="onActionElementSelected(behaviorIndex, actionIndex, arguments[0])"
+                                    @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
                                     />
                             </div>
                             <span>: </span>
@@ -69,7 +69,7 @@
                                 <dropdown
                                     :key="action.element.item + ' ' + (action.element.connector||'')"
                                     :options="createMethodSuggestionsForElement(action.element)"
-                                    @selected="onActionMethodSelected(behaviorIndex, actionIndex, arguments[0])"
+                                    @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
                                     >
                                     <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
                                     <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
@@ -77,7 +77,7 @@
                                 </dropdown>
                                 <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                     class="action-method-arguments-expand"
-                                    @click="showFunctionArgumentsEditor(action, behaviorIndex, actionIndex)"
+                                    @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
                                     >(...)</span>
                             </div>
                             <span v-if="action.method === 'set'" class="function-brackets"> = </span>
@@ -86,23 +86,23 @@
                                 :key="action.args.field"
                                 :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                                 :argument-value="action.args.value"
-                                @changed="onArgumentValueChangeForSet(behaviorIndex, actionIndex, arguments[0])"
+                                @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
                                 />
                         </div>
                     </div>
 
-                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.behaviorIndex === behaviorIndex && dragging.dropTo.actionIndex > 0 && dragging.dropTo.actionIndex >= behavior.do.length"
+                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex > 0 && dragging.dropTo.actionIndex >= event.actions.length"
                         v-html="dragging.action">
                     </div>
 
                     <div class="behavior-event-add-action">
-                        <span class="btn btn-secondary" @click="addActionToBehavior(behaviorIndex)">Add Action</span>
-                        <span class="btn btn-secondary" @click="duplicateBehavior(behaviorIndex)">Duplicate event</span>
+                        <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">Add Action</span>
+                        <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate event</span>
                     </div>
                 </div>
             </div>
 
-            <span class="btn btn-primary" @click="addBehavior()">Add behavior event</span>
+            <span class="btn btn-primary" @click="addBehaviorEvent()">Add behavior event</span>
         </panel>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
@@ -140,6 +140,7 @@ const standardItemEventIds = _.map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
 
+
 export default {
     props: ['item', 'schemeContainer'],
 
@@ -158,20 +159,20 @@ export default {
             .sortBy(item => item.name)
             .value();
 
-        const behaviorsMetas = _.map(this.item.behavior, this.createBehaviorMeta);
-        _.forEach(behaviorsMetas, (meta, index) => {
+        const eventMetas = _.map(this.item.behavior.events, this.createBehaviorEventMeta);
+        _.forEach(eventMetas, (meta, index) => {
             const collapsed = behaviorCollapseStateStorage.get(`${this.schemeContainer.scheme.id}/${this.item.id}/${index}`, 0);
             meta.collapsed = collapsed === 1 ? true: false;
         });
 
         return {
-            itemMap: this.createItemMap(),
             items: items,
-            behaviorsMetas: behaviorsMetas,
+            eventOptions: this.createEventOptions(),
+            eventMetas: eventMetas,
             functionArgumentsEditor: {
                 shown: false,
                 functionDescription: null,
-                behaviorIndex: 0,
+                eventIndex: 0,
                 actionIndex: 0,
                 args: {}
             },
@@ -180,11 +181,11 @@ export default {
 
             dragging: {
                 action: null,
-                behaviorIndex: -1,
+                eventIndex: -1,
                 actionIndex: -1,
                 readyToDrop: false,
                 dropTo: {
-                    behaviorIndex: -1,
+                    eventIndex: -1,
                     actionIndex: -1,
                 }
             }
@@ -192,10 +193,9 @@ export default {
     },
 
     methods: {
-        createBehaviorMeta(behavior) {
+        createBehaviorEventMeta(behaviorEvent) {
             return{
-                collapsed: behavior.do && behavior.do.length > 0, // collapsing behaviors that do not have any actions
-                eventOptions: this.createEventOptions(behavior),
+                collapsed: behaviorEvent.actions && behaviorEvent.actions.length > 0, // collapsing behaviors that do not have any actions
             };
         },
 
@@ -204,95 +204,54 @@ export default {
             this.schemeContainer.reindexItems();
         },
 
-        toggleBehaviorCollapse(behaviorIndex) {
-            this.behaviorsMetas[behaviorIndex].collapsed = !this.behaviorsMetas[behaviorIndex].collapsed;
-            behaviorCollapseStateStorage.save(`${this.schemeContainer.scheme.id}/${this.item.id}/${behaviorIndex}`, this.behaviorsMetas[behaviorIndex].collapsed ? 1 : 0);
+        toggleBehaviorCollapse(eventIndex) {
+            this.eventMetas[eventIndex].collapsed = !this.eventMetas[eventIndex].collapsed;
+            behaviorCollapseStateStorage.save(`${this.schemeContainer.scheme.id}/${this.item.id}/${eventIndex}`, this.eventMetas[eventIndex].collapsed ? 1 : 0);
         },
 
-        moveBehaviorInOrder(srcIndex, dstIndex)  {
-            if (dstIndex < 0 || dstIndex >= this.item.behavior.length) {
+        moveEventInOrder(srcIndex, dstIndex)  {
+            if (dstIndex < 0 || dstIndex >= this.item.behavior.events.length) {
                 return;
             }
 
-            let temp = this.item.behavior[srcIndex];
-            this.item.behavior[srcIndex] = this.item.behavior[dstIndex];
-            this.item.behavior[dstIndex] = temp;
+            let temp = this.item.behavior.events[srcIndex];
+            this.item.behavior.events[srcIndex] = this.item.behavior.events[dstIndex];
+            this.item.behavior.events[dstIndex] = temp;
 
-            temp = this.behaviorsMetas[srcIndex];
-            this.behaviorsMetas[srcIndex] = this.behaviorsMetas[dstIndex];
-            this.behaviorsMetas[dstIndex] = temp;
+            temp = this.eventMetas[srcIndex];
+            this.eventMetas[srcIndex] = this.eventMetas[dstIndex];
+            this.eventMetas[dstIndex] = temp;
 
             this.$forceUpdate();
         },
 
-        findElement(element) {
-            if (element.connector) {
-                return this.schemeContainer.findConnectorById(element.connector);
-            }
-            if (element.item) {
-                return this.findItem(element.item);
+        findElement(selector) {
+            const elements = this.schemeContainer.findElementsBySelector(selector, this.item);
+            if (elements.length > 0) {
+                return elements[0];
             }
             return null;
         },
 
-        findItem(itemId) {
-            let item = this.item;
-            if (itemId !== 'self') {
-                item = this.schemeContainer.findItemById(itemId);
-            }
-            return item;
-        },
-
-        findShapeArgsForItem(itemId) {
-            const item = this.findItem(itemId);
-            if (item) {
-                const shape = Shape.find(item.shape);
-                if (shape) {
-                    return shape.args;
-                }
-            }
-            return {};
-        },
-
-        createItemMap() {
-            const itemMap = {};
-            _.forEach(this.schemeContainer.getItems(), item => {
-                itemMap[item.id] = {
-                    id: item.id,
-                    name: item.name
-                };
-            });
-            return itemMap;
-        },
-
-        createEventOptions(behavior) {
+        createEventOptions() {
             let eventOptions = [];
-            if (behavior.on.element.item) {
-                eventOptions = standardItemEvents;
                 
-                const item = this.findItem(behavior.on.element.item);
-                if (item) {
-                    const shape = Shape.find(item.shape);
-                    if (shape) {
-                        eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(item)).map(event => {return {id: event.name, name: event.name}}).value());
-                    }
-                }
-
-                eventOptions.push({
-                    id: 'custom-event',
-                    name: 'Custom event ...'
-                });
+            const shape = Shape.find(this.item.shape);
+            if (shape) {
+                eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(this.item)).map(event => {return {id: event.name, name: event.name}}).value());
             }
+
+            eventOptions.push({
+                id: 'custom-event',
+                name: 'Custom event ...'
+            });
             return eventOptions;
         },
 
         createMethodSuggestionsForElement(element) {
             const options = [];
-            let scope = 'item';
-            if (element.connector) {
-                scope = 'connector';
-            }
-            _.forEach(Functions[scope], (func, funcId) => {
+
+            _.forEach(Functions.item, (func, funcId) => {
                 if (funcId !== 'set') {
                     options.push({
                         method: funcId,
@@ -301,21 +260,23 @@ export default {
                     });
                 }
             });
-            if (element.item) {
-                const item = this.findItem(element.item);
-                if (!item) {
-                    return [];
-                }
 
-                _.forEach(this.collectAllItemCustomEvents(item), customEvent => {
-                    options.push({
-                        method: 'custom-event',
-                        name: customEvent,
-                        event: customEvent,
-                        iconClass: 'fas fa-play'
-                    });
+            const item = this.findElement(element);
+            if (!item) {
+                return [];
+            }
+
+            _.forEach(this.collectAllItemCustomEvents(item), customEvent => {
+                options.push({
+                    method: 'custom-event',
+                    name: customEvent,
+                    event: customEvent,
+                    iconClass: 'fas fa-play'
                 });
+            });
 
+            // checking if it is not a connector
+            if (item.shape) {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     _.forEach(shape.args, (arg, argName) => {
@@ -339,80 +300,63 @@ export default {
         },
 
         collectAllItemCustomEvents(item) {
-            if (!item.behavior) {
+            if (!item.behavior.events) {
                 return [];
             }
-            const filteredBehavior = _.filter(item.behavior, behavior => {
-                if (!behavior.on.element || !behavior.on.event) {
-                    return false;
-                }
-                // checking that it is it's own event
-                if (behavior.on.element.item !== 'self' && behavior.on.element.item !== item.id) {
-                    return false;
-                }
-                return !this.isStandardEvent(behavior.on.event);
+            const filteredEvents = _.filter(item.behavior.events, event => {
+                return !this.isStandardEvent(event.event);
             });
 
-            return _.uniq(_.map(filteredBehavior, behavior => behavior.on.event));
+            return _.uniq(_.map(filteredEvents, event => event.event));
         },
 
         isStandardEvent(event) {
             return _.indexOf(standardItemEventIds, event) >= 0;
         },
 
-        addBehavior() {
-            if (!this.item.behavior) {
-                this.item.behavior = [];
+        addBehaviorEvent() {
+            if (!this.item.behavior.events) {
+                this.item.behavior.events = [];
             }
-            const newBehavior = {
+            const newEvent = {
                 id: shortid.generate(),
-                on: {
-                    element: {item: 'self'},
-                    event: 'clicked',
-                    args: []
-                },
-                do: []
+                event: 'clicked',
+                actions: []
             };
-            this.item.behavior.push(newBehavior);
-            this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
+            this.item.behavior.events.push(newEvent);
+            this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
             this.emitChangeCommited();
             this.$forceUpdate();
         },
 
-        removeBehavior(behaviorIndex) {
-            this.item.behavior.splice(behaviorIndex, 1);
-            this.behaviorsMetas.splice(behaviorIndex, 1)
+        removeBehaviorEvent(eventIndex) {
+            this.item.behavior.events.splice(eventIndex, 1);
+            this.eventMetas.splice(eventIndex, 1)
             this.emitChangeCommited();
         },
         
-        onBehaviorEventElementSelected(behaviorIndex, element) {
-            this.item.behavior[behaviorIndex].on.element = element;
-            this.behaviorsMetas[behaviorIndex] = this.createBehaviorMeta(this.item.behavior[behaviorIndex]);
-            this.emitChangeCommited();
-        },
-
-        onBehaviorEventSelected(behaviorIndex, eventOption) {
+        onBehaviorEventSelected(eventIndex, eventOption) {
             if (eventOption.id === 'custom-event') {
-                this.item.behavior[behaviorIndex].on.event = 'Unknown event...';
+                this.item.behavior.events[eventIndex].event = 'Unknown event...';
             } else {
-                this.item.behavior[behaviorIndex].on.event = eventOption.id;
+                this.item.behavior.events[eventIndex].event = eventOption.id;
             }
             this.emitChangeCommited();
         },
 
-        addActionToBehavior(behaviorIndex) {
-            const behavior = this.item.behavior[behaviorIndex];
-            if (!behavior.do) {
-                behavior.do = [];
+        addActionToEvent(eventIndex) {
+            const event = this.item.behavior.events[eventIndex];
+            if (!event.actions) {
+                event.actions = [];
             }
 
-            let element = {item: 'self'};
+            let element = 'self';
 
-            if (behavior.do.length > 0) {
+            if (event.actions.length > 0) {
                 // picking element from the last action
-                element = utils.clone(behavior.do[behavior.do.length - 1].element);
+                element = event.actions[event.actions.length - 1].element;
             }
-            behavior.do.push({
+            event.actions.push({
                 element,
                 method: 'show',
                 args: _.mapValues(Functions.item.show.args, arg => arg.value)
@@ -420,18 +364,18 @@ export default {
             this.emitChangeCommited();
         },
 
-        removeAction(behaviorIndex, actionIndex) {
-            this.item.behavior[behaviorIndex].do.splice(actionIndex, 1);
+        removeAction(eventIndex, actionIndex) {
+            this.item.behavior.events[eventIndex].actions.splice(actionIndex, 1);
             this.emitChangeCommited();
         },
 
-        onActionElementSelected(behaviorIndex, actionIndex, element) {
-            this.item.behavior[behaviorIndex].do[actionIndex].element = element;
+        onActionElementSelected(eventIndex, actionIndex, element) {
+            this.item.behavior.events[eventIndex].actions[actionIndex].element = element;
             this.emitChangeCommited();
         },
 
-        onActionMethodSelected(behaviorIndex, actionIndex, methodOption) {
-            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+        onActionMethodSelected(eventIndex, actionIndex, methodOption) {
+            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
             if (!action) {
                 return;
             }
@@ -458,13 +402,8 @@ export default {
         },
 
         getDefaultArgsForMethod(action, method) {
-            let functions = Functions.scheme;
-            if (action.element && (action.element.item || action.element.itemGroup)) {
-                functions = Functions.item;
-            }
-            if (action.element && action.element.connector) {
-                functions = Functions.connector;
-            }
+            let functions = Functions.item;
+
             if (functions[method]) {
                 const functionArgs = functions[method].args;
                 if (functionArgs) {
@@ -496,16 +435,16 @@ export default {
             return {type: 'string'};
         },
 
-        onArgumentValueChangeForSet(behaviorIndex, actionIndex, value) {
-            this.item.behavior[behaviorIndex].do[actionIndex].args.value = value;
-            const propertyName = this.item.behavior[behaviorIndex].do[actionIndex].args.field;
-            this.emitChangeCommited(`${this.item.id}.shapeProps.${propertyName}`);
+        onArgumentValueChangeForSet(eventIndex, actionIndex, value) {
+            this.item.behavior.events[eventIndex].actions[actionIndex].args.value = value;
+            const propertyName = this.item.behavior.events[eventIndex].actions[actionIndex].args.field;
+            this.emitChangeCommited(`${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${propertyName}`);
         },
 
-        duplicateBehavior(behaviorIndex) {
-            const newBehavior = utils.clone(this.item.behavior[behaviorIndex]);
-            this.item.behavior.push(newBehavior);
-            this.behaviorsMetas.push(this.createBehaviorMeta(newBehavior));
+        duplicateBehavior(eventIndex) {
+            const newEvent = utils.clone(this.item.behavior.events[eventIndex]);
+            this.item.behavior.events.push(newEvent);
+            this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
             this.emitChangeCommited();
             this.$forceUpdate();
         },
@@ -515,16 +454,8 @@ export default {
             EventBus.emitSchemeChangeCommited(affinityId);
         },
 
-        showFunctionArgumentsEditor(action, behaviorIndex, actionIndex) {
-            let functionDescription = null;
-            if (action.element) {
-                if (action.element.item || action.element.itemGroup) {
-                    functionDescription = Functions.item[action.method];
-                }
-                if (action.element.connector) {
-                    functionDescription = Functions.connector[action.method];
-                }
-            }
+        showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
+            let functionDescription = Functions.item[action.method];
 
             if (!functionDescription) {
                 functionDescription = {
@@ -533,47 +464,48 @@ export default {
             }
             this.functionArgumentsEditor.functionDescription = functionDescription;
             this.functionArgumentsEditor.args = action.args;
-            this.functionArgumentsEditor.behaviorIndex = behaviorIndex;
+            this.functionArgumentsEditor.eventIndex = eventIndex;
             this.functionArgumentsEditor.actionIndex = actionIndex;
             this.functionArgumentsEditor.shown = true;
         },
 
         onFunctionArgumentsEditorChange(argName, value) {
-            const behaviorIndex = this.functionArgumentsEditor.behaviorIndex
+            const eventIndex = this.functionArgumentsEditor.eventIndex
             const actionIndex   = this.functionArgumentsEditor.actionIndex;
 
-            if (behaviorIndex < this.item.behavior.length) {
-                const behavior = this.item.behavior[behaviorIndex];
-                if (actionIndex < behavior.do.length) {
-                    behavior.do[actionIndex].args[argName] = value;
+            if (eventIndex < this.item.behavior.events.length) {
+                const event = this.item.behavior.events[eventIndex];
+                if (actionIndex < event.actions.length) {
+                    event.actions[actionIndex].args[argName] = value;
                 }
             }
         },
 
-        onActionDragStarted(behaviorIndex, actionIndex) {
-            const action = this.item.behavior[behaviorIndex].do[actionIndex];
+        onActionDragStarted(eventIndex, actionIndex) {
+            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
             let name = 'Drop here';
-            const domActionContainer = document.getElementById(`behavior-action-container-${this.item.id}-${behaviorIndex}-${actionIndex}`);
+            // TODO refactor to use $ref
+            const domActionContainer = document.getElementById(`behavior-action-container-${this.item.id}-${eventIndex}-${actionIndex}`);
             if (domActionContainer) {
                 name = domActionContainer.innerHTML;
             }
             this.dragging.action = name;
 
 
-            this.dragging.behaviorIndex = behaviorIndex;
+            this.dragging.eventIndex = eventIndex;
             this.dragging.actionIndex = actionIndex;
-            this.dragging.dropTo.behaviorIndex = -1;
+            this.dragging.dropTo.eventIndex = -1;
             this.dragging.dropTo.actionIndex = -1;
         },
 
-        onDragOverToEvent(behaviorIndex) {
-            this.dragging.dropTo.behaviorIndex = behaviorIndex;
+        onDragOverToEvent(eventIndex) {
+            this.dragging.dropTo.eventIndex = eventIndex;
             this.dragging.dropTo.actionIndex = 0;
-            this.dragging.readyToDrop = !(this.dragging.behaviorIndex === behaviorIndex && this.dragging.actionIndex === 0);
+            this.dragging.readyToDrop = !(this.dragging.eventIndex === eventIndex && this.dragging.actionIndex === 0);
         },
 
-        onDragOverToAction(behaviorIndex, actionIndex, event) {
-            this.dragging.dropTo.behaviorIndex = behaviorIndex;
+        onDragOverToAction(eventIndex, actionIndex, event) {
+            this.dragging.dropTo.eventIndex = eventIndex;
             this.dragging.dropTo.actionIndex = actionIndex;
 
             const domActionContainer = event.target.closest('.behavior-action-container');
@@ -587,7 +519,7 @@ export default {
             }
             let readyToDrop = true;
             
-            if (this.dragging.behaviorIndex === this.dragging.dropTo.behaviorIndex) {
+            if (this.dragging.eventIndex === this.dragging.dropTo.eventIndex) {
                 if (this.dragging.actionIndex === this.dragging.dropTo.actionIndex || this.dragging.actionIndex === this.dragging.dropTo.actionIndex - 1) {
                     readyToDrop = false;
                 }
@@ -604,18 +536,18 @@ export default {
         },
 
         onDragEnd() {
-            if (this.dragging.behaviorIndex >= 0 && this.dragging.actionIndex >= 0 && this.dragging.dropTo.behaviorIndex >= 0 && this.dragging.dropTo.actionIndex >= 0) {
-                this.moveAction(this.dragging.behaviorIndex, this.dragging.actionIndex, this.dragging.dropTo.behaviorIndex, this.dragging.dropTo.actionIndex);
+            if (this.dragging.eventIndex >= 0 && this.dragging.actionIndex >= 0 && this.dragging.dropTo.eventIndex >= 0 && this.dragging.dropTo.actionIndex >= 0) {
+                this.moveAction(this.dragging.eventIndex, this.dragging.actionIndex, this.dragging.dropTo.eventIndex, this.dragging.dropTo.actionIndex);
             }
             this.resetDragging();
         },
 
         resetDragging() {
             this.dragging.action = null;
-            this.dragging.behaviorIndex = -1;
+            this.dragging.eventIndex = -1;
             this.dragging.actionIndex = -1;
             this.dragging.readyToDrop = false;
-            this.dragging.dropTo.behaviorIndex = -1;
+            this.dragging.dropTo.eventIndex = -1;
             this.dragging.dropTo.actionIndex = -1;
         },
 
@@ -623,13 +555,13 @@ export default {
             if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
                 return;
             }
-            const action = this.item.behavior[srcBehaviorIndex].do.splice(srcActionIndex, 1)[0];
+            const action = this.item.behavior.events[srcBehaviorIndex].actions.splice(srcActionIndex, 1)[0];
 
             if (srcBehaviorIndex === dstBehaviorIndex && dstActionIndex > srcActionIndex) {
                 // since the item was removed from the same array, we need to adjust the new destination position in the array
                 dstActionIndex -= 1;
             }
-            this.item.behavior[dstBehaviorIndex].do.splice(dstActionIndex, 0, action);
+            this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
 
             this.emitChangeCommited();
         }
@@ -645,13 +577,7 @@ export default {
         },
 
         toPrettyMethod(method, element) {
-            let scope = 'page';
-            if (element && (element.item || element.itemGroup)) {
-                scope = 'item';
-            }
-            if (element && element.connector) {
-                scope = 'connector';
-            }
+            let scope = 'item';
             if (Functions[scope][method]) {
                 return Functions[scope][method].name;
             } else {
@@ -665,12 +591,7 @@ export default {
             if (propertyPath === 'opacity') {
                 return 'Opacity';
             } else if (propertyPath.indexOf('shapeProps.') === 0) {
-                let item = null;
-                if (element.item === 'self') {
-                    item = selfItem;
-                } else {
-                    item = schemeContainer.findItemById(element.item);
-                }
+                const item = this.findElement(element);
                 if (item && item.shape) {
                     const shape = Shape.find(item.shape);
                     const shapeArgName = propertyPath.substr('shapeProps.'.length);

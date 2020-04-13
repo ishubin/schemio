@@ -216,7 +216,7 @@ export default {
             AnimationRegistry.play(new ItemParticleEffectAnimation(item, args, resultCallback), item.id);
         }
         if (this.args.inBackground) {
-            this.resultCallback();
+            resultCallback();
         }
     }
 }

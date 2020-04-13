@@ -19,9 +19,7 @@ export default class StatePickElement extends State {
     mouseDown(x, y, mx, my, object, event) {
         if (object.item) {
             if (this.elementPickCallback) {
-                this.elementPickCallback({
-                    item: object.item.id
-                });
+                this.elementPickCallback(`#${object.item.id}`);
             }
             setTimeout(() => {
                 this.cancel();

@@ -8,7 +8,9 @@ const defaultItem = {
     description: '',
     text: '',
     links: [],
-    behavior: []
+    behavior: {
+        events: []
+    }
 };
 
 export default [{

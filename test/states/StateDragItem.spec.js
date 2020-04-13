@@ -63,39 +63,6 @@ describe('StateDragItem', () => {
     });
 
 
-    it('mouseup event on selected item should re-select it in case the mouse was not moved since last mouse down', () => {
-        //preparation
-        const schemeContainer = {
-            isItemSelected: sinon.fake.returns(true),
-            selectItem: sinon.fake(),
-            deselectAllConnectors: sinon.fake()
-        };
-        const fakeEditor = {cursor: 'pointer'};
-        const state = new StateDragItem(whateverEventBus);
-        state.setSchemeContainer(schemeContainer);
-        state.setEditor(fakeEditor);
-
-        const object = {
-            item: {
-                id: 'test-item-01',
-                area: {x: 0, y:0, w: 100, h: 50},
-                meta: {}
-            }
-        };
-        const mouseEvent = {button: 1};
-
-        //execution
-        state.mouseDown(0, 0, 0, 0, object, mouseEvent);
-
-        // just making sure that selectItem method was not called before mouseUp event
-        expect(schemeContainer.selectItem.notCalled).toBe(true);
-
-        state.mouseUp(0, 0, 0, 0, object, {});
-        
-        // validation
-        expect(schemeContainer.selectItem.getCalls().length).toBe(1);
-    });
-
     it('mouseup event on selected item should not re-select it in case the mouse was moved since last mouse down', () => {
         //preparation
         const schemeContainer = {

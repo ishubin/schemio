@@ -19,23 +19,27 @@ describe('UserEvents Compiler', () => {
             id: 'abc'
         };
         const schemeContainer = {
-            findItemById(id) {
-                if (id === 'abc') {
-                    return abcItem;
+            findElementsBySelector(selector, selfItem2) {
+                if (selector === 'self') {
+                    return [ selfItem2 ];
                 }
+                if (selector === '#abc') {
+                    return [ abcItem ];
+                }
+                throw new Error('Unknown selector');
             }
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            element: {item: 'self'},
+            element: 'self',
             method: 'set',
             args: { field: 'opacity', value: 0.5}
         }, {
-            element: {item: 'abc'},
+            element: '#abc',
             method: 'set',
             args: { field: 'shapeProps.strokeSize', value: 2}
         }, {
-            element: {item: 'abc'},
+            element: '#abc',
             method: 'set',
             args: {field: 'shapeProps.text', value: 'Blah'}
         }]);
@@ -83,35 +87,29 @@ describe('UserEvents Compiler', () => {
             }]
         };
         const schemeContainer = {
-            findItemById(id) {
-                if (id === 'abc') {
-                    return abcItem;
+            findElementsBySelector(selector, selfItem) {
+                if (selector === '#c1') {
+                    return [ selfItem.connectors[0] ];
                 }
-            },
-
-            findConnectorById(id) {
-                if (id === 'c1') {
-                    return selfItem.connectors[0];
+                if (selector === '#b1') {
+                    return [ abcItem.connectors[0] ];
                 }
-                if (id === 'b1') {
-                    return abcItem.connectors[0];
-                }
-                if (id === 'b2') {
-                    return abcItem.connectors[1];
+                if (selector === '#b2') {
+                    return [ abcItem.connectors[1] ];
                 }
             }
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            element: {connector: 'c1'},
+            element: '#c1',
             method: 'set',
             args: { field: 'style.opacity', value: 0.5}
         }, {
-            element: {connector: 'b1'},
+            element: '#b1',
             method: 'set',
             args: {field: 'style.color', value: '#abc'}
         }, {
-            element: {connector: 'b2'},
+            element: '#b2',
             method: 'set',
             args: {field: 'style.color', value: '#f00'}
         }]);
@@ -160,10 +158,10 @@ describe('UserEvents Compiler', () => {
             opacity: 1.0
         }];
         const schemeContainer = {
-            findItemsByGroup(group) {
-                if (group === 'my-group') {
+            findElementsBySelector(selector, selfItem) {
+                if (selector === 'group: my-group') {
                     return [items[0], items[1]];
-                } else if (group === 'another-group') {
+                } else if (selector === 'group: another-group') {
                     return [items[2]];
                 }
                 return [];
@@ -171,11 +169,11 @@ describe('UserEvents Compiler', () => {
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            element: {itemGroup: 'my-group'},
+            element: 'group: my-group',
             method: 'set',
             args: { field: 'opacity', value: 0.5}
         }, {
-            element: {itemGroup: 'another-group'},
+            element: 'group: another-group',
             method: 'set',
             args: { field: 'someField', value: 'blah'}
         }]);

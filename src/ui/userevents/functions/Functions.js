@@ -12,6 +12,18 @@ import ItemMoveFunction from './ItemMoveFunction';
 import WaitFunction from './WaitFunction';
 
 export default {
+    main: {
+        hide:               HideFunction,
+        show:               ShowFunction,
+        set:                SetFunction,
+        zoomToIt:           ZoomToItFunction,
+        particleEffect:     ItemParticleEffectFunction,
+        blinkEffect:        BlinkEffectFunction,
+        move:               ItemMoveFunction,
+        stopAllAnimations:  StopAllAnimationsFunction,
+        sendEvent:          SendEventFunction,
+        wait:               WaitFunction
+    },
     item: {
         hide:               HideFunction,
         show:               ShowFunction,
