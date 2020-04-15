@@ -1687,6 +1687,10 @@ table.position-panel-table .property-label {
 .element-picker .picked-element.picked-element-type-item-group {
     color: #950cd5;
 }
+.element-picker .picked-element.picked-element-type-none {
+    color: #999999;
+    font-style: italic;
+}
 .element-picker .picked-element.picked-element-type-error {
     color: #9b0b0b;
     font-weight: bold;

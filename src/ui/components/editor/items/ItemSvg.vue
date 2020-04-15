@@ -14,6 +14,7 @@
             :item="item"
             :style="{'opacity': item.selfOpacity/100.0}"
             :hidden-text-property="hiddenTextProperty"
+            :scheme-container="schemeContainer"
             @custom-event="onShapeCustomEvent">
         </component>
 
@@ -108,7 +109,7 @@ export default {
             }
             if (shape.component) {
                 this.shapeComponent = shape.component;
-                this.itemSvgPath = shape.component.computePath(this.item);
+                this.itemSvgPath = shape.component.computePath(this.item, this.schemeContainer);
             } else {
                 this.shapeComponent = shape.vueComponentName;
             }

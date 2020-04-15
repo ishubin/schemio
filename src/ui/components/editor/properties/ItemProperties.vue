@@ -138,6 +138,16 @@
                                 <select v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @input="onStyleSelectChange(argName, arg, arguments[0])">
                                     <option v-for="knownPattern in knownStrokePatterns">{{knownPattern}}</option>
                                 </select>
+
+                                <element-picker v-if="arg.type === 'element'"
+                                    :element="item.shapeProps[argName]"
+                                    :use-self="false"
+                                    :allow-none="true"
+                                    :scheme-container="schemeContainer"
+                                    :excluded-item-ids="[item.id]"
+                                    @selected="onStyleValueChange(argName, arguments[0])"
+                                    />
+
                             </td>
                         </tr>
                     </tbody>
@@ -170,6 +180,8 @@ import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
+import ElementPicker from '../ElementPicker.vue';
+
 
 const ALL_TABS = [
     {name: 'description',   icon: 'fas fa-paragraph'},
@@ -185,7 +197,11 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal, StylesPalette, NumberTextfield},
+    components: {
+        Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
+        ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal,
+        StylesPalette, NumberTextfield, ElementPicker
+    },
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
@@ -342,6 +358,9 @@ export default {
                             this.shapePropsControlStates[argName].shown = shown;
                         }
                     });
+                }
+                if (argConfig.type === 'curve-points') {
+                    this.shapePropsControlStates[argName].shown = false;
                 }
             });
         },

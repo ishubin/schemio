@@ -252,6 +252,40 @@ class SchemeContainer {
     localPointOnItem(x, y, item) {
         return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
     }
+    
+    /**
+     * Finds first item that is within specified distance to path
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {Number} d - maximum distance to items path
+     * @param {String} excludedId - item that should be excluded
+     */
+    findClosestPointToItems(x, y, d, excludedId) {
+        let globalPoint = {x, y};
+        let item = null;
+        for (let i = 0; i < this._itemArray.length; i++) {
+            item = this._itemArray[i];
+            if (item.id !== excludedId) {
+                const shape = Shape.find(item.shape);
+                if (shape) {
+                    const path = shape.computePath(item, this);
+                    if (path) {
+                        const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
+                        const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
+                        if (squaredDistance < d * d) {
+                            return {
+                                x                 : closestPoint.x,
+                                y                 : closestPoint.y,
+                                distanceOnPath    : closestPoint.distanceOnPath,
+                                itemId            : item.id
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     getBoundingBoxOfItems(items) {
         if (!items || items.length === 0) {
@@ -518,7 +552,7 @@ class SchemeContainer {
             const shape = Shape.find(item.shape);
             if (shape) {
                 if (shape.computePath) {
-                    const path = shape.computePath(item);
+                    const path = shape.computePath(item, this);
                     if (path) {
                         return this.closestPointToSvgPath(item, path, nextPoint);
                     }
@@ -541,7 +575,9 @@ class SchemeContainer {
         }
         this.shadowSvgPath.setAttribute('d', path);
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
-        return this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
+        const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
+        worldPoint.distanceOnPath = closestPoint.distance;
+        return worldPoint;
     }
 
     enrichConnectorWithDefaultStyle(connector) {
@@ -959,6 +995,14 @@ class SchemeContainer {
 
     findConnectorById(connectorId) {
         return this.connectorsMap[connectorId];
+    }
+
+    findFirstElementBySelector(selector, selfItem) {
+        const elements = this.findElementsBySelector(selector, selfItem);
+        if (elements.length > 0) {
+            return elements[0];
+        }
+        return null;
     }
 
     /**

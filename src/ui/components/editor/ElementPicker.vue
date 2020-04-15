@@ -23,7 +23,9 @@ export default {
         element:            {type: String},
         selfItem:           {type: Object},
         schemeContainer:    {type: Object},
-        useSelf:            {type: Boolean, default: true}
+        useSelf:            {type: Boolean, default: true},
+        allowNone:          {type: Boolean, default: false},
+        excludedItemIds:    {type: Array,   default: () => []} // array of items that should be excluded from options
     },
 
     components: {Dropdown},
@@ -46,12 +48,24 @@ export default {
 
     methods: {
         collectAllOptions() {
-            const options = [{
+            const options = [];
+            if (this.allowNone) {
+                options.push({
+                    iconClass: '',
+                    name: 'None',
+                    id: 'none',
+                    type: 'none'
+                });
+            }
+            
+            options.push({
                 iconClass: 'fas fa-crosshairs',
                 name: 'Pick...',
                 id: 'pick',
                 type: 'pick'
-            }];
+            });
+
+
             if (this.useSelf) {
                 options.push({
                     iconClass: 'fas fa-cube',
@@ -62,21 +76,29 @@ export default {
             }
 
             _.forEach(this.schemeContainer.getItems(), item => {
-                options.push({
-                    iconClass: 'fas fa-cube',
-                    name: item.name,
-                    id: item.id,
-                    type: 'item'
-                });
-                if (item.connectors) {
-                    _.forEach(item.connectors, (connector, connectorIndex) => {
-                        options.push({
-                            iconClass: 'fas fa-link',
-                            name: connector.name || `${item.name} #${connectorIndex}`,
-                            id: connector.id,
-                            type: 'connector'
-                        });
+                let itemShouldBeIncluded = true;                
+
+                if (this.excludedItemIds && this.excludedItemIds.length > 0) {
+                    itemShouldBeIncluded = _.indexOf(this.excludedItemIds, item.id) >= 0;
+                }
+
+                if (itemShouldBeIncluded) {
+                    options.push({
+                        iconClass: 'fas fa-cube',
+                        name: item.name,
+                        id: item.id,
+                        type: 'item'
                     });
+                    if (item.connectors) {
+                        _.forEach(item.connectors, (connector, connectorIndex) => {
+                            options.push({
+                                iconClass: 'fas fa-link',
+                                name: connector.name || `${item.name} #${connectorIndex}`,
+                                id: connector.id,
+                                type: 'connector'
+                            });
+                        });
+                    }
                 }
             });
 
@@ -104,6 +126,8 @@ export default {
                     this.$emit('selected', `#${option.id}`);
                 } else if (option.type === 'item-group') {
                     this.$emit('selected', `group: ${option.id}`);
+                } else if (option.type === 'none') {
+                    this.$emit('selected', null);
                 } else {
                     console.error(option.type + ' is not supported');
                 }
@@ -113,6 +137,13 @@ export default {
 
     computed: {
         enrichedElement() {
+            if (!this.element) {
+                return {
+                    name: 'None',
+                    type: 'none',
+                    iconClass: ''
+                };
+            }
             if (this.element.startsWith('group:')) {
                 return {
                     name: this.element.substr(6).trim(),
