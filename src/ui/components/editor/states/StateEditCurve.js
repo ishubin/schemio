@@ -144,7 +144,7 @@ export default class StateEditCurve extends State {
             }
             this.eventBus.emitItemChanged(this.item.id);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
-            this.handleCurvePointDrag(x, y);
+            this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         }
@@ -283,31 +283,17 @@ export default class StateEditCurve extends State {
         this.eventBus.emitItemChanged(this.item.id);
     }
 
-    handleCurvePointDrag(x, y) {
+    handleCurvePointDrag(x, y, pointIndex) {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
-
+        const curvePoint = this.item.shapeProps.points[pointIndex];
 
         curvePoint.x = this.draggedObjectOriginalPoint.x + localPoint.x - localOriginalPoint.x;
         curvePoint.y = this.draggedObjectOriginalPoint.y + localPoint.y - localOriginalPoint.y;
         
-        if (this.draggedObject.pointIndex === 0) {
-            const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
-
-            const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, 5, this.item.id);
-            if (closestPointToItem) {
-                const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
-                curvePoint.x = localCurvePoint.x;
-                curvePoint.y = localCurvePoint.y;
-                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
-            } else {
-                this.item.shapeProps.sourceItem = null;
-                this.item.shapeProps.sourceItemPosition = 0;
-            }
+        if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
+            this.handleEdgeCurvePointDrag(curvePoint, pointIndex === 0);
         }
-
 
         if (curvePoint.t === 'B') {
             curvePoint.x1 = this.draggedObjectOriginalPoint.x1 + localPoint.x - localOriginalPoint.x;
@@ -316,6 +302,38 @@ export default class StateEditCurve extends State {
             curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOriginalPoint.y;
         }
         this.eventBus.emitItemChanged(this.item.id);
+    }
+
+    /**
+     * Handle dragging of edge point and checks whether it should stick to other item
+     * @param {Point} curvePoint 
+     * @param {Boolean} isSource 
+     */
+    handleEdgeCurvePointDrag(curvePoint, isSource) {
+        const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
+        const distanceThreshold = 10;
+
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id);
+        if (closestPointToItem) {
+            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+            curvePoint.x = localCurvePoint.x;
+            curvePoint.y = localCurvePoint.y;
+            if (isSource) {
+                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            } else {
+                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+            }
+        } else {
+            if (isSource) {
+                this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationItemPosition = 0;
+            }
+        }
     }
 
     handleCurveControlPointDrag(x, y, event) {
