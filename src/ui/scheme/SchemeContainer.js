@@ -82,6 +82,7 @@ class SchemeContainer {
         this.revision = 0;
         this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
         this.worldItems = []; // used for storing top-level items with default area
+        this.connectionItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
@@ -139,6 +140,16 @@ class SchemeContainer {
         this.worldItems = [];
         this._itemGroupsToIds = {};
 
+        // stores element selectors with their dependants
+        // this will be used once it has visited all items
+        // so that it can finally start puting ids of existing items into connectionItemMap
+        const connectionElementSelectorMap = {};
+        const registerDependant = (elementSelector, itemId) => {
+            let dependants = connectionElementSelectorMap[elementSelector] || [];
+            dependants.push(itemId);
+            connectionElementSelectorMap[elementSelector] = dependants;
+        };
+
         const itemsWithConnectors = [];
         if (!this.scheme.items) {
             return;
@@ -164,6 +175,15 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
+            if (item.shape === 'curve') {
+                if (item.shapeProps.sourceItem) {
+                    registerDependant(item.shapeProps.sourceItem, item.id);
+                }
+                if (item.shapeProps.destinationItem) {
+                    registerDependant(item.shapeProps.destinationItem, item.id);
+                }
+            }
+
             if (item.connectors && item.connectors.length > 0) {
                 itemsWithConnectors.push(item);
             }
@@ -175,7 +195,26 @@ class SchemeContainer {
         _.forEach(itemsWithConnectors, item => {
             this.buildItemConnectors(item);
         });
+
+        this.connectionItemMap = this.buildConnectionItemMapFromElementSelectors(connectionElementSelectorMap);
         this.revision += 1;
+    }
+
+    buildConnectionItemMapFromElementSelectors(connectionElementSelectorMap) {
+        const connectionItemMap = {};
+        const registerDependants = (itemId, newDependants) => {
+            let dependants = connectionItemMap[itemId] || [];
+            dependants = dependants.concat(newDependants);
+            connectionItemMap[itemId] = dependants;
+        };
+
+        _.forEach(connectionElementSelectorMap, (dependants, elementSelector) => {
+            const mainItem = this.findFirstElementBySelector(elementSelector);
+            if (mainItem) {
+                registerDependants(mainItem.id, dependants);
+            }
+        });
+        return connectionItemMap;
     }
 
     /**
@@ -335,6 +374,38 @@ class SchemeContainer {
         };
 
         return schemeBoundaryBox;
+    }
+
+    /**
+     * Should be invoked each time an area or path of item changes
+     * @param {String} changedItemId
+     */
+    readjustDependantItems(changedItemId) {
+        this._readjustDependantItems(changedItemId, {});
+    }
+
+    /**
+     * 
+     * @param {*} changedItem 
+     * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
+     */
+    _readjustDependantItems(changedItemId, visitedItems) {
+        if (this.connectionItemMap[changedItemId]) {
+            _.forEach(this.connectionItemMap[changedItemId], dependantItemId => {
+                if (!visitedItems[dependantItemId]) {
+                    visitedItems[dependantItemId] = true;
+                    const dependantItem = this.itemMap[dependantItemId];
+                    if (dependantItem) {
+                        const shape = Shape.find(dependantItem.shape);
+                        if (shape && shape.readjustItem) {
+                            shape.readjustItem(dependantItem, this);
+                            this._readjustDependantItems(dependantItemId, visitItems);
+                            this.eventBus.emitItemChanged(dependantItemId);
+                        }
+                    }
+                }
+            });
+        }
     }
 
     remountItemInsideOtherItem(itemId, otherItemId, position) {

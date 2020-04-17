@@ -41,14 +41,15 @@ const defaultEditorProps = {
 
 function enrichShape(shapeComponent) {
     return {
-        editorProps: shapeComponent.editorProps || defaultEditorProps,
-        args: shapeComponent.args,
-        computePath: shapeComponent.computePath,
+        editorProps             : shapeComponent.editorProps || defaultEditorProps,
+        args                    : shapeComponent.args,
+        computePath             : shapeComponent.computePath,
+        readjustItem            : shapeComponent.readjustItem,
         // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
-        identifyTextEditArea: shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
-        getEvents: shapeComponent.getEvents || defaultGetEventsFunc,
-        controlPoints: shapeComponent.controlPoints || null,
-        component: shapeComponent
+        identifyTextEditArea    : shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
+        getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
+        controlPoints           : shapeComponent.controlPoints || null,
+        component               : shapeComponent
     };
 }
 

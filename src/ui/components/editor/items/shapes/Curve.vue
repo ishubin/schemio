@@ -55,49 +55,13 @@ function getPointOnItemPath(item, positionOnPath, schemeContainer) {
 }
 
 function computePath(item, schemeContainer) {
-    let allowToBeClosed = true;
     if (item.shapeProps.points.length < 2) {
         return null;
     }
     let path = 'M 0 0';
-    const points = utils.clone(item.shapeProps.points);
-
-
-    const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-    if (item.shapeProps.sourceItem) {
-        const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
-        if (sourceItem && sourceItem.id !== item.id) {
-            const sourceWorldPoint = getPointOnItemPath(sourceItem, item.shapeProps.sourceItemPosition, schemeContainer);
-            if (sourceWorldPoint) {
-                const sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
-                points[0] = {
-                    t: 'L',
-                    x: sourcePoint.x,
-                    y: sourcePoint.y,
-                };
-                allowToBeClosed = false;
-            }
-        }
-    }
-
-    if (item.shapeProps.destinationItem) {
-        const destinationItem = schemeContainer.findFirstElementBySelector(item.shapeProps.destinationItem);
-        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape !== 'curve') {
-            const destinationWorldPoint = getPointOnItemPath(destinationItem, item.shapeProps.destinationItemPosition, schemeContainer);
-            if (destinationWorldPoint) {
-                const destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
-                points[points.length - 1] = {
-                    t: 'L',
-                    x: destinationPoint.x,
-                    y: destinationPoint.y,
-                };
-                allowToBeClosed = false;
-            }
-        }
-    }
 
     let prevPoint = null;
-    forEach(points, point => {
+    forEach(item.shapeProps.points, point => {
         if (prevPoint) {
             path += connectPoints(prevPoint, point);
         } else {
@@ -106,8 +70,7 @@ function computePath(item, schemeContainer) {
         prevPoint = point;
     });
 
-
-    if (item.shapeProps.closed && item.shapeProps.points.length && allowToBeClosed) {
+    if (item.shapeProps.closed && item.shapeProps.points.length && !item.shapeProps.sourceItem && !item.shapeProps.destinationItem) {
         path += connectPoints(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[0]);
         path += ' Z';
     }
@@ -115,10 +78,47 @@ function computePath(item, schemeContainer) {
     return path;
 };
 
+function readjustItem(item, schemeContainer) {
+    const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
+    if (item.shapeProps.sourceItem) {
+        const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
+        if (sourceItem && sourceItem.id !== item.id) {
+            const sourceWorldPoint = getPointOnItemPath(sourceItem, item.shapeProps.sourceItemPosition, schemeContainer);
+            if (sourceWorldPoint) {
+                const sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
+                item.shapeProps.points[0] = {
+                    x: sourcePoint.x,
+                    y: sourcePoint.y,
+                };
+            }
+        } else {
+            item.shapeProps.sourceItem = null;
+        }
+    }
+
+    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+        const destinationItem = schemeContainer.findFirstElementBySelector(item.shapeProps.destinationItem);
+        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape !== 'curve') {
+            const destinationWorldPoint = getPointOnItemPath(destinationItem, item.shapeProps.destinationItemPosition, schemeContainer);
+            if (destinationWorldPoint) {
+                const destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+                item.shapeProps.points[item.shapeProps.points.length - 1] = {
+                    t: 'L',
+                    x: destinationPoint.x,
+                    y: destinationPoint.y,
+                };
+            }
+        } else {
+            item.shapeProps.destinationItem = null;
+        }
+    }
+}
+
 export default {
     props: ['item', 'hiddenTextProperty', 'schemeContainer'],
 
     computePath,
+    readjustItem,
 
     editorProps: {
         description: 'rich',
@@ -140,7 +140,7 @@ export default {
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source'},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination'},
         sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
-        destinationItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+        destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
     },
 
     mounted() {
