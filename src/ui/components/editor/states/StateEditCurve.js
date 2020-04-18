@@ -67,6 +67,9 @@ export default class StateEditCurve extends State {
         }];
 
         this.schemeContainer.addItem(this.item);
+
+        // in case user tried to attach source to another item
+        this.handleEdgeCurvePointDrag(this.item.shapeProps.points[0], true);
         this.addedToScheme = true;
     }
 
@@ -87,6 +90,13 @@ export default class StateEditCurve extends State {
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
+
+            // checking if the curve was attached to another item
+            if (this.item.shapeProps.destinationItem) {
+                this.submitItem();
+                return;
+            }
+
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
             point.x = x;
             point.y = y;
@@ -138,9 +148,15 @@ export default class StateEditCurve extends State {
                     if (Math.sqrt(dx * dx + dy * dy) < 15) {
                         point.x = p0.x;
                         point.y = p0.y;
-                        this.shouldJoinClosedPoints = true;
+                        if (!this.item.shapeProps.sourceItem) {
+                            this.shouldJoinClosedPoints = true;
+                        }
                     }
                 }
+            }
+            if (!this.shouldJoinClosedPoints) {
+                // what if we want to attach this point to another item
+                this.handleEdgeCurvePointDrag(point, false);
             }
             this.eventBus.emitItemChanged(this.item.id);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
@@ -359,6 +375,7 @@ export default class StateEditCurve extends State {
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();
+        this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }
