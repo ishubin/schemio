@@ -202,7 +202,7 @@ export default class StateEditCurve extends State {
         if (!shape) {
             return;
         }
-        this.shadowSvgPath.setAttribute('d', shape.computePath(this.item, this.schemeContainer));
+        this.shadowSvgPath.setAttribute('d', shape.computePath(this.item));
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
 

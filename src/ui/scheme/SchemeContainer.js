@@ -307,7 +307,7 @@ class SchemeContainer {
             if (item.id !== excludedId) {
                 const shape = Shape.find(item.shape);
                 if (shape) {
-                    const path = shape.computePath(item, this);
+                    const path = shape.computePath(item);
                     if (path) {
                         const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
                         const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
@@ -623,7 +623,7 @@ class SchemeContainer {
             const shape = Shape.find(item.shape);
             if (shape) {
                 if (shape.computePath) {
-                    const path = shape.computePath(item, this);
+                    const path = shape.computePath(item);
                     if (path) {
                         return this.closestPointToSvgPath(item, path, nextPoint);
                     }

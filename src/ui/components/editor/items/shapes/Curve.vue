@@ -40,7 +40,7 @@ function getPointOnItemPath(item, positionOnPath, schemeContainer) {
     if (item.shape !== 'curve') {
         const shape = Shape.find(item.shape);
         if (shape && shape.computePath) {
-            const path = shape.computePath(item, schemeContainer);
+            const path = shape.computePath(item);
             if (path) {
                 const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 shadowSvgPath.setAttribute('d', path);
@@ -54,7 +54,7 @@ function getPointOnItemPath(item, positionOnPath, schemeContainer) {
     const worldPoint = schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
 }
 
-function computePath(item, schemeContainer) {
+function computePath(item) {
     if (item.shapeProps.points.length < 2) {
         return null;
     }
@@ -115,7 +115,7 @@ function readjustItem(item, schemeContainer) {
 }
 
 export default {
-    props: ['item', 'hiddenTextProperty', 'schemeContainer'],
+    props: ['item', 'hiddenTextProperty'],
 
     computePath,
     readjustItem,
@@ -151,7 +151,7 @@ export default {
     },
 
     data() {
-        const shapePath = computePath(this.item, this.schemeContainer);
+        const shapePath = computePath(this.item);
         return {
             shapePath: shapePath,
             caps: this.computeCaps(shapePath),
@@ -160,7 +160,7 @@ export default {
 
     methods: {
         onItemChange() {
-            this.shapePath = computePath(this.item, this.schemeContainer);
+            this.shapePath = computePath(this.item);
             this.caps = this.computeCaps(this.shapePath);
             this.$forceUpdate();
         },

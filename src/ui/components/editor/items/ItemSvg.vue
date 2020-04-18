@@ -14,7 +14,6 @@
             :item="item"
             :style="{'opacity': item.selfOpacity/100.0}"
             :hidden-text-property="hiddenTextProperty"
-            :scheme-container="schemeContainer"
             @custom-event="onShapeCustomEvent">
         </component>
 
@@ -60,7 +59,6 @@
                 :key="`${childItem.id}-${childItem.shape}-${schemeContainer.revision}`"
                 :item="childItem"
                 :mode="mode"
-                :scheme-container="schemeContainer"
                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
@@ -109,7 +107,7 @@ export default {
             }
             if (shape.component) {
                 this.shapeComponent = shape.component;
-                this.itemSvgPath = shape.component.computePath(this.item, this.schemeContainer);
+                this.itemSvgPath = shape.component.computePath(this.item);
             } else {
                 this.shapeComponent = shape.vueComponentName;
             }
