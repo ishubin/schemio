@@ -72,10 +72,7 @@
                 <tr>
                     <td class="label" width="50%">Pattern</td>
                     <td class="value" width="50%">
-                        <dropdown :value="connector.pattern" :options="patternOptions"
-                            @selected="onPropertyChange(arguments[0].name, 'pattern')">
-                            <span :style="{'background-image': `url(/images/line-patterns/${connector.pattern}.svg)`, 'display': 'block', 'height': '20px', 'width': '140px', 'background-repeat': 'no-repeat'}"></span>
-                        </dropdown>
+                        <stroke-pattern-dropdown :value="connector.pattern" @selected="onPropertyChange(arguments[0], 'pattern')"/>
                     </td>
                 </tr>
             </tbody>
@@ -87,7 +84,7 @@
 import ColorPicker from './ColorPicker.vue';
 import EventBus from './EventBus.js';
 import Connector from './../../scheme/Connector.js';
-import Dropdown from '../Dropdown.vue';
+import StrokePatternDropdown from './StrokePatternDropdown.vue';
 import _ from 'lodash';
 import recentPropsChanges from '../../history/recentPropsChanges';
 
@@ -95,11 +92,10 @@ import recentPropsChanges from '../../history/recentPropsChanges';
 export default {
     props: ['connector'],
 
-    components: {ColorPicker, Dropdown},
+    components: {ColorPicker, StrokePatternDropdown},
     data() {
         return {
             knownCapStyleTypes: Connector.CapType.values(),
-            knownPatterns: Connector.Pattern.values(),
             connectorTypes: Connector.Type.values()
         };
     },
@@ -121,22 +117,6 @@ export default {
                 recentPropsChanges.registerConnectorProp(propertyPath, value);
             }
             this.onConnectorChange();
-        }
-    },
-    computed: {
-        patternOptions() {
-            return _.map(Connector.Pattern.values(), pattern => {
-                return {
-                    name: pattern,
-                    style: {
-                        'background-image': `url(/images/line-patterns/${pattern}.svg)`,
-                        'background-repeat': 'no-repeat',
-                        'height': '20px',
-                        'font-size': '0',
-                        'display': 'block'
-                    }
-                }
-            });
         }
     }
 }

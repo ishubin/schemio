@@ -135,9 +135,7 @@
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
 
-                                <select v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @input="onStyleSelectChange(argName, arg, arguments[0])">
-                                    <option v-for="knownPattern in knownStrokePatterns">{{knownPattern}}</option>
-                                </select>
+                                <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @selected="onStyleValueChange(argName, arguments[0])"/>
 
                                 <element-picker v-if="arg.type === 'element'"
                                     :element="item.shapeProps[argName]"
@@ -181,6 +179,7 @@ import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
+import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 
 
 const ALL_TABS = [
@@ -200,7 +199,7 @@ export default {
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal,
-        StylesPalette, NumberTextfield, ElementPicker
+        StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown
     },
 
     beforeMount() {
@@ -349,7 +348,9 @@ export default {
 
         updateShapePropsDependencies() {
             _.forEach(this.shapeComponent.args, (argConfig, argName) => {
-                if (argConfig.depends) {
+                if (argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true)) {
+                    this.shapePropsControlStates[argName].shown = false;
+                } else if (argConfig.depends) {
                     _.forEach(argConfig.depends, (depArgValue, depArgName) => {
                         const shown = this.item.shapeProps[depArgName] === depArgValue;
                         if (!this.shapePropsControlStates[argName]) {
@@ -358,9 +359,6 @@ export default {
                             this.shapePropsControlStates[argName].shown = shown;
                         }
                     });
-                }
-                if (argConfig.type === 'curve-points') {
-                    this.shapePropsControlStates[argName].shown = false;
                 }
             });
         },

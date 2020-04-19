@@ -10,7 +10,7 @@ const Type = {
 };
 
 const Pattern = {
-    LINE:   'line',
+    SOLID:   'solid',
     DOTTED: 'dotted',
     DASHED: 'dashed',
 

@@ -658,7 +658,7 @@ class SchemeContainer {
             visible: true,
             color: '#333',
             width: 1,
-            pattern: Connector.Pattern.LINE,
+            pattern: Connector.Pattern.SOLID,
             connectorType: Connector.Type.STRAIGHT,
             destination: {
                 type: Connector.CapType.ARROW,
