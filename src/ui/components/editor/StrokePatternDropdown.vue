@@ -12,11 +12,6 @@ export default {
     props: ['value'],
     components: {Dropdown},
 
-    data() {
-        console.log('Value', this.value);
-        return {};
-    },
-
     computed: {
         patternOptions() {
             return _.map(Connector.Pattern.values(), pattern => {
