@@ -389,7 +389,7 @@ export default class StateDragItem extends State {
             this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
             this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
             this.eventBus.emitItemChanged(this.sourceItem.id);
-            this.schemeContainer.readjustDependantItems(item.id);
+            this.schemeContainer.readjustItem(item.id);
         }
     }
 
@@ -525,7 +525,7 @@ export default class StateDragItem extends State {
 
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
-            this.schemeContainer.readjustDependantItems(item.id);
+            this.schemeContainer.readjustItem(item.id);
 
             this.schemeContainer.updateChildTransforms(item);
         }
@@ -628,7 +628,7 @@ export default class StateDragItem extends State {
         this.rebuildConnectorsInCache();
         this.reindexNeeded = true;
         this.eventBus.emitItemChanged(item.id);
-        this.schemeContainer.readjustDependantItems(item.id);
+        this.schemeContainer.readjustItem(item.id);
     }
 
     dragByDragger(item, draggerEdges, x, y) {
@@ -721,7 +721,7 @@ export default class StateDragItem extends State {
             this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
             this.eventBus.emitItemChanged(item.id);
-            this.schemeContainer.readjustDependantItems(item.id);
+            this.schemeContainer.readjustItem(item.id);
         }
     }
 

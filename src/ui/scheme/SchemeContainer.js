@@ -380,8 +380,8 @@ class SchemeContainer {
      * Should be invoked each time an area or path of item changes
      * @param {String} changedItemId
      */
-    readjustDependantItems(changedItemId) {
-        this._readjustDependantItems(changedItemId, {});
+    readjustItem(changedItemId) {
+        this._readjustItem(changedItemId, {});
     }
 
     /**
@@ -389,21 +389,28 @@ class SchemeContainer {
      * @param {*} changedItem 
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
      */
-    _readjustDependantItems(changedItemId, visitedItems) {
+    _readjustItem(changedItemId, visitedItems) {
+        if (visitedItems[changedItemId]) {
+            return;
+        }
+
+        visitedItems[changedItemId] = true;
+
+        const item = this.findItemById(changedItemId);
+        if (!item) {
+            return;
+        }
+
+        const shape = Shape.find(item.shape);
+        if (shape && shape.readjustItem) {
+            shape.readjustItem(item, this);
+            this.eventBus.emitItemChanged(item.id);
+        }
+
+        // searching for items that depend on changed item
         if (this.connectionItemMap[changedItemId]) {
             _.forEach(this.connectionItemMap[changedItemId], dependantItemId => {
-                if (!visitedItems[dependantItemId]) {
-                    visitedItems[dependantItemId] = true;
-                    const dependantItem = this.itemMap[dependantItemId];
-                    if (dependantItem) {
-                        const shape = Shape.find(dependantItem.shape);
-                        if (shape && shape.readjustItem) {
-                            shape.readjustItem(dependantItem, this);
-                            this._readjustDependantItems(dependantItemId, visitItems);
-                            this.eventBus.emitItemChanged(dependantItemId);
-                        }
-                    }
-                }
+                this._readjustItem(dependantItemId, visitedItems);
             });
         }
     }

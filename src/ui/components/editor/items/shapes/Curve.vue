@@ -112,6 +112,8 @@ function readjustItem(item, schemeContainer) {
             item.shapeProps.destinationItem = null;
         }
     }
+
+    return true;
 }
 
 export default {
