@@ -26,7 +26,7 @@
             :offsetY="schemeContainer.screenTransform.y"
             :showReroutes="mode === 'edit'"
             :mode="mode"
-            :boundary-box-color="boundaryBoxColor"
+            :boundary-box-color="'#ff0000'"
             ></connector-svg>
 
 
@@ -41,25 +41,12 @@
             stroke="rgba(255, 255, 255, 0)"
             fill="rgba(255, 255, 255, 0)" />
 
-        <rect class="boundary-box"
-            v-if="mode === 'edit' && item.visible"
-            data-preview-ignore="true"
-            :data-item-id="item.id"
-            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
-            fill="rgba(255,255,255,0.0)"
-            x="0"
-            y="0"
-            :width="item.area.w"
-            :height="item.area.h"
-        />
-
         <g v-if="item.childItems && item.visible">
             <item-svg v-for="childItem in item.childItems"
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}-${schemeContainer.revision}`"
                 :item="childItem"
                 :mode="mode"
-                :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
         </g>    
@@ -76,7 +63,7 @@ import myMath from '../../../myMath';
 
 export default {
     name: 'item-svg',
-    props: ['item', 'mode', 'schemeContainer', 'boundaryBoxColor'],
+    props: ['item', 'mode', 'schemeContainer'],
     components: {ConnectorSvg},
 
     mounted() {

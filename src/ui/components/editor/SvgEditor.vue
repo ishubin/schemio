@@ -35,7 +35,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -58,7 +57,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -112,7 +110,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             />
                     </g>
 
@@ -171,7 +168,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             />
                     </g>
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
