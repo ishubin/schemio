@@ -8,6 +8,8 @@ import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
 
+const IS_NOT_SOFT = false;
+
 
 function isEventRightClick(event) {
     return event.button === 2;
@@ -371,7 +373,7 @@ export default class StateEditCurve extends State {
     }
 
     submitItem() {
-        this.readjustItemArea();
+        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();
@@ -380,45 +382,4 @@ export default class StateEditCurve extends State {
         this.reset();
     }
 
-    readjustItemArea() {
-        if (this.item.shapeProps.points.length < 1) {
-            return;
-        }
-
-        let minX = this.item.shapeProps.points[0].x + this.item.area.x,
-            minY = this.item.shapeProps.points[0].y + this.item.area.y,
-            maxX = minX,
-            maxY = minY;
-
-        forEach(this.item.shapeProps.points, point => {
-            minX = Math.min(minX, point.x + this.item.area.x);
-            minY = Math.min(minY, point.y + this.item.area.y);
-            maxX = Math.max(maxX, point.x + this.item.area.x);
-            maxY = Math.max(maxY, point.y + this.item.area.y);
-            if (point.t === 'B') {
-                minX = Math.min(minX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
-                minY = Math.min(minY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
-                maxX = Math.max(maxX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
-                maxY = Math.max(maxY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
-            }
-        });
-
-        const dx = this.item.area.x - minX;
-        const dy = this.item.area.y - minY;
-        this.item.area.x = minX;
-        this.item.area.y = minY;
-        this.item.area.w = maxX - minX;
-        this.item.area.h = maxY - minY;
-
-        forEach(this.item.shapeProps.points, point => {
-            point.x += dx;
-            point.y += dy;
-            if (point.t === 'B') {
-                point.x1 += dx;
-                point.y1 += dy;
-                point.x2 += dx;
-                point.y2 += dy;
-            }
-        });
-    }
 }

@@ -8,6 +8,9 @@ import EventBus from '../EventBus.js';
 import _ from 'lodash';
 import utils from '../../../utils';
 
+const IS_SOFT = true;
+const IS_NOT_SOFT = false;
+
 
 function isEventRightClick(event) {
     return event.button === 2;
@@ -105,6 +108,7 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
         this.wasMouseMoved = false;
         this.reindexNeeded = false;
+        this.lastDraggedItem = null;
     }
 
     initDraggingForItem(item, x, y) {
@@ -349,6 +353,10 @@ export default class StateDragItem extends State {
             this.eventBus.emitSchemeChangeCommited();
         }
         if (this.reindexNeeded) {
+            if (this.lastDraggedItem) {
+                // Now doing hard readjustment (this is needed for curve items so that they can update their area)
+                this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT);
+            }
             this.schemeContainer.reindexItems();
         }
         this.reset();
@@ -389,7 +397,7 @@ export default class StateDragItem extends State {
             this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
             this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
             this.eventBus.emitItemChanged(this.sourceItem.id);
-            this.schemeContainer.readjustItem(item.id);
+            this.schemeContainer.readjustItem(item.id, IS_SOFT);
         }
     }
 
@@ -427,6 +435,7 @@ export default class StateDragItem extends State {
 
                         this.schemeContainer.updateChildTransforms(item);
                         this.reindexNeeded = true;
+                        this.lastDraggedItem = item;
                     }
                 }
             });
@@ -524,8 +533,9 @@ export default class StateDragItem extends State {
             }
 
             this.reindexNeeded = true;
+            this.lastDraggedItem = item;
             this.eventBus.emitItemChanged(item.id);
-            this.schemeContainer.readjustItem(item.id);
+            this.schemeContainer.readjustItem(item.id, IS_SOFT);
 
             this.schemeContainer.updateChildTransforms(item);
         }
@@ -627,8 +637,9 @@ export default class StateDragItem extends State {
         this.schemeContainer.updateChildTransforms(item);
         this.rebuildConnectorsInCache();
         this.reindexNeeded = true;
+        this.lastDraggedItem = item;
         this.eventBus.emitItemChanged(item.id);
-        this.schemeContainer.readjustItem(item.id);
+        this.schemeContainer.readjustItem(item.id, IS_SOFT);
     }
 
     dragByDragger(item, draggerEdges, x, y) {
@@ -720,8 +731,9 @@ export default class StateDragItem extends State {
             this.schemeContainer.updateChildTransforms(item);
             this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
+            this.lastDraggedItem = item;
             this.eventBus.emitItemChanged(item.id);
-            this.schemeContainer.readjustItem(item.id);
+            this.schemeContainer.readjustItem(item.id, IS_SOFT);
         }
     }
 

@@ -78,7 +78,7 @@ function computePath(item) {
     return path;
 };
 
-function readjustItem(item, schemeContainer) {
+function readjustItem(item, schemeContainer, isSoft) {
     const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
     if (item.shapeProps.sourceItem) {
         const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
@@ -113,8 +113,55 @@ function readjustItem(item, schemeContainer) {
         }
     }
 
+    if (!isSoft) {
+        readjustItemArea(item);
+    }
+
     return true;
 }
+
+function readjustItemArea(item) {
+    if (item.shapeProps.points.length < 1) {
+        return;
+    }
+
+    let minX = item.shapeProps.points[0].x + item.area.x,
+        minY = item.shapeProps.points[0].y + item.area.y,
+        maxX = minX,
+        maxY = minY;
+
+    forEach(item.shapeProps.points, point => {
+        minX = Math.min(minX, point.x + item.area.x);
+        minY = Math.min(minY, point.y + item.area.y);
+        maxX = Math.max(maxX, point.x + item.area.x);
+        maxY = Math.max(maxY, point.y + item.area.y);
+        if (point.t === 'B') {
+            minX = Math.min(minX, point.x1 + item.area.x, point.x2 + item.area.x);
+            minY = Math.min(minY, point.y1 + item.area.y, point.y2 + item.area.y);
+            maxX = Math.max(maxX, point.x1 + item.area.x, point.x2 + item.area.x);
+            maxY = Math.max(maxY, point.y1 + item.area.y, point.y2 + item.area.y);
+        }
+    });
+
+    const dx = item.area.x - minX;
+    const dy = item.area.y - minY;
+    item.area.x = minX;
+    item.area.y = minY;
+    item.area.w = maxX - minX;
+    item.area.h = maxY - minY;
+
+    forEach(item.shapeProps.points, point => {
+        point.x += dx;
+        point.y += dy;
+        if (point.t === 'B') {
+            point.x1 += dx;
+            point.y1 += dy;
+            point.x2 += dx;
+            point.y2 += dy;
+        }
+    });
+}
+
 
 export default {
     props: ['item', 'hiddenTextProperty'],

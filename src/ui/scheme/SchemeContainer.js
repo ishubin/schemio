@@ -379,9 +379,10 @@ class SchemeContainer {
     /**
      * Should be invoked each time an area or path of item changes
      * @param {String} changedItemId
+     * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      */
-    readjustItem(changedItemId) {
-        this._readjustItem(changedItemId, {});
+    readjustItem(changedItemId, isSoft) {
+        this._readjustItem(changedItemId, {}, isSoft);
     }
 
     /**
@@ -389,7 +390,7 @@ class SchemeContainer {
      * @param {*} changedItem 
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
      */
-    _readjustItem(changedItemId, visitedItems) {
+    _readjustItem(changedItemId, visitedItems, isSoft) {
         if (visitedItems[changedItemId]) {
             return;
         }
@@ -403,14 +404,14 @@ class SchemeContainer {
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
-            shape.readjustItem(item, this);
+            shape.readjustItem(item, this, isSoft);
             this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
         if (this.connectionItemMap[changedItemId]) {
             _.forEach(this.connectionItemMap[changedItemId], dependantItemId => {
-                this._readjustItem(dependantItemId, visitedItems);
+                this._readjustItem(dependantItemId, visitedItems, isSoft);
             });
         }
     }
