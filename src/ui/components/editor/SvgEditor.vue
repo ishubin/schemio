@@ -130,23 +130,6 @@
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
-                    <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
-                    <g v-if="state === 'connecting'">
-                        <!-- TODO change the way connector hitbox is rendered to use its shape instead -->
-                        <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
-                            <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
-                                <rect class="item-hitbox" data-preview-ignore="true"
-                                    :data-item-id="item.id"
-                                    :x="0"
-                                    :y="0"
-                                    :width="item.area.w"
-                                    :height="item.area.h"
-                                    fill="rgba(255, 0, 255, 0.0)"
-                                    stroke="none"
-                                    ></rect>
-                            </g>
-                        </g>
-                    </g>
                 </g>
 
 
@@ -262,7 +245,6 @@ import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
 import StateEditCurve from './states/StateEditCurve.js';
-import StateConnecting from './states/StateConnecting.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
@@ -304,7 +286,6 @@ const states = {
     createItem: new StateCreateItem(EventBus),
     editCurve: new StateEditCurve(EventBus),
     dragItem: new StateDragItem(EventBus),
-    connecting: new StateConnecting(EventBus),
     pickElement: new StatePickElement(EventBus)
 };
 let currentState = states.interact;
@@ -324,7 +305,7 @@ export default {
         }
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
@@ -351,7 +332,7 @@ export default {
     beforeDestroy(){
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
-        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
@@ -431,7 +412,7 @@ export default {
             }
         },
 
-        identifyElement(element) {
+        identifyElement(element, point) {
             if (element) {
                 const elementType = element.getAttribute('data-type');
                 if (elementType === 'curve-point') {
@@ -504,7 +485,8 @@ export default {
                     if (item) {
                         return {
                             connectorStarter: {
-                                item
+                                item,
+                                point
                             }
                         };
                     }
@@ -535,7 +517,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDown(event) {
@@ -543,7 +525,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseUp(event) {
@@ -551,7 +533,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDoubleClick(event) {
@@ -559,7 +541,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         onCancelCurrentState() {
@@ -611,10 +593,16 @@ export default {
             states[this.state].reset();
             states[this.state].setItem(item);
         },
-        onSwitchStateConnecting(item) {
-            this.state = 'connecting';
-            states.connecting.reset();
-            states.connecting.setSourceItem(item);
+
+        onStartConnecting(item, worldPoint) {
+            let localPoint = null;
+            if (worldPoint) {
+                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, item);
+            }
+            states.editCurve.reset();
+            const curveItem = states.editCurve.initConnectingFromSourceItem(item, localPoint);
+            this.curveEditItem = curveItem;
+            this.state = 'editCurve';
         },
 
         onCurveEditRequested(item) {

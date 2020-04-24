@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import {forEach} from 'lodash';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
@@ -61,6 +60,52 @@ export default class StateEditCurve extends State {
         this.updateCursor('crosshair');
     }
 
+    initConnectingFromSourceItem(sourceItem, localPoint) {
+        if (!localPoint) {
+            localPoint = {
+                x: sourceItem.area.w / 2,
+                y: sourceItem.area.h / 2
+            };
+        }
+
+        const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
+
+        let curveItem = {shape: 'curve', name: `${sourceItem.name} ->`};
+        this.schemeContainer.enrichItemWithDefaults(curveItem);
+        curveItem = this.schemeContainer.addItem(curveItem);
+        this.schemeContainer.remountItemInsideOtherItem(curveItem.id, sourceItem.id, sourceItem.childItems ? sourceItem.childItems.length : 0);
+        curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
+
+        const closestPoint = this.findClosestPointToItem(sourceItem, localPoint);
+        curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+        curveItem.shapeProps.points = [{
+            t: 'L', x: closestPoint.x, y: closestPoint.y
+        }, {
+            t: 'L', x: worldPoint.x, y: worldPoint.y
+        }];
+
+        this.item = curveItem;
+        this.addedToScheme = true;
+        this.creatingNewPoints = true;
+        this.updateCursor('crosshair');
+        return this.item;
+    }
+
+    findClosestPointToItem(item, localPoint) {
+        const shape = Shape.find(item.shape);
+        if (shape) {
+            const path = shape.computePath(item);
+            if (path) {
+                const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
+                return this.schemeContainer.closestPointToSvgPath(item, path, worldPoint);
+            }
+        }
+        return {
+            x: item.area.w / 2,
+            y: item.area.h / 2
+        };
+    }
+
     initFirstClick(x, y) {
         this.item.shapeProps.points = [{
             x, y, t: 'L'
@@ -95,6 +140,9 @@ export default class StateEditCurve extends State {
 
             // checking if the curve was attached to another item
             if (this.item.shapeProps.destinationItem) {
+                if (this.item.shapeProps.sourceItem) {
+                    this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
+                }
                 this.submitItem();
                 return;
             }
@@ -124,6 +172,16 @@ export default class StateEditCurve extends State {
                 this.draggedObject = object;
             }
         }
+    }
+    
+    createNameFromAttachedItems(sourceSelector, destinationSelector) {
+        const sourceItem = this.schemeContainer.findFirstElementBySelector(sourceSelector);
+        const destinationItem = this.schemeContainer.findFirstElementBySelector(destinationSelector);
+        if (sourceItem && destinationItem) {
+            return `${sourceItem.name} -> ${destinationItem.name}`;
+        }
+        
+        return 'Curve';
     }
 
     mouseMove(x, y, mx, my, object, event) {

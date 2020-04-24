@@ -300,6 +300,7 @@ class SchemeContainer {
      * @param {String} excludedId - item that should be excluded
      */
     findClosestPointToItems(x, y, d, excludedId) {
+        // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
         let globalPoint = {x, y};
         let item = null;
         for (let i = 0; i < this._itemArray.length; i++) {
@@ -517,7 +518,7 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + 1);
     }
 
-    enrichItemWithDefaults(item, shape) {
+    enrichItemWithDefaults(item) {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
             groups: [],

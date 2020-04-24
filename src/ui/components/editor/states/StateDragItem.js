@@ -179,7 +179,7 @@ export default class StateDragItem extends State {
                 this.handleItemLeftMouseDown(x, y, mx, my, object.item, event);
             }
         } else if (object.connectorStarter) {
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item);
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
         } else if (object.controlPoint) {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else {
