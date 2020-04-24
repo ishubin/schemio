@@ -69,7 +69,7 @@ export default {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
-    computePath() {return null;},
+    computePath,
     identifyTextEditArea,
 
     controlPoints: {

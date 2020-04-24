@@ -1086,7 +1086,7 @@ class SchemeContainer {
     }
 
     /**
-     * Finds items and connectors that match specified selector
+     * Finds items that match specified selector
      * @param {String} selector contains a selector for an element
      * @param {SchemeItem} selfItem 
      */
@@ -1101,11 +1101,6 @@ class SchemeContainer {
             if (item) {
                 return [item];
             }
-
-            const connector = this.findConnectorById(id);
-            if (connector) {
-                return [connector];
-            }
         } else {
             const colonIndex = selector.indexOf(':');
             if (colonIndex > 0) {
@@ -1115,7 +1110,7 @@ class SchemeContainer {
                 }
             }
         }
-        return null;
+        return [];
     }
 
     getConnectingSourceItemIds(destinationId) {

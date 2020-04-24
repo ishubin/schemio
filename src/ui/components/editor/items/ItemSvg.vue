@@ -47,6 +47,7 @@
                 :key="`${childItem.id}-${childItem.shape}-${schemeContainer.revision}`"
                 :item="childItem"
                 :mode="mode"
+                :scheme-container="schemeContainer"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
         </g>    

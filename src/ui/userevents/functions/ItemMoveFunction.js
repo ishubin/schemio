@@ -1,5 +1,6 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
+import Shape from '../../components/editor/items/shapes/Shape';
 
 
 class MoveAnimation extends Animation {
@@ -20,30 +21,27 @@ class MoveAnimation extends Animation {
         }
 
         this.domPath = null;
+        this.pathItem = null;
         this.pathTotalLength = 1.0;
-        this.offsetX = 0;
-        this.offsetY = 0;
-        this.connectorSourceItem = null;
+        
     }
 
     init() {
         if (this.args.animate && this.args.usePath && this.args.path) {
-            // TODO fix args.path to new element here
 
-            const elements = this.schemeContainer.findElementsBySelector(this.args.path, this.item);
+            const element = this.schemeContainer.findFirstElementBySelector(this.args.path, this.item);
 
-            if (elements && elements.length > 0) {
-                const element = elements[0];
-                if (element.shape) {
-                    this.domPath = document.getElementById(`item-svg-path-${element.id}`);
-                    this.offsetX = element.area.x - this.item.area.w/2;
-                    this.offsetY = element.area.y - this.item.area.h/2;
-                } else {
-                    // means it is a connector
-                    this.connectorSourceItem = this.schemeContainer.findItemById(element.meta.sourceItemId);
-                    this.domPath = document.getElementById(`connector-${element.id}-path`);
-                    this.offsetX = -this.item.area.w/2;
-                    this.offsetY = -this.item.area.h/2;
+            if (element) {
+                const shape = Shape.find(element.shape);
+                if (shape) {
+                    const path = shape.computePath(element);
+                    if (path) {
+                        this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        this.domPath.setAttribute('d', path);
+                        // this.offsetX = element.area.x - this.item.area.w/2;
+                        // this.offsetY = element.area.y - this.item.area.h/2;
+                        this.pathItem = element;
+                    }
                 }
             }
 
@@ -92,10 +90,7 @@ class MoveAnimation extends Animation {
 
     moveToPathLength(length) {
         const point = this.domPath.getPointAtLength(length);
-        let worldPoint = point;
-        if (this.connectorSourceItem) {
-            worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.connectorSourceItem);
-        }
+        let worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.pathItem);
 
         // bringing transform back from world to local so that also works correctly for sub-items
         let localPoint = worldPoint;
@@ -105,8 +100,8 @@ class MoveAnimation extends Animation {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
             }
         }
-        this.item.area.x = localPoint.x + this.offsetX;
-        this.item.area.y = localPoint.y + this.offsetY;
+        this.item.area.x = localPoint.x - this.item.area.w / 2;
+        this.item.area.y = localPoint.y - this.item.area.h / 2;
         this.schemeContainer.reindexItemTransforms(this.item);
     }
 

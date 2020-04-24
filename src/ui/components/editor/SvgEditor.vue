@@ -93,7 +93,9 @@
                 <rect id="svg-rect-void" x="0" y="0" :width="width" :height="height" data-preview-ignore="true" fill="rgba(255, 255, 255, 0.0)" stroke="none"/>
 
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="item in schemeContainer.worldItems" class="item-container"
+                    <g v-for="item in schemeContainer.worldItems"
+                        v-if="item.visible"
+                        class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
@@ -134,7 +136,9 @@
 
 
                 <g :transform="viewportTransform">
-                    <g v-for="item in schemeContainer.viewportItems" class="item-container"
+                    <g v-for="item in schemeContainer.viewportItems"
+                        v-if="item.visible"
+                        class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
