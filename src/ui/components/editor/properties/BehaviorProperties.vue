@@ -251,7 +251,7 @@ export default {
         createMethodSuggestionsForElement(element) {
             const options = [];
 
-            _.forEach(Functions.item, (func, funcId) => {
+            _.forEach(Functions.main, (func, funcId) => {
                 if (funcId !== 'set') {
                     options.push({
                         method: funcId,
@@ -357,7 +357,7 @@ export default {
             event.actions.push({
                 element,
                 method: 'show',
-                args: _.mapValues(Functions.item.show.args, arg => arg.value)
+                args: _.mapValues(Functions.main.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
         },
@@ -400,7 +400,7 @@ export default {
         },
 
         getDefaultArgsForMethod(action, method) {
-            let functions = Functions.item;
+            let functions = Functions.main;
 
             if (functions[method]) {
                 const functionArgs = functions[method].args;
@@ -453,7 +453,7 @@ export default {
         },
 
         showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
-            let functionDescription = Functions.item[action.method];
+            let functionDescription = Functions.main[action.method];
 
             if (!functionDescription) {
                 functionDescription = {
