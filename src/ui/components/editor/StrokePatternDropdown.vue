@@ -5,7 +5,7 @@
     </dropdown>
 </template>
 <script>
-import Connector from './../../scheme/Connector';
+import StrokePattern from './items/StrokePattern';
 import Dropdown from '../Dropdown.vue';
 
 export default {
@@ -14,7 +14,7 @@ export default {
 
     computed: {
         patternOptions() {
-            return _.map(Connector.Pattern.values(), pattern => {
+            return _.map(StrokePattern.patterns, pattern => {
                 return {
                     name: pattern,
                     style: {
@@ -29,7 +29,7 @@ export default {
         },
 
         selectedPattern() {
-            return this.value || Connector.Pattern.SOLID;
+            return this.value || StrokePattern.patterns[0];
         }
     }
 }

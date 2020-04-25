@@ -10,7 +10,7 @@
 </template>
 <script>
 /**
- * This component is used in order to pick any element on the scheme (e.g. item, connector)
+ * This component is used in order to pick any item on the scheme
  */
 import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
@@ -89,16 +89,6 @@ export default {
                         id: item.id,
                         type: 'item'
                     });
-                    if (item.connectors) {
-                        _.forEach(item.connectors, (connector, connectorIndex) => {
-                            options.push({
-                                iconClass: 'fas fa-link',
-                                name: connector.name || `${item.name} #${connectorIndex}`,
-                                id: connector.id,
-                                type: 'connector'
-                            });
-                        });
-                    }
                 }
             });
 
@@ -122,7 +112,7 @@ export default {
                     this.$emit('selected', element);
                 });
             } else {
-                if (option.type === 'item' || option.type === 'connector') {
+                if (option.type === 'item') {
                     this.$emit('selected', `#${option.id}`);
                 } else if (option.type === 'item-group') {
                     this.$emit('selected', `group: ${option.id}`);
@@ -159,20 +149,12 @@ export default {
                 };
             }
 
-            const elements = this.schemeContainer.findElementsBySelector(this.element, this.selfItem);
-            if (elements && elements.length > 0) {
-                let firstElement = elements[0];
-
-                let iconClass = 'fas fa-cube';
-                let type = 'item';
-                if (!firstElement.shape) {
-                    iconClass = 'fas fa-link';
-                    type = 'connector';
-                }
+            const element = this.schemeContainer.findFirstElementBySelector(this.element, this.selfItem);
+            if (element) {
                 return {
-                    name: firstElement.name || firstElement.id,
-                    iconClass,
-                    type
+                    name: element.name || element.id,
+                    iconClass: 'fas fa-cube',
+                    type: 'item'
                 };
             }
 

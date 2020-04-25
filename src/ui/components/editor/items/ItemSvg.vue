@@ -17,19 +17,6 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
-            :key="connector.id"
-            :sourceItem="item"
-            :connector="connector"
-            :zoom="schemeContainer.screenTransform.scale"
-            :offsetX="schemeContainer.screenTransform.x"
-            :offsetY="schemeContainer.screenTransform.y"
-            :showReroutes="mode === 'edit'"
-            :mode="mode"
-            :boundary-box-color="'#ff0000'"
-            ></connector-svg>
-
-
         <g :id="`animation-container-${item.id}`"></g>
 
         <path v-if="itemSvgPath && shouldDrawEventLayer"
@@ -58,14 +45,12 @@
 <script>
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
-import ConnectorSvg from './ConnectorSvg.vue';
 import myMath from '../../../myMath';
 
 
 export default {
     name: 'item-svg',
     props: ['item', 'mode', 'schemeContainer'],
-    components: {ConnectorSvg},
 
     mounted() {
         this.switchShape(this.item.shape);

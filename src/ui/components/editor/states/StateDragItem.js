@@ -17,15 +17,6 @@ function isEventRightClick(event) {
 }
 
 
-function visitItems(items, callback) {
-    _.forEach(items, item => {
-        callback(item);
-        if (item.childItems) {
-            visitItems(item.childItems, callback);
-        }
-    })
-}
-
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
  * @param {MouseEvent} event 
@@ -45,13 +36,8 @@ export default class StateDragItem extends State {
         this.originalPoint = {x: 0, y: 0};
         this.startedDragging = true;
         this.controlPoint = null; // stores coords for item control point
-        this.selectedConnector = null;
-        this.selectedRerouteId = -1;
-        this.sourceItem = null; // source item for a connector
         this.multiSelectBox = null;
 
-        ///used in order to optimize rebuilding of all connectors
-        this.connectorsBuildChache = null;
         this.rotatingItem = false;
 
         // used to check whether the mouse moved between mouseDown and mouseUp events
@@ -67,14 +53,11 @@ export default class StateDragItem extends State {
         this.updateCursor('default');
         this.reindexNeeded = false;
         this.startedDragging = false;
-        this.selectedConnector = null;
-        this.selectedRerouteId = -1;
         this.dragger = null;
         this.rotatingItem = false;
         this.sourceItem = null;
         this.controlPoint = null;
         this.multiSelectBox = null;
-        this.connectorsBuildChache = null;
         this.wasMouseMoved = false;
     }
 
@@ -140,15 +123,6 @@ export default class StateDragItem extends State {
         this.wasMouseMoved = false;
     }
 
-    initDraggingForReroute(sourceItem, connector, rerouteId, x, y) {
-        this.originalPoint.x = x;
-        this.originalPoint.y = y;
-        this.startedDragging = true;
-        this.selectedConnector = connector;
-        this.selectedRerouteId = rerouteId;
-        this.sourceItem = sourceItem;
-    }
-
     initScreenDrag(mx, my) {
         this.startedDragging = true;
         this.originalPoint.x = mx;
@@ -170,8 +144,6 @@ export default class StateDragItem extends State {
         } else if (object.rotationDragger) {
             this.initItemRotation(object.rotationDragger.item, x, y);
             this.initDragging(x, y);
-        } else if (object.connector) {
-            this.handleConnectorMouseDown(x, y, mx, my, object, event);
         } else if (object.item) {
             if (isEventRightClick(event)) {
                 this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
@@ -234,7 +206,6 @@ export default class StateDragItem extends State {
         if (!this.schemeContainer.isItemSelected(item)) {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
-        this.schemeContainer.deselectAllConnectors();
         
         this.initDraggingForItem(item, x, y);
         _.forEach(this.schemeContainer.selectedItems, item => {
@@ -249,31 +220,6 @@ export default class StateDragItem extends State {
 
         if (!this.schemeContainer.isItemSelected(item)) {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
-        }
-        this.schemeContainer.deselectAllConnectors();
-    }
-
-    handleConnectorMouseDown(x, y, mx, my, object, event) {
-        const sourceItem = this.schemeContainer.findItemById(object.connector.meta.sourceItemId);
-
-        if (isMultiSelectKey(event)) {
-            if (object.rerouteId >= 0) {
-                object.connector.reroutes.splice(object.rerouteId, 1);
-
-                this.schemeContainer.buildConnector(sourceItem, object.connector);
-                this.eventBus.emitConnectorChanged(object.connector.id);
-            } else {
-                const rerouteId = this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.connector);
-                this.initDraggingForReroute(sourceItem, object.connector, rerouteId, x, y);
-                this.eventBus.emitConnectorChanged(object.connector.id);
-            }
-        } else {
-            this.schemeContainer.selectConnector(object.connector, false);
-            this.deselectAllItems();
-            this.eventBus.emitConnectorSelected(object.connector.id, object.connector);
-            if (object.rerouteId >= 0) {
-                this.initDraggingForReroute(sourceItem, object.connector, object.rerouteId, x, y);
-            }
         }
     }
 
@@ -297,15 +243,7 @@ export default class StateDragItem extends State {
                     var dx = x - this.originalPoint.x,
                         dy = y - this.originalPoint.y;
 
-                    if (this.connectorsBuildChache === null) {
-                        this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
-                    }
-
                     this.dragItems(this.schemeContainer.selectedItems, dx, dy);
-
-                    this.rebuildConnectorsInCache();
-                } else if (this.selectedConnector && this.selectedRerouteId >= 0) {
-                    this.dragReroute(x, y);
                 }
             }
         } else if (this.multiSelectBox) {
@@ -330,8 +268,6 @@ export default class StateDragItem extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.multiSelectBox) {
-            this.schemeContainer.deselectAllConnectors();
-
             if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
             }
@@ -369,17 +305,6 @@ export default class StateDragItem extends State {
             } else {
                 this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
             }
-        } else if (object.connector) {
-            if (object.rerouteId >= 0) {
-                object.connector.reroutes.splice(object.rerouteId, 1);
-                this.schemeContainer.buildConnector(this.schemeContainer.findItemById(object.connector.meta.sourceItemId), object.connector);
-                this.eventBus.emitConnectorChanged(object.connector.id);
-                this.eventBus.emitSchemeChangeCommited();
-            } else {
-                this.schemeContainer.addReroute(this.snapX(x), this.snapY(y), object.connector);
-                this.eventBus.emitConnectorChanged(object.connector.id);
-                this.eventBus.emitSchemeChangeCommited();
-            }
         }
     }
 
@@ -410,7 +335,6 @@ export default class StateDragItem extends State {
     dragItemsByKeyboard(dx, dy) {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
-            this.fillConnectorsBuildCache(this.schemeContainer.selectedItems);
             // storing ids of dragged items in a map
             // this way we will be able to figure out whether any items ancestors was dragged already
             // so that we can skip dragging of item
@@ -439,7 +363,6 @@ export default class StateDragItem extends State {
                     }
                 }
             });
-            this.rebuildConnectorsInCache();
         }
     }
     
@@ -448,13 +371,6 @@ export default class StateDragItem extends State {
         // this way we will be able to figure out whether any items ancestors was dragged already
         // so that we can skip dragging of item
         const itemDraggedIds = {};
-        
-        //storing world points of items so that after all the items are dragged we can re-adjust reroutes for affected connectors (only in case both of their items are dragged equally)
-        const itemWorldPoints = {};
-        visitItems(items, item => {
-            itemWorldPoints[item.id] = this.schemeContainer.worldPointOnItem(0, 0, item);
-        });
-
 
         let realDx = dx, realDy = dy;
         _.forEach(items, (item, itemIndex) => {
@@ -471,37 +387,6 @@ export default class StateDragItem extends State {
                 }
             }
         });
-
-        // re-adjusting connector reroutes
-        visitItems(items, item => {
-            const oldP1 = itemWorldPoints[item.id];
-            if (item.connectors && oldP1) {
-                const newP1 = this.schemeContainer.worldPointOnItem(0, 0, item);
-                _.forEach(item.connectors, connector => {
-                    if (connector.itemId) {
-                        const oldP2 = itemWorldPoints[connector.itemId];
-                        const otherItem = this.schemeContainer.findItemById(connector.itemId);
-                        if (oldP2 && otherItem) {
-                            const newP2 = this.schemeContainer.worldPointOnItem(0, 0, otherItem);
-                            const diff = Math.abs(newP1.x - oldP1.x - (newP2.x - oldP2.x)) + Math.abs(newP1.y - oldP1.y - (newP2.y - oldP2.y));
-                            if (diff < 0.00001) {
-                                //re-adjusting connector reroutes
-                                this.readjustConnectorReroutes(connector, newP1.x - oldP1.x, newP1.y - oldP1.y);
-                            }
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    readjustConnectorReroutes(connector, dx, dy) {
-        if (connector.reroutes) {
-            _.forEach(connector.reroutes, reroute => {
-                reroute.x += dx;
-                reroute.y += dy;
-            });
-        }
     }
 
     dragItem(item, dx, dy, useSnap) {
@@ -538,20 +423,6 @@ export default class StateDragItem extends State {
             this.schemeContainer.readjustItem(item.id, IS_SOFT);
 
             this.schemeContainer.updateChildTransforms(item);
-        }
-    }
-
-    dragReroute(x, y) {
-        var dx = x - this.originalPoint.x;
-        var dy = y - this.originalPoint.y;
-
-        if (Math.abs(dx) > 0 || Math.abs(dy) > 0) {
-            this.selectedConnector.reroutes[this.selectedRerouteId].x = this.snapX(x);
-            this.selectedConnector.reroutes[this.selectedRerouteId].y = this.snapY(y);
-            if (this.sourceItem) {
-                this.schemeContainer.buildConnector(this.sourceItem, this.selectedConnector);
-                this.eventBus.emitConnectorChanged(this.selectedConnector.id);
-            }
         }
     }
 
@@ -631,11 +502,7 @@ export default class StateDragItem extends State {
         item.area.x = np0x;
         item.area.y = np0y;
 
-        if (this.connectorsBuildChache === null) {
-            this.fillConnectorsBuildCache([item]);
-        }
         this.schemeContainer.updateChildTransforms(item);
-        this.rebuildConnectorsInCache();
         this.reindexNeeded = true;
         this.lastDraggedItem = item;
         this.eventBus.emitItemChanged(item.id);
@@ -717,10 +584,6 @@ export default class StateDragItem extends State {
             }
         });
         if (change > 0) {
-            if (this.connectorsBuildChache === null) {
-                // TODO optimize: don't do it here. prepare connectors upfront at the moment when drag is initiated on mouseDown
-                this.fillConnectorsBuildCache([item]);
-            }
             item.area.x = nx;
             item.area.y = ny;
             item.area.w = nw;
@@ -729,7 +592,6 @@ export default class StateDragItem extends State {
                 this.readjustCurveItemPoints(item);
             }
             this.schemeContainer.updateChildTransforms(item);
-            this.rebuildConnectorsInCache();
             this.reindexNeeded = true;
             this.lastDraggedItem = item;
             this.eventBus.emitItemChanged(item.id);
@@ -758,44 +620,6 @@ export default class StateDragItem extends State {
                 item.shapeProps.points[index].y2 = point.y2 * item.area.h / item.meta.itemOriginalArea.h;
             }
         });
-    }
-
-    rebuildConnectorsInCache() {
-        _.forEach(this.connectorsBuildChache, (v) => {
-            this.schemeContainer.buildConnector(v.item, v.connector);
-            this.eventBus.emitConnectorChanged(v.connector.id);
-        });
-    }
-
-    /**
-     * This is a recursive function that puts all the connectors related to an item (incomming & outgoing) into a temporary cache.
-     * It is used in order to optimize performance for such things like dragging or resizing items.
-     * @param {Array} items 
-     */
-    fillConnectorsBuildCache(items) {
-        this.connectorsBuildChache = {};
-        this._fillConnectorsBuildCache(items, this.connectorsBuildChache);
-    }
-
-    _fillConnectorsBuildCache(items, cache) {
-        _.forEach(items, item => {
-            if (item.childItems) {
-                this._fillConnectorsBuildCache(item.childItems, cache);
-            }
-            _.forEach(item.connectors, connector => {
-                cache[connector.id] = {item, connector};
-            });
-            _.forEach(this.schemeContainer.getConnectingSourceItemIds(item.id), sourceId => {
-                const sourceItem = this.schemeContainer.findItemById(sourceId);
-                if (sourceItem) {
-                    _.forEach(sourceItem.connectors, connector => {
-                        if (!cache.hasOwnProperty(connector.id)) {
-                            cache[connector.id] = {item: sourceItem, connector};
-                        }
-                    });
-                }
-            });
-        })
     }
 
     deselectAllItems() {

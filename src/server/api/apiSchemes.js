@@ -41,27 +41,6 @@ function sanitizeScheme(scheme) {
     return scheme;
 }
 
-function convertElement(element) {
-    if (!element) {
-        return null;
-    }
-    if (element.item) {
-        if (element.item === 'self') {
-            return 'self';
-        }
-        return `#${element.item}`;
-    } else if (element.connector) {
-        if (element.connector === 'self') {
-            return 'self';
-        }
-        return `#${element.connector}`;
-    } else if (element.itemGroup) {
-        return `group: ${element.itemGroup}`;
-    }
-
-    throw new Error('Do not understand element', element);
-}
-
 const ApiSchemes = {
     getScheme(req, res) {
         const projectId = req.params.projectId;

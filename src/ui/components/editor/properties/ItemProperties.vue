@@ -222,7 +222,7 @@ export default {
             tabs: ALL_TABS,
             knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
 
-            knownStrokePatterns: StrokePattern.getPatternsList(),
+            knownStrokePatterns: StrokePattern.patterns,
 
             knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
             currentTab: 'description',

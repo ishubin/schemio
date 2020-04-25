@@ -13,9 +13,7 @@ function leadingZero(number) {
 function sanitizeItem(oldItem) {
     let item = {};
     _.forEach(oldItem, (value, field) => {
-        if (field === 'connectors') {
-            item.connectors = _.map(value, sanitizeConnector);
-        } else if (field === 'childItems') {
+        if (field === 'childItems') {
             item[field] = _.map(value, sanitizeItem);
         } else if (field !== 'meta') {
             item[field] = value;
@@ -23,16 +21,6 @@ function sanitizeItem(oldItem) {
     });
     return item;
 }
-function sanitizeConnector(oldConnector) {
-    var connector = {};
-    _.forEach(oldConnector, (value, field) => {
-        if (field !== 'meta') {
-            connector[field] = value;
-        }
-    });
-    return connector;
-}
-
 
 function sanitizeScheme(scheme) {
     const items = _.map(scheme.items, sanitizeItem);

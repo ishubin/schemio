@@ -1,14 +1,5 @@
 import utils from '../utils.js';
 
-const Type = {
-    STRAIGHT: 'straight',
-    SMOOTH: 'smooth',
-
-    values() {
-        return utils.enumerateConstants(this);
-    }
-};
-
 const Pattern = {
     SOLID:   'solid',
     DOTTED: 'dotted',
@@ -42,7 +33,6 @@ const CapType = {
 
 
 export default {
-    Type,
     Pattern,
     CapType
 };

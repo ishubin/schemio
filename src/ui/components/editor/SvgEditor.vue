@@ -213,16 +213,13 @@
                 <li @click="$emit('clicked-add-item-link', contextMenu.item)">
                     <i class="fas fa-link"></i> Add link
                 </li>
-                <li @click="$emit('clicked-add-item-to-item', contextMenu.item)">
-                    <i class="far fa-plus-square"></i> Add item
-                </li>
                 <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
                     <i class="far fa-file"></i> Create scheme for this element...
                 </li>
                 <li @click="copySelectedItems()">
                     Copy
                 </li>
-                <li @click="deleteSelectedItemsAndConnectors()">
+                <li @click="deleteSelectedItems()">
                     <i class="fa fa-times"></i> Delete
                 </li>
             </ul>
@@ -439,30 +436,6 @@ export default {
                     }
                 }
 
-                const connectorId = element.getAttribute('data-connector-id');
-                if (connectorId) {
-                    const connector = this.schemeContainer.findConnectorById(connectorId);
-                    if (connector) {
-                        return {
-                            connector,
-                        };
-                    }
-                }
-
-                const rerouteIndex = element.getAttribute('data-reroute-index');
-                if (rerouteIndex) {
-                    const path = rerouteIndex.split('/');
-                    const connectorId = path[0];
-                    const connector = this.schemeContainer.findConnectorById(connectorId);
-                    if (connector) {
-                        return {
-                            connector,
-                            rerouteId: path[1],
-                        };
-                    }
-
-                }
-
                 const draggerItemId = element.getAttribute('data-dragger-item-id');
                 if (draggerItemId) {
                     const item = this.schemeContainer.findItemById(draggerItemId);
@@ -652,7 +625,7 @@ export default {
             if (key === EventBus.KEY.ESCAPE) {
                 states[this.state].cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
-                this.deleteSelectedItemsAndConnectors();
+                this.deleteSelectedItems();
             } else {
                 states[this.state].keyPressed(key, keyOptions);
             }
@@ -664,10 +637,9 @@ export default {
             }
         },
 
-        deleteSelectedItemsAndConnectors() {
-            this.schemeContainer.deleteSelectedItemsAndConnectors();
+        deleteSelectedItems() {
+            this.schemeContainer.deleteSelectedItems();
             EventBus.emitSchemeChangeCommited();
-            this.$emit('deleted-items');
             this.$forceUpdate();
         },
 
@@ -812,15 +784,6 @@ export default {
                 x: (mouseX - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale,
                 y: (mouseY - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale
             };
-        },
-
-        connectorToSvgPath(connector) {
-            var path = `M ${connector.meta.points[0].x} ${connector.meta.points[0].y}`
-
-            for (var i = 1; i < connector.meta.points.length; i++) {
-                path += ` L ${connector.meta.points[i].x} ${connector.meta.points[i].y}`
-            }
-            return path;
         },
 
         onRightClickedItem(item, mouseX, mouseY) {

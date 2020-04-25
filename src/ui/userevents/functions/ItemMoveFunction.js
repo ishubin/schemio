@@ -38,8 +38,6 @@ class MoveAnimation extends Animation {
                     if (path) {
                         this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
                         this.domPath.setAttribute('d', path);
-                        // this.offsetX = element.area.x - this.item.area.w/2;
-                        // this.offsetY = element.area.y - this.item.area.h/2;
                         this.pathItem = element;
                     }
                 }

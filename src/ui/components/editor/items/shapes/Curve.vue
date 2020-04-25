@@ -19,7 +19,7 @@
 import {forEach} from 'lodash';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
-import Connector from '../../../../scheme/Connector';
+import Path from '../../../../scheme/Path';
 import Shape from './Shape';
 import utils from '../../../../utils';
 
@@ -182,9 +182,9 @@ export default {
         strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
         strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
         points            : {type: 'curve-points',  value: [], name: 'Curve points'},
-        sourceCap         : {type: 'choice',        value: Connector.CapType.EMPTY, name: 'Source Cap',      options: Connector.CapType.values()},
+        sourceCap         : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Source Cap',      options: Path.CapType.values()},
         sourceCapSize     : {type: 'number',        value: 10, name: 'Source Cap Size'},
-        destinationCap    : {type: 'choice',        value: Connector.CapType.EMPTY, name: 'Destination Cap', options: Connector.CapType.values()},
+        destinationCap    : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Destination Cap', options: Path.CapType.values()},
         destinationCapSize: {type: 'number',        value: 10, name: 'Destination Cap Size'},
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
@@ -217,10 +217,10 @@ export default {
         computeCaps(svgPath) {
             const caps = [];
 
-            let sourceCap         = this.item.shapeProps.sourceCap || Connector.CapType.EMPTY;
-            let destinationCap    = this.item.shapeProps.destinationCap || Connector.CapType.EMPTY;
+            let sourceCap         = this.item.shapeProps.sourceCap || Path.CapType.EMPTY;
+            let destinationCap    = this.item.shapeProps.destinationCap || Path.CapType.EMPTY;
 
-            if (sourceCap === Connector.CapType.EMPTY && destinationCap === Connector.CapType.EMPTY) {
+            if (sourceCap === Path.CapType.EMPTY && destinationCap === Path.CapType.EMPTY) {
                 return caps;
             }
 
@@ -256,14 +256,14 @@ export default {
                 r = capSize /2;
             }
 
-            if (capType === Connector.CapType.CIRCLE) {
+            if (capType === Path.CapType.CIRCLE) {
                 return {
                     path: `M ${x - r} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
                     fill: this.item.shapeProps.fillColor
                 };
-            } else if (capType === Connector.CapType.ARROW) {
+            } else if (capType === Path.CapType.ARROW) {
                 return this.createArrowCap(x, y, px, py, false);
-            } else if (capType === Connector.CapType.TRIANGLE) {
+            } else if (capType === Path.CapType.TRIANGLE) {
                 return this.createArrowCap(x, y, px, py, true);
             }
             return null;

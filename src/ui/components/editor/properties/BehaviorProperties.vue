@@ -67,7 +67,7 @@
                             <span>: </span>
                             <div>
                                 <dropdown
-                                    :key="action.element.item + ' ' + (action.element.connector||'')"
+                                    :key="action.element.item"
                                     :options="createMethodSuggestionsForElement(action.element)"
                                     @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
                                     >
@@ -275,20 +275,18 @@ export default {
                 });
             });
 
-            // checking if it is not a connector
-            if (item.shape) {
-                const shape = Shape.find(item.shape);
-                if (shape) {
-                    _.forEach(shape.args, (arg, argName) => {
-                        options.push({
-                            method: 'set',
-                            name: arg.name,
-                            fieldPath: `shapeProps.${argName}`,
-                            iconClass: 'fas fa-cog'
-                        });
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                _.forEach(shape.args, (arg, argName) => {
+                    options.push({
+                        method: 'set',
+                        name: arg.name,
+                        fieldPath: `shapeProps.${argName}`,
+                        iconClass: 'fas fa-cog'
                     });
-                }
+                });
             }
+
             options.push({
                 method: 'set',
                 name: 'Opacity',
@@ -577,9 +575,8 @@ export default {
         },
 
         toPrettyMethod(method, element) {
-            let scope = 'item';
-            if (Functions[scope][method]) {
-                return Functions[scope][method].name;
+            if (Functions.main[method]) {
+                return Functions.main[method].name;
             } else {
                 return method;
             }
