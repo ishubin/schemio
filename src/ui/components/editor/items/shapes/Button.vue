@@ -72,6 +72,12 @@ export default {
     computePath,
     identifyTextEditArea,
 
+    editorProps: {
+        description     : 'rich',
+        text            : 'rich',
+        ignoreEventLayer: true
+    },
+
     controlPoints: {
         make(item, pointId) {
             if (!pointId) {

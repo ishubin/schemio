@@ -75,7 +75,7 @@ export default {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.make(shapeId);
-            if (shape.editorProps && shape.editorProps.ignoreEventLayer) {
+            if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
                 this.shouldDrawEventLayer = false;
             }
             if (shape.component) {
