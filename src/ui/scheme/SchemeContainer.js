@@ -291,8 +291,9 @@ class SchemeContainer {
      * @param {Number} d - maximum distance to items path
      * @param {String} excludedId - item that should be excluded
      * @param {Boolean} onlyVisibleItems - specifies whether it should check only items that are visible
+     * @param {String} areaType - if specified it will only check items in given type of placement: viewport or relative
      */
-    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
+    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems, areaType) {
         // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
         let globalPoint = {x, y};
         let item = null;
@@ -305,6 +306,9 @@ class SchemeContainer {
             
             if (onlyVisibleItems) {
                 doCheckItem = doCheckItem && item.meta.calculatedVisibility;
+            }
+            if (areaType) {
+                doCheckItem = doCheckItem && item.area.type === areaType;
             }
 
             if (doCheckItem) {

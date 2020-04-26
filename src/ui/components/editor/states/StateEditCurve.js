@@ -75,7 +75,6 @@ export default class StateEditCurve extends State {
         let curveItem = {shape: 'curve', name: `${sourceItem.name} ->`};
         this.schemeContainer.enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
-        this.schemeContainer.remountItemInsideOtherItem(curveItem.id, sourceItem.id, sourceItem.childItems ? sourceItem.childItems.length : 0);
         curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         const closestPoint = this.findClosestPointToItem(sourceItem, localPoint);
@@ -395,7 +394,7 @@ export default class StateEditCurve extends State {
         const distanceThreshold = 10;
 
         const includeOnlyVisibleItems = true;
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
             curvePoint.x = localCurvePoint.x;
