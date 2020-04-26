@@ -174,6 +174,39 @@ export default {
         text: 'none'
     },
 
+    controlPoints: {
+        make(item, pointId) {
+            if (!pointId) {
+                const controlPoints = {};
+                forEach(item.shapeProps.points, (point, pointIndex) => {
+                    controlPoints[pointIndex] = {x: point.x, y: point.y};
+                });
+                return controlPoints;
+            } else {
+                if (item.shapeProps.points[pointId]) {
+                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y};
+                }
+            }
+        },
+        handleDrag(item, pointId, originalX, originalY, dx, dy) {
+            const point = item.shapeProps.points[pointId];
+            if (point) {
+                const realDx = originalX + dx - point.x;
+                const realDy = originalY + dy - point.y;
+
+                point.x = originalX + dx;
+                point.y = originalY + dy;
+                if (point.t === 'B') {
+                    point.x1 += realDx;
+                    point.y1 += realDy;
+                    point.x2 += realDx;
+                    point.y2 += realDy;
+                }
+            }
+        }
+    },
+
+
     args: {
         strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         fill              : {type: 'boolean',       value: false, name: 'Fill'},

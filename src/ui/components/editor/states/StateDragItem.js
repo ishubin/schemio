@@ -322,7 +322,9 @@ export default class StateDragItem extends State {
             this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
             this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
             this.eventBus.emitItemChanged(this.sourceItem.id);
-            this.schemeContainer.readjustItem(item.id, IS_SOFT);
+            this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
+            this.reindexNeeded = true;
+            this.lastDraggedItem = this.sourceItem;
         }
     }
 
