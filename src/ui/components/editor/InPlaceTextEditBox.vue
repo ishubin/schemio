@@ -68,6 +68,7 @@ export default {
                     new Blockquote(), new CodeBlock(), new HardBreak(), new Heading({ levels: [1, 2, 3] }), new BulletList(), new OrderedList(), new ListItem(),
                     new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Link(), new Strike(), new Underline(), new History(), ],
 
+                autoFocus: true,
                 content: text,
                 onUpdate: (event) => {
                     const content = event.getHTML();
