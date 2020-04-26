@@ -440,6 +440,13 @@ export default class StateEditCurve extends State {
     }
 
     submitItem() {
+        if (this.item.shapeProps.points.length < 2) {
+            this.schemeContainer.deleteItem(this.item);
+            this.schemeContainer.reindexItems();
+            this.reset();
+            return;
+        }
+
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
