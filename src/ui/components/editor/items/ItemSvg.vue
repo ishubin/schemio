@@ -23,10 +23,10 @@
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
             :data-item-id="item.id"
-            :stroke-width="0 + 'px'"
+            :stroke-width="hoverPathStrokeWidth"
             :style="{'cursor': item.cursor}"
             stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)" />
+            :fill="hoverPathFill" />
 
         <g v-if="item.childItems && item.visible">
             <item-svg v-for="childItem in item.childItems"
@@ -101,6 +101,21 @@ export default {
                 eventName: eventName,
                 args: arguments
             });
+        }
+    },
+
+    computed: {
+        hoverPathStrokeWidth() {
+            if (this.item.shape === 'curve') {
+                return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
+            }
+            return '0px';
+        },
+        hoverPathFill() {
+            if (this.item.shape === 'curve' && !this.item.shapeProps.fill) {
+                return 'none';
+            }
+            return 'rgba(255, 255, 255, 0)';
         }
     }
 }
