@@ -279,8 +279,8 @@ class SchemeContainer {
     
     /**
      * Finds first item that is within specified distance to path
-     * @param {Number} x 
-     * @param {Number} y 
+     * @param {Number} x - x axis of world coords
+     * @param {Number} y - y axis of world coords
      * @param {Number} d - maximum distance to items path
      * @param {String} excludedId - item that should be excluded
      */
@@ -290,20 +290,24 @@ class SchemeContainer {
         let item = null;
         for (let i = 0; i < this._itemArray.length; i++) {
             item = this._itemArray[i];
+
+            const localPoint = this.localPointOnItem(x, y, item);
             if (item.id !== excludedId) {
-                const shape = Shape.find(item.shape);
-                if (shape) {
-                    const path = shape.computePath(item);
-                    if (path) {
-                        const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
-                        const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
-                        if (squaredDistance < d * d) {
-                            return {
-                                x                 : closestPoint.x,
-                                y                 : closestPoint.y,
-                                distanceOnPath    : closestPoint.distanceOnPath,
-                                itemId            : item.id
-                            };
+                if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
+                    const shape = Shape.find(item.shape);
+                    if (shape) {
+                        const path = shape.computePath(item);
+                        if (path) {
+                            const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
+                            const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
+                            if (squaredDistance < d * d) {
+                                return {
+                                    x                 : closestPoint.x,
+                                    y                 : closestPoint.y,
+                                    distanceOnPath    : closestPoint.distanceOnPath,
+                                    itemId            : item.id
+                                };
+                            }
                         }
                     }
                 }

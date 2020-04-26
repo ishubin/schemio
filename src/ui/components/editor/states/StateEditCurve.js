@@ -381,7 +381,8 @@ export default class StateEditCurve extends State {
     }
 
     /**
-     * Handle dragging of edge point and checks whether it should stick to other item
+     * Handles dragging of edge point and checks whether it should stick to other item
+     * This is the most time consuming function as it needs to look through all items in schemes
      * @param {Point} curvePoint 
      * @param {Boolean} isSource 
      */
