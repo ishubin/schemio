@@ -133,7 +133,7 @@
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
 
-                    <g v-for="item in highlightedItems" :transform="item.transform">
+                    <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
                     </g>
 
@@ -167,6 +167,10 @@
                         :item="item"
                         :zoom="1"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+
+                    <g v-for="item in viewportHighlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
+                    </g>
                 </g>
 
                 <!-- Item Text Editor -->    
@@ -327,7 +331,7 @@ export default {
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
-        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.onItemsHighlighted);
+        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -355,7 +359,7 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
-        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.onItemsHighlighted);
+        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -400,7 +404,8 @@ export default {
             },
 
             curveEditItem: null,
-            highlightedItems: [ ]
+            worldHighlightedItems: [ ],
+            viewportHighlightedItems: [ ]
         };
     },
     methods: {
@@ -537,7 +542,7 @@ export default {
             states[this.state].reset();
         },
         switchStateInteract() {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
             this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
@@ -560,18 +565,18 @@ export default {
             states[this.state].reset();
         },
         switchStateDragItem() {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             this.state = 'dragItem';
             states.dragItem.reset();
         },
         switchStatePickElement(elementPickCallback) {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             this.state = 'pickElement';
             states.pickElement.reset();
             states.pickElement.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateItem(item) {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
                 this.state = 'editCurve';
@@ -583,7 +588,7 @@ export default {
         },
 
         onStartConnecting(item, worldPoint) {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             let localPoint = null;
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, item);
@@ -595,21 +600,18 @@ export default {
         },
 
         onCurveEditRequested(item) {
-            this.highlightedItems = [];
+            this.highlightItems([]);
             this.state = 'editCurve';
             states.editCurve.reset();
             states.editCurve.setItem(item);
             this.curveEditItem = item;
         },
 
-        onItemsHighlighted(itemIds) {
-            this.highlightedItems = [];
+        highlightItems(itemIds) {
+            this.worldHighlightedItems = [];
+            this.viewportHighlightedItems = [];
 
             _.forEach(itemIds, itemId => {
-                if (!itemId) {
-                    this.itemHighlight.shown = false;
-                }
-
                 const item = this.schemeContainer.findItemById(itemId);
                 if (!item) {
                     return;
@@ -640,13 +642,19 @@ export default {
                     }
                 }
 
-                this.highlightedItems.push({
+
+                const itemHighlight = {
                     transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
                     path,
                     fill,
                     strokeSize,
                     stroke: this.schemeContainer.scheme.style.boundaryBoxColor
-                });
+                };
+                if (item.area.type === 'viewport') {
+                    this.viewportHighlightedItems.push(itemHighlight);
+                } else {
+                    this.worldHighlightedItems.push(itemHighlight);
+                }
             });
         },
 

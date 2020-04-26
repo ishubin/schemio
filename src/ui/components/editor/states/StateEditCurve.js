@@ -69,12 +69,13 @@ export default class StateEditCurve extends State {
                 y: sourceItem.area.h / 2
             };
         }
-
+        
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
 
         let curveItem = {shape: 'curve', name: `${sourceItem.name} ->`};
         this.schemeContainer.enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
+        curveItem.area.type = sourceItem.area.type;
         curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         const closestPoint = this.findClosestPointToItem(sourceItem, localPoint);
