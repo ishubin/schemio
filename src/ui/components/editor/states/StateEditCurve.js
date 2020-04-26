@@ -31,6 +31,7 @@ export default class StateEditCurve extends State {
     }
 
     reset() {
+        this.eventBus.emitItemsHighlighted([]);
         this.item = null;
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -41,6 +42,7 @@ export default class StateEditCurve extends State {
     }
 
     cancel() {
+        this.eventBus.emitItemsHighlighted([]);
         if (this.creatingNewPoints) {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
@@ -392,32 +394,30 @@ export default class StateEditCurve extends State {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
         const distanceThreshold = 10;
 
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id);
+        const includeOnlyVisibleItems = true;
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
         if (closestPointToItem) {
-            const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
-            if (item.meta.calculatedVisibility) {
-                const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
-                curvePoint.x = localCurvePoint.x;
-                curvePoint.y = localCurvePoint.y;
-                this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
-                if (isSource) {
-                    this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                    this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
-                } else {
-                    this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
-                    this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
-                }
+            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+            curvePoint.x = localCurvePoint.x;
+            curvePoint.y = localCurvePoint.y;
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+            if (isSource) {
+                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            } else {
+                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
-            return;
-        }
-
-        this.eventBus.emitItemsHighlighted([]);
-        if (isSource) {
-            this.item.shapeProps.sourceItem = null;
-            this.item.shapeProps.sourceItemPosition = 0;
         } else {
-            this.item.shapeProps.destinationItem = null;
-            this.item.shapeProps.destinationItemPosition = 0;
+            // nothing to attach to so reseting highlights in case it was set previously
+            this.eventBus.emitItemsHighlighted([]);
+            if (isSource) {
+                this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationItemPosition = 0;
+            }
         }
     }
 

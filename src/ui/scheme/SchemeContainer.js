@@ -290,8 +290,9 @@ class SchemeContainer {
      * @param {Number} y - y axis of world coords
      * @param {Number} d - maximum distance to items path
      * @param {String} excludedId - item that should be excluded
+     * @param {Boolean} onlyVisibleItems - specifies whether it should check only items that are visible
      */
-    findClosestPointToItems(x, y, d, excludedId) {
+    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
         let globalPoint = {x, y};
         let item = null;
@@ -299,7 +300,14 @@ class SchemeContainer {
             item = this._itemArray[i];
 
             const localPoint = this.localPointOnItem(x, y, item);
-            if (item.id !== excludedId) {
+            
+            let doCheckItem = item.id !== excludedId;
+            
+            if (onlyVisibleItems) {
+                doCheckItem = doCheckItem && item.meta.calculatedVisibility;
+            }
+
+            if (doCheckItem) {
                 if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
                     const shape = Shape.find(item.shape);
                     if (shape) {
