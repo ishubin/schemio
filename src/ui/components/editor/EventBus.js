@@ -77,12 +77,22 @@ const EventBus = new Vue({
 
             CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
 
-            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated'
+            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
+
+            ITEMS_HIGHLIGHTED: 'items-highlighted'
         };
     },
     methods: {
         emitSchemeChangeCommited(affinityId) {
             this.$emit(EventBus.SCHEME_CHANGE_COMITTED, affinityId);
+        },
+
+        /**
+         * emits an event when a single item is supposed to be highlighted
+         * @param {Array} itemIds array of ids of items that should be highlighted. In case it is set as null or empty - then no items should be highlighted at all.
+         */
+        emitItemsHighlighted(itemIds) {
+            this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds);
         },
 
         /**

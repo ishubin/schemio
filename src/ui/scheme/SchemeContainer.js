@@ -175,6 +175,13 @@ class SchemeContainer {
                     registerDependant(item.shapeProps.destinationItem, item.id);
                 }
             }
+
+            // calculating real visibility based on parents visibility
+            let parentVisible = true;
+            if (parentItem) {
+                parentVisible = parentItem.meta.calculatedVisibility;
+            }
+            item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
         });
 
         this.itemGroups = _.keys(this._itemGroupsToIds);

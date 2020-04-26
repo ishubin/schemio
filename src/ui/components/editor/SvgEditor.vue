@@ -132,6 +132,11 @@
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
+
+                    <g v-for="item in highlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
+                    </g>
+
                 </g>
 
 
@@ -181,7 +186,6 @@
                         :zoom="1"
                         :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"/>
                 </g>
-
 
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
@@ -323,6 +327,7 @@ export default {
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
+        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.onItemsHighlighted);
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -350,6 +355,7 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
+        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.onItemsHighlighted);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -394,6 +400,7 @@ export default {
             },
 
             curveEditItem: null,
+            highlightedItems: [ ]
         };
     },
     methods: {
@@ -530,6 +537,7 @@ export default {
             states[this.state].reset();
         },
         switchStateInteract() {
+            this.highlightedItems = [];
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
             this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
@@ -552,15 +560,18 @@ export default {
             states[this.state].reset();
         },
         switchStateDragItem() {
+            this.highlightedItems = [];
             this.state = 'dragItem';
             states.dragItem.reset();
         },
         switchStatePickElement(elementPickCallback) {
+            this.highlightedItems = [];
             this.state = 'pickElement';
             states.pickElement.reset();
             states.pickElement.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateItem(item) {
+            this.highlightedItems = [];
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
                 this.state = 'editCurve';
@@ -572,6 +583,7 @@ export default {
         },
 
         onStartConnecting(item, worldPoint) {
+            this.highlightedItems = [];
             let localPoint = null;
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, item);
@@ -583,10 +595,59 @@ export default {
         },
 
         onCurveEditRequested(item) {
+            this.highlightedItems = [];
             this.state = 'editCurve';
             states.editCurve.reset();
             states.editCurve.setItem(item);
             this.curveEditItem = item;
+        },
+
+        onItemsHighlighted(itemIds) {
+            this.highlightedItems = [];
+
+            _.forEach(itemIds, itemId => {
+                if (!itemId) {
+                    this.itemHighlight.shown = false;
+                }
+
+                const item = this.schemeContainer.findItemById(itemId);
+                if (!item) {
+                    return;
+                }
+
+                const shape = Shape.find(item.shape);
+                if (!shape) {
+                    return;
+                }
+
+                const path = shape.computePath(item);
+                if (!path) {
+                    return;
+                }
+
+                const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
+                let angle = item.area.r;
+                if (item.meta && item.meta.transform) {
+                    angle += item.meta.transform.r;
+                }
+
+                let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
+                let strokeSize = 3;
+                if (item.shape === 'curve') {
+                    strokeSize = item.shapeProps.strokeSize + 2;
+                    if (!item.shapeProps.fill) {
+                        fill = 'none';
+                    }
+                }
+
+                this.highlightedItems.push({
+                    transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
+                    path,
+                    fill,
+                    strokeSize,
+                    stroke: this.schemeContainer.scheme.style.boundaryBoxColor
+                });
+            });
         },
 
         reindexUserEvents() {

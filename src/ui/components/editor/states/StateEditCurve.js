@@ -227,6 +227,8 @@ export default class StateEditCurve extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.eventBus.emitItemsHighlighted([]);
+
         if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
@@ -392,24 +394,30 @@ export default class StateEditCurve extends State {
 
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id);
         if (closestPointToItem) {
-            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
-            curvePoint.x = localCurvePoint.x;
-            curvePoint.y = localCurvePoint.y;
-            if (isSource) {
-                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
-            } else {
-                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+            const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
+            if (item.meta.calculatedVisibility) {
+                const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+                curvePoint.x = localCurvePoint.x;
+                curvePoint.y = localCurvePoint.y;
+                this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+                if (isSource) {
+                    this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                    this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                } else {
+                    this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                    this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                }
             }
+            return;
+        }
+
+        this.eventBus.emitItemsHighlighted([]);
+        if (isSource) {
+            this.item.shapeProps.sourceItem = null;
+            this.item.shapeProps.sourceItemPosition = 0;
         } else {
-            if (isSource) {
-                this.item.shapeProps.sourceItem = null;
-                this.item.shapeProps.sourceItemPosition = 0;
-            } else {
-                this.item.shapeProps.destinationItem = null;
-                this.item.shapeProps.destinationItemPosition = 0;
-            }
+            this.item.shapeProps.destinationItem = null;
+            this.item.shapeProps.destinationItemPosition = 0;
         }
     }
 
