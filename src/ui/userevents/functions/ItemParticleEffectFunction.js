@@ -36,6 +36,7 @@ class ItemParticleEffectAnimation extends Animation {
         this.particlesLeft = this.args.particlesCount;
         this.cleanupDomElements = [];
         this.totalPathLength = 0.0;
+        this.singleParticleBirthTime = this.args.birthTime / Math.max(1, this.args.particlesCount);
     }
 
     init() {
@@ -70,8 +71,8 @@ class ItemParticleEffectAnimation extends Animation {
         }
 
         if (this.particlesLeft > 0) {
-            if (this.args.birthTime > 0.0001) {
-                this.generatorCounter += dt / (this.args.birthTime * 1000.0);
+            if (this.singleParticleBirthTime > 0.0001) {
+                this.generatorCounter += dt / (this.singleParticleBirthTime * 1000.0);
                 if (this.generatorCounter >= 1.0) {
                     const roundedCounter = Math.floor(this.generatorCounter);
                     this.generatorCounter -= roundedCounter;
@@ -103,27 +104,43 @@ class ItemParticleEffectAnimation extends Animation {
     }
 
     createParticle() {
-        const pathPosition = Math.random() * this.totalPathLength;
+        let pathPosition = 0;
+        if (!this.args.travelAlongPath) {
+            pathPosition = Math.random() * this.totalPathLength;
+        }
         const position = this.domItemPath.getPointAtLength(pathPosition);
         const domParticle = this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color);
         domParticle.setAttribute('transform', `translate(${position.x} ${position.y})`);
         this.domContainer.appendChild(domParticle);
 
-        const direction = {x: 0, y: 0};
-        direction.x = position.x - this.center.x;
-        direction.y = position.y - this.center.y;
-        const d = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
-        if (d > 0.0001) {
-            direction.x = direction.x / d;
-            direction.y = direction.y / d;
-        }
-        
-        this.particles.push({
+        const particle = {
             lifeTime: 0.0,
             domParticle,
             position,
-            direction
-        });
+        };
+
+        if (this.args.travelAlongPath) {
+            if (this.args.travelFloatRadius > 0) {
+                particle.floatAngle = Math.random() * PI_2;
+            }
+
+            let floatAngleDirection = 1;
+            if (Math.random() >= 0.5) {
+                floatAngleDirection = -1;
+            }
+            particle.floatAngleDirection = floatAngleDirection;
+        } else {
+            const direction = {x: 0, y: 0};
+            direction.x = position.x - this.center.x;
+            direction.y = position.y - this.center.y;
+            const d = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+            if (d > 0.0001) {
+                direction.x = direction.x / d;
+                direction.y = direction.y / d;
+            }
+            particle.direction = direction;
+        }
+        this.particles.push(particle);
 
         this.particlesLeft -= 1;
     }
@@ -131,8 +148,33 @@ class ItemParticleEffectAnimation extends Animation {
     playParticle(particle, dt) {
         particle.lifeTime += dt/1000.0;
 
-        particle.position.x += particle.direction.x * this.args.speed * dt / 1000.0;
-        particle.position.y += particle.direction.y * this.args.speed * dt / 1000.0;
+        if (this.args.travelAlongPath) {
+            let maxLifeTime = this.args.lifeTime;
+            if (maxLifeTime < 0.1) {
+                maxLifeTime = 1.0;
+            }
+            const point = this.domItemPath.getPointAtLength(this.totalPathLength * particle.lifeTime / maxLifeTime);
+            let x = point.x;
+            let y = point.y;
+
+            if (this.args.travelFloatRadius > 0) {
+                particle.floatAngle += particle.floatAngleDirection * this.args.travelFloatSpeed * dt / (1000 * this.args.lifeTime);
+                if (particle.floatAngle > PI_2) {
+                    particle.floatAngle -= PI_2;
+                }
+                x = point.x + this.args.travelFloatRadius * Math.cos(particle.floatAngle);
+                y = point.y + this.args.travelFloatRadius * Math.sin(particle.floatAngle);
+            }
+
+            particle.position.x = x;
+            particle.position.y = y;
+
+        } else {
+            particle.position.x += particle.direction.x * this.args.speed * dt / 1000.0;
+            particle.position.y += particle.direction.y * this.args.speed * dt / 1000.0;
+        }
+            
+        
 
         let scale = 1.0;
         let opacity = 1;
@@ -201,13 +243,16 @@ export default {
         particlesCount    : {name: 'Particles',         type: 'number', value: 100},
         particleSize      : {name: 'Particle Size',     type: 'number', value: 10},
         color             : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        speed             : {name: 'Speed',             type: 'number', value: 60},
+        speed             : {name: 'Speed',             type: 'number', value: 60, depends: {travelAlongPath: false}},
         lifeTime          : {name: 'Life Time (sec)',   type: 'number', value: 1.0},
-        birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.005},
+        birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.1, description: 'Time in which it should generate all particles'},
         growth            : {name: 'Growth to (%)',     type: 'number', value: 0.1},
         decline           : {name: 'Decline from (%)',  type: 'number', value: 0.1},
         fadeIn            : {name: 'Fade in (%)',       type: 'number', value: 1},
         fadeOut           : {name: 'Fade out (%)',      type: 'number', value: 50},
+        travelAlongPath   : {name: 'Travel Along Path', type: 'boolean',value: false, description: 'The particle emits in the beggining of the path and travels along the path'},
+        travelFloatRadius : {name: 'Travel Float Radius',type: 'number', value: 5, depends: {travelAlongPath: true}},
+        travelFloatSpeed  : {name: 'Travel Float Speed',type: 'number', value: 10, depends: {travelAlongPath: true}},
         inBackground      : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 

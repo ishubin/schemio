@@ -3,7 +3,6 @@ import HideFunction from './HideFunction';
 import ShowFunction from './ShowFunction';
 import SendEventFunction from './SendEventFunction';
 import ZoomToItFunction from './ZoomToItFunction';
-import ParticleEffectFunction from './connectors/ParticleEffectFunction';
 import CrawlEffectFunction from './CrawlEffectFunction';
 import StopAllAnimationsFunction from './StopAllAnimationsFunction';
 import ItemParticleEffectFunction from './ItemParticleEffectFunction';
