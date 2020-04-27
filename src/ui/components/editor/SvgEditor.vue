@@ -313,6 +313,8 @@ export default {
             this.switchStateInteract();
         }
 
+        states.editCurve.setViewportCorrection(this.viewportTop, this.viewportLeft);
+
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
@@ -970,6 +972,12 @@ export default {
                 this.switchStateInteract();
             }
         },
+        viewportTop(value) {
+            states.editCurve.setViewportCorrection(value, this.viewportLeft);
+        },
+        viewportLeft(value) {
+            states.editCurve.setViewportCorrection(this.viewportTop, value);
+        }
     },
     computed: {
         transformSvg() {

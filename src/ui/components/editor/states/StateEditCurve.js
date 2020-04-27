@@ -28,6 +28,15 @@ export default class StateEditCurve extends State {
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+        // Viewport transform correction 
+        this.viewportTop = 0;
+        this.viewportLeft = 0;
+    }
+
+    setViewportCorrection(viewportTop, viewportLeft) {
+        this.viewportLeft = viewportLeft;
+        this.viewportTop = viewportTop;
     }
 
     reset() {
@@ -72,10 +81,13 @@ export default class StateEditCurve extends State {
         
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
 
-        let curveItem = {shape: 'curve', name: `${sourceItem.name} ->`};
+        let curveItem = {
+            shape: 'curve',
+            name: `${sourceItem.name} :: `,
+            area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type}
+        };
         this.schemeContainer.enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
-        curveItem.area.type = sourceItem.area.type;
         curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         const closestPoint = this.findClosestPointToItem(sourceItem, localPoint);
@@ -123,6 +135,11 @@ export default class StateEditCurve extends State {
     }
 
     mouseDoubleClick(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         if (this.creatingNewPoints) {
             return;
         }
@@ -133,6 +150,11 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
 
@@ -187,6 +209,11 @@ export default class StateEditCurve extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         if (this.addedToScheme && this.creatingNewPoints) {
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
             if (this.candidatePointSubmited) {
@@ -229,6 +256,11 @@ export default class StateEditCurve extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         this.eventBus.emitItemsHighlighted([]);
 
         if (this.addedToScheme && this.creatingNewPoints) {
