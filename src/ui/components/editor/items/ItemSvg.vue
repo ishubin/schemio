@@ -17,41 +17,16 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <connector-svg  v-for="connector in item.connectors" v-if="connector.meta && item.visible"
-            :key="connector.id"
-            :sourceItem="item"
-            :connector="connector"
-            :zoom="schemeContainer.screenTransform.scale"
-            :offsetX="schemeContainer.screenTransform.x"
-            :offsetY="schemeContainer.screenTransform.y"
-            :showReroutes="mode === 'edit'"
-            :mode="mode"
-            :boundary-box-color="boundaryBoxColor"
-            ></connector-svg>
-
-
         <g :id="`animation-container-${item.id}`"></g>
 
         <path v-if="itemSvgPath && shouldDrawEventLayer"
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
             :data-item-id="item.id"
-            :stroke-width="0 + 'px'"
+            :stroke-width="hoverPathStrokeWidth"
             :style="{'cursor': item.cursor}"
             stroke="rgba(255, 255, 255, 0)"
-            fill="rgba(255, 255, 255, 0)" />
-
-        <rect class="boundary-box"
-            v-if="mode === 'edit' && item.visible"
-            data-preview-ignore="true"
-            :data-item-id="item.id"
-            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
-            fill="rgba(255,255,255,0.0)"
-            x="0"
-            y="0"
-            :width="item.area.w"
-            :height="item.area.h"
-        />
+            :fill="hoverPathFill" />
 
         <g v-if="item.childItems && item.visible">
             <item-svg v-for="childItem in item.childItems"
@@ -60,7 +35,6 @@
                 :item="childItem"
                 :mode="mode"
                 :scheme-container="schemeContainer"
-                :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
         </g>    
@@ -71,14 +45,12 @@
 <script>
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
-import ConnectorSvg from './ConnectorSvg.vue';
 import myMath from '../../../myMath';
 
 
 export default {
     name: 'item-svg',
-    props: ['item', 'mode', 'schemeContainer', 'boundaryBoxColor'],
-    components: {ConnectorSvg},
+    props: ['item', 'mode', 'schemeContainer'],
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -103,7 +75,7 @@ export default {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.make(shapeId);
-            if (shape.editorProps && shape.editorProps.ignoreEventLayer) {
+            if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
                 this.shouldDrawEventLayer = false;
             }
             if (shape.component) {
@@ -129,6 +101,21 @@ export default {
                 eventName: eventName,
                 args: arguments
             });
+        }
+    },
+
+    computed: {
+        hoverPathStrokeWidth() {
+            if (this.item.shape === 'curve') {
+                return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
+            }
+            return '0px';
+        },
+        hoverPathFill() {
+            if (this.item.shape === 'curve' && !this.item.shapeProps.fill) {
+                return 'none';
+            }
+            return 'rgba(255, 255, 255, 0)';
         }
     }
 }

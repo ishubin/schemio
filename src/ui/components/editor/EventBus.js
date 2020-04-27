@@ -21,7 +21,7 @@ const EventBus = new Vue({
             MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
             MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
 
-            SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, connector, scheme properties)
+            SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, scheme properties)
 
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
 
@@ -35,12 +35,6 @@ const EventBus = new Vue({
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
-
-            CONNECTOR_CHANGED: 'connector-changed',
-            CONNECTOR_SELECTED: 'connector-selected',
-            CONNECTOR_DESELECTED: 'connector-deselected',
-            ANY_CONNECTOR_SELECTED: 'any-connector-selected',
-            ANY_CONNECTOR_DESELECTED: 'any-connector-deselected',
 
             // used to trigger in-svg text edit of an item
             ITEM_INEDITOR_TEXTEDIT_TRIGGERED: 'item-ineditor-textedit-triggered',
@@ -83,12 +77,22 @@ const EventBus = new Vue({
 
             CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
 
-            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated'
+            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
+
+            ITEMS_HIGHLIGHTED: 'items-highlighted'
         };
     },
     methods: {
         emitSchemeChangeCommited(affinityId) {
             this.$emit(EventBus.SCHEME_CHANGE_COMITTED, affinityId);
+        },
+
+        /**
+         * emits an event when a single item is supposed to be highlighted
+         * @param {Array} itemIds array of ids of items that should be highlighted. In case it is set as null or empty - then no items should be highlighted at all.
+         */
+        emitItemsHighlighted(itemIds) {
+            this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds);
         },
 
         /**
@@ -119,30 +123,6 @@ const EventBus = new Vue({
         subscribeForItemDeselected(itemId, callback) {this.$on(this._itemDeselectedEvent(itemId), callback)},
         unsubscribeForItemDeselected(itemId, callback) {this.$off(this._itemDeselectedEvent(itemId), callback)},
         _itemDeselectedEvent(itemId) { return `${EventBus.ITEM_DESELECTED}/${itemId}`; },
-
-
-        emitConnectorChanged(connectorId) { this.$emit(this._connectorChangedEvent(connectorId)); },
-        subscribeForConnectorChanged(connectorId, callback) {this.$on(this._connectorChangedEvent(connectorId), callback)},
-        unsubscribeForConnectorChanged(connectorId, callback) {this.$off(this._connectorChangedEvent(connectorId), callback)},
-        _connectorChangedEvent(connectorId) {return `${EventBus.CONNECTOR_CHANGED}/${connectorId}`},
-
-
-        emitConnectorSelected(connectorId, connector) {
-            this.$emit(this._connectorSelectedEvent(connectorId), connector);
-            this.$emit(EventBus.ANY_CONNECTOR_SELECTED, connectorId, connector);
-        },
-        subscribeForConnectorSelected(connectorId, callback) {this.$on(this._connectorSelectedEvent(connectorId), callback)},
-        unsubscribeForConnectorSelected(connectorId, callback) {this.$off(this._connectorSelectedEvent(connectorId), callback)},
-        _connectorSelectedEvent(connectorId) {return `${EventBus.CONNECTOR_SELECTED}/${connectorId}`},
-
-
-        emitConnectorDeselected(connectorId, connector) {
-            this.$emit(this._connectorDeselectedEvent(connectorId), connector);
-            this.$emit(EventBus.ANY_CONNECTOR_DESELECTED, connectorId, connector);
-        },
-        subscribeForConnectorDeselected(connectorId, callback) {this.$on(this._connectorDeselectedEvent(connectorId), callback)},
-        unsubscribeForConnectorDeselected(connectorId, callback) {this.$off(this._connectorDeselectedEvent(connectorId), callback)},
-        _connectorDeselectedEvent(connectorId) {return `${EventBus.CONNECTOR_DESELECTED}/${connectorId}`},
 
         emitRightClickedItem(item, mouseX, mouseY) {
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);

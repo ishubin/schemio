@@ -5,6 +5,13 @@
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
+
+        <path v-for="cap in caps" :d="cap.path"
+            :stroke="item.shapeProps.strokeColor"
+            :stroke-width="item.shapeProps.strokeSize"
+            :fill="cap.fill"
+            stroke-linejoin="round"
+        />
     </g>
 </template>
 
@@ -12,6 +19,9 @@
 import {forEach} from 'lodash';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
+import Path from '../../../../scheme/Path';
+import Shape from './Shape';
+import utils from '../../../../utils';
 
 
 function connectPoints(p1, p2) {
@@ -25,45 +35,194 @@ function connectPoints(p1, p2) {
     return `L ${p2.x} ${p2.y} `;
 }
 
-function computePath(item) {
-    if (item.shapeProps && item.shapeProps.points) {
-        let path = null;
-        let prevPoint = null;
-        forEach(item.shapeProps.points, point => {
+function getPointOnItemPath(item, positionOnPath, schemeContainer) {
+    // to avoid internal loops in case curve items are attached to one another
+    if (item.shape !== 'curve') {
+        const shape = Shape.find(item.shape);
+        if (shape && shape.computePath) {
+            const path = shape.computePath(item);
             if (path) {
-                path += connectPoints(prevPoint, point);
-            } else {
-                path = `M ${point.x} ${point.y} `;
+                const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                shadowSvgPath.setAttribute('d', path);
+                const point = shadowSvgPath.getPointAtLength(positionOnPath);
+                return schemeContainer.worldPointOnItem(point.x, point.y, item);
             }
-            prevPoint = point;
-        });
-        if (item.shapeProps.closed && item.shapeProps.points.length > 2) {
-            path += connectPoints(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[0]);
-            path += ' Z';
         }
-        return path;
     }
-    return `M 0 0`;
+
+    // returning the center of item if it failed to find its path
+    const worldPoint = schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+}
+
+function computePath(item) {
+    if (item.shapeProps.points.length < 2) {
+        return null;
+    }
+    let path = 'M 0 0';
+
+    let prevPoint = null;
+    forEach(item.shapeProps.points, point => {
+        if (prevPoint) {
+            path += connectPoints(prevPoint, point);
+        } else {
+            path = `M ${point.x} ${point.y} `;
+        }
+        prevPoint = point;
+    });
+
+    if (item.shapeProps.closed && item.shapeProps.points.length && !item.shapeProps.sourceItem && !item.shapeProps.destinationItem) {
+        path += connectPoints(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[0]);
+        path += ' Z';
+    }
+
+    return path;
 };
+
+function readjustItem(item, schemeContainer, isSoft) {
+    const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
+    if (item.shapeProps.sourceItem) {
+        const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
+        if (sourceItem && sourceItem.id !== item.id) {
+            const sourceWorldPoint = getPointOnItemPath(sourceItem, item.shapeProps.sourceItemPosition, schemeContainer);
+            if (sourceWorldPoint) {
+                const sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
+                item.shapeProps.points[0] = {
+                    x: sourcePoint.x,
+                    y: sourcePoint.y,
+                };
+            }
+        } else {
+            item.shapeProps.sourceItem = null;
+        }
+    }
+
+    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+        const destinationItem = schemeContainer.findFirstElementBySelector(item.shapeProps.destinationItem);
+        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape !== 'curve') {
+            const destinationWorldPoint = getPointOnItemPath(destinationItem, item.shapeProps.destinationItemPosition, schemeContainer);
+            if (destinationWorldPoint) {
+                const destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+                item.shapeProps.points[item.shapeProps.points.length - 1] = {
+                    t: 'L',
+                    x: destinationPoint.x,
+                    y: destinationPoint.y,
+                };
+            }
+        } else {
+            item.shapeProps.destinationItem = null;
+        }
+    }
+
+    if (!isSoft) {
+        readjustItemArea(item);
+    }
+
+    return true;
+}
+
+function readjustItemArea(item) {
+    if (item.shapeProps.points.length < 1) {
+        return;
+    }
+
+    let minX = item.shapeProps.points[0].x + item.area.x,
+        minY = item.shapeProps.points[0].y + item.area.y,
+        maxX = minX,
+        maxY = minY;
+
+    forEach(item.shapeProps.points, point => {
+        minX = Math.min(minX, point.x + item.area.x);
+        minY = Math.min(minY, point.y + item.area.y);
+        maxX = Math.max(maxX, point.x + item.area.x);
+        maxY = Math.max(maxY, point.y + item.area.y);
+        if (point.t === 'B') {
+            minX = Math.min(minX, point.x1 + item.area.x, point.x2 + item.area.x);
+            minY = Math.min(minY, point.y1 + item.area.y, point.y2 + item.area.y);
+            maxX = Math.max(maxX, point.x1 + item.area.x, point.x2 + item.area.x);
+            maxY = Math.max(maxY, point.y1 + item.area.y, point.y2 + item.area.y);
+        }
+    });
+
+    const dx = item.area.x - minX;
+    const dy = item.area.y - minY;
+    item.area.x = minX;
+    item.area.y = minY;
+    item.area.w = maxX - minX;
+    item.area.h = maxY - minY;
+
+    forEach(item.shapeProps.points, point => {
+        point.x += dx;
+        point.y += dy;
+        if (point.t === 'B') {
+            point.x1 += dx;
+            point.y1 += dy;
+            point.x2 += dx;
+            point.y2 += dy;
+        }
+    });
+}
+
 
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
+    readjustItem,
 
     editorProps: {
         description: 'rich',
         text: 'none'
     },
 
+    controlPoints: {
+        make(item, pointId) {
+            if (!pointId) {
+                const controlPoints = {};
+                forEach(item.shapeProps.points, (point, pointIndex) => {
+                    controlPoints[pointIndex] = {x: point.x, y: point.y};
+                });
+                return controlPoints;
+            } else {
+                if (item.shapeProps.points[pointId]) {
+                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y};
+                }
+            }
+        },
+        handleDrag(item, pointId, originalX, originalY, dx, dy) {
+            const point = item.shapeProps.points[pointId];
+            if (point) {
+                const realDx = originalX + dx - point.x;
+                const realDy = originalY + dy - point.y;
+
+                point.x = originalX + dx;
+                point.y = originalY + dy;
+                if (point.t === 'B') {
+                    point.x1 += realDx;
+                    point.y1 += realDy;
+                    point.x2 += realDx;
+                    point.y2 += realDy;
+                }
+            }
+        }
+    },
+
+
     args: {
-        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        fill: {type: 'boolean', value: false, name: 'Fill'},
-        fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
-        closed: {type: 'boolean', value: false, name: 'Closed path'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-        points: {type: 'curve-points', value: [], name: 'Curve points'}
+        strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+        fill              : {type: 'boolean',       value: false, name: 'Fill'},
+        fillColor         : {type: 'color',         value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
+        closed            : {type: 'boolean',       value: false, name: 'Closed path'},
+        strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
+        strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
+        points            : {type: 'curve-points',  value: [], name: 'Curve points'},
+        sourceCap         : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Source Cap',      options: Path.CapType.values()},
+        sourceCapSize     : {type: 'number',        value: 10, name: 'Source Cap Size'},
+        destinationCap    : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Destination Cap', options: Path.CapType.values()},
+        destinationCapSize: {type: 'number',        value: 10, name: 'Destination Cap Size'},
+        sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
+        destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
+        sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+        destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
     },
 
     mounted() {
@@ -74,16 +233,99 @@ export default {
     },
 
     data() {
+        const shapePath = computePath(this.item);
         return {
-            shapePath: computePath(this.item)
+            shapePath: shapePath,
+            caps: this.computeCaps(shapePath),
         }
     },
 
     methods: {
         onItemChange() {
             this.shapePath = computePath(this.item);
+            this.caps = this.computeCaps(this.shapePath);
             this.$forceUpdate();
-        }
+        },
+
+        computeCaps(svgPath) {
+            const caps = [];
+
+            let sourceCap         = this.item.shapeProps.sourceCap || Path.CapType.EMPTY;
+            let destinationCap    = this.item.shapeProps.destinationCap || Path.CapType.EMPTY;
+
+            if (sourceCap === Path.CapType.EMPTY && destinationCap === Path.CapType.EMPTY) {
+                return caps;
+            }
+
+            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            shadowSvgPath.setAttribute('d', svgPath);
+
+            const totalLength = shadowSvgPath.getTotalLength();
+            if (totalLength < 3)  {
+                return caps;
+            }
+
+            const p1 = shadowSvgPath.getPointAtLength(0);
+            const p1d = shadowSvgPath.getPointAtLength(2);
+
+            let cap = this.createCap(p1.x, p1.y, p1d.x, p1d.y, sourceCap, this.item.shapeProps.sourceCapSize);
+            if (cap) {
+                caps.push(cap);
+            }
+
+            const p2 = shadowSvgPath.getPointAtLength(totalLength);
+            const p2d = shadowSvgPath.getPointAtLength(totalLength - 2);
+            cap = this.createCap(p2.x, p2.y, p2d.x, p2d.y, destinationCap, this.item.shapeProps.destinationCapSize);
+            if (cap) {
+                caps.push(cap);
+            }
+
+            return caps;
+        },
+
+        createCap(x, y, px, py, capType, capSize) {
+            let r = 1;
+            if (capSize) {
+                r = capSize /2;
+            }
+
+            if (capType === Path.CapType.CIRCLE) {
+                return {
+                    path: `M ${x - r} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
+                    fill: this.item.shapeProps.fillColor
+                };
+            } else if (capType === Path.CapType.ARROW) {
+                return this.createArrowCap(x, y, px, py, false);
+            } else if (capType === Path.CapType.TRIANGLE) {
+                return this.createArrowCap(x, y, px, py, true);
+            }
+            return null;
+        },
+
+        createArrowCap(x, y, px, py, close) {
+            var Vx = px - x, Vy = py - y;
+            var V = Vx * Vx + Vy * Vy;
+            if (V !== 0) {
+                V = Math.sqrt(V);
+                Vx = Vx/V;
+                Vy = Vy/V;
+
+                var size = 5;
+                var Pax = x + (Vx * 2 - Vy) * size;
+                var Pay = y + (Vy * 2 + Vx) * size;
+                var Pbx = x + (Vx * 2 + Vy) * size;
+                var Pby = y + (Vy * 2 - Vx) * size;
+                var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
+                if (close) {
+                    path += ' z';
+                }
+                return {
+                    path: path,
+                    fill: close ? this.item.shapeProps.fillColor : 'none'
+                }
+            }
+            return null;
+        },
     },
 
     computed: {

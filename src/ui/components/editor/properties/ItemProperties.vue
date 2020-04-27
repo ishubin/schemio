@@ -135,9 +135,17 @@
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
 
-                                <select v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @input="onStyleSelectChange(argName, arg, arguments[0])">
-                                    <option v-for="knownPattern in knownStrokePatterns">{{knownPattern}}</option>
-                                </select>
+                                <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @selected="onStyleValueChange(argName, arguments[0])"/>
+
+                                <element-picker v-if="arg.type === 'element'"
+                                    :element="item.shapeProps[argName]"
+                                    :use-self="false"
+                                    :allow-none="true"
+                                    :scheme-container="schemeContainer"
+                                    :excluded-item-ids="[item.id]"
+                                    @selected="onStyleValueChange(argName, arguments[0])"
+                                    />
+
                             </td>
                         </tr>
                     </tbody>
@@ -170,6 +178,9 @@ import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
+import ElementPicker from '../ElementPicker.vue';
+import StrokePatternDropdown from '../StrokePatternDropdown.vue';
+
 
 const ALL_TABS = [
     {name: 'description',   icon: 'fas fa-paragraph'},
@@ -185,7 +196,11 @@ const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tab
 
 export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
-    components: {Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel, ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal, StylesPalette, NumberTextfield},
+    components: {
+        Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
+        ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal,
+        StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown
+    },
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
@@ -207,7 +222,7 @@ export default {
             tabs: ALL_TABS,
             knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
 
-            knownStrokePatterns: StrokePattern.getPatternsList(),
+            knownStrokePatterns: StrokePattern.patterns,
 
             knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
             currentTab: 'description',
@@ -333,7 +348,9 @@ export default {
 
         updateShapePropsDependencies() {
             _.forEach(this.shapeComponent.args, (argConfig, argName) => {
-                if (argConfig.depends) {
+                if (argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true)) {
+                    this.shapePropsControlStates[argName].shown = false;
+                } else if (argConfig.depends) {
                     _.forEach(argConfig.depends, (depArgValue, depArgName) => {
                         const shown = this.item.shapeProps[depArgName] === depArgValue;
                         if (!this.shapePropsControlStates[argName]) {

@@ -20,6 +20,14 @@
                         :r="5/safeZoom"
                         :fill="boundaryBoxColor" stroke="none"/>
                 </g>
+
+                <circle v-if="(item.shapeProps.sourceItem && pointIndex === 0) || (item.shapeProps.destinationItem && pointIndex === item.shapeProps.points.length - 1)"
+                    data-type="curve-point"
+                    style="opacity: 0.5"
+                    :data-curve-point-index="pointIndex"
+                    :cx="point.x" :cy="point.y"
+                    :r="10/safeZoom"
+                    :fill="boundaryBoxColor" stroke="none"/>
                 <circle
                     data-type="curve-point"
                     :data-curve-point-index="pointIndex"

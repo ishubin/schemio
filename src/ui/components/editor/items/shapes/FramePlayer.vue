@@ -68,8 +68,9 @@ export default {
         }
     },
     editorProps: {
-        description: 'rich',
-        text: 'rich'
+        description     : 'rich',
+        text            : 'rich',
+        ignoreEventLayer: true
     },
 
     args: {

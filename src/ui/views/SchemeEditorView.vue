@@ -65,13 +65,11 @@
                         :should-snap-to-grid="shouldSnapToGrid"
                         :viewport-top="40"
                         :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
-                        @clicked-add-item-to-item="onActiveItemAppendItem"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
                         @clicked-start-connecting="onClickedStartConnecting"
                         @clicked-bring-to-front="bringSelectedItemsToFront()"
                         @clicked-bring-to-back="bringSelectedItemsToBack()"
-                        @deleted-items="onSelectedItemsAndConnectorsDelete()"
                         ></svg-editor>
                 </div>
             </div>
@@ -123,7 +121,6 @@
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
 
                         </div>
-                        <connection-properties v-if="currentTab === 'Connection' && selectedConnector" :connector="selectedConnector"></connection-properties>
                     </div>
                 </div>
             </div>
@@ -162,7 +159,6 @@ import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/properties/ItemProperties.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
-import ConnectionProperties from '../components/editor/ConnectionProperties.vue';
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
@@ -188,7 +184,7 @@ const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 's
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, ConnectionProperties,
+        SchemeDetails, CreateItemMenu,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector
     },
@@ -200,8 +196,6 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
-        EventBus.$on(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
@@ -215,8 +209,6 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.ANY_CONNECTOR_SELECTED, this.onAnyConnectorSelected);
-        EventBus.$off(EventBus.ANY_CONNECTOR_DESELECTED, this.onAnyConnectorDeselected);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.onSwitchModeToEdit);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
@@ -256,7 +248,6 @@ export default {
             searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
-            selectedConnector: null,
             zoom: 100,
             mode: 'view',
             knownModes: ['view'],
@@ -280,9 +271,6 @@ export default {
                 name: 'Scheme'
             }, {
                 name: 'Items',
-            }, {
-                name: 'Connection',
-                disabled: true
             }],
 
             offsetSaveTimerId: null,
@@ -435,30 +423,6 @@ export default {
             });
         },
 
-        onActiveItemAppendItem(item) {
-            var area = item.area;
-            var direction = this.calculateNextDirection(item);
-
-            var newItem = {
-                type: item.type,
-                area: { x: area.x + direction.x, y: area.y + direction.y, w: area.w, h: area.h, type: 'relative' },
-                shape: item.shape,
-                shapeProps: utils.clone(item.shapeProps),
-                properties: '',
-                name: '',
-                description: '',
-                links: []
-            };
-            if (item.type === 'shape') {
-                newItem.shape = item.shape;
-            }
-            var id = this.schemeContainer.addItem(newItem);
-            this.schemeContainer.connectItems(item, newItem);
-
-            _.forEach(this.schemeContainer.selectedItems, selectedItem => EventBus.emitItemDeselected(selectedItem.id));
-            this.schemeContainer.selectItem(newItem, false);
-        },
-
         startCreatingChildSchemeForItem(item) {
             var category = this.schemeContainer.scheme.category;
             if (category && category.id) {
@@ -501,46 +465,6 @@ export default {
             window.open(`${urlPrefix}${url}#m:edit`, '_blank');
         },
 
-        onSelectedItemsAndConnectorsDelete() {
-            this.selectedConnector = null;
-        },
-
-        //calculates average next direction based on all connectors pointing to item
-        calculateNextDirection(item) {
-            var sourceIds = this.schemeContainer.getConnectingSourceItemIds(item.id);
-            var direction = {x: 0, y: 0};
-
-            if (sourceIds) {
-                _.forEach(sourceIds, sourceId => {
-                    var sourceItem = this.schemeContainer.findItemById(sourceId);
-                    if (sourceItem) {
-                        var vx = item.area.x + item.area.w/2 - sourceItem.area.x - sourceItem.area.w / 2;
-                        var vy = item.area.y + item.area.h/2 - sourceItem.area.y - sourceItem.area.h / 2;
-                        var v = vx*vx + vy*vy;
-                        if (v > 0.0001) {
-                            var sv = Math.sqrt(v);
-                            vx = vx / sv;
-                            vy = vy / sv;
-                            direction.x += vx;
-                            direction.y += vy;
-                        }
-                    };
-                });
-            }
-
-            var d = direction.x*direction.x + direction.y*direction.y;
-            if (d > 0.0001) {
-                var sd = Math.sqrt(d);
-                direction.x = (Math.max(item.area.w, item.area.h) + 40) * direction.x / sd;
-                direction.y = (Math.max(item.area.w, item.area.h) + 40) * direction.y / sd;
-            } else {
-                direction.x = item.area.w + 40;
-                direction.y = 0;
-            }
-
-            return direction;
-        },
-
         onUpdateZoom(zoom) {
             var value = Math.floor(zoom * 1000) / 10;
             this.zoom = Math.min(1000, Math.max(2, value));
@@ -571,23 +495,6 @@ export default {
                     zoom: this.zoom
                 }
             });
-        },
-
-        onAnyConnectorSelected(connectorId, connector) {
-            this.selectedConnector = connector;
-            this.currentTab = 'Connection';
-            this.tabs[2].disabled = false;
-            this.schemeContainer.deselectAllItems();
-        },
-
-        onAnyConnectorDeselected(connectorId, connector) {
-            if (this.selectedConnector && this.selectedConnector.id === connectorId) {
-                this.selectedConnector = null;
-                if (this.currentTab === 'Connection') {
-                    this.currentTab = 'Scheme';
-                }
-                this.tabs[2].disabled = true;
-            }
         },
 
         onPlaceItem(item) {
@@ -732,7 +639,6 @@ export default {
         restoreItemSelection() {
             const selectedItemIds = _.map(this.schemeContainer.selectedItems, item => item.id);
             this.schemeContainer.deselectAllItems();
-            this.schemeContainer.deselectAllConnectors();
 
             _.forEach(selectedItemIds, itemId => {
                 const item = this.schemeContainer.findItemById(itemId);

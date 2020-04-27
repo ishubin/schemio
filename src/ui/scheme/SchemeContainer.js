@@ -7,7 +7,6 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import Connector from './Connector.js';
 import Item from './Item.js';
 
 
@@ -72,16 +71,14 @@ class SchemeContainer {
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
         this.eventBus = eventBus;
         this.selectedItems = [];
-        this.selectedConnectors = [];
         this.activeBoundaryBox = null;
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
-        this._destinationToSourceLookup = {}; //a lookup map for discovering source items. id -> id[]
         this.copyBuffer = [];
-        this.connectorsMap  = {}; //used for quick access to connector by id
         this.revision = 0;
         this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
         this.worldItems = []; // used for storing top-level items with default area
+        this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
@@ -108,7 +105,6 @@ class SchemeContainer {
     /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
-     * Since connectors need to be rebuilt with the correct transform this needs to adjusted each time the item position is changed
      * @param {Item} mainItem 
      */
     updateChildTransforms(mainItem) {
@@ -130,16 +126,23 @@ class SchemeContainer {
     }
 
     reindexItems() {
-        //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex and rebuild connectors only for effected items. This obviously needs to be specified from the caller)
+        //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
-        this._destinationToSourceLookup = {};
         this._itemArray = [];
-        this.connectorsMap = {};
         this.viewportItems = [];
         this.worldItems = [];
         this._itemGroupsToIds = {};
 
-        const itemsWithConnectors = [];
+        // stores element selectors with their dependants
+        // this will be used once it has visited all items
+        // so that it can finally start puting ids of existing items into dependencyItemMap
+        const dependencyElementSelectorMap = {};
+        const registerDependant = (elementSelector, itemId) => {
+            let dependants = dependencyElementSelectorMap[elementSelector] || [];
+            dependants.push(itemId);
+            dependencyElementSelectorMap[elementSelector] = dependants;
+        };
+
         if (!this.scheme.items) {
             return;
         }
@@ -164,18 +167,46 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.connectors && item.connectors.length > 0) {
-                itemsWithConnectors.push(item);
+            if (item.shape === 'curve') {
+                if (item.shapeProps.sourceItem) {
+                    registerDependant(item.shapeProps.sourceItem, item.id);
+                }
+                if (item.shapeProps.destinationItem) {
+                    registerDependant(item.shapeProps.destinationItem, item.id);
+                }
             }
+
+            // calculating real visibility based on parents visibility
+            let parentVisible = true;
+            if (parentItem) {
+                parentVisible = parentItem.meta.calculatedVisibility;
+            }
+            item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
         });
 
         this.itemGroups = _.keys(this._itemGroupsToIds);
         this.itemGroups.sort();
 
-        _.forEach(itemsWithConnectors, item => {
-            this.buildItemConnectors(item);
-        });
+
+        this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision += 1;
+    }
+
+    buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
+        const dependencyItemMap = {};
+        const registerDependants = (itemId, newDependants) => {
+            let dependants = dependencyItemMap[itemId] || [];
+            dependants = dependants.concat(newDependants);
+            dependencyItemMap[itemId] = dependants;
+        };
+
+        _.forEach(dependencyElementSelectorMap, (dependants, elementSelector) => {
+            const mainItem = this.findFirstElementBySelector(elementSelector);
+            if (mainItem) {
+                registerDependants(mainItem.id, dependants);
+            }
+        });
+        return dependencyItemMap;
     }
 
     /**
@@ -252,6 +283,57 @@ class SchemeContainer {
     localPointOnItem(x, y, item) {
         return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
     }
+    
+    /**
+     * Finds first item that is within specified distance to path
+     * @param {Number} x - x axis of world coords
+     * @param {Number} y - y axis of world coords
+     * @param {Number} d - maximum distance to items path
+     * @param {String} excludedId - item that should be excluded
+     * @param {Boolean} onlyVisibleItems - specifies whether it should check only items that are visible
+     * @param {String} areaType - if specified it will only check items in given type of placement: viewport or relative
+     */
+    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems, areaType) {
+        // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
+        let globalPoint = {x, y};
+        let item = null;
+        for (let i = 0; i < this._itemArray.length; i++) {
+            item = this._itemArray[i];
+
+            const localPoint = this.localPointOnItem(x, y, item);
+            
+            let doCheckItem = item.id !== excludedId;
+            
+            if (onlyVisibleItems) {
+                doCheckItem = doCheckItem && item.meta.calculatedVisibility;
+            }
+            if (areaType) {
+                doCheckItem = doCheckItem && item.area.type === areaType;
+            }
+
+            if (doCheckItem) {
+                if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
+                    const shape = Shape.find(item.shape);
+                    if (shape) {
+                        const path = shape.computePath(item);
+                        if (path) {
+                            const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
+                            const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
+                            if (squaredDistance < d * d) {
+                                return {
+                                    x                 : closestPoint.x,
+                                    y                 : closestPoint.y,
+                                    distanceOnPath    : closestPoint.distanceOnPath,
+                                    itemId            : item.id
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
     getBoundingBoxOfItems(items) {
         if (!items || items.length === 0) {
@@ -301,6 +383,46 @@ class SchemeContainer {
         };
 
         return schemeBoundaryBox;
+    }
+
+    /**
+     * Should be invoked each time an area or path of item changes
+     * @param {String} changedItemId
+     * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
+     */
+    readjustItem(changedItemId, isSoft) {
+        this._readjustItem(changedItemId, {}, isSoft);
+    }
+
+    /**
+     * 
+     * @param {*} changedItem 
+     * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
+     */
+    _readjustItem(changedItemId, visitedItems, isSoft) {
+        if (visitedItems[changedItemId]) {
+            return;
+        }
+
+        visitedItems[changedItemId] = true;
+
+        const item = this.findItemById(changedItemId);
+        if (!item) {
+            return;
+        }
+
+        const shape = Shape.find(item.shape);
+        if (shape && shape.readjustItem) {
+            shape.readjustItem(item, this, isSoft);
+            this.eventBus.emitItemChanged(item.id);
+        }
+
+        // searching for items that depend on changed item
+        if (this.dependencyItemMap[changedItemId]) {
+            _.forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
+                this._readjustItem(dependantItemId, visitedItems, isSoft);
+            });
+        }
     }
 
     remountItemInsideOtherItem(itemId, otherItemId, position) {
@@ -404,7 +526,7 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + 1);
     }
 
-    enrichItemWithDefaults(item, shape) {
+    enrichItemWithDefaults(item) {
         const props = {
             area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
             groups: [],
@@ -430,87 +552,6 @@ class SchemeContainer {
             }
         }
         utils.extendObject(item, props);
-    }
-
-    buildItemConnectors(item) {
-        if (item.connectors) {
-            _.forEach(item.connectors, connector => {
-                this.buildConnector(item, connector);
-            });
-        }
-    }
-
-    /**
-     * Used in order to later discover all items that were connecting to specific item
-     * @param {string} sourceId 
-     * @param {string} destinationId 
-     */
-    indexDestinationToSource(sourceId, destinationId) {
-        if(!this._destinationToSourceLookup[destinationId]) {
-            this._destinationToSourceLookup[destinationId] = [];
-        }
-        if (_.indexOf(this._destinationToSourceLookup[destinationId], sourceId) < 0) {
-            this._destinationToSourceLookup[destinationId].push(sourceId);
-        }
-    }
-
-    buildConnector(sourceItem, connector) {
-        if (!sourceItem) {
-            return;
-        }
-        if (!connector.meta) {
-            connector.meta = {};
-        }
-        if (!connector.id || connector.id.length === 0) {
-            connector.id = shortid.generate();
-        }
-
-        connector.meta.sourceItemId = sourceItem.id;
-        const points = [];
-
-        this.enrichConnectorWithDefaultStyle(connector);
-
-        const destinationItem = this.itemMap[connector.itemId];
-        if (destinationItem) {
-            this.indexDestinationToSource(sourceItem.id, destinationItem.id);
-        }
-
-        if (connector.reroutes && connector.reroutes.length > 0) {
-            const sourcePoint = this.findEdgePoint(sourceItem, connector.reroutes[0]);
-            points.push(this.localPointOnItem(sourcePoint.x, sourcePoint.y, sourceItem));
-
-            for (let i = 0; i < connector.reroutes.length; i++) {
-                if (!connector.reroutes[i].disabled) {
-                    const x = connector.reroutes[i].x;
-                    const y = connector.reroutes[i].y;
-                    points.push(this.localPointOnItem(x, y, sourceItem));
-                }
-            }
-            if (destinationItem) {
-                const point = this.findEdgePoint(destinationItem, connector.reroutes[connector.reroutes.length - 1]);
-                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
-            }
-        } else {
-            if (destinationItem) {
-                let point = this.findEdgePoint(sourceItem, {
-                    x: destinationItem.area.x + destinationItem.area.w /2,
-                    y: destinationItem.area.y + destinationItem.area.h /2,
-                });
-                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
-
-                point = this.findEdgePoint(destinationItem, {
-                    x: sourceItem.area.x + sourceItem.area.w /2,
-                    y: sourceItem.area.y + sourceItem.area.h /2,
-                });
-                points.push(this.localPointOnItem(point.x, point.y, sourceItem));
-            }
-        }
-
-        if (!connector.meta) {
-            connector.meta = {};
-        }
-        connector.meta.points = points;
-        this.connectorsMap[connector.id] = connector;
     }
 
     findEdgePoint(item, nextPoint) {
@@ -541,65 +582,9 @@ class SchemeContainer {
         }
         this.shadowSvgPath.setAttribute('d', path);
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
-        return this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
-    }
-
-    enrichConnectorWithDefaultStyle(connector) {
-        utils.extendObject(connector, {
-            name: '',
-            opacity: 100.0,
-            visible: true,
-            color: '#333',
-            width: 1,
-            pattern: Connector.Pattern.LINE,
-            connectorType: Connector.Type.STRAIGHT,
-            destination: {
-                type: Connector.CapType.ARROW,
-                size: 5
-            },
-            source: {
-                type: Connector.CapType.EMPTY,
-                size: 5
-            },
-            meta: {
-                animations: {}
-            }
-        });
-    }
-
-    connectItems(sourceItem, destinationItem) {
-        if (sourceItem !== destinationItem && sourceItem.id && destinationItem.id) {
-            if (!sourceItem.connectors) {
-                sourceItem.connectors = [];
-            }
-
-            var alreadyExistingConnection = _.find(sourceItem.connectors, c => {
-                return (c.itemId === destinationItem.id);
-            });
-
-            if (!alreadyExistingConnection) {
-                var connector = {
-                    id: shortid.generate(),
-                    itemId: destinationItem.id,
-                    reroutes: [],
-                    style: {
-                        color: '#333',
-                        width: 1,
-                        pattern: 'line',
-                        source: {
-                            type: 'empty',
-                            size: 5
-                        },
-                        destination: {
-                            type: 'arrow',
-                            size: 5
-                        }
-                    }
-                };
-                sourceItem.connectors.push(connector);
-                this.buildConnector(sourceItem, connector);
-            }
-        }
+        const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
+        worldPoint.distanceOnPath = closestPoint.distance;
+        return worldPoint;
     }
 
     getSelectedItems() {
@@ -607,7 +592,7 @@ class SchemeContainer {
     }
 
 
-    _deleteItem(item) {
+    deleteItem(item) {
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
             const parentItem = this.findItemById(item.meta.parentId);
@@ -623,58 +608,16 @@ class SchemeContainer {
         }
 
         itemsArray.splice(index, 1);
-
-        this.removeConnectorsForItem(item);
-        if (item.childItems) {
-            this._removeConnectorsForAllSubItems(item.childItems);
-        }
     }
 
-    _removeConnectorsForAllSubItems(items) {
-        _.forEach(items, item => {
-            this.removeConnectorsForItem(item);
-            if (item.childItems) {
-                this._removeConnectorsForAllSubItems(item.childItems);
-            }
-        });
-    }
-
-    deleteSelectedItemsAndConnectors() {
-        let removed = 0;
+    deleteSelectedItems() {
         if (this.selectedItems && this.selectedItems.length > 0) {
             _.forEach(this.selectedItems, item => {
-                this._deleteItem(item);
+                this.deleteItem(item);
             });
 
             this.selectedItems = [];
-            removed += 1;
-        }
-        if (this.selectedConnectors) {
-            _.forEach(this.selectedConnectors, connector => {
-                const sourceItem = this.findItemById(connector.meta.sourceItemId);
-                if (sourceItem && sourceItem.connectors) {
-                    const connectorIndex = _.findIndex(sourceItem.connectors, c => c.id === connector.id);
-                    if (connectorIndex >= 0) {
-                        sourceItem.connectors.splice(connectorIndex, 1);
-                    }
-                }
-            });
-            removed += 1;
-        }
-        if (removed > 0) {
             this.reindexItems();
-        }
-    }
-
-    removeConnectorsForItem(item) {
-        var sourceIds = this._destinationToSourceLookup[item.id];
-        if (sourceIds) {
-            _.forEach(sourceIds, sourceId => {
-                var sourceItem = this.findItemById(sourceId);
-                if (sourceItem && sourceItem.connectors && sourceItem.connectors.length) {
-                    sourceItem.connectors = _.filter(sourceItem.connectors, connector => connector.itemId !== item.id);
-                }
-            });
         }
     }
 
@@ -699,30 +642,6 @@ class SchemeContainer {
 
     setActiveBoundaryBox(area) {
         this.activeBoundaryBox = area;
-    }
-
-    selectConnector(connector, inclusive) {
-        // only select connector that do have meta, otherwise it would be imposible to click them
-        if (inclusive) {
-            throw new Error('not supported yet');
-        } else {
-            this.deselectAllConnectors();
-
-            if (connector.meta && !connector.meta.selected) {
-                connector.meta.selected = true;
-                this.selectedConnectors.push(connector);
-            }
-        }
-    }
-
-    deselectAllConnectors() {
-        _.forEach(this.selectedConnectors, connector => {
-            if (connector.meta) {
-                connector.meta.selected = false;
-            }
-            this.eventBus.emitConnectorDeselected(connector.id, connector);
-        });
-        this.selectedConnectors = [];
     }
 
     isItemSelected(item) {
@@ -889,56 +808,6 @@ class SchemeContainer {
         });
     }
 
-    /**
-    Adds a reroute in specified connector and returns an index (in the reroutes array)
-    */
-    addReroute(x, y, connector) {
-        if (!connector.reroutes) {
-            connector.reroutes = [];
-        }
-
-        var id = connector.reroutes.length;
-        if (connector.reroutes.length > 0) {
-            const item = this.findItemById(connector.meta.sourceItemId);
-            if (item) {
-                const localPoint = this.localPointOnItem(x, y, item);
-                id = this.findMatchingRerouteSegment(localPoint.x, localPoint.y, connector);
-            }
-        }
-
-        connector.reroutes.splice(id, 0, {
-            x: x,
-            y: y
-        });
-        const sourceItem = this.findItemById(connector.meta.sourceItemId);
-        if (sourceItem) {
-            this.buildConnector(sourceItem, connector);
-        }
-        return id;
-    }
-
-    findMatchingRerouteSegment(x, y, connector) {
-        var point = {x, y};
-        var candidates = [];
-        for (var i = 0; i < connector.meta.points.length - 1; i++) {
-            candidates.push({
-                index: i,
-                distance: myMath.distanceToLineSegment(point, connector.meta.points[i], connector.meta.points[i + 1], 10.0),
-                point1: connector.meta.points[i],
-                point2: connector.meta.points[i + 1]
-            });
-        }
-
-         var segment = _.chain(candidates).sortBy('distance').find(c => {
-             return myMath.isPointWithinLineSegment(point, c.point1, c.point2);
-         }).value();
-         if (segment) {
-             return segment.index;
-         } else {
-             return 0;
-         }
-    }
-
     findItemById(itemId) {
         return this.itemMap[itemId];
     }
@@ -957,12 +826,16 @@ class SchemeContainer {
         return items;
     }
 
-    findConnectorById(connectorId) {
-        return this.connectorsMap[connectorId];
+    findFirstElementBySelector(selector, selfItem) {
+        const elements = this.findElementsBySelector(selector, selfItem);
+        if (elements.length > 0) {
+            return elements[0];
+        }
+        return null;
     }
 
     /**
-     * Finds items and connectors that match specified selector
+     * Finds items that match specified selector
      * @param {String} selector contains a selector for an element
      * @param {SchemeItem} selfItem 
      */
@@ -977,11 +850,6 @@ class SchemeContainer {
             if (item) {
                 return [item];
             }
-
-            const connector = this.findConnectorById(id);
-            if (connector) {
-                return [connector];
-            }
         } else {
             const colonIndex = selector.indexOf(':');
             if (colonIndex > 0) {
@@ -991,11 +859,7 @@ class SchemeContainer {
                 }
             }
         }
-        return null;
-    }
-
-    getConnectingSourceItemIds(destinationId) {
-        return this._destinationToSourceLookup[destinationId];
+        return [];
     }
 
     copySelectedItems() {
@@ -1069,7 +933,7 @@ class SchemeContainer {
         _.forEach(oldItem, (value, field) => {
             if (field === 'childItems') {
                 newItem[field] = _.map(value, childItem => this.copyItem(childItem));
-            } else if (field !== 'connectors' && field !== 'id' && field !== 'meta') {
+            } else if (field !== 'id' && field !== 'meta') {
                 newItem[field] = utils.clone(value);
             }
         });

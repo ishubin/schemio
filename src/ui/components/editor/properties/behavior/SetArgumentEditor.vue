@@ -32,7 +32,7 @@ export default {
 
         if (this.argumentDescription.type === 'stroke-pattern') {
             isChoice = true;
-            choiceOptions = StrokePattern.getPatternsList();
+            choiceOptions = StrokePattern.patters;
         } else if (this.argumentDescription.type === 'choice') {
             isChoice = true;
             choiceOptions = this.argumentDescription.options;

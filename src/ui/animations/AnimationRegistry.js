@@ -61,7 +61,7 @@ export default {
     /**
      * 
      * @param {Animation} animation
-     * @param {String} entityId Id of item or connector. It is needed in order to be able to stop all animations for a specific item/connector
+     * @param {String} entityId Id of an item. It is needed in order to be able to stop all animations for a specific item
      */
     play(animation, entityId) {
         animation.entityId = entityId;

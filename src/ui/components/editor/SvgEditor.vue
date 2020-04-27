@@ -35,7 +35,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -58,7 +57,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -95,7 +93,9 @@
                 <rect id="svg-rect-void" x="0" y="0" :width="width" :height="height" data-preview-ignore="true" fill="rgba(255, 255, 255, 0.0)" stroke="none"/>
 
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="item in schemeContainer.worldItems" class="item-container"
+                    <g v-for="item in schemeContainer.worldItems"
+                        v-if="item.visible"
+                        class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
@@ -112,7 +112,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             />
                     </g>
 
@@ -133,28 +132,18 @@
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
-                    <!-- Drawing items hitbox so that connecting state is able to identify hovered items even when reroute point or connector line is right below it -->
-                    <g v-if="state === 'connecting'">
-                        <!-- TODO change the way connector hitbox is rendered to use its shape instead -->
-                        <g v-for="item in schemeContainer.getItems()" :transform="`translate(${item.meta.transform.x},${item.meta.transform.y}) rotate(${item.meta.transform.r})`">
-                            <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
-                                <rect class="item-hitbox" data-preview-ignore="true"
-                                    :data-item-id="item.id"
-                                    :x="0"
-                                    :y="0"
-                                    :width="item.area.w"
-                                    :height="item.area.h"
-                                    fill="rgba(255, 0, 255, 0.0)"
-                                    stroke="none"
-                                    ></rect>
-                            </g>
-                        </g>
+
+                    <g v-for="item in worldHighlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
                     </g>
+
                 </g>
 
 
                 <g :transform="viewportTransform">
-                    <g v-for="item in schemeContainer.viewportItems" class="item-container"
+                    <g v-for="item in schemeContainer.viewportItems"
+                        v-if="item.visible"
+                        class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
@@ -171,7 +160,6 @@
                             :item="item"
                             :mode="mode"
                             :scheme-container="schemeContainer"
-                            :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                             />
                     </g>
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
@@ -179,6 +167,10 @@
                         :item="item"
                         :zoom="1"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+
+                    <g v-for="item in viewportHighlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
+                    </g>
                 </g>
 
                 <!-- Item Text Editor -->    
@@ -198,7 +190,6 @@
                         :zoom="1"
                         :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"/>
                 </g>
-
 
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
@@ -230,16 +221,13 @@
                 <li @click="$emit('clicked-add-item-link', contextMenu.item)">
                     <i class="fas fa-link"></i> Add link
                 </li>
-                <li @click="$emit('clicked-add-item-to-item', contextMenu.item)">
-                    <i class="far fa-plus-square"></i> Add item
-                </li>
                 <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
                     <i class="far fa-file"></i> Create scheme for this element...
                 </li>
                 <li @click="copySelectedItems()">
                     Copy
                 </li>
-                <li @click="deleteSelectedItemsAndConnectors()">
+                <li @click="deleteSelectedItems()">
                     <i class="fa fa-times"></i> Delete
                 </li>
             </ul>
@@ -266,7 +254,6 @@ import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
 import StateEditCurve from './states/StateEditCurve.js';
-import StateConnecting from './states/StateConnecting.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
@@ -308,7 +295,6 @@ const states = {
     createItem: new StateCreateItem(EventBus),
     editCurve: new StateEditCurve(EventBus),
     dragItem: new StateDragItem(EventBus),
-    connecting: new StateConnecting(EventBus),
     pickElement: new StatePickElement(EventBus)
 };
 let currentState = states.interact;
@@ -327,8 +313,10 @@ export default {
             this.switchStateInteract();
         }
 
+        states.editCurve.setViewportCorrection(this.viewportTop, this.viewportLeft);
+
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
@@ -345,6 +333,7 @@ export default {
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
+        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -355,7 +344,7 @@ export default {
     beforeDestroy(){
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
-        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onSwitchStateConnecting);
+        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
@@ -372,6 +361,7 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
+        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -416,6 +406,8 @@ export default {
             },
 
             curveEditItem: null,
+            worldHighlightedItems: [ ],
+            viewportHighlightedItems: [ ]
         };
     },
     methods: {
@@ -435,7 +427,7 @@ export default {
             }
         },
 
-        identifyElement(element) {
+        identifyElement(element, point) {
             if (element) {
                 const elementType = element.getAttribute('data-type');
                 if (elementType === 'curve-point') {
@@ -456,30 +448,6 @@ export default {
                     return {
                         item: this.schemeContainer.findItemById(itemId)
                     }
-                }
-
-                const connectorId = element.getAttribute('data-connector-id');
-                if (connectorId) {
-                    const connector = this.schemeContainer.findConnectorById(connectorId);
-                    if (connector) {
-                        return {
-                            connector,
-                        };
-                    }
-                }
-
-                const rerouteIndex = element.getAttribute('data-reroute-index');
-                if (rerouteIndex) {
-                    const path = rerouteIndex.split('/');
-                    const connectorId = path[0];
-                    const connector = this.schemeContainer.findConnectorById(connectorId);
-                    if (connector) {
-                        return {
-                            connector,
-                            rerouteId: path[1],
-                        };
-                    }
-
                 }
 
                 const draggerItemId = element.getAttribute('data-dragger-item-id');
@@ -508,7 +476,8 @@ export default {
                     if (item) {
                         return {
                             connectorStarter: {
-                                item
+                                item,
+                                point
                             }
                         };
                     }
@@ -539,7 +508,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDown(event) {
@@ -547,7 +516,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseUp(event) {
@@ -555,7 +524,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDoubleClick(event) {
@@ -563,7 +532,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement), event);
+                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         onCancelCurrentState() {
@@ -575,6 +544,7 @@ export default {
             states[this.state].reset();
         },
         switchStateInteract() {
+            this.highlightItems([]);
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
             this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
             this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
@@ -597,15 +567,18 @@ export default {
             states[this.state].reset();
         },
         switchStateDragItem() {
+            this.highlightItems([]);
             this.state = 'dragItem';
             states.dragItem.reset();
         },
         switchStatePickElement(elementPickCallback) {
+            this.highlightItems([]);
             this.state = 'pickElement';
             states.pickElement.reset();
             states.pickElement.setElementPickCallback(elementPickCallback);
         },
         onSwitchStateCreateItem(item) {
+            this.highlightItems([]);
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
                 this.state = 'editCurve';
@@ -615,17 +588,76 @@ export default {
             states[this.state].reset();
             states[this.state].setItem(item);
         },
-        onSwitchStateConnecting(item) {
-            this.state = 'connecting';
-            states.connecting.reset();
-            states.connecting.setSourceItem(item);
+
+        onStartConnecting(item, worldPoint) {
+            this.highlightItems([]);
+            let localPoint = null;
+            if (worldPoint) {
+                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, item);
+            }
+            states.editCurve.reset();
+            const curveItem = states.editCurve.initConnectingFromSourceItem(item, localPoint);
+            this.curveEditItem = curveItem;
+            this.state = 'editCurve';
         },
 
         onCurveEditRequested(item) {
+            this.highlightItems([]);
             this.state = 'editCurve';
             states.editCurve.reset();
             states.editCurve.setItem(item);
             this.curveEditItem = item;
+        },
+
+        highlightItems(itemIds) {
+            this.worldHighlightedItems = [];
+            this.viewportHighlightedItems = [];
+
+            _.forEach(itemIds, itemId => {
+                const item = this.schemeContainer.findItemById(itemId);
+                if (!item) {
+                    return;
+                }
+
+                const shape = Shape.find(item.shape);
+                if (!shape) {
+                    return;
+                }
+
+                const path = shape.computePath(item);
+                if (!path) {
+                    return;
+                }
+
+                const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
+                let angle = item.area.r;
+                if (item.meta && item.meta.transform) {
+                    angle += item.meta.transform.r;
+                }
+
+                let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
+                let strokeSize = 3;
+                if (item.shape === 'curve') {
+                    strokeSize = item.shapeProps.strokeSize + 2;
+                    if (!item.shapeProps.fill) {
+                        fill = 'none';
+                    }
+                }
+
+
+                const itemHighlight = {
+                    transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
+                    path,
+                    fill,
+                    strokeSize,
+                    stroke: this.schemeContainer.scheme.style.boundaryBoxColor
+                };
+                if (item.area.type === 'viewport') {
+                    this.viewportHighlightedItems.push(itemHighlight);
+                } else {
+                    this.worldHighlightedItems.push(itemHighlight);
+                }
+            });
         },
 
         reindexUserEvents() {
@@ -664,7 +696,7 @@ export default {
             if (key === EventBus.KEY.ESCAPE) {
                 states[this.state].cancel();
             } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
-                this.deleteSelectedItemsAndConnectors();
+                this.deleteSelectedItems();
             } else {
                 states[this.state].keyPressed(key, keyOptions);
             }
@@ -676,10 +708,9 @@ export default {
             }
         },
 
-        deleteSelectedItemsAndConnectors() {
-            this.schemeContainer.deleteSelectedItemsAndConnectors();
+        deleteSelectedItems() {
+            this.schemeContainer.deleteSelectedItems();
             EventBus.emitSchemeChangeCommited();
-            this.$emit('deleted-items');
             this.$forceUpdate();
         },
 
@@ -826,15 +857,6 @@ export default {
             };
         },
 
-        connectorToSvgPath(connector) {
-            var path = `M ${connector.meta.points[0].x} ${connector.meta.points[0].y}`
-
-            for (var i = 1; i < connector.meta.points.length; i++) {
-                path += ` L ${connector.meta.points[i].x} ${connector.meta.points[i].y}`
-            }
-            return path;
-        },
-
         onRightClickedItem(item, mouseX, mouseY) {
             this.contextMenu.item = item;
             this.contextMenu.mouseX = mouseX;
@@ -950,6 +972,12 @@ export default {
                 this.switchStateInteract();
             }
         },
+        viewportTop(value) {
+            states.editCurve.setViewportCorrection(value, this.viewportLeft);
+        },
+        viewportLeft(value) {
+            states.editCurve.setViewportCorrection(this.viewportTop, value);
+        }
     },
     computed: {
         transformSvg() {

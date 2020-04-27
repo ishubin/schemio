@@ -10,7 +10,7 @@
 </template>
 <script>
 /**
- * This component is used in order to pick any element on the scheme (e.g. item, connector)
+ * This component is used in order to pick any item on the scheme
  */
 import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
@@ -23,7 +23,9 @@ export default {
         element:            {type: String},
         selfItem:           {type: Object},
         schemeContainer:    {type: Object},
-        useSelf:            {type: Boolean, default: true}
+        useSelf:            {type: Boolean, default: true},
+        allowNone:          {type: Boolean, default: false},
+        excludedItemIds:    {type: Array,   default: () => []} // array of items that should be excluded from options
     },
 
     components: {Dropdown},
@@ -46,12 +48,24 @@ export default {
 
     methods: {
         collectAllOptions() {
-            const options = [{
+            const options = [];
+            if (this.allowNone) {
+                options.push({
+                    iconClass: '',
+                    name: 'None',
+                    id: 'none',
+                    type: 'none'
+                });
+            }
+            
+            options.push({
                 iconClass: 'fas fa-crosshairs',
                 name: 'Pick...',
                 id: 'pick',
                 type: 'pick'
-            }];
+            });
+
+
             if (this.useSelf) {
                 options.push({
                     iconClass: 'fas fa-cube',
@@ -62,20 +76,18 @@ export default {
             }
 
             _.forEach(this.schemeContainer.getItems(), item => {
-                options.push({
-                    iconClass: 'fas fa-cube',
-                    name: item.name,
-                    id: item.id,
-                    type: 'item'
-                });
-                if (item.connectors) {
-                    _.forEach(item.connectors, (connector, connectorIndex) => {
-                        options.push({
-                            iconClass: 'fas fa-link',
-                            name: connector.name || `${item.name} #${connectorIndex}`,
-                            id: connector.id,
-                            type: 'connector'
-                        });
+                let itemShouldBeIncluded = true;                
+
+                if (this.excludedItemIds && this.excludedItemIds.length > 0) {
+                    itemShouldBeIncluded = _.indexOf(this.excludedItemIds, item.id) >= 0;
+                }
+
+                if (itemShouldBeIncluded) {
+                    options.push({
+                        iconClass: 'fas fa-cube',
+                        name: item.name,
+                        id: item.id,
+                        type: 'item'
                     });
                 }
             });
@@ -100,10 +112,12 @@ export default {
                     this.$emit('selected', element);
                 });
             } else {
-                if (option.type === 'item' || option.type === 'connector') {
+                if (option.type === 'item') {
                     this.$emit('selected', `#${option.id}`);
                 } else if (option.type === 'item-group') {
                     this.$emit('selected', `group: ${option.id}`);
+                } else if (option.type === 'none') {
+                    this.$emit('selected', null);
                 } else {
                     console.error(option.type + ' is not supported');
                 }
@@ -113,6 +127,13 @@ export default {
 
     computed: {
         enrichedElement() {
+            if (!this.element) {
+                return {
+                    name: 'None',
+                    type: 'none',
+                    iconClass: ''
+                };
+            }
             if (this.element.startsWith('group:')) {
                 return {
                     name: this.element.substr(6).trim(),
@@ -128,20 +149,12 @@ export default {
                 };
             }
 
-            const elements = this.schemeContainer.findElementsBySelector(this.element, this.selfItem);
-            if (elements && elements.length > 0) {
-                let firstElement = elements[0];
-
-                let iconClass = 'fas fa-cube';
-                let type = 'item';
-                if (!firstElement.shape) {
-                    iconClass = 'fas fa-link';
-                    type = 'connector';
-                }
+            const element = this.schemeContainer.findFirstElementBySelector(this.element, this.selfItem);
+            if (element) {
                 return {
-                    name: firstElement.name || firstElement.id,
-                    iconClass,
-                    type
+                    name: element.name || element.id,
+                    iconClass: 'fas fa-cube',
+                    type: 'item'
                 };
             }
 

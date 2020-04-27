@@ -67,7 +67,7 @@
                             <span>: </span>
                             <div>
                                 <dropdown
-                                    :key="action.element.item + ' ' + (action.element.connector||'')"
+                                    :key="action.element.item"
                                     :options="createMethodSuggestionsForElement(action.element)"
                                     @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
                                     >
@@ -251,7 +251,7 @@ export default {
         createMethodSuggestionsForElement(element) {
             const options = [];
 
-            _.forEach(Functions.item, (func, funcId) => {
+            _.forEach(Functions.main, (func, funcId) => {
                 if (funcId !== 'set') {
                     options.push({
                         method: funcId,
@@ -275,20 +275,18 @@ export default {
                 });
             });
 
-            // checking if it is not a connector
-            if (item.shape) {
-                const shape = Shape.find(item.shape);
-                if (shape) {
-                    _.forEach(shape.args, (arg, argName) => {
-                        options.push({
-                            method: 'set',
-                            name: arg.name,
-                            fieldPath: `shapeProps.${argName}`,
-                            iconClass: 'fas fa-cog'
-                        });
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                _.forEach(shape.args, (arg, argName) => {
+                    options.push({
+                        method: 'set',
+                        name: arg.name,
+                        fieldPath: `shapeProps.${argName}`,
+                        iconClass: 'fas fa-cog'
                     });
-                }
+                });
             }
+
             options.push({
                 method: 'set',
                 name: 'Opacity',
@@ -359,7 +357,7 @@ export default {
             event.actions.push({
                 element,
                 method: 'show',
-                args: _.mapValues(Functions.item.show.args, arg => arg.value)
+                args: _.mapValues(Functions.main.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
         },
@@ -402,7 +400,7 @@ export default {
         },
 
         getDefaultArgsForMethod(action, method) {
-            let functions = Functions.item;
+            let functions = Functions.main;
 
             if (functions[method]) {
                 const functionArgs = functions[method].args;
@@ -455,7 +453,7 @@ export default {
         },
 
         showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
-            let functionDescription = Functions.item[action.method];
+            let functionDescription = Functions.main[action.method];
 
             if (!functionDescription) {
                 functionDescription = {
@@ -577,9 +575,8 @@ export default {
         },
 
         toPrettyMethod(method, element) {
-            let scope = 'item';
-            if (Functions[scope][method]) {
-                return Functions[scope][method].name;
+            if (Functions.main[method]) {
+                return Functions.main[method].name;
             } else {
                 return method;
             }

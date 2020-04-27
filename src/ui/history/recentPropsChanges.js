@@ -3,19 +3,6 @@ import utils from '../utils';
 class RecentPropsChanges {
     constructor() {
         this.itemShapeProps = {};
-        this.connectorProps = {};
-    }
-
-    registerConnectorProp(propPath, value) {
-        this.connectorProps[propPath] = value;
-    }
-
-    applyConnectorProps(connector) {
-        for (let propPath in this.connectorProps) {
-            if (this.connectorProps.hasOwnProperty(propPath)) {
-                utils.setObjectProperty(connector, propPath, this.connectorProps[propPath]);
-            }
-        }
     }
 
     registerItemProp(shape, propPath, value) {

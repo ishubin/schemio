@@ -69,8 +69,14 @@ export default {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
-    computePath() {return null;},
+    computePath,
     identifyTextEditArea,
+
+    editorProps: {
+        description     : 'rich',
+        text            : 'rich',
+        ignoreEventLayer: true
+    },
 
     controlPoints: {
         make(item, pointId) {

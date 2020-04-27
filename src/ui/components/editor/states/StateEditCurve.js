@@ -3,10 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import {forEach} from 'lodash';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
+
+const IS_NOT_SOFT = false;
 
 
 function isEventRightClick(event) {
@@ -27,9 +28,19 @@ export default class StateEditCurve extends State {
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+        // Viewport transform correction 
+        this.viewportTop = 0;
+        this.viewportLeft = 0;
+    }
+
+    setViewportCorrection(viewportTop, viewportLeft) {
+        this.viewportLeft = viewportLeft;
+        this.viewportTop = viewportTop;
     }
 
     reset() {
+        this.eventBus.emitItemsHighlighted([]);
         this.item = null;
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -40,6 +51,7 @@ export default class StateEditCurve extends State {
     }
 
     cancel() {
+        this.eventBus.emitItemsHighlighted([]);
         if (this.creatingNewPoints) {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
@@ -59,6 +71,55 @@ export default class StateEditCurve extends State {
         this.updateCursor('crosshair');
     }
 
+    initConnectingFromSourceItem(sourceItem, localPoint) {
+        if (!localPoint) {
+            localPoint = {
+                x: sourceItem.area.w / 2,
+                y: sourceItem.area.h / 2
+            };
+        }
+        
+        const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
+
+        let curveItem = {
+            shape: 'curve',
+            name: `${sourceItem.name} :: `,
+            area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type}
+        };
+        this.schemeContainer.enrichItemWithDefaults(curveItem);
+        curveItem = this.schemeContainer.addItem(curveItem);
+        curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
+
+        const closestPoint = this.findClosestPointToItem(sourceItem, localPoint);
+        curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+        curveItem.shapeProps.points = [{
+            t: 'L', x: closestPoint.x, y: closestPoint.y
+        }, {
+            t: 'L', x: worldPoint.x, y: worldPoint.y
+        }];
+
+        this.item = curveItem;
+        this.addedToScheme = true;
+        this.creatingNewPoints = true;
+        this.updateCursor('crosshair');
+        return this.item;
+    }
+
+    findClosestPointToItem(item, localPoint) {
+        const shape = Shape.find(item.shape);
+        if (shape) {
+            const path = shape.computePath(item);
+            if (path) {
+                const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
+                return this.schemeContainer.closestPointToSvgPath(item, path, worldPoint);
+            }
+        }
+        return {
+            x: item.area.w / 2,
+            y: item.area.h / 2
+        };
+    }
+
     initFirstClick(x, y) {
         this.item.shapeProps.points = [{
             x, y, t: 'L'
@@ -67,10 +128,18 @@ export default class StateEditCurve extends State {
         }];
 
         this.schemeContainer.addItem(this.item);
+
+        // in case user tried to attach source to another item
+        this.handleEdgeCurvePointDrag(this.item.shapeProps.points[0], true);
         this.addedToScheme = true;
     }
 
     mouseDoubleClick(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         if (this.creatingNewPoints) {
             return;
         }
@@ -81,12 +150,27 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
 
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
+
+            // checking if the curve was attached to another item
+            if (this.item.shapeProps.destinationItem) {
+                if (this.item.shapeProps.sourceItem) {
+                    this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
+                }
+                this.submitItem();
+                return;
+            }
+
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
             point.x = x;
             point.y = y;
@@ -104,6 +188,7 @@ export default class StateEditCurve extends State {
 
             this.candidatePointSubmited = true;
         } else {
+            // editing existing curve
             if (isEventRightClick(event)) {
                 this.handleRightClick(x, y, mx, my, object);
             } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
@@ -112,8 +197,23 @@ export default class StateEditCurve extends State {
             }
         }
     }
+    
+    createNameFromAttachedItems(sourceSelector, destinationSelector) {
+        const sourceItem = this.schemeContainer.findFirstElementBySelector(sourceSelector);
+        const destinationItem = this.schemeContainer.findFirstElementBySelector(destinationSelector);
+        if (sourceItem && destinationItem) {
+            return `${sourceItem.name} -> ${destinationItem.name}`;
+        }
+        
+        return 'Curve';
+    }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
         if (this.addedToScheme && this.creatingNewPoints) {
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
             if (this.candidatePointSubmited) {
@@ -137,19 +237,32 @@ export default class StateEditCurve extends State {
                     if (Math.sqrt(dx * dx + dy * dy) < 15) {
                         point.x = p0.x;
                         point.y = p0.y;
-                        this.shouldJoinClosedPoints = true;
+                        if (!this.item.shapeProps.sourceItem) {
+                            this.shouldJoinClosedPoints = true;
+                        }
                     }
                 }
             }
+            if (!this.shouldJoinClosedPoints) {
+                // what if we want to attach this point to another item
+                this.handleEdgeCurvePointDrag(point, false);
+            }
             this.eventBus.emitItemChanged(this.item.id);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
-            this.handleCurvePointDrag(x, y);
+            this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        if (this.item.area.type === 'viewport') {
+            x = mx - this.viewportLeft;
+            y = my - this.viewportTop;
+        }
+
+        this.eventBus.emitItemsHighlighted([]);
+
         if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
@@ -260,7 +373,7 @@ export default class StateEditCurve extends State {
         
         let dx = 10, dy = 0;
         if (this.item.shapeProps.points.length > 2) {
-            // calculating dx and dy via previos and next points
+            // calculating dx and dy via previous and next points
             let prevPointId = pointIndex - 1;
             if (prevPointId < 0) {
                 prevPointId = this.item.shapeProps.points.length + prevPointId;
@@ -282,31 +395,74 @@ export default class StateEditCurve extends State {
         this.eventBus.emitItemChanged(this.item.id);
     }
 
-    handleCurvePointDrag(x, y) {
-        const localOiriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
+    handleCurvePointDrag(x, y, pointIndex) {
+        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
-        curvePoint.x = this.draggedObjectOriginalPoint.x + localPoint.x - localOiriginalPoint.x;
-        curvePoint.y = this.draggedObjectOriginalPoint.y + localPoint.y - localOiriginalPoint.y;
+        const curvePoint = this.item.shapeProps.points[pointIndex];
+
+        curvePoint.x = this.draggedObjectOriginalPoint.x + localPoint.x - localOriginalPoint.x;
+        curvePoint.y = this.draggedObjectOriginalPoint.y + localPoint.y - localOriginalPoint.y;
+        
+        if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
+            this.handleEdgeCurvePointDrag(curvePoint, pointIndex === 0);
+        }
+
         if (curvePoint.t === 'B') {
-            curvePoint.x1 = this.draggedObjectOriginalPoint.x1 + localPoint.x - localOiriginalPoint.x;
-            curvePoint.y1 = this.draggedObjectOriginalPoint.y1 + localPoint.y - localOiriginalPoint.y;
-            curvePoint.x2 = this.draggedObjectOriginalPoint.x2 + localPoint.x - localOiriginalPoint.x;
-            curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOiriginalPoint.y;
+            curvePoint.x1 = this.draggedObjectOriginalPoint.x1 + localPoint.x - localOriginalPoint.x;
+            curvePoint.y1 = this.draggedObjectOriginalPoint.y1 + localPoint.y - localOriginalPoint.y;
+            curvePoint.x2 = this.draggedObjectOriginalPoint.x2 + localPoint.x - localOriginalPoint.x;
+            curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOriginalPoint.y;
         }
         this.eventBus.emitItemChanged(this.item.id);
     }
 
+    /**
+     * Handles dragging of edge point and checks whether it should stick to other item
+     * This is the most time consuming function as it needs to look through all items in schemes
+     * @param {Point} curvePoint 
+     * @param {Boolean} isSource 
+     */
+    handleEdgeCurvePointDrag(curvePoint, isSource) {
+        const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
+        const distanceThreshold = 10;
+
+        const includeOnlyVisibleItems = true;
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);
+        if (closestPointToItem) {
+            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+            curvePoint.x = localCurvePoint.x;
+            curvePoint.y = localCurvePoint.y;
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+            if (isSource) {
+                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            } else {
+                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+            }
+        } else {
+            // nothing to attach to so reseting highlights in case it was set previously
+            this.eventBus.emitItemsHighlighted([]);
+            if (isSource) {
+                this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationItemPosition = 0;
+            }
+        }
+    }
+
     handleCurveControlPointDrag(x, y, event) {
-        const localOiriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
+        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
         const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
         
         const index = this.draggedObject.controlPointIndex;
         const oppositeIndex = index === 1 ? 2: 1;
         
-        curvePoint[`x${index}`] = this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOiriginalPoint.x;
-        curvePoint[`y${index}`] = this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOiriginalPoint.y;
+        curvePoint[`x${index}`] = this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOriginalPoint.x;
+        curvePoint[`y${index}`] = this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOriginalPoint.y;
         
         if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = curvePoint.x * 2 - curvePoint[`x${index}`];
@@ -316,53 +472,20 @@ export default class StateEditCurve extends State {
     }
 
     submitItem() {
-        this.readjustItemArea();
+        if (this.item.shapeProps.points.length < 2) {
+            this.schemeContainer.deleteItem(this.item);
+            this.schemeContainer.reindexItems();
+            this.reset();
+            return;
+        }
+
+        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();
+        this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }
 
-    readjustItemArea() {
-        if (this.item.shapeProps.points.length < 1) {
-            return;
-        }
-
-        let minX = this.item.shapeProps.points[0].x + this.item.area.x,
-            minY = this.item.shapeProps.points[0].y + this.item.area.y,
-            maxX = minX,
-            maxY = minY;
-
-        forEach(this.item.shapeProps.points, point => {
-            minX = Math.min(minX, point.x + this.item.area.x);
-            minY = Math.min(minY, point.y + this.item.area.y);
-            maxX = Math.max(maxX, point.x + this.item.area.x);
-            maxY = Math.max(maxY, point.y + this.item.area.y);
-            if (point.t === 'B') {
-                minX = Math.min(minX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
-                minY = Math.min(minY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
-                maxX = Math.max(maxX, point.x1 + this.item.area.x, point.x2 + this.item.area.x);
-                maxY = Math.max(maxY, point.y1 + this.item.area.y, point.y2 + this.item.area.y);
-            }
-        });
-
-        const dx = this.item.area.x - minX;
-        const dy = this.item.area.y - minY;
-        this.item.area.x = minX;
-        this.item.area.y = minY;
-        this.item.area.w = maxX - minX;
-        this.item.area.h = maxY - minY;
-
-        forEach(this.item.shapeProps.points, point => {
-            point.x += dx;
-            point.y += dy;
-            if (point.t === 'B') {
-                point.x1 += dx;
-                point.y1 += dy;
-                point.x2 += dx;
-                point.y2 += dy;
-            }
-        });
-    }
 }

@@ -1097,19 +1097,6 @@ ul.button-group li .toggle-button .small-letter {
     font-size: 12px;
 }
 
-/******************** Connectors *********************/
-svg.mode-edit .item-connector-hover-area {
-    stroke: rgba(0,0,0,0.0);
-    opacity: 0.0;
-}
-svg.mode-edit .item-connector-hover-area:hover {
-    cursor: pointer;
-}
-svg.mode-edit .item-connector-reroute {
-    cursor: pointer;
-}
-
-
 /*************** File upload **********************/
 .file-upload-button {
     position: relative;
@@ -1681,11 +1668,12 @@ table.position-panel-table .property-label {
 .element-picker .picked-element.picked-element-type-item {
     color: #036503;
 }
-.element-picker .picked-element.picked-element-type-connector {
-    color: #0250a8;
-}
 .element-picker .picked-element.picked-element-type-item-group {
     color: #950cd5;
+}
+.element-picker .picked-element.picked-element-type-none {
+    color: #999999;
+    font-style: italic;
 }
 .element-picker .picked-element.picked-element-type-error {
     color: #9b0b0b;

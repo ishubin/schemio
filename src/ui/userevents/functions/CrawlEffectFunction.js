@@ -1,15 +1,16 @@
 import _ from 'lodash';
-import AnimationRegistry from '../../../animations/AnimationRegistry';
-import Animation from '../../../animations/Animation';
+import AnimationRegistry from '../../animations/AnimationRegistry';
+import Animation from '../../animations/Animation';
+import Shape from '../../components/editor/items/shapes/Shape';
 
 class CrawlEffectAnimation extends Animation {
-    constructor(connector, args, resultCallback) {
+    constructor(item, args, resultCallback) {
         super();
-        this.connector = connector;
+        this.item = item;
         this.args = args;
         this.resultCallback = resultCallback;
         this.domContainer = null;
-        this.domConnectorPath = null;
+        this.domPath = null;
         this.time = 0.0;
         
         this.backupOpacity = 1.0;
@@ -17,15 +18,23 @@ class CrawlEffectAnimation extends Animation {
     }
 
     init() {
-        this.domContainer = document.getElementById(`animation-container-connector-${this.connector.id}`);
-        this.domConnectorPath = document.getElementById(`connector-${this.connector.id}-path`);
+        this.domContainer = document.getElementById(`animation-container-${this.item.id}`);
 
-        if (!this.domContainer || !this.domConnectorPath) {
+        const shape = Shape.find(this.item.shape);
+        if (shape) {
+            const path = shape.computePath(this.item);
+            if (path) {
+                this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                this.domPath.setAttribute('d', path);
+            }
+        }
+
+        if (!this.domContainer || !this.domPath) {
             return false;
         }
         
         this.domAnimationPath = this.svg('path', {
-            'd': this.domConnectorPath.getAttribute('d'),
+            'd': this.domPath.getAttribute('d'),
             'stroke-dasharray': this.args.length,
             'stroke-dashoffset': 0,
             'stroke-width': this.args.strokeWidth || 1,
@@ -35,12 +44,12 @@ class CrawlEffectAnimation extends Animation {
         });
         this.domContainer.appendChild(this.domAnimationPath);
 
-        let opacity = window.getComputedStyle(this.domConnectorPath).opacity;
+        let opacity = window.getComputedStyle(this.domPath).opacity;
         if (opacity && opacity > 0.0) {
             this.backupOpacity = opacity;
         }
 
-        this.domConnectorPath.style.opacity = 0.0;
+        this.domPath.style.opacity = 0.0;
         return true;
     }
 
@@ -62,8 +71,8 @@ class CrawlEffectAnimation extends Animation {
             this.domContainer.removeChild(this.domAnimationPath);
         }
 
-        if (this.domConnectorPath) {
-            this.domConnectorPath.style.opacity = this.backupOpacity;
+        if (this.domPath) {
+            this.domPath.style.opacity = this.backupOpacity;
         }
     }
 }
@@ -79,9 +88,9 @@ export default {
         inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
-    execute(connector, args, schemeContainer, userEventBus, resultCallback) {
-        if (connector) {
-            AnimationRegistry.play(new CrawlEffectAnimation(connector, args, resultCallback), connector.id);
+    execute(item, args, schemeContainer, userEventBus, resultCallback) {
+        if (item) {
+            AnimationRegistry.play(new CrawlEffectAnimation(item, args, resultCallback), item.id);
         }
         if (args.inBackground) {
             resultCallback();

@@ -12,6 +12,7 @@ const patterns = {
     }
 };
 
+
 export default {
     createDashArray(strokePattern, strokeSize) {
         const dashArrayFunc = patterns[strokePattern];
@@ -21,7 +22,5 @@ export default {
         return '';
     },
 
-    getPatternsList() {
-        return _.keys(patterns);
-    }
+    patterns: _.keys(patterns)
 }

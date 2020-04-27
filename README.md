@@ -6,101 +6,20 @@ Schemio is a web based service for creating and viewing schemes online. It lets 
 
 
 
-```js
-"behavior": [ {
-    "on": {
-    "entity": {
-        "item": "self"
-    },
-    "event": "Frame-1",
-    "args": [ ]
-    },
-    "do": [ {
-        "entity": {
-            "item": "some-id232313",
-            "connector": "connection-id-wer32423423"
-        },
-        "method": "show",
-        "args": [ ]
-    }, {
-        "item": { 
-            // this means that the method should be invoked on the page itself
-        }
-    } ]
-}]
-```
-
-```js
-"behavior": [ {
-    "id": "oSzmeoKYo",
-    "on": {
-    "element": {
-        "item": "self"
-    },
-    "event": "clicked",
-    "args": [
-        
-    ]
-    },
-    "do": [ {
-        "element": {
-        "item": "y5fZ65n1If"
-        },
-        "method": "show",
-        "args": {
-        "animated": true,
-        "animationDuration": "0.5"
-        }
-    }, {
-        "element": {
-        "item": "y5fZ65n1If"
-        },
-        "method": "sendEvent",
-        "args": {
-        "event": "Play search dns"
-        }
-    } ]
-} ]
-```
-
-```js
-item = {
-    behavior: {
-        events: [{
-            event: 'clicked',
-            actions: [{
-                element: 'item: #y455454', // will use custom element selector
-                method: "show",
-                args: {
-                    animated: true,
-                    animationDuration: 0.5
-                }
-            }]
-        }]
-    } 
-}
-```
-
 Item selectors:
 ```js
 /****** Current implementation *********/
 'item: #abc'            // specifies item with id abc
-'connector: #abc'       // connection with id abc
 'self'                  // references itself
-'tag: reset'            // anything that was tagged with 'reset' tag
+'group: reset'          // anything that was tagged with 'reset' tag
 
 
 /******** another suggestion ***********/
-'#abc'                  // matches anything with id abc (item or connector)
+'#abc'                  // matches anything with id abc 
 '~Browser'              // by name "Browser"
 'self'                  // self
-'&reset'                // anything tagged with 'reset'
+'&reset'                // anything marked as part of 'reset' grouped
 
-
-/****** ideas for future extension *********/
-'item: "Browser"'       // item with "Browser" name
-'connector: "Incoming"' // connector with "Incoming" name
-'page'                  // page, probably would be used for global functions like open url, load, open popup, etc.
 ```
 
 
