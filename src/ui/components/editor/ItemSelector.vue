@@ -5,56 +5,61 @@
         - drag and drop (reorder items or move into different parent)
  -->
 <template>
-    <div :id="`item-selector-${itemSelectorId}`" class="item-selector"  :style="{'max-height': `${maxHeight}px`}">
-        <div v-for="item in schemeContainer.getItems()" :key="item.id" :id="`item-selector-${itemSelectorId}-row-${item.id}`">
-            <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
-                <div class="item"
-                    v-if="item.meta.collapseBitMask === 0"
-                    :class="{'selected': item.meta.selected}"
-                    draggable="true"
-                    @dragstart="onDragStarted(item)"
-                    @dragover="onDragOver(item, arguments[0])"
-                    @dragend="onDragEnd(arguments[0])"
-                    >
-                    <span class="item-collapser" @click="toggleItemCollapseState(item)" v-if="item.childItems && item.childItems.length > 0">
-                        <i v-if="item.meta.collapsed" class="fas fa-angle-right"></i>
-                        <i v-else class="fas fa-angle-down"></i>
-                    </span>
-
-                    <div class="item-name" @mousedown="onItemClicked(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
-                        <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
-                        <input v-if="item.id === nameEdit.itemId"
-                            id="item-selector-name-edit-input"
-                            v-model="nameEdit.name"
-                            type="text"
-                            data-type="item-name-edit-in-place"
-                            @keydown.enter="cancelNameEdit()"
-                            @keydown.esc="cancelNameEdit()"/>
-                    </div>
-
-                    <div class="item-right-panel">
-                        <span class="icon" @click="toggleItemLock(item)">
-                            <i v-if="item.locked" class="fas fa-lock icon-locked"></i>
-                            <i v-else class="fas fa-unlock icon-unlocked"></i>
+    <div ref="itemSelectorContainer" class="item-selector" >
+        <div class="item-selector-top-panel">
+            <input class="textfield" v-model="searchKeyword" type="text" placeholder="Search"/>
+        </div>
+        <div class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
+            <div v-for="item in filteredItems" :key="item.id" :ref="`row_${item.id}`">
+                <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
+                    <div class="item"
+                        :ref="`item_${item.id}`"
+                        v-if="item.meta.collapseBitMask === 0"
+                        :class="{'selected': item.meta.selected}"
+                        draggable="true"
+                        @dragstart="onDragStarted(item)"
+                        @dragover="onDragOver(item, arguments[0])"
+                        @dragend="onDragEnd(arguments[0])"
+                        >
+                        <span class="item-collapser" @click="toggleItemCollapseState(item)" v-if="item.childItems && item.childItems.length > 0">
+                            <i v-if="item.meta.collapsed" class="fas fa-angle-right"></i>
+                            <i v-else class="fas fa-angle-down"></i>
                         </span>
-                        <span class="icon" @click="toggleItemVisibility(item)">
-                            <i v-if="item.visible" class="fas fa-lightbulb icon-visible"></i>
-                            <i v-else class="far fa-lightbulb icon-invisible"></i>
-                        </span>
+
+                        <div class="item-name" @mousedown="onItemClicked(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
+                            <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
+                            <input v-if="item.id === nameEdit.itemId"
+                                ref="nameEditInput"
+                                v-model="nameEdit.name"
+                                type="text"
+                                data-type="item-name-edit-in-place"
+                                @keydown.enter="cancelNameEdit()"
+                                @keydown.esc="cancelNameEdit()"/>
+                        </div>
+
+                        <div class="item-right-panel">
+                            <span class="icon" @click="toggleItemLock(item)">
+                                <i v-if="item.locked" class="fas fa-lock icon-locked"></i>
+                                <i v-else class="fas fa-unlock icon-unlocked"></i>
+                            </span>
+                            <span class="icon" @click="toggleItemVisibility(item)">
+                                <i v-if="item.visible" class="fas fa-lightbulb icon-visible"></i>
+                                <i v-else class="far fa-lightbulb icon-invisible"></i>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="item-row" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
-                <div class="item" v-html="dragging.itemHtml"> </div>
+                <div class="item-row" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
+                    <div class="item" v-html="dragging.itemHtml"> </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import {forEach, indexOf} from 'lodash';
+import {forEach, indexOf, filter} from 'lodash';
 import EventBus from './EventBus';
-import shortid from 'shortid';
 
 
 function visitItems(items, parentItem, callback) {
@@ -69,12 +74,13 @@ function visitItems(items, parentItem, callback) {
 }
 
 export default {
-    props: ['schemeContainer', 'maxHeight'],
+    props: ['schemeContainer', 'maxHeight', 'minHeight'],
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        // EventBus.$on(EventBus.SCHEME_CHANGED, this.onScheme);
         this.scrollToSelection();
     },
     beforeDestroy() {
@@ -84,7 +90,7 @@ export default {
     },
     data() {
         return {
-            itemSelectorId: shortid.generate(),
+            searchKeyword: '',
             dragging: {
                 // the item that is dragged,
                 item: null,
@@ -98,7 +104,8 @@ export default {
             nameEdit: {
                 itemId: null,
                 name: ''
-            }
+            },
+            filteredItems: this.schemeContainer.getItems()
         };
     },
 
@@ -106,8 +113,8 @@ export default {
         scrollToSelection() {
             if (this.schemeContainer.selectedItems.length === 1) {
                 const itemId = this.schemeContainer.selectedItems[0].id;
-                const rowDom = document.getElementById(`item-selector-${this.itemSelectorId}-row-${itemId}`);
-                const itemSelectorDom = document.getElementById(`item-selector-${this.itemSelectorId}`);
+                const rowDom = this.$refs[`row_${itemId}`];
+                const itemSelectorDom = this.$refs.itemSelectorContainer;
                 if (rowDom && itemSelectorDom) {
                     const topPos = rowDom.offsetTop - itemSelectorDom.offsetTop;
                     const height = itemSelectorDom.getBoundingClientRect().height;
@@ -152,7 +159,7 @@ export default {
             this.nameEdit.name = item.name;
             this.nameEdit.itemId = item.id;
             this.$nextTick(() => {
-                const input = document.getElementById('item-selector-name-edit-input');
+                const input = this.$refs.nameEditInput;
                 if (input) {
                     input.focus();
                 }
@@ -186,7 +193,7 @@ export default {
                 this.clearTimeoutId = null;
             }
             this.dragging.item = item;
-            const domItem = document.querySelector(`#item-selector-${this.itemSelectorId}-row-${item.id} .item-row .item`);
+            const domItem = this.$refs[`item_${item.id}`];
             if (domItem) {
                 this.dragging.itemHtml = domItem.innerHTML;
             }
@@ -231,6 +238,11 @@ export default {
 
         onAnyItemDeselected() {
             this.$forceUpdate();
+        },
+
+        filterItemsByKeyword(keyword) {
+            const loweredKeyword = keyword.toLowerCase();
+            return filter(this.schemeContainer.getItems(), item => (item.name || '').toLowerCase().indexOf(loweredKeyword) >= 0);
         }
     },
 
@@ -244,6 +256,13 @@ export default {
                         item.name = this.nameEdit.name;
                     }
                 }
+            }
+        },
+        searchKeyword(keyword) {
+            if (!keyword) {
+                this.filteredItems = this.schemeContainer.getItems();
+            } else {
+                this.filteredItems = this.filterItemsByKeyword(keyword);
             }
         }
     }

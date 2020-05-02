@@ -108,7 +108,7 @@
 
                         <div v-if="currentTab === 'Items'">
                             <panel name="Items" v-if="mode === 'edit'">
-                                <item-selector :scheme-container="schemeContainer" :max-height="200" :key="schemeContainer.revision"/>
+                                <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="schemeContainer.revision"/>
                             </panel>
 
                             <item-properties v-if="schemeContainer.selectedItems.length > 0 && mode === 'edit'"
