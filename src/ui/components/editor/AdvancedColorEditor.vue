@@ -17,14 +17,15 @@
                 <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
             </div>
             <div v-if="value.type === 'image'">
-                <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
-                <div class="upload-button-container">
-                    <div class="upload-button">
-                        <i class="fas fa-file-upload icon"></i>
-                        <input type="file" @change="onImageUpload"/>
+                <div class="image-property-container">
+                    <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
+                    <div class="upload-button-container">
+                        <div class="upload-button">
+                            <i class="fas fa-file-upload icon"></i>
+                            <input type="file" @change="onImageUpload"/>
+                        </div>
                     </div>
                 </div>
-
                 <img v-if="value.type === 'image' && value.image" :src="value.image" style="max-width: 360px; max-height: 360px"/>
             </div>
 

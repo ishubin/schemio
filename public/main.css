@@ -948,6 +948,11 @@ ul.button-group li .toggle-button .small-letter {
     max-height: 200px;
 }
 
+.advanced-color-editor .image-property-container {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 
 
 /**************************** Item Properties ***********************/
