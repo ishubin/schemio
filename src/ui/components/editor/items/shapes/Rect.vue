@@ -1,8 +1,8 @@
 <template>
     <g>
-        <defs v-if="item.shapeProps.backgroundImage">
+        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
             <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.shapeProps.backgroundImage" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
             </pattern>
         </defs>
 
@@ -10,7 +10,7 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            :fill="svgFill"></path>
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
@@ -125,23 +125,22 @@ export default {
         text: 'rich'
     },
     args: {
-        fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
-        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        textColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size', min: 0},
-        strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-        cornerRadius: {type: 'number', value: 0, name: 'Corner radius', min: 0},
-        fontSize: {type: 'number', value: 16, name: 'Font Size', min: 1},
-        textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left', min: 0},
-        textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right', min: 0},
-        textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top', min: 0},
-        textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom', min: 0},
+        fill               : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+        strokeColor        : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+        textColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
+        strokeSize         : {type: 'number', value: 2, name: 'Stroke size', min: 0},
+        strokePattern      : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
+        cornerRadius       : {type: 'number', value: 0, name: 'Corner radius', min: 0},
+        fontSize           : {type: 'number', value: 16, name: 'Font Size', min: 1},
+        textPaddingLeft    : {type: 'number', value: 10, name: 'Text Padding Left', min: 0},
+        textPaddingRight   : {type: 'number', value: 10, name: 'Text Padding Right', min: 0},
+        textPaddingTop     : {type: 'number', value: 10, name: 'Text Padding Top', min: 0},
+        textPaddingBottom  : {type: 'number', value: 10, name: 'Text Padding Bottom', min: 0},
         textHorizontalAlign: {type:'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal align'},
-        textVerticalAlign: {type:'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
-        backgroundImage: {type: 'image', value: '', name: 'Image Background'},
-        showName: {type: 'boolean', value: false, name: 'Show Name'},
-        namePosition: {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
-        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
+        textVerticalAlign  : {type:'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
+        showName           : {type: 'boolean', value: false, name: 'Show Name'},
+        namePosition       : {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
+        nameColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
     data() {
         return {
@@ -149,12 +148,15 @@ export default {
         }
     },
     computed: {
-        fill() {
-            if (this.item.shapeProps.backgroundImage) {
-                return `url(#${this.backgroundImageId})`;
-            } else {
-                return this.item.shapeProps.fillColor;
+        svgFill() {
+            const fill = this.item.shapeProps.fill;
+            if (fill.type === 'solid') {
+                return this.item.shapeProps.fill.color;
             }
+            if (fill.type === 'image') {
+                return `url(#${this.backgroundImageId})`;
+            }
+            return '#fff';
         },
 
         textStyle() {

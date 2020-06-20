@@ -3,8 +3,8 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="color-picker" :id="id">
-        <div class="color-picker-toggle-button">
+    <div class="color-picker">
+        <div ref="toggleButton" class="color-picker-toggle-button">
             <span class="color-picker-toggle-button-background"></span>
 
             <span class="color-picker-toggle-button-fill"
@@ -13,7 +13,7 @@
                 ></span>
         </div>
 
-        <div class="color-picker-tooltip" v-if="tooltip.shown" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
+        <div ref="tooltip" class="color-picker-tooltip" v-if="tooltip.shown" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
             <chrome-picker v-model="chromePickerColor" @input="updateColor"></chrome-picker>
         </div>
     </div>
@@ -21,7 +21,6 @@
 
 <script>
 import VueColor from 'vue-color';
-import shortid from 'shortid';
 
 export default {
     props: {
@@ -31,7 +30,6 @@ export default {
     components: {'chrome-picker': VueColor.Chrome},
     data() {
         return {
-            id: `color-picker-${shortid.generate()}`,
             pickerColor: this.color,
             chromePickerColor: {hex: this.color},
             showColorPicker: false,
@@ -60,8 +58,8 @@ export default {
             this.$emit('input', `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`);
         },
         readjustTooltipPosition() {
-            const domTooltip = document.querySelector(`#${this.id} .color-picker-tooltip`);
-            const domButton = document.querySelector(`#${this.id} .color-picker-toggle-button`);
+            const domTooltip = this.$refs.tooltip;
+            const domButton = this.$refs.toggleButton;
             if (!domTooltip || !domButton) {
                 return;
             }
@@ -89,7 +87,7 @@ export default {
             }
         },
         onGlobalClick(event) {
-            if (!event.target || !event.target.closest(`#${this.id}`)) {
+            if (!event.target || !event.target.closest('.color-picker')) {
                 this.closeTooltip();
             }
         },

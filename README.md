@@ -139,6 +139,19 @@ for x, i in [0 to 10] {
 ```
 
 
+### Fill control
+
+```js
+const item = {
+    shapeProps: {
+        fill:   {type: 'solid',     color: '#fff'},
+        fill2:  {type: 'image',     image: '/path/to/image'},
+        fill3:  {type: 'gradient',  colors: [['#fff', 0], ['#qwe', 30]],
+    }
+}
+```
+
+
 License
 ---------
 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.

@@ -115,7 +115,9 @@
 
                                 <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" @changed="onStyleValueChange(argName, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
 
-                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleColorChange(argName, arguments[0])"></color-picker>
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="onStyleValueChange(argName, arguments[0])"></color-picker>
+
+                                <advanced-color-editor v-if="arg.type === 'advanced-color'" :project-id="projectId" :value="item.shapeProps[argName]" @changed="onStyleValueChange(argName, arguments[0])" />
 
                                 <div v-if="arg.type === 'image'" class="image-property-container">
                                     <input class="textfield" :value="item.shapeProps[argName]" @input="onStyleInputChange(argName, arg, arguments[0])"/>
@@ -171,6 +173,7 @@ import LinksPanel from './LinksPanel.vue';
 import ConnectionsPanel from './ConnectionsPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
+import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import Item from '../../../scheme/Item.js';
@@ -199,7 +202,8 @@ export default {
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal,
-        StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown
+        StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown,
+        AdvancedColorEditor
     },
 
     beforeMount() {
@@ -260,12 +264,6 @@ export default {
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
-            this.updateShapePropsDependencies();
-        },
-        onStyleColorChange(styleArgName, value) {
-            this.item.shapeProps[styleArgName] = value;
             EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
             this.updateShapePropsDependencies();
