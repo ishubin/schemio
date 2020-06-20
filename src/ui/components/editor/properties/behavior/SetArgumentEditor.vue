@@ -5,6 +5,8 @@
 
         <color-picker v-if="argumentType === 'color'" :color="argumentValue" @input="emitValue"></color-picker>
 
+        <advanced-color-editor v-if="argumentType === 'advanced-color'" :value="argumentValue"/>
+
         <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
         <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
@@ -16,15 +18,16 @@
 import Dropdown from '../../../Dropdown.vue';
 import Shape from '../../items/shapes/Shape.js';
 import ColorPicker from '../../../editor/ColorPicker.vue';
+import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
 import StrokePattern from '../../items/StrokePattern.js';
 
 
 const SHAPE_PROPS_PREFIX = 'shapeProps.';
 
 export default {
-    props: ['argumentValue', 'argumentDescription'],
+    props: ['argumentValue', 'argumentDescription', 'projectId'],
 
-    components: {Dropdown, ColorPicker},
+    components: {Dropdown, ColorPicker, AdvancedColorEditor},
 
     data() {
         let isChoice = false;

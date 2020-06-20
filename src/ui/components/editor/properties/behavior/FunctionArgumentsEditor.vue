@@ -18,6 +18,8 @@
                         <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
                             @input="onValueChange(argName, arguments[0])"/>
 
+                        <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"/>
+
                         <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
                             @input="onValueChange(argName, arguments[0].target.checked)"/>
 
@@ -42,14 +44,15 @@
 import _ from 'lodash';
 import Dropdown from '../../../Dropdown.vue';
 import ColorPicker from '../../../editor/ColorPicker.vue';
+import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
 import Modal from '../../../Modal.vue';
 import ElementPicker from '../../ElementPicker.vue';
 import Tooltip from '../../../Tooltip.vue';
 import NumberTextfield from '../../../NumberTextfield.vue';
 
 export default {
-    props: ['functionDescription', 'args', 'schemeContainer'],
-    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield},
+    props: ['functionDescription', 'args', 'schemeContainer', 'projectId'],
+    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor},
 
     beforeMount() {
         this.updateArgumentControlDependencies();

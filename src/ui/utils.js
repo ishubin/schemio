@@ -115,10 +115,6 @@ function setObjectProperty(obj, propertyPath, value) {
                 }
             } else {
                 // this is the lowest nested property
-                if (field.hasOwnProperty(fieldName) && typeof field[fieldName] === 'object') {
-                    // should not change in case the field is actually an object
-                    return;
-                }
                 field[fieldName] = value;
                 return;   
             }

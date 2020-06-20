@@ -84,6 +84,7 @@
 
                             <set-argument-editor v-if="action.method === 'set'"
                                 :key="action.args.field"
+                                :project-id="projectId"
                                 :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                                 :argument-value="action.args.value"
                                 @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
@@ -109,6 +110,7 @@
             :function-description="functionArgumentsEditor.functionDescription"
             :args="functionArgumentsEditor.args"
             :scheme-container="schemeContainer"
+            :project-id="projectId"
             @close="functionArgumentsEditor.shown = false"
             @argument-changed="onFunctionArgumentsEditorChange"
         />
@@ -142,7 +144,7 @@ const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStor
 
 
 export default {
-    props: ['item', 'schemeContainer'],
+    props: ['item', 'schemeContainer', 'projectId'],
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
 
@@ -588,7 +590,7 @@ export default {
             if (propertyPath === 'opacity') {
                 return 'Opacity';
             } else if (propertyPath.indexOf('shapeProps.') === 0) {
-                const item = this.findElement(element);
+                const item = schemeContainer.findFirstElementBySelector(element);
                 if (item && item.shape) {
                     const shape = Shape.find(item.shape);
                     const shapeArgName = propertyPath.substr('shapeProps.'.length);

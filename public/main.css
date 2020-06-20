@@ -895,6 +895,7 @@ ul.button-group li .toggle-button .small-letter {
 .color-picker {
     display: inline-block;
     width: 100%;
+    min-width: 22px;
 }
 .color-picker-toggle-button {
     display: inline-block;
@@ -927,6 +928,9 @@ ul.button-group li .toggle-button .small-letter {
 }
 
 /*************************** Advanced Color Picker ********************/
+.advanced-color-editor {
+    min-width: 22px;
+}
 .advanced-color-editor .none-picker-toggle-button {
     border: 1px solid #999;
     width: 100%;
