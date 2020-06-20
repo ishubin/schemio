@@ -4,6 +4,7 @@
 
 <template>
     <div class="advanced-color-editor">
+        <span v-if="value.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
         <span v-if="value.type === 'solid'" class="color-picker-toggle-button" :style="{'background': value.color}" @click="modal.shown = true"></span>
         <div v-if="value.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="value.image"/></div>
 
@@ -43,7 +44,7 @@ export default {
 
     data() {
         const data = {
-            colorTypes: ['solid', 'image'],
+            colorTypes: ['none', 'solid', 'image'],
             modal: {
                 shown: false,
                 pickerColor: {hex: this.value.color || '#fff'},
@@ -65,6 +66,9 @@ export default {
             this.value.type = colorType;
             if (colorType === 'image' && !this.value.image) {
                 this.value.image = '';
+            }
+            if (colorType === 'solid' && !this.value.color) {
+                this.value.color = 'rgba(255,255,255,.10)';
             }
         },
         onImagePathChange(event) {

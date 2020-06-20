@@ -209,16 +209,17 @@ export default {
 
     args: {
         strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        fill              : {type: 'boolean',       value: false, name: 'Fill'},
-        fillColor         : {type: 'color',         value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
+        fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
         closed            : {type: 'boolean',       value: false, name: 'Closed path'},
         strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
         strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
         points            : {type: 'curve-points',  value: [], name: 'Curve points'},
         sourceCap         : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Source Cap',      options: Path.CapType.values()},
         sourceCapSize     : {type: 'number',        value: 10, name: 'Source Cap Size'},
+        sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
         destinationCap    : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Destination Cap', options: Path.CapType.values()},
         destinationCapSize: {type: 'number',        value: 10, name: 'Destination Cap Size'},
+        destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
         sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
@@ -268,14 +269,14 @@ export default {
             const p1 = shadowSvgPath.getPointAtLength(0);
             const p1d = shadowSvgPath.getPointAtLength(2);
 
-            let cap = this.createCap(p1.x, p1.y, p1d.x, p1d.y, sourceCap, this.item.shapeProps.sourceCapSize);
+            let cap = this.createCap(p1.x, p1.y, p1d.x, p1d.y, sourceCap, this.item.shapeProps.sourceCapSize, this.item.shapeProps.sourceCapFill);
             if (cap) {
                 caps.push(cap);
             }
 
             const p2 = shadowSvgPath.getPointAtLength(totalLength);
             const p2d = shadowSvgPath.getPointAtLength(totalLength - 2);
-            cap = this.createCap(p2.x, p2.y, p2d.x, p2d.y, destinationCap, this.item.shapeProps.destinationCapSize);
+            cap = this.createCap(p2.x, p2.y, p2d.x, p2d.y, destinationCap, this.item.shapeProps.destinationCapSize, this.item.shapeProps.destinationCapFill);
             if (cap) {
                 caps.push(cap);
             }
@@ -283,7 +284,7 @@ export default {
             return caps;
         },
 
-        createCap(x, y, px, py, capType, capSize) {
+        createCap(x, y, px, py, capType, capSize, capFill) {
             let r = 1;
             if (capSize) {
                 r = capSize /2;
@@ -292,17 +293,17 @@ export default {
             if (capType === Path.CapType.CIRCLE) {
                 return {
                     path: `M ${x - r} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
-                    fill: this.item.shapeProps.fillColor
+                    fill: capFill
                 };
             } else if (capType === Path.CapType.ARROW) {
-                return this.createArrowCap(x, y, px, py, false);
+                return this.createArrowCap(x, y, px, py, capSize, capFill, false);
             } else if (capType === Path.CapType.TRIANGLE) {
-                return this.createArrowCap(x, y, px, py, true);
+                return this.createArrowCap(x, y, px, py, capSize, capFill, true);
             }
             return null;
         },
 
-        createArrowCap(x, y, px, py, close) {
+        createArrowCap(x, y, px, py, capSize, capFill, close) {
             var Vx = px - x, Vy = py - y;
             var V = Vx * Vx + Vy * Vy;
             if (V !== 0) {
@@ -310,18 +311,17 @@ export default {
                 Vx = Vx/V;
                 Vy = Vy/V;
 
-                var size = 5;
-                var Pax = x + (Vx * 2 - Vy) * size;
-                var Pay = y + (Vy * 2 + Vx) * size;
-                var Pbx = x + (Vx * 2 + Vy) * size;
-                var Pby = y + (Vy * 2 - Vx) * size;
+                var Pax = x + (Vx * 2 - Vy) * capSize;
+                var Pay = y + (Vy * 2 + Vx) * capSize;
+                var Pbx = x + (Vx * 2 + Vy) * capSize;
+                var Pby = y + (Vy * 2 - Vx) * capSize;
                 var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
                 if (close) {
                     path += ' z';
                 }
                 return {
                     path: path,
-                    fill: close ? this.item.shapeProps.fillColor : 'none'
+                    fill: close ? capFill : 'none'
                 }
             }
             return null;
@@ -334,10 +334,11 @@ export default {
         },
 
         fill() {
-            if (this.item.shapeProps.fill) {
-                return this.item.shapeProps.fillColor;
+            if (this.item.shapeProps.fill.type === 'solid') {
+                return this.item.shapeProps.fill.color;
+            } else {
+                return 'none';
             }
-            return 'none';
         }
     }
 }
