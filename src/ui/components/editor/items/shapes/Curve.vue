@@ -1,5 +1,11 @@
 <template>
     <g>
+        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
+            <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+            </pattern>
+        </defs>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
@@ -16,6 +22,7 @@
 </template>
 
 <script>
+import shortid from 'shortid';
 import {forEach} from 'lodash';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
@@ -238,6 +245,7 @@ export default {
         return {
             shapePath: shapePath,
             caps: this.computeCaps(shapePath),
+            backgroundImageId: `bimg-${shortid.generate()}`
         }
     },
 
@@ -336,6 +344,8 @@ export default {
         fill() {
             if (this.item.shapeProps.fill.type === 'solid') {
                 return this.item.shapeProps.fill.color;
+            } else if (this.item.shapeProps.fill.type === 'image') {
+                return `url(#${this.backgroundImageId})`;
             } else {
                 return 'none';
             }
