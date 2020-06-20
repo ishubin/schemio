@@ -263,7 +263,7 @@ export default {
                 area: { x: 0, y: 0, w: 0, h: 0, type: 'relative'},
                 shapeProps: {
                     strokeSize: 0,
-                    backgroundImage: art.url
+                    fill: {type: 'image', image: art.url}
                 }
             };
             const shape = Shape.make(item.shape);
@@ -275,7 +275,7 @@ export default {
             if (item.imageProperty) {
                 this.selectedImageItem = utils.clone(item);
                 this.createImageModalShown = true;
-            } if (item.item.shape === 'link') {
+            } else if (item.item.shape === 'link') {
                 this.linkCreation.item = utils.clone(item.item);
                 this.linkCreation.popupShown = true;
             } else {
@@ -312,13 +312,14 @@ export default {
         startCreatingImage(imageUrl) {
             this.createImageModalShown = false;
             var img = new Image();
+            const that = this;
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    const newItem = utils.clone(this.selectedImageItem.item);
+                    const newItem = utils.clone(that.selectedImageItem.item);
                     newItem.id = shortid.generate();
                     newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
 
-                    utils.setObjectProperty(newItem, this.selectedImageItem.imageProperty, imageUrl);
+                    utils.setObjectProperty(newItem, that.selectedImageItem.imageProperty, imageUrl);
                     EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
                 }
                 this.createImageModalShown = false;

@@ -89,7 +89,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Image',
-    imageProperty: 'shapeProps.backgroundImage',
+    imageProperty: 'shapeProps.fill.image',
     iconUrl: '/images/items/image.svg',
     description: `
         It lets you upload an image or specify a link to external image
@@ -98,7 +98,7 @@ export default [{
         shape: 'rect',
         shapeProps: {
             strokeSize: 0,
-            fillColor: 'rgba(255, 255, 255, 1.0)'
+            fill: {type: 'image', image: ''}
         }
     }, defaultItem)
 }, {
