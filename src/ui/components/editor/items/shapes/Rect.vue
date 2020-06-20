@@ -152,11 +152,10 @@ export default {
             const fill = this.item.shapeProps.fill;
             if (fill.type === 'solid') {
                 return this.item.shapeProps.fill.color;
-            }
-            if (fill.type === 'image') {
+            } else if (fill.type === 'image') {
                 return `url(#${this.backgroundImageId})`;
             }
-            return '#fff';
+            return 'none';
         },
 
         textStyle() {
