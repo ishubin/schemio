@@ -20,6 +20,7 @@
         <g :id="`animation-container-${item.id}`"></g>
 
         <path v-if="itemSvgPath && shouldDrawEventLayer"
+            class="svg-event-layer"
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
             :data-item-id="item.id"
@@ -89,6 +90,12 @@ export default {
         onItemChanged() {
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
+            } else {
+                // re-computing item svg path for event layer
+                const shape = Shape.make(this.item.shape);
+                if (shape && shape.component) {
+                    this.itemSvgPath = shape.component.computePath(this.item);
+                }
             }
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
