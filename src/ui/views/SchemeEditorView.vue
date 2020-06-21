@@ -601,7 +601,6 @@ export default {
             this.sidePanelItemForViewMode = item;
             this.sidePanelRightExpanded = true;
             this.currentTab = 'Items';
-            this.tabs[2].disabled = true;
         },
 
         commitHistory(affinityId) {
