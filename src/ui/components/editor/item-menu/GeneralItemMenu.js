@@ -85,7 +85,9 @@ export default [{
     item: utils.extendObject({
         shape: 'overlay',
         cursor: 'pointer',
-        shapeProps: { },
+        shapeProps: {
+            showName: false
+        },
     }, defaultItem)
 }, {
     name: 'Image',

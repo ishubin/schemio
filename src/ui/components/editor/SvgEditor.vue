@@ -250,6 +250,7 @@
 </template>
 
 <script>
+import Item from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
@@ -298,6 +299,19 @@ const states = {
     pickElement: new StatePickElement(EventBus)
 };
 let currentState = states.interact;
+
+
+/**
+ * This variable is used for storing the last known position of mouse cursor
+ * The reason this is needed is because some items handle click event themselves.
+ * Because of this the position of the mouse is not available.
+ * But the mouse position is needed to render item tooltip.
+ * That is why these coords get updated on each mouse move and click event inside SvgEditor component.
+ */
+const lastMousePosition = {
+    x: 0,
+    y: 0
+};
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid'],
@@ -505,8 +519,10 @@ export default {
         },
         mouseMove(event) {
             if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
+                const coords = this.mouseCoordsFromEvent(event);
+                const p = this.toLocalPoint(coords.x, coords.y);
+                lastMousePosition.x = coords.x;
+                lastMousePosition.y = coords.y;
 
                 states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
@@ -515,6 +531,8 @@ export default {
             if (this.mouseEventsEnabled) {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
+                lastMousePosition.x = coords.x;
+                lastMousePosition.y = coords.y;
 
                 states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
@@ -885,6 +903,21 @@ export default {
         },
 
         onItemCustomEvent(event) {
+            if (event.eventName === 'clicked') {
+                // handling links and toolip/side-panel appearance 
+                const item = this.schemeContainer.findItemById(event.itemId);
+                if (item.links && item.links.length > 0) {
+                    this.onShowItemLinks(item);
+                }
+                if (item.description.trim().length > 8) {
+                    if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
+                        EventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+                    } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
+                        EventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, lastMousePosition.x, lastMousePosition.y);
+                    }
+                }
+            }
+
             userEventBus.emitItemEvent(event.itemId, event.eventName);
         },
 
