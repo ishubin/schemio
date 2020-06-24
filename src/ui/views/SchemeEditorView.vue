@@ -181,6 +181,10 @@ let history = new History({size: 30});
 
 const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'scheme-settings', 40);
 
+function escapeHTML(html) {
+    return new Option(html).innerHTML;
+}
+
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -440,24 +444,26 @@ export default {
             }
 
             this.newSchemePopup.name = item.name;
-            this.newSchemePopup.description = `Go back to [${this.schemeContainer.scheme.name}](/schemes/${this.schemeContainer.scheme.id})`;
+            this.newSchemePopup.description = `Go back to <a href="/schemes/${this.schemeContainer.scheme.id}">${escapeHTML(this.schemeContainer.scheme.name)}</a>`;
             this.newSchemePopup.parentSchemeItem = item;
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(scheme) {
-            var url = `/schemes/${scheme.id}`;
+        openNewSchemePopupSchemeCreated(projectId, scheme) {
+            var url = `/projects/${projectId}/schemes/${scheme.id}`;
             var item = this.newSchemePopup.parentSchemeItem;
             if (item) {
                 if (!item.links) {
                     item.links = [];
                 }
                 item.links.push({
-                    title: `${item.name} details`,
+                    title: `${scheme.name}`,
                     url: url,
                     type: 'scheme'
                 });
             }
+
+            EventBus.emitItemChanged(item.id, 'links');
 
             var href = window.location.href;
             var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));

@@ -4,18 +4,18 @@
 
 <template lang="html">
     <modal title="New Scheme" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
-       <h5>Name</h5>
-       <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="schemeName" placeholder="Name..."/>
+        <h5>Name</h5>
+        <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="schemeName" placeholder="Name..."/>
 
-       <h5>Description</h5>
-       <textarea class="textfield" v-model="schemeDescription"></textarea>
+        <h5>Description</h5>
+        <rich-text-editor v-model="schemeDescription" @changed="schemeContainer = arguments[0]" ></rich-text-editor>
 
-       <h5>Category</h5>
-       <category-selector :project-id="projectId" :categories="categories"/>
+        <h5>Category</h5>
+        <category-selector :project-id="projectId" :categories="categories"/>
 
-       <h5>Scheme Image URL</h5>
-       <table width="100%">
-           <tbody>
+        <h5>Scheme Image URL</h5>
+        <table width="100%">
+            <tbody>
                 <tr>
                     <td>
                        <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL"/>
@@ -36,12 +36,14 @@
 
 <script>
 import apiClient from '../apiClient.js';
+import RichTextEditor from './RichTextEditor.vue';
 import axios from 'axios';
 import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
+import {enrichItemWithDefaults} from '../scheme/Item';
 
 export default {
-    components: {CategorySelector, Modal},
+    components: {CategorySelector, Modal, RichTextEditor},
     props: {
         projectId: {type: String},
         name: {type: String, default: ''},
@@ -67,15 +69,25 @@ export default {
             const name = this.schemeName.trim();
             if (name) {
                 const items = [];
-                if (this.imageUrl.trim().length > 0) {
-                    items.push({
-                        type: "image",
+                const imageUrl = this.imageUrl.trim();
+                if (imageUrl.length > 0) {
+                    const imageItem = {
+                        shape: 'rect',
                         area: { x: 0, y: 0, w: 1000, h: 1000 },
-                        style: { },
-                        url: this.imageUrl.trim(),
-                        name: "background-image",
-                        description: ""
-                    });
+                        shapeProps: {
+                            fill: {
+                                type: 'image',
+                                image: imageUrl
+                            }
+                        },
+                        name: 'background-image',
+                        description: '',
+                        behavior: {
+                            events: []
+                        }
+                    };
+                    enrichItemWithDefaults(imageItem)
+                    items.push(imageItem);
                 }
                 apiClient.ensureCategoryStructure(this.projectId, this.categories).then(category => {
                     let categoryId = null;
@@ -90,7 +102,7 @@ export default {
                         items
                     });
                 }).then(scheme => {
-                    this.$emit('scheme-created', scheme);
+                    this.$emit('scheme-created', this.projectId, scheme);
                 });
             } else {
                 this.mandatoryFields.name.highlight = true;
@@ -103,8 +115,9 @@ export default {
             if (file) {
                 const form = new FormData();
                 form.append('image', file, file.name);
-                axios.post('/images', form).then(response => {
-                    this.imageUrl = response.data.path;
+                apiClient.uploadFile(this.projectId, file)
+                .then(imageUrl => {
+                    this.imageUrl = imageUrl;
                 });
             }
         }

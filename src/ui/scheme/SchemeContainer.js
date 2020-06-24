@@ -7,7 +7,7 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import Item from './Item.js';
+import {Item, enrichItemWithDefaults} from './Item.js';
 
 
 const defaultSchemeStyle = {
@@ -148,7 +148,7 @@ class SchemeContainer {
         }
         visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
             this._itemArray.push(item);
-            this.enrichItemWithDefaults(item);
+            enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transform, parentItem, ancestorIds);
             if (item.groups) {
                 this.indexItemGroups(item.id, item.groups);
@@ -524,34 +524,6 @@ class SchemeContainer {
             parentId = parent.id;
         }
         this.remountItemInsideOtherItem(itemId, parentId, index + 1);
-    }
-
-    enrichItemWithDefaults(item) {
-        const props = {
-            area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
-            groups: [],
-            opacity: 100.0,
-            selfOpacity: 100.0,
-            visible: true,
-            blendMode: 'normal',
-            text: '',
-            description: '',
-            
-            interactionMode: Item.InteractionMode.SIDE_PANEL,
-            shapeProps: {},
-            behavior: {
-                events: []
-            }
-        };
-        if (item.shape) {
-            const shape = Shape.find(item.shape);
-            if (shape) {
-                _.forEach(shape.args, (arg, argName) => {
-                    props.shapeProps[argName] = arg.value;
-                });
-            }
-        }
-        utils.extendObject(item, props);
     }
 
     findEdgePoint(item, nextPoint) {

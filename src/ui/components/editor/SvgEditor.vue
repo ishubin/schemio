@@ -250,7 +250,7 @@
 </template>
 
 <script>
-import Item from '../../scheme/Item';
+import {ItemInteractionMode} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
@@ -910,9 +910,9 @@ export default {
                     this.onShowItemLinks(item);
                 }
                 if (item.description.trim().length > 8) {
-                    if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
+                    if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
                         EventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
-                    } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
+                    } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
                         EventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, lastMousePosition.x, lastMousePosition.y);
                     }
                 }

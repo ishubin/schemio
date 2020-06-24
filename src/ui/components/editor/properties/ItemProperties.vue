@@ -166,7 +166,7 @@ import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
-import Item from '../../../scheme/Item.js';
+import {ItemInteractionMode} from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
@@ -228,7 +228,7 @@ export default {
             ],
 
             shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};}),
-            knownInteractionModes: Item.InteractionMode.values(),
+            knownInteractionModes: ItemInteractionMode.values(),
 
             saveStyleModalShown: false
         };

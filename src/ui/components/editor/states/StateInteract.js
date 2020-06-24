@@ -6,7 +6,7 @@ import State from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import EventBus from '../EventBus.js';
-import Item from '../../../scheme/Item.js';
+import {ItemInteractionMode} from '../../../scheme/Item.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -98,9 +98,9 @@ class StateInteract extends State {
         Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
         */
         if (item.description.trim().length > 8) {
-            if (item.interactionMode === Item.InteractionMode.SIDE_PANEL) {
+            if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
                 this.eventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
-            } else if (item.interactionMode === Item.InteractionMode.TOOLTIP) {
+            } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
                 this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
             }
         }
