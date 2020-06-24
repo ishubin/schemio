@@ -6,6 +6,7 @@ import State from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
+import {enrichItemWithDefaults} from '../../../scheme/Item';
 
 const IS_NOT_SOFT = false;
 
@@ -86,7 +87,7 @@ export default class StateEditCurve extends State {
             name: `${sourceItem.name} :: `,
             area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type}
         };
-        this.schemeContainer.enrichItemWithDefaults(curveItem);
+        enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
         curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 

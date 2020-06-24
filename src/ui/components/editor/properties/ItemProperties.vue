@@ -166,7 +166,7 @@ import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {ItemInteractionMode, enrichItemWithDefaults} from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
@@ -268,7 +268,7 @@ export default {
 
         onShapeChange(shape) {
             this.item.shape = shape;
-            this.schemeContainer.enrichItemWithDefaults(this.item);
+            enrichItemWithDefaults(this.item);
             this.shapeComponent = Shape.make(this.item.shape);
             this.updateShapePropsDependencies();
             EventBus.emitItemChanged(this.item.id, 'shape');

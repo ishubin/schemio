@@ -151,6 +151,7 @@
 
 <script>
 import utils from '../utils.js';
+import {enrichItemWithDefaults} from '../scheme/Item';
 import HeaderComponent from '../components/Header.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
@@ -560,7 +561,7 @@ export default {
                 }
             } else if (propertyPath === 'shape') {
                 dstItem.shape = srcItem.shape;
-                this.schemeContainer.enrichItemWithDefaults(dstItem);
+                enrichItemWithDefaults(dstItem);
             } else {
                 if (srcItem.hasOwnProperty(propertyPath) && dstItem.hasOwnProperty(propertyPath)) {
                     dstItem[propertyPath] = srcItem[propertyPath];
