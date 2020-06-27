@@ -362,6 +362,9 @@ export default class StateDragItem extends State {
                         this.schemeContainer.updateChildTransforms(item);
                         this.reindexNeeded = true;
                         this.lastDraggedItem = item;
+
+                        this.eventBus.emitItemChanged(item.id);
+                        this.schemeContainer.readjustItem(item.id, IS_SOFT);
                     }
                 }
             });
