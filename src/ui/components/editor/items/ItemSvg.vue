@@ -21,6 +21,7 @@
 
         <path v-if="itemSvgPath && shouldDrawEventLayer"
             class="svg-event-layer"
+            data-preview-ignore="true"
             :id="`item-svg-path-${item.id}`"
             :d="itemSvgPath" 
             :data-item-id="item.id"
