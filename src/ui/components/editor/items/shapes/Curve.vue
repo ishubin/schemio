@@ -43,22 +43,19 @@ function connectPoints(p1, p2) {
 }
 
 function getPointOnItemPath(item, positionOnPath, schemeContainer) {
-    // to avoid internal loops in case curve items are attached to one another
-    if (item.shape !== 'curve') {
-        const shape = Shape.find(item.shape);
-        if (shape && shape.computePath) {
-            const path = shape.computePath(item);
-            if (path) {
-                const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                shadowSvgPath.setAttribute('d', path);
-                const point = shadowSvgPath.getPointAtLength(positionOnPath);
-                return schemeContainer.worldPointOnItem(point.x, point.y, item);
-            }
+    const shape = Shape.find(item.shape);
+    if (shape && shape.computePath) {
+        const path = shape.computePath(item);
+        if (path) {
+            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            shadowSvgPath.setAttribute('d', path);
+            const point = shadowSvgPath.getPointAtLength(positionOnPath);
+            return schemeContainer.worldPointOnItem(point.x, point.y, item);
         }
     }
 
     // returning the center of item if it failed to find its path
-    const worldPoint = schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+    return schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
 }
 
 function computePath(item) {
@@ -105,7 +102,7 @@ function readjustItem(item, schemeContainer, isSoft) {
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
         const destinationItem = schemeContainer.findFirstElementBySelector(item.shapeProps.destinationItem);
-        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape !== 'curve') {
+        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape) {
             const destinationWorldPoint = getPointOnItemPath(destinationItem, item.shapeProps.destinationItemPosition, schemeContainer);
             if (destinationWorldPoint) {
                 const destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
