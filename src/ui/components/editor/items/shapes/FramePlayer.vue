@@ -57,8 +57,11 @@ function generateTextStyle(item) {
 export default {
     props: ['item', 'hiddenTextProperty'],
 
-    computePath() {
-        return null
+    computePath(item) {
+        const w = item.area.w;
+        const h = item.area.h;
+
+        return `M 0 0   L ${w} 0  L ${w} ${h}  L 0 ${h} z`;
     },
 
     identifyTextEditArea(item, itemX, itemY) {
