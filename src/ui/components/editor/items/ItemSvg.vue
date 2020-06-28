@@ -120,7 +120,7 @@ export default {
             return '0px';
         },
         hoverPathFill() {
-            if (this.item.shape === 'curve' && !this.item.shapeProps.fill) {
+            if (this.item.shape === 'curve' && this.item.shapeProps.fill.type === 'none') {
                 return 'none';
             }
             return 'rgba(255, 255, 255, 0)';
