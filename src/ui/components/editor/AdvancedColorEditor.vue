@@ -9,7 +9,7 @@
         <div v-if="value.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="value.image"/></div>
 
         <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400">
-            <select v-model="value.type">
+            <select v-model="value.type" @input="emitChange">
                 <option v-for="colorType in colorTypes">{{colorType}}</option>
             </select>
 
@@ -60,8 +60,12 @@ export default {
     },
 
     methods: {
+        emitChange() {
+            this.$emit('changed', this.value);
+        },
         updateSolidColor(color) {
             this.value.color = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.emitChange();
         },
         selectColorType(colorType) {
             this.value.type = colorType;
@@ -71,9 +75,11 @@ export default {
             if (colorType === 'solid' && !this.value.color) {
                 this.value.color = 'rgba(255,255,255,.10)';
             }
+            this.emitChange();
         },
         onImagePathChange(event) {
             this.value.image = event.target.value;
+            this.emitChange();
         },
         onImageUpload(event) {
             const file = event.target.files[0];
@@ -82,6 +88,7 @@ export default {
                 .then(imageUrl => {
                     this.value.image = imageUrl;
                     this.modal.image.path = imageUrl;
+                    this.emitChange();
                 }).catch(err => {
                     console.error('Could not upload file', err);
                 });

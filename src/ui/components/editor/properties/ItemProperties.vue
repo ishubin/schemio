@@ -154,6 +154,7 @@
 
 <script>
 import _ from 'lodash';
+import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';
@@ -237,9 +238,7 @@ export default {
     methods: {
         onStyleValueChange(styleArgName, value) {
             this.item.shapeProps[styleArgName] = value;
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
-            this.updateShapePropsDependencies();
+            this.handleItemChange(`shapeProps.${styleArgName}`);
         },
         onStyleInputChange(styleArgName, componentArg, event) {
             const text = event.target.value;
@@ -248,30 +247,24 @@ export default {
             } else {
                 this.item.shapeProps[styleArgName] = text;
             }
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
-            this.updateShapePropsDependencies();
+
+            this.handleItemChange(`shapeProps.${styleArgName}`);
         },
         onStyleCheckboxChange(styleArgName, componentArg, event) {
             this.item.shapeProps[styleArgName] = event.srcElement.checked;
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
-            this.updateShapePropsDependencies();
+            this.handleItemChange(`shapeProps.${styleArgName}`);
         },
         onStyleSelectChange(styleArgName, componentArg, event) {
             const value = event.target.value;
             this.item.shapeProps[styleArgName] = value;
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${styleArgName}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${styleArgName}`);
-            this.updateShapePropsDependencies();
+            this.handleItemChange(`shapeProps.${styleArgName}`);
         },
 
         onShapeChange(shape) {
             this.item.shape = shape;
             enrichItemWithDefaults(this.item);
             this.shapeComponent = Shape.make(this.item.shape);
-            this.updateShapePropsDependencies();
-            EventBus.emitItemChanged(this.item.id, 'shape');
+            this.handleItemChange('shape');
         },
 
         onOpacityChange(opacity) {
@@ -281,7 +274,7 @@ export default {
             } else {
                 this.item.opacity = value;
             }
-            EventBus.emitItemChanged(this.item.id, 'opacity');
+            this.handleItemChange('opacity');
         },
 
         onSelfOpacityChange(opacity) {
@@ -291,22 +284,22 @@ export default {
             } else {
                 this.item.selfOpacity = value;
             }
-            EventBus.emitItemChanged(this.item.id, 'selfOpacity');
+            this.handleItemChange('selfOpacity');
         },
 
         onBlendModeChange(blendMode) {
             this.item.blendMode = blendMode;
-            EventBus.emitItemChanged(this.item.id, 'blendMode');
+            this.handleItemChange(this.item.id, 'blendMode');
         },
 
         onCursorChange(cursor) {
             this.item.cursor = cursor;
-            EventBus.emitItemChanged(this.item.id, 'cursor');
+            this.handleItemChange('cursor');
         },
 
         onVisibleChange(visible) {
             this.item.visible = visible;
-            EventBus.emitItemChanged(this.item.id, 'visible');
+            this.handleItemChange('visible');
         },
 
         onInteractionModeChange() {
@@ -318,20 +311,67 @@ export default {
                     this.item.tooltipColor = 'rgba(30, 30, 30, 1.0)';
                 }
             }
-            this.emitItemChanged('interactionMode');
+            this.handleItemChange('interactionMode');
         },
 
         onTooltipBackgroundChange(color) {
             this.item.tooltipBackground = color;
-            this.emitItemChanged('tooltipBackground');
+            this.handleItemChange('tooltipBackground');
         },
         onTooltipColorChange(color) {
             this.item.tooltipColor = color;
-            this.emitItemChanged('tooltipColor');
+            this.handleItemChange('tooltipColor');
         },
 
-        emitItemChanged(propertyPath) {
+        handleItemChange(propertyPath) {
             EventBus.emitItemChanged(this.item.id, propertyPath);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
+            this.applySameChangeToOtherSelectedItems(this.item, propertyPath);
+            this.updateShapePropsDependencies();
+        },
+
+        applySameChangeToOtherSelectedItems(item, propertyPath) {
+            if (item && this.schemeContainer.selectedItems.length > 1 && propertyPath) {
+                // Iterating through all other selected items and trying to apply the same change
+                // this is needed so that user is able to perform bulk changes to multiple items at once
+                _.forEach(this.schemeContainer.selectedItems, selectedItem => {
+                    if (selectedItem.id !== item.id) {
+                        this.applySameChangeToItem(item, selectedItem, propertyPath);
+                    }
+                });
+            }
+        },
+
+        applySameChangeToItem(srcItem, dstItem, propertyPath) {
+            if (!propertyPath) {
+                return;
+            }
+            if (propertyPath.indexOf('shapeProps.') === 0) {
+                const shapePropName = propertyPath.substr('shapeProps.'.length);
+
+                const srcShape = Shape.make(srcItem.shape);
+                const dstShape = Shape.make(srcItem.shape);
+                // Checking if shape properties are of the same type
+                // in case not - we should not set it to the same values in other item
+                if (!srcShape || !dstShape) {
+                    return;
+                }
+                if (!srcShape.args[shapePropName] || !dstShape.args[shapePropName]) {
+                    return;
+                }
+                if (srcShape.args[shapePropName].type !== dstShape.args[shapePropName].type) {
+                    return;
+                }
+
+                dstItem.shapeProps[shapePropName] = utils.clone(srcItem.shapeProps[shapePropName]);
+            } else if (propertyPath === 'shape') {
+                dstItem.shape = srcItem.shape;
+                enrichItemWithDefaults(dstItem);
+            } else {
+                dstItem[propertyPath] = srcItem[propertyPath];
+            }
+
+            EventBus.emitItemChanged(dstItem.id, propertyPath);
         },
 
         updateShapePropsDependencies() {
