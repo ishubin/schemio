@@ -9,7 +9,7 @@ class RecentPropsChanges {
         if (!this.itemShapeProps.hasOwnProperty(shape)) {
             this.itemShapeProps[shape] = {};
         }
-        this.itemShapeProps[shape][propPath] = value;
+        this.itemShapeProps[shape][propPath] = JSON.stringify(value);
     }
     
     applyItemProps(item, shape) {
@@ -20,7 +20,7 @@ class RecentPropsChanges {
 
         for (let propPath in shapeProps) {
             if (shapeProps.hasOwnProperty(propPath)) {
-                utils.setObjectProperty(item, propPath, shapeProps[propPath]);
+                utils.setObjectProperty(item, propPath, JSON.parse(shapeProps[propPath]));
             }
         }
     }
