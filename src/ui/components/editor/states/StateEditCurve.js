@@ -9,6 +9,7 @@ import Shape from '../items/shapes/Shape.js';
 import {enrichItemWithDefaults} from '../../../scheme/Item';
 
 const IS_NOT_SOFT = false;
+const IS_SOFT = true;
 
 
 function isEventRightClick(event) {
@@ -308,6 +309,7 @@ export default class StateEditCurve extends State {
     deletePoint(pointIndex) {
         this.item.shapeProps.points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
     }
 
     insertPointAtCoords(x, y) {
@@ -334,6 +336,7 @@ export default class StateEditCurve extends State {
                 this.convertPointToBeizer(index + 1);
             }
             this.eventBus.emitItemChanged(this.item.id);
+            this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
         }
     }
 
@@ -364,6 +367,7 @@ export default class StateEditCurve extends State {
             delete point.y2;
         }
         this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
     }
 
     convertPointToBeizer(pointIndex) {
@@ -394,6 +398,7 @@ export default class StateEditCurve extends State {
         point.y2 = point.y + dy;
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
     }
 
     handleCurvePointDrag(x, y, pointIndex) {
@@ -415,6 +420,7 @@ export default class StateEditCurve extends State {
             curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOriginalPoint.y;
         }
         this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
     }
 
     /**
@@ -470,6 +476,7 @@ export default class StateEditCurve extends State {
             curvePoint[`y${oppositeIndex}`] = curvePoint.y * 2 - curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
     }
 
     submitItem() {
