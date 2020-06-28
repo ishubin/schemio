@@ -657,7 +657,7 @@ export default {
                 let strokeSize = 3;
                 if (item.shape === 'curve') {
                     strokeSize = item.shapeProps.strokeSize + 2;
-                    if (!item.shapeProps.fill) {
+                    if (item.shapeProps.fill.type === 'none' && !item.shapeProps.closed) {
                         fill = 'none';
                     }
                 }
