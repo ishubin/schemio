@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 :root {
+    --header-text-color: #fff;
     --red-link: #C84A4A;
     --red-link-hover: #EB5959;
 
@@ -91,7 +92,6 @@ h5 {
     width: 100%;
     height: 48px;
     background: #3f4245;
-    color: #fff;
     padding: 0;
     margin: 0;
     z-index: 100;
@@ -130,6 +130,7 @@ h5 {
 }
 .header .hamburger-menu span {
     cursor: pointer;
+    color: var(--header-text-color);
 }
 .header .hamburger-menu > ul {
     position: absolute;
@@ -650,37 +651,51 @@ svg.state-create-item {
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
     display: table;
-    transition: opacity .3s ease;
 }
 .modal-mask.modal-mask-transparent {
     background: none;
 }
 .modal-wrapper {
-    display: table-cell;
-    vertical-align: middle;
+    z-index: 9998;
 }
 .modal-container {
-    margin: 0px auto;
-    padding: 20px 30px;
+    z-index: 9998;
+    top: 0;
+    left: 0;
+    position: fixed;
+    margin: 0 auto;
+    padding: 0;
     background-color: #efefef;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-    transition: all .3s ease;
+    box-shadow: 0 2px 30px rgba(0, 0, 0, 0.63);
+}
+.modal-header {
+    position: relative;
+    padding: 5px;
+    background: #ddd;
+    cursor: grab;
+}
+.modal-header.dragging {
+    cursor: grabbing;
 }
 .modal-header h3 {
-    margin-top: 0;
+    margin: 0;
     color: #2f4752;
 }
-.modal-header h6 {
-    font-weight: bold;
+.modal-header .modal-close {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    cursor: pointer;
 }
 .modal-body {
     position: relative;
-    margin: 20px 0;
+    padding: 10px;
     max-height: 550px;
     overflow: auto;
 }
 .modal-footer {
     border-top: 1px solid #777;
+    padding: 10px;
     margin-top: 10px;
     min-height: 40px;
 }
@@ -691,17 +706,9 @@ svg.state-create-item {
 .modal-default-button {
     float: right;
 }
-.modal-enter {
-    opacity: 0;
-}
-.modal-leave-active {
-    opacity: 0;
-}
-.modal-enter .modal-container,
-.modal-leave-active .modal-container {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
-}
+
+
+
 
 .top-right-panel a {
     color: #c1e5fb;
