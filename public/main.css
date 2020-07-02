@@ -3,17 +3,33 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 :root {
-    --header-text-color: #fff;
-    --red-link: #C84A4A;
-    --red-link-hover: #EB5959;
-
-    --controls-label: #868686;
-    --controls-background: #e0e0e0;
-    --controls-background-hover: #e5e5e5;
-    --controls-border-color: #979797;
-    --controls-color: #3b3b3b;
     --min-paragraph-height: 18px;
     --paragraph-top-margin: 0px;
+
+    --base-strong: #111;
+    --base-strong-up: #3b3b3b;
+    --base-weak: #fff;
+
+    --faint-strong: #8a94a5;
+    --faint-weak: #f2f5f8;
+
+    --accent-strong: #0475f7;
+    --accent-weak: #e1ebf7;
+
+    --complement-strong: #bbe288;
+    --complement-weak: #fafdec;
+
+    --critic-strong: #f05045;
+    --critic-weak: #f5e7e5;
+
+    --warning-strong: #eeaa45;
+    --warning-weak: #eedaba;
+
+    --success-strong: #23a85a;
+    --success-weak: #d6f1e1;
+
+    --faint-strong-down: #9da4b1;
+    --faint-weak-up: #e7eaf7;
 }
 
 
@@ -130,7 +146,7 @@ h5 {
 }
 .header .hamburger-menu span {
     cursor: pointer;
-    color: var(--header-text-color);
+    color: var(--base-weak);
 }
 .header .hamburger-menu > ul {
     position: absolute;
@@ -385,7 +401,7 @@ input.textfield.missing-field-error {
     margin: 0;
     top: 0;
     left: 0;
-    color: var(--controls-label);
+    color: var(--faint-strong);
 }
 .number-textfield-container > .step-controls {
     position: absolute;
@@ -408,16 +424,16 @@ input.textfield.missing-field-error {
     display: inline-block;
     width: 12px;
     height: 12px;
-    background: var(--controls-background);
-    color: var(--controls-color);
+    background: var(--faint-weak-up);
+    color: var(--base-strong-up);
     cursor: pointer;
     overflow: hidden;
 }
 .number-textfield-container > .step-controls li .step:hover {
-    background: var(--controls-background--color);
+    background: var(--faint-weak-up);
 }
 .number-textfield-container > .step-controls > li:nth-child(1) .step {
-    border-bottom: 1px solid var(--controls-border-color);
+    border-bottom: 1px solid var(--faint-strong);
 }
 .number-textfield-container > .step-controls li .step i {
     margin: 0 2px 2px 2px;
@@ -1914,9 +1930,9 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style {
     position: absolute;
     right: 2px;
     top: 0px;
-    color: var(--red-link);
+    color: var(--critic-strong);
     font-size: 20px;
 }
 ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
-    color: var(--red-link-hover);
+    color: var(--critic-strong);
 }
