@@ -169,10 +169,10 @@ export default [{
         shapeProps: {
             strokeSize: 1,
             strokeColor: '#3377A0',
-            fillColor: '#209BC5',
-            hoverFillColor: '#236CAB',
+            fill: {type: 'solid', color: '#209BC5'},
+            hoverFill: {type: 'solid', color: '#236CAB'},
             textColor: '#ffffff',
-            hoverTextColor: '#ffffff',
+            hoverTextColor: '#111',
             cornerRadius: 5,
         },
     }, defaultItem)

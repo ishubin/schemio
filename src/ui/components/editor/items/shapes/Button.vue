@@ -1,16 +1,37 @@
 <template>
     <g @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick">
-        <path :d="shapePath" 
+        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
+            <pattern :id="`fill-pattern-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+            </pattern>
+        </defs>
+
+        <defs v-if="item.shapeProps.hoverFill.type === 'image' && item.shapeProps.hoverFill.image">
+            <pattern :id="`fill-pattern-hover-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+                <image :xlink:href="item.shapeProps.hoverFill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+            </pattern>
+        </defs>
+
+        <path v-if="hovered" :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            :fill="svgFill"></path>
+
+        <path v-else :d="shapePath" 
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :stroke="item.shapeProps.strokeColor"
+            :stroke-dasharray="strokeDashArray"
+            :fill="svgFillHovered"></path>
 
         <foreignObject v-if="hiddenTextProperty !== 'name'"
             x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <div class="item-text-container" v-html="sanitizedItemText"
+            <div class="item-text-container"
                 :style="textStyle"
-                ></div>
+                >
+                <div v-if="hovered" v-html="sanitizedItemText" :style="{color: item.shapeProps.hoverTextColor}"></div>
+                <div v-else v-html="sanitizedItemText" :style="{color: item.shapeProps.textColor}"></div>
+            </div>
         </foreignObject>
     </g>
     
@@ -38,7 +59,6 @@ function identifyTextEditArea(item, itemX, itemY) {
 
 function generateTextStyle(item) {
     return {
-        'color'           : item.shapeProps.textColor,
         'font-size'       : item.shapeProps.fontSize + 'px',
         'padding-left'    : item.shapeProps.textPaddingLeft + 'px',
         'padding-right'   : item.shapeProps.textPaddingRight + 'px',
@@ -96,12 +116,15 @@ export default {
     },
 
     args: {
-        fillColor             : {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
-        hoverFillColor        : {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Hover Fill color'},
+        fill                  : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,140,240,1.0)'}, name: 'Fill'},
+        hoverFill             : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Hover Fill'},
+
         strokeColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         hoverStrokeColor      : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Hover Stroke color'},
+
         textColor             : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
-        hoverTextColor        : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Hover Text color'},
+        hoverTextColor        : {type: 'color', value: 'rgba(255,255,255,1.0)', name: 'Hover Text color'},
+
         strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
         cornerRadius          : {type: 'number', value: '0', name: 'Corner radius'},
@@ -115,23 +138,23 @@ export default {
     },
     data() {
         return {
-            fill: this.item.shapeProps.fillColor
+            hovered: false
         };
     },
     methods: {
         onMouseOver() {
-            this.fill = this.item.shapeProps.hoverFillColor;
+            this.hovered = true;
             this.$emit('custom-event', 'mousein');
         },
         onMouseLeave() {
-            this.fill = this.item.shapeProps.fillColor;
+            this.hovered = false;
             this.$emit('custom-event', 'mouseout');
         },
         onMouseClick() {
             this.$emit('custom-event', 'clicked');
         },
         onItemChanged() {
-            this.fill = this.item.shapeProps.fillColor;
+            this.hovered = false;
         }
     },
     computed: {
@@ -149,7 +172,27 @@ export default {
 
         sanitizedItemText() {
             return htmlSanitize(this.item.name);
-        }
+        },
+
+        svgFill() {
+            const fill = this.item.shapeProps.fill;
+            if (fill.type === 'solid') {
+                return fill.color;
+            } else if (fill.type === 'image') {
+                return `url(#fill-pattern-${this.item.id})`;
+            }
+            return 'none';
+        },
+
+        svgFillHovered() {
+            const fill = this.item.shapeProps.hoverFill;
+            if (fill.type === 'solid') {
+                return fill.color;
+            } else if (fill.type === 'image') {
+                return `url(#fill-pattern-hover-${this.item.id})`;
+            }
+            return 'none';
+        },
     }
 }
 </script>

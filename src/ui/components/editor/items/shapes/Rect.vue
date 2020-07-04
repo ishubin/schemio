@@ -1,7 +1,7 @@
 <template>
     <g>
         <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
-            <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+            <pattern :id="`fill-pattern-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
                 <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
             </pattern>
         </defs>
@@ -30,7 +30,6 @@
     </g>
 </template>
 <script>
-import shortid from 'shortid';
 import StrokePattern from '../StrokePattern.js';
 import htmlSanitize from '../../../../../htmlSanitize';
 
@@ -142,18 +141,13 @@ export default {
         namePosition       : {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
         nameColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
-    data() {
-        return {
-            backgroundImageId: `bimg-${shortid.generate()}`
-        }
-    },
     computed: {
         svgFill() {
             const fill = this.item.shapeProps.fill;
             if (fill.type === 'solid') {
                 return this.item.shapeProps.fill.color;
             } else if (fill.type === 'image') {
-                return `url(#${this.backgroundImageId})`;
+                return `url(#fill-pattern-${this.item.id})`;
             }
             return 'none';
         },

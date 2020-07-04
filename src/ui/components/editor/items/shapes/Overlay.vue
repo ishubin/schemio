@@ -1,21 +1,43 @@
 <template>
     <g>
-        <path :d="shapePath" 
+        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
+            <pattern :id="`fill-pattern-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+            </pattern>
+        </defs>
+
+        <defs v-if="item.shapeProps.hoverFill.type === 'image' && item.shapeProps.hoverFill.image">
+            <pattern :id="`fill-pattern-hover-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
+                <image :xlink:href="item.shapeProps.hoverFill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
+            </pattern>
+        </defs>
+
+        <path v-if="hovered" :d="shapePath" 
             @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
-            :stroke-width="strokeSize + 'px'"
-            :stroke="stroke"
+            :stroke-width="item.shapeProps.hoverStrokeSize + 'px'"
+            :stroke="item.shapeProps.hoverStrokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            :fill="svgFillHovered"></path>
+
+        <path v-else :d="shapePath" 
+            @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :stroke="item.shapeProps.strokeColor"
+            :stroke-dasharray="strokeDashArray"
+            :fill="svgFill"></path>
 
         <foreignObject v-if="item.shapeProps.showName && item.name && hiddenTextProperty !== 'name'"
             :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
             <div class="item-text-container"
                 :style="nameStyle"
                 >
-                <div :style="{'color': nameColor}">
+                <div v-if="hovered" :style="{'color': hoverNameColor}">
                     {{item.name}}
                 </div>
+                <div v-else :style="{'color': nameColor}">
+                    {{item.name}}
                 </div>
+            </div>
         </foreignObject>
     </g>
 
@@ -71,8 +93,8 @@ export default {
     computePath,
 
     args: {
-        fillColor         : {type: 'color', value: 'rgba(255,255,255,0.1)', name: 'Fill Color'},
-        hoverFillColor    : {type: 'color', value: 'rgba(100,200,255,0.3)', name: 'Hover Fill Color'},
+        fill              : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,0.1)'}, name: 'Fill'},
+        hoverFill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(100,200,255,0.3)'}, name: 'Hover Fill'},
         strokeColor       : {type: 'color', value: 'rgba(30,30,30,0.1)', name: 'Stroke Color'},
         hoverStrokeColor  : {type: 'color', value: 'rgba(30,30,30,0.2)', name: 'Hover Stroke Color'},
         nameColor         : {type: 'color', value: 'rgba(0,0,0,0.6)', name: 'Name Color', depends: {showName: true}},
@@ -110,33 +132,21 @@ export default {
 
     data() {
         return {
-            fill          : this.item.shapeProps.fillColor,
-            stroke        : this.item.shapeProps.strokeColor,
-            strokeSize    : this.item.shapeProps.strokeSize,
-            nameColor     : this.item.shapeProps.nameColor,
+            hovered: false
         };
     },
 
     methods: {
         onItemChanged() {
-            this.fill = this.item.shapeProps.fillColor;
-            this.stroke = this.item.shapeProps.strokeColor;
-            this.strokeSize = this.item.shapeProps.strokeSize;
-            this.nameColor = this.item.shapeProps.nameColor;
+            this.hovered = false;
         },
         onMouseOver() {
-            this.fill = this.item.shapeProps.hoverFillColor;
-            this.stroke = this.item.shapeProps.hoverStrokeColor;
-            this.strokeSize = this.item.shapeProps.hoverStrokeSize;
-            this.nameColor = this.item.shapeProps.hoverNameColor;
+            this.hovered = true;
             this.$forceUpdate();
             this.$emit('custom-event', 'mousein');
         },
         onMouseLeave() {
-            this.fill = this.item.shapeProps.fillColor;
-            this.stroke = this.item.shapeProps.strokeColor;
-            this.strokeSize = this.item.shapeProps.strokeSize;
-            this.nameColor = this.item.shapeProps.nameColor;
+            this.hovered = false;
             this.$forceUpdate();
             this.$emit('custom-event', 'mouseout');
         },
@@ -167,6 +177,25 @@ export default {
             return {x: 0, y: 0, w: this.item.area.w, h: this.item.area.h};
         },
 
+        svgFill() {
+            const fill = this.item.shapeProps.fill;
+            if (fill.type === 'solid') {
+                return fill.color;
+            } else if (fill.type === 'image') {
+                return `url(#fill-pattern-${this.item.id})`;
+            }
+            return 'none';
+        },
+
+        svgFillHovered() {
+            const fill = this.item.shapeProps.hoverFill;
+            if (fill.type === 'solid') {
+                return fill.color;
+            } else if (fill.type === 'image') {
+                return `url(#fill-pattern-hover-${this.item.id})`;
+            }
+            return 'none';
+        },
     }
 }
 </script>
