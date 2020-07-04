@@ -1,16 +1,7 @@
 <template>
-    <g>
-        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
-            <pattern :id="`fill-pattern-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
-            </pattern>
-        </defs>
-
-        <defs v-if="item.shapeProps.hoverFill.type === 'image' && item.shapeProps.hoverFill.image">
-            <pattern :id="`fill-pattern-hover-${item.id}`" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.shapeProps.hoverFill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
-            </pattern>
-        </defs>
+    <g :style="{cursor: 'pointer'}">
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+        <advanced-fill :fillId="`fill-pattern-hover-${item.id}`" :fill="item.shapeProps.hoverFill" :area="item.area"/>
 
         <path v-if="hovered" :d="shapePath" 
             @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
@@ -45,6 +36,7 @@
 <script>
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
+import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -82,6 +74,7 @@ function makeCornerRadiusControlPoint(item) {
 
 export default {
     props: ['item', 'hiddenTextProperty'],
+    components: {AdvancedFill},
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
@@ -178,23 +171,11 @@ export default {
         },
 
         svgFill() {
-            const fill = this.item.shapeProps.fill;
-            if (fill.type === 'solid') {
-                return fill.color;
-            } else if (fill.type === 'image') {
-                return `url(#fill-pattern-${this.item.id})`;
-            }
-            return 'none';
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
         svgFillHovered() {
-            const fill = this.item.shapeProps.hoverFill;
-            if (fill.type === 'solid') {
-                return fill.color;
-            } else if (fill.type === 'image') {
-                return `url(#fill-pattern-hover-${this.item.id})`;
-            }
-            return 'none';
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.hoverFill, `fill-pattern-hover-${this.item.id}`);
         },
     }
 }
