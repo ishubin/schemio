@@ -1,9 +1,10 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
             x="0" y="0" :width="item.area.w" :height="Math.max(0, item.area.h)">
@@ -17,6 +18,7 @@
 import shortid from 'shortid';
 import _ from 'lodash';
 import htmlSanitize from '../../../../../htmlSanitize';
+import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -115,6 +117,7 @@ const controlPointFuncs = {
 
 export default {
     props: ['item', 'hiddenTextProperty'],
+    components: {AdvancedFill},
 
     computePath,
     identifyTextEditArea,
@@ -177,7 +180,7 @@ export default {
         text: 'rich'
     },
     args: {
-        fillColor           : {type: 'color', value: 'rgba(230,230,230,1.0)', name: 'Fill color'},
+        fill                : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(230,230,230,1.0)'}, name: 'Fill'},
         strokeColor         : {type: 'color', value: 'rgba(100,100,100,1.0)', name: 'Stroke color'},
         textColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Text color'},
         cornerRadius        : {type: 'number', value: 10, name: 'Corner radius'},
@@ -194,6 +197,10 @@ export default {
     },
 
     computed: {
+        svgFill() {
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+        },
+
         shapePath() {
             return computePath(this.item);
         },
