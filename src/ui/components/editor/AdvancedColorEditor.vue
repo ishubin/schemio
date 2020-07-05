@@ -8,7 +8,7 @@
         <span v-if="value.type === 'solid'" class="color-picker-toggle-button" :style="{'background': value.color}" @click="modal.shown = true"></span>
         <div v-if="value.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="value.image"/></div>
 
-        <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400">
+        <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
             <select v-model="value.type" @input="emitChange">
                 <option v-for="colorType in colorTypes">{{colorType}}</option>
             </select>
