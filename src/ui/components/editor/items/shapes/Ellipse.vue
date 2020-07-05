@@ -1,10 +1,6 @@
 <template>
     <g>
-        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
-            <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
-            </pattern>
-        </defs>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -24,6 +20,7 @@
 import shortid from 'shortid';
 import StrokePattern from '../StrokePattern.js';
 import htmlSanitize from '../../../../../htmlSanitize';
+import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
     const rx = item.area.w / 2;
@@ -56,6 +53,7 @@ function generateTextStyle(item) {
 
 export default {
     props: ['item', 'hiddenTextProperty'],
+    components: {AdvancedFill},
 
     computePath,
     identifyTextEditArea,
@@ -100,13 +98,7 @@ export default {
         },
 
         fill() {
-            const fill = this.item.shapeProps.fill;
-            if (fill.type === 'solid') {
-                return this.item.shapeProps.fill.color;
-            } else if (fill.type === 'image') {
-                return `url(#${this.backgroundImageId})`;
-            }
-            return '#fff';
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         }
     }
 }
