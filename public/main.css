@@ -964,6 +964,15 @@ ul.button-group li .toggle-button .small-letter {
     border-radius: 3px;
     cursor: pointer;
 }
+.advanced-color-editor .gradient-container {
+    border: 1px solid #999;
+    height: 20px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.advanced-color-editor .gradient-container.large {
+    height: 60px;
+}
 .advanced-color-editor .image-container {
     border: 1px solid #999;
     border-radius: 3px;
@@ -978,6 +987,32 @@ ul.button-group li .toggle-button .small-letter {
 .advanced-color-editor .image-property-container {
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+/*************************** Advanced Color Picker Gradient Controls *********************/
+.gradient-slider-container {
+
+    position: relative;
+    padding-bottom: 20px;
+}
+.gradient-slider-container .gradient-slider {
+    position: absolute;
+}
+.gradient-slider-container .gradient-slider-knob {
+    position: absolute;
+    cursor: pointer;
+    left: -4px;
+    top: -2px;
+    display: block;
+    width: 9px;
+    border-radius: 4px 4px 1px 1px;
+    border: 1px solid var(--base-strong);
+    height: 15px;
+}
+.gradient-slider-container .gradient-slider-knob.selected {
+    height: 20px;
+    width: 13px;
+    left: -6px;
 }
 
 

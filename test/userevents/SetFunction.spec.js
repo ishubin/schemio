@@ -66,24 +66,4 @@ describe('SetFunction', () => {
             }
         });
     });
-
-    it('should not change nested property if it is an object', () => {
-        const item = {
-            opacity: 0.5,
-            shapeProps: {
-                someOtherField: {
-                    someValue: 123
-                }
-            }
-        };
-        SetFunction.execute(item, {field: 'shapeProps.someOtherField', value: 123}, null, null, mockedResultCallback);
-        expect(item).toStrictEqual({
-            opacity: 0.5,
-            shapeProps: {
-                someOtherField: {
-                    someValue: 123
-                }
-            }
-        });
-    });
 });

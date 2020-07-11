@@ -1,4 +1,3 @@
-import utils from '../src/ui/collections.js';
 import expect from 'expect';
 import collections from '../src/ui/collections.js';
 
