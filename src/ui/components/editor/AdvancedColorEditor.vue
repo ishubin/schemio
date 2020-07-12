@@ -28,6 +28,11 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="ctrl-group">
+                    <input type="checkbox" v-model="value.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
+                </div>
+
                 <img v-if="value.type === 'image' && value.image" :src="value.image" style="max-width: 360px; max-height: 360px"/>
             </div>
 
@@ -42,6 +47,7 @@
                             @dblclick="onGradientSliderKnobDblClick(sliderIdx)"
                             ></div>
                     </div>
+
                 </div>
                 <div class="gradient-controls">
                     <div class="ctrl-group">
@@ -159,6 +165,7 @@ export default {
             this.value.type = colorType;
             if (colorType === 'image' && !this.value.image) {
                 this.value.image = '';
+                this.value.stretch = false;
             }
             if (colorType === 'solid' && !this.value.color) {
                 this.value.color = 'rgba(255,255,255,.10)';

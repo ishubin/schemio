@@ -2,7 +2,7 @@
     <g>
         <defs v-if="fill.type === 'image' && fill.image">
             <pattern :id="fillId" patternUnits="userSpaceOnUse" :width="area.w" :height="area.h">
-                <image :xlink:href="fill.image" x="0" y="0" :width="area.w" :height="area.h"/>
+                <image :xlink:href="fill.image" x="0" y="0" :width="area.w" :height="area.h" :preserveAspectRatio="imagePreserveAspectRatio"/>
             </pattern>
         </defs>
 
@@ -45,6 +45,13 @@ export default {
                 };
             }
             return { x1: 0, y1: 0, x2: 100, y2: 0 };
+        },
+
+        imagePreserveAspectRatio() {
+            if (!this.fill.stretch) {
+                return 'xMidYMid meet';
+            }
+            return 'none';
         }
     }
 }
