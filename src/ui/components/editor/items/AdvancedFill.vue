@@ -10,6 +10,9 @@
             <linearGradient v-if="fill.gradient.type === 'linear'" :id="fillId" :x1="`${direction.x1}%`" :y1="`${direction.y1}%`" :x2="`${direction.x2}%`" :y2="`${direction.y2}%`" >
                 <stop v-for="color in fill.gradient.colors"  :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
             </linearGradient>
+            <radialGradient v-if="fill.gradient.type === 'radial'" :id="fillId" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                <stop v-for="color in fill.gradient.colors"  :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
+            </radialGradient>
         </defs>
     </g>
 </template>
@@ -28,6 +31,19 @@ export default {
 
     computed: {
         direction() {
+            let direction = parseInt(this.fill.gradient.direction);
+            if (!isFinite(direction)) {
+                direction = 0;
+            }
+
+            if (this.fill.type === 'gradient' && this.fill.gradient) {
+                const vx = 50 * Math.cos(Math.PI * direction / 180);
+                const vy = 50 * Math.sin(Math.PI * direction / 180);
+                return {
+                    x1: 50 - vx, y1: 50 - vy,
+                    x2: 50 + vx, y2: 50 + vy
+                };
+            }
             return { x1: 0, y1: 0, x2: 100, y2: 0 };
         }
     }

@@ -8,7 +8,7 @@
     >
 
         <component
-            :key="`item-component-${item.id}-${item.shape}`"
+            :key="`item-component-${item.id}-${item.shape}-${revision}`"
             v-if="shapeComponent && item.visible"
             :is="shapeComponent"
             :item="item"
@@ -69,7 +69,11 @@ export default {
             oldShape              : this.item.shape,
             itemSvgPath           : null,
             hiddenTextProperty    : this.item.meta.hiddenTextProperty || null,
-            shouldDrawEventLayer  : true
+            shouldDrawEventLayer  : true,
+
+            // using revision in order to trigger full re-render of item component
+            // on each item changed event revision is incremented
+            revision              : 0
         };
     },
 
@@ -100,6 +104,7 @@ export default {
             }
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
+            this.revision += 1;
             this.$forceUpdate();
         },
 

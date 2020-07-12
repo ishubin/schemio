@@ -440,6 +440,15 @@ input.textfield.missing-field-error {
     padding: 0;
 }
 
+/********************** Control Labels & Groups ******************/
+.ctrl-label {
+    font-weight: bold;
+    font-size: 10pt;
+}
+.ctrl-group {
+    margin-bottom: 10px;
+}
+
 /********************** Tooltip ************************/
 .tooltip {
     display: inline-block;
@@ -938,8 +947,11 @@ ul.button-group li .toggle-button .small-letter {
 .color-picker-toggle-button span.color-picker-toggle-button-background {
     background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQoU2M8c+bMfwY0oKenhy7EwDgUFP769QvDM5cuXcL0zBBQCADjtDObjg4SggAAAABJRU5ErkJggg==') repeat;
 }
+.vc-chrome-body {
+    box-shadow: none !important;
+}
 .vc-chrome {
-    box-shadow: none;
+    box-shadow: none !important;
     margin: auto;
 }
 .color-picker .color-picker-tooltip {
@@ -991,9 +1003,8 @@ ul.button-group li .toggle-button .small-letter {
 
 /*************************** Advanced Color Picker Gradient Controls *********************/
 .gradient-slider-container {
-
     position: relative;
-    padding-bottom: 20px;
+    padding-bottom: 40px;
 }
 .gradient-slider-container .gradient-slider {
     position: absolute;
@@ -1013,6 +1024,20 @@ ul.button-group li .toggle-button .small-letter {
     height: 20px;
     width: 13px;
     left: -6px;
+}
+.gradient-controls {
+    float: left;
+    width: 38%;
+    padding: 0 5px 0 5px;
+}
+.gradient-color-picker {
+    float: left;
+    width: 60%;
+}
+.gradient-color-picker:after {
+    content: "";
+    display: block;
+    clear: all;
 }
 
 

@@ -43,7 +43,25 @@
                             ></div>
                     </div>
                 </div>
-                <chrome-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"></chrome-picker>
+                <div class="gradient-controls">
+                    <div class="ctrl-group">
+                        <div class="ctrl-label">Gradient Type</div>
+                        <select v-model="value.gradient.type" @change="emitChange">
+                            <option value="linear">Linear</option>
+                            <option value="radial">Radial</option>
+                        </select>
+                    </div>
+                    <div v-if="value.gradient.type === 'linear'" class="ctrl-group">
+                        <div class="ctrl-label">Direction</div>
+                        <number-textfield :value="value.gradient.direction" @changed="value.gradient.direction = arguments[0]; emitChange()"/>
+                    </div>
+                    <div class="ctrl-group">
+                        <span class="btn btn-secondary" @click="invertGradient">Invert</span>
+                    </div>
+                </div>
+                <div class="gradient-color-picker">
+                    <chrome-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"></chrome-picker>
+                </div>
             </div>
 
         </modal>
@@ -54,10 +72,13 @@
 import shortid from 'shortid';
 import VueColor from 'vue-color';
 import Modal from '../Modal.vue';
+import NumberTextfield from '../NumberTextfield.vue';
 import apiClient from '../../apiClient';
 import {parseColor, encodeColor} from '../../colors';
 
-
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(value, max));
+}
 
 /**
  * @returns {String} encoded rgba() color
@@ -84,7 +105,7 @@ function interpolateGradientColor(midColor, leftColor, rightColor) {
 export default {
     props: ['value', 'projectId'],
 
-    components: {'chrome-picker': VueColor.Chrome, Modal},
+    components: {'chrome-picker': VueColor.Chrome, Modal, NumberTextfield},
 
     beforeMount() {
         if (this.value.type === 'gradient') {
@@ -269,6 +290,14 @@ export default {
 
         updateGradientSliderColor(color) {
             this.value.gradient.colors[this.gradient.selectedSliderIdx].c = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+        },
+
+        invertGradient() {
+            this.value.gradient.colors.reverse();
+            for (let i = 0; i < this.value.gradient.colors.length; i++) {
+                this.value.gradient.colors[i].p = clamp(100 - this.value.gradient.colors[i].p, 0, 100);
+            }
+            this.emitChange();
         }
     },
     computed: {
