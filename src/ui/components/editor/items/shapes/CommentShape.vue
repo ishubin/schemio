@@ -5,19 +5,11 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :fill="svgFill"></path>
-
-        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            x="0" y="0" :width="item.area.w" :height="Math.max(0, item.area.h)">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="textStyle"
-                ></div>
-        </foreignObject>
     </g>
 </template>
 <script>
 import shortid from 'shortid';
 import _ from 'lodash';
-import htmlSanitize from '../../../../../htmlSanitize';
 import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
@@ -66,24 +58,6 @@ const computePath = (item) => {
     return path;
 }
 
-function identifyTextEditArea(item, itemX, itemY) {
-    return {
-        property: 'text',
-        style: generateTextStyle(item)
-    }
-};
-
-function generateTextStyle(item) {
-    return {
-        'font-size'       : item.shapeProps.fontSize + 'px',
-        'padding-left'    : item.shapeProps.textPaddingLeft + 'px',
-        'padding-right'   : item.shapeProps.textPaddingRight + 'px',
-        'padding-top'     : item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom'  : item.shapeProps.textPaddingBottom + 'px',
-        'color'           : item.shapeProps.textColor
-    };
-}
-
 function makeTailControlPoint(item) {
     const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
     let x = 0, y = 0;
@@ -120,7 +94,6 @@ export default {
     components: {AdvancedFill},
 
     computePath,
-    identifyTextEditArea,
 
     controlPoints: {
         make(item, pointId) {
@@ -182,18 +155,12 @@ export default {
     args: {
         fill                : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(230,230,230,1.0)'}, name: 'Fill'},
         strokeColor         : {type: 'color', value: 'rgba(100,100,100,1.0)', name: 'Stroke color'},
-        textColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Text color'},
         cornerRadius        : {type: 'number', value: 10, name: 'Corner radius'},
         tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
         tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
         tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
         tailPosition        : {type: 'number', value: 0, name: 'Tail Position (%)', min: 0, max: 100.0},
         strokeSize          : {type: 'number', value: 1, name: 'Stroke size'},
-        textPaddingLeft     : {type: 'number', value: 10, name: 'Text Padding Left'},
-        textPaddingRight    : {type: 'number', value: 10, name: 'Text Padding Right'},
-        textPaddingTop      : {type: 'number', value: 10, name: 'Text Padding Top'},
-        textPaddingBottom   : {type: 'number', value: 10, name: 'Text Padding Bottom'},
-        fontSize            : {type: 'number', value: 16, name: 'Font size'}
     },
 
     computed: {
@@ -204,13 +171,6 @@ export default {
         shapePath() {
             return computePath(this.item);
         },
-        textStyle() {
-            return generateTextStyle(this.item);
-        },
-
-        sanitizedItemText() {
-            return htmlSanitize(this.item.text);
-        }
     }
 }
 </script>

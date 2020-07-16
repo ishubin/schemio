@@ -17,19 +17,11 @@
             >{{item.name}}</div>
         </foreignObject>
 
-        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="textStyle"
-                ></div>
-        </foreignObject>
-
     </g>
     
 </template>
 
 <script>
-import htmlSanitize from '../../../../../../htmlSanitize';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -53,25 +45,7 @@ function identifyTextEditArea(item, x, y) {
             }
         };
     }
-    return {
-        property: 'text',
-        style: generateTextStyle(item),
-        area: {
-            x: 0, y: nameLineTop + item.shapeProps.strokeSize,
-            w: item.area.w,
-            h: Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)
-        }
-    };
-}
-
-function generateTextStyle(item) {
-    return {
-        'font-size': item.shapeProps.fontSize + 'px',
-        'padding-left': item.shapeProps.textPaddingLeft+'px',
-        'padding-right': item.shapeProps.textPaddingRight+'px',
-        'padding-top': item.shapeProps.textPaddingTop+'px',
-        'padding-bottom': item.shapeProps.textPaddingBottom+'px'
-    };
+    return null;
 }
 
 function generateNameStyle(item) {
@@ -98,13 +72,8 @@ export default {
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(240,240,240,0.5)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-        fontSize: {type: 'number', value: 16, name: 'Font Size'},
+        nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
-
-        textPaddingLeft: {type: 'number', value: 10, name: 'Text Padding Left'},
-        textPaddingRight: {type: 'number', value: 10, name: 'Text Padding Right'},
-        textPaddingTop: {type: 'number', value: 10, name: 'Text Padding Top'},
-        textPaddingBottom: {type: 'number', value: 10, name: 'Text Padding Bottom'},
     },
 
     computed: {
@@ -119,10 +88,6 @@ export default {
         },
 
         shapePath() { return computePath(this.item); },
-
-        sanitizedItemText() {
-            return htmlSanitize(this.item.text);
-        }
     }
     
 }

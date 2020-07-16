@@ -17,6 +17,14 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
+        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
+            x="0" y="0" :width="item.area.w" :height="item.area.h">
+            <div class="item-text-container" v-html="sanitizedItemText"
+                :style="textStyle"
+                ></div>
+        </foreignObject>
+
+
         <g :id="`animation-container-${item.id}`"></g>
 
         <path v-if="itemSvgPath && shouldDrawEventLayer"
@@ -48,6 +56,23 @@
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
 import myMath from '../../../myMath';
+import htmlSanitize from '../../../../htmlSanitize';
+
+export function generateTextStyle(item) {
+    return {
+        'color'           : item.textProps.color,
+        'font-size'       : item.textProps.fontSize + 'px',
+        'padding-left'    : item.textProps.padding.left + 'px',
+        'padding-right'   : item.textProps.padding.right + 'px',
+        'padding-top'     : item.textProps.padding.top + 'px',
+        'padding-bottom'  : item.textProps.padding.bottom + 'px',
+        'text-align'      : item.textProps.halign,
+        'vertical-align'  : item.textProps.valign,
+        'display'         : 'table-cell',
+        'width'           : item.area.w + 'px',
+        'height'          : item.area.h + 'px',
+    };
+}
 
 
 export default {
@@ -73,7 +98,8 @@ export default {
 
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
-            revision              : 0
+            revision              : 0,
+            textStyle             : generateTextStyle(this.item)
         };
     },
 
@@ -105,6 +131,7 @@ export default {
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.revision += 1;
+            this.textStyle = generateTextStyle(this.item);
             this.$forceUpdate();
         },
 
@@ -124,11 +151,16 @@ export default {
             }
             return '0px';
         },
+
         hoverPathFill() {
             if (this.item.shape === 'curve' && this.item.shapeProps.fill.type === 'none') {
                 return 'none';
             }
             return 'rgba(255, 255, 255, 0)';
+        },
+        
+        sanitizedItemText() {
+            return htmlSanitize(this.item.text);
         }
     }
 }

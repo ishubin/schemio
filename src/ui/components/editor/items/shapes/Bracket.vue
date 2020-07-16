@@ -116,6 +116,9 @@ export default {
     props: ['item', 'hiddenTextProperty'],
     computePath,
 
+    editorProps: {
+        text: 'none'
+    },
     args: {
         style:          {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
         color:          {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},

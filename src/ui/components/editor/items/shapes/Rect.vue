@@ -8,14 +8,6 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="textStyle"
-                ></div>
-        </foreignObject>
-
-
         <foreignObject v-if="item.shapeProps.showName && item.name && hiddenTextProperty !== 'name'"
             :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
             <div class="item-text-container"
@@ -27,7 +19,6 @@
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
-import htmlSanitize from '../../../../../htmlSanitize';
 import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
@@ -45,27 +36,9 @@ function identifyTextEditArea(item, itemX, itemY) {
             style: generateNameStyle(item)
         };
     }
-    return {
-        property: 'text',
-        style: generateTextStyle(item)
-    };
-};
 
-function generateTextStyle(item) {
-    return {
-        'color'           : item.shapeProps.textColor,
-        'font-size'       : item.shapeProps.fontSize + 'px',
-        'padding-left'    : item.shapeProps.textPaddingLeft + 'px',
-        'padding-right'   : item.shapeProps.textPaddingRight + 'px',
-        'padding-top'     : item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom'  : item.shapeProps.textPaddingBottom + 'px',
-        'text-align'      : item.shapeProps.textHorizontalAlign,
-        'vertical-align'  : item.shapeProps.textVerticalAlign,
-        'display'         : 'table-cell',
-        'width'           : item.area.w + 'px',
-        'height'          : item.area.h + 'px',
-    };
-}
+    return null;
+};
 
 function generateNameStyle(item) {
     let displace = 50;
@@ -128,13 +101,6 @@ export default {
         strokeSize         : {type: 'number', value: 2, name: 'Stroke size', min: 0},
         strokePattern      : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
         cornerRadius       : {type: 'number', value: 0, name: 'Corner radius', min: 0},
-        fontSize           : {type: 'number', value: 16, name: 'Font Size', min: 1},
-        textPaddingLeft    : {type: 'number', value: 10, name: 'Text Padding Left', min: 0},
-        textPaddingRight   : {type: 'number', value: 10, name: 'Text Padding Right', min: 0},
-        textPaddingTop     : {type: 'number', value: 10, name: 'Text Padding Top', min: 0},
-        textPaddingBottom  : {type: 'number', value: 10, name: 'Text Padding Bottom', min: 0},
-        textHorizontalAlign: {type:'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal align'},
-        textVerticalAlign  : {type:'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
         showName           : {type: 'boolean', value: false, name: 'Show Name'},
         namePosition       : {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
         nameColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
@@ -142,10 +108,6 @@ export default {
     computed: {
         svgFill() {
             return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
-        },
-
-        textStyle() {
-            return generateTextStyle(this.item);
         },
 
         shapePath() {
@@ -170,9 +132,6 @@ export default {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
 
-        sanitizedItemText() {
-            return htmlSanitize(this.item.text);
-        }
     }
 }
 </script>

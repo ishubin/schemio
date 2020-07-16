@@ -18,17 +18,6 @@ import UMLNode from './uml/UMLNode.vue';
 import _ from 'lodash';
 
 
-/**
- * Used as a fallback in case a particular shape has not speicified identifyTextEditArea function
- * This is needed for handling in-svg text edit on double click
- * @param {SchemeItem} item 
- */
-function identifyTextEditAreaFallback(item) {
-    return {
-        property: 'text',
-        style: {}
-    };
-}
 
 function defaultGetEventsFunc(item) {
     return [];
@@ -39,6 +28,15 @@ const defaultEditorProps = {
     text: 'rich'
 };
 
+function createTextEditAreaIdentifier(shapeComponent) {
+    return (item, x, y) => {
+        if (shapeComponent.identifyTextEditArea) {
+            return shapeComponent.identifyTextEditArea(item , x, y);
+        }
+        return null;
+    }
+}
+
 function enrichShape(shapeComponent) {
     return {
         editorProps             : shapeComponent.editorProps || defaultEditorProps,
@@ -46,7 +44,7 @@ function enrichShape(shapeComponent) {
         computePath             : shapeComponent.computePath,
         readjustItem            : shapeComponent.readjustItem,
         // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
-        identifyTextEditArea    : shapeComponent.identifyTextEditArea || identifyTextEditAreaFallback,
+        identifyTextEditArea    : createTextEditAreaIdentifier(shapeComponent),
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
         component               : shapeComponent

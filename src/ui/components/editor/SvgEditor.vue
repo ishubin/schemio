@@ -260,6 +260,7 @@ import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
+import {generateTextStyle} from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
@@ -893,6 +894,18 @@ export default {
             const itemPoint = this.calculateItemLocalPoint(item, x, y);
             const shape = Shape.make(item.shape);
             this.itemTextEditor.textEditArea = shape.identifyTextEditArea(item, itemPoint.x, itemPoint.y);
+            if (!this.itemTextEditor.textEditArea) {
+                let textEnabled = true;
+                if (shape.editorProps && shape.editorProps.text === 'disabled') {
+                    textEnabled = false;
+                }
+                if (textEnabled) {
+                    this.itemTextEditor.textEditArea = {
+                        property: 'text',
+                        style: generateTextStyle(item)
+                    }
+                }
+            }
             this.itemTextEditor.item = item;
             this.itemTextEditor.point = worldPoint;
         },

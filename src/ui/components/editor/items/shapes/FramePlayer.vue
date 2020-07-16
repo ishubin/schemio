@@ -72,7 +72,7 @@ export default {
     },
     editorProps: {
         description     : 'rich',
-        text            : 'rich',
+        text            : 'disabled',
         ignoreEventLayer: true
     },
 

@@ -48,7 +48,7 @@ function generateNameStyle(item) {
         'color': item.shapeProps.nameColor,
         'padding-top': '4px',
         'text-align': 'center',
-        'font-size': item.shapeProps.fontSize + 'px'
+        'font-size': item.shapeProps.nameFontSize + 'px'
     };
 }
 
@@ -69,7 +69,7 @@ export default {
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-        fontSize: {type: 'number', value: 16, name: 'Font Size'},
+        nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
         namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
     },

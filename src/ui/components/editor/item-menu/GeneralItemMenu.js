@@ -153,7 +153,17 @@ export default [{
     iconUrl: '/images/items/code-block.svg',
     item: utils.extendObject({
         shape: 'code_block',
-        shapeProps: { }
+        shapeProps: { },
+        textProps: {
+            halign: 'left',
+            valign: 'top',
+            padding: {
+                top: 30,
+                left: 10,
+                right: 10,
+                bottom: 10
+            }
+        }
     }, defaultItem),
     previewItem: utils.extendObject({
         shape: 'code_block',

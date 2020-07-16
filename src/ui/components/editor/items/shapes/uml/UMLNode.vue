@@ -18,16 +18,9 @@
             >{{item.name}}</div>
         </foreignObject>
 
-        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            x="0" :y="nameLineTop + item.shapeProps.strokeSize" :width="textarea.w" :height="Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="textStyle"
-                ></div>
-        </foreignObject>
     </g>
 </template>
 <script>
-import htmlSanitize from '../../../../../../htmlSanitize';
 
 const calculateD = (item) => {
     let D = item.shapeProps.depth;
@@ -55,15 +48,7 @@ function identifyTextEditArea(item, itemX, itemY) {
             area: textarea
         }
     } else {
-        return {
-            property: 'text',
-            style: generateTextStyle(item),
-            area: {
-                x: 0, y: nameLineTop + item.shapeProps.strokeSize,
-                w: textarea.w, 
-                h: Math.max(0, item.area.h - nameLineTop - 2*item.shapeProps.strokeSize)
-            }
-        }
+        return null;
     }
 };
 
@@ -73,16 +58,7 @@ function generateNameStyle(item) {
         'padding-top': '4px',
         'text-align': 'center',
         'font-weight': 'bold',
-        'font-size': item.shapeProps.fontSize + 'px'
-    };
-}
-
-function generateTextStyle(item) {
-    return {
-        'color': item.shapeProps.nameColor,
-        'padding-top': '4px',
-        'text-align': 'center',
-        'font-size': item.shapeProps.fontSize + 'px'
+        'font-size': item.shapeProps.nameFontSize + 'px'
     };
 }
 
@@ -112,11 +88,11 @@ export default {
     },
 
     args: {
-        depth: {type: 'number', value: 20, name: 'Depth'},
+        fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},
-        fontSize: {type: 'number', value: 16, name: 'Font Size'},
+        depth: {type: 'number', value: 20, name: 'Depth'},
+        nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
         namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
         nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
     },
@@ -140,17 +116,10 @@ export default {
             return `M 0 ${D}  l ${W-D} 0   l ${D} ${-D}  M ${W-D} ${D}  l 0 ${H-D}`;
         },
 
-        textStyle() {
-            return generateTextStyle(this.item);
-        },
-
         nameStyle() {
             return generateNameStyle(this.item);
         },
 
-        sanitizedItemText() {
-            return htmlSanitize(this.item.text);
-        }
     } 
 }
 </script>

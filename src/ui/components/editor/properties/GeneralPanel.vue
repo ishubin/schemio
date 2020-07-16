@@ -24,17 +24,66 @@
             </div>
         </div>
 
-        <div v-if="textType === 'rich'">
+        <div v-if="textType !== 'disabled'" class="textarea-wrapper">
             <h5 class="section">Text</h5>
-            <div class="textarea-wrapper">
-                <rich-text-editor :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
-            </div>
-        </div>
-        <div v-if="textType === 'simple'">
-            <h5 class="section">Text</h5>
-            <div class="textarea-wrapper">
-                <textarea :value="item.text" @input="item.text = arguments[0].target.value; commitSchemeChange('text')"></textarea>
-            </div>
+            <rich-text-editor v-if="textType === 'rich'" :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
+            <textarea v-else :value="item.text" @input="item.text = arguments[0].target.value; commitSchemeChange('text')"></textarea>
+
+            <table class="properties-table">
+                <tbody>
+                    <tr>
+                        <td class="label" width="50%">Horizontal Align</td>
+                        <td class="value" width="50%">
+                            <select :value="item.textProps.halign" @input="item.textProps.halign = arguments[0].target.value; commitSchemeChange('textProps.halign')">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Vertical Align</td>
+                        <td class="value" width="50%">
+                            <select :value="item.textProps.valign" @input="item.textProps.valign = arguments[0].target.value; commitSchemeChange('textProps.valign')">
+                                <option value="top">Top</option>
+                                <option value="middle">Middle</option>
+                                <option value="bottom">Bottom</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Font Size</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.fontSize" @changed="item.textProps.fontSize = arguments[0]; commitSchemeChange('textProps.fontSize')" :min="0"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Padding Left</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.padding.left" @changed="item.textProps.padding.left = arguments[0]; commitSchemeChange('textProps.padding.left')"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Padding Right</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.padding.right" @changed="item.textProps.padding.right = arguments[0]; commitSchemeChange('textProps.padding.right')"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Padding Top</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.padding.top" @changed="item.textProps.padding.top = arguments[0]; commitSchemeChange('textProps.padding.top')"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Padding Bottom</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.padding.bottom" @changed="item.textProps.padding.bottom = arguments[0]; commitSchemeChange('textProps.padding.bottom')"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
     </panel>
 </template>
@@ -42,6 +91,7 @@
 <script>
 import _ from 'lodash';
 import RichTextEditor from '../../RichTextEditor.vue';
+import NumberTextfield from '../../NumberTextfield.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../../apiClient.js';
@@ -54,7 +104,7 @@ export default {
         'item': {type: Object}
     },
 
-    components: {VueTagsInput, Panel, RichTextEditor},
+    components: {VueTagsInput, Panel, RichTextEditor, NumberTextfield},
 
     mounted() {
         if (this.tagsUsed) {

@@ -20,6 +20,18 @@ export function enrichItemWithDefaults(item) {
         visible: true,
         blendMode: 'normal',
         text: '',
+        textProps: {
+            color: 'rgba(0,0,0,1.0)',
+            halign: 'center',   // can be: left, center, right
+            valign: 'middle',    // can be: top, middle, bottom,
+            fontSize: 14,
+            padding: {
+                left: 10,
+                right: 10,
+                top: 10,
+                bottom: 10
+            }
+        },
         description: '',
         
         interactionMode: ItemInteractionMode.SIDE_PANEL,
