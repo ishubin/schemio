@@ -157,6 +157,7 @@ export default [{
         textProps: {
             halign: 'left',
             valign: 'top',
+            whiteSpace: 'pre-wrap',
             padding: {
                 top: 30,
                 left: 10,

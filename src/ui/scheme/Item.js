@@ -25,6 +25,7 @@ export function enrichItemWithDefaults(item) {
             halign: 'center',   // can be: left, center, right
             valign: 'middle',    // can be: top, middle, bottom,
             fontSize: 14,
+            whiteSpace: 'normal',
             padding: {
                 left: 10,
                 right: 10,

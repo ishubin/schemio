@@ -68,6 +68,7 @@ export function generateTextStyle(item) {
         'padding-bottom'  : item.textProps.padding.bottom + 'px',
         'text-align'      : item.textProps.halign,
         'vertical-align'  : item.textProps.valign,
+        'white-space'     : item.textProps.whiteSpace,
         'display'         : 'table-cell',
         'width'           : item.area.w + 'px',
         'height'          : item.area.h + 'px',

@@ -81,6 +81,14 @@
                             <number-textfield :value="item.textProps.padding.bottom" @changed="item.textProps.padding.bottom = arguments[0]; commitSchemeChange('textProps.padding.bottom')"/>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="label" width="50%">White Space</td>
+                        <td class="value" width="50%">
+                            <select :value="item.textProps.whiteSpace" @input="item.textProps.whiteSpace = arguments[0].target.value; commitSchemeChange('textProps.whiteSpace')">
+                                <option :value="option.value" v-for="option in supportedWhiteSpaceOptions">{{option.name}}</option>
+                            </select>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -134,7 +142,17 @@ export default {
             existingItemTags: [],
             shapeComponent: shapeComponent,
             descriptionType,
-            textType
+            textType,
+
+            supportedWhiteSpaceOptions: [{
+                name: 'Wrap', value: 'normal'
+            }, {
+                name: 'No Wrap', value: 'nowrap'
+            }, {
+                name: 'Preserved', value: 'pre'
+            }, {
+                name: 'Preserved + Wrap', value: 'pre-wrap'
+            }]
         };
     },
 
