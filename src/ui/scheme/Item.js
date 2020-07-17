@@ -1,5 +1,6 @@
 import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
+import {getDefaultFont} from './Fonts';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -26,6 +27,7 @@ export function enrichItemWithDefaults(item) {
             valign: 'middle',    // can be: top, middle, bottom,
             fontSize: 14,
             whiteSpace: 'normal',
+            font: getDefaultFont(),
             padding: {
                 left: 10,
                 right: 10,

@@ -5,7 +5,14 @@
 <template lang="html">
     <div class="dropdown-container">
         <div class="dropdown-click-area" @click="toggleDropdown">
-            <slot></slot>
+            <slot v-if="value === null"></slot>
+            <div v-else>
+                <div v-if="selectedOption">
+                    <i v-if="selectedOption.iconClass" :class="selectedOption.iconClass"/>
+                    <span :style="selectedOption.style || {}"> {{selectedOption.name}} </span>
+                </div>
+                <span v-else>Unknown Value</span>
+            </div>
         </div>
 
         <div :id="`dropdown-${id}`" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
@@ -23,19 +30,29 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import {filter, find} from 'lodash';
 import shortid from 'shortid';
 
 export default {
     /* options is an array of {name and any other fields} */
-    props: ['options'],
+    props: {
+        options: {type: Array, required: true},
+        value: {type: String, default: null}
+    },
+
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
     },
+
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
     },
+
     data() {
+        let selectedOption = null;
+        if (this.value) {
+            selectedOption = find(this.options, option => option.name === this.value);
+        }
         return {
             id: shortid.generate(),
             shown: false,
@@ -45,7 +62,8 @@ export default {
             maxHeight: 300,
             searchTextfieldHeight: 30,
             maxWidth: 150,
-            elementRect: null
+            elementRect: null,
+            selectedOption
         };
     },
     methods: {
@@ -102,7 +120,12 @@ export default {
     },
     computed: {
         filteredOptions() {
-            return _.filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
+            return filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
+        }
+    },
+    watch: {
+        value(newValue) {
+            this.selectedOption = find(this.options, option => option.name === newValue);
         }
     }
 }

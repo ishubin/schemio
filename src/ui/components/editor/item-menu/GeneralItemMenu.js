@@ -155,6 +155,7 @@ export default [{
         shape: 'code_block',
         shapeProps: { },
         textProps: {
+            font: 'Courier New',
             halign: 'left',
             valign: 'top',
             whiteSpace: 'pre-wrap',

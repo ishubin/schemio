@@ -57,11 +57,13 @@ import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
 import myMath from '../../../myMath';
 import htmlSanitize from '../../../../htmlSanitize';
+import {getFontFamilyFor} from '../../../scheme/Fonts';
 
 export function generateTextStyle(item) {
     return {
         'color'           : item.textProps.color,
         'font-size'       : item.textProps.fontSize + 'px',
+        'font-family'     : getFontFamilyFor(item.textProps.font),
         'padding-left'    : item.textProps.padding.left + 'px',
         'padding-right'   : item.textProps.padding.right + 'px',
         'padding-top'     : item.textProps.padding.top + 'px',

@@ -32,6 +32,18 @@
             <table class="properties-table">
                 <tbody>
                     <tr>
+                        <td class="label" width="50%">Font</td>
+                        <td class="value" width="50%">
+                            <dropdown :options="allFonts" :value="item.textProps.font" @selected="item.textProps.font = arguments[0].name; commitSchemeChange('textProps.font')"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" width="50%">Font Size</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="item.textProps.fontSize" @changed="item.textProps.fontSize = arguments[0]; commitSchemeChange('textProps.fontSize')" :min="0"/>
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="label" width="50%">Horizontal Align</td>
                         <td class="value" width="50%">
                             <select :value="item.textProps.halign" @input="item.textProps.halign = arguments[0].target.value; commitSchemeChange('textProps.halign')">
@@ -49,12 +61,6 @@
                                 <option value="middle">Middle</option>
                                 <option value="bottom">Bottom</option>
                             </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="label" width="50%">Font Size</td>
-                        <td class="value" width="50%">
-                            <number-textfield :value="item.textProps.fontSize" @changed="item.textProps.fontSize = arguments[0]; commitSchemeChange('textProps.fontSize')" :min="0"/>
                         </td>
                     </tr>
                     <tr>
@@ -97,7 +103,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import {map} from 'lodash';
 import RichTextEditor from '../../RichTextEditor.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import Panel from '../Panel.vue';
@@ -105,6 +111,8 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import apiClient from '../../../apiClient.js';
 import EventBus from '../EventBus';
 import Shape from '../items/shapes/Shape';
+import {getAllFonts} from '../../../scheme/Fonts';
+import Dropdown from '../../Dropdown.vue';
 
 export default {
     props: {
@@ -112,12 +120,12 @@ export default {
         'item': {type: Object}
     },
 
-    components: {VueTagsInput, Panel, RichTextEditor, NumberTextfield},
+    components: {VueTagsInput, Panel, RichTextEditor, NumberTextfield, Dropdown},
 
     mounted() {
         if (this.tagsUsed) {
             apiClient.getTags(this.projectId).then(tags => {
-                this.existingItemTags = _.map(tags, tag => {
+                this.existingItemTags = map(tags, tag => {
                     return {text: tag};
                 });
             });
@@ -143,6 +151,7 @@ export default {
             shapeComponent: shapeComponent,
             descriptionType,
             textType,
+            allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
 
             supportedWhiteSpaceOptions: [{
                 name: 'Wrap', value: 'normal'
@@ -158,7 +167,7 @@ export default {
 
     methods: {
         onItemTagChange(newTags) {
-            this.item.tags = _.map(newTags, tag => tag.text);
+            this.item.tags = map(newTags, tag => tag.text);
         },
 
         commitSchemeChange(propertyName) {
@@ -172,7 +181,7 @@ export default {
             return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
         },
         itemTags() {
-            return _.map(this.item.tags, tag => {return {text: tag}});
+            return map(this.item.tags, tag => {return {text: tag}});
         }
     },
 }
