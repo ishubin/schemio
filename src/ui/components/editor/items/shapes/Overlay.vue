@@ -37,6 +37,7 @@
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import AdvancedFill from '../AdvancedFill.vue';
+import {getFontFamilyFor} from '../../../../scheme/Fonts';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -55,9 +56,10 @@ function generateNameStyle(item) {
     }
 
     return {
-        'color'             : item.nameColor,
+        'color'             : item.textProps.color,
         'text-align'        : 'center',
-        'font-size'         : item.shapeProps.fontSize + 'px',
+        'font-size'         : item.textProps.fontSize + 'px',
+        'font-family'       : getFontFamilyFor(item.textProps.font),
         'vertical-align'    : 'middle',
         'position'          : 'relative',
         'top'               : `${displace}%`,
@@ -98,7 +100,6 @@ export default {
         cornerRadius      : {type: 'number', value: 0, name: 'Corner Radius'},
         showName          : {type: 'boolean', value: true, name: 'Show Name'},
         namePosition      : {type: 'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name Position', depends: {showName: true}},
-        fontSize          : {type: 'number', value: 16, name: 'Font Size'},
     },
     controlPoints: {
         make(item, pointId) {
