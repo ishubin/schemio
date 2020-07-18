@@ -7,14 +7,6 @@
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
-
-        <foreignObject v-if="item.shapeProps.showName && item.name && hiddenTextProperty !== 'name'"
-            :x="nameArea.x" :y="nameArea.y" :width="nameArea.w" :height="nameArea.h">
-            <div class="item-text-container"
-                :style="nameStyle"
-                >{{item.name}}</div>
-        </foreignObject>
-
     </g>
 </template>
 <script>
@@ -30,36 +22,6 @@ const computePath = (item) => {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
-function identifyTextEditArea(item, itemX, itemY) {
-    if (item.shapeProps.showName && item.shapeProps.namePosition === 'center') {
-        return {
-            property: 'name',
-            style: generateNameStyle(item)
-        };
-    }
-
-    return null;
-};
-
-function generateNameStyle(item) {
-    let displace = 50;
-    if (item.shapeProps.namePosition === 'top') {
-        displace = 100;
-    } else if (item.shapeProps.namePosition === 'bottom') {
-        displace = 0;
-    }
-
-    return {
-        color               : item.shapeProps.nameColor,
-        'text-align'        : 'center',
-        'font-size'         : item.textProps.fontSize + 'px',
-        'font-family'       : getFontFamilyFor(item.textProps.font),
-        'vertical-align'    : 'middle',
-        position            : 'relative',
-        top                 : `${displace}%`,
-        transform           : `translateY(${-displace}%)`
-    };
-}
 
 function makeCornerRadiusControlPoint(item) {
     return {
@@ -91,7 +53,6 @@ export default {
         }
     },
 
-    identifyTextEditArea,
     editorProps: {
         description: 'rich',
         text: 'rich'
@@ -99,13 +60,9 @@ export default {
     args: {
         fill               : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
         strokeColor        : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        textColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
         strokeSize         : {type: 'number', value: 2, name: 'Stroke size', min: 0},
         strokePattern      : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
         cornerRadius       : {type: 'number', value: 0, name: 'Corner radius', min: 0},
-        showName           : {type: 'boolean', value: false, name: 'Show Name'},
-        namePosition       : {type:'choice', value: 'bottom', options: ['top', 'center', 'bottom'], name: 'Name position', depends: {showName: true}},
-        nameColor          : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color', depends: {showName: true}},
     },
     computed: {
         svgFill() {
@@ -116,24 +73,9 @@ export default {
             return computePath(this.item);
         },
 
-        nameStyle() {
-            return generateNameStyle(this.item);
-        },
-
-        nameArea() {
-            const height = 60;
-            if (this.item.shapeProps.namePosition === 'top') {
-                return {x: 0, y:-height, w: this.item.area.w, h: height};
-            } else if (this.item.shapeProps.namePosition === 'bottom') {
-                return {x: 0, y:this.item.area.h, w: this.item.area.w, h: height};
-            }
-            return {x: 0, y: 0, w: this.item.area.w, h: this.item.area.h};
-        },
-
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
-
     }
 }
 </script>

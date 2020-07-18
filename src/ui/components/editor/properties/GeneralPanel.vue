@@ -57,9 +57,11 @@
                         <td class="label" width="50%">Vertical Align</td>
                         <td class="value" width="50%">
                             <select :value="item.textProps.valign" @input="item.textProps.valign = arguments[0].target.value; commitSchemeChange('textProps.valign')">
+                                <option value="above">Above</option>
                                 <option value="top">Top</option>
                                 <option value="middle">Middle</option>
                                 <option value="bottom">Bottom</option>
+                                <option value="below">Below</option>
                             </select>
                         </td>
                     </tr>

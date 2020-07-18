@@ -18,7 +18,7 @@
         </component>
 
         <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            x="0" y="0" :width="item.area.w" :height="item.area.h">
+            :x="textArea.x" :y="textArea.y" :width="textArea.w" :height="textArea.h">
             <div class="item-text-container" v-html="sanitizedItemText"
                 :style="textStyle"
                 ></div>
@@ -60,7 +60,8 @@ import htmlSanitize from '../../../../htmlSanitize';
 import {getFontFamilyFor} from '../../../scheme/Fonts';
 
 export function generateTextStyle(item) {
-    return {
+    const textArea = calculateTextArea(item);
+    const style = {
         'color'           : item.textProps.color,
         'font-size'       : item.textProps.fontSize + 'px',
         'font-family'     : getFontFamilyFor(item.textProps.font),
@@ -72,10 +73,31 @@ export function generateTextStyle(item) {
         'vertical-align'  : item.textProps.valign,
         'white-space'     : item.textProps.whiteSpace,
         'display'         : 'table-cell',
-        'width'           : item.area.w + 'px',
-        'height'          : item.area.h + 'px',
+        'width'           : textArea.w + 'px',
+        'height'          : textArea.h + 'px',
     };
+
+    if (item.textProps.valign === 'above') {
+        style['vertical-align'] = 'bottom';
+    } else if (item.textProps.valign === 'below') {
+        style['vertical-align'] = 'top';
+    } else {
+        style['vertical-align'] = item.textProps.valign;
+    }
+
+    return style;
 }
+
+function calculateTextArea(item) {
+    const textHeight = Math.max(100, item.area.h)
+    if (item.textProps.valign === 'above') {
+        return {x: 0, y: -textHeight, w: item.area.w, h: textHeight};
+    } else if (item.textProps.valign === 'below') {
+        return {x: 0, y: item.area.h, w: item.area.w, h: textHeight};
+    }
+    return {x: 0, y: 0, w: item.area.w, h: item.area.h};
+}
+
 
 
 export default {
@@ -92,6 +114,8 @@ export default {
     },
 
     data() {
+
+
         return {
             shapeComponent        : null,
             oldShape              : this.item.shape,
@@ -102,7 +126,8 @@ export default {
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
             revision              : 0,
-            textStyle             : generateTextStyle(this.item)
+            textStyle             : generateTextStyle(this.item),
+            textArea              : calculateTextArea(this.item)
         };
     },
 
@@ -135,6 +160,7 @@ export default {
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.revision += 1;
             this.textStyle = generateTextStyle(this.item);
+            this.textArea = calculateTextArea(this.item);
             this.$forceUpdate();
         },
 

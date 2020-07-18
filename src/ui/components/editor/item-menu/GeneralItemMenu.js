@@ -146,7 +146,11 @@ export default [{
     iconUrl: '/images/items/frame-player.svg',
     item: utils.extendObject({
         shape: 'frame_player',
-        shapeProps: { }
+        shapeProps: { },
+        textProps: {
+            color: '#000000',
+            fontSize: 14
+        }
     }, defaultItem)
 }, {
     name: 'Code Block',

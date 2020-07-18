@@ -1,10 +1,5 @@
 <template>
     <g>
-        <foreignObject x="0" :y="0" v-if="hiddenTextProperty !== 'name'" 
-            :width="item.area.w" :height="topOffset">
-            <div :style="textStyle">{{item.name}}</div>
-        </foreignObject>
-
         <g v-for="(button,buttonIndex) in buttons">
             <circle 
                 :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2 + 2"
@@ -37,23 +32,12 @@
 
         <foreignObject x="0" :y="buttonSize + 6 + topOffset" 
             :width="item.area.w" height="30">
-            <div :style="textStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+            <div :style="framesTextStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
         </foreignObject>
     </g>
 </template>
 
-
-
 <script>
-
-
-function generateTextStyle(item) {
-    return {
-        'text-align':   'center',
-        'font-size':    item.shapeProps.fontSize + 'px'
-    };
-}
-
 export default {
     props: ['item', 'hiddenTextProperty'],
 
@@ -64,15 +48,9 @@ export default {
         return `M 0 0   L ${w} 0  L ${w} ${h}  L 0 ${h} z`;
     },
 
-    identifyTextEditArea(item, itemX, itemY) {
-        return {
-            property: 'name',
-            style: generateTextStyle(item)
-        }
-    },
     editorProps: {
         description     : 'rich',
-        text            : 'disabled',
+        text            : 'rich',
         ignoreEventLayer: true
     },
 
@@ -81,7 +59,6 @@ export default {
         frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},
         fillColor: {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        fontSize: {type: 'number', value: 16, name: 'Font Size'},
     },
 
     /**
@@ -200,12 +177,15 @@ export default {
     },
 
     computed: {
-        textStyle() {
-            return generateTextStyle(this.item)
-        },
-
         leftOffset() {
             return this.item.area.w / 2 - (this.buttonSize*2.5 + this.buttonSpaceSize*2);
+        },
+        framesTextStyle() {
+            return {
+                'color': this.item.textProps.color,
+                'font-size': `${this.item.textProps.fontSize}px`,
+                'text-align': 'center'
+            }
         }
     }
 }
