@@ -14,7 +14,8 @@
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
-            @dblclick="mouseDoubleClick">
+            @dblclick="mouseDoubleClick"
+            data-void="true">
 
             <g v-if="mode === 'view'">
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvgInteractiveMode">
@@ -82,15 +83,16 @@
             <!--  EDIT MODE -->
 
             <g v-if="mode === 'edit'">
-                <g class="grid" data-preview-ignore="true" :transform="gridTransform">
+                <g class="grid" data-preview-ignore="true" :transform="gridTransform" data-void="true">
                     <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height" 
                         :stroke="schemeContainer.scheme.style.gridColor"
+                        data-void="true"
                     />
                     <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"
                         :stroke="schemeContainer.scheme.style.gridColor"
+                        data-void="true"
                     />
                 </g>
-                <rect id="svg-rect-void" x="0" y="0" :width="width" :height="height" data-preview-ignore="true" fill="rgba(255, 255, 255, 0.0)" stroke="none"/>
 
                 <g data-type="scene-transform" :transform="transformSvg">
                     <g v-for="item in schemeContainer.worldItems"

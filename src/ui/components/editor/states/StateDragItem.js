@@ -156,7 +156,7 @@ export default class StateDragItem extends State {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
-            if (event.srcElement.id === 'svg_plot' || event.srcElement.id === 'svg-rect-void') {
+            if (event.srcElement.getAttribute('data-void') === 'true') {
                 this.initMulitSelectBox(x, y);
             }
         }

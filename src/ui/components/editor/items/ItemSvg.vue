@@ -17,12 +17,15 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <foreignObject v-if="item.text && hiddenTextProperty !== 'text'"
-            :x="textArea.x" :y="textArea.y" :width="textArea.w" :height="textArea.h">
-            <div class="item-text-container" v-html="sanitizedItemText"
-                :style="textStyle"
-                ></div>
-        </foreignObject>
+        <g v-if="item.text && hiddenTextProperty !== 'text'">
+            <foreignObject
+                :x="textArea.x" :y="textArea.y" :width="textArea.w" :height="textArea.h">
+                <div class="item-text-container" v-html="sanitizedItemText"
+                    :style="textStyle"
+                    ></div>
+            </foreignObject>
+            <rect :x="textArea.x" :y="textArea.y" :width="textArea.w" :height="textArea.h" stoke="none" fill="rgba(0,0,0,0.0)" data-preview-ignore="true"  data-void="true"/>
+        </g>
 
 
         <g :id="`animation-container-${item.id}`"></g>
