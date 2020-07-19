@@ -511,6 +511,16 @@ export default {
                         };
                     }
                 }
+
+                const textContainerElement = element.closest('.item-text-element');
+                if (textContainerElement) {
+                    const item = this.schemeContainer.findItemById(textContainerElement.getAttribute('data-item-text-element-item-id'));
+                    if (item) {
+                        return {
+                            itemTextElement: { item }
+                        };
+                    }
+                }
             }
             return EMPTY_OBJECT;
         },

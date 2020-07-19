@@ -156,7 +156,7 @@ export default class StateDragItem extends State {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
-            if (event.srcElement.getAttribute('data-void') === 'true') {
+            if (!object || object.type === 'nothing' || object.itemTextElement) {
                 this.initMulitSelectBox(x, y);
             }
         }
@@ -305,6 +305,9 @@ export default class StateDragItem extends State {
             } else {
                 this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
             }
+        }
+        if (object.itemTextElement) {
+            this.eventBus.emitItemInEditorTextEditTriggered(object.itemTextElement.item, x, y);
         }
     }
 
