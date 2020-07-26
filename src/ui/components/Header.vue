@@ -96,9 +96,9 @@ export default {
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(scheme) {
+        openNewSchemePopupSchemeCreated(projectId, scheme) {
             this.newSchemePopup.show = false;
-            window.location.href = `/projects/${this.projectId}/schemes/${scheme.id}#m:edit`;
+            window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
         },
 
         exportAsSVG() {

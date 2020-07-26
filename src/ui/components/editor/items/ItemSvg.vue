@@ -17,13 +17,13 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <g v-if="item.text && hiddenTextProperty !== 'text'">
+        <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
             <foreignObject
-                :x="textArea.x" :y="textArea.y" :width="textArea.w" :height="textArea.h">
+                :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
                 <div class="item-text-container"
-                    :style="textStyle"
+                    :style="slot.style"
                     >
-                    <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="sanitizedItemText"></div>
+                    <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
                 </div>
             </foreignObject>
         </g>
@@ -60,48 +60,11 @@
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
 import myMath from '../../../myMath';
+import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
-import {getFontFamilyFor} from '../../../scheme/Fonts';
-
-export function generateTextStyle(item) {
-    const textArea = calculateTextArea(item);
-    const style = {
-        'color'           : item.textProps.color,
-        'font-size'       : item.textProps.fontSize + 'px',
-        'font-family'     : getFontFamilyFor(item.textProps.font),
-        'padding-left'    : item.textProps.padding.left + 'px',
-        'padding-right'   : item.textProps.padding.right + 'px',
-        'padding-top'     : item.textProps.padding.top + 'px',
-        'padding-bottom'  : item.textProps.padding.bottom + 'px',
-        'text-align'      : item.textProps.halign,
-        'vertical-align'  : item.textProps.valign,
-        'white-space'     : item.textProps.whiteSpace,
-        'display'         : 'table-cell',
-        'width'           : textArea.w + 'px',
-        'height'          : textArea.h + 'px',
-    };
-
-    if (item.textProps.valign === 'above') {
-        style['vertical-align'] = 'bottom';
-    } else if (item.textProps.valign === 'below') {
-        style['vertical-align'] = 'top';
-    } else {
-        style['vertical-align'] = item.textProps.valign;
-    }
-
-    return style;
-}
-
-function calculateTextArea(item) {
-    const textHeight = Math.max(100, item.area.h)
-    if (item.textProps.valign === 'above') {
-        return {x: 0, y: -textHeight, w: item.area.w, h: textHeight};
-    } else if (item.textProps.valign === 'below') {
-        return {x: 0, y: item.area.h, w: item.area.w, h: textHeight};
-    }
-    return {x: 0, y: 0, w: item.area.w, h: item.area.h};
-}
-
+import {generateTextStyle} from '../text/ItemText';
+import {enrichItemTextSlotWithDefaults} from '../../../scheme/Item';
+import {forEach} from 'lodash';
 
 
 export default {
@@ -111,15 +74,17 @@ export default {
     mounted() {
         this.switchShape(this.item.shape);
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
 
     beforeDestroy() {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
 
     data() {
-
-
         return {
             shapeComponent        : null,
             oldShape              : this.item.shape,
@@ -130,8 +95,11 @@ export default {
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
             revision              : 0,
-            textStyle             : generateTextStyle(this.item),
-            textArea              : calculateTextArea(this.item)
+            textSlots             : this.generateTextSlots(),
+
+            // name of text slot that should not be drawn
+            // this is used when in-place text slot edit is triggered
+            hiddenTextSlotName    : null
         };
     },
 
@@ -163,8 +131,7 @@ export default {
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.revision += 1;
-            this.textStyle = generateTextStyle(this.item);
-            this.textArea = calculateTextArea(this.item);
+            this.textSlots = this.generateTextSlots();
             this.$forceUpdate();
         },
 
@@ -174,6 +141,38 @@ export default {
                 eventName: eventName,
                 args: arguments
             });
+        },
+
+        generateTextSlots() {
+            const shape = Shape.find(this.item.shape);
+            const slots = utils.clone(shape.getTextSlots(this.item));
+            
+            const filteredSlots = [];
+            forEach(slots, slot => {
+                const itemTextSlot = this.item.textSlots[slot.name];
+                if (itemTextSlot) {
+                    slot.text = itemTextSlot.text || '';
+                    slot.sanitizedText = htmlSanitize(slot.text);
+                    slot.style = generateTextStyle(itemTextSlot);
+                    slot.style.width = `${slot.area.w}px`;
+                    slot.style.height = `${slot.area.h}px`;
+                    filteredSlots.push(slot);
+                }
+            });
+
+            return filteredSlots;
+        },
+
+        onItemTextSlotEditTriggered(item, slotName, area) {
+            if (item.id === this.item.id) {
+                this.hiddenTextSlotName = slotName;
+            }
+        },
+
+        onItemTextSlotEditCanceled(item, slotName) {
+            if (item.id === this.item.id && this.hiddenTextSlotName === slotName) {
+                this.hiddenTextSlotName = null;
+            }
         }
     },
 
@@ -191,10 +190,6 @@ export default {
             }
             return 'rgba(255, 255, 255, 0)';
         },
-        
-        sanitizedItemText() {
-            return htmlSanitize(this.item.text);
-        }
     }
 }
 </script>

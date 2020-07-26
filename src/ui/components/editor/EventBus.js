@@ -37,7 +37,8 @@ const EventBus = new Vue({
             ANY_ITEM_DESELECTED: 'any-item-deselected',
 
             // used to trigger in-svg text edit of an item
-            ITEM_INEDITOR_TEXTEDIT_TRIGGERED: 'item-ineditor-textedit-triggered',
+            ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',
+            ITEM_TEXT_SLOT_EDIT_CANCELED: 'item-text-slot-edit-canceled',
 
             // triggered when user is in interactive mode and clicks empty space
             VOID_CLICKED: 'void-clicked',
@@ -128,8 +129,12 @@ const EventBus = new Vue({
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
         },
 
-        emitItemInEditorTextEditTriggered(item, x, y) {
-            this.$emit(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, item, x, y);
+        emitItemTextSlotEditTriggered(item, slotName, x, y) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, x, y);
+        },
+
+        emitItemTextSlotEditCanceled(item, slotName) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, item, slotName);
         },
 
         emitElementPickRequested(elementPickCallback) {

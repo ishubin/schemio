@@ -24,7 +24,7 @@
             </div>
         </div>
 
-        <div v-if="textType !== 'disabled'" class="textarea-wrapper">
+        <!-- <div v-if="textType !== 'disabled'" class="textarea-wrapper">
             <h5 class="section">Text</h5>
             <rich-text-editor v-if="textType === 'rich'" :value="item.text" @changed="item.text = arguments[0]; commitSchemeChange('text')" ></rich-text-editor>
             <textarea v-else :value="item.text" @input="item.text = arguments[0].target.value; commitSchemeChange('text')"></textarea>
@@ -98,7 +98,7 @@
                         </td>
                     </tr>
                 </tbody>
-            </table>
+            </table> -->
 
         </div>
     </panel>
@@ -154,7 +154,6 @@ export default {
             descriptionType,
             textType,
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
-
             supportedWhiteSpaceOptions: [{
                 name: 'Wrap', value: 'normal'
             }, {

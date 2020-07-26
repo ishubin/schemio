@@ -18,13 +18,6 @@
                 :stroke="item.shapeProps.strokeColor"
                 :fill="item.shapeProps.fillColor"></path>
         </g>
-
-        <foreignObject v-if="hiddenTextProperty !== 'name'"
-            x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
-            <div class="item-text-container"
-                :style="nameStyle"
-            >{{item.name}}</div>
-        </foreignObject>
     </g>
 </template>
 <script>
@@ -36,28 +29,10 @@ const computePath = (item) => {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
-function identifyTextEditArea(item, itemX, itemY) {
-    return {
-        property: 'name',
-        style: generateNameStyle(item),
-    }
-};
-
-function generateNameStyle(item) {
-    return {
-        'color': item.shapeProps.nameColor,
-        'padding-top': '4px',
-        'text-align': 'center',
-        'font-size': item.shapeProps.nameFontSize + 'px'
-    };
-}
-
-
 export default {
     props: ['item', 'hiddenTextProperty'],
 
     computePath,
-    identifyTextEditArea,
 
     editorProps: {
         description: 'rich',
@@ -71,7 +46,6 @@ export default {
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
         namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
-        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
     },
 
     computed: {
@@ -89,10 +63,6 @@ export default {
             const h = this.moduleBrickHeight;
             return `M 0 0  L ${w} 0  L ${w} ${h}  L 0 ${h} Z`;
         },
-
-        nameStyle() {
-            return generateNameStyle(this.item);
-        }
     }
 }
 </script>

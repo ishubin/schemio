@@ -7,6 +7,7 @@ import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import _ from 'lodash';
 import utils from '../../../utils';
+import myMath from '../../../myMath';
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
@@ -303,12 +304,36 @@ export default class StateDragItem extends State {
             if (object.item.shape === 'curve') {
                 this.eventBus.emitCurveEdited(object.item);
             } else {
-                this.eventBus.emitItemInEditorTextEditTriggered(object.item, x, y);
+                this.findTextSlotAndEmitInPlaceEdit(object.item, x, y)
+            }
+        } else if (object.itemTextElement) { 
+            this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
+        }
+    }
+
+    findTextSlotAndEmitInPlaceEdit(item, x, y) {
+        const textSlot = this.findItemTextSlotByPoint(item, x, y);
+        if (!textSlot) {
+            return;
+        }
+        this.eventBus.emitItemTextSlotEditTriggered(item, textSlot.name, textSlot.area);
+    }
+
+    findItemTextSlotByPoint(item, x, y) {
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, item);
+        const shape = Shape.make(item.shape);
+        const textSlots = shape.getTextSlots(item);
+        let selectedTextSlot = null;
+        for (let i = 0; i < textSlots.length && !selectedTextSlot; i++) {
+            const textSlot = textSlots[i];
+            if(myMath.isPointInArea(localPoint.x, localPoint.y, textSlot.area)) {
+                selectedTextSlot = textSlot;
             }
         }
-        if (object.itemTextElement) {
-            this.eventBus.emitItemInEditorTextEditTriggered(object.itemTextElement.item, x, y);
+        if (!selectedTextSlot && textSlots.length > 0) {
+            selectedTextSlot = textSlots[0];
         }
+        return selectedTextSlot;
     }
 
     handleControlPointDrag(x, y) {
