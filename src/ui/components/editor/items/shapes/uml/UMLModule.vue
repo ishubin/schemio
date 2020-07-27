@@ -30,22 +30,15 @@ const computePath = (item) => {
 };
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath,
-
-    editorProps: {
-        description: 'rich',
-        text: 'rich'
-    },
 
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-        nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
     },
 
     computed: {

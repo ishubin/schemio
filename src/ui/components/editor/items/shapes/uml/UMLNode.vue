@@ -77,15 +77,9 @@ function calculateNameLineTop(item) {
 
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath,
-    identifyTextEditArea,
-
-    editorProps: {
-        description: 'rich',
-        text: 'rich'
-    },
 
     args: {
         fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},

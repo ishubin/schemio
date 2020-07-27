@@ -103,6 +103,7 @@ import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
+import {enrichItemWithDefaults} from '../../scheme/Item';
 
 
 const Panels = {
@@ -221,6 +222,8 @@ export default {
         },
 
         showPreviewItem(item) {
+            enrichItemWithDefaults(item.item);
+
             this.previewItem.item = item;
             this.previewItem.artIcon = null;
             this.previewItem.description = item.description;

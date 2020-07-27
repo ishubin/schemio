@@ -12,8 +12,8 @@
             v-if="shapeComponent && item.visible"
             :is="shapeComponent"
             :item="item"
+            :mode="mode"
             :style="{'opacity': item.selfOpacity/100.0}"
-            :hidden-text-property="hiddenTextProperty"
             @custom-event="onShapeCustomEvent">
         </component>
 
@@ -85,22 +85,31 @@ export default {
     },
 
     data() {
-        return {
+        const shape = Shape.find(this.item.shape);
+
+        const data = {
             shapeComponent        : null,
             oldShape              : this.item.shape,
             itemSvgPath           : null,
             hiddenTextProperty    : this.item.meta.hiddenTextProperty || null,
             shouldDrawEventLayer  : true,
+            shouldRenderText      : true,
 
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
             revision              : 0,
-            textSlots             : this.generateTextSlots(),
+            textSlots             : [],
 
             // name of text slot that should not be drawn
             // this is used when in-place text slot edit is triggered
             hiddenTextSlotName    : null
         };
+        if (!shape.editorProps || !shape.editorProps.customTextRendering) {
+            data.textSlots = this.generateTextSlots();
+        } else {
+            data.shouldRenderText = false;
+        }
+        return data;
     },
 
     methods: {
@@ -119,11 +128,11 @@ export default {
         },
 
         onItemChanged() {
+            const shape = Shape.make(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
             } else {
                 // re-computing item svg path for event layer
-                const shape = Shape.make(this.item.shape);
                 if (shape && shape.component) {
                     this.itemSvgPath = shape.component.computePath(this.item);
                 }
@@ -131,7 +140,11 @@ export default {
             // refreshing the state of text display. This is needed when text edit is triggered for item with double click
             this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.revision += 1;
-            this.textSlots = this.generateTextSlots();
+
+
+            if (!shape.editorProps || !shape.editorProps.customTextRendering) {
+                this.textSlots = this.generateTextSlots();
+            }
             this.$forceUpdate();
         },
 

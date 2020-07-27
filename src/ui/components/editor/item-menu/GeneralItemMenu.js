@@ -182,6 +182,9 @@ export default [{
     item: utils.extendObject({
         shape: 'button',
         cursor: 'pointer',
+        textSlots: {
+            body: {text: 'Button'}
+        },
         shapeProps: {
             strokeSize: 1,
             strokeColor: '#3377A0',

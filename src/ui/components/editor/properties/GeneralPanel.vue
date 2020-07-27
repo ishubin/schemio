@@ -137,13 +137,9 @@ export default {
     data() {
         const shapeComponent = Shape.find(this.item.shape);
         let descriptionType = 'rich';
-        let textType = 'rich';
         if (shapeComponent && shapeComponent.editorProps) {
             if (shapeComponent.editorProps.description) {
                 descriptionType = shapeComponent.editorProps.description;
-            }
-            if (shapeComponent.editorProps.text) {
-                textType = shapeComponent.editorProps.text;
             }
         }
 
@@ -152,7 +148,6 @@ export default {
             existingItemTags: [],
             shapeComponent: shapeComponent,
             descriptionType,
-            textType,
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
             supportedWhiteSpaceOptions: [{
                 name: 'Wrap', value: 'normal'

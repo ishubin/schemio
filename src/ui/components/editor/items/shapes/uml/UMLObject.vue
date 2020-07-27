@@ -44,10 +44,6 @@ export default {
         }];
     },
 
-    editorProps: {
-        description: 'rich',
-        text: 'rich',
-    },
     args: {
         fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
