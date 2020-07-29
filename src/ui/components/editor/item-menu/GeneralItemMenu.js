@@ -147,9 +147,12 @@ export default [{
     item: utils.extendObject({
         shape: 'frame_player',
         shapeProps: { },
-        textProps: {
-            color: '#000000',
-            fontSize: 14
+        textSlots: {
+            title: {
+                text: '<b>Frame Player</b>',
+                color: '#000000',
+                fontSize: 14
+            }
         }
     }, defaultItem)
 }, {
@@ -158,16 +161,30 @@ export default [{
     item: utils.extendObject({
         shape: 'code_block',
         shapeProps: { },
-        textProps: {
-            font: 'Courier New',
-            halign: 'left',
-            valign: 'top',
-            whiteSpace: 'pre-wrap',
-            padding: {
-                top: 30,
-                left: 10,
-                right: 10,
-                bottom: 10
+        textSlots: {
+            title: {
+                text: '<b>Code Block</b>',
+                halign: 'center',
+                valign: 'middle',
+                padding: {
+                    top: 4,
+                    left: 10,
+                    right: 10,
+                    bottom: 4
+                }
+            },
+            body: {
+                font: 'Courier New',
+                text: '',
+                halign: 'left',
+                valign: 'top',
+                whiteSpace: 'pre-wrap',
+                padding: {
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    bottom: 10
+                }
             }
         }
     }, defaultItem),
