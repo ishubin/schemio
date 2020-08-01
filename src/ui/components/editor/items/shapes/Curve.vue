@@ -173,6 +173,13 @@ export default {
     computePath,
     readjustItem,
 
+    /**
+     * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
+     */ 
+    getTextSlots() {
+        return [];
+    },
+
     editorProps: {
         description: 'rich',
         text: 'none'
