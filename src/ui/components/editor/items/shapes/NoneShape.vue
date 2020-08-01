@@ -10,7 +10,7 @@ function computePath(item) {
 }
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath,
     editorProps: {

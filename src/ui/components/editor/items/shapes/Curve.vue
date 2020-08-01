@@ -168,7 +168,7 @@ function readjustItemArea(item) {
 
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath,
     readjustItem,

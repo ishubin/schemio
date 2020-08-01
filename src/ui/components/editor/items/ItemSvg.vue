@@ -91,7 +91,6 @@ export default {
             shapeComponent        : null,
             oldShape              : this.item.shape,
             itemSvgPath           : null,
-            hiddenTextProperty    : this.item.meta.hiddenTextProperty || null,
             shouldDrawEventLayer  : true,
             shouldRenderText      : true,
 
@@ -137,8 +136,6 @@ export default {
                     this.itemSvgPath = shape.component.computePath(this.item);
                 }
             }
-            // refreshing the state of text display. This is needed when text edit is triggered for item with double click
-            this.hiddenTextProperty = this.item.meta.hiddenTextProperty || null;
             this.revision += 1;
 
 

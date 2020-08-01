@@ -16,7 +16,7 @@ import LinkEditPopupVue from '../../LinkEditPopup.vue';
 import htmlSanitize from '../../../../../htmlSanitize';
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath() {
         return null;

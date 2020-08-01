@@ -32,7 +32,7 @@ const computePath = (item) => {
     return path + ' Z';
 };
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
     components: {AdvancedFill},
 
     editorProps: {
