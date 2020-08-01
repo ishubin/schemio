@@ -305,7 +305,7 @@ export default {
             this.linkCreation.popupShown = false;
             const item = utils.clone(this.linkCreation.item);
             item.shapeProps.url = link.url;
-            item.text = link.title;
+            item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item, item.shape);
             this.triggerStylesPanelForShape(item.shape, item);

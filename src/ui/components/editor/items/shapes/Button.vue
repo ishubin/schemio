@@ -49,7 +49,7 @@ function makeCornerRadiusControlPoint(item) {
 }
 
 export default {
-    props: ['item', 'mode'],
+    props: ['item'],
     components: {AdvancedFill},
 
     beforeMount() {
@@ -152,7 +152,6 @@ export default {
                 this.hideTextSlot = true;
             }
         },
-
         onItemTextSlotEditCanceled(item, slotName) {
             if (item.id === this.item.id) {
                 this.hideTextSlot = false;

@@ -599,6 +599,10 @@ svg .item-cursor-pointer {
 
 /**********************/
 /*      Item link    */
+svg .item-link p {
+    margin: 0;
+    padding: 0;
+}
 svg .item-link circle {
     stroke-width: 2;
 }

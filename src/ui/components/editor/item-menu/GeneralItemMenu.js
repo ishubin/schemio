@@ -131,6 +131,9 @@ export default [{
     iconUrl: '/images/items/link.svg',
     item: utils.extendObject({
         shape: 'link',
+        textSlots: { 
+            link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
+        },
         shapeProps: { }
     }, defaultItem),
     previewItem: utils.extendObject({
@@ -138,7 +141,9 @@ export default [{
         shapeProps: {
             url: 'http://example.com'
         },
-        text: 'http://example.com',
+        textSlots: { 
+            link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
+        },
     }, defaultItem)
 
 }, {
