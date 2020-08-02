@@ -25,7 +25,12 @@ export default {
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
+        document.addEventListener('mousedown', this.outsideClickListener);
         this.init();
+    },
+
+    beforeDestroy() {
+        document.removeEventListener('mousedown', this.outsideClickListener);
     },
 
     data() {
@@ -36,7 +41,6 @@ export default {
 
     methods: {
         init() {
-            document.addEventListener('click', this.outsideClickListener);
             this.editor = this.createEditor(this.text);
             EventBus.emitItemInPlaceTextEditorCreated(this.editor);
         },

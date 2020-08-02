@@ -35,12 +35,6 @@ export default {
         }, {
             name: 'body',
             area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(10, item.area.h - item.shapeProps.headerHeight)}
-        }, {
-            name: 'above',
-            area: {x: 0, y: -item.area.h, w: item.area.w, h: item.area.h}
-        }, {
-            name: 'below',
-            area: {x: 0, y: item.area.h, w: item.area.w, h: item.area.h}
         }];
     },
 
@@ -54,7 +48,7 @@ export default {
 
     computed: {
         nameLineTop() {
-            return Math.min(this.item.area.h/2, Math.max(30, this.item.shapeProps.cornerRadius));
+            return Math.min(this.item.area.h, Math.max(this.item.shapeProps.headerHeight, this.item.shapeProps.cornerRadius));
         },
         shapePath() { return computePath(this.item); },
     }
