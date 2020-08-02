@@ -32,12 +32,6 @@ function defaultGetTextSlots(item) {
     return [{
         name: 'body',
         area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
-    }, {
-        name: 'above',
-        area: {x: 0, y: -item.area.h, w: item.area.w, h: item.area.h}
-    }, {
-        name: 'below',
-        area: {x: 0, y: item.area.h, w: item.area.w, h: item.area.h}
     }];
 }
 
