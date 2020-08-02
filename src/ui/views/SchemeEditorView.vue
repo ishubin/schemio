@@ -95,9 +95,9 @@
                     <ul class="tabs">
                         <li v-for="tab in tabs">
                             <span class="tab"
-                                :class="{active: currentTab === tab.name, disabled: tab.disabled}"
-                                @click="currentTab = tab.name"
-                                >{{tab.name}}</span>
+                                :class="{active: currentTab === tab, disabled: tab.disabled}"
+                                @click="currentTab = tab"
+                                >{{tab}}</span>
                         </li>
                     </ul>
                     <div class="tabs-body">
@@ -119,7 +119,10 @@
                                 :scheme-container="schemeContainer" 
                             />
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+                        </div>
 
+                        <div v-if="currentTab === 'Text'">
+                            <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"/>
                         </div>
                     </div>
                 </div>
@@ -158,6 +161,7 @@ import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/properties/ItemProperties.vue';
+import TextSlotProperties from '../components/editor/properties/TextSlotProperties.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
 import SchemeDetails from '../components/editor/SchemeDetails.vue';
@@ -191,7 +195,7 @@ export default {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
-        ItemTooltip, Panel, ItemSelector
+        ItemTooltip, Panel, ItemSelector, TextSlotProperties
     },
 
     beforeMount() {
@@ -208,6 +212,8 @@ export default {
         EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EventBus.$on(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -221,6 +227,8 @@ export default {
         EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EventBus.$off(EventBus.SCHEME_CHANGE_COMITTED, this.commitHistory);
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
     data() {
         return {
@@ -271,12 +279,9 @@ export default {
                 parentSchemeItem: null
             },
 
+            previousTab: 'Scheme',
             currentTab: 'Scheme',
-            tabs: [{
-                name: 'Scheme'
-            }, {
-                name: 'Items',
-            }],
+            tabs: [ 'Scheme', 'Items'],
 
             offsetSaveTimerId: null,
 
@@ -285,6 +290,11 @@ export default {
                 shown: false,
                 x: 0,
                 y: 0
+            },
+
+            textSlotEditted: {
+                item: null,
+                slotName: null
             }
         }
     },
@@ -319,7 +329,11 @@ export default {
 
                 const schemeSettings = schemeSettingsStorage.get(this.schemeId);
                 if (schemeSettings && schemeSettings.screenPosition) {
-                    this.currentTab = schemeSettings.currentTab;
+                    // Text tab is only rendered when in place text edit is triggered
+                    // therefore it does not make sense to set it as current on scheme load
+                    if (schemeSettings.currentTab !== 'Text') {
+                        this.currentTab = schemeSettings.currentTab;
+                    }
                     this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
                     this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
                     this.zoom = schemeSettings.screenPosition.zoom;
@@ -668,7 +682,19 @@ export default {
                 console.error(e);
             }
             setTimeout(() => document.body.removeChild(link), 100);
-        }
+        },
+
+        onItemTextSlotEditTriggered(item, slotName) {
+            this.textSlotEditted.item = item;
+            this.textSlotEditted.slotName = slotName;
+            this.tabs = ['Text'];
+            this.currentTab = 'Text';
+        },
+
+        onItemTextSlotEditCanceled(item, slotName) {
+            this.tabs = ['Scheme', 'Item'];
+            this.currentTab = this.previousTab;
+        },
     },
 
     filters: {

@@ -40,6 +40,10 @@ const EventBus = new Vue({
             ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',
             ITEM_TEXT_SLOT_EDIT_CANCELED: 'item-text-slot-edit-canceled',
 
+            // used when in place rich text editor is created and mounted, this comes after ITEM_TEXT_SLOT_EDIT_TRIGGERED event
+            ITEM_IN_PLACE_TEXT_EDITOR_CREATED: 'item-in-place-text-editor-created',
+
+
             // triggered when user is in interactive mode and clicks empty space
             VOID_CLICKED: 'void-clicked',
 
@@ -135,6 +139,10 @@ const EventBus = new Vue({
 
         emitItemTextSlotEditCanceled(item, slotName) {
             this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, item, slotName);
+        },
+
+        emitItemInPlaceTextEditorCreated(editor) {
+            this.$emit(this.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, editor);
         },
 
         emitElementPickRequested(elementPickCallback) {

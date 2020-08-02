@@ -344,6 +344,7 @@ export default {
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
@@ -372,6 +373,7 @@ export default {
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
@@ -911,7 +913,7 @@ export default {
             const itemTextSlot = item.textSlots[slotName];
             const worldPoint = this.schemeContainer.worldPointOnItem(area.x, area.y, item);
 
-            this.inPlaceTextEditor.itemId = `${item.id}-${slotName}`;
+            this.inPlaceTextEditor.itemId = item.id;
             this.inPlaceTextEditor.slotName = slotName;
             this.inPlaceTextEditor.item = item;
             this.inPlaceTextEditor.text = itemTextSlot.text;
@@ -939,6 +941,19 @@ export default {
                 EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
             }
             this.inPlaceTextEditor.shown = false;
+        },
+
+        updateInPlaceTextEditorStyle() {
+            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
+            this.inPlaceTextEditor.style = generateTextStyle(textSlot);
+            this.inPlaceTextEditor.style.width = `${this.inPlaceTextEditor.area.w}px`;
+            this.inPlaceTextEditor.style.height = `${this.inPlaceTextEditor.area.h}px`;
+        },
+
+        onAnyItemChanged(itemId) {
+            if (this.inPlaceTextEditor.itemId === itemId) {
+                this.updateInPlaceTextEditorStyle();
+            }
         },
 
         onItemCustomEvent(event) {
