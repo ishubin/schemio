@@ -42,6 +42,12 @@
             <table class="properties-table">
                 <tbody>
                     <tr>
+                        <td class="label" width="50%">Color</td>
+                        <td class="value" width="50%">
+                            <color-picker :color="textSlot.color" @input="textSlot.color = arguments[0]; commitSchemeChange('color')"></color-picker>
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="label" width="50%">Font</td>
                         <td class="value" width="50%">
                             <dropdown :options="allFonts" :value="textSlot.font" @selected="textSlot.font = arguments[0].name; commitSchemeChange('font')"/>
@@ -121,10 +127,12 @@ import {getAllFonts} from '../../../scheme/Fonts';
 import {map} from 'lodash';
 import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
+import ColorPicker from '../ColorPicker.vue';
+
 
 export default {
     props: ['item', 'slotName'],
-    components: {EditorMenuBar, Dropdown, NumberTextfield},
+    components: {EditorMenuBar, Dropdown, NumberTextfield, ColorPicker},
 
     beforeMount() {
         EventBus.$on(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
