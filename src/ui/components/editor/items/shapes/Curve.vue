@@ -1,6 +1,6 @@
 <template>
     <g>
-        <defs v-if="item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
+        <defs v-if="item.shapeProps.fill && item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
             <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
                 <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
             </pattern>

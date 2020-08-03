@@ -195,8 +195,10 @@ export default {
         },
 
         hoverPathFill() {
-            if (this.item.shape === 'curve' && this.item.shapeProps.fill.type === 'none') {
-                return 'none';
+            if (this.item.shape === 'curve') {
+                if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
+                    return 'none';
+                }
             }
             return 'rgba(255, 255, 255, 0)';
         },

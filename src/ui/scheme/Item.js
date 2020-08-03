@@ -35,7 +35,6 @@ export function enrichItemTextSlotWithDefaults(textSlot) {
 export function enrichItemWithDefaults(item) {
     const props = {
         area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
-        groups: [],
         opacity: 100.0,
         selfOpacity: 100.0,
         visible: true,
@@ -56,6 +55,9 @@ export function enrichItemWithDefaults(item) {
     const shape = Shape.find(item.shape);
     _.forEach(shape.args, (arg, argName) => {
         props.shapeProps[argName] = arg.value;
+        if (!item.shapeProps.hasOwnProperty(argName)) {
+            item.shapeProps[argName] = arg.value;
+        }
     });
 
     const textSlots = shape.getTextSlots(item);
