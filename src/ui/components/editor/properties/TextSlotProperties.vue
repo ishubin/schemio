@@ -14,9 +14,6 @@
                 <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
                     <i class="fas fa-underline"></i>
                 </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.link() }" @click="toggleLink(commands.link, getMarkAttrs('link'))">
-                    <i class="fas fa-link"></i>
-                </span>
                 <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
                     <i class="fas fa-code"></i>
                 </span>

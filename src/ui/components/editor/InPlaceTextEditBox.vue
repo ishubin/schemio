@@ -16,7 +16,7 @@ import EventBus from './EventBus';
 import { Editor, EditorContent } from 'tiptap';
 import {
     Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
-    TodoItem, TodoList, Bold, Code, Italic, Link, Strike, Underline, History,
+    TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History,
 } from 'tiptap-extensions';
 
 
@@ -46,18 +46,20 @@ export default {
         },
 
         createEditor(text) {
-            return new Editor({
+            const editor = new Editor({
                 extensions: [
                     new Blockquote(), new CodeBlock(), new HardBreak(), new Heading({ levels: [1, 2, 3] }), new BulletList(), new OrderedList(), new ListItem(),
-                    new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Link(), new Strike(), new Underline(), new History(), ],
+                    new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Strike(), new Underline(), new History(), ],
 
                 autoFocus: true,
-                content: text,
+                content: '',
                 onUpdate: (event) => {
                     const content = event.getHTML();
                     this.$emit('updated', content);
                 }
             });
+            editor.setContent(this.text, true, {preserveWhitespace: true})
+            return editor;
         },
 
         outsideClickListener(event) {
