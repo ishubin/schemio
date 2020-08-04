@@ -1,9 +1,11 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
 
         <circle cx="15" cy="15" r="5" fill="#EC6762"/>
         <circle cx="30" cy="15" r="5" fill="#F4BE5E"/>
@@ -11,8 +13,7 @@
     </g>
 </template>
 <script>
-import _ from 'lodash';
-
+import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -24,6 +25,8 @@ const computePath = (item) => {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
+
     computePath,
 
     getTextSlots(item) {
@@ -36,16 +39,20 @@ export default {
 
     editorProps: {},
     args: {
-        fillColor:          {type: 'color', value: 'rgba(240, 240, 240, 1.0)', name: 'Fill color'},
-        strokeColor:        {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
-        strokeSize:         {type: 'number', value: 1, name: 'Stroke size'},
-        cornerRadius:       {type: 'number', value: 4, name: 'Corner radius'},
-        headerHeight:       {type: 'number', value: 30, name: 'Header hight', min: 0}
+        fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+        strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
+        strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
+        cornerRadius: {type: 'number', value: 4, name: 'Corner radius'},
+        headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0}
     },
 
     computed: {
         shapePath() {
             return computePath(this.item);
+        },
+
+        svgFill() {
+            return AdvancedFill.computeStandardFill(this.item);
         },
     },
 }

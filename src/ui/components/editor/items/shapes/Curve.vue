@@ -1,10 +1,6 @@
 <template>
     <g>
-        <defs v-if="item.shapeProps.fill && item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image">
-            <pattern :id="backgroundImageId" patternUnits="userSpaceOnUse" :width="item.area.w" :height="item.area.h">
-                <image :xlink:href="item.shapeProps.fill.image" x="0" y="0" :width="item.area.w" :height="item.area.h"/>
-            </pattern>
-        </defs>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -24,6 +20,7 @@
 <script>
 import shortid from 'shortid';
 import {forEach} from 'lodash';
+import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
@@ -169,6 +166,7 @@ function readjustItemArea(item) {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
 
     computePath,
     readjustItem,
@@ -219,11 +217,11 @@ export default {
 
 
     args: {
-        strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
-        closed            : {type: 'boolean',       value: false, name: 'Closed path'},
+        strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
         strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
+        closed            : {type: 'boolean',       value: false, name: 'Closed path'},
         points            : {type: 'curve-points',  value: [], name: 'Curve points'},
         sourceCap         : {type: 'choice',        value: Path.CapType.EMPTY, name: 'Source Cap',      options: Path.CapType.values()},
         sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
@@ -346,13 +344,7 @@ export default {
         },
 
         fill() {
-            if (this.item.shapeProps.fill.type === 'solid') {
-                return this.item.shapeProps.fill.color;
-            } else if (this.item.shapeProps.fill.type === 'image') {
-                return `url(#${this.backgroundImageId})`;
-            } else {
-                return 'none';
-            }
+            return AdvancedFill.computeStandardFill(this.item);
         }
     }
 }
