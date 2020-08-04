@@ -38,6 +38,7 @@ export function enrichItemWithDefaults(item) {
         opacity: 100.0,
         selfOpacity: 100.0,
         visible: true,
+        groups: [],
         blendMode: 'normal',
         textSlots: {},
         description: '',
