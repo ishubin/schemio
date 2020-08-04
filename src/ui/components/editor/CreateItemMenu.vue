@@ -103,6 +103,7 @@ import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
+import {enrichItemWithDefaults} from '../../scheme/Item';
 
 
 const Panels = {
@@ -221,6 +222,8 @@ export default {
         },
 
         showPreviewItem(item) {
+            enrichItemWithDefaults(item.item);
+
             this.previewItem.item = item;
             this.previewItem.artIcon = null;
             this.previewItem.description = item.description;
@@ -302,7 +305,7 @@ export default {
             this.linkCreation.popupShown = false;
             const item = utils.clone(this.linkCreation.item);
             item.shapeProps.url = link.url;
-            item.text = link.title;
+            item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item, item.shape);
             this.triggerStylesPanelForShape(item.shape, item);

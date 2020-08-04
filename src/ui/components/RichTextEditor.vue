@@ -1,7 +1,7 @@
 <template lang="html">
     <div class="rich-text-editor-container">
         <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
-            <div class="editor-menubar">
+            <div class="rich-text-editor-menubar">
                 <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
                     <i class="fas fa-bold"></i>
                 </span>

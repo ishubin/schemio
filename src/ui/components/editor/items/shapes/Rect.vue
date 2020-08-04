@@ -31,7 +31,7 @@ function makeCornerRadiusControlPoint(item) {
 }
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
     components: {AdvancedFill},
 
     computePath,

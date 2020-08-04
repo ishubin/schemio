@@ -17,6 +17,10 @@ export default [{
     name: 'Object',
     iconUrl: '/images/items/uml-object.svg',
     item: utils.extendObject({
+        textSlots: {
+            title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
+            body: {text: '<p><ul><li>Property</li></ul></p>', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
+        },
         shape: 'uml_object',
         shapeProps: {}
     }, defaultItem)

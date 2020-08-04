@@ -599,6 +599,10 @@ svg .item-cursor-pointer {
 
 /**********************/
 /*      Item link    */
+svg .item-link p {
+    margin: 0;
+    padding: 0;
+}
 svg .item-link circle {
     stroke-width: 2;
 }
@@ -1457,12 +1461,12 @@ ul.category-breadcrumb li i {
     outline: none;
 }
 
-.rich-text-editor-container .editor-menubar {
+.rich-text-editor-menubar {
     height: 40px;
     padding:  7px 5px;
 }
 
-.rich-text-editor-container .editor-menubar .editor-icon {
+.rich-text-editor-menubar .editor-icon {
     padding: 2px;
     display: inline-block;
     width: 24px;
@@ -1471,12 +1475,12 @@ ul.category-breadcrumb li i {
     text-align: center;
     cursor: pointer;
 }
-.rich-text-editor-container .editor-menubar .editor-icon.is-active {
+.rich-text-editor-menubar .editor-icon.is-active {
     background: #333;
     color: #fff;
 }
 
-.rich-text-editor-container .editor-menubar .editor-icon:hover {
+.rich-text-editor-menubar .editor-icon:hover {
     background: #bbb;
     color: #333;
 }

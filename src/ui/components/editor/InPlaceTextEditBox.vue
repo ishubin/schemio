@@ -1,7 +1,7 @@
 <template>
-    <g :transform="textEditArea.type === 'viewport' ? viewportTransform : relativeTransform">
+    <g :transform="transformType === 'viewport' ? viewportTransform : relativeTransform">
         <foreignObject :x="area.x" :y="area.y" :width="area.w" :height="area.h">
-            <div id="item-in-place-text-editor" class="item-text-container" :style="textEditArea.style">
+            <div v-if="editor" id="item-in-place-text-editor" class="item-text-container" :style="cssStyle">
                 <editor-content :editor="editor" />
             </div>
         </foreignObject>
@@ -9,83 +9,71 @@
 </template>
 
 <script>
-import EventBus from './EventBus';
 import htmlSanitize from '../../../htmlSanitize';
 import utils from '../../utils';
 import RichTextEditor from '../RichTextEditor.vue';
+import EventBus from './EventBus';
 import { Editor, EditorContent } from 'tiptap';
 import {
     Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
-    TodoItem, TodoList, Bold, Code, Italic, Link, Strike, Underline, History,
+    TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History,
 } from 'tiptap-extensions';
 
 
 export default {
-    props: ['viewportTransform', 'relativeTransform', 'item', 'textEditArea', 'point'],
+    props: ['viewportTransform', 'relativeTransform', 'area', 'text', 'cssStyle', 'transformType'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
+        document.addEventListener('mousedown', this.outsideClickListener);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
         this.init();
     },
 
-    mounted() {
+    beforeDestroy() {
+        document.removeEventListener('mousedown', this.outsideClickListener);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
     },
 
     data() {
         return {
             editor: null,
-            area: {
-                x: 0, y: 0, w: 1, h: 1
-            }
         };
     },
 
     methods: {
         init() {
-            this.item.meta.hiddenTextProperty = this.textEditArea.property;
-            EventBus.emitItemChanged(this.item.id);
-
-            document.addEventListener('click', this.outsideClickListener);
-
-            this.editor = this.creatEditor(this.item[this.textEditArea.property]);
-
-            if (this.textEditArea.area) {
-                this.area.x = this.point.x + this.textEditArea.area.x;
-                this.area.y = this.point.y + this.textEditArea.area.y;
-                this.area.w = this.textEditArea.area.w;
-                this.area.h = this.textEditArea.area.h;
-            } else {
-                this.area.x = this.point.x
-                this.area.y = this.point.y;
-                this.area.w = this.item.area.w;
-                this.area.h = this.item.area.h;
-            }
+            this.editor = this.createEditor(this.text);
+            EventBus.emitItemInPlaceTextEditorCreated(this.editor);
         },
 
-        creatEditor(text) {
-            return new Editor({
+        createEditor(text) {
+            const editor = new Editor({
                 extensions: [
                     new Blockquote(), new CodeBlock(), new HardBreak(), new Heading({ levels: [1, 2, 3] }), new BulletList(), new OrderedList(), new ListItem(),
-                    new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Link(), new Strike(), new Underline(), new History(), ],
+                    new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Strike(), new Underline(), new History(), ],
 
                 autoFocus: true,
-                content: text,
+                content: '',
                 onUpdate: (event) => {
                     const content = event.getHTML();
-                    this.item[this.textEditArea.property] = content;
-                    EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${this.textEditArea.property}`);
+                    this.$emit('updated', content);
                 }
             });
+            editor.setContent(this.text, true, {preserveWhitespace: true})
+            return editor;
         },
 
         outsideClickListener(event) {
-            if (!utils.domHasParentNode(event.target, domElement => domElement.id === 'item-in-place-text-editor')) {
+            if (!utils.domHasParentNode(event.target, domElement => domElement.id === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
                 document.removeEventListener('click', this.outsideClickListener);
-                this.item.meta.hiddenTextProperty = null;
-                EventBus.emitItemChanged(this.item.id);
-                this.$emit('close');
+                this.closeEditBox();
             }
         },
+        
+        closeEditBox() {
+            this.$emit('close');
+        }
     }
 
 }

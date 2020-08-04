@@ -15,7 +15,6 @@ const MISSING_PREVIEW_SVG = `
 function sanitizeItem(item) {
     item.name = htmlSanitize(item.name);
     item.description = htmlSanitize(item.description);
-    item.text = htmlSanitize(item.text);
 
     item.meta = {};
     if (!item.hasOwnProperty('id')) {

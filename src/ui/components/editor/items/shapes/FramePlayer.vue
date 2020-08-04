@@ -39,7 +39,13 @@
 
 <script>
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
+
+    getTextSlots(item) {
+        return [{
+            name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}
+        }];
+    },
 
     computePath(item) {
         const w = item.area.w;
@@ -49,8 +55,6 @@ export default {
     },
 
     editorProps: {
-        description     : 'rich',
-        text            : 'rich',
         ignoreEventLayer: true
     },
 
@@ -84,7 +88,6 @@ export default {
             isPlaying: false,
             intervalId: null,
 
-            topOffset: 30,
             buttonSize: 20,
             buttonSpaceSize: 4,
             buttonFontSize: '10px',
@@ -182,10 +185,13 @@ export default {
         },
         framesTextStyle() {
             return {
-                'color': this.item.textProps.color,
-                'font-size': `${this.item.textProps.fontSize}px`,
+                'color': this.item.textSlots.title.color,
+                'font-size': `${this.item.textSlots.title.fontSize}px`,
                 'text-align': 'center'
             }
+        },
+        topOffset() {
+            return Math.max(0, this.item.area.h - 60);
         }
     }
 }

@@ -5,25 +5,24 @@
 
         <path v-if="hovered" :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
-            :stroke="item.shapeProps.strokeColor"
+            :stroke="item.shapeProps.hoverStrokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="svgFill"></path>
+            :fill="svgFillHovered"></path>
 
         <path v-else :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="svgFillHovered"></path>
+            :fill="svgFill"></path>
 
-        <foreignObject v-if="hiddenTextProperty !== 'name'"
-            x="0" y="0" :width="item.area.w" :height="item.area.h">
-            <div class="item-text-container"
-                :style="textStyle"
-                >
-                <div v-if="hovered" v-html="sanitizedItemText" :style="{color: item.shapeProps.hoverTextColor}"></div>
-                <div v-else v-html="sanitizedItemText" :style="{color: item.shapeProps.textColor}"></div>
-            </div>
-        </foreignObject>
+        <g v-if="!hideTextSlot">
+            <foreignObject v-if="hovered" x="0" y="0" :width="item.area.w" :height="item.area.h">
+                <div class="item-text-container" :style="hoveredStyle" v-html="sanitizedItemText"></div>
+            </foreignObject>
+            <foreignObject v-else x="0" y="0" :width="item.area.w" :height="item.area.h">
+                <div class="item-text-container" :style="regularStyle" v-html="sanitizedItemText"></div>
+            </foreignObject>
+        </g>
     </g>
     
 </template>
@@ -32,6 +31,7 @@ import StrokePattern from '../StrokePattern.js';
 import htmlSanitize from '../../../../../htmlSanitize';
 import EventBus from '../../EventBus';
 import AdvancedFill from '../AdvancedFill.vue';
+import {generateTextStyle} from '../../text/ItemText';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -41,29 +41,6 @@ const computePath = (item) => {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
-function identifyTextEditArea(item, itemX, itemY) {
-    return {
-        property: 'name',
-        style: generateTextStyle(item)
-    };
-};
-
-
-function generateTextStyle(item) {
-    return {
-        'font-size'       : item.shapeProps.fontSize + 'px',
-        'padding-left'    : item.shapeProps.textPaddingLeft + 'px',
-        'padding-right'   : item.shapeProps.textPaddingRight + 'px',
-        'padding-top'     : item.shapeProps.textPaddingTop + 'px',
-        'padding-bottom'  : item.shapeProps.textPaddingBottom + 'px',
-        'text-align'      : item.shapeProps.textHorizontalAlign,
-        'vertical-align'  : item.shapeProps.textVerticalAlign,
-        'display'         : 'table-cell',
-        'width'           : item.area.w + 'px',
-        'height'          : item.area.h + 'px',
-    };
-}
-
 function makeCornerRadiusControlPoint(item) {
     return {
         x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
@@ -72,22 +49,31 @@ function makeCornerRadiusControlPoint(item) {
 }
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
     components: {AdvancedFill},
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+    },
+
+    getTextSlots(item) {
+        return [{
+            name: 'body',
+            area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+        }];
     },
 
     computePath,
-    identifyTextEditArea,
 
     editorProps: {
-        description     : 'rich',
-        text            : 'rich',
+        customTextRendering: true,
         ignoreEventLayer: true
     },
 
@@ -115,23 +101,19 @@ export default {
         strokeColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         hoverStrokeColor      : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Hover Stroke color'},
 
-        textColor             : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Text color'},
-        hoverTextColor        : {type: 'color', value: 'rgba(255,255,255,1.0)', name: 'Hover Text color'},
+        hoverTextColor        : {type: 'color', value: 'rgba(255,255,255,1.0)', name: 'Hovered Text color'},
 
         strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
         cornerRadius          : {type: 'number', value: '0', name: 'Corner radius'},
-        fontSize              : {type: 'number', value: 16, name: 'Font Size'},
-        textPaddingLeft       : {type: 'number', value: 10, name: 'Text Padding Left'},
-        textPaddingRight      : {type: 'number', value: 10, name: 'Text Padding Right'},
-        textPaddingTop        : {type: 'number', value: 10, name: 'Text Padding Top'},
-        textPaddingBottom     : {type: 'number', value: 10, name: 'Text Padding Bottom'},
-        textHorizontalAlign   : {type:'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal align'},
-        textVerticalAlign     : {type:'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical align'},
     },
     data() {
         return {
-            hovered: false
+            hovered: false,
+
+            regularStyle: this.createRegularStyle(),
+            hoveredStyle: this.createHoveredStyle(),
+            hideTextSlot: false
         };
     },
     methods: {
@@ -148,13 +130,35 @@ export default {
         },
         onItemChanged() {
             this.hovered = false;
+            this.regularStyle = this.createRegularStyle();
+            this.hoveredStyle = this.createHoveredStyle();
+        },
+        createRegularStyle() {
+            let style = {};
+            if (this.item.textSlots && this.item.textSlots.body) {
+                style = generateTextStyle(this.item.textSlots.body);
+                style.width = `${this.item.area.w}px`;
+                style.height = `${this.item.area.h}px`;
+            }
+            return style;
+        },
+        createHoveredStyle() {
+            const style = this.createRegularStyle();
+            style.color = this.item.shapeProps.hoverTextColor;
+            return style;
+        },
+        onItemTextSlotEditTriggered(item, slotName, area) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = true;
+            }
+        },
+        onItemTextSlotEditCanceled(item, slotName) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = false;
+            }
         }
     },
     computed: {
-        textStyle() {
-            return generateTextStyle(this.item);
-        },
-
         shapePath() {
             return computePath(this.item);
         },
@@ -164,7 +168,11 @@ export default {
         },
 
         sanitizedItemText() {
-            return htmlSanitize(this.item.name);
+            let text = '';
+            if (this.item.textSlots && this.item.textSlots.body) {
+                text = this.item.textSlots.body.text;
+            }
+            return htmlSanitize(text);
         },
 
         svgFill() {

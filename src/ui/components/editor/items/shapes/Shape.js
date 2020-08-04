@@ -28,13 +28,23 @@ const defaultEditorProps = {
     text: 'rich'
 };
 
-function createTextEditAreaIdentifier(shapeComponent) {
-    return (item, x, y) => {
-        if (shapeComponent.identifyTextEditArea) {
-            return shapeComponent.identifyTextEditArea(item , x, y);
-        }
-        return null;
-    }
+function defaultGetTextSlots(item) {
+    return [{
+        name: 'body',
+        area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+    }, {
+        name: 'above',
+        area: {x: 0, y: -item.area.h, w: item.area.w, h: item.area.h}
+    }, {
+        name: 'below',
+        area: {x: 0, y: item.area.h, w: item.area.w, h: item.area.h}
+    }, {
+        name: 'left of',
+        area: {x: -item.area.w, y: 0, w: item.area.w, h: item.area.h}
+    }, {
+        name: 'right of',
+        area: {x: item.area.w, y: 0, w: item.area.w, h: item.area.h}
+    }];
 }
 
 function enrichShape(shapeComponent) {
@@ -43,8 +53,7 @@ function enrichShape(shapeComponent) {
         args                    : shapeComponent.args,
         computePath             : shapeComponent.computePath,
         readjustItem            : shapeComponent.readjustItem,
-        // This function is used when SvgEditor tries to figure out which exact property has user double clicked on
-        identifyTextEditArea    : createTextEditAreaIdentifier(shapeComponent),
+        getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
         component               : shapeComponent

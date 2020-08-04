@@ -9,12 +9,6 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :fill="item.shapeProps.fillColor"></path>
-
-        <foreignObject v-if="hiddenTextProperty !== 'name'"
-            x="0" :y="item.shapeProps.strokeSize" :width="item.area.w" :height="Math.max(0, item.area.h - item.shapeProps.strokeSize)">
-            <div class="item-text-container" :style="nameStyle"
-            >{{item.name}}</div>
-        </foreignObject>
     </g>
 </template>
 <script>
@@ -32,40 +26,15 @@ const computePath = (item) => {
     return `M 0 0  L 0 ${-BH}  L ${BW} ${-BH}  L ${BW} 0  L ${W} 0  L ${W} ${H} L 0 ${H} Z`;
 };
 
-function identifyTextEditArea(item, itemX, itemY) {
-    return {
-        property: 'name',
-        style: generateNameStyle(item)
-    }
-};
-
-function generateNameStyle(item) {
-    return {
-        'color': item.shapeProps.nameColor,
-        'padding-top': '4px',
-        'text-align': 'center',
-        'font-weight': 'bold',
-        'font-size': item.shapeProps.nameFontSize + 'px'
-    };
-}
-
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
 
     computePath,
-    identifyTextEditArea,
 
-    editorProps: {
-        description: 'rich',
-        text: 'rich'
-    },
     args: {
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
         fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},
-        nameFontSize: {type: 'number', value: 16, name: 'Name Font Size'},
-        namePosition: {type:'choice', value: 'center', options: ['top', 'bottom', 'center'], name: 'Name position'},
-        nameColor: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Name color'},
     },
 
     computed: {
@@ -73,10 +42,6 @@ export default {
         brickWidth() {
             return Math.max(0, this.item.area.w/3);
         },
-        nameStyle() {
-            return generateNameStyle(this.item);
-        },
-
         brickHeight() {
             return Math.max(0, this.item.area.h/8);
         }

@@ -15,7 +15,6 @@
 
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}-${revision}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}-${revision}`" :projectId="projectId" :item="item"/>
-        <connections-panel v-if="currentTab === 'description'" :key="`connections-panel-${item.id}-${revision}`" :item="item"/>
         <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item"/>
 
         <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :project-id="projectId" :item="item" :scheme-container="schemeContainer"/>
@@ -161,7 +160,6 @@ import Tooltip from '../../Tooltip.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
 import LinksPanel from './LinksPanel.vue';
-import ConnectionsPanel from './ConnectionsPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
@@ -192,7 +190,7 @@ export default {
     props: ['projectId', 'item', 'schemeContainer', 'revision'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
-        ConnectionsPanel, GeneralPanel, BehaviorProperties, SaveStyleModal,
+        GeneralPanel, BehaviorProperties, SaveStyleModal,
         StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown,
         AdvancedColorEditor
     },

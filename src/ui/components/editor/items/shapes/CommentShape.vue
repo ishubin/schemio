@@ -90,7 +90,7 @@ const controlPointFuncs = {
 };
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
     components: {AdvancedFill},
 
     computePath,

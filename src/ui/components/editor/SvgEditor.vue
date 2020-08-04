@@ -176,13 +176,16 @@
                 </g>
 
                 <!-- Item Text Editor -->    
-                <in-place-text-edit-box v-if="itemTextEditor.item && itemTextEditor.textEditArea"
-                    :key="`in-place-text-edit-${itemTextEditor.item.id}`"
-                    :item="itemTextEditor.item" :text-edit-area="itemTextEditor.textEditArea"
-                    :point="itemTextEditor.point"
+                <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
+                    :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.slotName}`"
+                    :area="inPlaceTextEditor.area"
+                    :css-style="inPlaceTextEditor.style"
+                    :text="inPlaceTextEditor.text"
                     :viewport-transform="viewportTransform"
                     :relative-transform="transformSvg"
+                    :transform-type="inPlaceTextEditor.transformType"
                     @close="closeItemTextEditor"
+                    @updated="onInPlaceTextEditorUpdate"
                     />
 
                 <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
@@ -252,6 +255,7 @@
 </template>
 
 <script>
+import myMath from '../../myMath';
 import {ItemInteractionMode} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
@@ -262,7 +266,7 @@ import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
-import {generateTextStyle} from './items/ItemSvg.vue';
+import {generateTextBox, generateTextStyle} from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
@@ -340,12 +344,13 @@ export default {
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$on(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -368,12 +373,13 @@ export default {
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$off(EventBus.ITEM_INEDITOR_TEXTEDIT_TRIGGERED, this.onItemInEditorTextEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -416,10 +422,15 @@ export default {
                 menuOptions: []
             },
 
-            itemTextEditor: {
-                item            : null,
-                textEditArea    : null,
-                point           : null
+            inPlaceTextEditor: {
+                itemId: '',
+                item: null,
+                slotName: '',
+                shown: false,
+                area: {x: 0, y: 0, w: 100, h: 100},
+                text: '',
+                transformType: 'relative',
+                style: {}
             },
 
             curveEditItem: null,
@@ -897,34 +908,52 @@ export default {
             this.contextMenu.id = shortid.generate();
         },
 
-        onItemInEditorTextEditTriggered(item, x, y) {
-            this.displayItemTextEditor(item, x, y);
+        onItemTextSlotEditTriggered(item, slotName, area) {
+            // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
+            const itemTextSlot = item.textSlots[slotName];
+            const worldPoint = this.schemeContainer.worldPointOnItem(area.x, area.y, item);
+
+            this.inPlaceTextEditor.itemId = item.id;
+            this.inPlaceTextEditor.slotName = slotName;
+            this.inPlaceTextEditor.item = item;
+            this.inPlaceTextEditor.text = itemTextSlot.text;
+            this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
+            this.inPlaceTextEditor.style.width = `${area.w}px`;
+            this.inPlaceTextEditor.style.height = `${area.h}px`;
+            this.inPlaceTextEditor.transformType = item.area.type;
+            this.inPlaceTextEditor.area.x = worldPoint.x;
+            this.inPlaceTextEditor.area.y = worldPoint.y;
+            this.inPlaceTextEditor.area.w = area.w;
+            this.inPlaceTextEditor.area.h = area.h;
+            this.inPlaceTextEditor.shown = true;
         },
 
-        displayItemTextEditor(item, x, y) {
-            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
-            const itemPoint = this.calculateItemLocalPoint(item, x, y);
-            const shape = Shape.make(item.shape);
-            this.itemTextEditor.textEditArea = shape.identifyTextEditArea(item, itemPoint.x, itemPoint.y);
-            if (!this.itemTextEditor.textEditArea) {
-                let textEnabled = true;
-                if (shape.editorProps && shape.editorProps.text === 'disabled') {
-                    textEnabled = false;
-                }
-                if (textEnabled) {
-                    this.itemTextEditor.textEditArea = {
-                        property: 'text',
-                        style: generateTextStyle(item)
-                    }
-                }
+        onInPlaceTextEditorUpdate(text) {
+            if (this.inPlaceTextEditor.shown) {
+                this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName].text = text;
             }
-            this.itemTextEditor.item = item;
-            this.itemTextEditor.point = worldPoint;
         },
 
         closeItemTextEditor() {
-            this.itemTextEditor.item = null;
-            this.itemTextEditor.textEditArea = null;
+            if (this.inPlaceTextEditor.item) {
+                EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
+                EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
+            }
+            this.inPlaceTextEditor.shown = false;
+        },
+
+        updateInPlaceTextEditorStyle() {
+            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
+            this.inPlaceTextEditor.style = generateTextStyle(textSlot);
+            this.inPlaceTextEditor.style.width = `${this.inPlaceTextEditor.area.w}px`;
+            this.inPlaceTextEditor.style.height = `${this.inPlaceTextEditor.area.h}px`;
+        },
+
+        onAnyItemChanged(itemId) {
+            if (this.inPlaceTextEditor.itemId === itemId) {
+                this.updateInPlaceTextEditorStyle();
+            }
         },
 
         onItemCustomEvent(event) {
@@ -980,26 +1009,6 @@ export default {
                     item.shapeProps[argName] = argValue;
                 });
             }
-        },
-
-        // Converts world coordinates to item local coordinates (takes items rotation and translation into account)
-        calculateItemLocalPoint(item, x, y) {
-            // Rotating a world point around item center in the opposite direction
-            // in order to align world coordinates with items coordinates
-            const cos = Math.cos(-item.area.r * Math.PI / 180);
-            const sin = Math.sin(-item.area.r * Math.PI / 180);
-
-            const dx = x - item.area.x - item.area.w/2;
-            const dy = y - item.area.y - item.area.h/2;
-
-            const nx = dx * cos - dy * sin;
-            const ny = dx * sin + dy * cos;
-
-            // correcting item center since item position is defined by its top left corner
-            return {
-                x: nx + item.area.w / 2,
-                y: ny + item.area.h / 2
-            };
         },
 
         //calculates from world to screen

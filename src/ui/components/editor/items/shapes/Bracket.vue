@@ -113,12 +113,13 @@ const computePath = (item) => {
 };
 
 export default {
-    props: ['item', 'hiddenTextProperty'],
+    props: ['item'],
     computePath,
 
-    editorProps: {
-        text: 'none'
+    getTextSlots(item) {
+        return [];
     },
+
     args: {
         style:          {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
         color:          {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
