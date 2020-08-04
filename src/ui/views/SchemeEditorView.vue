@@ -103,7 +103,7 @@
                             <span class="tab"
                                 :class="{active: currentTab === itemTextSlotTab.tabName}"
                                 @click="currentTab = itemTextSlotTab.tabName"
-                                >{{itemTextSlotTab.tabName}}</span>
+                                >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
                     </ul>
                     <ul v-else class="tabs">
@@ -115,8 +115,8 @@
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
 
-                        <div v-if="currentTab === 'Item'">
-                            <panel name="Items" v-if="mode === 'edit' && !textSlotEditted.item">
+                        <div v-if="currentTab === 'Item' && !textSlotEditted.item">
+                            <panel name="Items" v-if="mode === 'edit'">
                                 <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="schemeContainer.revision"/>
                             </panel>
 
@@ -131,12 +131,15 @@
                         </div>
 
                         <div v-if="textSlotEditted.item">
-                            <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"/>
+                            <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"
+                                @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"/>
                         </div>
                         <div v-else>
                             <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
+                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
                                 :item="itemTextSlot.item"
-                                :slot-name="itemTextSlot.slotName"/>
+                                :slot-name="itemTextSlot.slotName"
+                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"/>
                         </div>
                     </div>
                 </div>
@@ -744,7 +747,21 @@ export default {
                 this.currentTab = 'Item';
             }
             this.itemTextSlotsAvailable.length = 0;
-        }
+        },
+
+        onTextSlotMoved(item, slotName, anotherSlotName) {
+            if (anotherSlotName === slotName) {
+                return;
+            }
+            item.textSlots[anotherSlotName] = utils.clone(item.textSlots[slotName]);
+            item.textSlots[slotName].text = '';
+            EventBus.emitItemChanged(item.id, `textSlots.${anotherSlotName}`);
+            if (!this.textSlotEditted.item) {
+                this.currentTab = `Text: ${anotherSlotName}`;
+            }
+
+            EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
+        },
     },
 
     filters: {

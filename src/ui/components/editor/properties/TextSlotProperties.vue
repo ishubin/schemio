@@ -113,6 +113,11 @@
                             </select>
                         </td>
                     </tr>
+                    <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot">
+                        <td colspan="2">
+                            <span class="btn btn-secondary" style="width: 100%" @click="onMoveToSlotClicked(availableTextSlot)">Move to "{{availableTextSlot}}" slot</span>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
@@ -125,6 +130,7 @@ import EventBus from '../EventBus';
 import { EditorMenuBar } from 'tiptap';
 import {getAllFonts} from '../../../scheme/Fonts';
 import {map} from 'lodash';
+import Shape from '../../editor/items/shapes/Shape';
 import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ColorPicker from '../ColorPicker.vue';
@@ -141,9 +147,12 @@ export default {
         EventBus.$off(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
     },
     data() {
+        const shape = Shape.find(this.item.shape);
+
         return {
             editor: null,
             textSlot: this.item.textSlots[this.slotName],
+            availableTextSlots: map(shape.getTextSlots(this.item), textSlot => textSlot.name),
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
             supportedWhiteSpaceOptions: [{
                 name: 'Wrap', value: 'normal'
@@ -165,6 +174,9 @@ export default {
 
             EventBus.emitSchemeChangeCommited(propertyFullPath);
             EventBus.emitItemChanged(this.item.id, propertyFullPath);
+        },
+        onMoveToSlotClicked(anotherSlotName) {
+            this.$emit('moved-to-slot', anotherSlotName);
         }
     }
 }

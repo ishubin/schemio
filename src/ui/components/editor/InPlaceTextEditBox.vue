@@ -26,11 +26,13 @@ export default {
 
     beforeMount() {
         document.addEventListener('mousedown', this.outsideClickListener);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
         this.init();
     },
 
     beforeDestroy() {
         document.removeEventListener('mousedown', this.outsideClickListener);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
     },
 
     data() {
@@ -65,9 +67,13 @@ export default {
         outsideClickListener(event) {
             if (!utils.domHasParentNode(event.target, domElement => domElement.id === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
                 document.removeEventListener('click', this.outsideClickListener);
-                this.$emit('close');
+                this.closeEditBox();
             }
         },
+        
+        closeEditBox() {
+            this.$emit('close');
+        }
     }
 
 }

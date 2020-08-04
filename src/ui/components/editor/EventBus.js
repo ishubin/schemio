@@ -40,6 +40,9 @@ const EventBus = new Vue({
             ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',
             ITEM_TEXT_SLOT_EDIT_CANCELED: 'item-text-slot-edit-canceled',
 
+            // emited when user moves one text slot into another
+            ITEM_TEXT_SLOT_MOVED: 'item-text-slot-moved',
+
             // used when in place rich text editor is created and mounted, this comes after ITEM_TEXT_SLOT_EDIT_TRIGGERED event
             ITEM_IN_PLACE_TEXT_EDITOR_CREATED: 'item-in-place-text-editor-created',
 
@@ -139,6 +142,10 @@ const EventBus = new Vue({
 
         emitItemTextSlotEditCanceled(item, slotName) {
             this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, item, slotName);
+        },
+
+        emitItemTextSlotMoved(item, slotName, destinationSlotName) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_MOVED, item, slotName, destinationSlotName);
         },
 
         emitItemInPlaceTextEditorCreated(editor) {
