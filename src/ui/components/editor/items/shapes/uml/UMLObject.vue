@@ -1,9 +1,10 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
         
         <path :d="`M 0 ${nameLineTop}  L ${item.area.w} ${nameLineTop}`" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -14,6 +15,7 @@
 </template>
 
 <script>
+import AdvancedFill from '../../AdvancedFill.vue';
 const computePath = (item) => {
     const W = item.area.w;
     const H = item.area.h;
@@ -25,6 +27,7 @@ const computePath = (item) => {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
 
     computePath,
 
@@ -39,9 +42,9 @@ export default {
     },
 
     args: {
-        fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
-        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
+        fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+        strokeColor : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+        strokeSize  : {type: 'number', value: 2, name: 'Stroke size'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
         headerHeight: {type: 'number', value: 30, name: 'Header Height'}
     },
@@ -50,6 +53,11 @@ export default {
         nameLineTop() {
             return Math.min(this.item.area.h, Math.max(this.item.shapeProps.headerHeight, this.item.shapeProps.cornerRadius));
         },
+
+        svgFill() {
+            return AdvancedFill.computeStandardFill(this.item);
+        },
+
         shapePath() { return computePath(this.item); },
     }
     

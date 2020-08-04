@@ -1,26 +1,30 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
 
         <g :transform="`translate(-${moduleBrickWidth/2}, ${moduleBrickHeight})`">
             <path :d="moduleBrickPath"
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
                 :stroke="item.shapeProps.strokeColor"
-                :fill="item.shapeProps.fillColor"></path>
+                :fill="svgFill"></path>
         </g>
 
         <g :transform="`translate(-${moduleBrickWidth/2}, ${3*moduleBrickHeight})`">
             <path :d="moduleBrickPath"
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
                 :stroke="item.shapeProps.strokeColor"
-                :fill="item.shapeProps.fillColor"></path>
+                :fill="svgFill"></path>
         </g>
     </g>
 </template>
 <script>
+import AdvancedFill from '../../AdvancedFill.vue';
+
 const computePath = (item) => {
     const W = item.area.w;
     const H = item.area.h;
@@ -31,18 +35,24 @@ const computePath = (item) => {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
 
     computePath,
 
     args: {
-        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        fillColor: {type: 'color', value: 'rgba(240,240,240,1.0)', name: 'Fill color'},
+        fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+        strokeColor : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+        strokeSize  : {type: 'number', value: 2, name: 'Stroke size'},
         cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
     },
 
     computed: {
         shapePath() { return computePath(this.item); },
+
+        svgFill() {
+            return AdvancedFill.computeStandardFill(this.item);
+        },
+
         moduleBrickWidth() {
             return Math.max(0, this.item.area.w/3);
         },

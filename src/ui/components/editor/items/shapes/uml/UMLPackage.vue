@@ -1,9 +1,11 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
 
         <path :d="`M0 0 L ${brickWidth} 0`"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -12,6 +14,8 @@
     </g>
 </template>
 <script>
+import AdvancedFill from '../../AdvancedFill.vue';
+
 const brickWidth = (item) => {
    return Math.max(0, item.area.w/3);
 };
@@ -28,17 +32,23 @@ const computePath = (item) => {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
 
     computePath,
 
     args: {
+        fill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},
+        strokeSize : {type: 'number', value: 2, name: 'Stroke size'},
     },
 
     computed: {
         shapePath() { return computePath(this.item); },
+
+        svgFill() {
+            return AdvancedFill.computeStandardFill(this.item);
+        },
+
         brickWidth() {
             return Math.max(0, this.item.area.w/3);
         },

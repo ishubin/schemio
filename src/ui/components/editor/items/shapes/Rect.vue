@@ -66,7 +66,7 @@ export default {
     },
     computed: {
         svgFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            return AdvancedFill.computeStandardFill(this.item);
         },
 
         shapePath() {

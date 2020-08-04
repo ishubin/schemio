@@ -29,6 +29,11 @@ export default {
         return 'none';
     },
 
+    // Uses 'fill' property of shapeProps
+    computeStandardFill(item) {
+        return this.computeSvgFill(item.shapeProps.fill, `fill-pattern-${item.id}`);
+    },
+
     computed: {
         direction() {
             let direction = parseInt(this.fill.gradient.direction);

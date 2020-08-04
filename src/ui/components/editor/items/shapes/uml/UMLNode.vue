@@ -1,9 +1,11 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
-            :fill="item.shapeProps.fillColor"></path>
+            :fill="svgFill"></path>
 
         <path :d="edgeLinePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -13,6 +15,7 @@
     </g>
 </template>
 <script>
+import AdvancedFill from '../../AdvancedFill.vue';
 
 const calculateD = (item) => {
     let D = item.shapeProps.depth;
@@ -37,18 +40,22 @@ function calculateNameLineTop(item) {
 
 export default {
     props: ['item'],
+    components: {AdvancedFill},
 
     computePath,
 
     args: {
-        fillColor: {type: 'color', value: 'rgba(240,240,240, 1.0)', name: 'Fill color'},
+        fill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
         strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize: {type: 'number', value: 2, name: 'Stroke size'},
-        depth: {type: 'number', value: 20, name: 'Depth'},
+        strokeSize : {type: 'number', value: 2, name: 'Stroke size'},
+        depth      : {type: 'number', value: 20, name: 'Depth'},
     },
 
     computed: {
         shapePath() { return computePath(this.item); },
+        svgFill() {
+            return AdvancedFill.computeStandardFill(this.item);
+        },
 
         nameLineTop() {
             return calculateNameLineTop(this.item);
