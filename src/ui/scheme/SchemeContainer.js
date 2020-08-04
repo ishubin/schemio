@@ -3,11 +3,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import _ from 'lodash';
+import {map, forEach} from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {Item, enrichItemWithDefaults} from './Item.js';
+import { useFakeXMLHttpRequest } from 'sinon';
 
 
 const defaultSchemeStyle = {
@@ -95,7 +97,7 @@ class SchemeContainer {
             scheme.style = {};
         }
 
-        _.forEach(defaultSchemeStyle, (value, name) => {
+        forEach(defaultSchemeStyle, (value, name) => {
             if (!scheme.style[name]) {
                 scheme.style[name] = value;
             }
@@ -200,7 +202,7 @@ class SchemeContainer {
             dependencyItemMap[itemId] = dependants;
         };
 
-        _.forEach(dependencyElementSelectorMap, (dependants, elementSelector) => {
+        forEach(dependencyElementSelectorMap, (dependants, elementSelector) => {
             const mainItem = this.findFirstElementBySelector(elementSelector);
             if (mainItem) {
                 registerDependants(mainItem.id, dependants);
@@ -225,7 +227,7 @@ class SchemeContainer {
     }
 
     indexItemGroups(itemId, groups) {
-        _.forEach(groups, group => {
+        forEach(groups, group => {
             if (!this._itemGroupsToIds.hasOwnProperty(group)) {
                 this._itemGroupsToIds[group] = [];
             }
@@ -342,7 +344,7 @@ class SchemeContainer {
 
         let range = null;
 
-        _.forEach(items, item => {
+        forEach(items, item => {
             const points = [
                 this.worldPointOnItem(0, 0, item),
                 this.worldPointOnItem(item.area.w, 0, item),
@@ -350,7 +352,7 @@ class SchemeContainer {
                 this.worldPointOnItem(0, item.area.h, item),
             ];
 
-            _.forEach(points, point => {
+            forEach(points, point => {
                 if (!range) {
                     range = {
                         x1: point.x,
@@ -419,7 +421,7 @@ class SchemeContainer {
 
         // searching for items that depend on changed item
         if (this.dependencyItemMap[changedItemId]) {
-            _.forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
+            forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
                 this._readjustItem(dependantItemId, visitedItems, isSoft);
             });
         }
@@ -584,7 +586,7 @@ class SchemeContainer {
 
     deleteSelectedItems() {
         if (this.selectedItems && this.selectedItems.length > 0) {
-            _.forEach(this.selectedItems, item => {
+            forEach(this.selectedItems, item => {
                 this.deleteItem(item);
             });
 
@@ -630,14 +632,16 @@ class SchemeContainer {
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         } else {
-            _.forEach(this.selectedItems, selectedItem => {
+            const deselectedItemIds = [];
+            forEach(this.selectedItems, selectedItem => {
                 if (selectedItem.id !== item.id) {
                     selectedItem.meta.selected = false;
-                    this.eventBus.emitItemDeselected(selectedItem.id);
+                    deselectedItemIds.push(selectedItem.id);
                 }
             });
             item.meta.selected = true;
             this.selectedItems = [];
+            forEach(deselectedItemIds, itemId => this.eventBus.emitItemDeselected(itemId));
 
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
@@ -682,15 +686,19 @@ class SchemeContainer {
      * Deselect all previously selected items
      */
     deselectAllItems() {
-        _.forEach(this.selectedItems, item => {
+        const itemIds = map(this.selectedItems, item => item.id);
+        forEach(this.selectedItems, item => {
             item.meta.selected = false;
-            this.eventBus.emitItemDeselected(item.id);
         });
         this.selectedItems = [];
+
+        // First we should reset selectedItems array and only then emit event for each event
+        // Some components check selectedItems array to get information whether item is selected or not
+        forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
     }
 
     selectByBoundaryBox(box) {
-        _.forEach(this.getItems(), item => {
+        forEach(this.getItems(), item => {
             const points = [ 
                 {x: 0, y: 0}, 
                 {x: item.area.w, y: 0},
@@ -746,7 +754,7 @@ class SchemeContainer {
             }
         }
 
-        _.forEach(lastItems, item => {
+        forEach(lastItems, item => {
             itemArray.splice(0, 0, item);
         });
        // this.scheme.items = lastItems.concat(this.scheme.items);
@@ -775,7 +783,7 @@ class SchemeContainer {
             }
         }
 
-        _.forEach(topItems, item => {
+        forEach(topItems, item => {
             itemArray.push(item);
         });
     }
@@ -788,7 +796,7 @@ class SchemeContainer {
         const itemIds = this._itemGroupsToIds[group];
         const items = [];
         if (itemIds) {
-            _.forEach(itemIds, id => {
+            forEach(itemIds, id => {
                 const item = this.findItemById(id);
                 if (item) {
                     items.push(item);
@@ -837,7 +845,7 @@ class SchemeContainer {
     copySelectedItems() {
         this.copyBuffer = [].concat(this.selectedItems);
         this.copyBuffer = [];
-        _.forEach(this.selectedItems, item => {
+        forEach(this.selectedItems, item => {
             this.copyBuffer.push(utils.clone(item));
         });
     }
@@ -858,7 +866,7 @@ class SchemeContainer {
         }
 
         const copiedItemIds = {};
-        _.forEach(this.copyBuffer, item => {
+        forEach(this.copyBuffer, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
             if (!_.find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
@@ -902,9 +910,9 @@ class SchemeContainer {
             }
         };
 
-        _.forEach(oldItem, (value, field) => {
+        forEach(oldItem, (value, field) => {
             if (field === 'childItems') {
-                newItem[field] = _.map(value, childItem => this.copyItem(childItem));
+                newItem[field] = map(value, childItem => this.copyItem(childItem));
             } else if (field !== 'id' && field !== 'meta') {
                 newItem[field] = utils.clone(value);
             }

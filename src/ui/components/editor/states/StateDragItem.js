@@ -656,8 +656,8 @@ export default class StateDragItem extends State {
     }
 
     deselectAllItems() {
-        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
         this.schemeContainer.deselectAllItems();
+        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
     }
 
     emitEventsForAllSelectedItems() {

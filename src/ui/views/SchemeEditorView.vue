@@ -92,22 +92,31 @@
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelRightExpanded">
-                    <ul class="tabs">
+                    <ul v-if="!textSlotEditted.item" class="tabs">
                         <li v-for="tab in tabs">
                             <span class="tab"
-                                :class="{active: currentTab === tab, disabled: tab.disabled}"
+                                :class="{active: currentTab === tab}"
                                 @click="currentTab = tab"
                                 >{{tab}}</span>
                         </li>
+                        <li v-for="itemTextSlotTab in itemTextSlotsAvailable">
+                            <span class="tab"
+                                :class="{active: currentTab === itemTextSlotTab.tabName}"
+                                @click="currentTab = itemTextSlotTab.tabName"
+                                >{{itemTextSlotTab.tabName}}</span>
+                        </li>
+                    </ul>
+                    <ul v-else class="tabs">
+                        <li><span class="tab active">Text</span></li>
                     </ul>
                     <div class="tabs-body">
-                        <div v-if="currentTab === 'Scheme' && schemeContainer">
+                        <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :scheme-container="schemeContainer"></scheme-properties>
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
 
                         <div v-if="currentTab === 'Item'">
-                            <panel name="Items" v-if="mode === 'edit'">
+                            <panel name="Items" v-if="mode === 'edit' && !textSlotEditted.item">
                                 <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="schemeContainer.revision"/>
                             </panel>
 
@@ -121,8 +130,13 @@
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                         </div>
 
-                        <div v-if="currentTab === 'Text'">
+                        <div v-if="textSlotEditted.item">
                             <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"/>
+                        </div>
+                        <div v-else>
+                            <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
+                                :item="itemTextSlot.item"
+                                :slot-name="itemTextSlot.slotName"/>
                         </div>
                     </div>
                 </div>
@@ -179,6 +193,7 @@ import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import recentPropsChanges from '../history/recentPropsChanges';
+import {forEach, map} from 'lodash';
 
 
 let history = new History({size: 30});
@@ -214,6 +229,8 @@ export default {
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -229,6 +246,8 @@ export default {
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
     },
     data() {
         return {
@@ -279,7 +298,6 @@ export default {
                 parentSchemeItem: null
             },
 
-            previousTab: 'Scheme',
             currentTab: 'Scheme',
             tabs: [ 'Scheme', 'Item'],
 
@@ -295,7 +313,10 @@ export default {
             textSlotEditted: {
                 item: null,
                 slotName: null
-            }
+            },
+
+            // When an item is selected - we want to display additional tabs for it
+            itemTextSlotsAvailable: []
         }
     },
     methods: {
@@ -445,7 +466,7 @@ export default {
         startCreatingChildSchemeForItem(item) {
             var category = this.schemeContainer.scheme.category;
             if (category && category.id) {
-                var categories = _.map(category.ancestors, ancestor => {
+                var categories = map(category.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};
                 });
 
@@ -627,10 +648,10 @@ export default {
         },
 
         restoreItemSelection() {
-            const selectedItemIds = _.map(this.schemeContainer.selectedItems, item => item.id);
+            const selectedItemIds = map(this.schemeContainer.selectedItems, item => item.id);
             this.schemeContainer.deselectAllItems();
 
-            _.forEach(selectedItemIds, itemId => {
+            forEach(selectedItemIds, itemId => {
                 const item = this.schemeContainer.findItemById(itemId);
                 if (item) {
                     this.schemeContainer.selectItem(item, true);
@@ -687,15 +708,43 @@ export default {
         onItemTextSlotEditTriggered(item, slotName) {
             this.textSlotEditted.item = item;
             this.textSlotEditted.slotName = slotName;
-            this.tabs = ['Text'];
-            this.previousTab = this.currentTab;
-            this.currentTab = 'Text';
         },
 
         onItemTextSlotEditCanceled(item, slotName) {
-            this.tabs = ['Scheme', 'Item'];
-            this.currentTab = this.previousTab;
+            this.textSlotEditted.item = null;
+            this.textSlotEditted.slotName = null;
         },
+
+        /**
+         * Triggered when any item got selected or deselected
+         */
+        onItemSelectionUpdated() {
+            if (this.schemeContainer.selectedItems.length > 0) {
+                this.currentTab = 'Item';
+                const item = this.schemeContainer.selectedItems[0];
+                const shape = Shape.find(item.shape);
+                if (!shape) {
+                    return;
+                }
+                const textSlots = shape.getTextSlots(item);
+
+                if (textSlots && textSlots.length > 0) {
+                    this.itemTextSlotsAvailable = map(textSlots, textSlot => {
+                        return {
+                            tabName: `Text: ${textSlot.name}`,
+                            slotName: textSlot.name,
+                            item
+                        };
+                    });
+                    return;
+                }
+            }
+            // in case nothing was selected - it should not display any tabs
+            if (this.currentTab.indexOf('Text') === 0) {
+                this.currentTab = 'Item';
+            }
+            this.itemTextSlotsAvailable.length = 0;
+        }
     },
 
     filters: {
@@ -728,7 +777,7 @@ export default {
             keyword = keyword.trim().toLowerCase();
             if (keyword.length > 0) {
                 let filteredItems = [];
-                _.forEach(this.schemeContainer.getItems(), item => {
+                forEach(this.schemeContainer.getItems(), item => {
                     let shouldHighlight = false;
                     var name = item.name || '';
                     if (name.toLowerCase().indexOf(keyword) >= 0) {
@@ -748,7 +797,7 @@ export default {
                 });
                 this.searchHighlights = filteredItems;
             } else {
-                _.forEach(this.schemeContainer.getItems(), item => {
+                forEach(this.schemeContainer.getItems(), item => {
                     item.meta.searchHighlighted = false;
                 });
                 this.searchHighlights = [];
