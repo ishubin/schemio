@@ -12,6 +12,8 @@ function computePath(item) {
 export default {
     props: ['item'],
 
+    shapeType: 'vue',
+
     computePath,
     editorProps: {
         description: 'rich',

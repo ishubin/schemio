@@ -101,7 +101,38 @@
                 </table>
             </panel>
 
-            <panel name="Properties">
+            <panel name="Fill &amp; Stroke" v-if="shapeComponent.shapeType === 'standard'">
+                <table class="properties-table">
+                    <tbody>
+                        <tr>
+                            <td class="label" width="50%">Fill</td>
+                            <td class="value" width="50%">
+                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" @changed="onStyleValueChange('fill', arguments[0])" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Stroke</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="item.shapeProps.strokeColor" @input="onStyleValueChange('strokeColor', arguments[0])"></color-picker>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Stroke Size</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.shapeProps.strokeSize" @changed="onStyleValueChange('strokeSize', arguments[0])" :min="0"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Stroke Pattern</td>
+                            <td class="value" width="50%">
+                                <stroke-pattern-dropdown :value="item.shapeProps.StrokePattern" @selected="onStyleValueChange('strokePattern', arguments[0])"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+
+            <panel name="Shape Properties">
                 <table class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">

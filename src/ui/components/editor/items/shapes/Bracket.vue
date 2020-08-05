@@ -116,6 +116,8 @@ export default {
     props: ['item'],
     computePath,
 
+    shapeType: 'vue',
+
     getTextSlots(item) {
         return [];
     },

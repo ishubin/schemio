@@ -35,6 +35,8 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
+    shapeType: 'vue',
+
     editorProps: {
         description: 'rich',
         text: 'rich'

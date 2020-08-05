@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import NoneShape from './NoneShape.vue';
-import Rect from './Rect.vue';
+import Rect from './Rect.js';
 import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.vue';
 import Link from './Link.vue';
@@ -37,6 +37,7 @@ function defaultGetTextSlots(item) {
 
 function enrichShape(shapeComponent) {
     return {
+        shapeType               : shapeComponent.shapeType,
         editorProps             : shapeComponent.editorProps || defaultEditorProps,
         args                    : shapeComponent.args,
         computePath             : shapeComponent.computePath,
@@ -44,7 +45,7 @@ function enrichShape(shapeComponent) {
         getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
-        component               : shapeComponent
+        vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null
     };
 }
 

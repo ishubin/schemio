@@ -168,6 +168,8 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
+    shapeType: 'vue',
+
     computePath,
     readjustItem,
 
