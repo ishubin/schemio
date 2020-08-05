@@ -10,7 +10,7 @@ import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
 import NPolygon from './NPolygon.vue';
-import Bracket from './Bracket.vue';
+import Bracket from './Bracket.js';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';

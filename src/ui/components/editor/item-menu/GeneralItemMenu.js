@@ -54,7 +54,8 @@ export default [{
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
-            style: 'curly'
+            fill: {type: 'none'},
+            style: 'curly',
         }
     }, defaultItem)
 }, {
@@ -63,6 +64,7 @@ export default [{
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
+            fill: {type: 'none'},
             style: 'square'
         }
     }, defaultItem)
@@ -72,6 +74,7 @@ export default [{
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
+            fill: {type: 'none'},
             style: 'round'
         }
     }, defaultItem)
