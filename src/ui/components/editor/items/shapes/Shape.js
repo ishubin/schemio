@@ -2,7 +2,7 @@ import Vue from 'vue';
 import NoneShape from './NoneShape.vue';
 import Rect from './Rect.js';
 import Overlay from './Overlay.vue';
-import Ellipse from './Ellipse.vue';
+import Ellipse from './Ellipse.js';
 import Link from './Link.vue';
 import Curve from './Curve.vue';
 import CommentShape from './CommentShape.vue';
@@ -15,7 +15,7 @@ import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
-import _ from 'lodash';
+import {mapValues} from 'lodash';
 
 
 
@@ -49,7 +49,7 @@ function enrichShape(shapeComponent) {
     };
 }
 
-const shapeReigstry = _.mapValues({
+const shapeReigstry = mapValues({
     none: NoneShape,
     rect: Rect,
     ellipse: Ellipse,
