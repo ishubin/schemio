@@ -40,6 +40,9 @@
 <script>
 export default {
     props: ['item'],
+    
+    shapeType: 'vue',
+
 
     getTextSlots(item) {
         return [{

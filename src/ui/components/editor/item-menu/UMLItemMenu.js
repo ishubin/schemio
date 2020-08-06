@@ -29,6 +29,10 @@ export default [{
     iconUrl: '/images/items/uml-module.svg',
     item: utils.extendObject({
         shape: 'uml_module',
+        textSlots: {
+            title: {text: '<b>Module</b>', halign: 'center'},
+            body: {text: '', halign: 'left'}
+        },
         shapeProps: {}
     }, defaultItem)
 }, {

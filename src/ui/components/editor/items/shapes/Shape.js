@@ -1,22 +1,21 @@
 import Vue from 'vue';
-import NoneShape from './NoneShape.vue';
-import Rect from './Rect.vue';
+import NoneShape from './NoneShape.js';
+import Rect from './Rect.js';
 import Overlay from './Overlay.vue';
-import Ellipse from './Ellipse.vue';
+import Ellipse from './Ellipse.js';
 import Link from './Link.vue';
 import Curve from './Curve.vue';
-import CommentShape from './CommentShape.vue';
+import Comment from './Comment.js';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
-import NPolygon from './NPolygon.vue';
-import Bracket from './Bracket.vue';
-import UMLObject from './uml/UMLObject.vue';
-import UMLModule from './uml/UMLModule.vue';
-import UMLPackage from './uml/UMLPackage.vue';
-import UMLNode from './uml/UMLNode.vue';
-import _ from 'lodash';
-
+import NPoly from './NPoly.js';
+import Bracket from './Bracket.js';
+import UMLObject from './uml/UMLObject.js';
+import UMLModule from './uml/UMLModule.js';
+import UMLPackage from './uml/UMLPackage.js';
+import UMLNode from './uml/UMLNode.js';
+import {mapValues} from 'lodash';
 
 
 function defaultGetEventsFunc(item) {
@@ -37,6 +36,7 @@ function defaultGetTextSlots(item) {
 
 function enrichShape(shapeComponent) {
     return {
+        shapeType               : shapeComponent.shapeType,
         editorProps             : shapeComponent.editorProps || defaultEditorProps,
         args                    : shapeComponent.args,
         computePath             : shapeComponent.computePath,
@@ -44,20 +44,20 @@ function enrichShape(shapeComponent) {
         getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
-        component               : shapeComponent
+        vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null
     };
 }
 
-const shapeReigstry = _.mapValues({
+const shapeReigstry = mapValues({
     none: NoneShape,
     rect: Rect,
     ellipse: Ellipse,
     overlay: Overlay,
-    comment: CommentShape,
+    comment: Comment,
     frame_player: FramePlayer,
     curve: Curve,
     link: Link,
-    npoly: NPolygon,
+    npoly: NPoly,
     bracket: Bracket,
     button: Button,
     uml_object: UMLObject,

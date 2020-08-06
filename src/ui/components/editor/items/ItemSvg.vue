@@ -17,6 +17,18 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
+        <g v-if="!shapeComponent && item.visible && shapeType === 'standard' && itemSvgPath"
+            :style="{'opacity': item.selfOpacity/100.0}">
+
+            <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
+            <path :d="itemSvgPath"
+                :stroke-width="item.shapeProps.strokeSize + 'px'"
+                :stroke="item.shapeProps.strokeColor"
+                :stroke-dasharray="strokeDashArray"
+                :fill="svgFill"></path>
+        </g>
+
         <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
             <foreignObject
                 :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
@@ -57,6 +69,8 @@
 </template>
 
 <script>
+import AdvancedFill from './AdvancedFill.vue';
+import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
 import myMath from '../../../myMath';
@@ -70,6 +84,7 @@ import {forEach} from 'lodash';
 export default {
     name: 'item-svg',
     props: ['item', 'mode', 'schemeContainer'],
+    components: {AdvancedFill},
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -88,6 +103,7 @@ export default {
         const shape = Shape.find(this.item.shape);
 
         const data = {
+            shapeType             : shape.shapeType,
             shapeComponent        : null,
             oldShape              : this.item.shape,
             itemSvgPath           : null,
@@ -101,7 +117,10 @@ export default {
 
             // name of text slot that should not be drawn
             // this is used when in-place text slot edit is triggered
-            hiddenTextSlotName    : null
+            hiddenTextSlotName    : null,
+
+            strokeDashArray       : '',
+            svgFill               : null
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -115,15 +134,23 @@ export default {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.make(shapeId);
+            this.shapeType = shape.shapeType;
+
             if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
                 this.shouldDrawEventLayer = false;
             }
-            if (shape.component) {
-                this.shapeComponent = shape.component;
-                this.itemSvgPath = shape.component.computePath(this.item);
+            if (shape.vueComponent) {
+                this.shapeComponent = shape.vueComponent;
             } else {
-                this.shapeComponent = shape.vueComponentName;
+                this.shapeComponent = null;
             }
+
+            if (shape.shapeType === 'standard') {
+                this.svgFill = AdvancedFill.computeStandardFill(this.item);
+                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+            }
+
+            this.itemSvgPath = shape.computePath(this.item);
         },
 
         onItemChanged() {
@@ -132,10 +159,16 @@ export default {
                 this.switchShape(this.item.shape);
             } else {
                 // re-computing item svg path for event layer
-                if (shape && shape.component) {
-                    this.itemSvgPath = shape.component.computePath(this.item);
+                if (shape) {
+                    this.itemSvgPath = shape.computePath(this.item);
                 }
             }
+
+            if (shape.shapeType === 'standard') {
+                this.svgFill = AdvancedFill.computeStandardFill(this.item);
+                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+            }
+
             this.revision += 1;
 
 

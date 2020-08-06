@@ -528,25 +528,6 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + 1);
     }
 
-    findEdgePoint(item, nextPoint) {
-        if (item.shape) {
-            const shape = Shape.find(item.shape);
-            if (shape) {
-                if (shape.computePath) {
-                    const path = shape.computePath(item);
-                    if (path) {
-                        return this.closestPointToSvgPath(item, path, nextPoint);
-                    }
-                }
-            }
-        }
-        
-        return {
-            x: item.area.x + item.area.w / 2,
-            y: item.area.y + item.area.h / 2
-        };
-    }
-
     closestPointToSvgPath(item, path, globalPoint) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);

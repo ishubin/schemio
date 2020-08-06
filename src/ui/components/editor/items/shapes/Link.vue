@@ -20,6 +20,8 @@ import {generateTextStyle} from '../../text/ItemText';
 export default {
     props: ['item'],
 
+    shapeType: 'vue',
+
     computePath(item) {
         const w = item.area.w;
         const h = item.area.h;

@@ -1,16 +1,3 @@
-<template>
-    <g>
-        <path :d="shapePath" 
-            :stroke-width="item.shapeProps.strokeSize + 'px'"
-            :stroke="item.shapeProps.color"
-            :stroke-dasharray="strokeDashArray"
-            fill="none"></path>
-    </g>
-</template>
-
-<script>
-import StrokePattern from '../StrokePattern.js';
-
 function createPointsForCurlyBracket(p, d, r, D, R) {
     const A = Math.min(40, R * 0.2);
     const B = Math.min(20, R * 0.2);
@@ -63,76 +50,63 @@ function createPointsForRoundBracket(p, d, r, D, R) {
     ];
 }
 
-const computePath = (item) => {
-    // starting point
-    const p = {x: 0, y: 0};
-
-    // direction vector (down)
-    const d = {x: 0, y: 1};
-    let D = item.area.h;
-
-    // direction vector (right)
-    const r = {x: 1, y: 0};
-    let R = item.area.w;
-
-    if (item.area.w < item.area.h) {
-        d.x = 1;
-        d.y = 0;
-        D = item.area.w;
-
-        r.x = 0;
-        r.y = -1;
-        R = item.area.h;
-        p.x = 0;
-        p.y = item.area.h;
-    }
-
-    let points = [];
-    if (item.shapeProps.style === 'curly') {
-        points = createPointsForCurlyBracket(p, d, r, D, R);
-    } else if (item.shapeProps.style === 'curly-sharp') {
-        points = createPointsForCurlySharp(p, d, r, D, R);
-    } else if (item.shapeProps.style === 'round') {
-        points = createPointsForRoundBracket(p, d, r, D, R);
-    } else {
-        points = createPointsForSquareBracket(p, d, r, D, R);
-    }
-    let path = `M ${points[0].x} ${points[0].y}`;
-
-    for (let i = 1; i < points.length; i++) {
-        if (points[i].type === 'C') {
-            path += ` C ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2} ${points[i].x3} ${points[i].y3}`;
-        } else if (points[i].type === 'Q') {
-            path += ` Q ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2}`;
-        } else {
-            path += ` L ${points[i].x} ${points[i].y}`;
-        }
-    }
-
-    return path;
-};
-
 export default {
-    props: ['item'],
-    computePath,
+    shapeType: 'standard',
 
     getTextSlots(item) {
         return [];
     },
 
-    args: {
-        style:          {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
-        color:          {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize:     {type: 'number', value: 4, name: 'Stroke size'},
-        strokePattern:  {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-    },
-    
-    computed: {
-        shapePath() { return computePath(this.item); },
+    computePath(item) {
+        // starting point
+        const p = {x: 0, y: 0};
 
-        strokeDashArray() {
-            return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-        },
-    }
+        // direction vector (down)
+        const d = {x: 0, y: 1};
+        let D = item.area.h;
+
+        // direction vector (right)
+        const r = {x: 1, y: 0};
+        let R = item.area.w;
+
+        if (item.area.w < item.area.h) {
+            d.x = 1;
+            d.y = 0;
+            D = item.area.w;
+
+            r.x = 0;
+            r.y = -1;
+            R = item.area.h;
+            p.x = 0;
+            p.y = item.area.h;
+        }
+
+        let points = [];
+        if (item.shapeProps.style === 'curly') {
+            points = createPointsForCurlyBracket(p, d, r, D, R);
+        } else if (item.shapeProps.style === 'curly-sharp') {
+            points = createPointsForCurlySharp(p, d, r, D, R);
+        } else if (item.shapeProps.style === 'round') {
+            points = createPointsForRoundBracket(p, d, r, D, R);
+        } else {
+            points = createPointsForSquareBracket(p, d, r, D, R);
+        }
+        let path = `M ${points[0].x} ${points[0].y}`;
+
+        for (let i = 1; i < points.length; i++) {
+            if (points[i].type === 'C') {
+                path += ` C ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2} ${points[i].x3} ${points[i].y3}`;
+            } else if (points[i].type === 'Q') {
+                path += ` Q ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2}`;
+            } else {
+                path += ` L ${points[i].x} ${points[i].y}`;
+            }
+        }
+
+        return path;
+    },
+
+    args: {
+        style: {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
+    },
 }
-</script>

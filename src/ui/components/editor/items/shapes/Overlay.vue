@@ -44,6 +44,8 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
+    shapeType: 'vue',
+
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },

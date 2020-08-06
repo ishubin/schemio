@@ -32,6 +32,21 @@ export function enrichItemTextSlotWithDefaults(textSlot) {
     return textSlot;
 }
 
+const STANDARD_SHAPE_PROPS = {
+    fill         : {type: 'solid', color: 'rgba(240,240,240,1.0)'},
+    strokeColor  : 'rgba(30,30,30,1.0)',
+    strokeSize   : 2,
+    strokePattern: 'solid'
+};
+
+function enrichItemWithStandardShapeProps(item) {
+    forEach(STANDARD_SHAPE_PROPS, (value, argName) => {
+        if (!item.shapeProps.hasOwnProperty(argName)) {
+            item.shapeProps[argName] = value;
+        }
+    });
+}
+
 export function enrichItemWithDefaults(item) {
     const props = {
         area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
@@ -54,12 +69,16 @@ export function enrichItemWithDefaults(item) {
     utils.extendObject(item, props);
 
     const shape = Shape.find(item.shape);
-    _.forEach(shape.args, (arg, argName) => {
+    forEach(shape.args, (arg, argName) => {
         props.shapeProps[argName] = arg.value;
         if (!item.shapeProps.hasOwnProperty(argName)) {
             item.shapeProps[argName] = arg.value;
         }
     });
+
+    if (shape.shapeType === 'standard') {
+        enrichItemWithStandardShapeProps(item);
+    }
 
     const textSlots = shape.getTextSlots(item);
     forEach(textSlots, slot => {
