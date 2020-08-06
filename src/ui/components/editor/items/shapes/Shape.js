@@ -12,7 +12,7 @@ import Button from './Button.vue';
 import NPoly from './NPoly.js';
 import Bracket from './Bracket.js';
 import UMLObject from './uml/UMLObject.vue';
-import UMLModule from './uml/UMLModule.vue';
+import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
 import {mapValues} from 'lodash';
