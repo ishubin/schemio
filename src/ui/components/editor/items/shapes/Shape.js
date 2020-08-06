@@ -11,7 +11,7 @@ import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
 import NPoly from './NPoly.js';
 import Bracket from './Bracket.js';
-import UMLObject from './uml/UMLObject.vue';
+import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
