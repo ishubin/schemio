@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import NoneShape from './NoneShape.vue';
+import NoneShape from './NoneShape.js';
 import Rect from './Rect.js';
 import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.js';
@@ -9,14 +9,13 @@ import Comment from './Comment.js';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
-import NPolygon from './NPolygon.vue';
+import NPoly from './NPoly.js';
 import Bracket from './Bracket.js';
 import UMLObject from './uml/UMLObject.vue';
 import UMLModule from './uml/UMLModule.vue';
 import UMLPackage from './uml/UMLPackage.vue';
 import UMLNode from './uml/UMLNode.vue';
 import {mapValues} from 'lodash';
-
 
 
 function defaultGetEventsFunc(item) {
@@ -58,7 +57,7 @@ const shapeReigstry = mapValues({
     frame_player: FramePlayer,
     curve: Curve,
     link: Link,
-    npoly: NPolygon,
+    npoly: NPoly,
     bracket: Bracket,
     button: Button,
     uml_object: UMLObject,
