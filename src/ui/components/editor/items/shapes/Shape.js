@@ -5,7 +5,7 @@ import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.js';
 import Link from './Link.vue';
 import Curve from './Curve.vue';
-import CommentShape from './CommentShape.vue';
+import Comment from './Comment.js';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
@@ -54,7 +54,7 @@ const shapeReigstry = mapValues({
     rect: Rect,
     ellipse: Ellipse,
     overlay: Overlay,
-    comment: CommentShape,
+    comment: Comment,
     frame_player: FramePlayer,
     curve: Curve,
     link: Link,
