@@ -14,7 +14,7 @@ import Bracket from './Bracket.js';
 import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.vue';
-import UMLNode from './uml/UMLNode.vue';
+import UMLNode from './uml/UMLNode.js';
 import {mapValues} from 'lodash';
 
 
