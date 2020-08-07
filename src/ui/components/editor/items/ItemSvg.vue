@@ -57,10 +57,9 @@
         <g v-if="item.childItems && item.visible">
             <item-svg v-for="childItem in item.childItems"
                 v-if="childItem.visible"
-                :key="`${childItem.id}-${childItem.shape}-${schemeContainer.revision}`"
+                :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
                 :mode="mode"
-                :scheme-container="schemeContainer"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
         </g>    
@@ -83,7 +82,7 @@ import {forEach} from 'lodash';
 
 export default {
     name: 'item-svg',
-    props: ['item', 'mode', 'schemeContainer'],
+    props: ['item', 'mode'],
     components: {AdvancedFill},
 
     mounted() {

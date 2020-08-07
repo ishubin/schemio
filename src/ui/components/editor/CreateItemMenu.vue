@@ -66,13 +66,9 @@
             <div  class="item-container">
                 <div v-if="previewItem.item">
                     <h4>{{previewItem.item.name}}</h4>
-                    <svg v-if="previewItem.item.shapeComponent" width="150px" height="120px">
-                        <g v-if="previewItem.item.previewItem" :transform="`translate(${previewItem.item.previewItem.area.x}, ${previewItem.item.previewItem.area.y})`">
-                            <component :is="previewItem.item.shapeComponent" :item="previewItem.item.previewItem"></component>
-                        </g>
-                        <g v-else :transform="`translate(${previewItem.item.item.area.x}, ${previewItem.item.item.area.y})`">
-                            <component :is="previewItem.item.shapeComponent" :item="previewItem.item.item"></component>
-                        </g>
+                    
+                    <svg v-if="previewItem.item.item" width="150px" height="120px">
+                        <item-svg :item="previewItem.item.item" mode="view"/>
                     </svg>
                 </div>
                 <div v-if="previewItem.artIcon">
@@ -104,6 +100,7 @@ import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 import {enrichItemWithDefaults} from '../../scheme/Item';
+import ItemSvg from './items/ItemSvg.vue';
 
 
 const Panels = {
@@ -113,7 +110,7 @@ const Panels = {
 
 export default {
     props: ['projectId', 'schemeContainer'],
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, StylesPalette},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, StylesPalette, ItemSvg},
     beforeMount() {
         this.reloadArt();
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);

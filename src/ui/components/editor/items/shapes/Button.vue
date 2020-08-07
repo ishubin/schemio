@@ -97,17 +97,17 @@ export default {
     },
 
     args: {
-        fill                  : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,140,240,1.0)'}, name: 'Fill'},
-        hoverFill             : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Hover Fill'},
+        fill                  : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: -90, colors: [{c: '#2375D3', p: 0}, {c: '#7DB9FE', p: 100}]}}, name: 'Fill'},
+        hoverFill             : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: -90, colors: [{c: '#5C8FCA', p: 0}, {c: '#B1D5FF', p: 100}]}}, name: 'Hover Fill'},
 
-        strokeColor           : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        hoverStrokeColor      : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Hover Stroke color'},
+        strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
+        hoverStrokeColor      : {type: 'color', value: '#466AAA', name: 'Hover Stroke color'},
 
-        hoverTextColor        : {type: 'color', value: 'rgba(255,255,255,1.0)', name: 'Hovered Text color'},
+        hoverTextColor        : {type: 'color', value: '#000', name: 'Hovered Text color'},
 
         strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
         strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-        cornerRadius          : {type: 'number', value: '0', name: 'Corner radius'},
+        cornerRadius          : {type: 'number', value: 5, name: 'Corner radius'},
     },
     data() {
         return {

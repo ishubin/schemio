@@ -199,7 +199,6 @@ export default [{
     previewItem: utils.extendObject({
         shape: 'code_block',
         shapeProps: { },
-        text: 'var x = 123.0;'
     }, defaultItem)
 }, {
     name: 'Button',
@@ -207,17 +206,19 @@ export default [{
     item: utils.extendObject({
         shape: 'button',
         cursor: 'pointer',
-        textSlots: {
-            body: {text: 'Button'}
-        },
+        textSlots: { body: {text: '<b>Button</b>', color: '#fff'} },
         shapeProps: {
             strokeSize: 1,
-            strokeColor: '#3377A0',
-            fill: {type: 'solid', color: '#209BC5'},
-            hoverFill: {type: 'solid', color: '#236CAB'},
-            textColor: '#ffffff',
-            hoverTextColor: '#111',
-            cornerRadius: 5,
-        },
+            hoverTextColor: '#fff'
+        }
+    }, defaultItem),
+    previewItem: utils.extendObject({
+        shape: 'button',
+        shapeProps: { },
+        textSlots: { body: {text: '<b>Button</b>'} },
+        shapeProps: {
+            strokeSize: 1,
+            hoverTextColor: '#fff'
+        }
     }, defaultItem)
 }];

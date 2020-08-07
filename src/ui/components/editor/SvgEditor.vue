@@ -35,7 +35,6 @@
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
-                            :scheme-container="schemeContainer"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -57,7 +56,6 @@
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
-                            :scheme-container="schemeContainer"
                             @custom-event="onItemCustomEvent"/>
                     </g>
                 </g>
@@ -113,7 +111,6 @@
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
                             :mode="mode"
-                            :scheme-container="schemeContainer"
                             />
                     </g>
 
@@ -161,7 +158,6 @@
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
                             :mode="mode"
-                            :scheme-container="schemeContainer"
                             />
                     </g>
                     <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
