@@ -6,6 +6,7 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import _ from 'lodash';
 import collections from '../../../collections.js';
+import EventBus from '../EventBus.js';
 
 export default class StateCreateItem extends State {
     constructor(eventBus) {
@@ -114,6 +115,7 @@ export default class StateCreateItem extends State {
             this.item.area.y = y;
         }
         this.refreshControlPoints(this.item);
+        EventBus.emitItemChanged(this.item.id);
     }
 
     refreshControlPoints(item) {
