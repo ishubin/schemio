@@ -7,7 +7,7 @@
         <span v-if="value.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
         <span v-if="value.type === 'solid'" class="color-picker-toggle-button" :style="{'background': value.color}" @click="modal.shown = true"></span>
         <div v-if="value.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="value.image"/></div>
-        <div v-if="value.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientBackground}"></div>
+        <div v-if="value.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>
 
         <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
             <select :value="value.type" @input="selectColorType(arguments[0].target.value)">
@@ -38,7 +38,7 @@
 
             <div v-if="value.type === 'gradient'">
                 <div ref="gradientSliderContainer" class="gradient-slider-container text-nonselectable">
-                    <div class="gradient-container large" :style="{'background': gradientBackground}" @dblclick="onGradientContainerDblClick"></div>
+                    <div class="gradient-container large" :style="{'background': gradientPreview}" @dblclick="onGradientContainerDblClick"></div>
                     <div class="gradient-slider" v-for="(slider, sliderIdx) in value.gradient.colors" :style="{'left': `${slider.p}%`}">
                         <div class="gradient-slider-knob"
                             :style="{'background': slider.c}"
@@ -128,6 +128,10 @@ export default {
     },
 
     data() {
+        let gradientPreview = '';
+        if (this.value.type === 'gradient') {
+            gradientPreview = this.computeGradientPreview();
+        }
         return {
             id: shortid.generate(),
 
@@ -149,7 +153,8 @@ export default {
                 selectedColor: {hex: '#fff'},
                 originalClickPoint: {x: 0},
                 originalKnobPosition: 0
-            }
+            },
+            gradientPreview
         };
     },
 
@@ -176,6 +181,8 @@ export default {
                     type: 'linear',
                     direction: 0.0
                 };
+
+                this.gradientPreview = this.computeGradientPreview();
             }
             this.emitChange();
         },
@@ -226,6 +233,9 @@ export default {
                     newPosition = Math.round(10000.0 * (x - containerRect.left) / containerRect.width) / 100.0;
                 }
                 this.value.gradient.colors[this.gradient.selectedSliderIdx].p = newPosition;
+                this.gradientPreview = this.computeGradientPreview();
+                this.$forceUpdate();
+                this.emitChange();
             }
         },
 
@@ -274,6 +284,9 @@ export default {
             this.revision += 1;
 
             this.gradient.isDragging = false;
+            
+            this.gradientPreview = this.computeGradientPreview();
+            this.emitChange();
         },
 
         onGradientSliderKnobClick(sliderIdx, event) {
@@ -292,11 +305,15 @@ export default {
                 }
                 this.value.gradient.selectedColor = this.value.gradient.colors[sliderIdx].c;
                 this.revision += 1;
+                this.gradientPreview = this.computeGradientPreview();
+                this.emitChange();
             }
         },
 
         updateGradientSliderColor(color) {
             this.value.gradient.colors[this.gradient.selectedSliderIdx].c = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.gradientPreview = this.computeGradientPreview();
+            this.emitChange();
         },
 
         invertGradient() {
@@ -304,11 +321,11 @@ export default {
             for (let i = 0; i < this.value.gradient.colors.length; i++) {
                 this.value.gradient.colors[i].p = clamp(100 - this.value.gradient.colors[i].p, 0, 100);
             }
+            this.gradientPreview = this.computeGradientPreview();
             this.emitChange();
-        }
-    },
-    computed: {
-        gradientBackground() {
+        },
+
+        computeGradientPreview() {
             let result = 'linear-gradient(90deg, ';
 
             let colors = this.value.gradient.colors;
@@ -333,6 +350,7 @@ export default {
             }
             result = result + ')';
             return result;
+
         }
     }
 

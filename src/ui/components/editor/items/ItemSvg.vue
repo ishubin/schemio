@@ -20,7 +20,7 @@
         <g v-if="!shapeComponent && item.visible && shapeType === 'standard' && itemSvgPath"
             :style="{'opacity': item.selfOpacity/100.0}">
 
-            <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+            <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
             <path :d="itemSvgPath"
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
