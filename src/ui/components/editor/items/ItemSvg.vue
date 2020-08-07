@@ -43,11 +43,11 @@
 
         <g :id="`animation-container-${item.id}`"></g>
 
-        <path v-if="itemSvgPath && shouldDrawEventLayer"
+        <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
             class="svg-event-layer"
             data-preview-ignore="true"
             :id="`item-svg-path-${item.id}`"
-            :d="itemSvgPath" 
+            :d="itemSvgOutlinePath" 
             :data-item-id="item.id"
             :stroke-width="hoverPathStrokeWidth"
             :style="{'cursor': item.cursor}"
@@ -107,6 +107,7 @@ export default {
             shapeComponent        : null,
             oldShape              : this.item.shape,
             itemSvgPath           : null,
+            itemSvgOutlinePath    : null,
             shouldDrawEventLayer  : true,
             shouldRenderText      : true,
 
@@ -151,6 +152,7 @@ export default {
             }
 
             this.itemSvgPath = shape.computePath(this.item);
+            this.itemSvgOutlinePath = shape.computeOutline(this.item);
         },
 
         onItemChanged() {
@@ -161,6 +163,7 @@ export default {
                 // re-computing item svg path for event layer
                 if (shape) {
                     this.itemSvgPath = shape.computePath(this.item);
+                    this.itemSvgOutlinePath = shape.computeOutline(this.item);
                 }
             }
 

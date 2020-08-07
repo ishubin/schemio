@@ -110,7 +110,7 @@ export default class StateEditCurve extends State {
     findClosestPointToItem(item, localPoint) {
         const shape = Shape.find(item.shape);
         if (shape) {
-            const path = shape.computePath(item);
+            const path = shape.computeOutline(item);
             if (path) {
                 const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
                 return this.schemeContainer.closestPointToSvgPath(item, path, worldPoint);

@@ -34,7 +34,7 @@ class MoveAnimation extends Animation {
             if (element) {
                 const shape = Shape.find(element.shape);
                 if (shape) {
-                    const path = shape.computePath(element);
+                    const path = shape.computeOutline(element);
                     if (path) {
                         this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
                         this.domPath.setAttribute('d', path);

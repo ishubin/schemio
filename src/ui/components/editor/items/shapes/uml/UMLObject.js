@@ -15,6 +15,17 @@ export default {
             +`M 0 ${nameLineTop} l ${W} 0`;
     },
 
+    computeOutline(item) {
+        const W = item.area.w;
+        const H = item.area.h;
+        const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+
+        return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  `
+            +`L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}  `
+            +`L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  `
+            +`L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+    },
+
     getTextSlots(item) {
         return [{
             name: 'title',

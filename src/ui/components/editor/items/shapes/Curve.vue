@@ -41,8 +41,8 @@ function connectPoints(p1, p2) {
 
 function getPointOnItemPath(item, positionOnPath, schemeContainer) {
     const shape = Shape.find(item.shape);
-    if (shape && shape.computePath) {
-        const path = shape.computePath(item);
+    if (shape && shape.computeOutline) {
+        const path = shape.computeOutline(item);
         if (path) {
             const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
             shadowSvgPath.setAttribute('d', path);

@@ -40,6 +40,7 @@ function enrichShape(shapeComponent) {
         editorProps             : shapeComponent.editorProps || defaultEditorProps,
         args                    : shapeComponent.args,
         computePath             : shapeComponent.computePath,
+        computeOutline          : shapeComponent.computeOutline || shapeComponent.computePath,
         readjustItem            : shapeComponent.readjustItem,
         getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,

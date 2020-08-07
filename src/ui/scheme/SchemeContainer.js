@@ -317,7 +317,7 @@ class SchemeContainer {
                 if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
                     const shape = Shape.find(item.shape);
                     if (shape) {
-                        const path = shape.computePath(item);
+                        const path = shape.computeOutline(item);
                         if (path) {
                             const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
                             const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);

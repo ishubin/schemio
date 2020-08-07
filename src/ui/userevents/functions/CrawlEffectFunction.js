@@ -22,7 +22,7 @@ class CrawlEffectAnimation extends Animation {
 
         const shape = Shape.find(this.item.shape);
         if (shape) {
-            const path = shape.computePath(this.item);
+            const path = shape.computeOutline(this.item);
             if (path) {
                 this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 this.domPath.setAttribute('d', path);
