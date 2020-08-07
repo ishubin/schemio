@@ -431,7 +431,7 @@ export default class StateEditCurve extends State {
      */
     handleEdgeCurvePointDrag(curvePoint, isSource) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
-        const distanceThreshold = 10;
+        const distanceThreshold = 20;
 
         const includeOnlyVisibleItems = true;
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);

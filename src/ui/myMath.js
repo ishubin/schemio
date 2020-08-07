@@ -4,6 +4,10 @@
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
 
+const MAX_PATH_DIVISIONS = 100;
+const MIN_PATH_DIVISIONS = 8;
+const PATH_DIVISION_LENGTH = 20;
+
 export default {
     isPointInArea(x, y, area) {
         return x >= area.x && x <= (area.x + area.w)
@@ -84,8 +88,77 @@ export default {
      * @param {*} x 
      * @param {*} y 
      * @param {*} svgPath 
+     * @returns {x, y, distance}
      */
     closestPointOnPath(x, y, svgPath) {
+        const pathLength = svgPath.getTotalLength();
+        if (pathLength < 0.001) {
+            const p = svgPath.getPointAtLength(0);
+            p.distance = 0;
+            return p;
+        }
+        
+        // first doing a linear scan by cutting path into segments with equal length
+        // trying to find the closest segment to the path first by checking each segements mid point
+        const numberOfDivisions = Math.max(MIN_PATH_DIVISIONS, Math.min(pathLength / PATH_DIVISION_LENGTH, MAX_PATH_DIVISIONS));
+        const divisionLength = pathLength/numberOfDivisions;
+
+        let closestSegmentIdx = 0;
+        let closestDistance = 0;
+        
+        for (let i = 0; i < numberOfDivisions; i++) {
+            // taking a point at the mid of the segment
+            const point = svgPath.getPointAtLength(i*divisionLength + divisionLength/2);
+            const distance = (x - point.x)*(x - point.x) + (y - point.y)*(y - point.y);
+            if (i === 0) {
+                closestSegmentIdx = i;
+                closestDistance = distance;
+            } else {
+                if (closestDistance > distance) {
+                    closestDistance = distance;
+                    closestSegmentIdx = i;
+                }
+            }
+        }
+
+        const closestSegmentLeft = closestSegmentIdx * divisionLength;
+        const closestSegmentRight = (closestSegmentIdx + 1) * divisionLength;
+        const closestSegmentMid = (closestSegmentLeft + closestSegmentRight) / 2
+        
+        // now doing a binary search on selected segment
+        const leftSegment = [closestSegmentLeft, closestSegmentMid];
+        const rightSegment = [closestSegmentMid, closestSegmentRight]
+        let segmentWidth = (closestSegmentRight - closestSegmentLeft) / 2;
+
+        let closestPoint = svgPath.getPointAtLength(closestSegmentLeft);
+        closestPoint.distance = closestSegmentLeft;
+
+        while(segmentWidth > 1) {
+            const middle = segmentWidth / 2;
+            let pointLeft = svgPath.getPointAtLength(leftSegment[0] + middle);
+            pointLeft.distance = leftSegment[0] + middle;
+
+            let pointRight = svgPath.getPointAtLength(rightSegment[0] + middle);
+            pointRight.distance = rightSegment[0] + middle;
+            let distanceLeft = (x - pointLeft.x)*(x - pointLeft.x) + (y - pointLeft.y) * (y - pointLeft.y);
+            let distanceRight = (x - pointRight.x)*(x - pointRight.x) + (y - pointRight.y) * (y - pointRight.y);
+
+            segmentWidth = middle;
+            if (distanceLeft < distanceRight) {
+                closestPoint = pointLeft;
+                leftSegment[1] = leftSegment[0] + segmentWidth;
+            } else {
+                closestPoint = pointRight;
+                leftSegment[0] = rightSegment[0];
+                leftSegment[1] = leftSegment[0] + segmentWidth;
+            }
+            rightSegment[0] = leftSegment[1];
+            rightSegment[1] = rightSegment[0] + segmentWidth;
+        }
+        return closestPoint;
+    },
+
+    closestPointOnPathBackup(x, y, svgPath) {
         const pathLength = svgPath.getTotalLength();
 
         const leftSegment = [0, pathLength / 2];
