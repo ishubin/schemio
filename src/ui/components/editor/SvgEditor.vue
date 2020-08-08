@@ -203,37 +203,6 @@
             </g>
         </svg>
 
-        <context-menu v-if="contextMenu.show"
-            :key="contextMenu.id"
-            :mouse-x="contextMenu.mouseX"
-            :mouse-y="contextMenu.mouseY"
-            @close="contextMenu.show = false"
-        >
-            <ul>
-                <li @click="$emit('clicked-bring-to-front')">
-                    Bring to Front
-                </li>
-                <li @click="$emit('clicked-bring-to-back')">
-                    Bring to Back
-                </li>
-                <li @click="$emit('clicked-start-connecting', contextMenu.item)">
-                    <i class="fas fa-network-wired"></i> Connect
-                </li>
-                <li @click="$emit('clicked-add-item-link', contextMenu.item)">
-                    <i class="fas fa-link"></i> Add link
-                </li>
-                <li @click="$emit('clicked-create-child-scheme-to-item', contextMenu.item)">
-                    <i class="far fa-file"></i> Create scheme for this element...
-                </li>
-                <li @click="copySelectedItems()">
-                    Copy
-                </li>
-                <li @click="deleteSelectedItems()">
-                    <i class="fa fa-times"></i> Delete
-                </li>
-            </ul>
-        </context-menu>
-
         <context-menu v-if="customContextMenu.show"
             :key="customContextMenu.id"
             :mouse-x="customContextMenu.mouseX"
@@ -242,6 +211,7 @@
         >
             <ul>
                 <li v-for="(option, optionIndex) in customContextMenu.menuOptions" @click="onCustomMenuOptionSelected(optionIndex)">
+                    <i v-if="option.iconClass" :class="option.iconClass"/>
                     {{option.name}}
                 </li>
             </ul>
@@ -389,8 +359,6 @@ export default {
     },
     data() {
         return {
-            // TODO move them outside of Vue component. They don't have to be reactive
-
             interactiveSchemeContainer: null,
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
@@ -402,14 +370,6 @@ export default {
             lastHoveredItem: null,
 
             multiSelectBox: null,
-
-            contextMenu: {
-                id: shortid.generate(),
-                show: false,
-                item: null,
-                mouseX: 0, mouseY: 0,
-                selectedMultipleItems: false
-            },
 
             customContextMenu: {
                 id: shortid.generate(),
@@ -896,12 +856,41 @@ export default {
         },
 
         onRightClickedItem(item, mouseX, mouseY) {
-            this.contextMenu.item = item;
-            this.contextMenu.mouseX = mouseX;
-            this.contextMenu.mouseY = mouseY;
-            this.contextMenu.selectedMultipleItems = this.schemeContainer.selectedItems.length > 1;
-            this.contextMenu.show = true;
-            this.contextMenu.id = shortid.generate();
+            this.customContextMenu.menuOptions = [{
+                name: 'Bring to Front', 
+                clicked: () => {this.$emit('clicked-bring-to-front');}
+            }, {
+                name: 'Bring to Back',
+                clicked: () => {this.$emit('clicked-bring-to-back');}
+            }, {
+                name: 'Connect',
+                iconClass: 'fas fa-network-wired',
+                clicked: () => {this.$emit('clicked-start-connecting', item);}
+            }, {
+                name: 'Add link',
+                iconClass: 'fas fa-link',
+                clicked: () => {this.$emit('clicked-add-item-link', item);}
+            }, {
+                name: 'Create scheme for this element...',
+                iconClass: 'far fa-file',
+                clicked: () => {this.$emit('clicked-create-child-scheme-to-item', item);}
+            }, {
+                name: 'Copy',
+                clicked: this.copySelectedItems
+            }, {
+                name: 'Delete',
+                clicked: this.deleteSelectedItems
+            }];
+            if (item.shape === 'curve') {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Edit Curve',
+                    clicked: () => { EventBus.emitCurveEdited(item); }
+                });
+            }
+            this.customContextMenu.show = true;
+            this.customContextMenu.mouseX = mouseX;
+            this.customContextMenu.mouseY = mouseY;
+            this.customContextMenu.id = shortid.generate();
         },
 
         onItemTextSlotEditTriggered(item, slotName, area) {
