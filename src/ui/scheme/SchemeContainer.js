@@ -412,7 +412,6 @@ class SchemeContainer {
         if (!item) {
             return;
         }
-        console.log('Readjusting item', item.name);
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
