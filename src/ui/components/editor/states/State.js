@@ -28,7 +28,7 @@ class State {
     // invoked when user cancels the state (e.g. press Esc key)
     cancel() {
         this.reset();
-        this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE);
+        this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE, this.name);
     }
 
     keyPressed(key, keyOptions){}

@@ -144,6 +144,12 @@
                     </div>
                 </div>
             </div>
+
+            <div v-if="curveEditorPanel.shown" class="scheme-quick-top-panel-wrapper">
+                <div class="scheme-quick-top-panel">
+                    <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
+                </div>
+            </div>
         </div>
 
         <create-new-scheme-modal v-if="newSchemePopup.show"
@@ -234,6 +240,8 @@ export default {
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEdited);
+        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
     beforeDestroy(){
         EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
@@ -251,6 +259,8 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEdited);
+        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
     data() {
         return {
@@ -319,7 +329,11 @@ export default {
             },
 
             // When an item is selected - we want to display additional tabs for it
-            itemTextSlotsAvailable: []
+            itemTextSlotsAvailable: [],
+
+            curveEditorPanel: {
+                shown: false
+            }
         }
     },
     methods: {
@@ -762,6 +776,20 @@ export default {
 
             EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
         },
+
+        onCurveEdited() {
+            this.curveEditorPanel.shown = true;
+        },
+
+        stopEditCurve() {
+            EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+        },
+
+        onCurrentStateCanceled(stateName) {
+            if (stateName === 'edit-curve') {
+                this.curveEditorPanel.shown = false;
+            }
+        }
     },
 
     filters: {

@@ -319,6 +319,7 @@ export default {
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
@@ -348,6 +349,7 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
@@ -605,6 +607,12 @@ export default {
             states.editCurve.reset();
             states.editCurve.setItem(item);
             this.curveEditItem = item;
+        },
+
+        onCurveEditStopped() {
+            if (this.state === 'editCurve') {
+                states.editCurve.cancel();
+            }
         },
 
         highlightItems(itemIds) {

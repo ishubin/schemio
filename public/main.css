@@ -519,6 +519,19 @@ ul.pagination li a.current {
     margin: 0;
 }
 
+.scheme-quick-top-panel-wrapper {
+    position: absolute;
+    width: 100%;
+    top: 47px;
+    text-align: center;
+}
+.scheme-quick-top-panel {
+    display: inline-block;
+    background: var(--faint-weak);
+    padding: 8px 15px;
+    border: 1px solid var(--faint-strong);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
 
 /********************* Svg editor *******************/
 
