@@ -412,6 +412,7 @@ class SchemeContainer {
         if (!item) {
             return;
         }
+        console.log('Readjusting item', item.name);
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
@@ -425,6 +426,11 @@ class SchemeContainer {
                 this._readjustItem(dependantItemId, visitedItems, isSoft);
             });
         }
+
+        // scanning through children of the item and readjusting them as well
+        forEach(item.childItems, childItem => {
+            this._readjustItem(childItem.id, visitedItems, isSoft);
+        });
     }
 
     remountItemInsideOtherItem(itemId, otherItemId, position) {
