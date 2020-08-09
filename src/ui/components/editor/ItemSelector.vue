@@ -16,7 +16,7 @@
                         :ref="`item_${item.id}`"
                         v-if="item.meta.collapseBitMask === 0"
                         :class="{'selected': item.meta.selected}"
-                        draggable="true"
+                        :draggable="item.id !== nameEdit.itemId"
                         @dragstart="onDragStarted(item)"
                         @dragover="onDragOver(item, arguments[0])"
                         @dragend="onDragEnd(arguments[0])"
@@ -129,8 +129,9 @@ export default {
         // This function is needed in order to handle clicking outside of the component
         // this way we are able to cancel item name in-place editing and dragging states
         onMouseUp(event) {
-            // checking whether it wasn't clicking inside the item name input control
-            if (!event.target || event.target.getAttribute('data-type') !== 'item-name-edit-in-place') {
+            if (event.target && event.target.getAttribute('data-type') === 'item-name-edit-in-place') {
+                return true;
+            } else {
                 this.nameEdit.itemId = null;
             }
 
@@ -147,6 +148,10 @@ export default {
         },
 
         onItemClicked(item, event) {
+            if (event.target && event.target.getAttribute('data-type') === 'item-name-edit-in-place') {
+                return true;
+            }
+
             // canceling in-place name edit
             if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
                 this.nameEdit.itemId = null;
@@ -161,7 +166,13 @@ export default {
             this.$nextTick(() => {
                 const input = this.$refs.nameEditInput;
                 if (input) {
-                    input.focus();
+                    if (Array.isArray(input)) {
+                        if (input.length > 0) {
+                            input[0].focus();
+                        }
+                    } else {
+                        input.focus();
+                    }
                 }
             });
         },
