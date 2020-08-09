@@ -152,6 +152,8 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        x = this.snapX(x);
+        y = this.snapY(y);
         if (this.item.area.type === 'viewport') {
             x = mx - this.viewportLeft;
             y = my - this.viewportTop;
@@ -221,15 +223,17 @@ export default class StateEditCurve extends State {
             if (this.candidatePointSubmited) {
                 // convert last point to Beizer and drag its control points
                 point.t = 'B';
-                point.x2 = x;
-                point.y2 = y;
+                point.x2 = x - point.x;
+                point.y2 = y - point.y;
 
-                point.x1 = 2*point.x - point.x2;
-                point.y1 = 2*point.y - point.y2;
+                point.x1 = -point.x2;
+                point.y1 = -point.y2;
             } else {
                 // drag last point
-                point.x = x;
-                point.y = y;
+                const snappedLocalCurvePoint = this.snapCurvePoint(x, y);
+                point.x = snappedLocalCurvePoint.x;
+                point.y = snappedLocalCurvePoint.y;
+
                 this.shouldJoinClosedPoints = false;
                 if (this.item.shapeProps.points.length > 2) {
                     const p0 = this.item.shapeProps.points[0];
@@ -268,8 +272,12 @@ export default class StateEditCurve extends State {
         if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
+
+                const snappedLocalCurvePoint = this.snapCurvePoint(x, y);
                 this.item.shapeProps.points.push({
-                    x, y, t: 'L'
+                    x: snappedLocalCurvePoint.x,
+                    y: snappedLocalCurvePoint.y,
+                    t: 'L'
                 });
                 this.eventBus.emitItemChanged(this.item.id);
             }
@@ -392,10 +400,10 @@ export default class StateEditCurve extends State {
             dy = (this.item.shapeProps.points[nextPointId].y - this.item.shapeProps.points[prevPointId].y) / 4;
         }
 
-        point.x1 = point.x - dx;
-        point.y1 = point.y - dy;
-        point.x2 = point.x + dx;
-        point.y2 = point.y + dy;
+        point.x1 = - dx;
+        point.y1 = - dy;
+        point.x2 = dx;
+        point.y2 = dy;
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
@@ -406,21 +414,28 @@ export default class StateEditCurve extends State {
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
         const curvePoint = this.item.shapeProps.points[pointIndex];
 
-        curvePoint.x = this.draggedObjectOriginalPoint.x + localPoint.x - localOriginalPoint.x;
-        curvePoint.y = this.draggedObjectOriginalPoint.y + localPoint.y - localOriginalPoint.y;
+        const snappedLocalCurvePoint = this.snapCurvePoint(
+            this.draggedObjectOriginalPoint.x + localPoint.x - localOriginalPoint.x,
+            this.draggedObjectOriginalPoint.y + localPoint.y - localOriginalPoint.y
+        );
+
+        curvePoint.x = snappedLocalCurvePoint.x;
+        curvePoint.y = snappedLocalCurvePoint.y;
         
         if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
             this.handleEdgeCurvePointDrag(curvePoint, pointIndex === 0);
         }
 
-        if (curvePoint.t === 'B') {
-            curvePoint.x1 = this.draggedObjectOriginalPoint.x1 + localPoint.x - localOriginalPoint.x;
-            curvePoint.y1 = this.draggedObjectOriginalPoint.y1 + localPoint.y - localOriginalPoint.y;
-            curvePoint.x2 = this.draggedObjectOriginalPoint.x2 + localPoint.x - localOriginalPoint.x;
-            curvePoint.y2 = this.draggedObjectOriginalPoint.y2 + localPoint.y - localOriginalPoint.y;
-        }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+    }
+
+    snapCurvePoint(localX, localY) {
+        const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
+        const snappedWorldX = this.snapX(worldCurvePoint.x);
+        const snappedWorldY = this.snapX(worldCurvePoint.y);
+
+        return this.schemeContainer.localPointOnItem(snappedWorldX, snappedWorldY, this.item);
     }
 
     /**
@@ -472,8 +487,8 @@ export default class StateEditCurve extends State {
         curvePoint[`y${index}`] = this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOriginalPoint.y;
         
         if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
-            curvePoint[`x${oppositeIndex}`] = curvePoint.x * 2 - curvePoint[`x${index}`];
-            curvePoint[`y${oppositeIndex}`] = curvePoint.y * 2 - curvePoint[`y${index}`];
+            curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
+            curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT);

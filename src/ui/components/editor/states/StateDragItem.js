@@ -48,6 +48,10 @@ export default class StateDragItem extends State {
         this.shouldDragScreen = false;
         this.originalOffset = {x: 0, y: 0};
         this.reindexNeeded = false;
+        this.snapper = {
+            snapX: (x) => this.snapX(x),
+            snapY: (y) => this.snapY(y),
+        };
     }
 
     reset() {
@@ -345,7 +349,7 @@ export default class StateDragItem extends State {
         const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
         if (controlPoint) {
             const shape = Shape.find(this.sourceItem.shape);
-            shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy);
+            shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper);
             const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
             this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
             this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;

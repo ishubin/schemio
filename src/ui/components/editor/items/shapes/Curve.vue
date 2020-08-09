@@ -30,11 +30,11 @@ import utils from '../../../../utils';
 
 function connectPoints(p1, p2) {
     if (p1.t === 'L' && p2.t === 'B') {
-        return `Q ${p2.x1} ${p2.y1} ${p2.x} ${p2.y} `;
+        return `Q ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
     } else if (p1.t === 'B' && p2.t === 'L') {
-        return `Q ${p1.x2} ${p1.y2} ${p2.x} ${p2.y} `;
+        return `Q ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x} ${p2.y} `;
     } else if (p1.t === 'B' && p2.t === 'B') {
-        return `C ${p1.x2} ${p1.y2} ${p2.x1} ${p2.y1} ${p2.x} ${p2.y} `;
+        return `C ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
     }
     return `L ${p2.x} ${p2.y} `;
 }
@@ -137,10 +137,10 @@ function readjustItemArea(item) {
         maxX = Math.max(maxX, point.x + item.area.x);
         maxY = Math.max(maxY, point.y + item.area.y);
         if (point.t === 'B') {
-            minX = Math.min(minX, point.x1 + item.area.x, point.x2 + item.area.x);
-            minY = Math.min(minY, point.y1 + item.area.y, point.y2 + item.area.y);
-            maxX = Math.max(maxX, point.x1 + item.area.x, point.x2 + item.area.x);
-            maxY = Math.max(maxY, point.y1 + item.area.y, point.y2 + item.area.y);
+            minX = Math.min(minX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
+            minY = Math.min(minY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
+            maxX = Math.max(maxX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
+            maxY = Math.max(maxY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
         }
     });
 
@@ -154,12 +154,6 @@ function readjustItemArea(item) {
     forEach(item.shapeProps.points, point => {
         point.x += dx;
         point.y += dy;
-        if (point.t === 'B') {
-            point.x1 += dx;
-            point.y1 += dy;
-            point.x2 += dx;
-            point.y2 += dy;
-        }
     });
 }
 
@@ -199,20 +193,11 @@ export default {
                 }
             }
         },
-        handleDrag(item, pointId, originalX, originalY, dx, dy) {
+        handleDrag(item, pointId, originalX, originalY, dx, dy, snapper) {
             const point = item.shapeProps.points[pointId];
             if (point) {
-                const realDx = originalX + dx - point.x;
-                const realDy = originalY + dy - point.y;
-
-                point.x = originalX + dx;
-                point.y = originalY + dy;
-                if (point.t === 'B') {
-                    point.x1 += realDx;
-                    point.y1 += realDy;
-                    point.x2 += realDx;
-                    point.y2 += realDy;
-                }
+                point.x = snapper.snapX(originalX + dx);
+                point.y = snapper.snapY(originalY + dy);
             }
         }
     },
