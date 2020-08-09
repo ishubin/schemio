@@ -13,11 +13,11 @@
             </li>
         </ul>
 
-        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}-${revision}`" :project-id="projectId" :item="item"/>
-        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}-${revision}`" :projectId="projectId" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}-${revision}`" :item="item"/>
+        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
+        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}`" :item="item"/>
 
-        <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}-${revision}`" :project-id="projectId" :item="item" :scheme-container="schemeContainer"/>
+        <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}`" :project-id="projectId" :item="item" :scheme-container="schemeContainer"/>
 
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="applyStyle"/>
@@ -218,7 +218,7 @@ const ALL_TABS_NAMES = _.map(ALL_TABS, tab => tab.name);
 const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
 
 export default {
-    props: ['projectId', 'item', 'schemeContainer', 'revision'],
+    props: ['projectId', 'item', 'schemeContainer'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, SaveStyleModal,

@@ -687,14 +687,18 @@ export default {
 
         bringSelectedItemsToFront() {
             this.schemeContainer.bringSelectedItemsToFront();
+            this.schemeContainer.reindexItems();
             this.commitHistory();
             this.schemeChanged = true;
+            this.updateRevision();
         },
 
         bringSelectedItemsToBack() {
             this.schemeContainer.bringSelectedItemsToBack();
+            this.schemeContainer.reindexItems();
             this.commitHistory();
             this.schemeChanged = true;
+            this.updateRevision();
         },
 
         onScreenTransformUpdated(screenTransform) {

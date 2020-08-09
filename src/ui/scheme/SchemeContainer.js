@@ -2,14 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import _ from 'lodash';
 import {map, forEach} from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {Item, enrichItemWithDefaults} from './Item.js';
-import { useFakeXMLHttpRequest } from 'sinon';
 
 
 const defaultSchemeStyle = {
@@ -711,17 +709,6 @@ class SchemeContainer {
      * @param {Array} itemArray 
      */
     bringSelectedItemsToBack(itemArray) {
-        // let i = 0;
-        // let lastItems = [];
-        // while (i < this.scheme.items.length) {
-        //     if (this.scheme.items[i].meta.selected) {
-        //         lastItems.push(this.scheme.items[i]);
-        //         this.scheme.items.splice(i, 1);
-        //     } else {
-        //         i++;
-        //     }
-        // }
-
         if (!itemArray) {
             itemArray = this.scheme.items;
         }
@@ -729,7 +716,7 @@ class SchemeContainer {
         let lastItems = [];
         while (i < itemArray.length) {
             if (itemArray[i].childItems) {
-                this.bringSelectedItemsToFront(itemArray[i].childItems);
+                this.bringSelectedItemsToBack(itemArray[i].childItems);
             }
 
             if (itemArray[i].meta.selected) {
@@ -743,7 +730,6 @@ class SchemeContainer {
         forEach(lastItems, item => {
             itemArray.splice(0, 0, item);
         });
-       // this.scheme.items = lastItems.concat(this.scheme.items);
     }
 
     /**
