@@ -13,7 +13,7 @@ const MISSING_PREVIEW_SVG = `
 `;
 
 function sanitizeItem(item) {
-    item.name = htmlSanitize(item.name);
+    item.name = item.name;
     item.description = htmlSanitize(item.description);
 
     item.meta = {};
