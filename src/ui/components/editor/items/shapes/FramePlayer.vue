@@ -14,7 +14,7 @@
                 :y="1 + topOffset"
                 :width="buttonSize"
                 :height="buttonSize">
-                <div style="width: 100%; height: 100%; text-align: center; vertical-align: middle;">
+                <div style="width: 100%; height: 100%; text-align: center; vertical-align: middle;" xmlns="http://www.w3.org/1999/xhtml">
                     <i :class="[isPlaying?button.iconPlaying:button.icon]" :style="{'font-size':buttonFontSize, 'color': item.shapeProps.strokeColor}"></i>
                 </div>
             </foreignObject>
@@ -31,7 +31,7 @@
         </g>
 
         <foreignObject x="0" :y="buttonSize + 6 + topOffset" 
-            :width="item.area.w" height="30">
+            :width="item.area.w" height="30" xmlns="http://www.w3.org/1999/xhtml">
             <div :style="framesTextStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
         </foreignObject>
     </g>

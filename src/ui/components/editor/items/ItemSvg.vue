@@ -32,7 +32,7 @@
         <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
             <foreignObject
                 :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
-                <div class="item-text-container"
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
                     :style="slot.style"
                     >
                     <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>

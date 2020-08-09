@@ -29,6 +29,7 @@ export default function snapshotSvg(selector, viewArea) {
     svgElement.setAttribute('version', '1.1');
     svgElement.setAttribute('xml:space', 'preserve');
     svgElement.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svgElement.setAttribute('xmlns:xhtml', 'http://www.w3.org/1999/xhtml');
     svgElement.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
     svgElement.appendChild(svgFragment);
 

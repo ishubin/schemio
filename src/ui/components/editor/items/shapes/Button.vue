@@ -17,10 +17,10 @@
 
         <g v-if="!hideTextSlot">
             <foreignObject v-if="hovered" x="0" y="0" :width="item.area.w" :height="item.area.h">
-                <div class="item-text-container" :style="hoveredStyle" v-html="sanitizedItemText"></div>
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="hoveredStyle" v-html="sanitizedItemText"></div>
             </foreignObject>
             <foreignObject v-else x="0" y="0" :width="item.area.w" :height="item.area.h">
-                <div class="item-text-container" :style="regularStyle" v-html="sanitizedItemText"></div>
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="regularStyle" v-html="sanitizedItemText"></div>
             </foreignObject>
         </g>
     </g>

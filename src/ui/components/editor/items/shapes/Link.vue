@@ -2,9 +2,14 @@
     <g>
         <a class="item-link" v-if="!hideTextSlot" @click="onLinkClick" :xlink:href="item.shapeProps.url" :target="target">
             <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
-                :style="iconStyle"
-                ><i :class="iconClass"></i></foreignObject>
-            <foreignObject v-if="textWidth > 0" :x="textOffset" y="0" :width="textWidth" :height="item.area.h" v-html="linkHtml" :style="linkStyle"></foreignObject>
+                :style="iconStyle">
+                <div xmlns="http://www.w3.org/1999/xhtml">
+                    <i :class="iconClass"></i>
+                </div>
+            </foreignObject>
+            <foreignObject v-if="textWidth > 0" :x="textOffset" y="0" :width="textWidth" :height="item.area.h" style="linkStyle">
+                <div xmlns="http://www.w3.org/1999/xhtml" v-html="linkHtml"></div>
+            </foreignObject>
         </a>
     </g>
     
