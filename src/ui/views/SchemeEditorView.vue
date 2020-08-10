@@ -11,7 +11,7 @@
                 :category="currentCategory"
                 @export-svg-requested="exportAsSVG"
                 >
-                <div slot="middle-section">
+                <div v-if="schemeContainer" slot="middle-section">
                     <ul class="button-group">
                         <li v-for="knownMode in knownModes">
                             <span class="toggle-button editor-mode"
@@ -30,7 +30,7 @@
                     </div>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                    <ul class="button-group" v-if="mode === 'edit'">
+                    <ul class="button-group" v-if="mode === 'edit' && schemeContainer">
                         <li>
                             <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
                         </li>
@@ -74,7 +74,11 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-left" v-if="mode === 'edit'" :class="{expanded: sidePanelLeftExpanded}">
+            <div class="scheme-not-found-block" v-if="schemeLoadErrorMessage">
+                <h3>{{schemeLoadErrorMessage}}</h3>
+            </div>
+
+            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
                 <span class="side-panel-expander" @click="sidePanelLeftExpanded = !sidePanelLeftExpanded">
                     <i v-if="sidePanelLeftExpanded" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
@@ -86,7 +90,7 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-right" :class="{expanded: sidePanelRightExpanded && !itemTooltip.shown}">
+            <div class="side-panel side-panel-right" v-if="schemeContainer" :class="{expanded: sidePanelRightExpanded && !itemTooltip.shown}">
                 <span class="side-panel-expander" @click="sidePanelRightExpanded = !sidePanelRightExpanded">
                     <i v-if="sidePanelRightExpanded" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
@@ -274,6 +278,9 @@ export default {
             currentCategory: null,
             originalUrlEncoded: encodeURIComponent(window.location),
 
+            isLoading: false,
+            schemeLoadErrorMessage: null,
+
             historyState: {
                 undoable: false,
                 redoable: false
@@ -338,6 +345,8 @@ export default {
     },
     methods: {
         init() {
+            this.isLoading = true;
+            this.schemeLoadErrorMessage = null;
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
             this.loadCurrentUser().then(user => {
                 if (user) {
@@ -361,6 +370,8 @@ export default {
                 this.schemeContainer.screenSettings.width = this.svgWidth;
                 this.schemeContainer.screenSettings.height = this.svgHeight;
 
+                this.isLoading = false;
+
                 history = new History({size: 30});
                 history.commit(scheme);
                 document._history = history;
@@ -381,6 +392,15 @@ export default {
                     setTimeout(() => {
                         this.zoomToSelection();
                     }, 100);
+                }
+            }).catch(err => {
+                this.isLoading = false;
+                if (err.statusCode == 404) {
+                    this.schemeLoadErrorMessage = 'Sorry, but this document does not exist';
+                } else if (err.statusCode === 401) {
+                    this.schemeLoadErrorMessage = 'Sorry, but you are not authorized to read this document';
+                } else {
+                    this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document';
                 }
             });
 

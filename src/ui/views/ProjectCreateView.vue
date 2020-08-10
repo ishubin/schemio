@@ -59,9 +59,8 @@ export default {
                 }).then(project => {
                     window.location = `/projects/${project.id}`;
                 }).catch(err => {
-                    console.log('ERERR', err.response);
-                    if (err.error) {
-                        this.errorMessage = err.error;
+                    if (err.data && err.data.error) {
+                        this.errorMessage = err.data.error;
                     } else {
                         this.errorMessage = 'Not able to create a project';
                     }

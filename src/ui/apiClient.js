@@ -12,11 +12,10 @@ function unwrapAxios(response) {
 }
 
 function unwrapAxiosError(err) {
-    if (err.response && err.response.data) {
-        return Promise.reject(err.response.data);
-    } else {
-        return Promise.reject(err);
-    }
+    return Promise.reject({
+        statusCode: err.response.status,
+        data: err.response.data
+    });
 }
 
 export default {
@@ -65,7 +64,7 @@ export default {
     },
 
     loadScheme(projectId, schemeId) {
-        return axios.get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
+        return axios.get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     createNewScheme(projectId, scheme) {

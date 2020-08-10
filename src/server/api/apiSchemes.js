@@ -62,7 +62,12 @@ const ApiSchemes = {
                 return null;
             }
         })
-        .then(sanitizeScheme)
+        .then(scheme => {
+            if (scheme) {
+                sanitizeScheme(scheme);
+            }
+            return scheme;
+        })
         .then(scheme => {
             if (scheme) {
                 res.json(scheme);

@@ -533,6 +533,14 @@ ul.pagination li a.current {
     box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
+
+.scheme-not-found-block {
+    padding-top: 70px;
+    max-width: 400px;
+    margin: 0 auto;
+    text-align: center;
+}
+
 /********************* Svg editor *******************/
 
 .svg-editor svg {
