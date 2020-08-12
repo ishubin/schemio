@@ -5,6 +5,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import VueAxios from 'vue-axios';
+import store from './store/Store.js';
 import axios from 'axios';
 import App from './App.vue';
 import LoginView from './views/LoginView.vue';
@@ -17,6 +18,7 @@ import ProjectCreateView from './views/ProjectCreateView.vue';
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 
+
 function route(name, path, component) {
     return {
         name: name,
@@ -24,8 +26,6 @@ function route(name, path, component) {
         component: component
     };
 }
-
-
 
 
 const routes = [
@@ -39,4 +39,10 @@ const routes = [
 
 const router = new VueRouter({ mode: 'history', routes: routes });
 
-new Vue(Vue.util.extend({ router }, App)).$mount('#app');
+new Vue(Vue.util.extend({
+    router,
+    store,
+    beforeMount() {
+        this.$store.dispatch('loadCurrentUser');
+    }
+}, App)).$mount('#app');

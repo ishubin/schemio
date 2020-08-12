@@ -12,7 +12,7 @@
                 @export-svg-requested="exportAsSVG"
                 >
                 <div v-if="schemeContainer" slot="middle-section">
-                    <ul class="button-group">
+                    <ul class="button-group" v-if="currentUser">
                         <li v-for="knownMode in knownModes">
                             <span class="toggle-button editor-mode"
                                 :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
@@ -30,7 +30,7 @@
                     </div>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                    <ul class="button-group" v-if="mode === 'edit' && schemeContainer">
+                    <ul class="button-group" v-if="mode === 'edit' && schemeContainer && currentUser">
                         <li>
                             <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
                         </li>
@@ -44,7 +44,7 @@
                             <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="fas fa-bullseye"></i></span>
                         </li>
                     </ul>
-                    <ul class="button-group" v-if="mode === 'edit'">
+                    <ul class="button-group" v-if="mode === 'edit' && currentUser">
                         <li>
                             <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
                                 <i class="fas fa-magnet"></i>
@@ -52,7 +52,7 @@
                             </span>
                         </li>
                     </ul>
-                    <span class="btn btn-secondary" v-if="schemeChanged && mode === 'edit'" @click="saveScheme()">Save</span>
+                    <span class="btn btn-secondary" v-if="schemeChanged && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
 
@@ -61,7 +61,7 @@
                     <svg-editor
                         :key="schemeContainer.scheme.id"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
-                        :mode="mode"
+                        :mode="currentUser ? mode : 'view'"
                         :should-snap-to-grid="shouldSnapToGrid"
                         :viewport-top="40"
                         :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
@@ -78,7 +78,7 @@
                 <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
 
-            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
+            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer && currentUser" :class="{expanded: sidePanelLeftExpanded}">
                 <span class="side-panel-expander" @click="sidePanelLeftExpanded = !sidePanelLeftExpanded">
                     <i v-if="sidePanelLeftExpanded" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
@@ -270,7 +270,7 @@ export default {
         return {
             projectId: this.$route.params.projectId,
             project: null,
-            user: null,
+            currentUser: null,
             schemeId: null,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
@@ -302,7 +302,7 @@ export default {
             svgHeight: window.innerHeight,
             zoom: 100,
             mode: 'view',
-            knownModes: ['view'],
+            knownModes: ['view', 'edit'],
             searchHighlights: [],
 
             addLinkPopup: {
@@ -348,16 +348,12 @@ export default {
             this.isLoading = true;
             this.schemeLoadErrorMessage = null;
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
-            this.loadCurrentUser().then(user => {
-                if (user) {
-                    this.knownModes = ['view', 'edit'];
-                    if (pageParams.m && pageParams.m === 'edit') {
-                        this.mode = 'edit';
-                    } else {
-                        this.mode = 'view';
-                    }
-                }
-            });
+            if (pageParams.m && pageParams.m === 'edit') {
+                this.mode = 'edit';
+            } else {
+                this.mode = 'view';
+            }
+
             this.schemeId = this.$route.params.schemeId;
 
             apiClient.getProject(this.projectId).then(project => {
@@ -404,13 +400,6 @@ export default {
                 }
             });
 
-        },
-
-        loadCurrentUser() {
-            return apiClient.getCurrentUser().then(user => {
-                this.user = user;
-                return user;
-            });
         },
 
         toggleMode(mode) {
@@ -823,6 +812,11 @@ export default {
     },
 
     watch: {
+        // Tried to get get access to currentUser from computed variable, but it did not work in this view
+        // For some reason it does work in Header component but not here.
+        '$store.state.currentUser'(value) {
+            this.currentUser = this.$store.state.currentUser;
+        },
         $route(to, from) {
             this.init();
         },

@@ -11,10 +11,10 @@
         <div class="hamburger-menu">
             <span title="Menu"><i class="fas fa-bars"></i></span>
             <ul>
-                <li v-if="user">
+                <li v-if="currentUser">
                     <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
                 </li>
-                <li v-if="user && projectId">
+                <li v-if="currentUser && projectId">
                     <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
                 </li>
                 <li>
@@ -30,7 +30,7 @@
         </div>
 
         <div class="top-right-panel">
-            <div v-if="user">
+            <div v-if="currentUser">
                 <a href="/user/logout">Logout</a>
             </div>
             <div v-else>
@@ -47,7 +47,6 @@
 </template>
 
 <script>
-import apiClient from '../apiClient.js';
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 
 export default {
@@ -59,13 +58,9 @@ export default {
 
     components: {CreateNewSchemeModal},
 
-    mounted() {
-        this.loadCurrentUser();
-    },
     data() {
         return {
             originalUrlEncoded: encodeURIComponent(window.location),
-            user: null,
             newSchemePopup: {
                 categories: [],
                 show: false
@@ -73,12 +68,6 @@ export default {
         };
     },
     methods: {
-        loadCurrentUser() {
-            apiClient.getCurrentUser().then(user => {
-                this.user = user;
-            });
-        },
-
         openNewSchemePopup() {
             if (this.category && this.category.id) {
                 var categories = _.map(this.category.ancestors, ancestor => {
@@ -103,6 +92,11 @@ export default {
 
         exportAsSVG() {
             this.$emit('export-svg-requested');
+        }
+    },
+    computed: {
+        currentUser() {
+            return this.$store.state.currentUser;
         }
     }
 }
