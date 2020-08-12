@@ -270,7 +270,6 @@ export default {
         return {
             projectId: this.$route.params.projectId,
             project: null,
-            currentUser: null,
             schemeId: null,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
@@ -812,11 +811,6 @@ export default {
     },
 
     watch: {
-        // Tried to get get access to currentUser from computed variable, but it did not work in this view
-        // For some reason it does work in Header component but not here.
-        '$store.state.currentUser'(value) {
-            this.currentUser = this.$store.state.currentUser;
-        },
         $route(to, from) {
             this.init();
         },
@@ -865,6 +859,12 @@ export default {
                 });
                 this.searchHighlights = [];
             }
+        }
+    },
+
+    computed: {
+        currentUser() {
+            return this.$store.state.currentUser;
         }
     }
 }
