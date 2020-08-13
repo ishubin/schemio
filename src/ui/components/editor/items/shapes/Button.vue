@@ -97,8 +97,8 @@ export default {
     },
 
     args: {
-        fill                  : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: -90, colors: [{c: '#2375D3', p: 0}, {c: '#7DB9FE', p: 100}]}}, name: 'Fill'},
-        hoverFill             : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: -90, colors: [{c: '#5C8FCA', p: 0}, {c: '#B1D5FF', p: 100}]}}, name: 'Hover Fill'},
+        fill                  : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#2375D3', p: 0}, {c: '#7DB9FE', p: 100}]}}, name: 'Fill'},
+        hoverFill             : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#5C8FCA', p: 0}, {c: '#B1D5FF', p: 100}]}}, name: 'Hover Fill'},
 
         strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
         hoverStrokeColor      : {type: 'color', value: '#466AAA', name: 'Hover Stroke color'},
