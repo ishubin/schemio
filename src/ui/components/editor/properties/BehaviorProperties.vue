@@ -48,13 +48,11 @@
                             :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
                             @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
                             :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
-                            draggable="true"
-                            @dragstart="onActionDragStarted(eventIndex, actionIndex)"
                             >
                             <div class="icon-container">
                                 <span class="icon-action"><i class="fas fa-circle"></i></span>
                                 <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
-                                <span class="link icon-move"><i class="fas fa-arrows-alt"/></span>
+                                <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
                             </div>
                             <div>
                                 <element-picker
@@ -141,6 +139,14 @@ const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event 
 const standardItemEventIds = _.map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
+
+
+const standardShapeProps = {
+    fill         : {name: 'Fill', type: 'advanced-color'},
+    strokeColor  : {name: 'Stroke', type: 'color'},
+    strokeSize   : {name: 'Stroke Size', type: 'number'},
+    strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
+};
 
 
 export default {
@@ -279,6 +285,17 @@ export default {
 
             const shape = Shape.find(item.shape);
             if (shape) {
+                if (shape.shapeType === 'standard') {
+                    _.forEach(standardShapeProps, (arg, argName) => {
+                        options.push({
+                            method: 'set',
+                            name: arg.name,
+                            fieldPath: `shapeProps.${argName}`,
+                            iconClass: 'fas fa-cog'
+                        });
+                    });
+                }
+
                 _.forEach(shape.args, (arg, argName) => {
                     options.push({
                         method: 'set',
@@ -426,6 +443,10 @@ export default {
                     const shape = Shape.find(entity.shape);
                     if (shape) {
                         const shapeArgName = propertyPath.substr('shapeProps.'.length);
+
+                        if (shape.shapeType === 'standard' && standardShapeProps.hasOwnProperty(shapeArgName)) {
+                            return standardShapeProps[shapeArgName];
+                        }
                         if (shape.args.hasOwnProperty(shapeArgName)) {
                             return shape.args[shapeArgName];
                         }
@@ -590,12 +611,19 @@ export default {
             if (propertyPath === 'opacity') {
                 return 'Opacity';
             } else if (propertyPath.indexOf('shapeProps.') === 0) {
-                const item = schemeContainer.findFirstElementBySelector(element);
+                let item = null;
+                if (element === 'self') {
+                    item = selfItem;
+                } else {
+                    item = schemeContainer.findFirstElementBySelector(element);
+                }
                 if (item && item.shape) {
                     const shape = Shape.find(item.shape);
                     const shapeArgName = propertyPath.substr('shapeProps.'.length);
-                    if (shape && shape.args.hasOwnProperty(shapeArgName)) {
+                    if (shape && shape.args && shape.args.hasOwnProperty(shapeArgName)) {
                         return shape.args[shapeArgName].name;
+                    } else if (shape.shapeType === 'standard' && standardShapeProps.hasOwnProperty(shapeArgName)) {
+                        return standardShapeProps[shapeArgName].name;
                     }
                 }
             }

@@ -4,21 +4,21 @@
 
 <template>
     <div class="advanced-color-editor">
-        <span v-if="value.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
-        <span v-if="value.type === 'solid'" class="color-picker-toggle-button" :style="{'background': value.color}" @click="modal.shown = true"></span>
-        <div v-if="value.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="value.image"/></div>
-        <div v-if="value.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>
+        <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
+        <span v-if="color.type === 'solid'" class="color-picker-toggle-button" :style="{'background': color.color}" @click="modal.shown = true"></span>
+        <div v-if="color.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="color.image"/></div>
+        <div v-if="color.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>
 
         <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
-            <select :value="value.type" @input="selectColorType(arguments[0].target.value)">
+            <select :value="color.type" @input="selectColorType(arguments[0].target.value)">
                 <option v-for="colorType in colorTypes">{{colorType}}</option>
             </select>
 
-            <div v-if="value.type === 'solid'">
+            <div v-if="color.type === 'solid'">
                 <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
             </div>
 
-            <div v-if="value.type === 'image'">
+            <div v-if="color.type === 'image'">
                 <div class="image-property-container">
                     <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
                     <div class="upload-button-container">
@@ -30,16 +30,16 @@
                 </div>
 
                 <div class="ctrl-group">
-                    <input type="checkbox" v-model="value.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
+                    <input type="checkbox" v-model="color.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
                 </div>
 
-                <img v-if="value.type === 'image' && value.image" :src="value.image" style="max-width: 360px; max-height: 360px"/>
+                <img v-if="color.type === 'image' && color.image" :src="color.image" style="max-width: 360px; max-height: 360px"/>
             </div>
 
-            <div v-if="value.type === 'gradient'">
+            <div v-if="color.type === 'gradient'">
                 <div ref="gradientSliderContainer" class="gradient-slider-container text-nonselectable">
                     <div class="gradient-container large" :style="{'background': gradientPreview}" @dblclick="onGradientContainerDblClick"></div>
-                    <div class="gradient-slider" v-for="(slider, sliderIdx) in value.gradient.colors" :style="{'left': `${slider.p}%`}">
+                    <div class="gradient-slider" v-for="(slider, sliderIdx) in color.gradient.colors" :style="{'left': `${slider.p}%`}">
                         <div class="gradient-slider-knob"
                             :style="{'background': slider.c}"
                             :class="{'selected': sliderIdx === gradient.selectedSliderIdx}"
@@ -52,14 +52,14 @@
                 <div class="gradient-controls">
                     <div class="ctrl-group">
                         <div class="ctrl-label">Gradient Type</div>
-                        <select v-model="value.gradient.type" @change="emitChange">
+                        <select v-model="color.gradient.type" @change="emitChange">
                             <option value="linear">Linear</option>
                             <option value="radial">Radial</option>
                         </select>
                     </div>
-                    <div v-if="value.gradient.type === 'linear'" class="ctrl-group">
+                    <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                         <div class="ctrl-label">Direction</div>
-                        <number-textfield :value="value.gradient.direction" @changed="value.gradient.direction = arguments[0]; emitChange()"/>
+                        <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
                     </div>
                     <div class="ctrl-group">
                         <span class="btn btn-secondary" @click="invertGradient">Invert</span>
@@ -81,6 +81,7 @@ import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import apiClient from '../../apiClient';
 import {parseColor, encodeColor} from '../../colors';
+import utils from '../../utils';
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
@@ -114,8 +115,8 @@ export default {
     components: {'chrome-picker': VueColor.Chrome, Modal, NumberTextfield},
 
     beforeMount() {
-        if (this.value.type === 'gradient') {
-            this.gradient.selectedColor.hex = this.value.gradient.colors[this.gradient.selectedSliderIdx].c;
+        if (this.color.type === 'gradient') {
+            this.gradient.selectedColor.hex = this.color.gradient.colors[this.gradient.selectedSliderIdx].c;
         }
     },
     mounted() {
@@ -130,7 +131,7 @@ export default {
     data() {
         let gradientPreview = '';
         if (this.value.type === 'gradient') {
-            gradientPreview = this.computeGradientPreview();
+            gradientPreview = this.computeGradientPreview(this.value.gradient);
         }
         return {
             id: shortid.generate(),
@@ -138,6 +139,7 @@ export default {
             // used in a key construction for triggering re-mounting of color picker
             revision: 0,
             colorTypes: ['none', 'solid', 'image', 'gradient'],
+            color: utils.clone(this.value),
             modal: {
                 shown: false,
                 pickerColor: {hex: this.value.color || '#fff'},
@@ -160,34 +162,34 @@ export default {
 
     methods: {
         emitChange() {
-            this.$emit('changed', this.value);
+            this.$emit('changed', utils.clone(this.color));
         },
         updateSolidColor(color) {
-            this.value.color = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.color.color = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
             this.emitChange();
         },
         selectColorType(colorType) {
-            this.value.type = colorType;
-            if (colorType === 'image' && !this.value.image) {
-                this.value.image = '';
-                this.value.stretch = false;
+            this.color.type = colorType;
+            if (colorType === 'image' && !this.color.image) {
+                this.color.image = '';
+                this.color.stretch = false;
             }
-            if (colorType === 'solid' && !this.value.color) {
-                this.value.color = 'rgba(255,255,255,.10)';
+            if (colorType === 'solid' && !this.color.color) {
+                this.color.color = 'rgba(255,255,255,.10)';
             }
-            if (colorType === 'gradient' && !this.value.gradient) {
-                this.value.gradient = {
+            if (colorType === 'gradient' && !this.color.gradient) {
+                this.color.gradient = {
                     colors: [{c: 'rgba(0,0,0, 1.0)', p: 0}, {c: 'rgba(255,255,255, 1.0)', p: 100}],
                     type: 'linear',
                     direction: 0.0
                 };
 
-                this.gradientPreview = this.computeGradientPreview();
+                this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             }
             this.emitChange();
         },
         onImagePathChange(event) {
-            this.value.image = event.target.value;
+            this.color.image = event.target.value;
             this.emitChange();
         },
         onImageUpload(event) {
@@ -195,7 +197,7 @@ export default {
             if (file) {
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
-                    this.value.image = imageUrl;
+                    this.color.image = imageUrl;
                     this.modal.image.path = imageUrl;
                     this.emitChange();
                 }).catch(err => {
@@ -205,9 +207,9 @@ export default {
         },
 
         onMouseUp(event) {
-            if (this.gradient.isDragging && this.value.type === 'gradient') {
+            if (this.gradient.isDragging && this.color.type === 'gradient') {
                 this.gradient.isDragging = false;
-                this.value.gradient.colors.sort((a,b) => a.p - b.p);
+                this.color.gradient.colors.sort((a,b) => a.p - b.p);
             }
         },
 
@@ -232,8 +234,8 @@ export default {
                     // calculation position only with 0.01 precision
                     newPosition = Math.round(10000.0 * (x - containerRect.left) / containerRect.width) / 100.0;
                 }
-                this.value.gradient.colors[this.gradient.selectedSliderIdx].p = newPosition;
-                this.gradientPreview = this.computeGradientPreview();
+                this.color.gradient.colors[this.gradient.selectedSliderIdx].p = newPosition;
+                this.gradientPreview = this.computeGradientPreview(this.color.gradient);
                 this.$forceUpdate();
                 this.emitChange();
             }
@@ -249,14 +251,14 @@ export default {
             // calculating position with only 0.01 precision
             const position = Math.round(10000 * (x - containerRect.left) / containerRect.width) / 100;
 
-            this.value.gradient.colors.sort((a,b) => a.p - b.p);
+            this.color.gradient.colors.sort((a,b) => a.p - b.p);
 
 
             // searching for an instert point
             let insertAt = 0;
             let foundInsertPoint = false;
-            for (let i = 0; i < this.value.gradient.colors.length && !foundInsertPoint; i++) {
-                let color = this.value.gradient.colors[i];
+            for (let i = 0; i < this.color.gradient.colors.length && !foundInsertPoint; i++) {
+                let color = this.color.gradient.colors[i];
                 if (position > color.p) {
                     insertAt = i + 1;
                 } else {
@@ -265,70 +267,70 @@ export default {
                 }
             }
 
-            this.value.gradient.colors.splice(insertAt, 0, {
+            this.color.gradient.colors.splice(insertAt, 0, {
                 c: 'rgba(0,0,0,1.0)',
                 p: position
             });
 
-            if (insertAt === 0 && this.value.gradient.colors.length > 1) {
-                this.value.gradient.colors[0].c = this.value.gradient.colors[1].c;
-            } else if (insertAt === this.value.gradient.colors.length - 1 && this.value.gradient.colors.length > 1) {
-                this.value.gradient.colors[insertAt].c = this.value.gradient.colors[insertAt - 1].c;
-            } else if (this.value.gradient.colors.length > 2) {
-                this.value.gradient.colors[insertAt].c = interpolateGradientColor(this.value.gradient.colors[insertAt], this.value.gradient.colors[insertAt - 1], this.value.gradient.colors[insertAt + 1]);
+            if (insertAt === 0 && this.color.gradient.colors.length > 1) {
+                this.color.gradient.colors[0].c = this.color.gradient.colors[1].c;
+            } else if (insertAt === this.color.gradient.colors.length - 1 && this.color.gradient.colors.length > 1) {
+                this.color.gradient.colors[insertAt].c = this.color.gradient.colors[insertAt - 1].c;
+            } else if (this.color.gradient.colors.length > 2) {
+                this.color.gradient.colors[insertAt].c = interpolateGradientColor(this.color.gradient.colors[insertAt], this.color.gradient.colors[insertAt - 1], this.color.gradient.colors[insertAt + 1]);
             }
 
             this.gradient.selectedSliderIdx = insertAt;
-            this.gradient.selectedColor.hex = this.value.gradient.colors[insertAt].c;
+            this.gradient.selectedColor.hex = this.color.gradient.colors[insertAt].c;
             // Updating revision to trigger re-mount of color picker
             this.revision += 1;
 
             this.gradient.isDragging = false;
             
-            this.gradientPreview = this.computeGradientPreview();
+            this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             this.emitChange();
         },
 
         onGradientSliderKnobClick(sliderIdx, event) {
             this.gradient.isDragging = true;
             this.gradient.originalClickPoint.x = event.clientX;
-            this.gradient.selectedColor.hex = this.value.gradient.colors[sliderIdx].c;
+            this.gradient.selectedColor.hex = this.color.gradient.colors[sliderIdx].c;
             this.gradient.selectedSliderIdx = sliderIdx;
-            this.gradient.originalKnobPosition = this.value.gradient.colors[sliderIdx].p;
+            this.gradient.originalKnobPosition = this.color.gradient.colors[sliderIdx].p;
         },
 
         onGradientSliderKnobDblClick(sliderIdx) {
-            if (this.value.gradient.colors.length > 2) {
-                this.value.gradient.colors.splice(sliderIdx, 1);
+            if (this.color.gradient.colors.length > 2) {
+                this.color.gradient.colors.splice(sliderIdx, 1);
                 if (sliderIdx > 0) {
                     sliderIdx -= 1;
                 }
-                this.value.gradient.selectedColor = this.value.gradient.colors[sliderIdx].c;
+                this.color.gradient.selectedColor = this.color.gradient.colors[sliderIdx].c;
                 this.revision += 1;
-                this.gradientPreview = this.computeGradientPreview();
+                this.gradientPreview = this.computeGradientPreview(this.color.gradient);
                 this.emitChange();
             }
         },
 
         updateGradientSliderColor(color) {
-            this.value.gradient.colors[this.gradient.selectedSliderIdx].c = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
-            this.gradientPreview = this.computeGradientPreview();
+            this.color.gradient.colors[this.gradient.selectedSliderIdx].c = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             this.emitChange();
         },
 
         invertGradient() {
-            this.value.gradient.colors.reverse();
-            for (let i = 0; i < this.value.gradient.colors.length; i++) {
-                this.value.gradient.colors[i].p = clamp(100 - this.value.gradient.colors[i].p, 0, 100);
+            this.color.gradient.colors.reverse();
+            for (let i = 0; i < this.color.gradient.colors.length; i++) {
+                this.color.gradient.colors[i].p = clamp(100 - this.color.gradient.colors[i].p, 0, 100);
             }
-            this.gradientPreview = this.computeGradientPreview();
+            this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             this.emitChange();
         },
 
-        computeGradientPreview() {
+        computeGradientPreview(gradient) {
             let result = 'linear-gradient(90deg, ';
 
-            let colors = this.value.gradient.colors;
+            let colors = gradient.colors;
             let needsReorder = false;
             for (let i = 0; i < colors.length - 1; i++) {
                 if (colors[i].p > colors[i+1].p) {
@@ -337,7 +339,7 @@ export default {
             }
 
             if (needsReorder) {
-                colors = this.value.gradient.colors.slice();
+                colors = gradient.colors.slice();
                 colors.sort((a,b) => a.p - b.p);
             }
             

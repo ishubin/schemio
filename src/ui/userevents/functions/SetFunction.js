@@ -1,4 +1,5 @@
 import utils from '../../../ui/utils.js';
+import EventBus from '../../components/editor/EventBus';
 
 
 export default {
@@ -11,6 +12,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item && args.hasOwnProperty('field') && args.hasOwnProperty('value')) {
             utils.setObjectProperty(item, args.field, args.value);
+            EventBus.emitItemChanged(item.id);
         }
 
         resultCallback();

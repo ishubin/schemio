@@ -5,7 +5,7 @@
 
         <color-picker v-if="argumentType === 'color'" :color="argumentValue" @input="emitValue"></color-picker>
 
-        <advanced-color-editor v-if="argumentType === 'advanced-color'" :value="argumentValue"/>
+        <advanced-color-editor v-if="argumentType === 'advanced-color'" :value="argumentValue" @changed="emitValue"/>
 
         <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
@@ -35,7 +35,7 @@ export default {
 
         if (this.argumentDescription.type === 'stroke-pattern') {
             isChoice = true;
-            choiceOptions = StrokePattern.patters;
+            choiceOptions = StrokePattern.patterns;
         } else if (this.argumentDescription.type === 'choice') {
             isChoice = true;
             choiceOptions = this.argumentDescription.options;

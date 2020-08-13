@@ -42,8 +42,8 @@ export default {
             }
 
             if (this.fill.type === 'gradient' && this.fill.gradient) {
-                const vx = 50 * Math.cos(Math.PI * direction / 180);
-                const vy = 50 * Math.sin(Math.PI * direction / 180);
+                const vx = 50 * Math.cos(Math.PI * (direction - 90) / 180);
+                const vy = 50 * Math.sin(Math.PI * (direction - 90) / 180);
                 return {
                     x1: 50 - vx, y1: 50 - vy,
                     x2: 50 + vx, y2: 50 + vy
