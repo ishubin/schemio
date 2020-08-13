@@ -36,15 +36,11 @@ export default {
     },
 
     getTextSlots(item) {
-        const w = Math.min(item.shapeProps.brickWidth, item.area.w/2);
-        const h = Math.min(item.shapeProps.brickHeight, item.area.h/4);
+        const w = Math.max(item.shapeProps.brickWidth, 0);
 
-        return [{
-            name: 'title',
-            area: {x: w/2, y: 0, w: Math.max(0, item.area.w - w/2), h: item.shapeProps.headerHeight}
-        }, {
+        return [ {
             name: 'body',
-            area: {x: w, y: item.shapeProps.headerHeight, w: Math.max(0, item.area.w - w), h: Math.max(10, item.area.h - item.shapeProps.headerHeight)}
+            area: {x: w, y: 0, w: Math.max(0, item.area.w - w), h: item.area.h}
         }];
     },
 
