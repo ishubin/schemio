@@ -39,6 +39,12 @@ export default class StateCreateItem extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
+            if (event.buttons === 0) {
+                // no buttons are pressed so it should cancel the dragging state
+                this.submitItemAndFinishCreating();
+                return;
+            }
+
             this.updateItemArea(this.snapX(x), this.snapY(y));
         }
     }
@@ -46,21 +52,25 @@ export default class StateCreateItem extends State {
     mouseUp(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
             this.updateItemArea(this.snapX(x), this.snapY(y));
-            this.schemeContainer.setActiveBoundaryBox(null);
-            
-            const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.item.area);
-            this.schemeContainer.deselectAllItems();
-            if (parentItem) {
-                this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
-            }
-            this.schemeContainer.selectItem(this.item);
-            this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
-            this.eventBus.emitItemChanged(this.item.id);
-            this.eventBus.emitSchemeChangeCommited();
-            this.reset();
+            this.submitItemAndFinishCreating();
         } else {
             this.cancel();
         }
+    }
+
+    submitItemAndFinishCreating() {
+        this.schemeContainer.setActiveBoundaryBox(null);
+        
+        const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.item.area);
+        this.schemeContainer.deselectAllItems();
+        if (parentItem) {
+            this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
+        }
+        this.schemeContainer.selectItem(this.item);
+        this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
+        this.eventBus.emitItemChanged(this.item.id);
+        this.eventBus.emitSchemeChangeCommited();
+        this.reset();
     }
 
     /**
