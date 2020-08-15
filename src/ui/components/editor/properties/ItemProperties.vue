@@ -17,7 +17,13 @@
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
         <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}`" :item="item"/>
 
-        <behavior-properties v-if="currentTab === 'behavior'" :key="`behavior-panel-${item.id}`" :project-id="projectId" :item="item" :scheme-container="schemeContainer"/>
+        <behavior-properties v-if="currentTab === 'behavior'"
+            :key="`behavior-panel-${item.id}`"
+            :project-id="projectId"
+            :item="item"
+            :scheme-container="schemeContainer"
+            @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+            />
 
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="applyStyle"/>

@@ -198,8 +198,7 @@ export default {
         },
 
         onItemGroupsChange(newGroups) {
-            this.item.groups = _.map(newGroups, group => group.text);
-            this.schemeContainer.reindexItems();
+            this.$emit('item-field-changed', 'groups', _.map(newGroups, group => group.text));
         },
 
         toggleBehaviorCollapse(eventIndex) {
