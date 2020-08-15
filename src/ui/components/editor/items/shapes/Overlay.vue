@@ -1,21 +1,27 @@
 <template>
-    <g :style="{cursor: 'pointer'}">
+    <g :style="{cursor: 'pointer'}"
+        @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
+        >
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-hover-${item.id}`" :fill="item.shapeProps.hoverFill" :area="item.area"/>
 
         <path v-if="hovered" :d="shapePath" 
-            @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
             :stroke-width="item.shapeProps.hoverStrokeSize + 'px'"
             :stroke="item.shapeProps.hoverStrokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="svgFillHovered"></path>
 
         <path v-else :d="shapePath" 
-            @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
+
+        <g v-if="!hideTextSlot">
+            <foreignObject x="0" y="0" :width="item.area.w" :height="item.area.h">
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedItemText"></div>
+            </foreignObject>
+        </g>
     </g>
 
 </template>
@@ -23,7 +29,9 @@
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import AdvancedFill from '../AdvancedFill.vue';
+import htmlSanitize from '../../../../../htmlSanitize';
 import {getFontFamilyFor} from '../../../../scheme/Fonts';
+import {generateTextStyle} from '../../text/ItemText';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -48,11 +56,21 @@ export default {
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
 
+    getTextSlots(item) {
+        return [{
+            name: 'body',
+            area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+        }];
+    },
     computePath,
 
     args: {
@@ -83,20 +101,22 @@ export default {
     },
     
     editorProps: {
-        description         : 'rich',
-        text                : 'none',
-        ignoreEventLayer    : true // tells not to draw a layer for events handling, as this shape will handle everything itself
+        customTextRendering: true,
+        ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
     },
 
     data() {
         return {
-            hovered: false
+            hovered: false,
+            hideTextSlot: false,
+            textStyle: this.createTextStyle()
         };
     },
 
     methods: {
         onItemChanged() {
             this.hovered = false;
+            this.textStyle = this.createTextStyle();
         },
         onMouseOver() {
             this.hovered = true;
@@ -110,11 +130,38 @@ export default {
         },
         onMouseClick() {
             this.$emit('custom-event', 'clicked');
+        },
+        createTextStyle() {
+            let style = {};
+            if (this.item.textSlots && this.item.textSlots.body) {
+                style = generateTextStyle(this.item.textSlots.body);
+                style.width = `${this.item.area.w}px`;
+                style.height = `${this.item.area.h}px`;
+            }
+            return style;
+        },
+        onItemTextSlotEditTriggered(item, slotName, area) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = true;
+            }
+        },
+        onItemTextSlotEditCanceled(item, slotName) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = false;
+            }
         }
     },
     computed: {
         shapePath() {
             return computePath(this.item);
+        },
+
+        sanitizedItemText() {
+            let text = '';
+            if (this.item.textSlots && this.item.textSlots.body) {
+                text = this.item.textSlots.body.text;
+            }
+            return htmlSanitize(text);
         },
 
         strokeDashArray() {
