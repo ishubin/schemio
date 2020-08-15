@@ -139,14 +139,18 @@
 
                         <div v-if="textSlotEditted.item">
                             <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"
-                                @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"/>
+                                @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"
+                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                />
                         </div>
                         <div v-else>
                             <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
                                 :item="itemTextSlot.item"
                                 :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"/>
+                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
+                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                />
                         </div>
                     </div>
                 </div>
@@ -842,6 +846,18 @@ export default {
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
+        },
+
+        onTextPropertyChanged(textSlotName, propertyPath, value) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
+                    utils.setObjectProperty(item.textSlots[textSlotName], propertyPath, utils.clone(value));
+                }
+                EventBus.emitItemChanged(item.id);
+                itemIds += item.id;
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
         }
     },
 

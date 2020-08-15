@@ -44,25 +44,25 @@
                     <tr>
                         <td class="label" width="50%">Color</td>
                         <td class="value" width="50%">
-                            <color-picker :color="textSlot.color" @input="textSlot.color = arguments[0]; commitSchemeChange('color')"></color-picker>
+                            <color-picker :color="textSlot.color" @input="emitTextSlotPropertyChange('color', arguments[0])"></color-picker>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Font</td>
                         <td class="value" width="50%">
-                            <dropdown :options="allFonts" :value="textSlot.font" @selected="textSlot.font = arguments[0].name; commitSchemeChange('font')"/>
+                            <dropdown :options="allFonts" :value="textSlot.font" @selected="emitTextSlotPropertyChange('font', arguments[0].name)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Font Size</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.fontSize" @changed="textSlot.fontSize = arguments[0]; commitSchemeChange('fontSize')" :min="0"/>
+                            <number-textfield :value="textSlot.fontSize" @changed="emitTextSlotPropertyChange('fontSize', arguments[0])" :min="0"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Horizontal Align</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.halign" @input="textSlot.halign = arguments[0].target.value; commitSchemeChange('halign')">
+                            <select :value="textSlot.halign" @input="emitTextSlotPropertyChange('halign', arguments[0].target.value)">
                                 <option value="left">Left</option>
                                 <option value="center">Center</option>
                                 <option value="right">Right</option>
@@ -72,43 +72,41 @@
                     <tr>
                         <td class="label" width="50%">Vertical Align</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.valign" @input="textSlot.valign = arguments[0].target.value; commitSchemeChange('valign')">
-                                <option value="above">Above</option>
+                            <select :value="textSlot.valign" @input="emitTextSlotPropertyChange('valign', arguments[0].target.value)">
                                 <option value="top">Top</option>
                                 <option value="middle">Middle</option>
                                 <option value="bottom">Bottom</option>
-                                <option value="below">Below</option>
                             </select>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Left</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.left" @changed="textSlot.padding.left = arguments[0]; commitSchemeChange('padding.left')"/>
+                            <number-textfield :value="textSlot.padding.left" @changed="emitTextSlotPropertyChange('padding.left', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Right</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.right" @changed="textSlot.padding.right = arguments[0]; commitSchemeChange('padding.right')"/>
+                            <number-textfield :value="textSlot.padding.right" @changed="emitTextSlotPropertyChange('padding.right', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Top</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.top" @changed="textSlot.padding.top = arguments[0]; commitSchemeChange('padding.top')"/>
+                            <number-textfield :value="textSlot.padding.top" @changed="emitTextSlotPropertyChange('padding.top', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Bottom</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.bottom" @changed="textSlot.padding.bottom = arguments[0]; commitSchemeChange('padding.bottom')"/>
+                            <number-textfield :value="textSlot.padding.bottom" @changed="emitTextSlotPropertyChange('padding.bottom', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">White Space</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.whiteSpace" @input="textSlot.whiteSpace = arguments[0].target.value; commitSchemeChange('whiteSpace')">
+                            <select :value="textSlot.whiteSpace" @input="emitTextSlotPropertyChange('whiteSpace', arguments[0].target.value)">
                                 <option :value="option.value" v-for="option in supportedWhiteSpaceOptions">{{option.name}}</option>
                             </select>
                         </td>
@@ -169,14 +167,12 @@ export default {
         onTextEditorCreated(editor) {
             this.editor = editor;
         },
-        commitSchemeChange(propertyPath) {
-            const propertyFullPath = `item.${this.item.id}.textSlots.${this.slotName}.${propertyPath}`;
-
-            EventBus.emitSchemeChangeCommited(propertyFullPath);
-            EventBus.emitItemChanged(this.item.id, propertyFullPath);
-        },
         onMoveToSlotClicked(anotherSlotName) {
             this.$emit('moved-to-slot', anotherSlotName);
+        },
+
+        emitTextSlotPropertyChange(propertyPath, value) {
+            this.$emit('property-changed', propertyPath, value);
         }
     }
 }
