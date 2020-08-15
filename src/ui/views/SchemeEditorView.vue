@@ -130,6 +130,9 @@
                                 :revision="schemeRevision"
                                 :project-id="projectId"
                                 :scheme-container="schemeContainer" 
+                                @shape-prop-changed="onItemShapePropChanged"
+                                @item-field-changed="onItemFieldChanged"
+                                @shape-changed="onItemShapeChanged"
                             />
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                         </div>
@@ -801,6 +804,44 @@ export default {
             if (stateName === 'edit-curve') {
                 this.curveEditorPanel.shown = false;
             }
+        },
+
+        // triggered from ItemProperties component
+        onItemShapePropChanged(name, type, value) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                const shape = Shape.find(item.shape);
+                if (shape) {
+                    const propDescriptor = Shape.getShapePropDescriptor(shape, name);
+                    if (propDescriptor && propDescriptor.type === type) {
+                        item.shapeProps[name] = utils.clone(value);
+                        EventBus.emitItemChanged(item.id);
+                        itemIds += item.id;
+                    }
+                }
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shapeProps.${name}`);
+        },
+
+        onItemFieldChanged(name, value) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                item[name] = utils.clone(value);
+                EventBus.emitItemChanged(item.id);
+                itemIds += item.id;
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+        },
+
+        onItemShapeChanged(shapeName) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                item.shape = shapeName;
+                enrichItemWithDefaults(item);
+                EventBus.emitItemChanged(item.id);
+                itemIds += item.id;
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
         }
     },
 

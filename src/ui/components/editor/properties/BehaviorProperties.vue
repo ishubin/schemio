@@ -131,22 +131,12 @@ import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 
-const supportedProperties = {
-    opacity: {id: 'opacity', name: 'Opacity', _type: 'text'}
-};
-
 const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
 const standardItemEventIds = _.map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
 
 
-const standardShapeProps = {
-    fill         : {name: 'Fill', type: 'advanced-color'},
-    strokeColor  : {name: 'Stroke', type: 'color'},
-    strokeSize   : {name: 'Stroke Size', type: 'number'},
-    strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
-};
 
 
 export default {
@@ -286,7 +276,7 @@ export default {
             const shape = Shape.find(item.shape);
             if (shape) {
                 if (shape.shapeType === 'standard') {
-                    _.forEach(standardShapeProps, (arg, argName) => {
+                    _.forEach(Shape.standardShapeProps, (arg, argName) => {
                         options.push({
                             method: 'set',
                             name: arg.name,
@@ -444,8 +434,8 @@ export default {
                     if (shape) {
                         const shapeArgName = propertyPath.substr('shapeProps.'.length);
 
-                        if (shape.shapeType === 'standard' && standardShapeProps.hasOwnProperty(shapeArgName)) {
-                            return standardShapeProps[shapeArgName];
+                        if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
+                            return Shape.standardShapeProps[shapeArgName];
                         }
                         if (shape.args.hasOwnProperty(shapeArgName)) {
                             return shape.args[shapeArgName];
@@ -622,8 +612,8 @@ export default {
                     const shapeArgName = propertyPath.substr('shapeProps.'.length);
                     if (shape && shape.args && shape.args.hasOwnProperty(shapeArgName)) {
                         return shape.args[shapeArgName].name;
-                    } else if (shape.shapeType === 'standard' && standardShapeProps.hasOwnProperty(shapeArgName)) {
-                        return standardShapeProps[shapeArgName].name;
+                    } else if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
+                        return Shape.standardShapeProps[shapeArgName].name;
                     }
                 }
             }

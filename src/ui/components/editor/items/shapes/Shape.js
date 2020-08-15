@@ -90,10 +90,32 @@ function make(encodedShape) {
     }
 }
 
+const standardShapeProps = {
+    fill         : {name: 'Fill', type: 'advanced-color'},
+    strokeColor  : {name: 'Stroke', type: 'color'},
+    strokeSize   : {name: 'Stroke Size', type: 'number'},
+    strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
+};
+
+function getShapePropDescriptor(shape, propName) {
+    if (shape.shapeType === 'standard') {
+        if (standardShapeProps.hasOwnProperty(propName)) {
+            return standardShapeProps[propName];
+        }
+    }
+    if (shape.args && shape.args.hasOwnProperty(propName)) {
+        return shape.args[propName];
+    }
+
+    return null;
+}
+
 export default {
     make,
     shapeReigstry,
     find(id) {
         return shapeReigstry[id];
-    }
+    },
+    standardShapeProps,
+    getShapePropDescriptor
 };

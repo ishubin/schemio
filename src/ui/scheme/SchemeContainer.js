@@ -154,6 +154,17 @@ class SchemeContainer {
                 this.indexItemGroups(item.id, item.groups);
             }
 
+
+            if (item.text && item.text.length > 0) {
+                console.log(item.text);
+                const shape = Shape.find(item.shape);
+                const textSlots = shape.getTextSlots(item);
+                if (textSlots && textSlots.length > 0) {
+                    item.textSlots[textSlots[0].name].text = item.text;
+                }
+                delete item.text;
+            }
+
             // only storing top-level items 
             if (!parentItem) {
                 if (item.area.type === 'viewport') {
