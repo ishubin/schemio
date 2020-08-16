@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="dropdown-container">
-        <div class="dropdown-click-area" @click="toggleDropdown">
+        <div class="dropdown-click-area" :class="{'hover-effect': hoverEffect}" @click="toggleDropdown">
             <slot v-if="value === null"></slot>
             <div v-else>
                 <div v-if="selectedOption">
@@ -16,7 +16,7 @@
         </div>
 
         <div :id="`dropdown-${id}`" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
-            <input class="dropdown-search" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
+            <input class="dropdown-search" v-if="searchEnabled" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
             <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
                     <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
@@ -36,16 +36,21 @@ import shortid from 'shortid';
 export default {
     /* options is an array of {name and any other fields} */
     props: {
-        options: {type: Array, required: true},
-        value: {type: String, default: null}
+        options      : {type: Array, required: true},
+        value        : {type: String, default: null},
+        hoverEffect  : {type: Boolean, default: true},
+        searchEnabled: {type: Boolean, default: true},
+        // input
     },
 
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
+        document.body.addEventListener('keydown', this.onGlobalKeydown);
     },
 
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
+        document.body.removeEventListener('keydown', this.onGlobalKeydown);
     },
 
     data() {
@@ -61,7 +66,7 @@ export default {
             x: 0, y: 0,
             maxHeight: 300,
             searchTextfieldHeight: 30,
-            maxWidth: 150,
+            maxWidth: 350,
             elementRect: null,
             selectedOption
         };
@@ -110,6 +115,14 @@ export default {
         },
 
         onBodyClick(event) {
+            if (this.shown === true && (new Date().getTime() - this.lastTimeClicked) > 200) {
+                if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
+                    return;
+                }
+                this.shown = false;
+            }
+        },
+        onGlobalKeydown(event) {
             if (this.shown === true && (new Date().getTime() - this.lastTimeClicked) > 200) {
                 if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
                     return;

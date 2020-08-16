@@ -24,10 +24,12 @@
                             </span>
                         </li>
                     </ul>
-                    <div class="input-group">
-                        <span class="input-group-item-inside"><i class="fas fa-search-plus" style="color: #999;"></i></span>
-                        <input class="textfield input-group-field" style="width: 85px; padding-left: 25px" type="text" v-model="zoom" @input="onZoomInput"/>
-                    </div>
+
+                    <span><i class="fas fa-search-minus" style="color: #fff; cursor: pointer;" @click="onZoomOutClicked"></i></span>
+                    <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
+                        <input class="textfield" style="width: 60px;" type="text" v-model="zoom" @keydown.enter="onZoomSubmit"/>
+                    </dropdown>
+                    <span><i class="fas fa-search-plus" style="color: #fff; cursor: pointer;" @click="onZoomInClicked"></i></span>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                     <ul class="button-group" v-if="mode === 'edit' && schemeContainer && currentUser">
@@ -65,6 +67,7 @@
                         :should-snap-to-grid="shouldSnapToGrid"
                         :viewport-top="40"
                         :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
+                        :zoom="zoom"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
                         @clicked-start-connecting="onClickedStartConnecting"
@@ -190,6 +193,7 @@
 import utils from '../utils.js';
 import {enrichItemWithDefaults} from '../scheme/Item';
 import HeaderComponent from '../components/Header.vue';
+import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
@@ -230,7 +234,7 @@ export default {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
-        ItemTooltip, Panel, ItemSelector, TextSlotProperties
+        ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown
     },
 
     beforeMount() {
@@ -296,6 +300,18 @@ export default {
             schemeChanged: false, //used in order to render Save button
 
             shouldSnapToGrid: true,
+
+            zoomOptions: [
+                {name: '10%', value: 10},
+                {name: '25%', value: 25},
+                {name: '35%', value: 35},
+                {name: '50%', value: 50},
+                {name: '75%', value: 75},
+                {name: '100%', value: 100},
+                {name: '125%', value: 125},
+                {name: '150%', value: 150},
+                {name: '200%', value: 200},
+            ],
 
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
@@ -461,7 +477,48 @@ export default {
             }
         },
 
-        onZoomInput(event) {
+        onZoomOutClicked() {
+            let selectedZoom = this.zoomOptions[0].value;
+            let found = false;
+            for (let i = 0; i < this.zoomOptions.length && !found; i++) {
+                if (this.zoomOptions[i].value < this.zoom) {
+                    selectedZoom = this.zoomOptions[i].value;
+                } else {
+                    found = true;
+                }
+            }
+            this.zoom = selectedZoom;
+            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
+            this.initOffsetSave();
+        },
+
+        onZoomInClicked() {
+            let selectedZoom = this.zoomOptions[this.zoomOptions.length - 1].value;
+            let found = false;
+            let i = this.zoomOptions.length - 1;
+            while(!found) {
+                if (this.zoomOptions[i].value > this.zoom) {
+                    selectedZoom = this.zoomOptions[i].value;
+                } else {
+                    found = true;
+                }
+                i = i - 1;
+                if (i < 0) {
+                    found = true;
+                }
+            }
+            this.zoom = selectedZoom;
+            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
+            this.initOffsetSave();
+        },
+
+        onZoomOptionSelected(option) {
+            this.zoom = option.value;
+            this.schemeContainer.screenTransform.scale = option.value / 100.0;
+            this.initOffsetSave();
+        },
+
+        onZoomSubmit(event) {
             const zoomText = event.target.value;
             const zoom = parseInt(zoomText);
 

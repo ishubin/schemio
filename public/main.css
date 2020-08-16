@@ -773,18 +773,6 @@ svg.state-create-item {
 .scheme-container {
     z-index: 98;
 }
-
-/*********************** Input Group ************************/
-.input-group {
-    display: inline-block;
-    position: relative;
-}
-  
-.input-group-item-inside {
-    position: absolute;
-    left: 5px;
-    top: 7px;
-}
   
 /*********************** Button Group **********************/
 
@@ -1519,7 +1507,7 @@ ul.category-breadcrumb li i {
     margin: 1px;
     cursor: pointer;
 }
-.dropdown-container .dropdown-click-area:hover {
+.dropdown-container .dropdown-click-area.hover-effect:hover {
     background: #fff;
     border: 1px solid #777;
     margin: 0;

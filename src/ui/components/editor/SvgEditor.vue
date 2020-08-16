@@ -287,7 +287,7 @@ const lastMousePosition = {
 };
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid'],
+    props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
     components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox},
     beforeMount() {
         _.forEach(states, state => {
@@ -1037,6 +1037,11 @@ export default {
         },
         viewportLeft(value) {
             states.editCurve.setViewportCorrection(this.viewportTop, value);
+        },
+        zoom(newZoom) {
+            if (this.interactiveSchemeContainer) {
+                this.interactiveSchemeContainer.screenTransform.scale = newZoom / 100.0;
+            }
         }
     },
     computed: {
