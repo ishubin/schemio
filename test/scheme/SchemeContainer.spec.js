@@ -53,9 +53,11 @@ describe('SchemeContainer', () => {
         const schemeContainer = new SchemeContainer({items: [{
             id: 'qwe',
             area: {x: 100, y: 20, w: 100, h: 100, r: 90},
+            shape: 'rect',
             childItems: [{
                 id: 'asd',
-                area: {x: 10, y: 30, w: 10, h: 10, r: 90}
+                area: {x: 10, y: 30, w: 10, h: 10, r: 90},
+                shape: 'rect'
             }]
         }]}, EventBusStub);
 
@@ -70,9 +72,11 @@ describe('SchemeContainer', () => {
         const schemeContainer = new SchemeContainer({items: [{
             id: 'qwe',
             area: {x: 100, y: 20, w: 100, h: 100, r: 90},
+            shape: 'rect',
             childItems: [{
                 id: 'asd',
-                area: {x: 10, y: 30, w: 10, h: 10, r: 90}
+                area: {x: 10, y: 30, w: 10, h: 10, r: 90},
+                shape: 'rect',
             }]
         }]}, EventBusStub);
 
