@@ -12,7 +12,7 @@
     "build-dev-demo": "npm run init-dev; webpack --config webpack.build.dev.demo.js; cp src/ui/index.html public/; cp -r static-demo/public-images public/",
     "init-dist": "mkdir -p dist; rm -rf dist/*; cp -r public/* dist/.",
     "build-static-demo": "npm run init-dist; webpack --config webpack.demo.js; cp src/ui/index.html dist/; cp static-demo/scheme-preview-images/* dist/images/.",
-    "test": "mocha-webpack --webpack-config webpack.config.js --require test/setup.js test/**/*.spec.js test/*.spec.js"
+    "test": "mocha-webpack --webpack-config webpack.build.dev.js --require test/setup.js test/**/*.spec.js test/*.spec.js"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
