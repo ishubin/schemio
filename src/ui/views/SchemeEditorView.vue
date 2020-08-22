@@ -143,7 +143,7 @@
                         <div v-if="textSlotEditted.item">
                             <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"
                                 @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                @property-changed="onInPlaceEditTextPropertyChanged(textSlotEditted.item, textSlotEditted.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
                         <div v-else>
@@ -905,6 +905,14 @@ export default {
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
         },
 
+        onInPlaceEditTextPropertyChanged(item, textSlotName, propertyPath, value) {
+            if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
+                utils.setObjectProperty(item.textSlots[textSlotName], propertyPath, utils.clone(value));
+            }
+            EventBus.emitItemChanged(item.id);
+            EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyPath}`);
+        },
+
         onTextPropertyChanged(textSlotName, propertyPath, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
@@ -914,7 +922,7 @@ export default {
                 EventBus.emitItemChanged(item.id);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyPath}`);
         }
     },
 
