@@ -1,7 +1,7 @@
 import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
-import {getDefaultFont} from './Fonts';
-import {forEach} from 'lodash';
+import {getDefaultFont, getAllFonts} from './Fonts';
+import {forEach, map} from 'lodash';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -12,6 +12,29 @@ export const ItemInteractionMode = {
         return utils.enumerateConstants(this);
     }
 };
+
+export const textWhiteSpaceOptions = [{
+    name: 'Wrap', value: 'normal'
+}, {
+    name: 'No Wrap', value: 'nowrap'
+}, {
+    name: 'Preserved', value: 'pre'
+}, {
+    name: 'Preserved + Wrap', value: 'pre-wrap'
+}];
+
+export const textSlotProperties = [
+    {field: 'color', name: 'Color', type: 'color'},
+    {field: 'halign', name: 'Horizontal Align', type: 'choice', options: ['left', 'center', 'right']},
+    {field: 'valign', name: 'Vertical Align', type: 'choice', options: ['top', 'middle', 'bottom']},
+    {field: 'fontSize', name: 'Font Size', type: 'number'},
+    {field: 'whiteSpace', name: 'White Space', type: 'choice', options: textWhiteSpaceOptions},
+    {field: 'font', name: 'Font', type: 'choice', options: map(getAllFonts(), font => font.name)},
+    {field: 'padding.left', name: 'Padding Left', type: 'number'},
+    {field: 'padding.right', name: 'Padding Right', type: 'number'},
+    {field: 'padding.top', name: 'Padding Top', type: 'number'},
+    {field: 'padding.bottom', name: 'Padding Bottom', type: 'number'},
+];
 
 export function enrichItemTextSlotWithDefaults(textSlot) {
     utils.extendObject(textSlot, {

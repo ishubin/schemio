@@ -132,7 +132,7 @@ import Shape from '../../editor/items/shapes/Shape';
 import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ColorPicker from '../ColorPicker.vue';
-
+import {textWhiteSpaceOptions} from '../../../scheme/Item';
 
 export default {
     props: ['item', 'slotName'],
@@ -152,15 +152,7 @@ export default {
             textSlot: this.item.textSlots[this.slotName],
             availableTextSlots: map(shape.getTextSlots(this.item), textSlot => textSlot.name),
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
-            supportedWhiteSpaceOptions: [{
-                name: 'Wrap', value: 'normal'
-            }, {
-                name: 'No Wrap', value: 'nowrap'
-            }, {
-                name: 'Preserved', value: 'pre'
-            }, {
-                name: 'Preserved + Wrap', value: 'pre-wrap'
-            }]
+            supportedWhiteSpaceOptions: textWhiteSpaceOptions
         };
     },
     methods: {

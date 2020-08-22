@@ -130,6 +130,7 @@ import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
+import {textSlotProperties} from '../../../scheme/Item';
 
 const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
 const standardItemEventIds = _.map(standardItemEvents, event => event.id);
@@ -295,6 +296,17 @@ export default {
                 });
             }
 
+            _.forEach(shape.getTextSlots(item), textSlot => {
+                _.forEach(textSlotProperties, textSlotProperty => {
+                    options.push({
+                        method: 'set',
+                        name: `Text / ${textSlot.name} / ${textSlotProperty.name}`,
+                        fieldPath: `textSlots.${textSlot.name}.${textSlotProperty.field}`,
+                        iconClass: 'fas fa-cog'
+                    });
+                });
+            });
+
             options.push({
                 method: 'set',
                 name: 'Opacity',
@@ -440,6 +452,13 @@ export default {
                             return shape.args[shapeArgName];
                         }
                     }
+                }
+            } else if (propertyPath.indexOf('textSlots.') === 0) {
+                const secondDotPosition = propertyPath.indexOf('.', 'textSlots.'.length + 1);
+                const textSlotField = propertyPath.substr(secondDotPosition + 1);
+                const argumentDescription = _.find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+                if (argumentDescription) {
+                    return argumentDescription;
                 }
             }
             return {type: 'string'};
@@ -614,6 +633,15 @@ export default {
                     } else if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
                         return Shape.standardShapeProps[shapeArgName].name;
                     }
+                }
+            } else if (propertyPath.indexOf('textSlots.') === 0) {
+                const firstDotIdx = propertyPath.indexOf('.');
+                const secondDotIdx = propertyPath.indexOf('.', firstDotIdx + 1);
+                const textSlotName = propertyPath.substring(firstDotIdx + 1, secondDotIdx);
+                const textSlotField = propertyPath.substring(secondDotIdx + 1);
+                const fieldDescription = _.find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+                if (fieldDescription) {
+                    return `Text / ${textSlotName} / ${fieldDescription.name}`;
                 }
             }
             return propertyPath;

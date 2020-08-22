@@ -10,7 +10,7 @@
         <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
         <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
-            <option v-for="option in choiceOptions" :key="option">{{option}}</option>
+            <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
         </select>
     </div>
 </template>
@@ -56,6 +56,14 @@ export default {
         },
         onCheckboxInput(event) {
             this.emitValue(event.target.checked);
+        }
+    },
+    filters: {
+        toPrettyOptionName(option) {
+            if (option.name && option.value) {
+                return option.name;
+            }
+            return option;
         }
     }
 }
