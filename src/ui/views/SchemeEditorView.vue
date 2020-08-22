@@ -32,6 +32,9 @@
                     <span><i class="fas fa-search-plus" style="color: #fff; cursor: pointer;" @click="onZoomInClicked"></i></span>
 
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
+
+                    <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
+
                     <ul class="button-group" v-if="mode === 'edit' && schemeContainer && currentUser">
                         <li>
                             <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
@@ -159,8 +162,8 @@
                 </div>
             </div>
 
-            <div v-if="curveEditorPanel.shown" class="scheme-quick-top-panel-wrapper">
-                <div class="scheme-quick-top-panel">
+            <div v-if="topHelperPanel.currentPanel !== null" class="scheme-top-helper-panel-wrapper">
+                <div v-if="topHelperPanel.currentPanel === 'curve-edit-helper'" class="scheme-top-helper-panel">
                     <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
                 </div>
             </div>
@@ -360,8 +363,8 @@ export default {
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
 
-            curveEditorPanel: {
-                shown: false
+            topHelperPanel: {
+                currentPanel: null // null - means that the panel is not shown
             }
         }
     },
@@ -833,7 +836,7 @@ export default {
                 }
             }
             // in case nothing was selected - it should not display any tabs
-            if (this.currentTab.indexOf('Text') === 0) {
+            if (this.currentTab !== 'Item' && this.currentTab !== 'Scheme') {
                 this.currentTab = 'Item';
             }
             this.itemTextSlotsAvailable.length = 0;
@@ -854,7 +857,7 @@ export default {
         },
 
         onCurveEdited() {
-            this.curveEditorPanel.shown = true;
+            this.showTopHelperCurveEdit();
         },
 
         stopEditCurve() {
@@ -863,7 +866,8 @@ export default {
 
         onCurrentStateCanceled(stateName) {
             if (stateName === 'edit-curve') {
-                this.curveEditorPanel.shown = false;
+                this.topHelperPanel.currentPanel = null;
+                this.hideTopHelperPanel();
             }
         },
 
@@ -923,6 +927,14 @@ export default {
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyPath}`);
+        },
+
+        hideTopHelperPanel() {
+            this.topHelperPanel.currentPanel = null;
+        },
+
+        showTopHelperCurveEdit() {
+            this.topHelperPanel.currentPanel = 'curve-edit-helper';
         }
     },
 
@@ -954,7 +966,9 @@ export default {
 
         searchKeyword(keyword) {
             keyword = keyword.trim().toLowerCase();
+
             if (keyword.length > 0) {
+                const highlightedItemIds = [];
                 let filteredItems = [];
                 forEach(this.schemeContainer.getItems(), item => {
                     let shouldHighlight = false;
@@ -971,15 +985,17 @@ export default {
                     }
                     if (shouldHighlight) {
                         filteredItems.push(item);
+                        highlightedItemIds.push(item.id);
                     }
-                    item.meta.searchHighlighted = shouldHighlight;
                 });
                 this.searchHighlights = filteredItems;
+                EventBus.emitItemsHighlighted(highlightedItemIds);
             } else {
                 forEach(this.schemeContainer.getItems(), item => {
                     item.meta.searchHighlighted = false;
                 });
                 this.searchHighlights = [];
+                EventBus.emitItemsHighlighted([]);
             }
         }
     },

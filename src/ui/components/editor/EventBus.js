@@ -35,6 +35,7 @@ const EventBus = new Vue({
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
+            ITEM_HIGHLIGHT_SET: 'item-highlight-set',
 
             // used to trigger in-svg text edit of an item
             ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',

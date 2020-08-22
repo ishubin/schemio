@@ -22,15 +22,6 @@
                     <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
                         v-if="item.visible"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
-                        <!-- Drawing search highlight box -->
-                        <!-- TODO refactor it. It should be available for all item levels (childItems) -->
-                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
-                            :x="item.area.x - 5"
-                            :y="item.area.y - 5"
-                            :width="item.area.w + 10"
-                            :height="item.area.h + 10"
-                        />
-
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
@@ -43,15 +34,6 @@
                     <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
                         v-if="item.visible"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
-                        <!-- Drawing search highlight box -->
-                        <!-- TODO refactor it. It should be available for all item levels (childItems) -->
-                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
-                            :x="item.area.x - 5"
-                            :y="item.area.y - 5"
-                            :width="item.area.w + 10"
-                            :height="item.area.h + 10"
-                        />
-
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
@@ -99,14 +81,6 @@
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
 
-                        <!-- Drawing search highlight box -->
-                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
-                            :x="item.area.x - 5"
-                            :y="item.area.y - 5"
-                            :width="item.area.w + 10"
-                            :height="item.area.h + 10"
-                        />
-
                         <item-svg
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
@@ -145,14 +119,6 @@
                         class="item-container"
                         :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
                         >
-
-                        <!-- Drawing search highlight box -->
-                        <rect v-if="item.meta.searchHighlighted" class="item-search-highlight"
-                            :x="item.area.x - 5"
-                            :y="item.area.y - 5"
-                            :width="item.area.w + 10"
-                            :height="item.area.h + 10"
-                        />
 
                         <item-svg
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"

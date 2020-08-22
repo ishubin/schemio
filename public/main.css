@@ -519,13 +519,13 @@ ul.pagination li a.current {
     margin: 0;
 }
 
-.scheme-quick-top-panel-wrapper {
+.scheme-top-helper-panel-wrapper {
     position: absolute;
     width: 100%;
     top: 47px;
     text-align: center;
 }
-.scheme-quick-top-panel {
+.scheme-top-helper-panel {
     display: inline-block;
     background: var(--faint-weak);
     padding: 8px 15px;
@@ -597,12 +597,6 @@ svg .boundary-box-connector-starter {
 }
 svg .boundary-box-connector-starter:hover {
     opacity: 1;
-}
-
-svg rect.item-search-highlight {
-    stroke-width: 2;
-    stroke: #faa;
-    fill: rgba(212, 184, 101, 0.1);
 }
 
 /*********** Curve **************************/
