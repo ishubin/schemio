@@ -1,4 +1,4 @@
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 import shortid from 'shortid';
 
 /**

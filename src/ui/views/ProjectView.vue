@@ -113,7 +113,7 @@
 </template>
 
 <script>
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 import HeaderComponent from '../components/Header.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';

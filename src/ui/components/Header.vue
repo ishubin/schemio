@@ -48,7 +48,7 @@
 
 <script>
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
-import {map} from 'lodash' ;
+import map from 'lodash/map';
 
 export default {
     props: {

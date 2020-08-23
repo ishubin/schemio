@@ -14,7 +14,8 @@
  */
 import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
-import {forEach, indexOf} from 'lodash';
+import forEach from 'lodash/forEach';
+import indexOf from 'lodash/indexOf';
 import shortid from 'shortid';
 
 

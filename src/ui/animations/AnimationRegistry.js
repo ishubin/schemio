@@ -1,4 +1,4 @@
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 
 // desired delta time between loop cycles in milliseconds
 const DESIRED_DELTA_TIME = 16;

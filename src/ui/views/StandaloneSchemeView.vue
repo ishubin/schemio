@@ -22,7 +22,7 @@
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
 import EventBus from '../components/editor/EventBus';
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 
 export default {
     props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom'],

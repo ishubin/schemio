@@ -220,7 +220,10 @@ import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import recentPropsChanges from '../history/recentPropsChanges';
-import {forEach, map, filter, find} from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
 
 let history = new History({size: 30});
 

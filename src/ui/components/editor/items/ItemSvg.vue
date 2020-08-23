@@ -76,7 +76,7 @@ import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import {enrichItemTextSlotWithDefaults} from '../../../scheme/Item';
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 
 
 export default {

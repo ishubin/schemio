@@ -25,7 +25,8 @@
 <script>
 import Modal from '../../Modal.vue';
 import Shape from '../items/shapes/Shape';
-import {map, forEach} from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import apiClient from '../../../apiClient';
 
 export default {

@@ -19,7 +19,7 @@
 
 <script>
 import shortid from 'shortid';
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';

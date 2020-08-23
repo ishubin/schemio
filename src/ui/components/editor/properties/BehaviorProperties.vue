@@ -116,7 +116,16 @@
 </template>
 
 <script>
-import {values, sortBy, map, forEach, filter, uniq, indexOf, mapValues, find} from 'lodash';
+import values from 'lodash/values';
+import sortBy from 'lodash/sortBy';
+import map from 'lodash/map';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import uniq from 'lodash/uniq';
+import indexOf from 'lodash/indexOf';
+import mapValues from 'lodash/mapValues';
+import find from 'lodash/find';
+
 import shortid from 'shortid';
 import VueTagsInput from '@johmun/vue-tags-input';
 import utils from '../../../utils.js';

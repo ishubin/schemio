@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Vue from 'vue';
-import {findKey} from 'lodash';
+import findKey from 'lodash/findKey';
 
 const EventBus = new Vue({
     data() {

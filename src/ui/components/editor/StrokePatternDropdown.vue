@@ -7,7 +7,7 @@
 <script>
 import StrokePattern from './items/StrokePattern';
 import Dropdown from '../Dropdown.vue';
-import {map} from 'lodash';
+import map from 'lodash/map';
 
 export default {
     props: ['value'],

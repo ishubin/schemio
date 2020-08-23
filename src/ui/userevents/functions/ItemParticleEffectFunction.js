@@ -1,4 +1,4 @@
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 

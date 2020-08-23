@@ -1,6 +1,6 @@
 import EventBus from '../../components/editor/EventBus';
 import myMath from '../../myMath';
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 import ValueAnimation from '../../animations/ValueAnimation';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 

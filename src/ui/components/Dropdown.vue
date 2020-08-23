@@ -30,7 +30,8 @@
 </template>
 
 <script>
-import {filter, find} from 'lodash';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
 import shortid from 'shortid';
 
 export default {

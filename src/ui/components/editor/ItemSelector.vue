@@ -58,7 +58,9 @@
 </template>
 
 <script>
-import {forEach, indexOf, filter} from 'lodash';
+import forEach from 'lodash/forEach';
+import indexOf from 'lodash/indexOf';
+import filter from 'lodash/filter';
 import EventBus from './EventBus';
 
 

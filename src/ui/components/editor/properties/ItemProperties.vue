@@ -185,7 +185,11 @@
 </template>
 
 <script>
-import {map, indexOf, mapValues, forEach, keys} from 'lodash';
+import map from 'lodash/map';
+import indexOf from 'lodash/indexOf';
+import mapValues from 'lodash/mapValues';
+import forEach from 'lodash/forEach';
+import keys from 'lodash/keys';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';

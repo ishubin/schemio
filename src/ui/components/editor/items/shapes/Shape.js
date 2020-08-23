@@ -15,7 +15,7 @@ import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.js';
 import UMLNode from './uml/UMLNode.js';
-import {mapValues} from 'lodash';
+import mapValues from 'lodash/mapValues';
 
 
 function defaultGetEventsFunc(item) {

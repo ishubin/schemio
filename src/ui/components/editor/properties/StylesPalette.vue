@@ -20,7 +20,8 @@
 </template>
 
 <script>
-import {forEach, map} from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import apiClient from '../../../apiClient';
 import Shape from '../items/shapes/Shape';
 import utils from '../../../utils';

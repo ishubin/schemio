@@ -41,7 +41,8 @@
     </modal>
 </template>
 <script>
-import {forEach, mapValues} from 'lodash';
+import forEach from 'lodash/forEach';
+import mapValues from 'lodash/mapValues';
 import Dropdown from '../../../Dropdown.vue';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';

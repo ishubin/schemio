@@ -21,7 +21,9 @@
 <script>
 import Modal from '../Modal.vue';
 import EventBus from './EventBus.js';
-import {map, forEach, sortBy} from 'lodash';
+import map from 'lodash/map';
+import forEach from 'lodash/forEach';
+import sortBy from 'lodash/sortBy';
 
 
 function sortItems(items) {

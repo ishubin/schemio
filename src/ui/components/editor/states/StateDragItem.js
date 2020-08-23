@@ -5,7 +5,8 @@
 import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
-import {forEach, find} from 'lodash';
+import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import utils from '../../../utils';
 import myMath from '../../../myMath';
 

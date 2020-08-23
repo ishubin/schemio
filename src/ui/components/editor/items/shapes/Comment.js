@@ -1,4 +1,4 @@
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 
 function makeTailControlPoint(item) {
     const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);

@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import {map} from 'lodash';
+import map from 'lodash/map';
 import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';

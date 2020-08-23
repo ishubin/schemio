@@ -2,7 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import {map, forEach, keys, indexOf, findIndex, find} from 'lodash';
+import map from 'lodash/map';
+import forEach from 'lodash/forEach';
+import keys from 'lodash/keys';
+import indexOf from 'lodash/indexOf';
+import findIndex from 'lodash/findIndex';
+import find from 'lodash/find';
+
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';

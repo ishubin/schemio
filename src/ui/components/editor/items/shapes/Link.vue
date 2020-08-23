@@ -15,7 +15,7 @@
     
 </template>
 <script>
-import {map} from 'lodash';
+import map from 'lodash/map';
 import LinkTypes from '../../LinkTypes.js';
 import LinkEditPopupVue from '../../LinkEditPopup.vue';
 import htmlSanitize from '../../../../../htmlSanitize';

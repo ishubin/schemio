@@ -110,7 +110,7 @@ import RichTextEditor from '../RichTextEditor.vue';
 import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
-import {map} from 'lodash';
+import map from 'lodash/map';
 
 export default {
     props: ['projectId', 'schemeContainer'],

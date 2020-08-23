@@ -1,5 +1,5 @@
 import shortid from 'shortid';
-import {forEach} from 'lodash';
+import forEach from 'lodash/forEach';
 
 export default class Animation { 
 

@@ -5,7 +5,12 @@
 import LocalStorageDb from './localStorageDb.js';
 import utils from './utils.js';
 import shortid from 'shortid';
-import {forEach, filter, find, uniq, map, reduce} from 'lodash';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
+import uniq from 'lodash/uniq';
+import map from 'lodash/map';
+import reduce from 'lodash/reduce';
 
 const schemeStorage     = new LocalStorageDb('schemes');
 const artStorage        = new LocalStorageDb('art');

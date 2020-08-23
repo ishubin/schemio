@@ -234,7 +234,9 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import shortid from 'shortid';
 import Events from '../../userevents/Events';
-import {forEach, map, max} from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
+import max from 'lodash/max';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;

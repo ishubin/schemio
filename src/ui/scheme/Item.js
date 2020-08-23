@@ -1,7 +1,8 @@
 import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
 import {getDefaultFont, getAllFonts} from './Fonts';
-import {forEach, map} from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 
 export const ItemInteractionMode = {
     NONE:       'none',
