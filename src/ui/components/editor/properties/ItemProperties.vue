@@ -185,7 +185,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import {map, indexOf, mapValues, forEach, keys} from 'lodash';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
@@ -215,7 +215,7 @@ const ALL_TABS = [
     {name: 'styles',        icon: 'fas fa-palette'}
 ];
 
-const ALL_TABS_NAMES = _.map(ALL_TABS, tab => tab.name);
+const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 
 const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
 
@@ -230,7 +230,7 @@ export default {
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
-        if (_.indexOf(ALL_TABS_NAMES, tab) < 0) {
+        if (indexOf(ALL_TABS_NAMES, tab) < 0) {
             tab = ALL_TABS_NAMES[0];
         }
         this.currentTab = tab;
@@ -244,13 +244,15 @@ export default {
 
     data() {
         const shapeComponent = Shape.make(this.item.shape);
+        const knownShapes = keys(Shape.shapeRegistry);
+        knownShapes.sort();
         return {
             tabs: ALL_TABS,
             knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
 
             knownStrokePatterns: StrokePattern.patterns,
 
-            knownShapes: _.chain(Shape.shapeReigstry).keys().sort().value(),
+            knownShapes,
             currentTab: 'description',
             shapeComponent: shapeComponent,
             oldShape: this.item.shape,
@@ -259,7 +261,7 @@ export default {
                                 'exclusion', 'hue', 'saturation', 'color', 'luminosity'
             ],
 
-            shapePropsControlStates: _.mapValues(shapeComponent.args, () => {return {shown: true};}),
+            shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
 
             saveStyleModalShown: false
@@ -276,11 +278,11 @@ export default {
         },
 
         updateShapePropsDependencies() {
-            _.forEach(this.shapeComponent.args, (argConfig, argName) => {
+            forEach(this.shapeComponent.args, (argConfig, argName) => {
                 if (argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true)) {
                     this.shapePropsControlStates[argName].shown = false;
                 } else if (argConfig.depends) {
-                    _.forEach(argConfig.depends, (depArgValue, depArgName) => {
+                    forEach(argConfig.depends, (depArgValue, depArgName) => {
                         const shown = this.item.shapeProps[depArgName] === depArgValue;
                         if (!this.shapePropsControlStates[argName]) {
                             this.shapePropsControlStates[argName] = {shown: shown};
@@ -298,7 +300,7 @@ export default {
 
         applyStyle(shapeName, shapeProps) {
             if (this.item.shape === shapeName) {
-                _.forEach(shapeProps, (argValue, argName) => {
+                forEach(shapeProps, (argValue, argName) => {
                     this.item.shapeProps[argName] = argValue;
                 });
             }

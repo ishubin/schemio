@@ -49,7 +49,7 @@ function enrichShape(shapeComponent) {
     };
 }
 
-const shapeReigstry = mapValues({
+const shapeRegistry = mapValues({
     none: NoneShape,
     rect: Rect,
     ellipse: Ellipse,
@@ -73,8 +73,8 @@ const shapeReigstry = mapValues({
  * @param {string} encodedShape - an encoded JSON that represents a shape or a name of a in-buit shape: e.g. 'rect', 'ellipse'
  */
 function make(encodedShape) {
-    if (shapeReigstry[encodedShape]) {
-        const shape = shapeReigstry[encodedShape];
+    if (shapeRegistry[encodedShape]) {
+        const shape = shapeRegistry[encodedShape];
 
         if (!shape.component && !shape.vueComponentName) {
             const componentName = `${encodedShape}-shape-svg-component`;
@@ -112,9 +112,9 @@ function getShapePropDescriptor(shape, propName) {
 
 export default {
     make,
-    shapeReigstry,
+    shapeRegistry,
     find(id) {
-        return shapeReigstry[id];
+        return shapeRegistry[id];
     },
     standardShapeProps,
     getShapePropDescriptor

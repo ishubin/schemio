@@ -22,6 +22,7 @@
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
 import EventBus from '../components/editor/EventBus';
+import {forEach} from 'lodash';
 
 export default {
     props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom'],
@@ -65,7 +66,7 @@ export default {
         getBoundingBoxOfItems(items) {
             let area = null;
 
-            _.forEach(items, item => {
+            forEach(items, item => {
                 if (!area) {
                     area = {x: item.area.x, y: item.area.y, w: item.area.w, h: item.area.h};
                 } else {

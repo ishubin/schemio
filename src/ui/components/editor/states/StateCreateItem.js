@@ -4,7 +4,7 @@
 
 import State from './State.js';
 import Shape from '../items/shapes/Shape';
-import _ from 'lodash';
+import {forEach, map} from 'lodash';
 import collections from '../../../collections.js';
 import EventBus from '../EventBus.js';
 
@@ -83,7 +83,7 @@ export default class StateCreateItem extends State {
         let maxArea = -1;
         let itemFound = null;
 
-        _.forEach(items, item => {
+        forEach(items, item => {
             const points = [
                 { x: area.x,  y: area.y },
                 { x: area.x + area.w,  y: area.y },
@@ -140,7 +140,7 @@ export default class StateCreateItem extends State {
      * @param {string} name 
      */
     findProperItemName(name) {
-        const itemNames = _.map(this.schemeContainer.getItems(), item => item.name);
+        const itemNames = map(this.schemeContainer.getItems(), item => item.name);
         return collections.giveUniqueName(name, itemNames);
     }
 }

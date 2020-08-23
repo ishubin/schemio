@@ -5,7 +5,7 @@
 import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
-import _ from 'lodash';
+import {forEach, find} from 'lodash';
 import utils from '../../../utils';
 import myMath from '../../../myMath';
 
@@ -213,7 +213,7 @@ export default class StateDragItem extends State {
         }
         
         this.initDraggingForItem(item, x, y);
-        _.forEach(this.schemeContainer.selectedItems, item => {
+        forEach(this.schemeContainer.selectedItems, item => {
             this.initDraggingForItem(item, x, y);
         });
 
@@ -373,11 +373,11 @@ export default class StateDragItem extends State {
             // this way we will be able to figure out whether any items ancestors was dragged already
             // so that we can skip dragging of item
             const itemDraggedIds = {};
-            _.forEach(this.schemeContainer.selectedItems, item => {
+            forEach(this.schemeContainer.selectedItems, item => {
                 itemDraggedIds[item.id] = 1;
                 if (!item.locked) {
                     // checking whether any of ancestors were dragged already
-                    if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                    if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
                         if (item.meta.parentId) {
                             const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
                             if (parentItem) {
@@ -410,10 +410,10 @@ export default class StateDragItem extends State {
         const itemDraggedIds = {};
 
         let realDx = dx, realDy = dy;
-        _.forEach(items, (item, itemIndex) => {
+        forEach(items, (item, itemIndex) => {
             itemDraggedIds[item.id] = 1;
             if (!item.locked) {
-                if (!(item.meta && item.meta.ancestorIds && _.find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
                     // only snapping x and y in case it is first item in the selection
                     this.dragItem(item, realDx, realDy, itemIndex === 0);
                     if(itemIndex === 0) {
@@ -579,7 +579,7 @@ export default class StateDragItem extends State {
         const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
         const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
 
-        _.forEach(draggerEdges, edge => {
+        forEach(draggerEdges, edge => {
             if (edge === 'top') {
                 // This should be a vector multiplication, so in case we introduce scale into transform,
                 // we should also divide by the length of bottomVector
@@ -647,7 +647,7 @@ export default class StateDragItem extends State {
             return;
         }
 
-        _.forEach(item.meta.originalCurvePoints, (point, index) => {
+        forEach(item.meta.originalCurvePoints, (point, index) => {
             item.shapeProps.points[index].x = point.x * item.area.w / item.meta.itemOriginalArea.w;
             item.shapeProps.points[index].y = point.y * item.area.h / item.meta.itemOriginalArea.h;
             if (point.t === 'B') {
@@ -661,11 +661,11 @@ export default class StateDragItem extends State {
 
     deselectAllItems() {
         this.schemeContainer.deselectAllItems();
-        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
+        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
     }
 
     emitEventsForAllSelectedItems() {
-        _.forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemSelected(item.id));
+        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemSelected(item.id));
     }
 
     dragScreen(x, y) {

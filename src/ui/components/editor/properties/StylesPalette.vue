@@ -89,7 +89,7 @@ export default {
             this.previewComponent = shape.component;
 
             const styles = this.userStyles[shapeName];
-            this.previewItems = _.map(styles, style => {
+            this.previewItems = map(styles, style => {
                 const item = {
                     name: style.name,
                     area: {x: 10, y: 10, w: 120, h: 80},

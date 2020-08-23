@@ -1,5 +1,5 @@
 
-import _ from 'lodash';
+import {forEach} from 'lodash';
 import knownFunctions from './functions/Functions.js';
 
 
@@ -14,12 +14,12 @@ export default class Compiler {
     compileActions(schemeContainer, selfItem, actions) {
         
         const funcs = [];
-        _.forEach(actions, action => {
+        forEach(actions, action => {
             if (knownFunctions.main.hasOwnProperty(action.method)) {
                 if (action.element) {
                     const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
                     if (elements) {
-                        _.forEach(elements, element => {
+                        forEach(elements, element => {
                             funcs.push({
                                 func: knownFunctions.main[action.method],
                                 element,

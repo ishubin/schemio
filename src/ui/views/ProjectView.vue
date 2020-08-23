@@ -113,7 +113,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import {forEach} from 'lodash';
 import HeaderComponent from '../components/Header.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
@@ -201,7 +201,7 @@ export default {
 
             let urlPrefix = `/projects/${this.projectId}/`;
             let hasParamsAlready = false;
-            _.forEach(this.$route.query, (value, name) => {
+            forEach(this.$route.query, (value, name) => {
                 if (name !== 'page' && name != 'category') {
                     urlPrefix += hasParamsAlready ? '&': '?';
                     urlPrefix += `${name}=${encodeURIComponent(value)}`;
@@ -387,7 +387,7 @@ export default {
         },
 
         enrichCategories(categories, parentId) {
-            _.forEach(categories, category => {
+            forEach(categories, category => {
                 if (parentId) {
                     category.parentId = parentId;
                 }

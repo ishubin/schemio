@@ -1,10 +1,10 @@
-import _ from 'lodash';
+import {forEach} from 'lodash';
 
 export default {
     encodeURLHash(params) {
         let result = '';
         let isFirst = true;
-        _.forEach(params, (value, key) => {
+        forEach(params, (value, key) => {
             if (!isFirst) {
                 result += ';';
             }
@@ -21,7 +21,7 @@ export default {
 
         const result = {};
         const keyValues = urlHash.split(';');
-        _.forEach(keyValues, keyValue => {
+        forEach(keyValues, keyValue => {
             const arr = keyValue.split(':')
             if (arr.length > 1) {
                 result[arr[0]] = decodeURIComponent(arr[1]);

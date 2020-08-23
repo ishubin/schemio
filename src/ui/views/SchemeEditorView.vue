@@ -220,8 +220,7 @@ import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import recentPropsChanges from '../history/recentPropsChanges';
-import {forEach, map} from 'lodash';
-
+import {forEach, map, filter, find} from 'lodash';
 
 let history = new History({size: 30});
 
@@ -471,7 +470,7 @@ export default {
                 return;
             }
 
-            const zoomableItems = _.filter(items, item => item.area.type !== 'viewport');
+            const zoomableItems = filter(items, item => item.area.type !== 'viewport');
             if (zoomableItems.length > 0) {
                 let area = this.schemeContainer.getBoundingBoxOfItems(zoomableItems);
                 if (area) {
@@ -978,7 +977,7 @@ export default {
                     } else {
                         //search in tags
                         if (item.tags && item.tags.length > 0) {
-                            if (_.find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
+                            if (find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
                                 shouldHighlight = true;
                             }
                         }

@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {forEach} from 'lodash';
 import shortid from 'shortid';
 
 /**
@@ -32,7 +32,7 @@ export default class UserEventBus {
     emitItemEvent(itemId, eventName) {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
-            _.forEach(itemSubs[eventName], subscriber => {
+            forEach(itemSubs[eventName], subscriber => {
                 subscriber.callback.apply(null, [this, this.revision]);
             });
         }

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import {map, forEach} from 'lodash';
+import {map, forEach, keys, indexOf, findIndex, find} from 'lodash';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
@@ -195,7 +195,7 @@ class SchemeContainer {
             item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
         });
 
-        this.itemGroups = _.keys(this._itemGroupsToIds);
+        this.itemGroups = keys(this._itemGroupsToIds);
         this.itemGroups.sort();
 
 
@@ -459,7 +459,7 @@ class SchemeContainer {
         }
 
         //checking if item is moved into its own child items. It should be protected from such move, otherwise it is going to be an eternal loop
-        if (otherItem && _.indexOf(otherItem.meta.ancestorIds, item.id) >= 0) {
+        if (otherItem && indexOf(otherItem.meta.ancestorIds, item.id) >= 0) {
             return;
         }
 
@@ -487,7 +487,7 @@ class SchemeContainer {
             angleCorrection -= otherItem.meta.transform.r + otherItem.area.r;
         }
 
-        const index = _.findIndex(itemsArray, it => it.id === itemId);
+        const index = findIndex(itemsArray, it => it.id === itemId);
         if (index < 0) {
             return;
         }
@@ -530,7 +530,7 @@ class SchemeContainer {
             itemsArray = parent.childItems;
         }
 
-        const index = _.findIndex(itemsArray, it => it.id === otherItemId);
+        const index = findIndex(itemsArray, it => it.id === otherItemId);
         if (index < 0) {
             return;
         }
@@ -571,7 +571,7 @@ class SchemeContainer {
             itemsArray = parentItem.childItems;
         }
 
-        const index = _.findIndex(itemsArray, it => it.id === item.id);
+        const index = findIndex(itemsArray, it => it.id === item.id);
         if (index < 0) {
             return;
         }
@@ -852,7 +852,7 @@ class SchemeContainer {
         forEach(this.copyBuffer, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
-            if (!_.find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
+            if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
                 copiedItemIds[item.id] = 1;
                 const worldPoint = this.worldPointOnItem(0, 0, item);
 

@@ -41,7 +41,7 @@
     </modal>
 </template>
 <script>
-import _ from 'lodash';
+import {forEach, mapValues} from 'lodash';
 import Dropdown from '../../../Dropdown.vue';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
@@ -60,7 +60,7 @@ export default {
 
     data() {
         const argumentValues = {};
-        _.forEach(this.functionDescription.args, (arg, argName) => {
+        forEach(this.functionDescription.args, (arg, argName) => {
             if (this.args.hasOwnProperty(argName)) {
                 argumentValues[argName] = this.args[argName];
             } else {
@@ -69,19 +69,19 @@ export default {
         });
         return {
             argumentValues,
-            argumentControlStates: _.mapValues(this.functionDescription.args, () => {return {shown: true};}),
+            argumentControlStates: mapValues(this.functionDescription.args, () => {return {shown: true};}),
         };
     },
 
     methods: {
         updateArgumentControlDependencies() {
-            _.forEach(this.functionDescription.args, (argConfig, argName) => {
+            forEach(this.functionDescription.args, (argConfig, argName) => {
                 if (argConfig.depends) {
                     if (!this.argumentControlStates[argName]) {
                         this.argumentControlStates[argName] = {shown: shown};
                     }
                     let shown = true;
-                    _.forEach(argConfig.depends, (depArgValue, depArgName) => {
+                    forEach(argConfig.depends, (depArgValue, depArgName) => {
                         shown = shown && this.argumentValues[depArgName] === depArgValue;
                     });
                     this.argumentControlStates[argName].shown = shown;

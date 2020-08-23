@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {forEach} from 'lodash';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 
@@ -202,11 +202,11 @@ class ItemParticleEffectAnimation extends Animation {
         if (!this.args.inBackground) {
             this.resultCallback();
         }
-        _.forEach(this.particles, particle => {
+        forEach(this.particles, particle => {
             this.domContainer.removeChild(particle.domParticle);
         });
 
-        _.forEach(this.cleanupDomElements, domElement => {
+        forEach(this.cleanupDomElements, domElement => {
             this.domContainer.removeChild(domElement);
         });
 
