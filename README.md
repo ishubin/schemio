@@ -139,50 +139,6 @@ for x, i in [0 to 10] {
 ```
 
 
-### Fill control
-
-```js
-const item = {
-    shapeProps: {
-        fill:   {type: 'solid',     color: '#fff'},
-        fill2:  {type: 'image',     image: '/path/to/image'},
-        fill3:  {type: 'gradient',  colors: [['#fff', 0], ['#qwe', 30]],
-    }
-}
-```
-
-
-### Text rendering
-
-
-##### Rules:
-- [ ] By default text can be defined in 3 slots: above, center, below
-- [ ] item component can redefine all slots using `getTextSlots` function
-    - [ ] if that function doesn't return anything - it means there is no slot for text, so no way to render text
-    - [ ] `getTextSlots` functions is supposed to return array of {name: 'slot-name', area: {x: 0, y: 0, w: 100, h:30}}
-    - [ ] Text Panel (GeneralPanel.vue) will render all available slots in tabs
-    - [ ] when double-clicking on the text slot or in item - it will try to find the best matching text slot even if point is outside its area
-    - [ ] Each slot can be moved into another one, but with the warning that it will replace and erase the other slot text and properties
-    - [ ] valign - should only have: top, center and bottom alignment options.
-    - [ ] above and below slot should ignore valign property 
-- [ ] Item component can take over rendering of all text slots using editorProps.customTextRendering = true.
-    This is needed for such items like: Overlay, Button, FramePlayer so that they can handle all mouse events inside and it does not interfere with text objects
-- [ ] When switching between different shapes in the same item - its textParts gets reset depending on which text slots are supported by shape
-- [ ] When activating in-place text editor for a particular slot - it should display text properties panel
-
-
-```js
-item = {
-    textParts: {
-        header: {text: 'Hellow', fontSize: 12, font: 'Arial', padding: {...}},
-        body: {text: 'asdasdd', ...},
-        above: {text: 'sdasd', ...},
-        below: {text: 'asdad',...},
-        center: {}
-    }
-}
-```
-
 
 
 License
