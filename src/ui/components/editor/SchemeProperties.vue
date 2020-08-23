@@ -110,13 +110,14 @@ import RichTextEditor from '../RichTextEditor.vue';
 import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
+import {map} from 'lodash';
 
 export default {
     props: ['projectId', 'schemeContainer'],
     components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
     mounted() {
         apiClient.getTags(this.projectId).then(tags => {
-            this.existingSchemeTags = _.map(tags, tag => {
+            this.existingSchemeTags = map(tags, tag => {
                 return {text: tag};
             });
         });
@@ -135,7 +136,7 @@ export default {
 
     methods: {
         onSchemeTagChange(newTags) {
-            this.schemeContainer.scheme.tags = _.map(newTags, tag => tag.text);
+            this.schemeContainer.scheme.tags = map(newTags, tag => tag.text);
             this.onPropertyChange('tags');
         },
 
@@ -176,7 +177,7 @@ export default {
             return this.existingSchemeTags.filter(i => new RegExp(this.schemeTag, 'i').test(i.text));
         },
         schemeTags() {
-            return _.map(this.schemeContainer.scheme.tags, tag => {return {text: tag}});
+            return map(this.schemeContainer.scheme.tags, tag => {return {text: tag}});
         }
     },
 }

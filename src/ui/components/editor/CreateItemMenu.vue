@@ -92,7 +92,7 @@ import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
-import _ from 'lodash';
+import {map, forEach} from 'lodash';
 import utils from '../../../ui/utils.js';
 import generalItems from './item-menu/GeneralItemMenu.js';
 import umlItems from './item-menu/UMLItemMenu.js';
@@ -165,7 +165,7 @@ export default {
          * Enriches item with defaults of its shape
          */
         prepareItemsForMenu(items) {
-            return _.map(items, item => {
+            return map(items, item => {
                 item.item.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
                 if (item.item.shapeProps) {
                     // this will be needed later so that it is able to override recent shapeProps changes
@@ -191,7 +191,7 @@ export default {
                 if (!item.shapeProps) {
                     item.shapeProps = {};
                 }
-                _.forEach(shape.args, (shapeArg, shapeArgName) => {
+                forEach(shape.args, (shapeArg, shapeArgName) => {
                     if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
                         item.shapeProps[shapeArgName] = shapeArg.value;
                     }
@@ -204,8 +204,8 @@ export default {
                 this.artList = artList;
             });
             apiClient.getGlobalArt().then(globalArt => {
-                _.forEach(globalArt, artPack => {
-                    _.forEach(artPack.icons, icon => {
+                forEach(globalArt, artPack => {
+                    forEach(artPack.icons, icon => {
                         if (!icon.name) {
                             icon.name = 'Unnamed';
                         }
@@ -288,7 +288,7 @@ export default {
                 // resetting back to shapeProps that are defined in the menu
                 if (item.overidingShapeProps) {
                     const resetShapeProps = utils.clone(item.overidingShapeProps);
-                    _.forEach(resetShapeProps, (value, key) => {
+                    forEach(resetShapeProps, (value, key) => {
                         newItem.shapeProps[key] = value;
                     });
                 }

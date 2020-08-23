@@ -1,4 +1,6 @@
 import shortid from 'shortid';
+import {forEach} from 'lodash';
+
 export default class Animation { 
 
     constructor() {
@@ -45,13 +47,13 @@ export default class Animation {
 
     _enrichDomElement(element, args, childElements) {
         if (args) {
-            _.forEach(args, (value, argName) => {
+            forEach(args, (value, argName) => {
                 element.setAttribute(argName, value);
             })
         }
 
         if (childElements) {
-            _.forEach(childElements, childElement => {
+            forEach(childElements, childElement => {
                 element.appendChild(childElement);
             })
         }

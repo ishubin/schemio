@@ -234,6 +234,7 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import shortid from 'shortid';
 import Events from '../../userevents/Events';
+import {forEach, map, max} from 'lodash';
 
 const EMPTY_OBJECT = {type: 'nothing'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -278,7 +279,7 @@ export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
     components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox},
     beforeMount() {
-        _.forEach(states, state => {
+        forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
             state.setEditor(this);
         })
@@ -609,7 +610,7 @@ export default {
             this.worldHighlightedItems = [];
             this.viewportHighlightedItems = [];
 
-            _.forEach(itemIds, itemId => {
+            forEach(itemIds, itemId => {
                 const item = this.schemeContainer.findItemById(itemId);
                 if (!item) {
                     return;
@@ -663,9 +664,9 @@ export default {
             // ids of items that have subscribed for Init event
             const itemsForInit = {};
 
-            _.forEach(this.interactiveSchemeContainer.getItems(), item => {
+            forEach(this.interactiveSchemeContainer.getItems(), item => {
                 if (item.behavior && item.behavior.events) {
-                    _.forEach(item.behavior.events, event => {
+                    forEach(item.behavior.events, event => {
                         const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, event.actions);
 
                         if (event.event === Events.standardEvents.init.id) {
@@ -676,7 +677,7 @@ export default {
                 }
             });
 
-            _.forEach(itemsForInit, (val, itemId) => {
+            forEach(itemsForInit, (val, itemId) => {
                 userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         },
@@ -723,7 +724,7 @@ export default {
                 this.selectedItemLinks = this.generateItemLinks(item);
                 this.$nextTick(() => {
                     //readjusting links width and height
-                    _.forEach(this.selectedItemLinks, (link, index) => {
+                    forEach(this.selectedItemLinks, (link, index) => {
                         const domLinkTitle = document.querySelector(`#item-link-${index} span.item-link-title`);
                         if (domLinkTitle) {
                             const bbRect = domLinkTitle.getBoundingClientRect();
@@ -797,7 +798,7 @@ export default {
                 durationMillis: 300,
 
                 update: (t) => {
-                    _.forEach(this.selectedItemLinks, link => {
+                    forEach(this.selectedItemLinks, link => {
                         link.x = link.startX * (1.0 - t) + link.destinationX * t;
                         link.y = link.startY * (1.0 - t) + link.destinationY * t;
                     });
@@ -824,12 +825,12 @@ export default {
 
                 // taking side panel into account
                 if (destinationX > this.width - 500) {
-                    let maxLinkLength = _.chain(item.links).map(link => link.title ? link.title.length : link.url.length).max().value();
+                    let maxLinkLength = max(map(item.links, link => link.title ? link.title.length : link.url.length));
                     const leftX = this._vx(this.interactiveSchemeContainer.worldPointOnItem(0, 0, item).x);
                     destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
                 }
 
-                return _.map(item.links, (link, index) => {
+                return map(item.links, (link, index) => {
                     return {
                         url: link.url,
                         type: link.type,
@@ -1000,10 +1001,10 @@ export default {
                     return;
                 }
                 const item = states.createItem.item;
-                _.forEach(shape.args, (arg, argName) => {
+                forEach(shape.args, (arg, argName) => {
                     item.shapeProps[argName] = arg.value;
                 });
-                _.forEach(shapeProps, (argValue, argName) => {
+                forEach(shapeProps, (argValue, argName) => {
                     item.shapeProps[argName] = argValue;
                 });
             }

@@ -15,7 +15,7 @@
     
 </template>
 <script>
-import _ from 'lodash';
+import {map} from 'lodash';
 import LinkTypes from '../../LinkTypes.js';
 import LinkEditPopupVue from '../../LinkEditPopup.vue';
 import htmlSanitize from '../../../../../htmlSanitize';
@@ -50,7 +50,7 @@ export default {
         otherTab : {type: 'boolean',value: false, name: 'In Other Tab', description: 'Open the link in another tab'},
         underline: {type: 'boolean', value: true, name: 'Underline'},
         showIcon : {type: 'boolean', value: true, name: 'Show Icon'},
-        icon     : {type: 'choice', value: 'default', name: 'Icon', options: _.map(LinkTypes.knownTypes, linkType => linkType.name)},
+        icon     : {type: 'choice', value: 'default', name: 'Icon', options: map(LinkTypes.knownTypes, linkType => linkType.name)},
         iconColor: {type: 'color', value: '#666666', name: 'Color'}
     },
 

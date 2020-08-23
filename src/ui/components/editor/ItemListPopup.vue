@@ -21,7 +21,7 @@
 <script>
 import Modal from '../Modal.vue';
 import EventBus from './EventBus.js';
-import _ from 'lodash';
+import {map, forEach, sortBy} from 'lodash';
 
 
 function sortItems(items) {
@@ -44,7 +44,7 @@ export default {
     components: {Modal},
 
     data() {
-        var items = _.map(this.schemeContainer.scheme.items, item => {
+        var items = map(this.schemeContainer.scheme.items, item => {
             return {
                 id: item.id,
                 shown: true,
@@ -75,7 +75,7 @@ export default {
         filteredItems() {
             var keyword = this.searchKeyword.trim().toLowerCase();
             var items = [];
-            _.forEach(this.items, item => {
+            forEach(this.items, item => {
                 if (keyword) {
                     if (item.name.toLowerCase().indexOf(keyword) >= 0 || item.description.toLowerCase().indexOf(keyword) >= 0) {
                         items.push(item);
@@ -85,7 +85,7 @@ export default {
                 }
             });
 
-            return _.sortBy(items, 'name');
+            return sortBy(items, 'name');
         }
     }
 }

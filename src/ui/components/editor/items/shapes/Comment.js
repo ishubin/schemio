@@ -1,3 +1,5 @@
+import {forEach} from 'lodash';
+
 function makeTailControlPoint(item) {
     const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
     let x = 0, y = 0;
@@ -81,7 +83,7 @@ export default {
         make(item, pointId) {
             if (!pointId) {
                 const controlPoints = {};
-                _.forEach(controlPointFuncs, (func, name) => {
+                forEach(controlPointFuncs, (func, name) => {
                     controlPoints[name] = func(item);
                 });
                 return controlPoints;

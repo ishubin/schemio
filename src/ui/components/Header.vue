@@ -48,6 +48,7 @@
 
 <script>
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
+import {map} from 'lodash' ;
 
 export default {
     props: {
@@ -70,7 +71,7 @@ export default {
     methods: {
         openNewSchemePopup() {
             if (this.category && this.category.id) {
-                var categories = _.map(this.category.ancestors, ancestor => {
+                var categories = map(this.category.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};
                 });
 

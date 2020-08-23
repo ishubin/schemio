@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import _ from 'lodash';
+import {find} from 'lodash';
 
 const _knownTypes = [{
     name: 'default',
@@ -29,7 +29,7 @@ const _knownTypes = [{
 export default {
     knownTypes: _knownTypes,
     findTypeByNameOrDefault(name) {
-        var linkType = _.find(_knownTypes, t => t.name === name);
+        var linkType = find(_knownTypes, t => t.name === name);
         if (linkType) {
             return linkType;
         } else {

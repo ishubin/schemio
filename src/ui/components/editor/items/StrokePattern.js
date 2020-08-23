@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {keys} from 'lodash';
 
 const patterns = {
     solid(strokeSize) {
@@ -22,5 +22,5 @@ export default {
         return '';
     },
 
-    patterns: _.keys(patterns)
+    patterns: keys(patterns)
 }

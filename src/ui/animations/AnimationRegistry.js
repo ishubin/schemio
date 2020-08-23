@@ -1,4 +1,4 @@
-
+import {forEach} from 'lodash';
 
 // desired delta time between loop cycles in milliseconds
 const DESIRED_DELTA_TIME = 16;
@@ -82,7 +82,7 @@ export default {
     stopAllAnimations() {
         const animations = this.animations;
         this.animations = [];
-        _.forEach(animations, animation => {
+        forEach(animations, animation => {
             animation.destroy();
         });
     },
@@ -96,7 +96,7 @@ export default {
     },
 
     stopAllAnimationsForEntity(entityId) {
-        _.forEach(animations, animation => {
+        forEach(animations, animation => {
             if (animation.entityId === entityId) {
                 animation.enabled = false;
             }

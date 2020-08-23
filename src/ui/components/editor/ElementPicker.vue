@@ -14,7 +14,7 @@
  */
 import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
-import _ from 'lodash';
+import {forEach, indexOf} from 'lodash';
 import shortid from 'shortid';
 
 
@@ -75,11 +75,11 @@ export default {
                 });
             }
 
-            _.forEach(this.schemeContainer.getItems(), item => {
+            forEach(this.schemeContainer.getItems(), item => {
                 let itemShouldBeIncluded = true;                
 
                 if (this.excludedItemIds && this.excludedItemIds.length > 0) {
-                    itemShouldBeIncluded = _.indexOf(this.excludedItemIds, item.id) >= 0;
+                    itemShouldBeIncluded = indexOf(this.excludedItemIds, item.id) >= 0;
                 }
 
                 if (itemShouldBeIncluded) {
@@ -92,7 +92,7 @@ export default {
                 }
             });
 
-            _.forEach(this.schemeContainer.itemGroups, group => {
+            forEach(this.schemeContainer.itemGroups, group => {
                 options.push({
                     iconClass: 'fas fa-cubes',
                     name: group,

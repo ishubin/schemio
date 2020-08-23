@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import axios from 'axios';
-import _ from 'lodash';
 import utils from './utils.js';
 
 

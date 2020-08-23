@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {forEach} from 'lodash';
 
 export default class LimitedSettingsStorage {
 
@@ -85,7 +85,7 @@ export default class LimitedSettingsStorage {
         // but even then there is an efficiency problem due to serialization to local storage on each update, so meh...
         let oldestKey = null;
         let oldestRevision = 0;
-        _.forEach(this.items, (item, key) => {
+        forEach(this.items, (item, key) => {
             if (!oldestKey || oldestRevision > item.r) {
                 oldestKey = key;
                 oldestRevision = item.r;

@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import _ from 'lodash';
+import {values, sortBy, map, forEach, filter, uniq, indexOf, mapValues, find} from 'lodash';
 import shortid from 'shortid';
 import VueTagsInput from '@johmun/vue-tags-input';
 import utils from '../../../utils.js';
@@ -132,8 +132,8 @@ import EventBus from '../EventBus.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
 import {textSlotProperties} from '../../../scheme/Item';
 
-const standardItemEvents = _.chain(Events.standardEvents).values().sortBy(event => event.name).value();
-const standardItemEventIds = _.map(standardItemEvents, event => event.id);
+const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
+const standardItemEventIds = map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
 
@@ -153,13 +153,16 @@ export default {
     },
 
     data() {
-        const items = _.chain(this.schemeContainer.getItems())
-            .map(item => {return {id: item.id, name: item.name || 'Unnamed'}})
-            .sortBy(item => item.name)
-            .value();
+        const items = sortBy(
+            map(
+                this.schemeContainer.getItems(),
+                item => {return {id: item.id, name: item.name || 'Unnamed'}}
+            ),
+            item => item.name
+        );
 
-        const eventMetas = _.map(this.item.behavior.events, this.createBehaviorEventMeta);
-        _.forEach(eventMetas, (meta, index) => {
+        const eventMetas = map(this.item.behavior.events, this.createBehaviorEventMeta);
+        forEach(eventMetas, (meta, index) => {
             const collapsed = behaviorCollapseStateStorage.get(`${this.schemeContainer.scheme.id}/${this.item.id}/${index}`, 0);
             meta.collapsed = collapsed === 1 ? true: false;
         });
@@ -176,7 +179,7 @@ export default {
                 args: {}
             },
             itemGroup: '',
-            existingItemGroups: _.map(this.schemeContainer.itemGroups, group => {return {text: group}}),
+            existingItemGroups: map(this.schemeContainer.itemGroups, group => {return {text: group}}),
 
             dragging: {
                 action: null,
@@ -199,7 +202,7 @@ export default {
         },
 
         onItemGroupsChange(newGroups) {
-            this.$emit('item-field-changed', 'groups', _.map(newGroups, group => group.text));
+            this.$emit('item-field-changed', 'groups', map(newGroups, group => group.text));
         },
 
         toggleBehaviorCollapse(eventIndex) {
@@ -236,7 +239,7 @@ export default {
                 
             const shape = Shape.find(this.item.shape);
             if (shape) {
-                eventOptions = standardItemEvents.concat(_.chain(shape.getEvents(this.item)).map(event => {return {id: event.name, name: event.name}}).value());
+                eventOptions = standardItemEvents.concat(map(shape.getEvents(this.item), event => {return {id: event.name, name: event.name}}));
             }
 
             eventOptions.push({
@@ -249,7 +252,7 @@ export default {
         createMethodSuggestionsForElement(element) {
             const options = [];
 
-            _.forEach(Functions.main, (func, funcId) => {
+            forEach(Functions.main, (func, funcId) => {
                 if (funcId !== 'set') {
                     options.push({
                         method: funcId,
@@ -264,7 +267,7 @@ export default {
                 return [];
             }
 
-            _.forEach(this.collectAllItemCustomEvents(item), customEvent => {
+            forEach(this.collectAllItemCustomEvents(item), customEvent => {
                 options.push({
                     method: 'custom-event',
                     name: customEvent,
@@ -276,7 +279,7 @@ export default {
             const shape = Shape.find(item.shape);
             if (shape) {
                 if (shape.shapeType === 'standard') {
-                    _.forEach(Shape.standardShapeProps, (arg, argName) => {
+                    forEach(Shape.standardShapeProps, (arg, argName) => {
                         options.push({
                             method: 'set',
                             name: arg.name,
@@ -286,7 +289,7 @@ export default {
                     });
                 }
 
-                _.forEach(shape.args, (arg, argName) => {
+                forEach(shape.args, (arg, argName) => {
                     options.push({
                         method: 'set',
                         name: arg.name,
@@ -296,8 +299,8 @@ export default {
                 });
             }
 
-            _.forEach(shape.getTextSlots(item), textSlot => {
-                _.forEach(textSlotProperties, textSlotProperty => {
+            forEach(shape.getTextSlots(item), textSlot => {
+                forEach(textSlotProperties, textSlotProperty => {
                     options.push({
                         method: 'set',
                         name: `Text / ${textSlot.name} / ${textSlotProperty.name}`,
@@ -321,15 +324,15 @@ export default {
             if (!item.behavior.events) {
                 return [];
             }
-            const filteredEvents = _.filter(item.behavior.events, event => {
+            const filteredEvents = filter(item.behavior.events, event => {
                 return !this.isStandardEvent(event.event);
             });
 
-            return _.uniq(_.map(filteredEvents, event => event.event));
+            return uniq(map(filteredEvents, event => event.event));
         },
 
         isStandardEvent(event) {
-            return _.indexOf(standardItemEventIds, event) >= 0;
+            return indexOf(standardItemEventIds, event) >= 0;
         },
 
         addBehaviorEvent() {
@@ -377,7 +380,7 @@ export default {
             event.actions.push({
                 element,
                 method: 'show',
-                args: _.mapValues(Functions.main.show.args, arg => arg.value)
+                args: mapValues(Functions.main.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
         },
@@ -427,7 +430,7 @@ export default {
                 if (functionArgs) {
                     const args = {};
 
-                    _.forEach(functionArgs, (arg, argName) => {
+                    forEach(functionArgs, (arg, argName) => {
                         args[argName] = arg.value;
                     });
 
@@ -456,7 +459,7 @@ export default {
             } else if (propertyPath.indexOf('textSlots.') === 0) {
                 const secondDotPosition = propertyPath.indexOf('.', 'textSlots.'.length + 1);
                 const textSlotField = propertyPath.substr(secondDotPosition + 1);
-                const argumentDescription = _.find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+                const argumentDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
                 if (argumentDescription) {
                     return argumentDescription;
                 }
@@ -639,7 +642,7 @@ export default {
                 const secondDotIdx = propertyPath.indexOf('.', firstDotIdx + 1);
                 const textSlotName = propertyPath.substring(firstDotIdx + 1, secondDotIdx);
                 const textSlotField = propertyPath.substring(secondDotIdx + 1);
-                const fieldDescription = _.find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+                const fieldDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
                 if (fieldDescription) {
                     return `Text / ${textSlotName} / ${fieldDescription.name}`;
                 }
@@ -653,7 +656,7 @@ export default {
             return this.existingItemGroups.filter(i => new RegExp(this.itemGroup, 'i').test(i.text));
         },
         itemGroups() {
-            return _.map(this.item.groups, group => {return {text: group}});
+            return map(this.item.groups, group => {return {text: group}});
         }
     }
 }

@@ -1,6 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import {forEach, map} from 'lodash';
 
 function leadingZero(number) {
     if (number < 10) {
@@ -12,9 +13,9 @@ function leadingZero(number) {
 
 function sanitizeItem(oldItem) {
     let item = {};
-    _.forEach(oldItem, (value, field) => {
+    forEach(oldItem, (value, field) => {
         if (field === 'childItems') {
-            item[field] = _.map(value, sanitizeItem);
+            item[field] = map(value, sanitizeItem);
         } else if (field !== 'meta') {
             item[field] = value;
         }
@@ -23,7 +24,7 @@ function sanitizeItem(oldItem) {
 }
 
 function sanitizeScheme(scheme) {
-    const items = _.map(scheme.items, sanitizeItem);
+    const items = map(scheme.items, sanitizeItem);
     return {
         id: scheme.id,
         name: scheme.name,
@@ -49,7 +50,7 @@ function clone(obj) {
 }
 
 function extendObject(originalObject, overrideObject) {
-    _.forEach(overrideObject, (value, key) => {
+    forEach(overrideObject, (value, key) => {
         if (!originalObject.hasOwnProperty(key)) {
             originalObject[key] = clone(value);
         } else {
@@ -168,7 +169,7 @@ function domHasParentNode(domElement, callbackCheck) {
 }
 
 
-module.exports = {
+export default {
     formatDateAndTime,
     clone,
     extendObject,

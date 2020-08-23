@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Vue from 'vue';
-import _ from 'lodash';
+import {findKey} from 'lodash';
 
 const EventBus = new Vue({
     data() {
@@ -183,7 +183,7 @@ keyMap[EventBus.KEY.DOWN] = event => event.key === 'ArrowDown';
 keyMap[EventBus.KEY.SPACE] = event => event.key === ' ' || event.keyCode === 32;
 
 function identifyKeyPress(event) {
-    return _.findKey(keyMap, (check, keyName) => check(event));
+    return findKey(keyMap, (check, keyName) => check(event));
 }
 
 document.onkeyup = function(event) {

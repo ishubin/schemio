@@ -2,14 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import _ from 'lodash';
+import {forEach} from 'lodash';
 import initialData from './demo/initialData.js';
 
 const localStorageClientFunctions = {
     exportAllStorage() {
         let collectedData = {};
         let promises = []
-        _.forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
+        forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
             promises.push(db.find().then(items => {
                 collectedData[dbName] = items;
             }));
@@ -33,9 +33,9 @@ const localStorageClientFunctions = {
             const jsonToImport = JSON.parse(inputText);
             
             let chain = Promise.resolve(null);
-            _.forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
+            forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
                 if (jsonToImport[dbName]) {
-                    _.forEach(jsonToImport[dbName], doc => {
+                    forEach(jsonToImport[dbName], doc => {
                         chain = chain.then(() => {
                             db.save(doc.id, doc);
                         });
@@ -49,7 +49,7 @@ const localStorageClientFunctions = {
 
     clearStorage() {
         let promises = []
-        _.forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
+        forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
             promises.push(db.clear());
         });
 
@@ -88,7 +88,7 @@ export default class LocalStorageDb {
         this.index = {};
         if (initialData[this.collectionName]) {
 
-            _.forEach(initialData[this.collectionName], doc => {
+            forEach(initialData[this.collectionName], doc => {
                 this.index[doc.id] = 1;
                 this._set(`ldb-${this.collectionName}-document-${doc.id}`, doc);
             });
@@ -116,7 +116,7 @@ export default class LocalStorageDb {
     clear() {
         let chain = Promise.resolve(null);
         console.log(this.index);
-        _.forEach(this.index, (x, id) => {
+        forEach(this.index, (x, id) => {
             chain = chain.then(() => this.delete(id));
         });
 
@@ -160,7 +160,7 @@ export default class LocalStorageDb {
     find() {
         return new Promise((resolve, reject) => {
             const documents = [];
-            _.forEach(this.index, (value, id) => {
+            forEach(this.index, (value, id) => {
                 const doc = this._get(`ldb-${this.collectionName}-document-${id}`);
                 if (doc) {
                     documents.push(doc);

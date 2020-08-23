@@ -5,6 +5,7 @@
 import LocalStorageDb from './localStorageDb.js';
 import utils from './utils.js';
 import shortid from 'shortid';
+import {forEach, filter, find, uniq, map, reduce} from 'lodash';
 
 const schemeStorage     = new LocalStorageDb('schemes');
 const artStorage        = new LocalStorageDb('art');
@@ -26,11 +27,11 @@ function createSchemeIndexedWords(scheme) {
 
     let fullText = scheme.name + ' ' + scheme.description;
 
-    _.forEach(scheme.items, item => {
+    forEach(scheme.items, item => {
         fullText += ' ' + item.name + ' ' + item.description;
     });
 
-    _.forEach(textToWords(fullText), word => {
+    forEach(textToWords(fullText), word => {
         if (word) {
             wordSet[word] = 1;
         }
@@ -42,9 +43,9 @@ function createSchemeIndexedWords(scheme) {
 
 function filterSchemes(schemes, filters) {
     if (filters.categoryId) {
-        schemes = _.filter(schemes, scheme => {
+        schemes = filter(schemes, scheme => {
             if (scheme.category) {
-                if (scheme.category.id === filters.categoryId || _.find(scheme.category.ancestors, category => category.id === filters.categoryId)) {
+                if (scheme.category.id === filters.categoryId || find(scheme.category.ancestors, category => category.id === filters.categoryId)) {
                     return true;
                 } else {
                     return false;
@@ -55,7 +56,7 @@ function filterSchemes(schemes, filters) {
     }
     if (filters.query) {
         const queryForWords = textToWords(filters.query);
-        schemes = _.filter(schemes, scheme => {
+        schemes = filter(schemes, scheme => {
             // checking if any word from the query exists in the index
             let found = false;
 
@@ -73,13 +74,13 @@ function filterSchemes(schemes, filters) {
 function saveSchemeTags(scheme) {
     tagsStorage.load(GLOBAL_TAGS_ID).catch(err => []).then(existingTags => {
         let tags = existingTags.concat(scheme.tags);
-        _.forEach(scheme.items, item => {
+        forEach(scheme.items, item => {
             if (item.tags) {
                 tags = tags.concat(item.tags);
             }
         });
 
-        tags = _.uniq(tags);
+        tags = uniq(tags);
         return tagsStorage.save(GLOBAL_TAGS_ID, tags);
     });
 }
@@ -153,7 +154,7 @@ export default {
                 schemes = schemes.slice(start, end);
             }
             return {
-                results: _.map(schemes, scheme => {
+                results: map(schemes, scheme => {
                     return {
                         id: scheme.id,
                         name: scheme.name,
@@ -179,11 +180,11 @@ export default {
         return categoryStorage.find().then(categories => {
             if (!categoryId) {
                 return {
-                    childCategories: _.filter(categories, category => !category.parentId)
+                    childCategories: filter(categories, category => !category.parentId)
                 };
             } else {
                 return categoryStorage.load(categoryId).then(category => {
-                    category.childCategories = _.filter(categories, c => c.parentId === categoryId);
+                    category.childCategories = filter(categories, c => c.parentId === categoryId);
                     return category;
                 });
             }
@@ -197,7 +198,7 @@ export default {
 
             categories.sort(this._categoryComparator);
 
-            _.forEach(categories, category => {
+            forEach(categories, category => {
                 const cat = {
                     name: category.name,
                     id: category.id,
@@ -238,7 +239,7 @@ export default {
 
     ensureCategoryStructure(categories) {
         if (categories && categories.length > 0) {
-            return _.reduce(categories, (promise, category) => {
+            return reduce(categories, (promise, category) => {
                 return promise.then(parentCategory => {
                     //checking if category is new or already exists
                     const parentId = parentCategory ? parentCategory.id : null;
