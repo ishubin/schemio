@@ -121,7 +121,7 @@
 
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                        <path :d="item.path" fill="none" :stroke="item.stroke"
                             :stroke-width="item.strokeSize+'px'"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
@@ -151,7 +151,7 @@
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                        <path :d="item.path" fill="none" :stroke="item.stroke"
                             :stroke-width="item.strokeSize+'px'"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
