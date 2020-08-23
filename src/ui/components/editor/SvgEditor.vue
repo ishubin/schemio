@@ -21,7 +21,7 @@
                 <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvgInteractiveMode">
                     <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
                         v-if="item.visible"
-                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        :class="'item-cursor-' + item.cursor">
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
@@ -40,7 +40,7 @@
                 <g :transform="viewportTransform">
                     <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
                         v-if="item.visible"
-                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        :class="'item-cursor-' + item.cursor">
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
@@ -92,7 +92,7 @@
                     <g v-for="item in schemeContainer.worldItems"
                         v-if="item.visible"
                         class="item-container"
-                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        :class="'item-cursor-'+item.cursor">
                         >
 
                         <item-svg
@@ -135,7 +135,7 @@
                     <g v-for="item in schemeContainer.viewportItems"
                         v-if="item.visible"
                         class="item-container"
-                        :class="[item.meta.selected?'selected':'', 'item-cursor-' + item.cursor]">
+                        :class="'item-cursor-'+item.cursor">
                         >
 
                         <item-svg
