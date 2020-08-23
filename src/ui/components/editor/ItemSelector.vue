@@ -82,7 +82,6 @@ export default {
         document.body.addEventListener('mouseup', this.onMouseUp);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
-        // EventBus.$on(EventBus.SCHEME_CHANGED, this.onScheme);
         this.scrollToSelection();
     },
     beforeDestroy() {
@@ -107,7 +106,10 @@ export default {
                 itemId: null,
                 name: ''
             },
-            filteredItems: this.schemeContainer.getItems()
+            filteredItems: this.schemeContainer.getItems(),
+
+            // used for vertical multi-select when user holds shift
+            lastClickedItem: null
         };
     },
 
@@ -154,6 +156,21 @@ export default {
                 return true;
             }
 
+
+            if (event.shiftKey && this.lastClickedItem) {
+                //checking if last clicked item was not deleted
+                const lastClickedItem = this.schemeContainer.findItemById(this.lastClickedItem.id);
+                if (lastClickedItem) {
+                    this.selectItemsVertically(lastClickedItem, item);
+                    this.lastClickedItem = item;
+                    return;
+                }
+                else {
+                    this.lastClickedItem = null;
+                }
+            }
+            this.lastClickedItem = item;
+
             // canceling in-place name edit
             if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
                 this.nameEdit.itemId = null;
@@ -177,6 +194,27 @@ export default {
                     }
                 }
             });
+        },
+
+        selectItemsVertically(item1, item2) {
+            let idx1 = -1;
+            let idx2 = -1;
+
+            for(let i = 0; i < this.filteredItems.length && (idx1 < 0 || idx2 < 0); i += 1) {
+                if (this.filteredItems[i].id === item1.id) {
+                    idx1 = i;
+                }
+                if (this.filteredItems[i].id === item2.id) {
+                    idx2 = i;
+                }
+            }
+            if (idx1 < 0 || idx2 < 0) {
+                return;
+            }
+
+            for (let i = Math.min(idx1, idx2); i <= Math.max(idx1, idx2); i += 1) {
+                this.schemeContainer.selectItem(this.filteredItems[i], true);
+            }
         },
 
         toggleItemCollapseState(item) {
