@@ -28,6 +28,13 @@
                             :mode="mode"
                             @custom-event="onItemCustomEvent"/>
                     </g>
+                    <g v-for="item in worldHighlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                            :stroke-width="item.strokeSize+'px'"
+                            :data-item-id="item.id"
+                            style="opacity: 0.5"
+                            data-preview-ignore="true"/>
+                    </g>
                 </g>
 
                 <g :transform="viewportTransform">
@@ -39,6 +46,13 @@
                             :item="item"
                             :mode="mode"
                             @custom-event="onItemCustomEvent"/>
+                    </g>
+                    <g v-for="item in viewportHighlightedItems" :transform="item.transform">
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                            :stroke-width="item.strokeSize+'px'"
+                            :data-item-id="item.id"
+                            style="opacity: 0.5"
+                            data-preview-ignore="true"/>
                     </g>
                 </g>
 
@@ -107,7 +121,11 @@
 
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                            :stroke-width="item.strokeSize+'px'"
+                            :data-item-id="item.id"
+                            style="opacity: 0.5"
+                            data-preview-ignore="true"/>
                     </g>
 
                 </g>
@@ -133,7 +151,11 @@
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke" :stroke-width="item.strokeSize+'px'" style="opacity: 0.5"/>
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
+                            :stroke-width="item.strokeSize+'px'"
+                            :data-item-id="item.id"
+                            style="opacity: 0.5"
+                            data-preview-ignore="true"/>
                     </g>
                 </g>
 
@@ -276,6 +298,7 @@ export default {
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
@@ -307,6 +330,7 @@ export default {
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
+        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
@@ -608,9 +632,9 @@ export default {
                 }
 
                 let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
-                let strokeSize = 3;
+                let strokeSize = 6;
                 if (item.shape === 'curve') {
-                    strokeSize = item.shapeProps.strokeSize + 2;
+                    strokeSize = item.shapeProps.strokeSize + 6;
                     if (item.shapeProps.fill.type === 'none' && !item.shapeProps.closed) {
                         fill = 'none';
                     }
@@ -618,6 +642,7 @@ export default {
 
 
                 const itemHighlight = {
+                    id: itemId,
                     transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
                     path,
                     fill,
@@ -713,6 +738,20 @@ export default {
 
         onAnyItemClicked(item) {
             this.removeDrawnLinks();
+            this.resetHighlightedItems();
+        },
+
+        onAnyItemSelected() {
+            this.resetHighlightedItems();
+        },
+
+        resetHighlightedItems() {
+            if (this.viewportHighlightedItems.length > 0) {
+                this.viewportHighlightedItems = [];
+            }
+            if (this.worldHighlightedItems.length > 0) {
+                this.worldHighlightedItems = [];
+            }
         },
 
         onVoidClicked(item) {

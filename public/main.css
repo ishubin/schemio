@@ -115,7 +115,7 @@ h5 {
 .header .header-middle-section {
     display: inline-block;
 }
-.header a {
+.header a, .header .link {
     color: #eee;
     text-decoration: none;
 }
