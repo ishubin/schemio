@@ -167,16 +167,16 @@ export default {
     },
 
     styles: {
-        saveStyle(name, shape, shapeProps) {
-            return axios.post(`/v1/user/styles`, { name, shape, shapeProps }).then(unwrapAxios);
+        saveStyle(fill, strokeColor) {
+            return axios.post(`/v1/user/styles`, { fill, strokeColor }).then(unwrapAxios);
         },
 
-        getStylesForShape(shape) {
-            return axios.get(`/v1/user/styles/${shape}`).then(unwrapAxios);
+        getStyles() {
+            return axios.get('/v1/user/styles/').then(unwrapAxios);
         },
 
-        deleteStyle(shape, styleId) {
-            return axios.delete(`/v1/user/styles/${shape}/${styleId}`).then(unwrapAxios);
+        deleteStyle(styleId) {
+            return axios.delete(`/v1/user/styles/${styleId}`).then(unwrapAxios);
         }
     }
 }

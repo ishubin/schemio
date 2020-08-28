@@ -1,16 +1,18 @@
 <template>
     <div>
-        <panel name="Styles">
-            <span class="link" @click="isEdit = !isEdit"><i class="fas fa-edit"></i> Edit</span>
+        <panel name="Default Styles">
+        </panel>
+        <panel name="User Styles">
+            <span class="btn" @click="saveStyleFromItem">Save to Styles</span>
+            <span class="btn" @click="isEdit = !isEdit"><i class="fas fa-edit"></i> Edit</span>
             <ul class="shape-styles-preview">
-                <li v-for="(styleItem, styleItemIndex) in previewItems">
-                    <div class="shape-style" @click="applyStyle(styleItem.shape, styleItem.item.shapeProps)">
-                        <span v-if="isEdit" class="link link-remove-style" @click="removeUserStyle(styleItemIndex)"><i class="fas fa-times"/></span>
+                <li v-for="(stylePreview, stylePreviewIndex) in stylePreviews">
+                    <div class="shape-style" @click="applyStyle(stylePreview.style)">
+                        <span v-if="isEdit" class="link link-remove-style" @click="removeStyle(stylePreviewIndex)"><i class="fas fa-times"/></span>
 
-                        <svg width="140px" height="100px">
-                            <g :transform="`translate(${styleItem.item.area.x}, ${styleItem.item.area.y})`">
-                                <component :is="previewComponent" :item="styleItem.item"></component>
-                            </g>
+                        <svg width="70" height="40">
+                            <advanced-fill :fill-id="stylePreview.style.id" :fill="stylePreview.style.fill" :area="{x: 4, y:4, w:62, h:32}"/>
+                            <rect x="4" y="4" width="62" height="32" :fill="stylePreview.previewFill" :stroke="stylePreview.previewStroke" stroke-width="1"/>
                         </svg>
                     </div>
                 </li>
@@ -23,18 +25,16 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import apiClient from '../../../apiClient';
+import Panel from '../Panel.vue';
+import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
 import utils from '../../../utils';
-import Panel from '../Panel.vue';
-
-// this is used in order to cache user styles on the client side for all shapes
-const userStyles = {};
-
+import EventBus from '../EventBus';
 
 export default {
     props: ['item'],
 
-    components: {Panel},
+    components: {Panel, AdvancedFill},
 
     beforeMount() {
         this.init();
@@ -42,86 +42,60 @@ export default {
 
     data() {
         return {
-            userStyles          : userStyles,
             isEdit              : false,
             previewItems        : null,
             previewComponent    : null,
+            stylePreviews       : []
         }
     },
+
     methods: {
         init() {
-            const shapeName = this.item.shape;
-
-            if (this.userStyles.hasOwnProperty[shapeName] && this.userStyles[shapeName] && this.userStyles[shapeName].length > 0) {
-                this.prepareStyleItemPreviews(this.item);
-            }
-
-            apiClient.styles.getStylesForShape(shapeName).then(styles => {
-                userStyles[shapeName] = styles;
-                this.userStyles[shapeName] = styles;
-                this.prepareStyleItemPreviews(this.item);
-            });
-
-        },
-
-        applyStyle(shape, shapeProps) {
-            this.$emit('style-applied', shape, shapeProps);
-        },
-
-        removeUserStyle(index) {
-            const previewItem = this.previewItems[index];
-            if (!previewItem) {
-                return;
-            }
-            const style = this.userStyles[previewItem.shape][index];
-
-            apiClient.styles.deleteStyle(previewItem.shape, style.id).then(() => {
-                this.userStyles[previewItem.shape].splice(index, 1);
-                this.previewItems.splice(index, 1);
+            apiClient.styles.getStyles().then(styles => {
+                this.stylePreviews = map(styles, this.convertStyleToPreview);
             });
         },
 
-        prepareStyleItemPreviews(originalItem) {
-            const shapeName = originalItem.shape;
-            const shape = Shape.find(shapeName);
+        convertStyleToPreview(style) {
+            return {
+                style,
+                previewFill: AdvancedFill.computeSvgFill(style.fill, style.id),
+                previewStroke: style.strokeColor
+            };
+        },
+
+        isItemShapeSupportedForStyles() {
+            const shape = Shape.find(this.item.shape);
             if (!shape) {
-                return;
+                return false;
             }
-            this.previewComponent = shape.component;
 
-            const styles = this.userStyles[shapeName];
-            this.previewItems = map(styles, style => {
-                const item = {
-                    name: style.name,
-                    area: {x: 10, y: 10, w: 120, h: 80},
-                    shapeProps: utils.clone(originalItem.shapeProps),
-                    text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-                };
-                this.enrichItemWithShapeProps(item, shape);
-
-                forEach(style.shapeProps, (propValue, propName) => {
-                    item.shapeProps[propName] = propValue;
-                });
-                return {
-                    name: style.name,
-                    item,
-                    style,
-                    shape: shapeName
-                };
-            });
+            return shape.shapeType === 'standard' || (shape.args.fill && shape.args.fill.type === 'advanced-color'
+                && shape.args.strokeColor && shape.args.strokeColor === 'color');
         },
 
-        enrichItemWithShapeProps(item, shape) {
-            if (shape.args) {
-                if (!item.shapeProps) {
-                    item.shapeProps = {};
-                }
-                forEach(shape.args, (shapeArg, shapeArgName) => {
-                    if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
-                        item.shapeProps[shapeArgName] = shapeArg.value;
-                    }
+        applyStyle(style) {
+            this.$emit('style-applied', style);
+        },
+
+        saveStyleFromItem() {
+            if (this.isItemShapeSupportedForStyles) {
+
+                apiClient.styles.saveStyle(this.item.shapeProps.fill, this.item.shapeProps.strokeColor).then(style => {
+                    this.stylePreviews.push(this.convertStyleToPreview(style));
                 });
             }
+        },
+
+        removeStyle(index) {
+            const stylePreview = this.stylePreviews[index];
+            if (!stylePreview) {
+                return;
+            }
+
+            apiClient.styles.deleteStyle(stylePreview.style.id).then(() => {
+                this.stylePreviews.splice(index, 1);
+            });
         },
     }
 }

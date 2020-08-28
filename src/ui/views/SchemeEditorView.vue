@@ -138,6 +138,7 @@
                                 :scheme-container="schemeContainer" 
                                 @shape-prop-changed="onItemShapePropChanged"
                                 @item-field-changed="onItemFieldChanged"
+                                @item-style-applied="onItemStyleApplied"
                                 @shape-changed="onItemShapeChanged"
                             />
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
@@ -909,6 +910,21 @@ export default {
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
+        },
+
+        onItemStyleApplied(style) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                const shape = Shape.find(item.shape);
+                if (shape && (shape.shapeType === 'standard' || (shape.args.fill && shape.args.fill.type === 'advanced-color' 
+                    && shape.args.strokeColor && shape.args.strokeColor === 'color')) ) {
+                    item.shapeProps.fill = utils.clone(style.fill);
+                    item.shapeProps.strokeColor = utils.clone(style.strokeColor);
+                    EventBus.emitItemChanged(item.id);
+                    itemIds += item.id;
+                }
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
         },
 
         onInPlaceEditTextPropertyChanged(item, textSlotName, propertyPath, value) {

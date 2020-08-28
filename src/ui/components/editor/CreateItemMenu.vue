@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="create-item-menu">
-        <div v-if="currentPanel === 'items'">
+        <div>
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
             <panel v-for="panel in itemPanels" :name="panel.name">
@@ -46,10 +46,6 @@
                 </div>
             </panel>
         </div>
-        <div v-if="currentPanel === 'styles'">
-            <span class="link" @click="switchBackToItemsList()"><i class="fas fa-angle-left"></i> Back</span>
-            <styles-palette v-if="stylesPanel.item" :item="stylesPanel.item" :key="'styles-palette-'+stylesPanel.id" @style-applied="applyStyle"/>
-        </div>
 
         <create-image-modal v-if="createImageModalShown" :project-id="projectId" @close="createImageModalShown = false" @submit-image="startCreatingImage(arguments[0])"></create-image-modal>
 
@@ -86,7 +82,6 @@
 import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
-import StylesPalette from './properties/StylesPalette.vue';
 import EditArtModal from './EditArtModal.vue';
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
@@ -104,24 +99,14 @@ import {enrichItemWithDefaults} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
 
 
-const Panels = {
-    Items   : 'items',
-    Styles  : 'styles'
-};
-
 export default {
     props: ['projectId', 'schemeContainer'],
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, StylesPalette, ItemSvg},
+    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
     beforeMount() {
         this.reloadArt();
-        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
-    },
-    beforeDestroy() {
-        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
     data() {
         return {
-            currentEditorState          : null,
             selectedImageItem           : null,
             createImageModalShown       : false,
             customArtUploadModalShown   : false,
@@ -133,13 +118,6 @@ export default {
 
             editArtModalShown           : false,
             
-            // may be 'items' or 'styles'
-            currentPanel                : Panels.Items,
-            stylesPanel: {
-                id    : shortid.generate(),
-                item  : null,
-            },
-
             itemPanels: [{
                 name    : 'General',
                 items   : this.prepareItemsForMenu(generalItems)
@@ -294,7 +272,6 @@ export default {
                     });
                 }
 
-                this.triggerStylesPanelForShape(newItem.shape, newItem);
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
         },
@@ -306,7 +283,6 @@ export default {
             item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item, item.shape);
-            this.triggerStylesPanelForShape(item.shape, item);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
@@ -330,32 +306,6 @@ export default {
             };
             img.src = imageUrl;
         },
-
-        onEditorStateChanged(state) {
-            this.currentEditorState = state;
-            if (state !== 'createItem') {
-                this.currentPanel = Panels.Items;
-            }
-        },
-
-        triggerStylesPanelForShape(shapeName, item) {
-            this.currentPanel = Panels.Styles;
-            this.previewItem.shown = false;
-            this.stylesPanel.item = item;
-            this.stylesPanel.id = shortid.generate();
-        },
-
-        applyStyle(shape, shapeProps) {
-            EventBus.$emit(EventBus.SHAPE_STYLE_APPLIED, shape, shapeProps);
-        },
-
-        switchBackToItemsList() {
-            this.currentPanel = Panels.Items;
-            this.stylesPanel.isEdit = false;
-        },
     }
 }
 </script>
-
-<style lang="css">
-</style>

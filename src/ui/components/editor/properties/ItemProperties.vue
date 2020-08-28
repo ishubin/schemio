@@ -26,7 +26,7 @@
             />
 
         <div v-if="currentTab === 'styles'">
-            <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="applyStyle"/>
+            <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
         </div>
 
         <div v-if="currentTab === 'shape'">
@@ -177,10 +177,8 @@
                     </tbody>
                 </table>
             </panel>
-            <span class="btn btn-primary" @click="onSaveToStylesClicked">Save to styles</span>
         </div>
 
-        <save-style-modal v-if="saveStyleModalShown" :item="item" @close="saveStyleModalShown = false"/>
     </div>
 </template>
 
@@ -204,7 +202,6 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import {ItemInteractionMode} from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
-import SaveStyleModal from './SaveStyleModal.vue';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
@@ -227,9 +224,8 @@ export default {
     props: ['projectId', 'item', 'schemeContainer'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
-        GeneralPanel, BehaviorProperties, SaveStyleModal,
-        StylesPalette, NumberTextfield, ElementPicker, StrokePatternDropdown,
-        AdvancedColorEditor
+        GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
+        ElementPicker, StrokePatternDropdown, AdvancedColorEditor
     },
 
     beforeMount() {
@@ -268,7 +264,6 @@ export default {
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
 
-            saveStyleModalShown: false
         };
     },
 
@@ -298,18 +293,6 @@ export default {
             });
         },
 
-        onSaveToStylesClicked() {
-            this.saveStyleModalShown = true;
-        },
-
-        applyStyle(shapeName, shapeProps) {
-            if (this.item.shape === shapeName) {
-                forEach(shapeProps, (argValue, argName) => {
-                    this.item.shapeProps[argName] = argValue;
-                });
-            }
-        },
-
         minForShapeProp(arg) {
             if (arg.hasOwnProperty('min')) {
                 return arg.min;
@@ -322,6 +305,10 @@ export default {
                 return arg.max;
             }
             return null;
+        },
+
+        onStyleApplied(style) {
+            this.$emit('item-style-applied', style);
         }
     },
 

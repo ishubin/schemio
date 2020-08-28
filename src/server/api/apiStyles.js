@@ -9,32 +9,25 @@ const _ = require('lodash');
 module.exports = {
     addToStylingPalette(req, res) {
         const userLogin   = req.session.userLogin;
-        const name        = req.body.name;
-        const shape       = req.body.shape;
-        const shapeProps  = req.body.shapeProps;
+        const fill        = req.body.fill;
+        const strokeColor = req.body.strokeColor;
 
-        if (!shape || !shapeProps) {
-            res.$badRequest();
-            return;
-        }
-
-        styleStorage.addStyle(userLogin, name, shape, shapeProps).then(style => {
+        styleStorage.addStyle(userLogin, fill, strokeColor).then(style => {
             res.json({
-                id: style.id, name, shape, shapeProps
+                id: style.id, fill, strokeColor
             });
         }).catch(res.$apiError);
     },
 
-    getShapeStylePalette(req, res) {
+    getStylePalette(req, res) {
         const userLogin   = req.session.userLogin;
-        const shape       = req.params.shape;
 
-        styleStorage.getShapeStyles(userLogin, shape).then(styles => {
+        styleStorage.getStyles(userLogin).then(styles => {
             res.json(_.map(styles, style => {
                 return {
-                    id            : style.id,
-                    name          : style.name,
-                    shapeProps    : style.shapeProps
+                    id         : style.id,
+                    fill       : style.fill,
+                    strokeColor: style.strokeColor
                 };
             }));
         }).catch(res.$apiError);
@@ -42,10 +35,9 @@ module.exports = {
 
     deleteStyle(req, res) {
         const userLogin   = req.session.userLogin;
-        const shape       = req.params.shape;
         const styleId     = req.params.styleId;
 
-        styleStorage.deleteStyle(userLogin, shape, styleId).then(() => {
+        styleStorage.deleteStyle(userLogin, styleId).then(() => {
             res.json({status: 'ok'});
         }).catch(res.$apiError);
     }
