@@ -2,14 +2,12 @@
     <div>
         <panel name="Default Styles">
             <div v-for="styleSection in defaultStyleSections">
-                <span>{{styleSection.name}}</span>
                 <ul class="shape-styles-preview">
                     <li v-for="stylePreview in styleSection.styles">
                         <div class="shape-style" @click="applyStyle(stylePreview.style)">
                             <svg width="70" height="40">
                                 <advanced-fill :fill-id="stylePreview.style.id" :fill="stylePreview.style.fill" :area="{x: 4, y:4, w:62, h:32}"/>
                                 <rect x="4" y="4" width="62" height="32" :fill="stylePreview.previewFill" :stroke="stylePreview.previewStroke" stroke-width="1"/>
-                                <text x="27" y="27" v-if="stylePreview.style.textColor" :fill="stylePreview.style.textColor" font-size="16pt" font-family="Helvetica">A</text>
                             </svg>
                         </div>
                     </li>
@@ -29,7 +27,6 @@
                         <svg width="70" height="40">
                             <advanced-fill :fill-id="stylePreview.style.id" :fill="stylePreview.style.fill" :area="{x: 4, y:4, w:62, h:32}"/>
                             <rect x="4" y="4" width="62" height="32" :fill="stylePreview.previewFill" :stroke="stylePreview.previewStroke" stroke-width="1"/>
-                            <text x="27" y="27" v-if="stylePreview.style.textColor" :fill="stylePreview.style.textColor" font-size="16pt" font-family="Helvetica">A</text>
                         </svg>
                     </div>
                 </li>
