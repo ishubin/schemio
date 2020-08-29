@@ -5,8 +5,6 @@
 import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import forEach from 'lodash/forEach';
-import map from 'lodash/map';
-import collections from '../../../collections.js';
 import EventBus from '../EventBus.js';
 
 export default class StateCreateItem extends State {
@@ -31,7 +29,7 @@ export default class StateCreateItem extends State {
 
     mouseDown(x, y, mx, my, object, event) {
         this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
-        this.item.name = this.findProperItemName(this.item.name);
+        this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
         this.schemeContainer.addItem(this.item);
         this.refreshControlPoints(this.item);
         this.addedToScheme = true;
@@ -134,14 +132,5 @@ export default class StateCreateItem extends State {
         if (shape && shape.controlPoints) {
             item.meta.controlPoints = shape.controlPoints.make(item);
         }
-    }
-
-    /**
-     * Searches for all item names and adds numeric index so that it becomes unique in the scheme
-     * @param {string} name 
-     */
-    findProperItemName(name) {
-        const itemNames = map(this.schemeContainer.getItems(), item => item.name);
-        return collections.giveUniqueName(name, itemNames);
     }
 }

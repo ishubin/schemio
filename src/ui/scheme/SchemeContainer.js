@@ -9,6 +9,7 @@ import indexOf from 'lodash/indexOf';
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
 
+import collections from '../collections';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
@@ -863,7 +864,7 @@ class SchemeContainer {
                 const worldPoint = this.worldPointOnItem(0, 0, item);
 
                 const newItem = this.copyItem(item);
-                newItem.name = item.name + ' copy';
+                newItem.name = this.copyNameAndMakeUnique(item.name);
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
                 if (item.meta.transform) {
@@ -908,6 +909,26 @@ class SchemeContainer {
         });
 
         return newItem;
+    }
+
+    /**
+     * Searches for all item names and adds numeric index so that it becomes unique in the scheme
+     * @param {string} name 
+     */
+    generateUniqueName(name) {
+        const itemNames = map(this.getItems(), item => item.name);
+        return collections.giveUniqueName(name, itemNames);
+    }
+
+    copyNameAndMakeUnique(name) {
+        const nameParts = name.trim().split(' ');
+        if (nameParts.length > 1) {
+            if (!isNaN(nameParts[nameParts.length - 1])) {
+                nameParts.splice(nameParts.length - 1, 1);
+                return this.generateUniqueName(nameParts.join(' ').trim());
+            }
+        }
+        return this.generateUniqueName(name);
     }
 }
 
