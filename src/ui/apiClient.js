@@ -167,8 +167,8 @@ export default {
     },
 
     styles: {
-        saveStyle(fill, strokeColor) {
-            return axios.post(`/v1/user/styles`, { fill, strokeColor }).then(unwrapAxios);
+        saveStyle(fill, strokeColor, textColor) {
+            return axios.post(`/v1/user/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
         },
 
         getStyles() {

@@ -11,10 +11,11 @@ module.exports = {
         const userLogin   = req.session.userLogin;
         const fill        = req.body.fill;
         const strokeColor = req.body.strokeColor;
+        const textColor   = req.body.textColor;
 
-        styleStorage.addStyle(userLogin, fill, strokeColor).then(style => {
+        styleStorage.addStyle(userLogin, fill, strokeColor, textColor).then(style => {
             res.json({
-                id: style.id, fill, strokeColor
+                id: style.id, fill, strokeColor, textColor
             });
         }).catch(res.$apiError);
     },
@@ -27,7 +28,8 @@ module.exports = {
                 return {
                     id         : style.id,
                     fill       : style.fill,
-                    strokeColor: style.strokeColor
+                    strokeColor: style.strokeColor,
+                    textColor  : style.textColor
                 };
             }));
         }).catch(res.$apiError);

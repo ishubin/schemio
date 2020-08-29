@@ -13,9 +13,9 @@ class MongoStyleStorage {
         return mongo.db().collection('styles');
     }
 
-    addStyle(userLogin, fill, strokeColor) {
+    addStyle(userLogin, fill, strokeColor, textColor) {
         const style = {
-            id: shortid.generate(), version: STYLES_VERSION, userLogin, fill, strokeColor
+            id: shortid.generate(), version: STYLES_VERSION, userLogin, fill, strokeColor, textColor
         };
         return this._styles().insertOne(style).then(result => {
             return style;
