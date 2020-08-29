@@ -178,8 +178,15 @@ export default {
                 this.color.color = 'rgba(255,255,255,.10)';
             }
             if (colorType === 'gradient' && !this.color.gradient) {
+                let color1 = 'rgba(0,0,0, 1.0)';
+                let color2 = 'rgba(255,255,255, 1.0)';
+
+                if (this.color.color) {
+                    color1 = this.color.color;
+                    color2 = this.color.color;
+                }
                 this.color.gradient = {
-                    colors: [{c: 'rgba(0,0,0, 1.0)', p: 0}, {c: 'rgba(255,255,255, 1.0)', p: 100}],
+                    colors: [{c: color1, p: 0}, {c: color2, p: 100}],
                     type: 'linear',
                     direction: 0.0
                 };
