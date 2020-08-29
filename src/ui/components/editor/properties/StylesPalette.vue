@@ -40,6 +40,7 @@
 
 <script>
 import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
 import map from 'lodash/map';
 import apiClient from '../../../apiClient';
 import Panel from '../Panel.vue';
@@ -141,10 +142,13 @@ export default {
             if (!stylePreview) {
                 return;
             }
-
-            apiClient.styles.deleteStyle(stylePreview.style.id).then(() => {
+            const styleId = stylePreview.style.id;
+            apiClient.styles.deleteStyle(styleId).then(() => {
                 this.stylePreviews.splice(index, 1);
+                this.stylePreviews = filter(this.stylePreviews, sp => sp.style.id !== styleId);
             });
+
+            cachedUserStyles = filter(cachedUserStyles, style => style.id !== styleId);
         },
     }
 }
