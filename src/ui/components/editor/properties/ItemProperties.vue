@@ -30,7 +30,7 @@
         </div>
 
         <div v-if="currentTab === 'shape'">
-            <panel name="General">
+            <panel name="General" uid="general-item-properties">
                 <table class="properties-table">
                     <tbody>
                         <tr>

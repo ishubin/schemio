@@ -14,25 +14,27 @@
 </template>
 
 <script>
+import LimitedSettingsStorage from '../../LimitedSettingsStorage';
+
+const panelSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'panel-state', 100);
+
 export default {
     props: {
-        open: {
-            type: Boolean,
-            default: true
-        },
-        name: String
+        name: String,
+        uid: String
     },
     data() {
         return {
-            isOpen: this.open
+            isOpen: panelSettingsStorage.get(this.name + this.uid, true)
         }
     },
     methods: {
         togglePanel() {
             this.isOpen = !this.isOpen;
+            panelSettingsStorage.save(this.name + this.uid, this.isOpen);
             this.$emit('value', this.isOpen);
         }
-    }
+    },
 }
 </script>
 
