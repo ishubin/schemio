@@ -920,6 +920,17 @@ export default {
                     && shape.args.strokeColor && shape.args.strokeColor === 'color')) ) {
                     item.shapeProps.fill = utils.clone(style.fill);
                     item.shapeProps.strokeColor = utils.clone(style.strokeColor);
+                    if (style.textColor) {
+                        const textSlots = shape.getTextSlots(item);
+                        if (textSlots) {
+                            forEach(textSlots, textSlot => {
+                                if (item.textSlots[textSlot.name]) {
+                                    item.textSlots[textSlot.name].color = utils.clone(style.textColor);
+                                }
+                            });
+                        }
+                    }
+
                     EventBus.emitItemChanged(item.id);
                     itemIds += item.id;
                 }
