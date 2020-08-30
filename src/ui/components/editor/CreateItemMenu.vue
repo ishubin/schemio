@@ -146,10 +146,6 @@ export default {
         prepareItemsForMenu(items) {
             return map(items, item => {
                 item.item.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
-                if (item.item.shapeProps) {
-                    // this will be needed later so that it is able to override recent shapeProps changes
-                    item.overidingShapeProps = utils.clone(item.item.shapeProps);
-                }
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
@@ -262,15 +258,7 @@ export default {
                 newItem.id = shortid.generate();
                 newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
                 newItem.name = item.name;
-                recentPropsChanges.applyItemProps(newItem, newItem.shape);
-
-                // resetting back to shapeProps that are defined in the menu
-                if (item.overidingShapeProps) {
-                    const resetShapeProps = utils.clone(item.overidingShapeProps);
-                    forEach(resetShapeProps, (value, key) => {
-                        newItem.shapeProps[key] = value;
-                    });
-                }
+                recentPropsChanges.applyItemProps(newItem);
 
                 EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);
             }
@@ -282,7 +270,7 @@ export default {
             item.shapeProps.url = link.url;
             item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
-            recentPropsChanges.applyItemProps(item, item.shape);
+            recentPropsChanges.applyItemProps(item);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 

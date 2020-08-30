@@ -31,27 +31,25 @@ export const textSlotProperties = [
     {field: 'fontSize', name: 'Font Size', type: 'number'},
     {field: 'whiteSpace', name: 'White Space', type: 'choice', options: textWhiteSpaceOptions},
     {field: 'font', name: 'Font', type: 'choice', options: map(getAllFonts(), font => font.name)},
-    {field: 'padding.left', name: 'Padding Left', type: 'number'},
-    {field: 'padding.right', name: 'Padding Right', type: 'number'},
-    {field: 'padding.top', name: 'Padding Top', type: 'number'},
-    {field: 'padding.bottom', name: 'Padding Bottom', type: 'number'},
+    {field: 'paddingLeft', name: 'Padding Left', type: 'number'},
+    {field: 'paddingRight', name: 'Padding Right', type: 'number'},
+    {field: 'paddingTop', name: 'Padding Top', type: 'number'},
+    {field: 'paddingBottom', name: 'Padding Bottom', type: 'number'},
 ];
 
 export function enrichItemTextSlotWithDefaults(textSlot) {
     utils.extendObject(textSlot, {
-        text: '',
-        color: 'rgba(0,0,0,1.0)',
-        halign: 'center',   // can be: left, center, right
-        valign: 'middle',    // can be: top, middle, bottom,
-        fontSize: 14,
-        whiteSpace: 'normal',
-        font: getDefaultFont(),
-        padding: {
-            left: 10,
-            right: 10,
-            top: 10,
-            bottom: 10
-        }
+        text         : '',
+        color        : 'rgba(0,0,0,1.0)',
+        halign       : 'center',            // can be: left, center, right
+        valign       : 'middle',            // can be: top, middle, bottom,
+        fontSize     : 14,
+        whiteSpace   : 'normal',
+        font         : getDefaultFont(),
+        paddingLeft  : 10,
+        paddingRight : 10,
+        paddingTop   : 10,
+        paddingBottom: 10
     });
     return textSlot;
 }

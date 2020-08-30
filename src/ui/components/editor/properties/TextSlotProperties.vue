@@ -82,25 +82,25 @@
                     <tr>
                         <td class="label" width="50%">Padding Left</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.left" @changed="emitTextSlotPropertyChange('padding.left', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingLeft" @changed="emitTextSlotPropertyChange('paddingLeft', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Right</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.right" @changed="emitTextSlotPropertyChange('padding.right', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingRight" @changed="emitTextSlotPropertyChange('paddingRight', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Top</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.top" @changed="emitTextSlotPropertyChange('padding.top', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingTop" @changed="emitTextSlotPropertyChange('paddingTop', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Bottom</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.padding.bottom" @changed="emitTextSlotPropertyChange('padding.bottom', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingBottom" @changed="emitTextSlotPropertyChange('paddingBottom', arguments[0])"/>
                         </td>
                     </tr>
                     <tr>

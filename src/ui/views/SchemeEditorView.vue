@@ -649,15 +649,6 @@ export default {
         onItemChange(itemId, propertyPath) {
             this.schemeChanged = true;
 
-            const item = this.schemeContainer.findItemById(itemId);
-            if (item && propertyPath) {
-                const value = utils.getObjectProperty(item, propertyPath);
-
-                if (propertyPath && propertyPath.indexOf('shapeProps.') === 0) {
-                    recentPropsChanges.registerItemProp(item.shape, propertyPath, value);
-                }
-            }
-
             if (propertyPath === 'area.type') {
                 // need to preform a full reindex since item was moved in/out viewport/world coords
                 this.schemeContainer.reindexItems();
@@ -885,6 +876,7 @@ export default {
                         item.shapeProps[name] = utils.clone(value);
                         EventBus.emitItemChanged(item.id);
                         itemIds += item.id;
+                        recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
                 }
             });
@@ -938,24 +930,26 @@ export default {
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
         },
 
-        onInPlaceEditTextPropertyChanged(item, textSlotName, propertyPath, value) {
+        onInPlaceEditTextPropertyChanged(item, textSlotName, propertyName, value) {
             if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
-                utils.setObjectProperty(item.textSlots[textSlotName], propertyPath, utils.clone(value));
+                item.textSlots[textSlotName][propertyName] = utils.clone(value);
+                recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
             }
             EventBus.emitItemChanged(item.id);
-            EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyPath}`);
+            EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
         },
 
-        onTextPropertyChanged(textSlotName, propertyPath, value) {
+        onTextPropertyChanged(textSlotName, propertyName, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
-                    utils.setObjectProperty(item.textSlots[textSlotName], propertyPath, utils.clone(value));
+                    item.textSlots[textSlotName][propertyName] = utils.clone(value);
+                    recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                 }
                 EventBus.emitItemChanged(item.id);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyPath}`);
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
         hideTopHelperPanel() {
