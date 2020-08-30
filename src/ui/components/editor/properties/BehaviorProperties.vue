@@ -62,7 +62,7 @@
                                     @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
                                     />
                             </div>
-                            <span>: </span>
+                            <span class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </span>
                             <div>
                                 <dropdown
                                     :key="action.element.item"
@@ -605,6 +605,13 @@ export default {
             this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
 
             this.emitChangeCommited();
+        },
+
+        jumpToElement(elementSelector) {
+            const item = this.schemeContainer.findFirstElementBySelector(elementSelector);
+            if (item) {
+                this.schemeContainer.selectItem(item);
+            }
         }
     },
 

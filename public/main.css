@@ -1788,6 +1788,15 @@ table.position-panel-table .property-label {
     margin: 0;
 }
 
+.behavior-goto-element {
+    user-select: none;
+    cursor: pointer;
+    opacity: 0.6;
+}
+.behavior-goto-element:hover {
+    opacity: 1.0;
+}
+
 /***************** Element Picker ****************/
 .element-picker .picked-element.picked-element-type-item {
     color: #036503;
