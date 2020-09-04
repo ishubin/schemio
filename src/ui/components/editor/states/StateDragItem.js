@@ -273,6 +273,9 @@ export default class StateDragItem extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        // doing it just in case the highlighting was previously set
+        this.eventBus.emitItemsHighlighted([]);
+
         if (this.multiSelectBox) {
             if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
@@ -342,23 +345,79 @@ export default class StateDragItem extends State {
     }
 
     handleControlPointDrag(x, y) {
-        const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
-        const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
-        const dx = localPoint2.x - localPoint.x,
-              dy = localPoint2.y - localPoint.y;
-
         const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
         if (controlPoint) {
-            const shape = Shape.find(this.sourceItem.shape);
-            shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper);
-            const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
-            this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
-            this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
-            this.eventBus.emitItemChanged(this.sourceItem.id);
-            this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
-            this.reindexNeeded = true;
-            this.lastDraggedItem = this.sourceItem;
+            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
+                this.handleCurveEdgeControlPointDrag(x, y, controlPoint);
+            } else {
+                const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
+                const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
+                const dx = localPoint2.x - localPoint.x, dy = localPoint2.y - localPoint.y;
+
+                const shape = Shape.find(this.sourceItem.shape);
+                shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
+                const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
+                this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
+                this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
+                this.eventBus.emitItemChanged(this.sourceItem.id);
+                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
+                this.reindexNeeded = true;
+                this.lastDraggedItem = this.sourceItem;
+            }
         }
+    }
+
+    handleCurveEdgeControlPointDrag(x, y, controlPoint) {
+        // this function implement the same logic as in StateEditCurve.handleEdgeCurvePointDrag
+        // but it also modifies a control point in the end
+        // so it is not that easy to share code
+        const distanceThreshold = 20;
+        const includeOnlyVisibleItems = true;
+
+        const curvePoint = this.sourceItem.shapeProps.points[this.controlPoint.id];
+        if (!curvePoint) {
+            return;
+        }
+
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems, this.sourceItem.area.type);
+        if (closestPointToItem) {
+            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
+
+            curvePoint.x = localCurvePoint.x;
+            curvePoint.y = localCurvePoint.y;
+
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+            if (controlPoint.isEdgeStart) {
+                this.sourceItem.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                this.sourceItem.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            } else {
+                this.sourceItem.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                this.sourceItem.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+            }
+        } else {
+            const localPoint = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
+            curvePoint.x = this.snapper.snapX(localPoint.x);
+            curvePoint.y = this.snapper.snapY(localPoint.y);
+
+            // nothing to attach to so reseting highlights in case it was set previously
+            this.eventBus.emitItemsHighlighted([]);
+            if (controlPoint.isEdgeStart) {
+                this.sourceItem.shapeProps.sourceItem = null;
+                this.sourceItem.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.sourceItem.shapeProps.destinationItem = null;
+                this.sourceItem.shapeProps.destinationItemPosition = 0;
+            }
+        }
+
+        const shape = Shape.find(this.sourceItem.shape);
+        const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
+        this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
+        this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
+        this.eventBus.emitItemChanged(this.sourceItem.id);
+        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
+        this.reindexNeeded = true;
+        this.lastDraggedItem = this.sourceItem;
     }
 
     initMulitSelectBox(x, y) {

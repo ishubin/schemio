@@ -184,12 +184,13 @@ export default {
             if (!pointId) {
                 const controlPoints = {};
                 forEach(item.shapeProps.points, (point, pointIndex) => {
-                    controlPoints[pointIndex] = {x: point.x, y: point.y};
+                    controlPoints[pointIndex] = {x: point.x, y: point.y, isEdgeStart: pointIndex === 0, isEdgeEnd: pointIndex === item.shapeProps.points.length - 1};
                 });
                 return controlPoints;
             } else {
+                const pId = parseInt(pointId);
                 if (item.shapeProps.points[pointId]) {
-                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y};
+                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y, isEdgeStart: pId === 0, isEdgeEnd: pId === item.shapeProps.points.length - 1};
                 }
             }
         },
