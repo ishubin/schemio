@@ -768,6 +768,10 @@ export default {
         },
 
         onBringToView(area) {
+            let schemeContainer = this.schemeContainer;
+            if (this.mode === 'view') {
+                schemeContainer = this.interactiveSchemeContainer;
+            }
             const headerHeight = 50;
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
@@ -775,22 +779,23 @@ export default {
                 newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
-            const oldX = this.schemeContainer.screenTransform.x;
-            const oldY = this.schemeContainer.screenTransform.y;
-            const oldZoom = this.schemeContainer.screenTransform.scale;
+            const oldX = schemeContainer.screenTransform.x;
+            const oldY = schemeContainer.screenTransform.y;
+            const oldZoom = schemeContainer.screenTransform.scale;
 
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
             const destY = (this.height)/2 - (area.y - headerHeight + area.h/2) *newZoom;
 
             AnimationRegistry.play(new ValueAnimation({
-                durationMillis: 1000,
+                durationMillis: 400,
+                animationType: 'ease-out',
                 update: (t) => {
-                    this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
-                    this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
-                    this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
+                    schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
+                    schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
+                    schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
                 }, 
                 destroy: () => {
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                 }
             }));
         },

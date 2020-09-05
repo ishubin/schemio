@@ -3,11 +3,11 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="ssc-container" oncontextmenu="return false;" style="position: relative; display: inline-block;">
+    <div class="schemio-standalone-container" oncontextmenu="return false;" style="position: relative; display: inline-block;">
         <div class="ssc-header" style="position: absolute; top: 0; left: 0; background: #999; display: block; width: 100%; font-size: 14px;">
             <div style="padding: 4px;">
                 Zoom:
-                <input v-model="textZoom" style="display: inline-block; padding: 2px 4px; border: 1px solid #555; width: 60px;" @input="onTextZoomChange"/>
+                <input v-model="textZoom" style="display: inline-block; padding: 2px 4px; border: 1px solid #555; width: 60px;" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
         </div>
@@ -17,8 +17,7 @@
             :offset-x="offsetX"
             :offset-y="offsetY"
             :zoom="vZoom"
-            mode="view" 
-            @zoom-updated="onZoomUpdateInside"/>
+            mode="view" />
     </div>
 </template>
 
@@ -33,6 +32,12 @@ export default {
 
     components: {SvgEditor},
 
+    beforeMount() {
+        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+    },
+    beforeDestroy() {
+        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+    },
     mounted() {
         if (this.autoZoom) {
             this.zoomToScheme();
@@ -41,18 +46,17 @@ export default {
     data() {
         return {
             schemeContainer: new SchemeContainer(this.scheme, EventBus),
-            textZoom: "" + this.zoom * 100.0,
-            vZoom: this.zoom || 1.0
+            textZoom: "" + this.zoom,
+            vZoom: this.zoom
         }
     },
 
     methods: {
-        onZoomUpdateInside(newZoom) {
-            const value = Math.floor(newZoom * 1000) / 10;
-            this.textZoom = "" + Math.min(1000, Math.max(2, value));
+        onScreenTransformUpdated(screenTransform) {
+            this.textZoom = '' + Math.round(screenTransform.scale * 10000) / 100;
         },
-        onTextZoomChange() {
-            this.vZoom = parseFloat(this.textZoom) / 100.0;
+        onZoomSubmitted() {
+            this.vZoom = parseFloat(this.textZoom);
         },
         zoomToScheme() {
             this.zoomToItems(this.schemeContainer.getItems());

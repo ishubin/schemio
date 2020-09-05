@@ -25,7 +25,7 @@ window.schemioViewScheme = (id, scheme, opts) => {
                 height: parseInt(options.height) || 400,
                 offsetX: parseInt(options.offsetX) || 0,
                 offsetY: parseInt(options.offsetY) || 0,
-                zoom: Math.max(0.00005, parseFloat(options.zoom) || 1.0),
+                zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
                 autoZoom: objProperty(options, 'autoZoom', true)
             };
         },

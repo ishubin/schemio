@@ -64,7 +64,7 @@ export default class ValueAnimation extends Animation {
 
         const t = this.elapsedTime / this.durationMillis;
 
-        this.updateCallback(convertTime(t));
+        this.updateCallback(convertTime(t, this.animationType));
         return true;
     }
 
