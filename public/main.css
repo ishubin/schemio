@@ -304,6 +304,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 .btn {
     display: inline-block;
     padding: 5px 10px 5px 10px;
+    font-size: 16px;
     cursor: pointer;
     background: #f0f0f0;
     border: 1px solid #777;
@@ -347,6 +348,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 
 .btn.btn-small {
     padding: 1px 2px;
+    font-size: 13px;
 }
 
 
@@ -520,6 +522,8 @@ ul.pagination li a.current {
 }
 
 .scheme-top-helper-panel-wrapper {
+    background: var(--faint-weak);
+    border-bottom: 1px solid var(--faint-strong);
     position: absolute;
     width: 100%;
     top: 47px;
@@ -527,10 +531,7 @@ ul.pagination li a.current {
 }
 .scheme-top-helper-panel {
     display: inline-block;
-    background: var(--faint-weak);
-    padding: 8px 15px;
-    border: 1px solid var(--faint-strong);
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    padding: 4px 15px;
 }
 
 

@@ -163,7 +163,7 @@
                 </div>
             </div>
 
-            <div v-if="topHelperPanel.currentPanel !== null" class="scheme-top-helper-panel-wrapper">
+            <div class="scheme-top-helper-panel-wrapper">
                 <div v-if="topHelperPanel.currentPanel === 'curve-edit-helper'" class="scheme-top-helper-panel">
                     <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
                 </div>
