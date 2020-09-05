@@ -1,3 +1,7 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
 <template>
     <div class="ssc-container" oncontextmenu="return false;" style="position: relative; display: inline-block;">
         <div class="ssc-header" style="position: absolute; top: 0; left: 0; background: #999; display: block; width: 100%; font-size: 14px;">
