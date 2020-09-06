@@ -1857,7 +1857,8 @@ table.position-panel-table .property-label {
 
 .item-tooltip .item-tooltip-close {
     position: absolute;
-    top: 5px;
+    font-size: 20px;
+    top: 0px;
     right: 8px;
     opacity: 0.4;
     cursor: pointer;

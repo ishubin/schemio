@@ -1,6 +1,6 @@
 <template>
     <div class="item-tooltip" :id="domId" :style="tooltipStyle" data-type="item-tooltip">
-        <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}"><i class="fas fa-times"></i></span>
+        <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}">&times;</span>
         <h3 :style="{'color': tooltipColor}">{{item.name}}</h3>
         <div v-html="sanitizedItemDescription"></div>
     </div>
@@ -55,10 +55,8 @@ export default {
         },
 
         isInsideTooltip(domElement) {
-            if (domElement.getAttribute('data-type') === 'item-tooltip') {
+            if (domElement.closest('[data-type="item-tooltip"]')) {
                 return true;
-            } else if (domElement.parentElement) {
-                return this.isInsideTooltip(domElement.parentElement);
             }
             return false;
         }
