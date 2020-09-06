@@ -21,6 +21,10 @@
             mode="view" />
 
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+        <div class="ssc-side-panel-right" v-if="sidePanel.item">
+            <span class="ssc-button" @click="sidePanel.item = null">Close</span>
+            <item-details :item="sidePanel.item"/>
+        </div>
     </div>
 </template>
 
@@ -29,20 +33,25 @@ import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
 import EventBus from '../components/editor/EventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
+import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
 
 export default {
     props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom'],
 
-    components: {SvgEditor, ItemTooltip},
+    components: {SvgEditor, ItemTooltip, ItemDetails},
 
     beforeMount() {
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
+        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
+        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
     },
     mounted() {
         if (this.autoZoom) {
@@ -61,6 +70,10 @@ export default {
                 x: 0,
                 y: 0
             },
+
+            sidePanel: {
+                item: null
+            }
         }
     },
 
@@ -80,8 +93,16 @@ export default {
             this.itemTooltip.shown = true;
         },
 
+        onItemSidePanelTriggered(item) {
+            this.sidePanel.item = item;
+        },
+
         onZoomSubmitted() {
             this.vZoom = parseFloat(this.textZoom);
+        },
+
+        onVoidClicked() {
+            this.sidePanel.item = null;
         },
 
         zoomToScheme() {
