@@ -26,6 +26,11 @@
     border: 1px solid #2b90b5;
 }
 
+.ssc-container svg {
+    margin-top: 30px;
+}
+
+
 .ssc-container svg foreignObject .item-text-container p:first-child {
     margin-top: 0;
 }

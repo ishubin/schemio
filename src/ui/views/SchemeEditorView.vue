@@ -10,6 +10,7 @@
                 :project="project"
                 :category="currentCategory"
                 @export-svg-requested="exportAsSVG"
+                @export-html-requested="exportHTMLModalShown = true"
                 >
                 <div v-if="schemeContainer" slot="middle-section">
                     <ul class="button-group" v-if="currentUser">
@@ -170,6 +171,8 @@
             </div>
         </div>
 
+        <export-html-modal v-if="exportHTMLModalShown === true" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
+
         <create-new-scheme-modal v-if="newSchemePopup.show"
             :project-id="projectId"
             :name="newSchemePopup.name"
@@ -220,6 +223,7 @@ import AnimationsRegistry from '../animations/AnimationRegistry';
 import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
@@ -240,7 +244,8 @@ export default {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
-        ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown
+        ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
+        'export-html-modal': ExportHTMLModal,
     },
 
     beforeMount() {
@@ -368,7 +373,9 @@ export default {
 
             topHelperPanel: {
                 currentPanel: null // null - means that the panel is not shown
-            }
+            },
+
+            exportHTMLModalShown: false
         }
     },
     methods: {

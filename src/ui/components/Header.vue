@@ -20,6 +20,9 @@
                 <li>
                     <span @click="exportAsSVG"><i class="fas fa-file-export"></i> Export as SVG</span>
                 </li>
+                <li>
+                    <span @click="exportAsHTML"><i class="fas fa-file-export"></i> Export as HTML</span>
+                </li>
             </ul>
         </div>
 
@@ -93,6 +96,10 @@ export default {
 
         exportAsSVG() {
             this.$emit('export-svg-requested');
+        },
+
+        exportAsHTML() {
+            this.$emit('export-html-requested');
         }
     },
     computed: {
