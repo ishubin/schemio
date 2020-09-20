@@ -304,7 +304,7 @@ export default class StateEditCurve extends State {
                     clicked: () => this.convertPointToBeizer(object.pointIndex)
                 });
             }
-            if (point.t === 'B') {
+            else {
                 menuOptions.push({
                     name: 'Convert to simple point',
                     clicked: () => this.convertPointToSimple(object.pointIndex)

@@ -87,10 +87,19 @@ function readjustItem(item, schemeContainer, isSoft) {
             const sourceWorldPoint = getPointOnItemPath(sourceItem, item.shapeProps.sourceItemPosition, schemeContainer);
             if (sourceWorldPoint) {
                 const sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
-                item.shapeProps.points[0] = {
+                const oldPoint = item.shapeProps.points[0];
+                const newPoint = {
                     x: sourcePoint.x,
                     y: sourcePoint.y,
+                    t: oldPoint.t
                 };
+                if (oldPoint.t === 'B') {
+                    newPoint.x1 = oldPoint.x1;
+                    newPoint.y1 = oldPoint.y1;
+                    newPoint.x2 = oldPoint.x2;
+                    newPoint.y2 = oldPoint.y2;
+                }
+                item.shapeProps.points[0] = newPoint;
             }
         } else {
             item.shapeProps.sourceItem = null;
@@ -103,11 +112,19 @@ function readjustItem(item, schemeContainer, isSoft) {
             const destinationWorldPoint = getPointOnItemPath(destinationItem, item.shapeProps.destinationItemPosition, schemeContainer);
             if (destinationWorldPoint) {
                 const destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
-                item.shapeProps.points[item.shapeProps.points.length - 1] = {
-                    t: 'L',
+                const oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+                const newPoint = {
+                    t: oldPoint.t,
                     x: destinationPoint.x,
                     y: destinationPoint.y,
                 };
+                if (oldPoint.t === 'B') {
+                    newPoint.x1 = oldPoint.x1;
+                    newPoint.y1 = oldPoint.y1;
+                    newPoint.x2 = oldPoint.x2;
+                    newPoint.y2 = oldPoint.y2;
+                }
+                item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
             }
         } else {
             item.shapeProps.destinationItem = null;
