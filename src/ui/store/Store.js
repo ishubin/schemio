@@ -21,6 +21,7 @@ const store = new Vuex.Store({
         }
     },
     getters: {
+        currentUser: state => state.currentUser
     }
 });
 

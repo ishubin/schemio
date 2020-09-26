@@ -1,6 +1,11 @@
 <template>
     <div>
-        <header-component/>
+        <header-component>
+            <div slot="middle-section">
+                <router-link v-if="currentUser" :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
+            </div>
+        </header-component>
+
         <div class="middle-content">
             <div>
                 <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
@@ -88,6 +93,18 @@ export default {
         },
     },
 
+    computed: {
+        currentUser() {
+            return this.$store.state.currentUser;
+        },
+        currentUserName() {
+            const user = this.$store.state.currentUser;
+            if (user) {
+                return user.login;
+            }
+            return '';
+        }
+    },
 
     watch:{
         $route(to, from) {

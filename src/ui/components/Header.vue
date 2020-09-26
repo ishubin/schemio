@@ -8,25 +8,8 @@
             <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
         </router-link>
 
-        <div class="hamburger-menu">
-            <span title="Menu"><i class="fas fa-bars"></i></span>
-            <ul>
-                <li v-if="currentUser">
-                    <router-link :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
-                </li>
-                <li v-if="currentUser && projectId">
-                    <span @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
-                </li>
-                <li>
-                    <span @click="exportAsSVG"><i class="fas fa-file-export"></i> Export as SVG</span>
-                </li>
-                <li>
-                    <span @click="exportAsHTML"><i class="fas fa-file-export"></i> Export as HTML</span>
-                </li>
-            </ul>
-        </div>
-
         <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>
+        <span v-if="currentUser && projectId" class="link" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
 
         <div class="header-middle-section">
             <slot name="middle-section"></slot>
@@ -68,11 +51,16 @@ export default {
             newSchemePopup: {
                 categories: [],
                 show: false
-            }
+            },
+            menuDisplayed: false
         };
     },
     methods: {
+        toggleMenu() {
+            this.menuDisplayed = !this.menuDisplayed;
+        },
         openNewSchemePopup() {
+            this.menuDisplayed = false;
             if (this.category && this.category.id) {
                 var categories = map(this.category.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};
@@ -93,14 +81,6 @@ export default {
             this.newSchemePopup.show = false;
             window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
         },
-
-        exportAsSVG() {
-            this.$emit('export-svg-requested');
-        },
-
-        exportAsHTML() {
-            this.$emit('export-html-requested');
-        }
     },
     computed: {
         currentUser() {

@@ -116,6 +116,8 @@ h5 {
     display: inline-block;
 }
 .header a, .header .link {
+    margin-left: 10px;
+    margin-right: 10xo;
     color: #eee;
     text-decoration: none;
 }
@@ -138,32 +140,29 @@ h5 {
     left: 8px;
     top: 8px;
 }
-.header .hamburger-menu {
+.menu-dropdown {
     position: relative;
     display: inline-block;
     margin-left: 10px;
     margin-right: 10px;
 }
-.header .hamburger-menu span {
+.menu-dropdown span {
     cursor: pointer;
     color: var(--base-weak);
 }
-.header .hamburger-menu > ul {
+.menu-dropdown > ul {
+    z-index: 99;
     position: absolute;
-    display: none;
     margin: 0;
     padding: 0;
     background: #fff;
     list-style: none;
 }
-.header .hamburger-menu:hover > ul {
-    display: block;
-}
-.header .hamburger-menu > ul li {
+.menu-dropdown > ul li {
     padding: 0;
     margin: 0;
 }
-.header .hamburger-menu > ul li a, .header .hamburger-menu > ul li span {
+.menu-dropdown > ul li a, .menu-dropdown > ul li span {
     display: block;
     padding: 6px 8px;
     text-decoration: none;
@@ -171,7 +170,7 @@ h5 {
     font-weight: normal;
     white-space: nowrap;
 }
-.header .hamburger-menu > ul li a:hover, .header .hamburger-menu > ul li span:hover {
+.menu-dropdown > ul li a:hover, .menu-dropdown > ul li span:hover {
     color: #fff;
     background: #2472ab;
 }

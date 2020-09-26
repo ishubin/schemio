@@ -9,10 +9,15 @@
                 :project-id="projectId"
                 :project="project"
                 :category="currentCategory"
-                @export-svg-requested="exportAsSVG"
-                @export-html-requested="exportHTMLModalShown = true"
                 >
                 <div v-if="schemeContainer" slot="middle-section">
+                    <menu-dropdown 
+                        name="Export" icon-class="fas fa-file-export"
+                        :options="[{name: 'Export as SVG', event: 'export-svg-requested'}, {name: 'Export as HTML', event: 'export-html-requested'}]"
+                        @export-svg-requested="exportAsSVG"
+                        @export-html-requested="exportHTMLModalShown = true"
+                        />
+
                     <ul class="button-group" v-if="currentUser">
                         <li v-for="knownMode in knownModes">
                             <span class="toggle-button editor-mode"
@@ -200,6 +205,7 @@
 import utils from '../utils.js';
 import {enrichItemWithDefaults} from '../scheme/Item';
 import HeaderComponent from '../components/Header.vue';
+import MenuDropdown from '../components/MenuDropdown.vue';
 import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
@@ -242,7 +248,7 @@ function escapeHTML(html) {
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu,
+        SchemeDetails, CreateItemMenu, MenuDropdown,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
