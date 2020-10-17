@@ -624,6 +624,7 @@ class SchemeContainer {
         return item.meta.selected || false;
     }
 
+
     /**
      * Selects a specified item and deselects any other items that were selected previously
      * @param {SchemeItem} item 

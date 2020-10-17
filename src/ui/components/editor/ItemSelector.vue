@@ -26,7 +26,7 @@
                             <i v-else class="fas fa-angle-down"></i>
                         </span>
 
-                        <div class="item-name" @mousedown="onItemClicked(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
+                        <div class="item-name" @mousedown="onItemMouseDown(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
                             <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
                             <input v-if="item.id === nameEdit.itemId"
                                 ref="nameEditInput"
@@ -154,11 +154,10 @@ export default {
             this.nameEdit.itemId = null;
         },
 
-        onItemClicked(item, event) {
+        onItemMouseDown(item, event) {
             if (event.target && event.target.getAttribute('data-type') === 'item-name-edit-in-place') {
                 return true;
             }
-
 
             if (event.shiftKey && this.lastClickedItem) {
                 //checking if last clicked item was not deleted
@@ -179,7 +178,9 @@ export default {
                 this.nameEdit.itemId = null;
             }
 
-            this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+            if (!this.schemeContainer.isItemSelected(item)) {
+                this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+            }
         },
 
         onItemDoubleClicked(item) {
@@ -259,6 +260,11 @@ export default {
                 return;
             }
 
+            //checking whether the dragged item is dragged over other selected items
+            if (this.schemeContainer.isItemSelected(item)) {
+                return;
+            }
+
             //checking whether the dragged item is one of ancestors of destination item
             if (item.meta && item.meta.ancestorIds) {
                 if (indexOf(item.meta.ancestorIds, this.dragging.item.id) >= 0) {
@@ -275,9 +281,13 @@ export default {
         onDragEnd(event) {
             if (this.dragging.readyToDrop && this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
                 if (this.dragging.dropInside) {
-                    this.schemeContainer.remountItemInsideOtherItem(this.dragging.item.id, this.dragging.destinationId);
+                    forEach(this.schemeContainer.selectedItems, item => {
+                        this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
+                    });
                 } else {
-                    this.schemeContainer.remountItemAfterOtherItem(this.dragging.item.id, this.dragging.destinationId);
+                    forEach(this.schemeContainer.selectedItems, item => {
+                        this.schemeContainer.remountItemAfterOtherItem(item.id, this.dragging.destinationId);
+                    });
                 }
             }
 
