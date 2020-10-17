@@ -5,11 +5,11 @@
         - drag and drop (reorder items or move into different parent)
  -->
 <template>
-    <div ref="itemSelectorContainer" class="item-selector" >
+    <div class="item-selector" >
         <div class="item-selector-top-panel">
             <input class="textfield" v-model="searchKeyword" type="text" placeholder="Search"/>
         </div>
-        <div class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
+        <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
             <div v-for="item in filteredItems" :key="item.id" :ref="`row_${item.id}`">
                 <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
                     <div class="item"
@@ -117,14 +117,17 @@ export default {
         scrollToSelection() {
             if (this.schemeContainer.selectedItems.length === 1) {
                 const itemId = this.schemeContainer.selectedItems[0].id;
-                const rowDom = this.$refs[`row_${itemId}`];
-                const itemSelectorDom = this.$refs.itemSelectorContainer;
-                if (rowDom && itemSelectorDom) {
-                    const topPos = rowDom.offsetTop - itemSelectorDom.offsetTop;
-                    const height = itemSelectorDom.getBoundingClientRect().height;
-                    const offsetWithinScroll = topPos - itemSelectorDom.scrollTop;
-                    if (offsetWithinScroll < -5 || offsetWithinScroll > height - 5) {
-                        itemSelectorDom.scrollTop = Math.max(0, topPos - 20);
+                const rowDoms = this.$refs[`row_${itemId}`];
+                if (rowDoms.length >= 1) {
+                    const rowDom = rowDoms[0];
+                    const itemSelectorDom = this.$refs.itemSelectorContainer;
+                    if (rowDom && itemSelectorDom) {
+                        const topPos = rowDom.offsetTop - itemSelectorDom.offsetTop;
+                        const height = itemSelectorDom.getBoundingClientRect().height;
+                        const offsetWithinScroll = topPos - itemSelectorDom.scrollTop;
+                        if (offsetWithinScroll < -5 || offsetWithinScroll > height - 5) {
+                            itemSelectorDom.scrollTop = Math.max(0, topPos - 20);
+                        }
                     }
                 }
             }
