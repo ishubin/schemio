@@ -205,6 +205,15 @@
             </ul>
         </context-menu>
 
+        <modal title="Rotate around center" v-if="rotateAroundCenterModal.shown"
+            primary-button="Rotate"
+            @primary-submit="onRotateAroundCenterModalSubmit"
+            @close="rotateAroundCenterModal.shown = false"
+            >
+            <h5>Angle</h5>
+            <input type="text" class="textfield" v-model="rotateAroundCenterModal.angle" v-on:keyup.enter="onRotateAroundCenterModalSubmit"/>
+        </modal>
+
     </div>
 </template>
 
@@ -232,6 +241,7 @@ import Shape from './items/shapes/Shape';
 import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
+import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import Events from '../../userevents/Events';
 import forEach from 'lodash/forEach';
@@ -279,7 +289,7 @@ const lastMousePosition = {
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
-    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox},
+    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -382,6 +392,12 @@ export default {
                 text: '',
                 transformType: 'relative',
                 style: {}
+            },
+
+            rotateAroundCenterModal: {
+                shown: false,
+                angle: 0,
+                originalItemAreas: {} // used to reset back to it, so that user can experiment with multiple angles
             },
 
             curveEditItem: null,
@@ -901,6 +917,9 @@ export default {
             }, {
                 name: 'Delete',
                 clicked: this.deleteSelectedItems
+            }, {
+                name: 'Rotate around center...',
+                clicked: () => {this.triggerRotateAroundCenterModal();}
             }];
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1014,6 +1033,37 @@ export default {
                 forEach(shapeProps, (argValue, argName) => {
                     item.shapeProps[argName] = argValue;
                 });
+            }
+        },
+
+        triggerRotateAroundCenterModal() {
+            if (this.schemeContainer.selectedItems.length > 0) {
+                this.rotateAroundCenterModal.originalItemAreas = {};
+                forEach(this.schemeContainer.selectedItems, item => {
+                    this.rotateAroundCenterModal.originalItemAreas[item.id] = utils.clone(item.area);
+                });
+                this.rotateAroundCenterModal.angle = 0;
+                this.rotateAroundCenterModal.shown = true;
+            }
+        },
+
+        onRotateAroundCenterModalSubmit() {
+            this.rotateSelectedItemsAroundCenter(parseFloat(this.rotateAroundCenterModal.angle));
+        },
+
+        rotateSelectedItemsAroundCenter(angle) {
+            if (this.schemeContainer.selectedItems.length > 0) {
+                forEach(this.schemeContainer.selectedItems, item => {
+                    const originalItemArea = this.rotateAroundCenterModal.originalItemAreas[item.id];
+                    // reseting back to original area, so that a user can re-submit the same angle from a modal and get the same result
+                    if (originalItemArea) {
+                        item.area.x = originalItemArea.x;
+                        item.area.y = originalItemArea.y;
+                        item.area.r = originalItemArea.r;
+                    }
+                });
+                this.schemeContainer.rotateItemsAroundCenter(this.schemeContainer.selectedItems, angle);
+                EventBus.emitSchemeChangeCommited();
             }
         },
 

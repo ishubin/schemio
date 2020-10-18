@@ -931,6 +931,49 @@ class SchemeContainer {
         }
         return this.generateUniqueName(name);
     }
+
+    rotateItemsAroundCenter(items, angle) {
+        if (items.length === 0) {
+            return
+        }
+        const center = {x: 0, y: 0};
+
+        forEach(items, item => {
+            let itemCenter = this.worldPointOnItem(item.area.w/2, item.area.h/2, item);
+            center.x += itemCenter.x;
+            center.y += itemCenter.y;
+        });
+
+        center.x = center.x / items.length;
+        center.y = center.y / items.length;
+
+        const sina = Math.sin(angle * Math.PI / 180);
+        const cosa = Math.cos(angle * Math.PI / 180);
+
+
+        // storing ids of rotated items in a map
+        // this way we will be able to figure out whether any item ancestors were rotated already
+        // so that we can skip rotation of a child item
+        const itemRotatedIds = {};
+
+        forEach(items, item => {
+            itemRotatedIds[item.id] = 1;
+            if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemRotatedIds[id]))) {
+                item.area.r += angle;
+
+                const px = item.area.x - center.x;
+                const py = item.area.y - center.y;
+                
+                const rx = px * cosa - py * sina;
+                const ry = px * sina + py * cosa;
+
+                item.area.x = rx + center.x;
+                item.area.y = ry + center.y;
+            }
+        });
+
+        this.reindexItems();
+    }
 }
 
 
