@@ -113,10 +113,17 @@
                         />
                     </g>
 
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
-                        :key="`item-edit-box-${item.id}`"
-                        :item="item"
-                        :zoom="schemeContainer.screenTransform.scale"
+                    <g v-if="!multiItemEditBox.relative.shown">
+                        <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
+                            :key="`item-edit-box-${item.id}`"
+                            :item="item"
+                            :zoom="schemeContainer.screenTransform.scale"
+                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                    </g>
+                    <multi-item-edit-box v-else
+                        :key="`multi-item-edit-box-${multiItemEditBox.relative.key}`"
+                        :box-id="multiItemEditBox.relative.key"
+                        :items="multiItemEditBox.relative.items"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
 
@@ -144,10 +151,17 @@
                             :mode="mode"
                             />
                     </g>
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
-                        :key="`item-edit-box-${item.id}`"
-                        :item="item"
-                        :zoom="1"
+                    <g v-if="!multiItemEditBox.viewport.shown">
+                        <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
+                            :key="`item-edit-box-${item.id}`"
+                            :item="item"
+                            :zoom="1"
+                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                    </g>
+                    <multi-item-edit-box v-else
+                        :key="`multi-item-edit-box-${multiItemEditBox.viewport.key}`"
+                        :box-id="multiItemEditBox.viewport.key"
+                        :items="multiItemEditBox.viewport.items"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
@@ -227,6 +241,7 @@ import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
 import ItemEditBox from './ItemEditBox.vue';
+import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
 import {generateTextBox, generateTextStyle} from './text/ItemText';
@@ -289,7 +304,7 @@ const lastMousePosition = {
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
-    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
+    components: {ItemSvg, ContextMenu, ItemEditBox, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -312,6 +327,7 @@ export default {
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
@@ -344,6 +360,7 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
+        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
@@ -400,6 +417,19 @@ export default {
                 originalItemAreas: {} // used to reset back to it, so that user can experiment with multiple angles
             },
 
+            multiItemEditBox: {
+                relative: {
+                    shown: false,
+                    items: [],
+                    key: shortid.generate() 
+                },
+                viewport: {
+                    shown: false,
+                    items: [],
+                    key: shortid.generate() 
+                }
+            },
+
             curveEditItem: null,
             worldHighlightedItems: [ ],
             viewportHighlightedItems: [ ]
@@ -435,6 +465,11 @@ export default {
                         type: elementType,
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
+                    };
+                } else if (elementType === 'multi-item-edit-box') {
+                    return {
+                        type: elementType,
+                        multiItemEditBoxId: element.getAttribute('data-multi-item-edit-box-id')
                     };
                 }
 
@@ -762,6 +797,32 @@ export default {
 
         onAnyItemSelected() {
             this.resetHighlightedItems();
+            this.updateMultiItemEditBox();
+        },
+
+        onAnyItemDeselected() {
+            this.updateMultiItemEditBox();
+        },
+
+        updateMultiItemEditBox() {
+            const relativeItems = [];
+            const viewportItems = [];
+
+            forEach(this.schemeContainer.selectedItems, item => {
+                if (item.area.type === 'viewport') {
+                    viewportItems.push(item);
+                } else {
+                    relativeItems.push(item)
+                }
+            });
+
+            this.multiItemEditBox.relative.items = relativeItems;
+            this.multiItemEditBox.relative.key = shortid.generate();
+            this.multiItemEditBox.relative.shown = relativeItems.length > 1;
+
+            this.multiItemEditBox.viewport.items = viewportItems;
+            this.multiItemEditBox.viewport.key = shortid.generate();
+            this.multiItemEditBox.viewport.shown = viewportItems.length > 1;
         },
 
         resetHighlightedItems() {
