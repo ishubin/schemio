@@ -377,8 +377,14 @@ export default class StateDragItem extends State {
             return;
         }
 
-        const dx = x - this.originalPoint.x;
-        const dy = y - this.originalPoint.y;
+        const preSnapDx = x - this.originalPoint.x;
+        const preSnapDy = y - this.originalPoint.y;
+        
+        const snappedBoxX = this.snapper.snapX(this.multiItemEditBoxOriginalArea.x + preSnapDx);
+        const snappedBoxY = this.snapper.snapY(this.multiItemEditBoxOriginalArea.y + preSnapDy);
+
+        const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
+        const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
 
         forEach(this.multiItemEditBox.items, item => {
             const originalItemArea = this.multiItemEditBoxOriginalItemAreas[item.id];
