@@ -93,6 +93,13 @@ class SchemeContainer {
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
+        // Used to drag, resize and rotate multiple items in two transforms: relative and viewport
+        // Since both the SvgEditor component and StateDragItem state needs access to it, it is easier to keep it here
+        this.multiItemEditBoxes = {
+            relative: null,
+            viewport: null
+        };
+
         this.enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
     }
@@ -973,6 +980,51 @@ class SchemeContainer {
         });
 
         this.reindexItems();
+    }
+
+    generateMultiItemEditBox(items, boxId) {
+        let minP = null;
+        let maxP = null;
+
+        // iterating over all corners of items area to calculate the boundary box
+        const pointGenerators = [
+            (item) => {return {x: 0, y: 0}},
+            (item) => {return {x: item.area.w, y: 0}},
+            (item) => {return {x: item.area.w, y: item.area.h}},
+            (item) => {return {x: 0, y: item.area.h}},
+        ];
+
+        forEach(items, item => {
+            forEach(pointGenerators, pointGenerator => {
+                const localPoint = pointGenerator(item);
+                const p = this.worldPointOnItem(localPoint.x, localPoint.y, item);
+                if (minP) {
+                    minP.x = Math.min(minP.x, p.x);
+                    minP.y = Math.min(minP.y, p.y);
+                } else {
+                    minP = {x: p.x, y: p.y};
+                }
+
+                if (maxP) {
+                    maxP.x = Math.max(maxP.x, p.x);
+                    maxP.y = Math.max(maxP.y, p.y);
+                } else {
+                    maxP = {x: p.x, y: p.y};
+                }
+            });
+        });
+
+        return {
+            id: boxId,
+            items: items,
+            area: {
+                x: minP.x,
+                y: minP.y,
+                w: maxP.x - minP.x,
+                h: maxP.y - minP.y,
+                r: 0
+            }
+        };
     }
 }
 

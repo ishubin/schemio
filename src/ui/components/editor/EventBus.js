@@ -89,10 +89,7 @@ const EventBus = new Vue({
 
             SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
 
-            ITEMS_HIGHLIGHTED: 'items-highlighted',
-
-            MULTI_ITEM_EDIT_BOX_DRAG_TRIGGERED: 'multi-item-edit-box-drag-triggered',
-            MULTI_ITEM_EDIT_BOX_DRAGGED: 'multi-item-edit-box-dragged'
+            ITEMS_HIGHLIGHTED: 'items-highlighted'
         };
     },
     methods: {
@@ -167,13 +164,6 @@ const EventBus = new Vue({
 
         emitCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.$emit(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, mouseX, mouseY, menuOptions);
-        },
-
-        emitMultiItemEditBoxDragTriggered(boxId) {
-            this.$emit(EventBus.MULTI_ITEM_EDIT_BOX_DRAG_TRIGGERED, boxId);
-        },
-        emitMultiItemEditBoxDragged(dx, dy, boxId) {
-            this.$emit(EventBus.MULTI_ITEM_EDIT_BOX_DRAGGED, dx, dy, boxId);
         }
     }
 });

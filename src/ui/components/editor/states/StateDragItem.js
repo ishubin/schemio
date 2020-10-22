@@ -49,7 +49,10 @@ export default class StateDragItem extends State {
         this.shouldDragScreen = false;
         this.originalOffset = {x: 0, y: 0};
         this.reindexNeeded = false;
-        this.multiItemEditBoxId = null;
+        this.multiItemEditBox = null;
+        this.multiItemEditBoxOriginalArea = null;
+        this.multiItemEditBoxOriginalItemAreas = {};
+
         this.snapper = {
             snapX: (x) => this.snapX(x),
             snapY: (y) => this.snapY(y),
@@ -66,7 +69,9 @@ export default class StateDragItem extends State {
         this.controlPoint = null;
         this.multiSelectBox = null;
         this.wasMouseMoved = false;
-        this.multiItemEditBoxId = null;
+        this.multiItemEditBox = null;
+        this.multiItemEditBoxOriginalArea = null;
+        this.multiItemEditBoxOriginalItemAreas = {};
     }
 
     keyPressed(key, keyOptions) {
@@ -102,10 +107,21 @@ export default class StateDragItem extends State {
         this.lastDraggedItem = null;
     }
 
-    initDraggingMultiItemBox(x, y, multiItemEditBoxId) {
+    initDraggingMultiItemBox(x, y, multiItemEditBox) {
         this.initDragging(x, y);
-        this.multiItemEditBoxId = multiItemEditBoxId;
-        this.eventBus.emitMultiItemEditBoxDragTriggered(multiItemEditBoxId);
+        this.multiItemEditBox = multiItemEditBox;
+
+        this.multiItemEditBoxOriginalArea = {
+            x: multiItemEditBox.area.x,
+            y: multiItemEditBox.area.y,
+            w: multiItemEditBox.area.w,
+            h: multiItemEditBox.area.h,
+            r: multiItemEditBox.area.r
+        };
+
+        forEach(multiItemEditBox.items, item => {
+            this.multiItemEditBoxOriginalItemAreas[item.id] = utils.clone(item.area);
+        });
     }
 
     initDraggingForItem(item, x, y) {
@@ -169,7 +185,7 @@ export default class StateDragItem extends State {
         } else if (object.controlPoint) {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else if (object.type === 'multi-item-edit-box') {
-            this.initDraggingMultiItemBox(x, y, object.multiItemEditBoxId);
+            this.initDraggingMultiItemBox(x, y, object.multiItemEditBox);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
@@ -248,7 +264,7 @@ export default class StateDragItem extends State {
             } else if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
-            } else if (this.multiItemEditBoxId) {
+            } else if (this.multiItemEditBox) {
                 this.dragMultiItemEditBox(x, y);
             } else {
                 if (this.dragger && !this.dragger.item.locked) {
@@ -357,7 +373,22 @@ export default class StateDragItem extends State {
     }
 
     dragMultiItemEditBox(x, y) {
-        this.eventBus.emitMultiItemEditBoxDragged(x - this.originalPoint.x, y - this.originalPoint.y, this.multiItemEditBoxId);
+        if (!this.multiItemEditBox) {
+            return;
+        }
+
+        const dx = x - this.originalPoint.x;
+        const dy = y - this.originalPoint.y;
+
+        forEach(this.multiItemEditBox.items, item => {
+            const originalItemArea = this.multiItemEditBoxOriginalItemAreas[item.id];
+            item.area.x = originalItemArea.x + dx;
+            item.area.y = originalItemArea.y + dy;
+            EventBus.emitItemChanged(item.id, 'area');
+        });
+
+        this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
+        this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
     }
 
     handleControlPointDrag(x, y) {

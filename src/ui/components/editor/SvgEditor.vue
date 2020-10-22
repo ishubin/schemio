@@ -113,7 +113,7 @@
                         />
                     </g>
 
-                    <g v-if="!multiItemEditBox.relative.shown">
+                    <g v-if="!schemeContainer.multiItemEditBoxes.relative">
                         <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
                             :key="`item-edit-box-${item.id}`"
                             :item="item"
@@ -121,9 +121,7 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
                     </g>
                     <multi-item-edit-box v-else
-                        :key="`multi-item-edit-box-${multiItemEditBox.relative.key}`"
-                        :box-id="multiItemEditBox.relative.key"
-                        :items="multiItemEditBox.relative.items"
+                        :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
 
@@ -151,7 +149,7 @@
                             :mode="mode"
                             />
                     </g>
-                    <g v-if="!multiItemEditBox.viewport.shown">
+                    <g v-if="!schemeContainer.multiItemEditBoxes.viewport">
                         <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
                             :key="`item-edit-box-${item.id}`"
                             :item="item"
@@ -159,9 +157,7 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
                     </g>
                     <multi-item-edit-box v-else
-                        :key="`multi-item-edit-box-${multiItemEditBox.viewport.key}`"
-                        :box-id="multiItemEditBox.viewport.key"
-                        :items="multiItemEditBox.viewport.items"
+                        :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
@@ -417,19 +413,6 @@ export default {
                 originalItemAreas: {} // used to reset back to it, so that user can experiment with multiple angles
             },
 
-            multiItemEditBox: {
-                relative: {
-                    shown: false,
-                    items: [],
-                    key: shortid.generate() 
-                },
-                viewport: {
-                    shown: false,
-                    items: [],
-                    key: shortid.generate() 
-                }
-            },
-
             curveEditItem: null,
             worldHighlightedItems: [ ],
             viewportHighlightedItems: [ ]
@@ -467,9 +450,10 @@ export default {
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
                     };
                 } else if (elementType === 'multi-item-edit-box') {
+                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
                     return {
                         type: elementType,
-                        multiItemEditBoxId: element.getAttribute('data-multi-item-edit-box-id')
+                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId]
                     };
                 }
 
@@ -816,13 +800,17 @@ export default {
                 }
             });
 
-            this.multiItemEditBox.relative.items = relativeItems;
-            this.multiItemEditBox.relative.key = shortid.generate();
-            this.multiItemEditBox.relative.shown = relativeItems.length > 1;
+            if (relativeItems.length > 1) {
+                this.schemeContainer.multiItemEditBoxes.relative = this.schemeContainer.generateMultiItemEditBox(relativeItems, 'relative');
+            } else {
+                this.schemeContainer.multiItemEditBoxes.relative = false;
+            }
 
-            this.multiItemEditBox.viewport.items = viewportItems;
-            this.multiItemEditBox.viewport.key = shortid.generate();
-            this.multiItemEditBox.viewport.shown = viewportItems.length > 1;
+            if (viewportItems.length > 1) {
+                this.schemeContainer.multiItemEditBoxes.viewport = this.schemeContainer.generateMultiItemEditBox(viewportItems, 'viewport');
+            } else {
+                this.schemeContainer.multiItemEditBoxes.viewport = false;
+            }
         },
 
         resetHighlightedItems() {
