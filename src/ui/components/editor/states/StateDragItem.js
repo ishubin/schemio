@@ -40,7 +40,7 @@ export default class StateDragItem extends State {
         this.controlPoint = null; // stores coords for item control point
         this.multiSelectBox = null;
 
-        this.rotatingItem = false;
+        this.isRotating = false;
 
         // used to check whether the mouse moved between mouseDown and mouseUp events
         this.wasMouseMoved = false;
@@ -64,7 +64,7 @@ export default class StateDragItem extends State {
         this.reindexNeeded = false;
         this.startedDragging = false;
         this.dragger = null;
-        this.rotatingItem = false;
+        this.isRotating = false;
         this.sourceItem = null;
         this.controlPoint = null;
         this.multiSelectBox = null;
@@ -107,10 +107,21 @@ export default class StateDragItem extends State {
         this.lastDraggedItem = null;
     }
 
-    initDraggingMultiItemBox(x, y, multiItemEditBox) {
+    initDraggingMultiItemBox(multiItemEditBox, x, y) {
         this.initDragging(x, y);
         this.multiItemEditBox = multiItemEditBox;
+        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
+        this.isRotating = false;
+    }
 
+    initMultiItemBoxRotation(multiItemEditBox, x, y) {
+        this.initDragging(x, y);
+        this.multiItemEditBox = multiItemEditBox;
+        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
+        this.isRotating = true;
+    }
+
+    initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
         this.multiItemEditBoxOriginalArea = {
             x: multiItemEditBox.area.x,
             y: multiItemEditBox.area.y,
@@ -118,7 +129,6 @@ export default class StateDragItem extends State {
             h: multiItemEditBox.area.h,
             r: multiItemEditBox.area.r
         };
-
         forEach(multiItemEditBox.items, item => {
             this.multiItemEditBoxOriginalItemAreas[item.id] = utils.clone(item.area);
         });
@@ -149,8 +159,9 @@ export default class StateDragItem extends State {
             r: item.area.r
         };
         this.sourceItem = item;
-        this.rotatingItem = true;
+        this.isRotating = true;
         this.wasMouseMoved = false;
+        this.initDragging(x, y);
     }
 
     initScreenDrag(mx, my) {
@@ -173,7 +184,6 @@ export default class StateDragItem extends State {
             return;
         } else if (object.rotationDragger) {
             this.initItemRotation(object.rotationDragger.item, x, y);
-            this.initDragging(x, y);
         } else if (object.item) {
             if (isEventRightClick(event)) {
                 this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
@@ -185,7 +195,9 @@ export default class StateDragItem extends State {
         } else if (object.controlPoint) {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else if (object.type === 'multi-item-edit-box') {
-            this.initDraggingMultiItemBox(x, y, object.multiItemEditBox);
+            this.initDraggingMultiItemBox(object.multiItemEditBox, x, y);
+        } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
+            this.initMultiItemBoxRotation(object.multiItemEditBox, x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
@@ -265,11 +277,15 @@ export default class StateDragItem extends State {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
             } else if (this.multiItemEditBox) {
-                this.dragMultiItemEditBox(x, y);
+                if (this.isRotating) {
+                    this.rotateMultiItemEditBox(x, y, event);
+                } else {
+                    this.dragMultiItemEditBox(x, y);
+                }
             } else {
                 if (this.dragger && !this.dragger.item.locked) {
                     this.dragByDragger(this.dragger.item, this.dragger.edges, x, y);
-                } else if (this.rotatingItem) {
+                } else if (this.isRotating) {
                     this.rotateItem(x, y, this.sourceItem, event);
                 } else if (this.controlPoint) {
                     this.handleControlPointDrag(x, y);
@@ -395,6 +411,62 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
+    }
+
+    rotateMultiItemEditBox(x, y, event) {
+        if (Math.abs(this.multiItemEditBox.area.w) < 0.00001 || Math.abs(this.multiItemEditBox.area.h) < 0.00001) {
+            // There might be too many errors when calculating displacement of items after rotation of such a thin box
+            // so it is better to skip everything
+            return;
+        }
+
+        const centerX = this.multiItemEditBoxOriginalArea.x + this.multiItemEditBoxOriginalArea.w / 2;
+        const centerY = this.multiItemEditBoxOriginalArea.y + this.multiItemEditBoxOriginalArea.h / 2;
+
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, centerX, centerY, event);
+        const angle = angleDegrees * Math.PI / 180;
+
+        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, centerX, centerY, angle);
+        this.multiItemEditBox.area.r = this.multiItemEditBoxOriginalArea.r + angleDegrees;
+        this.multiItemEditBox.area.x = np.x;
+        this.multiItemEditBox.area.y = np.y;
+        
+        
+        // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
+        // later we will recalculate item new positions based on new edit box area using original projections
+        const topRightPoint = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea);
+        const bottomLeftPoint = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea);
+
+        const originalBoxTopVx = topRightPoint.x - this.multiItemEditBoxOriginalArea.x;
+        const originalBoxTopVy = topRightPoint.y - this.multiItemEditBoxOriginalArea.y;
+
+        const originalBoxLeftVx = bottomLeftPoint.x - this.multiItemEditBoxOriginalArea.x;
+        const originalBoxLeftVy = bottomLeftPoint.y - this.multiItemEditBoxOriginalArea.y;
+
+        // Here we don't need to check of zero length as we have a condition at the start of this function
+        // for low width and height of multi item edit box
+        const originalBoxTopLength = Math.sqrt(originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy);
+        const originalBoxLeftLength = Math.sqrt(originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy);
+
+        forEach(this.multiItemEditBox.items, item => {
+            const originalItemArea = this.multiItemEditBoxOriginalItemAreas[item.id];
+            item.area.r = originalItemArea.r + angleDegrees;
+
+            // caclulating projection of item coords on the top and left edges of original edit box
+            const Vx = originalItemArea.x - this.multiItemEditBoxOriginalArea.x;
+            const Vy = originalItemArea.y - this.multiItemEditBoxOriginalArea.y;
+            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / originalBoxTopLength;
+            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / originalBoxLeftLength;
+
+            // calculating new position of item with same projection but in the new multi item edit box
+            const newPosition = myMath.worldPointInArea(projectionX, projectionY, this.multiItemEditBox.area);
+
+            item.area.x = newPosition.x;
+            item.area.y = newPosition.y;
+
+            EventBus.emitItemChanged(item.id, 'area');
+        });
+
     }
 
     handleControlPointDrag(x, y) {
@@ -599,14 +671,22 @@ export default class StateDragItem extends State {
         };
     }
 
-    rotateItem(x, y, item, event) {
-        const c = this.worldPointOnOriginalItem(item.area.w/2, item.area.h/2, item);
-        const p0 = this.worldPointOnOriginalItem(0, 0, item)
-
-        const v1x = this.originalPoint.x - c.x;
-        const v1y = this.originalPoint.y - c.y;
-        const v2x = x - c.x;
-        const v2y = y - c.y;
+    /**
+     * Calculates the angle produced by a user when rotating around the center
+     * @param {Number} x - current mouse x
+     * @param {Number} y - current mouse y
+     * @param {Number} originalX - original mouse x where user has initiated a rotation
+     * @param {Number} originalY - original mouse x where user has initiated a rotation
+     * @param {Number} centerX - x point around which it should be rotating
+     * @param {Number} centerY - y point around which it should be rotating
+     * @param {MouseEvent} event - mouse event
+     * @returns {Number} - angle in degrees (0 - 360)
+     */
+    calculateRotatedAngle(x, y, originalX, originalY, centerX, centerY, event) {
+        const v1x = originalX - centerX;
+        const v1y = originalY - centerY;
+        const v2x = x - centerX;
+        const v2y = y - centerY;
         const v1SquareLength = v1x * v1x + v1y * v1y;
         const v2SquareLength = v2x * v2x + v2y * v2y;
         
@@ -617,40 +697,61 @@ export default class StateDragItem extends State {
         // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
         const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
 
-        let cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
+        const cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
         let angle = direction * Math.acos(cosa);
-        let angleConverted = angle * 180 / Math.PI;
+        let angleDegrees = angle * 180 / Math.PI;
         
-        if (isNaN(angleConverted)) {
-            return;
+        if (isNaN(angleDegrees)) {
+            return 0;
         }
         if (!isMultiSelectKey(event)) {
-            angleConverted = Math.round(angleConverted/ 5) * 5;
-            angle = angleConverted * Math.PI / 180;
+            angleDegrees = Math.round(angleDegrees/ 5) * 5;
         }
 
-        item.area.r = item.meta.itemOriginalArea.r + angleConverted;
+        return angleDegrees;
+    }
 
-        const ax = p0.x - c.x;
-        const ay = p0.y - c.y;
-        cosa = Math.cos(angle);
+    /**
+     * Calculates new offset for a box after its rotation around its own center so that its center would stay the same
+     * @param {Number} originalX - x of top left corner of a box
+     * @param {Number} originalY - y of top left corner of a box
+     * @param {Number} centerX - original center of the box
+     * @param {Number} centerY - original center of the box
+     * @param {Number} angle - rotated angle in radians
+     * @returns {Point} point with {x, y} of the new top left corner position
+     */
+    calculateRotationOffsetForSameCenter(originalX, originalY, centerX, centerY, angle) {
+        const ax = originalX - centerX;
+        const ay = originalY - centerY;
+        const cosa = Math.cos(angle);
         const sina = Math.sin(angle);
         const bx = ax * cosa - ay * sina;
         const by = ax * sina + ay * cosa;
-        let np0x = c.x + bx;
-        let np0y = c.y + by;
+        return {
+            x: centerX + bx,
+            y: centerY + by
+        };
+    }
+
+    rotateItem(x, y, item, event) {
+        const c = this.worldPointOnOriginalItem(item.area.w/2, item.area.h/2, item);
+        const p0 = this.worldPointOnOriginalItem(0, 0, item)
+
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, c.x, c.y, event);
+        const angle = angleDegrees * Math.PI / 180;
+        item.area.r = item.meta.itemOriginalArea.r + angleDegrees;
+
+        let np = this.calculateRotationOffsetForSameCenter(p0.x, p0.y, c.x, c.y, angle);
 
         if (item.meta.parentId) {
             const parentItem = this.schemeContainer.findItemById(item.meta.parentId);
             if (parentItem) {
-               let np = this.schemeContainer.localPointOnItem(np0x, np0y, parentItem);
-               np0x = np.x;
-               np0y = np.y;
+               np = this.schemeContainer.localPointOnItem(np.x, np.y, parentItem);
             }
         }
 
-        item.area.x = np0x;
-        item.area.y = np0y;
+        item.area.x = np.x;
+        item.area.y = np.y;
 
         this.schemeContainer.updateChildTransforms(item);
         this.reindexNeeded = true;

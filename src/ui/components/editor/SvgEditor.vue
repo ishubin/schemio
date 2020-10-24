@@ -122,6 +122,7 @@
                     </g>
                     <multi-item-edit-box v-else
                         :edit-box="schemeContainer.multiItemEditBoxes.relative"
+                        :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
 
@@ -158,6 +159,7 @@
                     </g>
                     <multi-item-edit-box v-else
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
+                        :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
@@ -449,7 +451,7 @@ export default {
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
                     };
-                } else if (elementType === 'multi-item-edit-box') {
+                } else if (elementType === 'multi-item-edit-box' || elementType === 'multi-item-edit-box-rotational-dragger') {
                     const boxId = element.getAttribute('data-multi-item-edit-box-id');
                     return {
                         type: elementType,

@@ -36,6 +36,13 @@ export default {
         return (Lx*Lx + Ly*Ly) > ((Ax + Bx) * (Ax + Bx) + (Ay + By) * (Ay + By));
     },
 
+    /**
+     * calculates world point in specified area including its parent transform
+     * @param {*} x
+     * @param {*} y
+     * @param {*} area
+     * @param {*} transform - {x, y, r} parent transform of the item. May be null
+     */
     worldPointInArea(x, y, area, transform) {
         if (!area) {
             return {x: 0, y: 0};
