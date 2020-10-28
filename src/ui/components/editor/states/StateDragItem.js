@@ -51,7 +51,6 @@ export default class StateDragItem extends State {
         this.reindexNeeded = false;
         this.multiItemEditBox = null;
         this.multiItemEditBoxOriginalArea = null;
-        this.multiItemEditBoxOriginalItemAreas = {};
 
         this.snapper = {
             snapX: (x) => this.snapX(x),
@@ -71,7 +70,6 @@ export default class StateDragItem extends State {
         this.wasMouseMoved = false;
         this.multiItemEditBox = null;
         this.multiItemEditBoxOriginalArea = null;
-        this.multiItemEditBoxOriginalItemAreas = {};
     }
 
     keyPressed(key, keyOptions) {
@@ -129,9 +127,6 @@ export default class StateDragItem extends State {
             h: multiItemEditBox.area.h,
             r: multiItemEditBox.area.r
         };
-        forEach(multiItemEditBox.items, item => {
-            this.multiItemEditBoxOriginalItemAreas[item.id] = utils.clone(item.area);
-        });
     }
 
     initDraggingForItem(item, x, y) {
@@ -403,9 +398,13 @@ export default class StateDragItem extends State {
         const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
 
         forEach(this.multiItemEditBox.items, item => {
-            const originalItemArea = this.multiItemEditBoxOriginalItemAreas[item.id];
-            item.area.x = originalItemArea.x + dx;
-            item.area.y = originalItemArea.y + dy;
+            // calculating new position of item based on their pre-calculated projections
+            const itemProjection = this.multiItemEditBox.itemProjections[item.id];
+            const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
+
+            item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
+            item.area.x = newPosition.x;
+            item.area.y = newPosition.y;
             EventBus.emitItemChanged(item.id, 'area');
         });
 
@@ -430,36 +429,12 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
         
-        
-        // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
-        // later we will recalculate item new positions based on new edit box area using original projections
-        const topRightPoint = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea);
-        const bottomLeftPoint = myMath.worldPointInArea(0, this.multiItemEditBoxOriginalArea.h, this.multiItemEditBoxOriginalArea);
-
-        const originalBoxTopVx = topRightPoint.x - this.multiItemEditBoxOriginalArea.x;
-        const originalBoxTopVy = topRightPoint.y - this.multiItemEditBoxOriginalArea.y;
-
-        const originalBoxLeftVx = bottomLeftPoint.x - this.multiItemEditBoxOriginalArea.x;
-        const originalBoxLeftVy = bottomLeftPoint.y - this.multiItemEditBoxOriginalArea.y;
-
-        // Here we don't need to check of zero length as we have a condition at the start of this function
-        // for low width and height of multi item edit box
-        const originalBoxTopLength = Math.sqrt(originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy);
-        const originalBoxLeftLength = Math.sqrt(originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy);
-
         forEach(this.multiItemEditBox.items, item => {
-            const originalItemArea = this.multiItemEditBoxOriginalItemAreas[item.id];
-            item.area.r = originalItemArea.r + angleDegrees;
+            // calculating new position of item based on their pre-calculated projections
+            const itemProjection = this.multiItemEditBox.itemProjections[item.id];
+            const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
 
-            // caclulating projection of item coords on the top and left edges of original edit box
-            const Vx = originalItemArea.x - this.multiItemEditBoxOriginalArea.x;
-            const Vy = originalItemArea.y - this.multiItemEditBoxOriginalArea.y;
-            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / originalBoxTopLength;
-            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / originalBoxLeftLength;
-
-            // calculating new position of item with same projection but in the new multi item edit box
-            const newPosition = myMath.worldPointInArea(projectionX, projectionY, this.multiItemEditBox.area);
-
+            item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
             item.area.x = newPosition.x;
             item.area.y = newPosition.y;
 

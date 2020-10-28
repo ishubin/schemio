@@ -1014,16 +1014,52 @@ class SchemeContainer {
             });
         });
 
+        const area = {
+           x: minP.x,
+           y: minP.y,
+           w: maxP.x - minP.x,
+           h: maxP.y - minP.y,
+           r: 0
+        };
+
+        const itemProjections = {};
+
+        // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
+        // later we will recalculate item new positions based on new edit box area using original projections
+        const topRightPoint = myMath.worldPointInArea(area.w, 0, area);
+        const bottomLeftPoint = myMath.worldPointInArea(0, area.h, area);
+
+        const originalBoxTopVx = topRightPoint.x - area.x;
+        const originalBoxTopVy = topRightPoint.y - area.y;
+
+        const originalBoxLeftVx = bottomLeftPoint.x - area.x;
+        const originalBoxLeftVy = bottomLeftPoint.y - area.y;
+
+        const topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
+        //TODO Think of a better way to check for zero width or height
+        const originalBoxTopLength = topLengthSquare > 0.0001 ? Math.sqrt(topLengthSquare) : 1;
+
+        const leftLengthSquare = originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy
+        const originalBoxLeftLength = leftLengthSquare > 0.0001 ? Math.sqrt(leftLengthSquare) : 1;
+
+        forEach(items, item => {
+            // caclulating projection of item coords on the top and left edges of original edit box
+            const Vx = item.area.x - area.x;
+            const Vy = item.area.y - area.y;
+            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / originalBoxTopLength;
+            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / originalBoxLeftLength;
+            itemProjections[item.id] = {
+                x: projectionX,
+                y: projectionY,
+                r: item.area.r
+            };
+        });
+
         return {
             id: boxId,
-            items: items,
-            area: {
-                x: minP.x,
-                y: minP.y,
-                w: maxP.x - minP.x,
-                h: maxP.y - minP.y,
-                r: 0
-            }
+            items,
+            area,
+            itemProjections
         };
     }
 }
