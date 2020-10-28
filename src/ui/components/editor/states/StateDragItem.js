@@ -420,13 +420,12 @@ export default class StateDragItem extends State {
             return;
         }
 
-        const centerX = this.multiItemEditBoxOriginalArea.x + this.multiItemEditBoxOriginalArea.w / 2;
-        const centerY = this.multiItemEditBoxOriginalArea.y + this.multiItemEditBoxOriginalArea.h / 2;
+        const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
 
-        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, centerX, centerY, event);
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
         const angle = angleDegrees * Math.PI / 180;
 
-        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, centerX, centerY, angle);
+        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
         this.multiItemEditBox.area.r = this.multiItemEditBoxOriginalArea.r + angleDegrees;
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
@@ -435,7 +434,7 @@ export default class StateDragItem extends State {
         // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
         // later we will recalculate item new positions based on new edit box area using original projections
         const topRightPoint = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea);
-        const bottomLeftPoint = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea);
+        const bottomLeftPoint = myMath.worldPointInArea(0, this.multiItemEditBoxOriginalArea.h, this.multiItemEditBoxOriginalArea);
 
         const originalBoxTopVx = topRightPoint.x - this.multiItemEditBoxOriginalArea.x;
         const originalBoxTopVy = topRightPoint.y - this.multiItemEditBoxOriginalArea.y;
