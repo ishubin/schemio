@@ -308,6 +308,24 @@ class SchemeContainer {
     localPointOnItem(x, y, item) {
         return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
     }
+
+    /**
+     * converts worlds coords to local point in the transform of the parent of the item
+     * In case item has no parents - it returns the world coords
+     * @param {*} x world position x
+     * @param {*} y world position y
+     * @param {*} item 
+     */
+    relativePointForItem(x, y, item) {
+        if (item.meta.parentId) {
+            const parentItem = this.findItemById(item.meta.parentId);
+            if (parentItem) {
+                return this.localPointOnItem(x, y, parentItem);
+            }
+        }
+
+        return {x, y};
+    }
     
     /**
      * Finds first item that is within specified distance to path
@@ -1043,11 +1061,16 @@ class SchemeContainer {
         const originalBoxLeftLength = leftLengthSquare > 0.0001 ? Math.sqrt(leftLengthSquare) : 1;
 
         forEach(items, item => {
-            // caclulating projection of item coords on the top and left edges of original edit box
-            const Vx = item.area.x - area.x;
-            const Vy = item.area.y - area.y;
+            // caclulating projection of item world coords on the top and left edges of original edit box
+            // since some items can be children of other items we need to project only their world location
+
+            const worldPoint = this.worldPointOnItem(0, 0, item);
+
+            const Vx = worldPoint.x - area.x;
+            const Vy = worldPoint.y - area.y;
             const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / originalBoxTopLength;
             const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / originalBoxLeftLength;
+
             itemProjections[item.id] = {
                 x: projectionX,
                 y: projectionY,

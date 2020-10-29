@@ -397,16 +397,7 @@ export default class StateDragItem extends State {
         const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
         const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
 
-        forEach(this.multiItemEditBox.items, item => {
-            // calculating new position of item based on their pre-calculated projections
-            const itemProjection = this.multiItemEditBox.itemProjections[item.id];
-            const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
-
-            item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
-            item.area.x = newPosition.x;
-            item.area.y = newPosition.y;
-            EventBus.emitItemChanged(item.id, 'area');
-        });
+        this.updateMultiItemEditBoxItems();
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
@@ -428,19 +419,24 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.r = this.multiItemEditBoxOriginalArea.r + angleDegrees;
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
+
+        this.updateMultiItemEditBoxItems();
         
+    }
+
+    updateMultiItemEditBoxItems() {
         forEach(this.multiItemEditBox.items, item => {
             // calculating new position of item based on their pre-calculated projections
             const itemProjection = this.multiItemEditBox.itemProjections[item.id];
             const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
 
             item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
-            item.area.x = newPosition.x;
-            item.area.y = newPosition.y;
+            const relativePosition = this.schemeContainer.relativePointForItem(newPosition.x, newPosition.y, item);
+            item.area.x = relativePosition.x;
+            item.area.y = relativePosition.y;
 
             EventBus.emitItemChanged(item.id, 'area');
         });
-
     }
 
     handleControlPointDrag(x, y) {
