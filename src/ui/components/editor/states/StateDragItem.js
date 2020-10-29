@@ -425,17 +425,27 @@ export default class StateDragItem extends State {
     }
 
     updateMultiItemEditBoxItems() {
+        // storing ids of dragged items in a map
+        // this way we will be able to figure out whether any items ancestors was dragged already
+        // so that we can skip dragging or rotation of item
+        const itemDraggedIds = {};
+
         forEach(this.multiItemEditBox.items, item => {
-            // calculating new position of item based on their pre-calculated projections
-            const itemProjection = this.multiItemEditBox.itemProjections[item.id];
-            const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
+            itemDraggedIds[item.id] = 1;
+            if (!item.locked) {
+                if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                    // calculating new position of item based on their pre-calculated projections
+                    const itemProjection = this.multiItemEditBox.itemProjections[item.id];
+                    const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
 
-            item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
-            const relativePosition = this.schemeContainer.relativePointForItem(newPosition.x, newPosition.y, item);
-            item.area.x = relativePosition.x;
-            item.area.y = relativePosition.y;
+                    item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
+                    const relativePosition = this.schemeContainer.relativePointForItem(newPosition.x, newPosition.y, item);
+                    item.area.x = relativePosition.x;
+                    item.area.y = relativePosition.y;
 
-            EventBus.emitItemChanged(item.id, 'area');
+                    EventBus.emitItemChanged(item.id, 'area');
+                }
+            }
         });
     }
 
