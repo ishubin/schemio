@@ -1069,15 +1069,31 @@ class SchemeContainer {
             // since some items can be children of other items we need to project only their world location
 
             const worldPoint = this.worldPointOnItem(0, 0, item);
+            const worldTopRightPoint = this.worldPointOnItem(item.area.w, 0, item);
+            const worldBottomLeftPoint = this.worldPointOnItem(0, item.area.h, item);
 
-            const Vx = worldPoint.x - area.x;
-            const Vy = worldPoint.y - area.y;
+            let Vx = worldPoint.x - area.x;
+            let Vy = worldPoint.y - area.y;
             const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
             const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+
+            Vx = worldTopRightPoint.x - area.x;
+            Vy = worldTopRightPoint.y - area.y;
+            const projectionTopRightX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionTopRightY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+
+            Vx = worldBottomLeftPoint.x - area.x;
+            Vy = worldBottomLeftPoint.y - area.y;
+            const projectionBottomLeftX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionBottomLeftY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
 
             itemProjections[item.id] = {
                 x: projectionX,
                 y: projectionY,
+                topRightX: projectionTopRightX,
+                topRightY: projectionTopRightY,
+                bottomLeftX: projectionBottomLeftX,
+                bottomLeftY: projectionBottomLeftY,
                 r: item.area.r
             };
         });
