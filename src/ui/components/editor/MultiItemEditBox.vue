@@ -2,14 +2,6 @@
     <g>
         <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
 
-            <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`" 
-                data-type="multi-item-edit-box"
-                :data-multi-item-edit-box-id="editBox.id"
-                stroke-width="0"
-                :fill="boundaryBoxColor"
-                stroke="none"
-                style="opacity: 0.2;"/>
-
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
                 :data-multi-item-edit-box-id="editBox.id"

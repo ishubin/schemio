@@ -1041,10 +1041,7 @@ class SchemeContainer {
             (item) => {return {x: 0, y: item.area.h}},
         ];
 
-        const itemIds = new Set();
-
         forEach(items, item => {
-            itemIds.add(item.id);
             forEach(pointGenerators, pointGenerator => {
                 const localPoint = pointGenerator(item);
                 const p = this.worldPointOnItem(localPoint.x, localPoint.y, item);
@@ -1095,8 +1092,15 @@ class SchemeContainer {
         if (leftLengthSquare < 0.001) {
             leftLengthSquare = 0.001;
         }
+        
+        // used to store additional information that might be needed when modifying items
+        const itemData = {};
 
         forEach(items, item => {
+            itemData[item.id] = {
+                originalArea: utils.clone(item.area)
+            };
+
             // caclulating projection of item world coords on the top and left edges of original edit box
             // since some items can be children of other items we need to project only their world location
 
@@ -1128,12 +1132,17 @@ class SchemeContainer {
                 bottomLeftY: projectionBottomLeftY,
                 r: item.area.r
             };
+
+            if (item.shape === 'curve') {
+                // storing original points so that they can be readjusted in case the item is resized
+                itemData[item.id].originalCurvePoints = utils.clone(item.shapeProps.points);
+            }
         });
 
         return {
             id: boxId,
             items,
-            itemIds,
+            itemData,
             area,
             itemProjections
         };
