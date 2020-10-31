@@ -11,6 +11,7 @@
                 :rx="5/safeZoom"
                 :ry="5/safeZoom"
             />
+
             <g v-for="(dragger, draggerIndex) in provideBoundingBoxDraggers(item)">
                 <rect v-if="!dragger.rotation" class="boundary-box-dragger"
                     :data-dragger-item-id="item.id"
@@ -22,7 +23,6 @@
                     :height="dragger.s * 2 / safeZoom"
                 />
             </g>
-            
             <!-- rendering item custom control points -->
             <circle v-for="(controlPoint, controlPointName) in item.meta.controlPoints"
                 class="item-control-point"
