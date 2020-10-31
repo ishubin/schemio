@@ -456,47 +456,55 @@ export default class StateDragItem extends State {
         const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
         const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
 
-        forEach(draggerEdges, edge => {
-            if (edge === 'top') {
-                // This should be a vector multiplication, so in case we introduce scale into transform,
-                // we should also divide by the length of bottomVector
-                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
-                ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
-                nh = this.multiItemEditBoxOriginalArea.h - projection;
-                if (nh < 0) {
-                    nh = 0;
-                }
-                change += Math.abs(projection);
-            } else if (edge === 'bottom') {
-                // This should be a vector multiplication, so in case we introduce scale into transform,
-                // we should also divide by the length of bottomVector
-                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
-                nh = this.multiItemEditBoxOriginalArea.h + projection;
-                if (nh < 0) {
-                    nh = 0;
-                }
-                change += Math.abs(projection);
-            } else if (edge === 'left') {
-                // This should be a vector multiplication, so in case we introduce scale into transform,
-                // we should also divide by the length of bottomVector
-                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
-                nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
-                nw = this.multiItemEditBoxOriginalArea.w - projection;
-                if (nw < 0) {
-                    nw = 0;
-                }
-                change += Math.abs(projection);
-            } else if (edge === 'right') {
-                // This should be a vector multiplication, so in case we introduce scale into transform,
-                // we should also divide by the length of bottomVector
-                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
-                nw = this.multiItemEditBoxOriginalArea.w + projection;
-                if (nw < 0) {
-                    nw = 0;
-                }
-                change += Math.abs(projection);
+        // dirty hack as dragging of top left edge is special
+        if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
+            const projectionBottom = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
+            const projectionRight = this.snapX(dx * rightVector.x + dy * rightVector.y);
+            nx = this.multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
+            ny = this.multiItemEditBoxOriginalArea.y + projectionRight * rightVector.y + projectionBottom * bottomVector.y;
+            nw = this.multiItemEditBoxOriginalArea.w - projectionRight;
+            nh = this.multiItemEditBoxOriginalArea.h - projectionBottom;
+            if (nh < 0) {
+                nh = 0;
             }
-        });
+            change += Math.abs(projectionRight) + Math.abs(projectionBottom);
+        } else {
+            forEach(draggerEdges, edge => {
+                if (edge === 'top') {
+                    const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
+                    nx = this.multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
+                    ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
+                    nh = this.multiItemEditBoxOriginalArea.h - projection;
+                    if (nh < 0) {
+                        nh = 0;
+                    }
+                    change += Math.abs(projection);
+                } else if (edge === 'bottom') {
+                    const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
+                    nh = this.multiItemEditBoxOriginalArea.h + projection;
+                    if (nh < 0) {
+                        nh = 0;
+                    }
+                    change += Math.abs(projection);
+                } else if (edge === 'left') {
+                    const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
+                    nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
+                    ny = this.multiItemEditBoxOriginalArea.y + projection * rightVector.y;
+                    nw = this.multiItemEditBoxOriginalArea.w - projection;
+                    if (nw < 0) {
+                        nw = 0;
+                    }
+                    change += Math.abs(projection);
+                } else if (edge === 'right') {
+                    const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
+                    nw = this.multiItemEditBoxOriginalArea.w + projection;
+                    if (nw < 0) {
+                        nw = 0;
+                    }
+                    change += Math.abs(projection);
+                }
+            });
+        }
         if (change > 0) {
             this.multiItemEditBox.area.x = nx;
             this.multiItemEditBox.area.y = ny;
