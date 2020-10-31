@@ -140,36 +140,6 @@ export default class StateDragItem extends State {
         };
     }
 
-    initDraggingForItem(item, x, y) {
-        item.meta.itemOriginalArea = {
-            x: item.area.x,
-            y: item.area.y,
-            w: item.area.w,
-            h: item.area.h,
-            r: item.area.r
-        };
-        this.wasMouseMoved = false;
-
-        if (item.shape === 'curve') {
-            // storing original points so that they can be readjusted in case the item is resized
-            item.meta.originalCurvePoints = utils.clone(item.shapeProps.points);
-        }
-    }
-
-    initItemRotation(item, x, y) {
-        item.meta.itemOriginalArea = {
-            x: item.area.x,
-            y: item.area.y,
-            w: item.area.w,
-            h: item.area.h,
-            r: item.area.r
-        };
-        this.sourceItem = item;
-        this.isRotating = true;
-        this.wasMouseMoved = false;
-        this.initDragging(x, y);
-    }
-
     initScreenDrag(mx, my) {
         this.startedDragging = true;
         this.originalPoint.x = mx;
@@ -183,13 +153,6 @@ export default class StateDragItem extends State {
         if (this.shouldDragScreen) {
             this.updateCursor('grabbing');
             this.initScreenDrag(mx, my);
-        } else if (object.dragger) {
-            this.dragger = object.dragger;
-            this.initDraggingForItem(object.dragger.item, x, y);
-            this.initDragging(x, y);
-            return;
-        } else if (object.rotationDragger) {
-            this.initItemRotation(object.rotationDragger.item, x, y);
         } else if (object.item) {
             if (isEventRightClick(event)) {
                 this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
@@ -259,12 +222,12 @@ export default class StateDragItem extends State {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
         
-        this.initDraggingForItem(item, x, y);
-        forEach(this.schemeContainer.selectedItems, item => {
-            this.initDraggingForItem(item, x, y);
-        });
-
-        this.initDragging(x, y);
+        if (this.schemeContainer.multiItemEditBoxes.relative && this.schemeContainer.multiItemEditBoxes.relative.itemIds.has(item.id)) {
+            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBoxes.relative, x, y);
+        }
+        if (this.schemeContainer.multiItemEditBoxes.viewport && this.schemeContainer.multiItemEditBoxes.viewport.itemIds.has(item.id)) {
+            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBoxes.viewport, x, y);
+        }
     }
 
     handleItemRightMouseDown(x, y, mx, my, item, event) {

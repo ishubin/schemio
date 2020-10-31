@@ -325,7 +325,6 @@ export default {
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
@@ -358,7 +357,6 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
@@ -790,36 +788,6 @@ export default {
 
         onAnyItemSelected() {
             this.resetHighlightedItems();
-            this.updateMultiItemEditBox();
-        },
-
-        onAnyItemDeselected() {
-            this.updateMultiItemEditBox();
-        },
-
-        updateMultiItemEditBox() {
-            const relativeItems = [];
-            const viewportItems = [];
-
-            forEach(this.schemeContainer.selectedItems, item => {
-                if (item.area.type === 'viewport') {
-                    viewportItems.push(item);
-                } else {
-                    relativeItems.push(item)
-                }
-            });
-
-            if (relativeItems.length > 1) {
-                this.schemeContainer.multiItemEditBoxes.relative = this.schemeContainer.generateMultiItemEditBox(relativeItems, 'relative');
-            } else {
-                this.schemeContainer.multiItemEditBoxes.relative = false;
-            }
-
-            if (viewportItems.length > 1) {
-                this.schemeContainer.multiItemEditBoxes.viewport = this.schemeContainer.generateMultiItemEditBox(viewportItems, 'viewport');
-            } else {
-                this.schemeContainer.multiItemEditBoxes.viewport = false;
-            }
         },
 
         resetHighlightedItems() {

@@ -674,6 +674,7 @@ class SchemeContainer {
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         }
+        this.updateAllMultiItemEditBoxes();
     }
 
     selectItemInclusive(item) {
@@ -723,6 +724,8 @@ class SchemeContainer {
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
         forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+
+        this.updateAllMultiItemEditBoxes();
     }
 
     selectByBoundaryBox(box) {
@@ -746,6 +749,7 @@ class SchemeContainer {
                 item.meta.selected = true;
             }
         });
+        this.updateAllMultiItemEditBoxes();
     }
 
     /**
@@ -1000,6 +1004,31 @@ class SchemeContainer {
         this.reindexItems();
     }
 
+    updateAllMultiItemEditBoxes() {
+        const relativeItems = [];
+        const viewportItems = [];
+
+        forEach(this.selectedItems, item => {
+            if (item.area.type === 'viewport') {
+                viewportItems.push(item);
+            } else {
+                relativeItems.push(item)
+            }
+        });
+
+        if (relativeItems.length > 0) {
+            this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative');
+        } else {
+            this.multiItemEditBoxes.relative = false;
+        }
+
+        if (viewportItems.length > 0) {
+            this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport');
+        } else {
+            this.multiItemEditBoxes.viewport = false;
+        }
+    }
+
     generateMultiItemEditBox(items, boxId) {
         let minP = null;
         let maxP = null;
@@ -1012,7 +1041,10 @@ class SchemeContainer {
             (item) => {return {x: 0, y: item.area.h}},
         ];
 
+        const itemIds = new Set();
+
         forEach(items, item => {
+            itemIds.add(item.id);
             forEach(pointGenerators, pointGenerator => {
                 const localPoint = pointGenerator(item);
                 const p = this.worldPointOnItem(localPoint.x, localPoint.y, item);
@@ -1101,6 +1133,7 @@ class SchemeContainer {
         return {
             id: boxId,
             items,
+            itemIds,
             area,
             itemProjections
         };
