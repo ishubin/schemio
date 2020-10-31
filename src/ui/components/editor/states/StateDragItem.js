@@ -51,6 +51,8 @@ export default class StateDragItem extends State {
         this.reindexNeeded = false;
         this.multiItemEditBox = null;
         this.multiItemEditBoxOriginalArea = null;
+        // array of edge names. used to resize multi item edit box using its edge draggers
+        this.draggerEdges = null;
 
         this.snapper = {
             snapX: (x) => this.snapX(x),
@@ -63,6 +65,7 @@ export default class StateDragItem extends State {
         this.reindexNeeded = false;
         this.startedDragging = false;
         this.dragger = null;
+        this.draggerEdges = null;
         this.isRotating = false;
         this.sourceItem = null;
         this.controlPoint = null;
@@ -117,6 +120,14 @@ export default class StateDragItem extends State {
         this.multiItemEditBox = multiItemEditBox;
         this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
         this.isRotating = true;
+    }
+
+    initMultiItemBoxResize(multiItemEditBox, draggerEdges, x, y) {
+        this.initDragging(x, y);
+        this.multiItemEditBox = multiItemEditBox;
+        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
+        this.isRotating = false;
+        this.draggerEdges = draggerEdges;
     }
 
     initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
@@ -193,6 +204,8 @@ export default class StateDragItem extends State {
             this.initDraggingMultiItemBox(object.multiItemEditBox, x, y);
         } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
             this.initMultiItemBoxRotation(object.multiItemEditBox, x, y);
+        } else if (object.type === 'multi-item-edit-box-resize-dragger') {
+            this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
@@ -274,6 +287,8 @@ export default class StateDragItem extends State {
             } else if (this.multiItemEditBox) {
                 if (this.isRotating) {
                     this.rotateMultiItemEditBox(x, y, event);
+                } else if (this.draggerEdges) {
+                    this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
                 } else {
                     this.dragMultiItemEditBox(x, y);
                 }
@@ -397,10 +412,11 @@ export default class StateDragItem extends State {
         const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
         const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
 
-        this.updateMultiItemEditBoxItems();
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
+        this.updateMultiItemEditBoxItems();
+        this.reindexNeeded = true;
     }
 
     rotateMultiItemEditBox(x, y, event) {
@@ -421,7 +437,74 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.y = np.y;
 
         this.updateMultiItemEditBoxItems();
-        
+        this.reindexNeeded = true;
+    }
+
+    dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
+        let nx = this.multiItemEditBox.area.x,
+            ny = this.multiItemEditBox.area.y,
+            nw = this.multiItemEditBox.area.w,
+            nh = this.multiItemEditBox.area.h,
+            dx = x - this.originalPoint.x,
+            dy = y - this.originalPoint.y,
+            change = 0;
+
+        let p0 = myMath.worldPointInArea(0, 0, this.multiItemEditBox.area);
+        let p1 = myMath.worldPointInArea(1, 0, this.multiItemEditBox.area);
+        let p2 = myMath.worldPointInArea(0, 1, this.multiItemEditBox.area);
+
+        const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
+        const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
+
+        forEach(draggerEdges, edge => {
+            if (edge === 'top') {
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
+                ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
+                nh = this.multiItemEditBoxOriginalArea.h - projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+                change += Math.abs(projection);
+            } else if (edge === 'bottom') {
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y); 
+                nh = this.multiItemEditBoxOriginalArea.h + projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+                change += Math.abs(projection);
+            } else if (edge === 'left') {
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
+                nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
+                nw = this.multiItemEditBoxOriginalArea.w - projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+                change += Math.abs(projection);
+            } else if (edge === 'right') {
+                // This should be a vector multiplication, so in case we introduce scale into transform,
+                // we should also divide by the length of bottomVector
+                const projection = this.snapX(dx * rightVector.x + dy * rightVector.y); 
+                nw = this.multiItemEditBoxOriginalArea.w + projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+                change += Math.abs(projection);
+            }
+        });
+        if (change > 0) {
+            this.multiItemEditBox.area.x = nx;
+            this.multiItemEditBox.area.y = ny;
+            this.multiItemEditBox.area.w = nw;
+            this.multiItemEditBox.area.h = nh;
+            this.updateMultiItemEditBoxItems();
+            this.reindexNeeded = true;
+        }
     }
 
     updateMultiItemEditBoxItems() {
@@ -430,16 +513,27 @@ export default class StateDragItem extends State {
         // so that we can skip dragging or rotation of item
         const itemDraggedIds = {};
 
+        const topRightPoint = myMath.worldPointInArea(this.multiItemEditBox.area.w, 0, this.multiItemEditBox.area);
+        const bottomLeftPoint = myMath.worldPointInArea(0, this.multiItemEditBox.area.h, this.multiItemEditBox.area);
+        const topVx = topRightPoint.x - this.multiItemEditBox.area.x;
+        const topVy = topRightPoint.y - this.multiItemEditBox.area.y;
+
+        const leftVx = bottomLeftPoint.x - this.multiItemEditBox.area.x;
+        const leftVy = bottomLeftPoint.y - this.multiItemEditBox.area.y;
+
         forEach(this.multiItemEditBox.items, item => {
             itemDraggedIds[item.id] = 1;
             if (!item.locked) {
                 if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
                     // calculating new position of item based on their pre-calculated projections
                     const itemProjection = this.multiItemEditBox.itemProjections[item.id];
-                    const newPosition = myMath.worldPointInArea(itemProjection.x, itemProjection.y, this.multiItemEditBox.area);
 
+                    // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
+                    const nx = this.multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
+                    const ny = this.multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
+                    
                     item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
-                    const relativePosition = this.schemeContainer.relativePointForItem(newPosition.x, newPosition.y, item);
+                    const relativePosition = this.schemeContainer.relativePointForItem(nx, ny, item);
                     item.area.x = relativePosition.x;
                     item.area.y = relativePosition.y;
 

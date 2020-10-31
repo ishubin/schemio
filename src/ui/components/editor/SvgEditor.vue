@@ -457,6 +457,13 @@ export default {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId]
                     };
+                } else if (elementType === 'multi-item-edit-box-resize-dragger') {
+                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
+                    return {
+                        type: elementType,
+                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
+                        draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
+                    };
                 }
 
                 const itemId = element.getAttribute('data-item-id');

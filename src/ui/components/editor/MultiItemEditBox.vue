@@ -2,16 +2,6 @@
     <g>
         <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
 
-            <ellipse class="boundary-box-dragger"
-                data-type="multi-item-edit-box-rotational-dragger"
-                :data-multi-item-edit-box-id="editBox.id"
-                :fill="boundaryBoxColor"
-                :cx="editBox.area.w / 2"
-                :cy="-60/safeZoom"
-                :rx="5/safeZoom"
-                :ry="5/safeZoom"
-            />
-
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`" 
                 data-type="multi-item-edit-box"
                 :data-multi-item-edit-box-id="editBox.id"
@@ -27,6 +17,105 @@
                 fill="none"
                 :stroke="boundaryBoxColor"
                 style="opacity: 0.8;"/>
+
+            <ellipse class="boundary-box-dragger"
+                data-type="multi-item-edit-box-rotational-dragger"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :cx="editBox.area.w / 2"
+                :cy="-60/safeZoom"
+                :rx="5/safeZoom"
+                :ry="5/safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="top,left"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="-2 * draggerSize / safeZoom"
+                :y="-2 * draggerSize / safeZoom"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="top"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="editBox.area.w / 2 - draggerSize / safeZoom"
+                :y="-2 * draggerSize / safeZoom"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="top,right"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="editBox.area.w"
+                :y="-2 * draggerSize / safeZoom"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="left"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="-2 * draggerSize / safeZoom"
+                :y="editBox.area.h / 2 - draggerSize / safeZoom"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="right"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="editBox.area.w"
+                :y="editBox.area.h / 2 - draggerSize / safeZoom"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="bottom,left"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="-2 * draggerSize / safeZoom"
+                :y="editBox.area.h"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="bottom"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="editBox.area.w / 2 - draggerSize / safeZoom"
+                :y="editBox.area.h"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
+            <rect class="boundary-box-dragger"
+                data-type="multi-item-edit-box-resize-dragger"
+                data-dragger-edges="bottom,right"
+                :data-multi-item-edit-box-id="editBox.id"
+                :fill="boundaryBoxColor"
+                :x="editBox.area.w"
+                :y="editBox.area.h"
+                :width="draggerSize * 2 / safeZoom"
+                :height="draggerSize * 2 / safeZoom"
+            />
+
         </g>
     </g>
 </template>
@@ -41,25 +130,8 @@ export default {
 
     data() {
         return {
+            draggerSize: 5
         };
-    },
-
-    methods: {
-        onDragTriggered(boxId) {
-            if (this.boxId !== boxId) {
-                return;
-            }
-
-            this.originalArea.x = this.area.x;
-            this.originalArea.y = this.area.y;
-            this.originalArea.w = this.area.w;
-            this.originalArea.h = this.area.h;
-            this.originalArea.r = this.area.r;
-
-            forEach(this.items, item => {
-                this.originalItemAreas[item.id] = utils.clone(item.area);
-            });
-        },
     },
 
     computed: {

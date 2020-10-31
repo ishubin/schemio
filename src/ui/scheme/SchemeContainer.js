@@ -1053,12 +1053,16 @@ class SchemeContainer {
         const originalBoxLeftVx = bottomLeftPoint.x - area.x;
         const originalBoxLeftVy = bottomLeftPoint.y - area.y;
 
-        const topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
+        let topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
         //TODO Think of a better way to check for zero width or height
-        const originalBoxTopLength = topLengthSquare > 0.0001 ? Math.sqrt(topLengthSquare) : 1;
+        if (topLengthSquare < 0.001) {
+            topLengthSquare = 0.001;
+        }
 
-        const leftLengthSquare = originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy
-        const originalBoxLeftLength = leftLengthSquare > 0.0001 ? Math.sqrt(leftLengthSquare) : 1;
+        let leftLengthSquare = originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy
+        if (leftLengthSquare < 0.001) {
+            leftLengthSquare = 0.001;
+        }
 
         forEach(items, item => {
             // caclulating projection of item world coords on the top and left edges of original edit box
@@ -1068,8 +1072,8 @@ class SchemeContainer {
 
             const Vx = worldPoint.x - area.x;
             const Vy = worldPoint.y - area.y;
-            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / originalBoxTopLength;
-            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / originalBoxLeftLength;
+            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
 
             itemProjections[item.id] = {
                 x: projectionX,
