@@ -524,39 +524,40 @@ export default class StateDragItem extends State {
         forEach(this.multiItemEditBox.items, item => {
             itemDraggedIds[item.id] = 1;
             if (!item.locked) {
+                // calculating new position of item based on their pre-calculated projections
+                const itemProjection = this.multiItemEditBox.itemProjections[item.id];
+
                 if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
-                    // calculating new position of item based on their pre-calculated projections
-                    const itemProjection = this.multiItemEditBox.itemProjections[item.id];
-
-                    // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
-                    const nx = this.multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
-                    const ny = this.multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
-                    const topRightX = this.multiItemEditBox.area.x + topVx * itemProjection.topRightX + leftVx * itemProjection.topRightY;
-                    const topRightY = this.multiItemEditBox.area.y + topVy * itemProjection.topRightX + leftVy * itemProjection.topRightY;
-                    const bottomLeftX = this.multiItemEditBox.area.x + topVx * itemProjection.bottomLeftX + leftVx * itemProjection.bottomLeftY;
-                    const bottomLeftY = this.multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
-
                     item.area.r = itemProjection.r + this.multiItemEditBox.area.r;
-                    const relativePosition = this.schemeContainer.relativePointForItem(nx, ny, item);
-                    item.area.x = relativePosition.x;
-                    item.area.y = relativePosition.y;
-
-                    const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
-                    if (widthSquare > 0) {
-                        item.area.w = Math.sqrt(widthSquare);
-                    } else {
-                        item.area.w = 0;
-                    }
-
-                    const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
-                    if (heightSquare > 0) {
-                        item.area.h = Math.sqrt(heightSquare);
-                    } else {
-                        item.area.h = 0;
-                    }
-
-                    EventBus.emitItemChanged(item.id, 'area');
                 }
+
+                // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
+                const nx = this.multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
+                const ny = this.multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
+                const topRightX = this.multiItemEditBox.area.x + topVx * itemProjection.topRightX + leftVx * itemProjection.topRightY;
+                const topRightY = this.multiItemEditBox.area.y + topVy * itemProjection.topRightX + leftVy * itemProjection.topRightY;
+                const bottomLeftX = this.multiItemEditBox.area.x + topVx * itemProjection.bottomLeftX + leftVx * itemProjection.bottomLeftY;
+                const bottomLeftY = this.multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
+
+                const relativePosition = this.schemeContainer.relativePointForItem(nx, ny, item);
+                item.area.x = relativePosition.x;
+                item.area.y = relativePosition.y;
+
+                const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
+                if (widthSquare > 0) {
+                    item.area.w = Math.sqrt(widthSquare);
+                } else {
+                    item.area.w = 0;
+                }
+
+                const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
+                if (heightSquare > 0) {
+                    item.area.h = Math.sqrt(heightSquare);
+                } else {
+                    item.area.h = 0;
+                }
+
+                EventBus.emitItemChanged(item.id, 'area');
             }
         });
     }
