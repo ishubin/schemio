@@ -3,7 +3,8 @@ import expect from 'expect';
 import sinon from 'sinon';
 
 const whateverEventBus = {
-    emitSchemeChangeCommited() {}
+    emitSchemeChangeCommited() {},
+    emitItemsHighlighted() {}
 };
 
 
