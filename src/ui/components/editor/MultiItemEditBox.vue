@@ -20,6 +20,18 @@
                 :ry="5/safeZoom"
             />
 
+            <!-- rendering item custom control points -->
+            <g v-for="item in editBox.items">
+                <circle v-for="(controlPoint, controlPointName) in item.meta.controlPoints"
+                    class="item-control-point"
+                    :data-control-point-item-id="item.id"
+                    :data-control-point-id="controlPointName"
+                    :cx="controlPoint.x" :cy="controlPoint.y"
+                    :fill="boundaryBoxColor"
+                    :r="5/safeZoom"
+                    />
+            </g>
+
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="top,left"
