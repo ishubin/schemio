@@ -113,14 +113,7 @@
                         />
                     </g>
 
-                    <g v-if="!schemeContainer.multiItemEditBoxes.relative">
-                        <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
-                            :key="`item-edit-box-${item.id}`"
-                            :item="item"
-                            :zoom="schemeContainer.screenTransform.scale"
-                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
-                    </g>
-                    <multi-item-edit-box v-else
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative"
                         :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
@@ -150,14 +143,7 @@
                             :mode="mode"
                             />
                     </g>
-                    <g v-if="!schemeContainer.multiItemEditBoxes.viewport">
-                        <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
-                            :key="`item-edit-box-${item.id}`"
-                            :item="item"
-                            :zoom="1"
-                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
-                    </g>
-                    <multi-item-edit-box v-else
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
@@ -238,7 +224,6 @@ import StateCreateItem from './states/StateCreateItem.js';
 import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
-import ItemEditBox from './ItemEditBox.vue';
 import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
@@ -302,7 +287,7 @@ const lastMousePosition = {
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
-    components: {ItemSvg, ContextMenu, ItemEditBox, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
+    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
