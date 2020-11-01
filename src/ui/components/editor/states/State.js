@@ -13,7 +13,17 @@ class State {
         this.eventBus = eventBus;
         this.name = '';
         this.editor = null;
+
+        // Viewport transform correction 
+        this.viewportCorrectionTop = 0;
+        this.viewportCorrectionLeft = 0;
     }
+
+    setViewportCorrection(viewportTop, viewportLeft) {
+        this.viewportCorrectionLeft = viewportLeft;
+        this.viewportCorrectionTop = viewportTop;
+    }
+
 
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;

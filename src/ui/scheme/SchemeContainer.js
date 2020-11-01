@@ -93,6 +93,13 @@ class SchemeContainer {
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
+        // Used to drag, resize and rotate multiple items in two transforms: relative and viewport
+        // Since both the SvgEditor component and StateDragItem state needs access to it, it is easier to keep it here
+        this.multiItemEditBoxes = {
+            relative: null,
+            viewport: null
+        };
+
         this.enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
     }
@@ -300,6 +307,24 @@ class SchemeContainer {
      */
     localPointOnItem(x, y, item) {
         return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+    }
+
+    /**
+     * converts worlds coords to local point in the transform of the parent of the item
+     * In case item has no parents - it returns the world coords
+     * @param {*} x world position x
+     * @param {*} y world position y
+     * @param {*} item 
+     */
+    relativePointForItem(x, y, item) {
+        if (item.meta.parentId) {
+            const parentItem = this.findItemById(item.meta.parentId);
+            if (parentItem) {
+                return this.localPointOnItem(x, y, parentItem);
+            }
+        }
+
+        return {x, y};
     }
     
     /**
@@ -593,6 +618,8 @@ class SchemeContainer {
             });
 
             this.selectedItems = [];
+            this.multiItemEditBoxes.relative = null;
+            this.multiItemEditBoxes.viewport = null;
             this.reindexItems();
         }
     }
@@ -649,6 +676,7 @@ class SchemeContainer {
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         }
+        this.updateAllMultiItemEditBoxes();
     }
 
     selectItemInclusive(item) {
@@ -698,6 +726,8 @@ class SchemeContainer {
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
         forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+
+        this.updateAllMultiItemEditBoxes();
     }
 
     selectByBoundaryBox(box) {
@@ -721,6 +751,7 @@ class SchemeContainer {
                 item.meta.selected = true;
             }
         });
+        this.updateAllMultiItemEditBoxes();
     }
 
     /**
@@ -973,6 +1004,151 @@ class SchemeContainer {
         });
 
         this.reindexItems();
+    }
+
+    updateAllMultiItemEditBoxes() {
+        const relativeItems = [];
+        const viewportItems = [];
+
+        forEach(this.selectedItems, item => {
+            if (item.area.type === 'viewport') {
+                viewportItems.push(item);
+            } else {
+                relativeItems.push(item)
+            }
+        });
+
+        if (relativeItems.length > 0) {
+            this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative', 'relative');
+        } else {
+            this.multiItemEditBoxes.relative = false;
+        }
+
+        if (viewportItems.length > 0) {
+            this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport', 'viewport');
+        } else {
+            this.multiItemEditBoxes.viewport = false;
+        }
+    }
+
+    generateMultiItemEditBox(items, boxId, transformType) {
+        let minP = null;
+        let maxP = null;
+
+        // iterating over all corners of items area to calculate the boundary box
+        const pointGenerators = [
+            (item) => {return {x: 0, y: 0}},
+            (item) => {return {x: item.area.w, y: 0}},
+            (item) => {return {x: item.area.w, y: item.area.h}},
+            (item) => {return {x: 0, y: item.area.h}},
+        ];
+
+        forEach(items, item => {
+            forEach(pointGenerators, pointGenerator => {
+                const localPoint = pointGenerator(item);
+                const p = this.worldPointOnItem(localPoint.x, localPoint.y, item);
+                if (minP) {
+                    minP.x = Math.min(minP.x, p.x);
+                    minP.y = Math.min(minP.y, p.y);
+                } else {
+                    minP = {x: p.x, y: p.y};
+                }
+
+                if (maxP) {
+                    maxP.x = Math.max(maxP.x, p.x);
+                    maxP.y = Math.max(maxP.y, p.y);
+                } else {
+                    maxP = {x: p.x, y: p.y};
+                }
+            });
+        });
+
+        const area = {
+           x: minP.x,
+           y: minP.y,
+           w: maxP.x - minP.x,
+           h: maxP.y - minP.y,
+           r: 0
+        };
+
+        const itemProjections = {};
+
+        // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
+        // later we will recalculate item new positions based on new edit box area using original projections
+        const topRightPoint = myMath.worldPointInArea(area.w, 0, area);
+        const bottomLeftPoint = myMath.worldPointInArea(0, area.h, area);
+
+        const originalBoxTopVx = topRightPoint.x - area.x;
+        const originalBoxTopVy = topRightPoint.y - area.y;
+
+        const originalBoxLeftVx = bottomLeftPoint.x - area.x;
+        const originalBoxLeftVy = bottomLeftPoint.y - area.y;
+
+        let topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
+        //TODO Think of a better way to check for zero width or height
+        if (topLengthSquare < 0.001) {
+            topLengthSquare = 0.001;
+        }
+
+        let leftLengthSquare = originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy
+        if (leftLengthSquare < 0.001) {
+            leftLengthSquare = 0.001;
+        }
+        
+        // used to store additional information that might be needed when modifying items
+        const itemData = {};
+
+        forEach(items, item => {
+            itemData[item.id] = {
+                originalArea: utils.clone(item.area)
+            };
+
+            // caclulating projection of item world coords on the top and left edges of original edit box
+            // since some items can be children of other items we need to project only their world location
+
+            const worldPoint = this.worldPointOnItem(0, 0, item);
+            const worldTopRightPoint = this.worldPointOnItem(item.area.w, 0, item);
+            const worldBottomLeftPoint = this.worldPointOnItem(0, item.area.h, item);
+
+            let Vx = worldPoint.x - area.x;
+            let Vy = worldPoint.y - area.y;
+            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+
+            Vx = worldTopRightPoint.x - area.x;
+            Vy = worldTopRightPoint.y - area.y;
+            const projectionTopRightX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionTopRightY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+
+            Vx = worldBottomLeftPoint.x - area.x;
+            Vy = worldBottomLeftPoint.y - area.y;
+            const projectionBottomLeftX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
+            const projectionBottomLeftY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+
+            itemProjections[item.id] = {
+                x: projectionX,
+                y: projectionY,
+                topRightX: projectionTopRightX,
+                topRightY: projectionTopRightY,
+                bottomLeftX: projectionBottomLeftX,
+                bottomLeftY: projectionBottomLeftY,
+                r: item.area.r
+            };
+
+            if (item.shape === 'curve') {
+                // storing original points so that they can be readjusted in case the item is resized
+                itemData[item.id].originalCurvePoints = utils.clone(item.shapeProps.points);
+            }
+        });
+
+        return {
+            id: boxId,
+            items,
+            itemData,
+            area,
+            itemProjections,
+            transformType
+        };
     }
 }
 

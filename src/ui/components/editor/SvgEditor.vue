@@ -113,9 +113,8 @@
                         />
                     </g>
 
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type !== 'viewport' && state !== 'editCurve'"
-                        :key="`item-edit-box-${item.id}`"
-                        :item="item"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative && state !== 'editCurve'"
+                        :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
@@ -144,10 +143,9 @@
                             :mode="mode"
                             />
                     </g>
-                    <item-edit-box v-for="item in schemeContainer.selectedItems" v-if="item.area.type === 'viewport' && state !== 'editCurve'"
-                        :key="`item-edit-box-${item.id}`"
-                        :item="item"
-                        :zoom="1"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve'"
+                        :edit-box="schemeContainer.multiItemEditBoxes.viewport"
+                        :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
@@ -226,7 +224,7 @@ import StateCreateItem from './states/StateCreateItem.js';
 import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
-import ItemEditBox from './ItemEditBox.vue';
+import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
 import {generateTextBox, generateTextStyle} from './text/ItemText';
@@ -289,7 +287,7 @@ const lastMousePosition = {
 
 export default {
     props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
-    components: {ItemSvg, ContextMenu, ItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
+    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -301,7 +299,7 @@ export default {
             this.switchStateInteract();
         }
 
-        states.editCurve.setViewportCorrection(this.viewportTop, this.viewportLeft);
+        forEach(states, state => state.setViewportCorrection(this.viewportTop, this.viewportLeft));
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
@@ -435,6 +433,19 @@ export default {
                         type: elementType,
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
+                    };
+                } else if (elementType === 'multi-item-edit-box' || elementType === 'multi-item-edit-box-rotational-dragger') {
+                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
+                    return {
+                        type: elementType,
+                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId]
+                    };
+                } else if (elementType === 'multi-item-edit-box-resize-dragger') {
+                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
+                    return {
+                        type: elementType,
+                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
+                        draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
                 }
 
@@ -1096,10 +1107,10 @@ export default {
             }
         },
         viewportTop(value) {
-            states.editCurve.setViewportCorrection(value, this.viewportLeft);
+            states[this.state].setViewportCorrection(value, this.viewportLeft);
         },
         viewportLeft(value) {
-            states.editCurve.setViewportCorrection(this.viewportTop, value);
+            states[this.state].setViewportCorrection(this.viewportTop, value);
         },
         zoom(newZoom) {
             if (this.interactiveSchemeContainer) {
