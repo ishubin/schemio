@@ -15,7 +15,11 @@
 
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
-        <position-panel v-if="currentTab === 'position'" :key="`position-panel-${item.id}`" :item="item"/>
+        <position-panel v-if="currentTab === 'position'"
+            :key="`position-panel-${item.id}`"
+            :item="item"
+            @item-transform-type-changed="onItemTransformTypeChanged"
+            />
 
         <behavior-properties v-if="currentTab === 'behavior'"
             :key="`behavior-panel-${item.id}`"
@@ -309,6 +313,10 @@ export default {
 
         onStyleApplied(style) {
             this.$emit('item-style-applied', style);
+        },
+
+        onItemTransformTypeChanged() {
+            this.schemeContainer.updateAllMultiItemEditBoxes();
         }
     },
 

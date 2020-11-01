@@ -109,6 +109,7 @@ export default {
     watch: {
         type(text) {
             this.item.area.type = text;
+            this.$emit('item-transform-type-changed');
             EventBus.emitItemChanged(this.item.id, 'area.type');
         }
     }
