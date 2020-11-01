@@ -20,19 +20,17 @@
                 :ry="5/safeZoom"
             />
 
-            <!-- rendering item custom control points -->
-            <g v-for="item in editBox.items">
-                <circle v-for="(controlPoint, controlPointName) in item.meta.controlPoints"
+            <g v-if="editBox.items.length === 1">
+                <!-- rendering item custom control points -->
+                <circle v-for="(controlPoint, controlPointName) in editBox.items[0].meta.controlPoints"
                     class="item-control-point"
-                    :data-control-point-item-id="item.id"
+                    :data-control-point-item-id="editBox.items[0].id"
                     :data-control-point-id="controlPointName"
                     :cx="controlPoint.x" :cy="controlPoint.y"
                     :fill="boundaryBoxColor"
                     :r="5/safeZoom"
                     />
-            </g>
 
-            <g v-if="editBox.items.length === 1">
                 <path class="boundary-box-connector-starter"
                     :transform="`translate(${editBox.items[0].area.w/2 + 3/safeZoom}  ${editBox.items[0].area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                     :data-connector-starter-item-id="editBox.items[0].id"

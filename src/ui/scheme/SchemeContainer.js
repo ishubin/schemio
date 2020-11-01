@@ -618,6 +618,8 @@ class SchemeContainer {
             });
 
             this.selectedItems = [];
+            this.multiItemEditBoxes.relative = null;
+            this.multiItemEditBoxes.viewport = null;
             this.reindexItems();
         }
     }

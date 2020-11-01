@@ -312,6 +312,7 @@ export default class StateDragItem extends State {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
                 this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT);
             }
+            this.schemeContainer.updateAllMultiItemEditBoxes();
             this.schemeContainer.reindexItems();
         }
         this.reset();
