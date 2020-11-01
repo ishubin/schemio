@@ -299,7 +299,7 @@ export default {
             this.switchStateInteract();
         }
 
-        states.editCurve.setViewportCorrection(this.viewportTop, this.viewportLeft);
+        forEach(states, state => state.setViewportCorrection(this.viewportTop, this.viewportLeft));
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
@@ -1107,10 +1107,10 @@ export default {
             }
         },
         viewportTop(value) {
-            states.editCurve.setViewportCorrection(value, this.viewportLeft);
+            states[this.state].setViewportCorrection(value, this.viewportLeft);
         },
         viewportLeft(value) {
-            states.editCurve.setViewportCorrection(this.viewportTop, value);
+            states[this.state].setViewportCorrection(this.viewportTop, value);
         },
         zoom(newZoom) {
             if (this.interactiveSchemeContainer) {

@@ -32,25 +32,25 @@
                     />
 
                 <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.items[0].area.w/2 + 3/safeZoom}  ${editBox.items[0].area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
+                    :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 20/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                     :data-connector-starter-item-id="editBox.items[0].id"
                     :fill="boundaryBoxColor"
                     d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                 <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.items[0].area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
+                    :transform="`translate(${editBox.area.w/2 - 3/safeZoom}  ${-20/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
                     :data-connector-starter-item-id="editBox.items[0].id"
                     :fill="boundaryBoxColor"
                     d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                 <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.items[0].area.w + 20/safeZoom}  ${editBox.items[0].area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
+                    :transform="`translate(${editBox.area.w + 20/safeZoom}  ${editBox.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
                     :data-connector-starter-item-id="editBox.items[0].id"
                     :fill="boundaryBoxColor"
                     d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
                 <path class="boundary-box-connector-starter"
-                    :transform="`translate(${-20/safeZoom}  ${editBox.items[0].area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
+                    :transform="`translate(${-20/safeZoom}  ${editBox.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
                     :data-connector-starter-item-id="editBox.items[0].id"
                     :fill="boundaryBoxColor"
                     d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>

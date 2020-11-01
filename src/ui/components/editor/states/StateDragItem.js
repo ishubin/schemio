@@ -35,7 +35,7 @@ export default class StateDragItem extends State {
     constructor(eventBus) {
         super(eventBus);
         this.name = 'drag-item';
-        this.originalPoint = {x: 0, y: 0};
+        this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.startedDragging = true;
         // used for item control points dragging
         this.sourceItem = null;
@@ -101,31 +101,33 @@ export default class StateDragItem extends State {
         }
     }
 
-    initDragging(x, y) {
+    initDragging(x, y, mx, my) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
+        this.originalPoint.mx = mx;
+        this.originalPoint.my = my;
         this.startedDragging = true;
         this.wasMouseMoved = false;
         this.reindexNeeded = false;
         this.lastDraggedItem = null;
     }
 
-    initDraggingMultiItemBox(multiItemEditBox, x, y) {
-        this.initDragging(x, y);
+    initDraggingMultiItemBox(multiItemEditBox, x, y, mx, my) {
+        this.initDragging(x, y, mx, my);
         this.multiItemEditBox = multiItemEditBox;
         this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
         this.isRotating = false;
     }
 
-    initMultiItemBoxRotation(multiItemEditBox, x, y) {
-        this.initDragging(x, y);
+    initMultiItemBoxRotation(multiItemEditBox, x, y, mx, my) {
+        this.initDragging(x, y, mx, my);
         this.multiItemEditBox = multiItemEditBox;
         this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
         this.isRotating = true;
     }
 
-    initMultiItemBoxResize(multiItemEditBox, draggerEdges, x, y) {
-        this.initDragging(x, y);
+    initMultiItemBoxResize(multiItemEditBox, draggerEdges, x, y, mx, my) {
+        this.initDragging(x, y, mx, my);
         this.multiItemEditBox = multiItemEditBox;
         this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
         this.isRotating = false;
@@ -146,6 +148,8 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
         this.originalPoint.x = mx;
         this.originalPoint.y = my;
+        this.originalPoint.mx = mx;
+        this.originalPoint.my = my;
         this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
@@ -166,11 +170,11 @@ export default class StateDragItem extends State {
         } else if (object.controlPoint) {
             this.initDraggingForControlPoint(object.controlPoint, x, y);
         } else if (object.type === 'multi-item-edit-box') {
-            this.initDraggingMultiItemBox(object.multiItemEditBox, x, y);
+            this.initDraggingMultiItemBox(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
-            this.initMultiItemBoxRotation(object.multiItemEditBox, x, y);
+            this.initMultiItemBoxRotation(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-resize-dragger') {
-            this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y);
+            this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y, mx, my);
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
@@ -251,7 +255,7 @@ export default class StateDragItem extends State {
                 this.reset();
             } else if (this.multiItemEditBox) {
                 if (this.isRotating) {
-                    this.rotateMultiItemEditBox(x, y, event);
+                    this.rotateMultiItemEditBox(x, y, mx, my, event);
                 } else if (this.draggerEdges) {
                     this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
                 } else {
@@ -311,8 +315,11 @@ export default class StateDragItem extends State {
             if (this.lastDraggedItem) {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
                 this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT);
+
+                if (this.lastDraggedItem.shape === 'curve' && this.controlPoint) {
+                    this.schemeContainer.updateAllMultiItemEditBoxes();
+                }
             }
-            this.schemeContainer.updateAllMultiItemEditBoxes();
             this.schemeContainer.reindexItems();
         }
         this.reset();
@@ -376,7 +383,7 @@ export default class StateDragItem extends State {
         this.reindexNeeded = true;
     }
 
-    rotateMultiItemEditBox(x, y, event) {
+    rotateMultiItemEditBox(x, y, mx, my, event) {
         if (Math.abs(this.multiItemEditBox.area.w) < 0.00001 || Math.abs(this.multiItemEditBox.area.h) < 0.00001) {
             // There might be too many errors when calculating displacement of items after rotation of such a thin box
             // so it is better to skip everything
@@ -384,8 +391,12 @@ export default class StateDragItem extends State {
         }
 
         const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
-
-        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
+        let angleDegrees = 0;
+        if (this.multiItemEditBox.transformType === 'viewport') {
+            angleDegrees = this.calculateRotatedAngle(mx - this.viewportCorrectionLeft, my - this.viewportCorrectionTop, this.originalPoint.mx - this.viewportCorrectionLeft, this.originalPoint.my - this.viewportCorrectionTop, center.x, center.y, event);
+        } else {
+            angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
+        }
         const angle = angleDegrees * Math.PI / 180;
 
         const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);

@@ -1019,19 +1019,19 @@ class SchemeContainer {
         });
 
         if (relativeItems.length > 0) {
-            this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative');
+            this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative', 'relative');
         } else {
             this.multiItemEditBoxes.relative = false;
         }
 
         if (viewportItems.length > 0) {
-            this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport');
+            this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport', 'viewport');
         } else {
             this.multiItemEditBoxes.viewport = false;
         }
     }
 
-    generateMultiItemEditBox(items, boxId) {
+    generateMultiItemEditBox(items, boxId, transformType) {
         let minP = null;
         let maxP = null;
 
@@ -1146,7 +1146,8 @@ class SchemeContainer {
             items,
             itemData,
             area,
-            itemProjections
+            itemProjections,
+            transformType
         };
     }
 }

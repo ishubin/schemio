@@ -30,15 +30,6 @@ export default class StateEditCurve extends State {
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
-        // Viewport transform correction 
-        this.viewportTop = 0;
-        this.viewportLeft = 0;
-    }
-
-    setViewportCorrection(viewportTop, viewportLeft) {
-        this.viewportLeft = viewportLeft;
-        this.viewportTop = viewportTop;
     }
 
     reset() {
@@ -138,8 +129,8 @@ export default class StateEditCurve extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportLeft;
-            y = my - this.viewportTop;
+            x = mx - this.viewportCorrectionLeft;
+            y = my - this.viewportCorrectionTop;
         }
 
         if (this.creatingNewPoints) {
@@ -155,8 +146,8 @@ export default class StateEditCurve extends State {
         x = this.snapX(x);
         y = this.snapY(y);
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportLeft;
-            y = my - this.viewportTop;
+            x = mx - this.viewportCorrectionLeft;
+            y = my - this.viewportCorrectionTop;
         }
 
         this.originalClickPoint.x = x;
@@ -214,8 +205,8 @@ export default class StateEditCurve extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportLeft;
-            y = my - this.viewportTop;
+            x = mx - this.viewportCorrectionLeft;
+            y = my - this.viewportCorrectionTop;
         }
 
         if (this.addedToScheme && this.creatingNewPoints) {
@@ -263,8 +254,8 @@ export default class StateEditCurve extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportLeft;
-            y = my - this.viewportTop;
+            x = mx - this.viewportCorrectionLeft;
+            y = my - this.viewportCorrectionTop;
         }
 
         this.eventBus.emitItemsHighlighted([]);
