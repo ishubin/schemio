@@ -118,7 +118,7 @@ export default {
             if (this.schemeContainer.selectedItems.length === 1) {
                 const itemId = this.schemeContainer.selectedItems[0].id;
                 const rowDoms = this.$refs[`row_${itemId}`];
-                if (rowDoms.length >= 1) {
+                if (rowDoms && rowDoms.length >= 1) {
                     const rowDom = rowDoms[0];
                     const itemSelectorDom = this.$refs.itemSelectorContainer;
                     if (rowDom && itemSelectorDom) {
