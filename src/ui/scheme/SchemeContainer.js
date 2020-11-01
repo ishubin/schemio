@@ -77,7 +77,10 @@ class SchemeContainer {
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
         this.eventBus = eventBus;
+        // contains an array of items that were selected
         this.selectedItems = [];
+        // used to quick access to item selection state
+        this.selectedItemsMap = {};
         this.activeBoundaryBox = null;
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
@@ -614,6 +617,7 @@ class SchemeContainer {
     deleteSelectedItems() {
         if (this.selectedItems && this.selectedItems.length > 0) {
             forEach(this.selectedItems, item => {
+                delete this.selectedItemsMap[item.id];
                 this.deleteItem(item);
             });
 
@@ -629,7 +633,6 @@ class SchemeContainer {
             item.meta = {}
         }
         item.meta.hovered = false;
-        item.meta.selected = false;
         item.meta.controlPoints = [];
         if (!item.id) {
             item.id = shortid.generate();
@@ -648,7 +651,7 @@ class SchemeContainer {
     }
 
     isItemSelected(item) {
-        return item.meta.selected || false;
+        return this.selectedItemsMap[item.id] || false;
     }
 
 
@@ -660,18 +663,20 @@ class SchemeContainer {
     selectItem(item, inclusive) {
         if (inclusive) {
             this.selectItemInclusive(item);
+            this.selectedItemsMap[item.id] = true;
             this.eventBus.emitItemSelected(item.id);
         } else {
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
                 if (selectedItem.id !== item.id) {
-                    selectedItem.meta.selected = false;
                     deselectedItemIds.push(selectedItem.id);
                 }
             });
-            item.meta.selected = true;
             this.selectedItems = [];
-            forEach(deselectedItemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+            forEach(deselectedItemIds, itemId => {
+                this.selectedItemsMap[itemId] = false;
+                this.eventBus.emitItemDeselected(itemId);
+            });
 
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
@@ -683,7 +688,7 @@ class SchemeContainer {
         this.deselectAllItems();
         this.selectedItems = items;
         forEach(this.selectedItems, item => {
-            item.meta.selected = true;
+            this.selectedItemsMap[item.id] = true;
         });
         this.updateAllMultiItemEditBoxes();
     }
@@ -700,7 +705,7 @@ class SchemeContainer {
 
         if (!isAlreadyIn) {
             this.selectedItems.push(item);
-            item.meta.selected = true;
+            this.selectedItemsMap[item.id] = true;
         }
 
         this.sortSelectedItemsByAncestors();
@@ -728,7 +733,7 @@ class SchemeContainer {
     deselectAllItems() {
         const itemIds = map(this.selectedItems, item => item.id);
         forEach(this.selectedItems, item => {
-            item.meta.selected = false;
+            this.selectedItemsMap[item.id] = false;
         });
         this.selectedItems = [];
 
@@ -754,7 +759,7 @@ class SchemeContainer {
                 this.bringSelectedItemsToBack(itemArray[i].childItems);
             }
 
-            if (itemArray[i].meta.selected) {
+            if (this.isItemSelected(itemArray[i])) {
                 lastItems.push(itemArray[i]);
                 itemArray.splice(i, 1);
             } else {
@@ -782,7 +787,7 @@ class SchemeContainer {
                 this.bringSelectedItemsToFront(itemArray[i].childItems);
             }
 
-            if (itemArray[i].meta.selected) {
+            if (this.isItemSelected(itemArray[i])) {
                 topItems.push(itemArray[i]);
                 itemArray.splice(i, 1);
             } else {

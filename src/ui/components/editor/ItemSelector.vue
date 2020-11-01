@@ -15,7 +15,7 @@
                     <div class="item"
                         :ref="`item_${item.id}`"
                         v-if="item.meta.collapseBitMask === 0"
-                        :class="{'selected': item.meta.selected}"
+                        :class="{'selected': schemeContainer.isItemSelected(item)}"
                         :draggable="item.id !== nameEdit.itemId"
                         @dragstart="onDragStarted(item)"
                         @dragover="onDragOver(item, arguments[0])"
