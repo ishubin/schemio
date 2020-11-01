@@ -679,6 +679,15 @@ class SchemeContainer {
         this.updateAllMultiItemEditBoxes();
     }
 
+    selectMultipleItems(items) {
+        this.deselectAllItems();
+        this.selectedItems = items;
+        forEach(this.selectedItems, item => {
+            item.meta.selected = true;
+        });
+        this.updateAllMultiItemEditBoxes();
+    }
+
     selectItemInclusive(item) {
         var isAlreadyIn = false;
         var i = 0;
@@ -727,30 +736,6 @@ class SchemeContainer {
         // Some components check selectedItems array to get information whether item is selected or not
         forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
 
-        this.updateAllMultiItemEditBoxes();
-    }
-
-    selectByBoundaryBox(box) {
-        forEach(this.getItems(), item => {
-            const points = [ 
-                {x: 0, y: 0}, 
-                {x: item.area.w, y: 0},
-                {x: item.area.w, y: item.area.h},
-                {x: 0, y: item.area.h},
-            ];
-
-            let isInArea = true;
-
-            for(let i = 0; i < points.length && isInArea; i++) {
-                const wolrdPoint = this.worldPointOnItem(points[i].x, points[i].y, item);
-                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
-            }
-
-            if (isInArea) {
-                this.selectedItems.push(item);
-                item.meta.selected = true;
-            }
-        });
         this.updateAllMultiItemEditBoxes();
     }
 

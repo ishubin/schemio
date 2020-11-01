@@ -178,7 +178,7 @@ export default class StateDragItem extends State {
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
-                this.initMulitSelectBox(x, y);
+                this.initMulitSelectBox(x, y, mx, my);
             }
         }
     }
@@ -294,7 +294,7 @@ export default class StateDragItem extends State {
             if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
             }
-            this.schemeContainer.selectByBoundaryBox(this.multiSelectBox);
+            this.selectByBoundaryBox(this.multiSelectBox, mx, my);
             this.emitEventsForAllSelectedItems();
             this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
 
@@ -323,6 +323,59 @@ export default class StateDragItem extends State {
             this.schemeContainer.reindexItems();
         }
         this.reset();
+    }
+
+    /**
+     * Select items by multi select box. It uses different coords depending on item transform type
+     * @param {*} box 
+     * @param {*} mx mouse x in viewport
+     * @param {*} my mouse y in viewport
+     */
+    selectByBoundaryBox(box, mx, my) {
+        const viewportBox = {
+            x: this.originalPoint.mx - this.viewportCorrectionLeft,
+            y: this.originalPoint.my - this.viewportCorrectionTop,
+            w: mx - this.originalPoint.mx,
+            h: my - this.originalPoint.my
+        };
+
+        // normalizing box
+        if (viewportBox.w < 0) {
+            viewportBox.x += viewportBox.w;
+            viewportBox.w = Math.abs(viewportBox.w);
+        }
+        if (viewportBox.h < 0) {
+            viewportBox.y += viewportBox.h;
+            viewportBox.h = Math.abs(viewportBox.h);
+        }
+
+        const selectedItems = [];
+
+        forEach(this.schemeContainer.getItems(), item => {
+            const points = [ 
+                {x: 0, y: 0}, 
+                {x: item.area.w, y: 0},
+                {x: item.area.w, y: item.area.h},
+                {x: 0, y: item.area.h},
+            ];
+
+            let isInArea = true;
+
+            for(let i = 0; i < points.length && isInArea; i++) {
+                const wolrdPoint = this.schemeContainer.worldPointOnItem(points[i].x, points[i].y, item);
+
+                if (item.area.type === 'viewport') {
+                    isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, viewportBox);
+                } else {
+                    isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
+                }
+            }
+
+            if (isInArea) {
+                selectedItems.push(item);
+            }
+        });
+        this.schemeContainer.selectMultipleItems(selectedItems);
     }
 
     mouseDoubleClick(x, y, mx, my, object, event) {
@@ -643,9 +696,11 @@ export default class StateDragItem extends State {
         this.lastDraggedItem = this.sourceItem;
     }
 
-    initMulitSelectBox(x, y) {
+    initMulitSelectBox(x, y, mx, my) {
         this.originalPoint.x = x;
         this.originalPoint.y = y;
+        this.originalPoint.mx = mx;
+        this.originalPoint.my = my;
         this.multiSelectBox = {x, y, w: 0, h: 0};
     }
 
