@@ -736,6 +736,9 @@ export default {
         },
 
         deleteSelectedItems() {
+            if (this.state === 'editCurve') {
+                states[this.state].cancel();
+            }
             this.schemeContainer.deleteSelectedItems();
             EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
