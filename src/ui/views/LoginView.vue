@@ -12,8 +12,8 @@
                 <h2>Login</h2>
 
                 <div class="login-box-body">
-                    <input class="textfield" type="text" v-model="login" placeholder="Login..."/>
-                    <input class="textfield" type="password" v-model="password" placeholder="Password..."/>
+                    <input ref="loginTextfield" class="textfield" type="text" v-model="login" placeholder="Login..." @keydown.enter="submitLogin"/>
+                    <input class="textfield" type="password" v-model="password" placeholder="Password..." @keydown.enter="submitLogin"/>
                     <span class="btn btn-primary" @click="submitLogin">Submit</span>
                     <span class="error-message" v-if="errorMessage">{{errorMessage}}</span>
                 </div>
@@ -29,6 +29,9 @@ import apiClient from '../apiClient.js';
 
 export default {
     components: {HeaderComponent},
+    mounted() {
+        this.$refs.loginTextfield.focus();
+    },
     data() {
         return {
             login: '',
