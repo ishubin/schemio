@@ -60,7 +60,7 @@ export default {
             searchResult: null,
             currentPage: 1,
             totalPages: 0,
-            urlPrefix: `/q=${encodeURIComponent(query)}`
+            urlPrefix: `/?q=${encodeURIComponent(query)}`
         };
     },
 
@@ -68,7 +68,7 @@ export default {
         init() {
             this.query = this.$route.query.q || '';
             this.currentPage = parseInt(this.$route.query.page) || 1;
-            this.urlPrefix = `/q=${encodeURIComponent(this.query)}`
+            this.urlPrefix = `/?q=${encodeURIComponent(this.query)}`
             this.searchProjects();
         },
 
