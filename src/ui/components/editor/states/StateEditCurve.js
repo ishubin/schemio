@@ -143,8 +143,6 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
-        x = this.snapX(x);
-        y = this.snapY(y);
         if (this.item.area.type === 'viewport') {
             x = mx - this.viewportCorrectionLeft;
             y = my - this.viewportCorrectionTop;
