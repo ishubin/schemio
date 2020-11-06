@@ -20,13 +20,14 @@
                         @dragstart="onDragStarted(item)"
                         @dragover="onDragOver(item, arguments[0])"
                         @dragend="onDragEnd(arguments[0])"
+                        @mousedown="onItemMouseDown(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])"
                         >
                         <span class="item-collapser" @click="toggleItemCollapseState(item)" v-if="item.childItems && item.childItems.length > 0">
                             <i v-if="item.meta.collapsed" class="fas fa-angle-right"></i>
                             <i v-else class="fas fa-angle-down"></i>
                         </span>
 
-                        <div class="item-name" @mousedown="onItemMouseDown(item, arguments[0])" @dblclick="onItemDoubleClicked(item, arguments[0])">
+                        <div class="item-name">
                             <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
                             <input v-if="item.id === nameEdit.itemId"
                                 ref="nameEditInput"
@@ -155,8 +156,11 @@ export default {
         },
 
         onItemMouseDown(item, event) {
-            if (event.target && event.target.getAttribute('data-type') === 'item-name-edit-in-place') {
-                return true;
+            if (event.target) {
+                if (event.target.getAttribute('data-type') === 'item-name-edit-in-place'
+                    || event.target.closest('.item-collapser')) {
+                    return true;
+                }
             }
 
             if (event.shiftKey && this.lastClickedItem) {
