@@ -122,6 +122,15 @@ export default class StateEditCurve extends State {
 
         this.schemeContainer.addItem(this.item);
 
+        // snapping can only be performed once the item is added to the scheme
+        // that is why we have to re-adjust curve points afterwords so that they are snapped
+        const snappedCurvePoint = this.snapCurvePoint(x, y);
+
+        this.item.shapeProps.points[0].x = snappedCurvePoint.x;
+        this.item.shapeProps.points[0].y = snappedCurvePoint.y;
+        this.item.shapeProps.points[1].x = snappedCurvePoint.x;
+        this.item.shapeProps.points[1].y = snappedCurvePoint.y;
+
         // in case user tried to attach source to another item
         this.handleEdgeCurvePointDrag(this.item.shapeProps.points[0], true);
         this.addedToScheme = true;
@@ -154,6 +163,7 @@ export default class StateEditCurve extends State {
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
+            const snappedCurvePoint = this.snapCurvePoint(x, y);
 
             // checking if the curve was attached to another item
             if (this.item.shapeProps.destinationItem) {
@@ -165,8 +175,8 @@ export default class StateEditCurve extends State {
             }
 
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
-            point.x = x;
-            point.y = y;
+            point.x = snappedCurvePoint.x;
+            point.y = snappedCurvePoint.y;
 
             //checking whether curve got closed
             if (this.item.shapeProps.points.length > 2) {
