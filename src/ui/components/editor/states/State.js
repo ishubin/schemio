@@ -68,29 +68,53 @@ class State {
         var yo = this.schemeContainer.screenTransform.y;
         if (delta < 0) {
             nz = this.schemeContainer.screenTransform.scale * 1.02;
-
-            this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
-            this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
+            const sx = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
+            const sy = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
             this.schemeContainer.screenTransform.scale = nz;
-            this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
-        } else {
-            if (this.schemeContainer.screenTransform.scale > 0.05) {
-                nz = this.schemeContainer.screenTransform.scale / 1.02;
-                this.schemeContainer.screenTransform.x = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
-                this.schemeContainer.screenTransform.y = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
-                this.schemeContainer.screenTransform.scale = nz;
-                this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
-            }
+            this.dragScreenTo(sx, sy);
+
+        } else if (this.schemeContainer.screenTransform.scale > 0.05) {
+            nz = this.schemeContainer.screenTransform.scale / 1.02;
+            const sx = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
+            const sy = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
+            this.schemeContainer.screenTransform.scale = nz;
+            this.dragScreenTo(sx, sy);
         }
     }
 
     dragScreenOffset(dx, dy) {
         let sx = this.schemeContainer.screenTransform.x + dx;
         let sy = this.schemeContainer.screenTransform.y + dy;
+        this.dragScreenTo(sx, sy);
+    }
 
-        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenSettings.x1, Math.min(sx, this.schemeContainer.screenSettings.x2));
-        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenSettings.y1, Math.min(sy, this.schemeContainer.screenSettings.y2));
+    /**
+     * Changes screen offset coords and checks bounding box of all items in relative transform so that they are always visible on the screen
+     * @param {*} sx 
+     * @param {*} sy 
+     */
+    dragScreenTo(sx, sy) {
+        // getting bounding box of items in relative transform
+        // viewport items should be ignored
+        const bbox = this.schemeContainer.screenSettings.boundingBox;
+        const scale = this.schemeContainer.screenTransform.scale;
+
+        if (bbox) {
+            // recalculating min/max offset on the screen so that bbox is always visible
+            const minScreenX = - bbox.x * scale;
+            const minScreenY = - bbox.y * scale;
+            const maxScreenX = this.schemeContainer.screenSettings.width - (bbox.x + bbox.w) * scale;
+            const maxScreenY = this.schemeContainer.screenSettings.height - (bbox.y + bbox.h) * scale;
+
+            this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));
+            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY)); 
+        } else {
+            this.schemeContainer.screenTransform.x = sx;
+            this.schemeContainer.screenTransform.y = sy; 
+        }
+
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+
     }
 
     snapX(value) {

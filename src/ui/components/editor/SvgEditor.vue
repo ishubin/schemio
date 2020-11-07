@@ -574,14 +574,10 @@ export default {
             this.state = 'interact';
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-            let maxX = boundingBox.x + boundingBox.w,
-                maxY = boundingBox.y + boundingBox.h;
+
             this.interactiveSchemeContainer.screenSettings.width = this.width;
             this.interactiveSchemeContainer.screenSettings.height = this.height;
-            this.interactiveSchemeContainer.screenSettings.x1 = -maxX + 100;
-            this.interactiveSchemeContainer.screenSettings.y1 = -maxY + 50;
-            this.interactiveSchemeContainer.screenSettings.x2 = (this.width - boundingBox.x) - 100;
-            this.interactiveSchemeContainer.screenSettings.y2 = (this.height - boundingBox.y) - 50;
+            this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
 
             this.reindexUserEvents();
             states[this.state].reset();

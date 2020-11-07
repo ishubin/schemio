@@ -131,11 +131,10 @@ class StateInteract extends State {
     }
 
     dragScreen(x, y) {
-        let sx = Math.floor(this.originalOffset.x + x - this.initialClickPoint.x);
-        let sy = Math.floor(this.originalOffset.y + y - this.initialClickPoint.y);
-        this.schemeContainer.screenTransform.x = Math.max(this.schemeContainer.screenSettings.x1, Math.min(sx, this.schemeContainer.screenSettings.x2));
-        this.schemeContainer.screenTransform.y = Math.max(this.schemeContainer.screenSettings.y1, Math.min(sy, this.schemeContainer.screenSettings.y2)); 
-        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+        this.dragScreenTo(
+            Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
+            Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
+        );
     }
 }
 

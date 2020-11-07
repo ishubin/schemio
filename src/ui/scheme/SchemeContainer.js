@@ -389,36 +389,38 @@ class SchemeContainer {
         let range = null;
 
         forEach(items, item => {
-            const points = [
-                this.worldPointOnItem(0, 0, item),
-                this.worldPointOnItem(item.area.w, 0, item),
-                this.worldPointOnItem(item.area.w, item.area.h, item),
-                this.worldPointOnItem(0, item.area.h, item),
-            ];
+            if (item.area.type !== 'viewport') {
+                const points = [
+                    this.worldPointOnItem(0, 0, item),
+                    this.worldPointOnItem(item.area.w, 0, item),
+                    this.worldPointOnItem(item.area.w, item.area.h, item),
+                    this.worldPointOnItem(0, item.area.h, item),
+                ];
 
-            forEach(points, point => {
-                if (!range) {
-                    range = {
-                        x1: point.x,
-                        x2: point.x,
-                        y1: point.y,
-                        y2: point.y,
+                forEach(points, point => {
+                    if (!range) {
+                        range = {
+                            x1: point.x,
+                            x2: point.x,
+                            y1: point.y,
+                            y2: point.y,
+                        }
+                    } else {
+                        if (range.x1 > point.x) {
+                            range.x1 = point.x;
+                        }
+                        if (range.x2 < point.x) {
+                            range.x2 = point.x;
+                        }
+                        if (range.y1 > point.y) {
+                            range.y1 = point.y;
+                        }
+                        if (range.y2 < point.y) {
+                            range.y2 = point.y;
+                        }
                     }
-                } else {
-                    if (range.x1 > point.x) {
-                        range.x1 = point.x;
-                    }
-                    if (range.x2 < point.x) {
-                        range.x2 = point.x;
-                    }
-                    if (range.y1 > point.y) {
-                        range.y1 = point.y;
-                    }
-                    if (range.y2 < point.y) {
-                        range.y2 = point.y;
-                    }
-                }
-            });
+                });
+            }
         }) ;
 
         const schemeBoundaryBox = {
