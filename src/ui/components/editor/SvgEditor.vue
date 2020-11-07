@@ -174,7 +174,7 @@
                     <curve-edit-box 
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
-                        :zoom="1"
+                        :zoom="schemeContainer.screenTransform.scale"
                         :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"/>
                 </g>
 

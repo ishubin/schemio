@@ -3,8 +3,8 @@
         <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
             <g v-for="(point, pointIndex) in item.shapeProps.points">
                 <g v-if="point.t === 'B'">
-                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="boundaryBoxColor" stroke-width="1"/>
-                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" stroke-width="1"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
                     <circle
                         data-type="curve-control-point"
                         :data-curve-point-index="pointIndex"
