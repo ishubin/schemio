@@ -25,17 +25,14 @@
             </g>
         </g>
 
-        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r}) scale(${1/safeZoom})`">
-            <path :d="`M 0 0 L ${editBox.area.w*safeZoom} 0  L ${editBox.area.w*safeZoom} ${editBox.area.h*safeZoom} L 0 ${editBox.area.h*safeZoom} Z`"
+        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
+            <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
                 :data-multi-item-edit-box-id="editBox.id"
-                stroke-width="1"
+                :stroke-width="1/safeZoom"
                 fill="none"
                 :stroke="boundaryBoxColor"
                 style="opacity: 0.8;"/>
-        </g>
-
-        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
 
             <ellipse class="boundary-box-dragger"
                 data-type="multi-item-edit-box-rotational-dragger"
