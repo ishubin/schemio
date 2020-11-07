@@ -1177,13 +1177,13 @@ ul.button-group li .toggle-button .small-letter {
     width: 42px;
     height: 32px;
     margin: 2px;
-    padding: 5px;
+    padding: 0;
     cursor: pointer;
 }
 .item-menu .item-container img {
     display: block;
-    max-width: 60px;
-    max-height: 60px;
+    max-width: 42px;
+    max-height: 32px;
     text-align: center;
 }
 .item-menu .item-container span {

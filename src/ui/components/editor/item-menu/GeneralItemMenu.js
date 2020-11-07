@@ -202,7 +202,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Button',
-    iconUrl: '/images/items/rounded-rect.svg',
+    iconUrl: '/images/items/button.svg',
     item: utils.extendObject({
         shape: 'button',
         cursor: 'pointer',
