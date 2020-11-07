@@ -447,6 +447,12 @@ export default {
                         multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
+                } else if (elementType === 'multi-item-edit-box-edit-curve-link') {
+                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
+                    return {
+                        type: elementType,
+                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
+                    };
                 }
 
                 const itemId = element.getAttribute('data-item-id');

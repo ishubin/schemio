@@ -175,6 +175,11 @@ export default class StateDragItem extends State {
             this.initMultiItemBoxRotation(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
+            if (object.multiItemEditBox.items.length > 0
+                && object.multiItemEditBox.items[0].shape === 'curve') {
+                this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
+            }
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {

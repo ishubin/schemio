@@ -13,6 +13,16 @@
                     :r="5/safeZoom"
                     />
             </g>
+            <g v-if="editBox.items[0].shape === 'curve'" :transform="`translate(${editBox.area.x + 10/safeZoom}, ${editBox.area.y - 20/safeZoom}) scale(${1/safeZoom}, ${1/safeZoom})`">
+                <foreignObject :x="0" :y="0" width="100" height="20">
+                    <div>
+                        <span class="link"
+                            data-type="multi-item-edit-box-edit-curve-link"
+                            :data-multi-item-edit-box-id="editBox.id">
+                            Edit Curve</span>
+                    </div>
+                </foreignObject>
+            </g>
         </g>
 
         <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
