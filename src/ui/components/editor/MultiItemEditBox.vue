@@ -13,7 +13,7 @@
                     :r="5/safeZoom"
                     />
             </g>
-            <g v-if="editBox.items[0].shape === 'curve'" :transform="`translate(${editBox.area.x + 10/safeZoom}, ${editBox.area.y - 20/safeZoom}) scale(${1/safeZoom}, ${1/safeZoom})`">
+            <g v-if="editBox.items[0].shape === 'curve'" :transform="`translate(${editBox.area.x + 10/safeZoom}, ${editBox.area.y - 20/safeZoom}) scale(${1/safeZoom})`">
                 <foreignObject :x="0" :y="0" width="100" height="20">
                     <div>
                         <span class="link"
@@ -25,15 +25,17 @@
             </g>
         </g>
 
-        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
-
-            <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r}) scale(${1/safeZoom})`">
+            <path :d="`M 0 0 L ${editBox.area.w*safeZoom} 0  L ${editBox.area.w*safeZoom} ${editBox.area.h*safeZoom} L 0 ${editBox.area.h*safeZoom} Z`"
                 data-type="multi-item-edit-box"
                 :data-multi-item-edit-box-id="editBox.id"
                 stroke-width="1"
                 fill="none"
                 :stroke="boundaryBoxColor"
                 style="opacity: 0.8;"/>
+        </g>
+
+        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
 
             <ellipse class="boundary-box-dragger"
                 data-type="multi-item-edit-box-rotational-dragger"
