@@ -991,6 +991,7 @@ export default {
             }));
             if (value === 'view') {
                 AnimationsRegistry.enableAnimations();
+                this.topHelperPanel.currentPanel = null;
             } else {
                 AnimationsRegistry.stopAllAnimations();
             }
