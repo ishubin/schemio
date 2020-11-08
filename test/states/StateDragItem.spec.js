@@ -15,6 +15,7 @@ describe('StateDragItem', () => {
         const schemeContainer = {
             isItemSelected: sinon.fake.returns(false),
             selectItem: sinon.fake(),
+            multiItemEditBoxes: {}
         };
         const state = new StateDragItem(whateverEventBus);
         state.setSchemeContainer(schemeContainer);
@@ -41,6 +42,7 @@ describe('StateDragItem', () => {
         const schemeContainer = {
             isItemSelected: sinon.fake.returns(true),
             selectItem: sinon.fake(),
+            multiItemEditBoxes: {}
         };
         const state = new StateDragItem(whateverEventBus);
         state.setSchemeContainer(schemeContainer);
@@ -67,7 +69,8 @@ describe('StateDragItem', () => {
         const schemeContainer = {
             isItemSelected: sinon.fake.returns(true),
             selectItem: sinon.fake(),
-            selectedItems: []
+            selectedItems: [],
+            multiItemEditBoxes: {}
         };
         const fakeEditor = {cursor: 'pointer'};
         const state = new StateDragItem(whateverEventBus);

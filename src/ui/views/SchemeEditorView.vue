@@ -82,6 +82,7 @@
                         @clicked-start-connecting="onClickedStartConnecting"
                         @clicked-bring-to-front="bringSelectedItemsToFront()"
                         @clicked-bring-to-back="bringSelectedItemsToBack()"
+                        @clicked-copy-selected-items="copySelectedItems()"
                         ></svg-editor>
                 </div>
             </div>
@@ -235,6 +236,7 @@ import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
+import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 
 let history = new History({size: 30});
 
@@ -681,9 +683,9 @@ export default {
         onKeyPress(key, keyOptions) {
             if (this.mode === 'edit') {
                 if (key === EventBus.KEY.CTRL_C) {
-                    this.schemeContainer.copySelectedItems();
+                    this.copySelectedItems();
                 } else if (key === EventBus.KEY.CTRL_V) {
-                    this.schemeContainer.pasteSelectedItems();
+                    this.pasteSelectedItems();
                 } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
                 } else if (EventBus.KEY.CTRL_Z === key) {
@@ -692,6 +694,22 @@ export default {
                     this.historyRedo();
                 }
             }
+        },
+
+        copySelectedItems() {
+            const copyBuffer = this.schemeContainer.copySelectedItems();
+            copyToClipboard(copyBuffer);
+        },
+
+        pasteSelectedItems() {
+            getTextFromClipboard().then(text => {
+                if (text) {
+                    const items = this.schemeContainer.decodeItemsFromText(text);
+                    if (items) {
+                        this.schemeContainer.pasteItems(items);
+                    }
+                }
+            })
         },
 
         onBrowseClose() {

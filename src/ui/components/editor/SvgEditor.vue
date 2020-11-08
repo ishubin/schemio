@@ -404,9 +404,6 @@ export default {
         };
     },
     methods: {
-        copySelectedItems() {
-            this.schemeContainer.copySelectedItems();
-        },
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 targetOffsetX = rect.left + document.body.scrollLeft,
@@ -929,7 +926,7 @@ export default {
                 clicked: () => {this.$emit('clicked-create-child-scheme-to-item', item);}
             }, {
                 name: 'Copy',
-                clicked: this.copySelectedItems
+                clicked: () => {this.$emit('clicked-copy-selected-items', item);}
             }, {
                 name: 'Delete',
                 clicked: this.deleteSelectedItems

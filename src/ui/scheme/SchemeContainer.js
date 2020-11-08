@@ -84,7 +84,6 @@ class SchemeContainer {
         this.activeBoundaryBox = null;
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
-        this.copyBuffer = [];
         this.revision = 0;
         this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
         this.worldItems = []; // used for storing top-level items with default area
@@ -865,30 +864,57 @@ class SchemeContainer {
     }
 
     copySelectedItems() {
-        this.copyBuffer = [].concat(this.selectedItems);
-        this.copyBuffer = [];
+        const copyBuffer = [];
         forEach(this.selectedItems, item => {
-            this.copyBuffer.push(utils.clone(item));
+            copyBuffer.push(utils.clone(item));
         });
+
+        return JSON.stringify(copyBuffer);
     }
 
-    pasteSelectedItems() {
-        if (!this.copyBuffer || this.copyBuffer.length === 0) {
+    decodeItemsFromText(text) {
+        let json = null;
+        try {
+            json = JSON.parse(text);
+        } catch(err) {
+            return null;
+        }
+
+        // verifying items
+        if (!Array.isArray(json)) {
+            return null;
+        }
+
+        for (let i = 0; i < json.length; i++) {
+            const item = json[i];
+
+            if (typeof item.area !== 'object' || item.area === null) {
+                return null;
+            }
+            if (typeof item.shape !== 'string' || item.shape === null) {
+                return null;
+            }
+        }
+        return json;
+    }
+
+    pasteItems(items) {
+        if (!items || items.length === 0) {
             return;
         }
         this.deselectAllItems();
 
         let preserveParent = true;
         let i = 1;
-        while(i < this.copyBuffer.length && preserveParent) {
-            if (this.copyBuffer[i].id !== this.copyBuffer[0].id) {
+        while(i < items.length && preserveParent) {
+            if (items[i].id !== items[0].id) {
                 preserveParent = false;
             }
             i += 1;
         }
 
         const copiedItemIds = {};
-        forEach(this.copyBuffer, item => {
+        forEach(items, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
             if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
@@ -927,8 +953,7 @@ class SchemeContainer {
         const newItem = {
             id: shortid.generate(),
             meta: {
-                hovered: false,
-                selected: false
+                hovered: false
             }
         };
 
