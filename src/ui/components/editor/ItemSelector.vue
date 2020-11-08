@@ -11,6 +11,13 @@
         </div>
         <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
             <div v-for="item in filteredItems" :key="item.id" :ref="`row_${item.id}`">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
+                    <div class="item">
+                        <div class="item-name">
+                            <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
                     <div class="item"
                         :ref="`item_${item.id}`"
@@ -50,8 +57,12 @@
                         </div>
                     </div>
                 </div>
-                <div class="item-row" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
-                    <div class="item" v-html="dragging.itemHtml"> </div>
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && !dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
+                    <div class="item">
+                        <div class="item-name">
+                            <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -99,9 +110,10 @@ export default {
                 // the item to which the dragged item is supposed to be dropped
                 destinationId: null,
                 dropInside: false,
+                dropAbove: false, // if set to true then dropInside is ignored
                 clearTimeoutId: null,
                 readyToDrop: false,
-                itemHtml: 'Drop here'
+                previewItemName: 'Drop here'
             },
             nameEdit: {
                 itemId: null,
@@ -252,15 +264,13 @@ export default {
                 this.clearTimeoutId = null;
             }
             this.dragging.item = item;
-            const domItem = this.$refs[`item_${item.id}`];
-            if (domItem) {
-                this.dragging.itemHtml = domItem.innerHTML;
-            }
+            this.dragging.previewItemName = item.name;
             this.$forceUpdate();
         },
 
         onDragOver(item, event) {
             if (!this.dragging.item || this.dragging.item.id === item.id) {
+                this.dragging.readyToDrop = false;
                 return;
             }
 
@@ -279,12 +289,28 @@ export default {
 
             this.dragging.destinationId = item.id;
             this.dragging.dropInside = event.offsetX > 50;
+            
+            let domItem = this.$refs[`item_${item.id}`];
+            if (Array.isArray(domItem)) {
+                domItem = domItem[0];
+            }
+            let dropAbove = false;
+            if (domItem) {
+                const bbox = domItem.getBoundingClientRect();
+                dropAbove = event.clientY < bbox.top + bbox.height/2;
+            }
+
+            this.dragging.dropAbove = dropAbove;
             this.dragging.readyToDrop = true;
         },
 
         onDragEnd(event) {
             if (this.dragging.readyToDrop && this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
-                if (this.dragging.dropInside) {
+                if (this.dragging.dropAbove) {
+                    forEach(this.schemeContainer.selectedItems, item => {
+                        this.schemeContainer.remountItemBeforeOtherItem(item.id, this.dragging.destinationId);
+                    });
+                } else if (this.dragging.dropInside) {
                     forEach(this.schemeContainer.selectedItems, item => {
                         this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
                     });

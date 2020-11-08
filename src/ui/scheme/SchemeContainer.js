@@ -549,6 +549,14 @@ class SchemeContainer {
     }
 
     remountItemAfterOtherItem(itemId, otherItemId) {
+        this.remountItemWithOffsetToOtherItem(itemId, otherItemId, 1);
+    }
+
+    remountItemBeforeOtherItem(itemId, otherItemId) {
+        this.remountItemWithOffsetToOtherItem(itemId, otherItemId, 0);
+    }
+
+    remountItemWithOffsetToOtherItem(itemId, otherItemId, indexOffset) {
         const otherItem = this.findItemById(otherItemId);
         if (!otherItem) {
             return;
@@ -576,7 +584,7 @@ class SchemeContainer {
         if (parent) {
             parentId = parent.id;
         }
-        this.remountItemInsideOtherItem(itemId, parentId, index + 1);
+        this.remountItemInsideOtherItem(itemId, parentId, index + indexOffset);
     }
 
     closestPointToSvgPath(item, path, globalPoint) {

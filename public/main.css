@@ -1918,6 +1918,9 @@ table.position-panel-table .property-label {
     font-size: 14px;
     white-space: nowrap;
 }
+.item-selector .item-drop-preview {
+    opacity: 0.5;
+}
 
 .item-selector .item-row .item .item-right-panel .icon .icon-unlocked {
     opacity: 0.3;
@@ -1943,15 +1946,6 @@ table.position-panel-table .property-label {
     border: 1px solid #999;
 }
 
-
-.item-selector .item-row .droppable-line {
-    height: 4px;
-    background: red;
-}
-
-.item-selector .item-row.item-droppable-highlight {
-    opacity: 0.5;
-}
 
 /****************** Language Markup ***************/
 pre.syntax-markup {
