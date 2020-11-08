@@ -16,6 +16,8 @@ import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {Item, enrichItemWithDefaults} from './Item.js';
 
+const IS_SOFT = true;
+
 
 const defaultSchemeStyle = {
     backgroundColor:    'rgba(240,240,240,1.0)',
@@ -898,7 +900,13 @@ class SchemeContainer {
         return json;
     }
 
-    pasteItems(items) {
+    /**
+     * 
+     * @param {*} items array of items that should be copied and pastes
+     * @param {*} centerX x in relative transform for which items should put pasted to
+     * @param {*} centerY y in relative transform for which items should put pasted to 
+     */
+    pasteItems(items, centerX, centerY) {
         if (!items || items.length === 0) {
             return;
         }
@@ -946,6 +954,21 @@ class SchemeContainer {
             }
         });
 
+        //since all items are already selected, the relative multi item edit box should centered on the specified center point
+        //this is not needed to viewport items
+
+        if (this.multiItemEditBoxes.relative) {
+            const boxArea = this.multiItemEditBoxes.relative.area;
+            const boxCenterX = boxArea.x + boxArea.w / 2;
+            const boxCenterY = boxArea.y + boxArea.h / 2;
+            const dx = centerX - boxCenterX;
+            const dy = centerY - boxCenterY;
+
+            boxArea.x += dx;
+            boxArea.y += dy;
+            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative);
+        }
+
         this.reindexItems();
     }
 
@@ -966,6 +989,90 @@ class SchemeContainer {
         });
 
         return newItem;
+    }
+
+    updateMultiItemEditBoxItems(multiItemEditBox) {
+        // storing ids of dragged items in a map
+        // this way we will be able to figure out whether any items ancestors was dragged already
+        // so that we can skip dragging or rotation of item
+        const itemDraggedIds = {};
+
+        const topRightPoint = myMath.worldPointInArea(multiItemEditBox.area.w, 0, multiItemEditBox.area);
+        const bottomLeftPoint = myMath.worldPointInArea(0, multiItemEditBox.area.h, multiItemEditBox.area);
+        const topVx = topRightPoint.x - multiItemEditBox.area.x;
+        const topVy = topRightPoint.y - multiItemEditBox.area.y;
+
+        const leftVx = bottomLeftPoint.x - multiItemEditBox.area.x;
+        const leftVy = bottomLeftPoint.y - multiItemEditBox.area.y;
+
+        forEach(multiItemEditBox.items, item => {
+            itemDraggedIds[item.id] = 1;
+            if (!item.locked) {
+                // calculating new position of item based on their pre-calculated projections
+                const itemProjection = multiItemEditBox.itemProjections[item.id];
+
+                if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
+                }
+
+                // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
+                const nx = multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
+                const ny = multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
+                const topRightX = multiItemEditBox.area.x + topVx * itemProjection.topRightX + leftVx * itemProjection.topRightY;
+                const topRightY = multiItemEditBox.area.y + topVy * itemProjection.topRightX + leftVy * itemProjection.topRightY;
+                const bottomLeftX = multiItemEditBox.area.x + topVx * itemProjection.bottomLeftX + leftVx * itemProjection.bottomLeftY;
+                const bottomLeftY = multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
+
+                const relativePosition = this.relativePointForItem(nx, ny, item);
+                item.area.x = relativePosition.x;
+                item.area.y = relativePosition.y;
+
+                const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
+                if (widthSquare > 0) {
+                    item.area.w = Math.sqrt(widthSquare);
+                } else {
+                    item.area.w = 0;
+                }
+
+                const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
+                if (heightSquare > 0) {
+                    item.area.h = Math.sqrt(heightSquare);
+                } else {
+                    item.area.h = 0;
+                }
+                if (item.shape === 'curve') {
+                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
+                }
+                this.readjustItem(item.id, IS_SOFT);
+                this.eventBus.emitItemChanged(item.id, 'area');
+            }
+        });
+    }
+
+    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox) {
+        const originalArea = multiItemEditBox.itemData[item.id].originalArea;
+        const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
+
+        if (!originalArea || originalArea.w < 0.0001 || originalArea.h < 0.0001) {
+            return;
+        }
+        if (item.area.w < 0.0001 || item.area.h < 0.0001) {
+            return;
+        }
+        if (!originalCurvePoints) {
+            return;
+        }
+
+        forEach(originalCurvePoints, (point, index) => {
+            item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
+            item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
+            if (point.t === 'B') {
+                item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
+                item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
+                item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
+                item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
+            }
+        });
     }
 
     /**
@@ -1046,13 +1153,13 @@ class SchemeContainer {
         if (relativeItems.length > 0) {
             this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative', 'relative');
         } else {
-            this.multiItemEditBoxes.relative = false;
+            this.multiItemEditBoxes.relative = null;
         }
 
         if (viewportItems.length > 0) {
             this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport', 'viewport');
         } else {
-            this.multiItemEditBoxes.viewport = false;
+            this.multiItemEditBoxes.viewport = null;
         }
     }
 

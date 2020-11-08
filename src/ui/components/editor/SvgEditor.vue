@@ -1089,11 +1089,6 @@ export default {
         _vx(x) { return x * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.x },
         _vy(y) { return y * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.y; },
         _vz(v) { return v * this.interactiveSchemeContainer.screenTransform.scale; },
-
-        //calculates from screen to world in view mode
-        vx_(x) { return x / this.interactiveSchemeContainer.screenTransform.scale - this.interactiveSchemeContainer.screenTransform.x; },
-        vy_(y) { return y / this.interactiveSchemeContainer.screenTransform.scale - this.interactiveSchemeContainer.screenTransform.y; },
-        vz_(v) { return v / this.interactiveSchemeContainer.screenTransform.scale; }
     },
     watch: {
         state(newState) {

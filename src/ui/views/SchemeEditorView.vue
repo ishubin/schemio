@@ -706,7 +706,9 @@ export default {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
                     if (items) {
-                        this.schemeContainer.pasteItems(items);
+                        const centerX = (this.svgWidth/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                        const centerY = (this.svgHeight/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                        this.schemeContainer.pasteItems(items, centerX, centerY);
                     }
                 }
             })

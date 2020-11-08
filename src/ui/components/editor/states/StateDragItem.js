@@ -6,8 +6,6 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
-import find from 'lodash/find';
-import utils from '../../../utils';
 import myMath from '../../../myMath';
 
 const IS_SOFT = true;
@@ -17,7 +15,6 @@ const IS_NOT_SOFT = false;
 function isEventRightClick(event) {
     return event.button === 2;
 }
-
 
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
@@ -437,7 +434,7 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
-        this.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
         this.reindexNeeded = true;
     }
 
@@ -462,7 +459,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
 
-        this.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
         this.reindexNeeded = true;
     }
 
@@ -536,93 +533,9 @@ export default class StateDragItem extends State {
             this.multiItemEditBox.area.y = ny;
             this.multiItemEditBox.area.w = nw;
             this.multiItemEditBox.area.h = nh;
-            this.updateMultiItemEditBoxItems(this.multiItemEditBox);
+            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
             this.reindexNeeded = true;
         }
-    }
-
-    updateMultiItemEditBoxItems(multiItemEditBox) {
-        // storing ids of dragged items in a map
-        // this way we will be able to figure out whether any items ancestors was dragged already
-        // so that we can skip dragging or rotation of item
-        const itemDraggedIds = {};
-
-        const topRightPoint = myMath.worldPointInArea(multiItemEditBox.area.w, 0, multiItemEditBox.area);
-        const bottomLeftPoint = myMath.worldPointInArea(0, multiItemEditBox.area.h, multiItemEditBox.area);
-        const topVx = topRightPoint.x - multiItemEditBox.area.x;
-        const topVy = topRightPoint.y - multiItemEditBox.area.y;
-
-        const leftVx = bottomLeftPoint.x - multiItemEditBox.area.x;
-        const leftVy = bottomLeftPoint.y - multiItemEditBox.area.y;
-
-        forEach(multiItemEditBox.items, item => {
-            itemDraggedIds[item.id] = 1;
-            if (!item.locked) {
-                // calculating new position of item based on their pre-calculated projections
-                const itemProjection = multiItemEditBox.itemProjections[item.id];
-
-                if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
-                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
-                }
-
-                // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
-                const nx = multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
-                const ny = multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
-                const topRightX = multiItemEditBox.area.x + topVx * itemProjection.topRightX + leftVx * itemProjection.topRightY;
-                const topRightY = multiItemEditBox.area.y + topVy * itemProjection.topRightX + leftVy * itemProjection.topRightY;
-                const bottomLeftX = multiItemEditBox.area.x + topVx * itemProjection.bottomLeftX + leftVx * itemProjection.bottomLeftY;
-                const bottomLeftY = multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
-
-                const relativePosition = this.schemeContainer.relativePointForItem(nx, ny, item);
-                item.area.x = relativePosition.x;
-                item.area.y = relativePosition.y;
-
-                const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
-                if (widthSquare > 0) {
-                    item.area.w = Math.sqrt(widthSquare);
-                } else {
-                    item.area.w = 0;
-                }
-
-                const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
-                if (heightSquare > 0) {
-                    item.area.h = Math.sqrt(heightSquare);
-                } else {
-                    item.area.h = 0;
-                }
-                if (item.shape === 'curve') {
-                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
-                }
-                this.schemeContainer.readjustItem(item.id, IS_SOFT);
-                EventBus.emitItemChanged(item.id, 'area');
-            }
-        });
-    }
-
-    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox) {
-        const originalArea = multiItemEditBox.itemData[item.id].originalArea;
-        const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
-
-        if (!originalArea || originalArea.w < 0.0001 || originalArea.h < 0.0001) {
-            return;
-        }
-        if (item.area.w < 0.0001 || item.area.h < 0.0001) {
-            return;
-        }
-        if (!originalCurvePoints) {
-            return;
-        }
-
-        forEach(originalCurvePoints, (point, index) => {
-            item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
-            item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
-            if (point.t === 'B') {
-                item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
-                item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
-                item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
-                item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
-            }
-        });
     }
 
     handleControlPointDrag(x, y) {
@@ -717,7 +630,7 @@ export default class StateDragItem extends State {
                 if (multiItemEditBox) {
                     multiItemEditBox.area.x += dx;
                     multiItemEditBox.area.y += dy;
-                    this.updateMultiItemEditBoxItems(multiItemEditBox);
+                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox);
                 }
             });
         }
