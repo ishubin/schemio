@@ -101,8 +101,7 @@ export default {
 
         updateAreaProperty(propertyName, value) {
             this.item.area[propertyName] = value;
-            EventBus.emitItemChanged(this.item.id);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.area.${propertyName}`);
+            this.$emit('item-changed', `area.${propertyName}`);
         }
     },
 
@@ -110,7 +109,6 @@ export default {
         type(text) {
             this.item.area.type = text;
             this.$emit('item-transform-type-changed');
-            EventBus.emitItemChanged(this.item.id, 'area.type');
         }
     }
 }

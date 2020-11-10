@@ -19,6 +19,7 @@
             :key="`position-panel-${item.id}`"
             :item="item"
             @item-transform-type-changed="onItemTransformTypeChanged"
+            @item-changed="onItemAreaChanged"
             />
 
         <behavior-properties v-if="currentTab === 'behavior'"
@@ -315,7 +316,14 @@ export default {
             this.$emit('item-style-applied', style);
         },
 
+        onItemAreaChanged(propertyPath) {
+            this.schemeContainer.updateAllMultiItemEditBoxes();
+            EventBus.emitItemChanged(this.item.id);
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
+        },
+
         onItemTransformTypeChanged() {
+            EventBus.emitItemChanged(this.item.id, 'area.type');
             this.schemeContainer.updateAllMultiItemEditBoxes();
         }
     },
