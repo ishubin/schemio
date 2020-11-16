@@ -83,6 +83,7 @@
                         @clicked-bring-to-front="bringSelectedItemsToFront()"
                         @clicked-bring-to-back="bringSelectedItemsToBack()"
                         @clicked-copy-selected-items="copySelectedItems()"
+                        @clicked-items-paste="pasteItemsFromClipboard()"
                         ></svg-editor>
                 </div>
             </div>
@@ -676,8 +677,10 @@ export default {
         },
 
         onVoidClicked() {
-            this.sidePanelRightExpanded = false;
-            this.sidePanelItemForViewMode = null;
+            if (this.mode === 'view') {
+                this.sidePanelRightExpanded = false;
+                this.sidePanelItemForViewMode = null;
+            }
         },
 
         onKeyPress(key, keyOptions) {
@@ -685,7 +688,7 @@ export default {
                 if (key === EventBus.KEY.CTRL_C) {
                     this.copySelectedItems();
                 } else if (key === EventBus.KEY.CTRL_V) {
-                    this.pasteSelectedItems();
+                    this.pasteItemsFromClipboard();
                 } else if (EventBus.KEY.CTRL_S === key) {
                     this.saveScheme();
                 } else if (EventBus.KEY.CTRL_Z === key) {
@@ -701,7 +704,7 @@ export default {
             copyToClipboard(copyBuffer);
         },
 
-        pasteSelectedItems() {
+        pasteItemsFromClipboard() {
             getTextFromClipboard().then(text => {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);

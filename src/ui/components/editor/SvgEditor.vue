@@ -316,6 +316,7 @@ export default {
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -347,6 +348,7 @@ export default {
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -940,6 +942,17 @@ export default {
                     clicked: () => { EventBus.emitCurveEdited(item); }
                 });
             }
+            this.customContextMenu.show = true;
+            this.customContextMenu.mouseX = mouseX;
+            this.customContextMenu.mouseY = mouseY;
+            this.customContextMenu.id = shortid.generate();
+        },
+
+        onRightClickedVoid(mouseX, mouseY) {
+            this.customContextMenu.menuOptions = [{
+                name: 'Paste',
+                clicked: () => {this.$emit('clicked-items-paste')}
+            }];
             this.customContextMenu.show = true;
             this.customContextMenu.mouseX = mouseX;
             this.customContextMenu.mouseY = mouseY;
