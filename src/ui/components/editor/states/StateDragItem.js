@@ -177,6 +177,8 @@ export default class StateDragItem extends State {
                 && object.multiItemEditBox.items[0].shape === 'curve') {
                 this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
             }
+        } else if (isEventRightClick(event)) {
+            this.handleVoidRightClick();
         } else {
             //enabling multi select box only if user clicked in the empty area.
             if (!object || object.type === 'nothing' || object.itemTextElement) {
@@ -199,6 +201,10 @@ export default class StateDragItem extends State {
                 originalY: controlPoint.y,
             }
         }
+    }
+
+    handleVoidRightClick() {
+        this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED);
     }
 
     /**

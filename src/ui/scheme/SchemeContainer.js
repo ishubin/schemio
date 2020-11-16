@@ -643,7 +643,6 @@ class SchemeContainer {
         if (!item.hasOwnProperty('meta')) {
             item.meta = {}
         }
-        item.meta.hovered = false;
         item.meta.controlPoints = [];
         if (!item.id) {
             item.id = shortid.generate();
@@ -975,9 +974,7 @@ class SchemeContainer {
     copyItem(oldItem) {
         const newItem = {
             id: shortid.generate(),
-            meta: {
-                hovered: false
-            }
+            meta: { }
         };
 
         forEach(oldItem, (value, field) => {
