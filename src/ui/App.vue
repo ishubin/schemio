@@ -5,6 +5,8 @@
 <template>
     <div class="container">
         <router-view></router-view>
+
+        <debugger v-if="debuggerShown" @close="debuggerShown = false"/>
     </div>
 </template>
 
@@ -12,6 +14,22 @@
 </style>
 
 <script>
-    export default{
+import {registerDebuggerInitiation} from './logger';
+import Debugger from './components/Debugger.vue';
+
+export default{
+    components: {Debugger},
+
+    mounted() {
+        registerDebuggerInitiation(() => {
+            this.debuggerShown = true;
+        });
+    },
+
+    data() {
+        return {
+            debuggerShown: false
+        };
     }
+}
 </script>

@@ -21,8 +21,14 @@ const LogConfig = {
 
     registerLogger(name) {
         const hue = Math.abs(strhash(name)) % 360;
+        let enabled = false;
+        // checking if it was already configured or loaded from local storage
+        if (this.loggers.hasOwnProperty(name)) {
+            enabled = this.loggers[name].enabled;
+        }
+
         this.loggers[name] = {
-            enabled: false,
+            enabled: enabled,
             background: `hsl(${hue}, 75%, 35%)`
         }
     },
@@ -42,6 +48,7 @@ const LogConfig = {
             console.error('Unknown logger: ' + name);
         }
         this.loggers[name].enabled = true;
+        saveConfigToLocalStorage();
     },
 
     disable(name) {
@@ -49,6 +56,7 @@ const LogConfig = {
             console.error('Unknown logger: ' + name);
         }
         this.loggers[name].enabled = false;
+        saveConfigToLocalStorage();
     },
 
     filter(filterRegex) {
@@ -57,6 +65,7 @@ const LogConfig = {
         } else {
             this.filterRegex = null;
         }
+        saveConfigToLocalStorage();
     }
 };
 
@@ -148,7 +157,47 @@ const Debugger = {
     }
 }
 
-window.SchemioLogConfig = LogConfig;
+const SCHEMIO_LOG_CONFIG = 'SchemioLogConfig';
+function loadConfigFromLocalStorage() {
+    if (!window || !window.localStorage) {
+        return;
+    }
+    const configText = window.localStorage.getItem(SCHEMIO_LOG_CONFIG);
+    if (!configText) {
+        return;
+    }
+    try {
+        const config = JSON.parse(configText);
+        if (!config.loggers) {
+            return;
+        }
+        forEach(config.loggers, (settings, name) => {
+            LogConfig.loggers[name] = {
+                enabled: settings.enabled || false
+            };
+        });
+    } catch (e) {
+    }
+}
+
+function saveConfigToLocalStorage() {
+    if (!window || !window.localStorage) {
+        return;
+    }
+    window.localStorage.setItem(SCHEMIO_LOG_CONFIG, JSON.stringify(LogConfig));
+}
+
+loadConfigFromLocalStorage();
+
 window.SchemioDebugger = Debugger;
 
-export {LogConfig, Logger, Debugger};
+let debuggerInitiationCallback = null;
+window.SchemioLogConfig = () => {
+    if (debuggerInitiationCallback) {
+        debuggerInitiationCallback();
+    }
+};
+function registerDebuggerInitiation(callback) {
+    debuggerInitiationCallback = callback;
+}
+export {LogConfig, Logger, Debugger, registerDebuggerInitiation};
