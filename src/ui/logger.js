@@ -22,7 +22,7 @@ const LogConfig = {
     registerLogger(name) {
         const hue = Math.abs(strhash(name)) % 360;
         this.loggers[name] = {
-            enabled: true,
+            enabled: false,
             background: `hsl(${hue}, 75%, 35%)`
         }
     },

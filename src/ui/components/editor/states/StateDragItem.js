@@ -95,8 +95,6 @@ export default class StateDragItem extends State {
         if (key === EventBus.KEY.SPACE) {
             this.shouldDragScreen = false;
             this.updateCursor('default');
-        } else if (this.reindexNeeded) {
-            this.schemeContainer.reindexItems();
         }
     }
 
@@ -634,7 +632,6 @@ export default class StateDragItem extends State {
     dragItemsByKeyboard(dx, dy) {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
-
             forEach(this.schemeContainer.multiItemEditBoxes, multiItemEditBox => {
                 if (multiItemEditBox) {
                     multiItemEditBox.area.x += dx;
@@ -642,7 +639,6 @@ export default class StateDragItem extends State {
                     this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox);
                 }
             });
-            this.reindexNeeded = true;
         }
     }
 

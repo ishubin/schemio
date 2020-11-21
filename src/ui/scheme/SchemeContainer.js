@@ -15,8 +15,12 @@ import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {Item, enrichItemWithDefaults} from './Item.js';
+import {Debugger, Logger} from '../logger';
+
+const log = new Logger('SchemeContainer');
 
 const IS_SOFT = true;
+const IS_HARD = false;
 
 
 const defaultSchemeStyle = {
@@ -72,6 +76,8 @@ class SchemeContainer {
      * @param {EventBus} eventBus 
      */
     constructor(scheme, eventBus) {
+        Debugger.register('SchemioContainer', this);
+
         if (!eventBus) {
             throw new Error('Missing eventBus');
         }
@@ -144,6 +150,9 @@ class SchemeContainer {
     }
 
     reindexItems() {
+        log.info('reindexItems()', this);
+        log.time('reindexItems');
+
         //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
         this._itemArray = [];
@@ -219,6 +228,7 @@ class SchemeContainer {
 
         this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision += 1;
+        log.timeEnd('reindexItems');
     }
 
     buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
@@ -432,6 +442,28 @@ class SchemeContainer {
         };
 
         return schemeBoundaryBox;
+    }
+
+    /**
+     * This function recursively goes into all items descendants and readjusts them
+     * It is needed in situation when a parent item is dragged but its children have curve items attached to them.
+     * In order to keep curve readjust their shapes we need to do it with this function
+     * @param {*} itemId 
+     * @param {*} isSoft 
+     */
+    readjustItemAndDescendants(itemId, isSoft) {
+        this._readjustItemAndDescendants(itemId, {}, isSoft);
+    }
+
+    _readjustItemAndDescendants(itemId, visitedItems, isSoft) {
+        this._readjustItem(itemId, visitedItems, IS_HARD);
+        const item = this.findItemById(itemId);
+        if (!item) {
+            return;
+        }
+        forEach(item.childItems, childItem => {
+            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft);
+        });
     }
 
     /**
@@ -990,8 +1022,8 @@ class SchemeContainer {
 
     updateMultiItemEditBoxItems(multiItemEditBox) {
         // storing ids of dragged items in a map
-        // this way we will be able to figure out whether any items ancestors was dragged already
-        // so that we can skip dragging or rotation of item
+        // this way we will be able to figure out whether any items ancestors were dragged already
+        // so that we can skip dragging or rotating an item
         const itemDraggedIds = {};
 
         const topRightPoint = myMath.worldPointInArea(multiItemEditBox.area.w, 0, multiItemEditBox.area);
@@ -1002,13 +1034,23 @@ class SchemeContainer {
         const leftVx = bottomLeftPoint.x - multiItemEditBox.area.x;
         const leftVy = bottomLeftPoint.y - multiItemEditBox.area.y;
 
+        const itemsForReindex = [];
+
         forEach(multiItemEditBox.items, item => {
             itemDraggedIds[item.id] = 1;
+
+            // checking whether the item in the box list is actually a descendant of the other item that was also in the same box
+            // this is needed to build proper reindexing of items and not to double rotate child items in case their parent was already rotated
+            const parentWasAlreadyUpdated = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]));
+            if (!parentWasAlreadyUpdated) {
+                itemsForReindex.push(item);
+            }
+
             if (!item.locked) {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
 
-                if (!(item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds[id]))) {
+                if (!parentWasAlreadyUpdated) {
                     item.area.r = itemProjection.r + multiItemEditBox.area.r;
                 }
 
@@ -1040,10 +1082,11 @@ class SchemeContainer {
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
                 }
-                this.readjustItem(item.id, IS_SOFT);
+                this.readjustItemAndDescendants(item.id, IS_HARD);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
+        forEach(itemsForReindex, item => this.updateChildTransforms(item));
     }
 
     readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox) {
