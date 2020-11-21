@@ -4,6 +4,10 @@
 
 import Vue from 'vue';
 import findKey from 'lodash/findKey';
+import Log from '../../logger';
+import {Logger} from '../../logger';
+
+const log = new Logger('EventBus');
 
 const EventBus = new Vue({
     data() {
@@ -170,6 +174,15 @@ const EventBus = new Vue({
         }
     }
 });
+
+// Adding logging of all events in EventBus
+const _old$emit = EventBus.$emit;
+EventBus.$emit = (...args) => {
+    log.infoEvent(args[0], args);
+    _old$emit.apply(EventBus, args);
+};
+
+
 
 const keyMap = {};
 keyMap[EventBus.KEY.ESCAPE] = event => event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;

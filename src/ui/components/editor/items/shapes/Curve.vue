@@ -26,6 +26,9 @@ import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
 import Shape from './Shape';
 import utils from '../../../../utils';
+import {Logger} from '../../../../logger';
+
+const log = new Logger('Curve');
 
 
 function connectPoints(p1, p2) {
@@ -80,6 +83,8 @@ function computePath(item) {
 };
 
 function readjustItem(item, schemeContainer, isSoft) {
+    log.info('readjustItem', item.id, item.name, {item, isSoft});
+
     const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
     if (item.shapeProps.sourceItem) {
         const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
@@ -258,8 +263,11 @@ export default {
 
     methods: {
         onItemChange() {
+            log.info('onItemChange', this.item.id, this.item.name, this.item);
+
             this.shapePath = computePath(this.item);
             this.caps = this.computeCaps(this.shapePath);
+            log.info('computed path and caps', this.item.id, this.item.name, this.shapePath, this.caps);
             this.$forceUpdate();
         },
 

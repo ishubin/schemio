@@ -95,6 +95,8 @@ export default class StateDragItem extends State {
         if (key === EventBus.KEY.SPACE) {
             this.shouldDragScreen = false;
             this.updateCursor('default');
+        } else if (this.reindexNeeded) {
+            this.schemeContainer.reindexItems();
         }
     }
 
@@ -640,6 +642,7 @@ export default class StateDragItem extends State {
                     this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox);
                 }
             });
+            this.reindexNeeded = true;
         }
     }
 
