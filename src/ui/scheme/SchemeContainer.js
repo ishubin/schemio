@@ -953,6 +953,7 @@ class SchemeContainer {
         }
 
         const copiedItemIds = {};
+        const itemsToBeSelected = [];
         forEach(items, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
@@ -981,13 +982,18 @@ class SchemeContainer {
                 }
 
                 parentItems.push(newItem);
-                this.selectItem(newItem, true);
+                itemsToBeSelected.push(newItem);
             }
         });
 
+        this.reindexItems();
+
+        // doing the selectiong afterwards so that item has all meta transform calculated after re-indexing
+        // and its edit box would be aligned with the item
+        forEach(itemsToBeSelected, item => this.selectItem(item, true));
+
         //since all items are already selected, the relative multi item edit box should centered on the specified center point
         //this is not needed to viewport items
-
         if (this.multiItemEditBoxes.relative) {
             const boxArea = this.multiItemEditBoxes.relative.area;
             const boxCenterX = boxArea.x + boxArea.w / 2;
@@ -999,8 +1005,6 @@ class SchemeContainer {
             boxArea.y += dy;
             this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative);
         }
-
-        this.reindexItems();
     }
 
     copyItem(oldItem) {
