@@ -7,6 +7,9 @@ import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
 import myMath from '../../../myMath';
+import {Logger} from '../../../logger';
+
+const log = new Logger('StateDragItem');
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
@@ -468,6 +471,7 @@ export default class StateDragItem extends State {
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
         this.reindexNeeded = true;
+        log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
 
     dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
@@ -542,6 +546,7 @@ export default class StateDragItem extends State {
             this.multiItemEditBox.area.h = nh;
             this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
             this.reindexNeeded = true;
+            log.info('Resized multi item edit box', this.multiItemEditBox);
         }
     }
 

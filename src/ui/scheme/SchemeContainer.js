@@ -1207,7 +1207,7 @@ class SchemeContainer {
         }
     }
 
-    generateMultiItemEditBox(items, boxId, transformType) {
+    createMultiItemEditBoxAveragedArea(items) {
         let minP = null;
         let maxP = null;
 
@@ -1239,13 +1239,41 @@ class SchemeContainer {
             });
         });
 
-        const area = {
+        return {
            x: minP.x,
            y: minP.y,
            w: maxP.x - minP.x,
            h: maxP.y - minP.y,
            r: 0
         };
+    }
+
+    createMultiItemEditBoxArea(item) {
+        const point = this.worldPointOnItem(0, 0, item);
+        let r = item.area.r; 
+
+        if (item.meta && item.meta.transform) {
+            r = r + item.meta.transform.r;
+        }
+
+        return {
+            x: point.x,
+            y: point.y,
+            w: item.area.w,
+            h: item.area.h,
+            r: r
+        };
+    }
+
+    generateMultiItemEditBox(items, boxId, transformType) {
+        let area = null;
+        if (items.length === 1) {
+            // we want the item edit box to align with item if only that item was selected
+            area = this.createMultiItemEditBoxArea(items[0]);
+        } else {
+            // otherwise item edit box are will be an average of all other items
+            area = this.createMultiItemEditBoxAveragedArea(items);
+        }
 
         const itemProjections = {};
 
@@ -1308,7 +1336,10 @@ class SchemeContainer {
                 topRightY: projectionTopRightY,
                 bottomLeftX: projectionBottomLeftX,
                 bottomLeftY: projectionBottomLeftY,
-                r: item.area.r
+                // the following angle correction is need in case only one item is selected,
+                // in that case the initial edit box area might have a starting angle that matches item area
+                // in all other cases the initial angle will be 0
+                r: item.area.r - area.r
             };
 
             if (item.shape === 'curve') {
