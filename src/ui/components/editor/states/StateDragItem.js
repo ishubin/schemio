@@ -480,8 +480,7 @@ export default class StateDragItem extends State {
             nw = this.multiItemEditBox.area.w,
             nh = this.multiItemEditBox.area.h,
             dx = x - this.originalPoint.x,
-            dy = y - this.originalPoint.y,
-            change = 0;
+            dy = y - this.originalPoint.y;
 
         let p0 = myMath.worldPointInArea(0, 0, this.multiItemEditBox.area);
         let p1 = myMath.worldPointInArea(1, 0, this.multiItemEditBox.area);
@@ -501,7 +500,6 @@ export default class StateDragItem extends State {
             if (nh < 0) {
                 nh = 0;
             }
-            change += Math.abs(projectionRight) + Math.abs(projectionBottom);
         } else {
             forEach(draggerEdges, edge => {
                 if (edge === 'top') {
@@ -512,14 +510,12 @@ export default class StateDragItem extends State {
                     if (nh < 0) {
                         nh = 0;
                     }
-                    change += Math.abs(projection);
                 } else if (edge === 'bottom') {
                     const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
                     nh = this.multiItemEditBoxOriginalArea.h + projection;
                     if (nh < 0) {
                         nh = 0;
                     }
-                    change += Math.abs(projection);
                 } else if (edge === 'left') {
                     const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
                     nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
@@ -528,26 +524,22 @@ export default class StateDragItem extends State {
                     if (nw < 0) {
                         nw = 0;
                     }
-                    change += Math.abs(projection);
                 } else if (edge === 'right') {
                     const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
                     nw = this.multiItemEditBoxOriginalArea.w + projection;
                     if (nw < 0) {
                         nw = 0;
                     }
-                    change += Math.abs(projection);
                 }
             });
         }
-        if (change > 0) {
-            this.multiItemEditBox.area.x = nx;
-            this.multiItemEditBox.area.y = ny;
-            this.multiItemEditBox.area.w = nw;
-            this.multiItemEditBox.area.h = nh;
-            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
-            this.reindexNeeded = true;
-            log.info('Resized multi item edit box', this.multiItemEditBox);
-        }
+        this.multiItemEditBox.area.x = nx;
+        this.multiItemEditBox.area.y = ny;
+        this.multiItemEditBox.area.w = nw;
+        this.multiItemEditBox.area.h = nh;
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.reindexNeeded = true;
+        log.info('Resized multi item edit box', this.multiItemEditBox);
     }
 
     handleControlPointDrag(x, y) {
