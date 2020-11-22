@@ -9,6 +9,7 @@ import indexOf from 'lodash/indexOf';
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
 
+import '../typedef';
 import collections from '../collections';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
@@ -22,6 +23,12 @@ const log = new Logger('SchemeContainer');
 const IS_SOFT = true;
 const IS_HARD = false;
 
+
+const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
+    moved: true,
+    rotated: false,
+    resized: false
+};
 
 const defaultSchemeStyle = {
     backgroundColor:    'rgba(240,240,240,1.0)',
@@ -308,6 +315,7 @@ class SchemeContainer {
      * @param {Number} x local position x
      * @param {Number} y local position y
      * @param {Item} item 
+     * @returns {Point}
      */
     worldPointOnItem(x, y, item) {
         return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
@@ -318,6 +326,7 @@ class SchemeContainer {
      * @param {Number} x world position x
      * @param {Number} y world position y
      * @param {Item} item 
+     * @returns {Point}
      */
     localPointOnItem(x, y, item) {
         return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
@@ -449,20 +458,28 @@ class SchemeContainer {
      * It is needed in situation when a parent item is dragged but its children have curve items attached to them.
      * In order to keep curve readjust their shapes we need to do it with this function
      * @param {*} itemId 
-     * @param {*} isSoft 
+     * @param {Boolean} isSoft 
+     * @param {ItemModificationContext} context
      */
-    readjustItemAndDescendants(itemId, isSoft) {
-        this._readjustItemAndDescendants(itemId, {}, isSoft);
+    readjustItemAndDescendants(itemId, isSoft, context) {
+        this._readjustItemAndDescendants(itemId, {}, isSoft, context);
     }
 
-    _readjustItemAndDescendants(itemId, visitedItems, isSoft) {
-        this._readjustItem(itemId, visitedItems, IS_HARD);
+    /**
+     * 
+     * @param {*} itemId 
+     * @param {Object} visitedItems 
+     * @param {Boolean} isSoft 
+     * @param {ItemModificationContext} context
+     */
+    _readjustItemAndDescendants(itemId, visitedItems, isSoft, context) {
+        this._readjustItem(itemId, visitedItems, IS_HARD, context);
         const item = this.findItemById(itemId);
         if (!item) {
             return;
         }
         forEach(item.childItems, childItem => {
-            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft);
+            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft, context);
         });
     }
 
@@ -470,17 +487,19 @@ class SchemeContainer {
      * Should be invoked each time an area or path of item changes
      * @param {String} changedItemId
      * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
+     * @param {ItemModificationContext} context
      */
-    readjustItem(changedItemId, isSoft) {
-        this._readjustItem(changedItemId, {}, isSoft);
+    readjustItem(changedItemId, isSoft, context) {
+        this._readjustItem(changedItemId, {}, isSoft, context);
     }
 
     /**
      * 
      * @param {*} changedItem 
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
+     * @param {ItemModificationContext} context
      */
-    _readjustItem(changedItemId, visitedItems, isSoft) {
+    _readjustItem(changedItemId, visitedItems, isSoft, context) {
         if (visitedItems[changedItemId]) {
             return;
         }
@@ -494,20 +513,20 @@ class SchemeContainer {
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
-            shape.readjustItem(item, this, isSoft);
+            shape.readjustItem(item, this, isSoft, context);
             this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
         if (this.dependencyItemMap[changedItemId]) {
             forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
-                this._readjustItem(dependantItemId, visitedItems, isSoft);
+                this._readjustItem(dependantItemId, visitedItems, isSoft, context);
             });
         }
 
         // scanning through children of the item and readjusting them as well
         forEach(item.childItems, childItem => {
-            this._readjustItem(childItem.id, visitedItems, isSoft);
+            this._readjustItem(childItem.id, visitedItems, isSoft, context);
         });
     }
 
@@ -1003,7 +1022,7 @@ class SchemeContainer {
 
             boxArea.x += dx;
             boxArea.y += dy;
-            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative);
+            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
     }
 
@@ -1024,7 +1043,12 @@ class SchemeContainer {
         return newItem;
     }
 
-    updateMultiItemEditBoxItems(multiItemEditBox) {
+    /**
+     * 
+     * @param {MultiItemEditBox} multiItemEditBox 
+     * @param {ItemModificationContext} context 
+     */
+    updateMultiItemEditBoxItems(multiItemEditBox, context) {
         // storing ids of dragged items in a map
         // this way we will be able to figure out whether any items ancestors were dragged already
         // so that we can skip dragging or rotating an item
@@ -1086,7 +1110,7 @@ class SchemeContainer {
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
                 }
-                this.readjustItemAndDescendants(item.id, IS_HARD);
+                this.readjustItemAndDescendants(item.id, IS_HARD, context);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
@@ -1265,6 +1289,13 @@ class SchemeContainer {
         };
     }
 
+    /**
+     * 
+     * @param {Array} items 
+     * @param {String} boxId 
+     * @param {String} transformType 
+     * @returns {MultiItemEditBox}
+     */
     generateMultiItemEditBox(items, boxId, transformType) {
         let area = null;
         if (items.length === 1) {

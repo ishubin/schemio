@@ -11,6 +11,12 @@ import {enrichItemWithDefaults} from '../../../scheme/Item';
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
 
+const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
+    moved: true,
+    rotated: false,
+    resized: false
+};
+
 
 function isEventRightClick(event) {
     return event.button === 2;
@@ -316,7 +322,7 @@ export default class StateEditCurve extends State {
     deletePoint(pointIndex) {
         this.item.shapeProps.points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
     insertPointAtCoords(x, y) {
@@ -343,7 +349,7 @@ export default class StateEditCurve extends State {
                 this.convertPointToBeizer(index + 1);
             }
             this.eventBus.emitItemChanged(this.item.id);
-            this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+            this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         }
     }
 
@@ -374,7 +380,7 @@ export default class StateEditCurve extends State {
             delete point.y2;
         }
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
     convertPointToBeizer(pointIndex) {
@@ -405,7 +411,7 @@ export default class StateEditCurve extends State {
         point.y2 = dy;
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
     handleCurvePointDrag(x, y, pointIndex) {
@@ -426,7 +432,7 @@ export default class StateEditCurve extends State {
         }
 
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
     snapCurvePoint(localX, localY) {
@@ -490,7 +496,7 @@ export default class StateEditCurve extends State {
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
     submitItem() {
@@ -501,7 +507,7 @@ export default class StateEditCurve extends State {
             return;
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT);
+        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();
@@ -509,5 +515,4 @@ export default class StateEditCurve extends State {
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }
-
 }

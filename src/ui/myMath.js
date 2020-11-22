@@ -1,6 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import './typedef';
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
 
@@ -42,6 +43,7 @@ export default {
      * @param {*} y
      * @param {*} area
      * @param {*} transform - {x, y, r} parent transform of the item. May be null
+     * @returns {Point}
      */
     worldPointInArea(x, y, area, transform) {
         if (!area) {
@@ -65,6 +67,14 @@ export default {
         };
     },
 
+    /**
+     * 
+     * @param {*} x 
+     * @param {*} y 
+     * @param {*} area 
+     * @param {*} transform 
+     * @returns {Point}
+     */
     localPointInArea(x, y, area, transform) {
         if (!area) {
             return {x: 0, y: 0};
@@ -92,10 +102,10 @@ export default {
 
     /**
      * Calculates {x,y,distance} that is the closest to a specified point on the specified path 
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} svgPath 
-     * @returns {x, y, distance}
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {SVGPathElement} svgPath 
+     * @returns {SVGPathPoint}
      */
     closestPointOnPath(x, y, svgPath) {
         const pathLength = svgPath.getTotalLength();
@@ -139,41 +149,6 @@ export default {
 
         let closestPoint = svgPath.getPointAtLength(closestSegmentLeft);
         closestPoint.distance = closestSegmentLeft;
-
-        while(segmentWidth > 1) {
-            const middle = segmentWidth / 2;
-            let pointLeft = svgPath.getPointAtLength(leftSegment[0] + middle);
-            pointLeft.distance = leftSegment[0] + middle;
-
-            let pointRight = svgPath.getPointAtLength(rightSegment[0] + middle);
-            pointRight.distance = rightSegment[0] + middle;
-            let distanceLeft = (x - pointLeft.x)*(x - pointLeft.x) + (y - pointLeft.y) * (y - pointLeft.y);
-            let distanceRight = (x - pointRight.x)*(x - pointRight.x) + (y - pointRight.y) * (y - pointRight.y);
-
-            segmentWidth = middle;
-            if (distanceLeft < distanceRight) {
-                closestPoint = pointLeft;
-                leftSegment[1] = leftSegment[0] + segmentWidth;
-            } else {
-                closestPoint = pointRight;
-                leftSegment[0] = rightSegment[0];
-                leftSegment[1] = leftSegment[0] + segmentWidth;
-            }
-            rightSegment[0] = leftSegment[1];
-            rightSegment[1] = rightSegment[0] + segmentWidth;
-        }
-        return closestPoint;
-    },
-
-    closestPointOnPathBackup(x, y, svgPath) {
-        const pathLength = svgPath.getTotalLength();
-
-        const leftSegment = [0, pathLength / 2];
-        const rightSegment = [pathLength / 2, pathLength]
-        let segmentWidth = pathLength / 2;
-
-        let closestPoint = svgPath.getPointAtLength(0);
-        closestPoint.distance = 0;
 
         while(segmentWidth > 1) {
             const middle = segmentWidth / 2;

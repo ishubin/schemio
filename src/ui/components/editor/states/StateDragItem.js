@@ -8,11 +8,29 @@ import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
+import '../../../typedef';
 
 const log = new Logger('StateDragItem');
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
+
+const ITEM_MODIFICATION_CONTEXT_MOVED = {
+    moved: true,
+    rotated: false,
+    resized: false
+};
+const ITEM_MODIFICATION_CONTEXT_ROTATED = {
+    moved: false,
+    rotated: true,
+    resized: false
+};
+const ITEM_MODIFICATION_CONTEXT_RESIZED = {
+    moved: false,
+    rotated: false,
+    resized: true
+};
+const ITEM_MODIFICATION_CONTEXT_DEFAULT = ITEM_MODIFICATION_CONTEXT_MOVED;
 
 
 function isEventRightClick(event) {
@@ -326,7 +344,7 @@ export default class StateDragItem extends State {
         if (this.reindexNeeded) {
             if (this.lastDraggedItem) {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
-                this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT);
+                this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
 
                 if (this.lastDraggedItem.shape === 'curve' && this.controlPoint) {
                     this.schemeContainer.updateAllMultiItemEditBoxes();
@@ -444,7 +462,7 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_MOVED);
         this.reindexNeeded = true;
     }
 
@@ -469,7 +487,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
 
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_ROTATED);
         this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -537,7 +555,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.y = ny;
         this.multiItemEditBox.area.w = nw;
         this.multiItemEditBox.area.h = nh;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_RESIZED);
         this.reindexNeeded = true;
         log.info('Resized multi item edit box', this.multiItemEditBox);
     }
@@ -558,7 +576,7 @@ export default class StateDragItem extends State {
                 this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
                 this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
                 this.eventBus.emitItemChanged(this.sourceItem.id);
-                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
+                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
                 this.reindexNeeded = true;
                 this.lastDraggedItem = this.sourceItem;
             }
@@ -613,7 +631,7 @@ export default class StateDragItem extends State {
         this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
         this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
         this.eventBus.emitItemChanged(this.sourceItem.id);
-        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT);
+        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         this.reindexNeeded = true;
         this.lastDraggedItem = this.sourceItem;
     }
@@ -633,7 +651,7 @@ export default class StateDragItem extends State {
                 if (multiItemEditBox) {
                     multiItemEditBox.area.x += dx;
                     multiItemEditBox.area.y += dy;
-                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox);
+                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox, ITEM_MODIFICATION_CONTEXT_MOVED);
                 }
             });
         }
