@@ -25,6 +25,7 @@ const IS_HARD = false;
 
 
 const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
+    id: '',
     moved: true,
     rotated: false,
     resized: false

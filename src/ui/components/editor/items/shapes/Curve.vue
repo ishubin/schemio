@@ -94,6 +94,69 @@ function computePath(item) {
     return path;
 };
 
+
+const DST_READJUST_CTX = Symbol('dstReadjustCtx');
+const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
+
+/**
+ * @param {SchemeContainer} schemeContainer
+ * @param {Item} item
+ * @param {CurvePoint} curvePoint
+ * @param {String} attachmentItemSelector
+ * @param {Number} attachmentItemPosition
+ * @param {ItemModificationContext} context
+ * @param {Function} callback - function which is used to pass changed attachment item position
+ */
+function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, callback) {
+    const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
+    if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
+        const shadowSvgPath = computeOutlinePath(attachmentItem);
+        let oldPoint = null;
+        let worldOldPoint = null;
+        if (context && context.id) {
+            if (item.meta[DST_READJUST_CTX] && item.meta[DST_READJUST_CTX].id === context.id) {
+                oldPoint  = item.meta[DST_READJUST_CTX].oldPoint;
+                worldOldPoint  = item.meta[DST_READJUST_CTX].worldOldPoint;
+            } else {
+                oldPoint = curvePoint;
+                worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
+                item.meta[DST_READJUST_CTX] = { id: context.id, oldPoint, worldOldPoint };
+            }
+        } else {
+            oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+        }
+        let destinationPoint = null;
+
+        let distanceOnPath = attachmentItemPosition;
+        
+        if (context && (context.rotated || context.resized)) {
+            const localToDestinationItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, attachmentItem);
+            const closestPointOnPath = myMath.closestPointOnPath(localToDestinationItemOldPoint.x, localToDestinationItemOldPoint.y, shadowSvgPath);
+
+            // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
+            distanceOnPath = closestPointOnPath.distance;
+
+            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, distanceOnPath, schemeContainer);
+            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+        } else {
+            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, attachmentItemPosition, schemeContainer);
+            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+        }
+        const newPoint = {
+            t: oldPoint.t,
+            x: destinationPoint.x,
+            y: destinationPoint.y,
+        };
+        if (oldPoint.t === 'B') {
+            newPoint.x1 = oldPoint.x1;
+            newPoint.y1 = oldPoint.y1;
+            newPoint.x2 = oldPoint.x2;
+            newPoint.y2 = oldPoint.y2;
+        }
+        callback(newPoint, distanceOnPath);
+    }
+}
+
 /**
  * @property {Item} item 
  * @property {Object} schemeContainer 
@@ -105,79 +168,17 @@ function readjustItem(item, schemeContainer, isSoft, context) {
 
     const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
     if (item.shapeProps.sourceItem) {
-        const sourceItem = schemeContainer.findFirstElementBySelector(item.shapeProps.sourceItem);
-        if (sourceItem && sourceItem.id !== item.id) {
-            const shadowSvgPath = computeOutlinePath(sourceItem);
-            const oldPoint = item.shapeProps.points[0];
-            let sourcePoint = null;
-            
-            if (context && (context.rotated || context.resized)) {
-                const worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
-                const localToSourceItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, sourceItem);
-                const closestPointOnPath = myMath.closestPointOnPath(localToSourceItemOldPoint.x, localToSourceItemOldPoint.y, shadowSvgPath);
-
-                // readjusting source attachment to try to keep it in the same world point while the item is rotated, resized or moved
-                item.shapeProps.sourceItemPosition = closestPointOnPath.distance;
-
-                const sourceWorldPoint = getPointOnItemPath(sourceItem, shadowSvgPath, item.shapeProps.sourceItemPosition, schemeContainer);
-                sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
-            } else {
-                const sourceWorldPoint = getPointOnItemPath(sourceItem, shadowSvgPath, item.shapeProps.sourceItemPosition, schemeContainer);
-                sourcePoint = schemeContainer.localPointOnItem(sourceWorldPoint.x, sourceWorldPoint.y, item);
-            }
-            const newPoint = {
-                t: oldPoint.t,
-                x: sourcePoint.x,
-                y: sourcePoint.y,
-            };
-            if (oldPoint.t === 'B') {
-                newPoint.x1 = oldPoint.x1;
-                newPoint.y1 = oldPoint.y1;
-                newPoint.x2 = oldPoint.x2;
-                newPoint.y2 = oldPoint.y2;
-            }
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
             item.shapeProps.points[0] = newPoint;
-        } else {
-            item.shapeProps.sourceItem = null;
-        }
+            item.shapeProps.sourceItemPosition = newSourceItemPosition;
+        });
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        const destinationItem = schemeContainer.findFirstElementBySelector(item.shapeProps.destinationItem);
-        if (destinationItem && destinationItem.id !== item.id && destinationItem.shape) {
-            const shadowSvgPath = computeOutlinePath(destinationItem);
-            const oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
-            let destinationPoint = null;
-            
-            if (context && (context.rotated || context.resized)) {
-                const worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
-                const localToDestinationItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, destinationItem);
-                const closestPointOnPath = myMath.closestPointOnPath(localToDestinationItemOldPoint.x, localToDestinationItemOldPoint.y, shadowSvgPath);
-
-                // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
-                item.shapeProps.destinationItemPosition = closestPointOnPath.distance;
-
-                const destinationWorldPoint = getPointOnItemPath(destinationItem, shadowSvgPath, item.shapeProps.destinationItemPosition, schemeContainer);
-                destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
-            } else {
-                const destinationWorldPoint = getPointOnItemPath(destinationItem, shadowSvgPath, item.shapeProps.destinationItemPosition, schemeContainer);
-                destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
-            }
-            const newPoint = {
-                t: oldPoint.t,
-                x: destinationPoint.x,
-                y: destinationPoint.y,
-            };
-            if (oldPoint.t === 'B') {
-                newPoint.x1 = oldPoint.x1;
-                newPoint.y1 = oldPoint.y1;
-                newPoint.x2 = oldPoint.x2;
-                newPoint.y2 = oldPoint.y2;
-            }
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
             item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
-        } else {
-            item.shapeProps.destinationItem = null;
-        }
+            item.shapeProps.destinationItemPosition = newDestinationItemPosition;
+        });
     }
 
     if (!isSoft) {

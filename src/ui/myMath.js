@@ -150,7 +150,7 @@ export default {
         let closestPoint = svgPath.getPointAtLength(closestSegmentLeft);
         closestPoint.distance = closestSegmentLeft;
 
-        while(segmentWidth > 1) {
+        while(segmentWidth > 0.5) {
             const middle = segmentWidth / 2;
             let pointLeft = svgPath.getPointAtLength(leftSegment[0] + middle);
             pointLeft.distance = leftSegment[0] + middle;

@@ -9,6 +9,7 @@ import forEach from 'lodash/forEach';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
+import shortid from 'shortid';
 
 const log = new Logger('StateDragItem');
 
@@ -18,17 +19,8 @@ const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_MOVED = {
     moved: true,
     rotated: false,
-    resized: false
-};
-const ITEM_MODIFICATION_CONTEXT_ROTATED = {
-    moved: false,
-    rotated: true,
-    resized: false
-};
-const ITEM_MODIFICATION_CONTEXT_RESIZED = {
-    moved: false,
-    rotated: false,
-    resized: true
+    resized: false,
+    id: ''
 };
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = ITEM_MODIFICATION_CONTEXT_MOVED;
 
@@ -79,6 +71,9 @@ export default class StateDragItem extends State {
             snapX: (x) => this.snapX(x),
             snapY: (y) => this.snapY(y),
         };
+
+        // used in order to track the uniqueness of modification context from mouse down to mouse up events
+        this.modificationContextId = null;
     }
 
     reset() {
@@ -93,6 +88,7 @@ export default class StateDragItem extends State {
         this.wasMouseMoved = false;
         this.multiItemEditBox = null;
         this.multiItemEditBoxOriginalArea = null;
+        this.modificationContextId = null;
     }
 
     keyPressed(key, keyOptions) {
@@ -172,6 +168,7 @@ export default class StateDragItem extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        this.modificationContextId = shortid.generate();
         this.wasMouseMoved = false;
 
         if (this.shouldDragScreen) {
@@ -487,7 +484,12 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
 
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_ROTATED);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, {
+            id: this.modificationContextId,
+            moved: false,
+            rotated: true,
+            resized: false
+        });
         this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -555,7 +557,12 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.y = ny;
         this.multiItemEditBox.area.w = nw;
         this.multiItemEditBox.area.h = nh;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_RESIZED);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, {
+            moved: false,
+            rotated: false,
+            resized: true,
+            id: this.modificationContextId
+        });
         this.reindexNeeded = true;
         log.info('Resized multi item edit box', this.multiItemEditBox);
     }

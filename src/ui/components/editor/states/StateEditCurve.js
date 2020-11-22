@@ -12,6 +12,7 @@ const IS_NOT_SOFT = false;
 const IS_SOFT = true;
 
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
+    id: '',
     moved: true,
     rotated: false,
     resized: false
