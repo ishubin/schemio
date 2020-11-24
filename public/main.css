@@ -543,6 +543,9 @@ ul.pagination li a.current {
 
 /********************* Svg editor *******************/
 
+.svg-editor {
+    position: relative;
+}
 .svg-editor svg {
     position: fixed;
     top: 0;
@@ -664,15 +667,25 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
     display: inline-block;
 }
 
-svg foreignObject .item-text-container p:first-child {
+.item-text-container p:first-child {
     margin-top: 0;
 }
-svg foreignObject .item-text-container p {
+.item-text-container p {
     min-height: var(--min-paragraph-height);
     margin-top: var(--paragraph-top-margin);
     margin-bottom: 0;
     padding: 0;
 }
+
+
+/***************************************/
+/* In place text edit                  */
+/***************************************/
+.in-place-edit-editor-wrapper {
+    position: absolute;
+}
+
+
 
 
 /**************************************/

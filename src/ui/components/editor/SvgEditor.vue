@@ -157,18 +157,6 @@
                     </g>
                 </g>
 
-                <!-- Item Text Editor -->    
-                <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
-                    :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.slotName}`"
-                    :area="inPlaceTextEditor.area"
-                    :css-style="inPlaceTextEditor.style"
-                    :text="inPlaceTextEditor.text"
-                    :viewport-transform="viewportTransform"
-                    :relative-transform="transformSvg"
-                    :transform-type="inPlaceTextEditor.transformType"
-                    @close="closeItemTextEditor"
-                    @updated="onInPlaceTextEditorUpdate"
-                    />
 
                 <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
                     <curve-edit-box 
@@ -188,6 +176,17 @@
                 </g>
             </g>
         </svg>
+
+        <!-- Item Text Editor -->
+        <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
+            :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.slotName}`"
+            :area="inPlaceTextEditor.area"
+            :css-style="inPlaceTextEditor.style"
+            :text="inPlaceTextEditor.text"
+            @close="closeItemTextEditor"
+            @updated="onInPlaceTextEditorUpdate"
+            />
+
 
         <context-menu v-if="customContextMenu.show"
             :key="customContextMenu.id"
@@ -972,10 +971,10 @@ export default {
             this.inPlaceTextEditor.style.width = `${area.w}px`;
             this.inPlaceTextEditor.style.height = `${area.h}px`;
             this.inPlaceTextEditor.transformType = item.area.type;
-            this.inPlaceTextEditor.area.x = worldPoint.x;
-            this.inPlaceTextEditor.area.y = worldPoint.y;
-            this.inPlaceTextEditor.area.w = area.w;
-            this.inPlaceTextEditor.area.h = area.h;
+            this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
+            this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
+            this.inPlaceTextEditor.area.w = this._z(area.w);
+            this.inPlaceTextEditor.area.h = this._z(area.h);
             this.inPlaceTextEditor.shown = true;
         },
 

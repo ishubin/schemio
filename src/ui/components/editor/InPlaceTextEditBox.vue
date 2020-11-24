@@ -1,11 +1,9 @@
 <template>
-    <g :transform="transformType === 'viewport' ? viewportTransform : relativeTransform">
-        <foreignObject :x="area.x" :y="area.y" :width="area.w" :height="area.h">
-            <div v-if="editor" id="item-in-place-text-editor" class="item-text-container" :style="cssStyle">
-                <editor-content :editor="editor" />
-            </div>
-        </foreignObject>
-    </g>
+    <div class="in-place-edit-editor-wrapper" :style="{left: `${area.x}px`, top: `${area.y}px`}">
+        <div v-if="editor" id="item-in-place-text-editor" class="item-text-container" :style="cssStyle">
+            <editor-content :editor="editor" />
+        </div>
+    </div>
 </template>
 
 <script>
@@ -21,7 +19,7 @@ import {
 
 
 export default {
-    props: ['viewportTransform', 'relativeTransform', 'area', 'text', 'cssStyle', 'transformType'],
+    props: [ 'area', 'text', 'cssStyle'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
