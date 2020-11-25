@@ -1,6 +1,6 @@
 <template>
     <div class="in-place-edit-editor-wrapper" :style="{left: `${area.x}px`, top: `${area.y}px`}">
-        <div v-if="editor" id="item-in-place-text-editor" class="item-text-container" :style="cssStyle">
+        <div ref="editor" v-if="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
         </div>
     </div>
@@ -19,7 +19,7 @@ import {
 
 
 export default {
-    props: [ 'area', 'text', 'cssStyle'],
+    props: ['item', 'area', 'text', 'cssStyle'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
@@ -34,8 +34,18 @@ export default {
     },
 
     data() {
+        const editorCssStyle = utils.clone(this.cssStyle);
+
+        if (this.item.area.w > 20) {
+            editorCssStyle.width = `${this.area.w}px`;
+        }
+        if (this.item.area.h > 20) {
+            editorCssStyle.height = `${this.area.h}px`;
+        }
+
         return {
             editor: null,
+            editorCssStyle
         };
     },
 
@@ -63,13 +73,29 @@ export default {
         },
 
         outsideClickListener(event) {
-            if (!utils.domHasParentNode(event.target, domElement => domElement.id === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
+            if (!utils.domHasParentNode(event.target, domElement => domElement.getAttribute('data-type') === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
                 document.removeEventListener('click', this.outsideClickListener);
                 this.closeEditBox();
             }
         },
         
         closeEditBox() {
+            if (this.item.shape === 'none') {
+                const rect = this.$refs.editor.getBoundingClientRect();
+                // in case the shape is none - only text matters
+                // so if text was removed perhaps it makes sense to remove the item from SchemeContainer if it doesn't have child items
+                // the trick we do here is getting pure text from html and checking if it is empty
+                const html = this.editor.getHTML();
+                const el = document.createElement('div');
+                el.innerHTML = htmlSanitize(html);
+                const text = el.innerText.trim();
+
+                if (text) {
+                    this.$emit('item-area-changed', this.item, rect.width, rect.height);
+                } else {
+                    this.$emit('item-text-cleared', this.item);
+                }
+            }
             this.$emit('close');
         }
     }

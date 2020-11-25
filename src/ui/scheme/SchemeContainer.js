@@ -660,6 +660,11 @@ class SchemeContainer {
 
 
     deleteItem(item) {
+        this._deleteItem(item);
+        this.reindexItems();
+    }
+
+    _deleteItem(item) {
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
             const parentItem = this.findItemById(item.meta.parentId);
@@ -681,7 +686,7 @@ class SchemeContainer {
         if (this.selectedItems && this.selectedItems.length > 0) {
             forEach(this.selectedItems, item => {
                 delete this.selectedItemsMap[item.id];
-                this.deleteItem(item);
+                this._deleteItem(item);
             });
 
             this.selectedItems = [];

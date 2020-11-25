@@ -196,10 +196,10 @@ export default class StateDragItem extends State {
                 this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
             }
         } else if (isEventRightClick(event)) {
-            this.handleVoidRightClick(mx, my);
+            this.handleVoidRightClick(x, y, mx, my);
         } else {
             //enabling multi select box only if user clicked in the empty area.
-            if (!object || object.type === 'nothing' || object.itemTextElement) {
+            if (!object || object.type === 'void' || object.itemTextElement) {
                 this.initMulitSelectBox(x, y, mx, my);
             }
         }
@@ -221,9 +221,9 @@ export default class StateDragItem extends State {
         }
     }
 
-    handleVoidRightClick(mx, my) {
+    handleVoidRightClick(x, y, mx, my) {
         this.schemeContainer.deselectAllItems();
-        this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED, mx, my);
+        this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED, x, y, mx, my);
     }
 
     /**
@@ -414,6 +414,8 @@ export default class StateDragItem extends State {
             }
         } else if (object.itemTextElement) { 
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
+        } else if (object.type === 'void') {
+            this.eventBus.$emit(EventBus.VOID_DOUBLE_CLICKED, x, y, mx, my);
         }
     }
 

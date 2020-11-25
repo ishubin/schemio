@@ -4,8 +4,8 @@
 
 import Vue from 'vue';
 import findKey from 'lodash/findKey';
-import Log from '../../logger';
 import {Logger} from '../../logger';
+import '../../typedef';
 
 const log = new Logger('EventBus');
 
@@ -57,6 +57,9 @@ const EventBus = new Vue({
 
             // triggered when user clicks empty space with right button
             VOID_RIGHT_CLICKED: 'void-clicked',
+
+            // triggered when user double clicks empty space
+            VOID_DOUBLE_CLICKED: 'void-double-clicked',
 
             // used to trigger display of item description as a tooltip (when in interactive mode)
             ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
@@ -145,8 +148,14 @@ const EventBus = new Vue({
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
         },
 
-        emitItemTextSlotEditTriggered(item, slotName, x, y) {
-            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, x, y);
+        /**
+         * 
+         * @param {Item} item 
+         * @param {string} slotName 
+         * @param {Area} area - Area of a text slot and not of an item
+         */
+        emitItemTextSlotEditTriggered(item, slotName, area) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, area);
         },
 
         emitItemTextSlotEditCanceled(item, slotName) {

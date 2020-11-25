@@ -85,11 +85,15 @@ export function enrichItemWithDefaults(item) {
             events: []
         }
     };
+    //TODO remove this code, I used it for personal schemes that I managed to already build with earlier version of Schemio
     if (Array.isArray(item.behavior)) {
         item.behavior = {events: []};
     }
     utils.extendObject(item, props);
-
+    
+    if (!item.shape) {
+        item.shape = 'none';
+    }
     const shape = Shape.find(item.shape);
     forEach(shape.args, (arg, argName) => {
         props.shapeProps[argName] = arg.value;
@@ -108,3 +112,18 @@ export function enrichItemWithDefaults(item) {
         item.textSlots[slot.name] = enrichItemTextSlotWithDefaults(itemTextSlot);
     });
 }
+
+export const defaultItem = {
+    cursor: 'default',
+    shape: 'empty',
+    opacity: 100.0,
+    blendMode: 'normal',
+    name: '',
+    description: '',
+    text: '',
+    links: [],
+    textSlots: {},
+    behavior: {
+        events: []
+    }
+};

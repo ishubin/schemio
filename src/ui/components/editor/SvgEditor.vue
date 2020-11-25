@@ -113,7 +113,7 @@
                         />
                     </g>
 
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative && state !== 'editCurve'"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative && state !== 'editCurve' && !inPlaceTextEditor.shown"
                         :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
@@ -143,7 +143,7 @@
                             :mode="mode"
                             />
                     </g>
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve'"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve' && !inPlaceTextEditor.shown"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
@@ -180,11 +180,14 @@
         <!-- Item Text Editor -->
         <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
             :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.slotName}`"
+            :item="inPlaceTextEditor.item"
             :area="inPlaceTextEditor.area"
             :css-style="inPlaceTextEditor.style"
             :text="inPlaceTextEditor.text"
             @close="closeItemTextEditor"
             @updated="onInPlaceTextEditorUpdate"
+            @item-area-changed="onInPlaceTextEditorItemAreaChanged"
+            @item-text-cleared="onInPlaceTextEditorItemTextCleared"
             />
 
 
@@ -215,8 +218,12 @@
 </template>
 
 <script>
+import shortid from 'shortid';
+import map from 'lodash/map';
+import max from 'lodash/max';
+
 import myMath from '../../myMath';
-import {ItemInteractionMode} from '../../scheme/Item';
+import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, enrichItemTextSlotWithDefaults} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
@@ -239,13 +246,10 @@ import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Modal from '../Modal.vue';
-import shortid from 'shortid';
 import Events from '../../userevents/Events';
 import forEach from 'lodash/forEach';
-import map from 'lodash/map';
-import max from 'lodash/max';
 
-const EMPTY_OBJECT = {type: 'nothing'};
+const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
 
 const userEventBus = new UserEventBus();
@@ -311,11 +315,12 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
+        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -343,11 +348,12 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
+        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
         EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -787,8 +793,31 @@ export default {
             }
         },
 
-        onVoidClicked(item) {
+        onVoidClicked() {
             this.removeDrawnLinks();
+        },
+
+        onVoidDoubleClicked(x, y, mx, my) {
+            // this.schemeContain
+            const textItem = utils.clone(defaultItem);
+            textItem.name = 'Label';
+            textItem.textSlots = {
+                body: {
+                    text  : '',
+                    halign: 'left',
+                    valign: 'top',
+                }
+            };
+            textItem.shape = 'none';
+            // using tiny area so that in-place text editor renders it without bounds
+            textItem.area = {x, y, w: 10, h: 10};
+            enrichItemWithDefaults(textItem);
+            this.schemeContainer.addItem(textItem);
+            this.$nextTick(() => {
+                EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
+                    x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
+                });
+            });
         },
 
         removeDrawnLinks() {
@@ -947,7 +976,7 @@ export default {
             this.customContextMenu.id = shortid.generate();
         },
 
-        onRightClickedVoid(mouseX, mouseY) {
+        onRightClickedVoid(x, y, mouseX, mouseY) {
             this.customContextMenu.menuOptions = [{
                 name: 'Paste',
                 clicked: () => {this.$emit('clicked-items-paste')}
@@ -968,8 +997,8 @@ export default {
             this.inPlaceTextEditor.item = item;
             this.inPlaceTextEditor.text = itemTextSlot.text;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
-            this.inPlaceTextEditor.style.width = `${area.w}px`;
-            this.inPlaceTextEditor.style.height = `${area.h}px`;
+            this.inPlaceTextEditor.width = area.w;
+            this.inPlaceTextEditor.height = area.h;
             this.inPlaceTextEditor.transformType = item.area.type;
             this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
             this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
@@ -984,6 +1013,23 @@ export default {
             }
         },
 
+        onInPlaceTextEditorItemAreaChanged(item, width, height) {
+            if (item.shape === 'none') {
+                item.area.w = width;
+                item.area.h = height;
+            }
+        },
+
+        onInPlaceTextEditorItemTextCleared(item) {
+            if (!item.shape === 'none') {
+                return;
+            }
+            if (item.childItems && item.childItems.length > 0) {
+                return;   
+            }
+            this.schemeContainer.deleteItem(item);
+        },
+
         closeItemTextEditor() {
             if (this.inPlaceTextEditor.item) {
                 EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
@@ -996,8 +1042,8 @@ export default {
         updateInPlaceTextEditorStyle() {
             const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
             this.inPlaceTextEditor.style = generateTextStyle(textSlot);
-            this.inPlaceTextEditor.style.width = `${this.inPlaceTextEditor.area.w}px`;
-            this.inPlaceTextEditor.style.height = `${this.inPlaceTextEditor.area.h}px`;
+            this.inPlaceTextEditor.width = this.inPlaceTextEditor.area.w;
+            this.inPlaceTextEditor.height = this.inPlaceTextEditor.area.h;
         },
 
         onAnyItemChanged(itemId) {

@@ -1,17 +1,5 @@
 import utils from '../../../../ui/utils.js';
-
-const defaultItem = {
-    cursor: 'default',
-    opacity: 100.0,
-    blendMode: 'normal',
-    name: '',
-    description: '',
-    text: '',
-    links: [],
-    behavior: {
-        events: []
-    }
-};
+import {defaultItem} from '../../../scheme/Item';
 
 export default [{
     name: 'Rect',
@@ -125,7 +113,11 @@ export default [{
     iconUrl: '/images/items/text.svg',
     item: utils.extendObject({
         shape: 'none',
-        text: 'Text ...',
+        textSlots: {
+            body: {
+                text: 'Text ...'
+            }
+        },
         shapeProps: { }
     }, defaultItem)
 
