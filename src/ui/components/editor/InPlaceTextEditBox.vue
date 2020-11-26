@@ -19,7 +19,7 @@ import {
 
 
 export default {
-    props: ['item', 'area', 'text', 'cssStyle'],
+    props: ['item', 'area', 'text', 'cssStyle', 'zoom'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
@@ -35,12 +35,18 @@ export default {
 
     data() {
         const editorCssStyle = utils.clone(this.cssStyle);
+        let scale = 1.0
+        if (this.item.area.type !== 'viewport') {
+            scale = this.zoom;
+            editorCssStyle.transform = `scale(${this.zoom})`;
+            editorCssStyle['transform-origin'] = 'top left';
+        }
 
         if (this.item.area.w > 20) {
-            editorCssStyle.width = `${this.area.w}px`;
+            editorCssStyle.width = `${this.area.w/scale}px`;
         }
         if (this.item.area.h > 20) {
-            editorCssStyle.height = `${this.area.h}px`;
+            editorCssStyle.height = `${this.area.h/scale}px`;
         }
 
         return {

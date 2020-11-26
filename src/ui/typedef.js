@@ -21,6 +21,7 @@
  * @property {number} w - width
  * @property {number} h - height
  * @property {number} r - rotation in degrees
+ * @property {string} type - type of transform: 'relative' or 'viewport'
  */
 
 

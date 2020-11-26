@@ -145,7 +145,7 @@
                     </g>
                     <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve' && !inPlaceTextEditor.shown"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
-                        :zoom="schemeContainer.screenTransform.scale"
+                        :zoom="1"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
@@ -184,6 +184,7 @@
             :area="inPlaceTextEditor.area"
             :css-style="inPlaceTextEditor.style"
             :text="inPlaceTextEditor.text"
+            :zoom="schemeContainer.screenTransform.scale"
             @close="closeItemTextEditor"
             @updated="onInPlaceTextEditorUpdate"
             @item-area-changed="onInPlaceTextEditorItemAreaChanged"
@@ -1000,10 +1001,17 @@ export default {
             this.inPlaceTextEditor.width = area.w;
             this.inPlaceTextEditor.height = area.h;
             this.inPlaceTextEditor.transformType = item.area.type;
-            this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
-            this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
-            this.inPlaceTextEditor.area.w = this._z(area.w);
-            this.inPlaceTextEditor.area.h = this._z(area.h);
+            if (item.area.type === 'viewport') {
+                this.inPlaceTextEditor.area.x = worldPoint.x + this.viewportLeft;
+                this.inPlaceTextEditor.area.y = worldPoint.y + this.viewportTop;
+                this.inPlaceTextEditor.area.w = area.w;
+                this.inPlaceTextEditor.area.h = area.h;
+            } else {
+                this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
+                this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
+                this.inPlaceTextEditor.area.w = this._z(area.w);
+                this.inPlaceTextEditor.area.h = this._z(area.h);
+            }
             this.inPlaceTextEditor.shown = true;
         },
 
