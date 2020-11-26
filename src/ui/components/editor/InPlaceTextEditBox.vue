@@ -37,24 +37,10 @@ export default {
     },
 
     data() {
-        const editorCssStyle = utils.clone(this.cssStyle);
-        let scale = 1.0
-        if (this.item.area.type !== 'viewport') {
-            scale = this.zoom;
-            editorCssStyle.transform = `scale(${this.zoom})`;
-            editorCssStyle['transform-origin'] = 'top left';
-        }
-
-        if (this.item.area.w > 20) {
-            editorCssStyle.width = `${this.area.w/scale}px`;
-        }
-        if (this.item.area.h > 20) {
-            editorCssStyle.height = `${this.area.h/scale}px`;
-        }
 
         return {
             editor: null,
-            editorCssStyle
+            editorCssStyle: this.generateStyle(this.cssStyle)
         };
     },
 
@@ -62,6 +48,24 @@ export default {
         init() {
             this.editor = this.createEditor(this.text);
             EventBus.emitItemInPlaceTextEditorCreated(this.editor);
+        },
+
+        generateStyle(cssStyle) {
+            const editorCssStyle = utils.clone(cssStyle);
+            let scale = 1.0
+            if (this.item.area.type !== 'viewport') {
+                scale = this.zoom;
+                editorCssStyle.transform = `scale(${this.zoom})`;
+                editorCssStyle['transform-origin'] = 'top left';
+            }
+
+            if (this.item.area.w > 20) {
+                editorCssStyle.width = `${this.area.w/scale}px`;
+            }
+            if (this.item.area.h > 20) {
+                editorCssStyle.height = `${this.area.h/scale}px`;
+            }
+            return editorCssStyle;
         },
 
         createEditor(text) {
@@ -111,6 +115,12 @@ export default {
                 }
             }
             this.$emit('close');
+        }
+    },
+
+    watch: {
+        cssStyle(newStyle) {
+            this.editorCssStyle = this.generateStyle(newStyle);
         }
     }
 
