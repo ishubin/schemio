@@ -62,21 +62,29 @@
                     <tr>
                         <td class="label" width="50%">Horizontal Align</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.halign" @input="emitTextSlotPropertyChange('halign', arguments[0].target.value)">
-                                <option value="left">Left</option>
-                                <option value="center">Center</option>
-                                <option value="right">Right</option>
-                            </select>
+                            <ul class="button-group">
+                                <li v-for="opt in halignOptions">
+                                    <span class="toggle-button" :class="{toggled: textSlot.halign === opt.value}"
+                                        :title="opt.name"
+                                        @click="emitTextSlotPropertyChange('halign', opt.value)">
+                                        <i :class="opt.iconCss"></i>
+                                    </span>
+                                </li>
+                            </ul>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Vertical Align</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.valign" @input="emitTextSlotPropertyChange('valign', arguments[0].target.value)">
-                                <option value="top">Top</option>
-                                <option value="middle">Middle</option>
-                                <option value="bottom">Bottom</option>
-                            </select>
+                            <ul class="button-group">
+                                <li v-for="opt in valignOptions">
+                                    <span class="toggle-button" :class="{toggled: textSlot.valign === opt.value}"
+                                        :title="opt.name"
+                                        @click="emitTextSlotPropertyChange('valign', opt.value)">
+                                        <i :class="opt.iconCss"></i>
+                                    </span>
+                                </li>
+                            </ul>
                         </td>
                     </tr>
                     <tr>
@@ -152,7 +160,24 @@ export default {
             textSlot: this.item.textSlots[this.slotName],
             availableTextSlots: map(shape.getTextSlots(this.item), textSlot => textSlot.name),
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
-            supportedWhiteSpaceOptions: textWhiteSpaceOptions
+            supportedWhiteSpaceOptions: textWhiteSpaceOptions,
+
+            halignOptions: [{
+                name: 'Left', value: 'left', iconCss: 'fas fa-align-left'
+            }, {
+                name: 'Center', value: 'center', iconCss: 'fas fa-align-center'
+            }, {
+                name: 'Right', value: 'right', iconCss: 'fas fa-align-right'
+            }],
+
+            valignOptions: [{
+                name: 'Top', value: 'top', iconCss: 'fas fa-angle-down'
+            }, {
+                name: 'Middle', value: 'middle', iconCss: 'fas fa-arrows-alt-v'
+            }, {
+                name: 'Bottom', value: 'bottom', iconCss: 'fas fa-angle-up'
+            }],
+
         };
     },
     methods: {

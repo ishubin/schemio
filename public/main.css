@@ -13,7 +13,8 @@
     --faint-strong: #8a94a5;
     --faint-weak: #f2f5f8;
 
-    --accent-strong: #0475f7;
+    --accent-strong: #2373ce;
+    --accent-faint: #5291da;
     --accent-weak: #e1ebf7;
 
     --complement-strong: #bbe288;
@@ -796,9 +797,11 @@ ul.button-group li {
 }
 ul.button-group li .toggle-button {
     display: inline-block;
+    min-width: 25px;
     position: relative;
+    text-align: center;
     padding: 3px 5px 3px 5px;
-    color: #888;
+    color: var(--base-strong);
     background: none;
     cursor: pointer;
     cursor: hand;
@@ -806,20 +809,18 @@ ul.button-group li .toggle-button {
     text-transform: capitalize;
 }
 ul.button-group li .toggle-button.toggled {
-    color: #fff;
-    background: #2d90d0;
+    color: var(--base-weak);
+    background: var(--base-strong);
     cursor: pointer;
     cursor: hand;
 }
 ul.button-group li .toggle-button:hover {
-    background: #56a7db;
-    color: #fff;
-}
-ul.button-group li .toggle-button.toggled:hover {
-    background: #2d90d0;
+    background: var(--base-strong-up);
+    color: var(--base-weak);
 }
 ul.button-group li .toggle-button.disabled:hover, ul.button-group li .toggle-button.disabled {
-    color: #555 !important;
+    color: var(--base-weak) !important;
+    opacity: 0.2;
     background: none;
     cursor: default;
 }
@@ -828,6 +829,17 @@ ul.button-group li .toggle-button .small-letter {
     bottom: 0;
     right: 1px;
     font-size: 8px;
+}
+.header ul.button-group li .toggle-button {
+    color: var(--accent-weak);
+}
+.header ul.button-group li .toggle-button.toggled {
+    color: var(--accent-weak);
+    background: var(--accent-strong);
+}
+.header ul.button-group li .toggle-button:hover {
+    background: var(--accent-faint);
+    color: var(--accent-weak);
 }
 .scheme-editor-top-panel ul.button-group li .toggle-button {
     color: #999;
