@@ -223,6 +223,7 @@ import shortid from 'shortid';
 import map from 'lodash/map';
 import max from 'lodash/max';
 
+import {Keys} from '../../events';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, enrichItemTextSlotWithDefaults} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
@@ -727,9 +728,9 @@ export default {
         },
 
         onKeyPress(key, keyOptions) {
-            if (key === EventBus.KEY.ESCAPE) {
+            if (key === Keys.ESCAPE) {
                 states[this.state].cancel();
-            } else if (key === EventBus.KEY.DELETE && this.mode === 'edit') {
+            } else if (key === Keys.DELETE && this.mode === 'edit') {
                 this.deleteSelectedItems();
             } else {
                 states[this.state].keyPressed(key, keyOptions);
@@ -737,7 +738,7 @@ export default {
         },
 
         onKeyUp(key, keyOptions) {
-            if (key !== EventBus.KEY.ESCAPE && key != EventBus.KEY.DELETE) {
+            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
                 states[this.state].keyUp(key, keyOptions);
             }
         },

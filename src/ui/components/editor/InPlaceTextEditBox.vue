@@ -11,6 +11,7 @@ import htmlSanitize from '../../../htmlSanitize';
 import utils from '../../utils';
 import RichTextEditor from '../RichTextEditor.vue';
 import EventBus from './EventBus';
+import { Keys, identifyKeyPress } from '../../events';
 import { Editor, EditorContent } from 'tiptap';
 import {
     Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
@@ -24,12 +25,14 @@ export default {
 
     beforeMount() {
         document.addEventListener('mousedown', this.outsideClickListener);
+        document.addEventListener('keydown', this.onKeyDown);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
         this.init();
     },
 
     beforeDestroy() {
         document.removeEventListener('mousedown', this.outsideClickListener);
+        document.removeEventListener('keydown', this.onKeyDown);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
     },
 
@@ -80,7 +83,12 @@ export default {
 
         outsideClickListener(event) {
             if (!utils.domHasParentNode(event.target, domElement => domElement.getAttribute('data-type') === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
-                document.removeEventListener('click', this.outsideClickListener);
+                this.closeEditBox();
+            }
+        },
+
+        onKeyDown(event) {
+            if (identifyKeyPress(event) === Keys.ESCAPE) {
                 this.closeEditBox();
             }
         },

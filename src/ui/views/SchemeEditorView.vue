@@ -205,6 +205,8 @@
 
 <script>
 import utils from '../utils.js';
+import { Keys } from '../events';
+
 import {enrichItemWithDefaults} from '../scheme/Item';
 import HeaderComponent from '../components/Header.vue';
 import MenuDropdown from '../components/MenuDropdown.vue';
@@ -685,15 +687,15 @@ export default {
 
         onKeyPress(key, keyOptions) {
             if (this.mode === 'edit') {
-                if (key === EventBus.KEY.CTRL_C) {
+                if (key === Keys.CTRL_C) {
                     this.copySelectedItems();
-                } else if (key === EventBus.KEY.CTRL_V) {
+                } else if (key === Keys.CTRL_V) {
                     this.pasteItemsFromClipboard();
-                } else if (EventBus.KEY.CTRL_S === key) {
+                } else if (Keys.CTRL_S === key) {
                     this.saveScheme();
-                } else if (EventBus.KEY.CTRL_Z === key) {
+                } else if (Keys.CTRL_Z === key) {
                     this.historyUndo();
-                } else if (EventBus.KEY.CTRL_SHIFT_Z === key) {
+                } else if (Keys.CTRL_SHIFT_Z === key) {
                     this.historyRedo();
                 }
             }

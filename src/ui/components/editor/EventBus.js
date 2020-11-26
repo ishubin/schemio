@@ -3,9 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Vue from 'vue';
-import findKey from 'lodash/findKey';
 import {Logger} from '../../logger';
 import '../../typedef';
+import {identifyKeyPress} from '../../events';
 
 const log = new Logger('EventBus');
 
@@ -76,21 +76,6 @@ const EventBus = new Vue({
             ELEMENT_PICK_REQUESTED: 'element-pick-requested',
 
             ELEMENT_PICKED: 'element-picked',
-
-            KEY: {
-                ESCAPE: 'escape',
-                DELETE: 'delete',
-                CTRL_C: 'ctrl-c',
-                CTRL_V: 'ctrl-v',
-                CTRL_S: 'ctrl-s',
-                CTRL_Z: 'ctrl-z',
-                CTRL_SHIFT_Z: 'ctrl-shift-z',
-                UP: 'up',
-                DOWN: 'down',
-                LEFT: 'left',
-                RIGHT: 'right',
-                SPACE: 'space'
-            },
 
             CURVE_EDITED: 'curve-edited',
             CURVE_EDIT_STOPPED: 'curve-edit-stopped',
@@ -192,26 +177,7 @@ EventBus.$emit = (...args) => {
 };
 
 
-
-const keyMap = {};
-keyMap[EventBus.KEY.ESCAPE] = event => event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
-keyMap[EventBus.KEY.DELETE] = event => event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127;
-keyMap[EventBus.KEY.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrlKey);
-keyMap[EventBus.KEY.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
-keyMap[EventBus.KEY.CTRL_S] = event => event.key === 's' && (event.metaKey || event.ctrlKey);
-keyMap[EventBus.KEY.CTRL_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && (!event.shiftKey);
-keyMap[EventBus.KEY.CTRL_SHIFT_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && event.shiftKey;
-keyMap[EventBus.KEY.LEFT] = event => event.key === 'ArrowLeft';
-keyMap[EventBus.KEY.RIGHT] = event => event.key === 'ArrowRight';
-keyMap[EventBus.KEY.UP] = event => event.key === 'ArrowUp';
-keyMap[EventBus.KEY.DOWN] = event => event.key === 'ArrowDown';
-keyMap[EventBus.KEY.SPACE] = event => event.key === ' ' || event.keyCode === 32;
-
-function identifyKeyPress(event) {
-    return findKey(keyMap, (check, keyName) => check(event));
-}
-
-document.onkeyup = function(event) {
+document.addEventListener('keyup', (event) => {
     event = event || window.event;
     if (event.srcElement === document.body) {
         const key = identifyKeyPress(event);
@@ -222,10 +188,8 @@ document.onkeyup = function(event) {
             });
         }
     }
-};
-
-
-document.onkeydown = function(event) {
+});
+document.addEventListener('keydown', (event) => {
     event = event || window.event;
     if (event.srcElement === document.body) {
         const key = identifyKeyPress(event);
@@ -236,5 +200,6 @@ document.onkeydown = function(event) {
             });
         }
     }
-};
+});
+
 export default EventBus;

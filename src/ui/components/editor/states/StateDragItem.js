@@ -10,6 +10,7 @@ import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
 import shortid from 'shortid';
+import { Keys } from '../../../events';
 
 const log = new Logger('StateDragItem');
 
@@ -94,22 +95,22 @@ export default class StateDragItem extends State {
     keyPressed(key, keyOptions) {
         var delta = keyOptions.ctrlCmdPressed ? 10: 1;
 
-        if (EventBus.KEY.LEFT === key) {
+        if (Keys.LEFT === key) {
             this.dragItemsByKeyboard(-delta, 0);
-        } else if (EventBus.KEY.RIGHT === key) {
+        } else if (Keys.RIGHT === key) {
             this.dragItemsByKeyboard(delta, 0);
-        } else if (EventBus.KEY.UP === key) {
+        } else if (Keys.UP === key) {
             this.dragItemsByKeyboard(0, -delta);
-        } else if (EventBus.KEY.DOWN === key) {
+        } else if (Keys.DOWN === key) {
             this.dragItemsByKeyboard(0, delta);
-        } else if (key === EventBus.KEY.SPACE && !this.startedDragging) {
+        } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
             this.updateCursor('grab');
         }
     }
 
     keyUp(key, keyOptions) {
-        if (key === EventBus.KEY.SPACE) {
+        if (key === Keys.SPACE) {
             this.shouldDragScreen = false;
             this.updateCursor('default');
         }
