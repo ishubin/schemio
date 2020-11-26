@@ -120,7 +120,6 @@ export const defaultItem = {
     blendMode: 'normal',
     name: '',
     description: '',
-    text: '',
     links: [],
     textSlots: {},
     behavior: {

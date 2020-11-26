@@ -45,16 +45,31 @@
  * @property {String} transformType - type of transform: relative or viewport
  */
 
+
+/**
+ * @typedef {Object} ItemBehavior
+ * @property {Array} events
+ */
+
 /**
  * @typedef {Object} Item
  * @property {String} id 
  * @property {String} name 
+ * @property {String} description
+ * @property {Area}   area
+ * @property {String} shape
+ * @property {String} blendMode
+ * @property {Object} shapeProps
+ * @property {Number} opacity
+ * @property {Array}  links
+ * @property {Object} textSlots
+ * @property {ItemBehavior} behavior
  */
+
 
 /**
  * @interface SchemeContainer
  */
-
 /**
  * @function
  * @name SchemeContainer#addItem

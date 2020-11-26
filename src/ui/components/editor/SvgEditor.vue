@@ -385,6 +385,7 @@ export default {
     },
     data() {
         return {
+            /** @type {SchemeContainer} */
             interactiveSchemeContainer: null,
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
