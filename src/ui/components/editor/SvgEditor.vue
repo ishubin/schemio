@@ -223,6 +223,8 @@ import shortid from 'shortid';
 import map from 'lodash/map';
 import max from 'lodash/max';
 
+import '../../typedef';
+
 import {Keys} from '../../events';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, enrichItemTextSlotWithDefaults} from '../../scheme/Item';
@@ -291,7 +293,19 @@ const lastMousePosition = {
 };
 
 export default {
-    props: ['mode', 'width', 'height', 'schemeContainer', 'viewportTop', 'viewportLeft', 'shouldSnapToGrid', 'zoom'],
+    props: {
+        mode  : { value: 'edit', type: String },
+        width : { type: Number },
+        height: { type: Number },
+
+        /** @type {SchemeContainer} */
+        schemeContainer : { value: null, type: Object },
+        viewportTop     : { value: 0, type: Number },
+        viewportLeft    : { value: 0, type: Number },
+        shouldSnapToGrid: { value: false, type: Boolean },
+        zoom            : { value: 1.0, type: Number },
+    },
+
     components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
     beforeMount() {
         forEach(states, state => {

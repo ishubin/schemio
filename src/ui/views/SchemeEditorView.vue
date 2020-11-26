@@ -33,7 +33,7 @@
 
                     <span><i class="fas fa-search-minus" style="color: #fff; cursor: pointer;" @click="onZoomOutClicked"></i></span>
                     <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
-                        <input class="textfield" style="width: 60px;" type="text" v-model="zoom" @keydown.enter="onZoomSubmit"/>
+                        <input class="textfield" style="width: 60px;" type="text" :value="zoom" @keydown.enter="onZoomSubmit"/>
                     </dropdown>
                     <span><i class="fas fa-search-plus" style="color: #fff; cursor: pointer;" @click="onZoomInClicked"></i></span>
 
@@ -427,8 +427,8 @@ export default {
                     }
                     this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
                     this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
-                    this.zoom = schemeSettings.screenPosition.zoom;
-                    this.schemeContainer.screenTransform.scale = parseInt(this.zoom) / 100.0;
+                    this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                    this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
                 } else {
                     // Should automatically bring to view the entire scheme
                     setTimeout(() => {
@@ -810,7 +810,7 @@ export default {
 
         onScreenTransformUpdated(screenTransform) {
             if (screenTransform) {
-                this.zoom = '' + Math.round(screenTransform.scale * 10000) / 100;
+                this.zoom = Math.round(screenTransform.scale * 10000) / 100;
             }
         },
 

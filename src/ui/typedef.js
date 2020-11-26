@@ -50,3 +50,13 @@
  * @property {String} id 
  * @property {String} name 
  */
+
+/**
+ * @interface SchemeContainer
+ */
+
+/**
+ * @function
+ * @name SchemeContainer#addItem
+ * @param {Item} item
+ */
