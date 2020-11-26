@@ -8,7 +8,7 @@
     >
         <component
             :key="`item-component-${item.id}-${item.shape}-${revision}`"
-            v-if="shapeComponent && item.visible"
+            v-if="shouldBeDrawn"
             :is="shapeComponent"
             :item="item"
             :mode="mode"
@@ -236,6 +236,20 @@ export default {
             }
             return 'rgba(255, 255, 255, 0)';
         },
+
+        shouldBeDrawn() {
+            if (!this.shapeComponent) {
+                return false;
+            }
+            if (!this.item.visible) {
+                return false;
+            }
+
+            if (this.mode === 'view' && this.shapeComponent.editorProps && this.shapeComponent.editorProps.onlyEditMode) {
+                return false;
+            }
+            return true;
+        }
     }
 }
 </script>

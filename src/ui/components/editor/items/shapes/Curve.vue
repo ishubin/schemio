@@ -18,7 +18,6 @@
 </template>
 
 <script>
-import shortid from 'shortid';
 import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
@@ -243,7 +242,6 @@ export default {
 
     editorProps: {
         description: 'rich',
-        text: 'none'
     },
 
     controlPoints: {
@@ -302,7 +300,6 @@ export default {
         return {
             shapePath: shapePath,
             caps: this.computeCaps(shapePath),
-            backgroundImageId: `bimg-${shortid.generate()}`
         }
     },
 

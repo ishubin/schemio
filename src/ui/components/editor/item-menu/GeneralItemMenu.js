@@ -213,4 +213,11 @@ export default [{
             hoverTextColor: '#fff'
         }
     }, defaultItem)
+}, {
+    name: 'Dummy',
+    iconUrl: '/images/items/rect.svg',
+    item: utils.extendObject({
+        shape: 'dummy',
+        shapeProps: {cornerRadius: 0}
+    }, defaultItem)
 }];

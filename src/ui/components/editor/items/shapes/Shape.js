@@ -11,6 +11,7 @@ import CodeBlock from './CodeBlock.vue';
 import Button from './Button.vue';
 import NPoly from './NPoly.js';
 import Bracket from './Bracket.js';
+import Dummy from './Dummy.vue';
 import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.js';
@@ -24,7 +25,9 @@ function defaultGetEventsFunc(item) {
 
 const defaultEditorProps = {
     description: 'rich',
-    text: 'rich'
+    onlyEditMode: false,
+    ignoreEventLayer: false,
+    customTextRendering: false
 };
 
 function defaultGetTextSlots(item) {
@@ -34,7 +37,10 @@ function defaultGetTextSlots(item) {
     }];
 }
 
-function enrichShape(shapeComponent) {
+function enrichShape(shapeComponent, shapeName) {
+    if (!shapeComponent.shapeType) {
+        console.error(`Missing shapeType for shape "${shapeName}"`);
+    }
     return {
         shapeType               : shapeComponent.shapeType,
         editorProps             : shapeComponent.editorProps || defaultEditorProps,
@@ -61,6 +67,7 @@ const shapeRegistry = mapValues({
     npoly: NPoly,
     bracket: Bracket,
     button: Button,
+    dummy: Dummy,
     uml_object: UMLObject,
     uml_module: UMLModule,
     uml_package: UMLPackage,
