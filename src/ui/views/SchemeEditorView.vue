@@ -74,8 +74,8 @@
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="currentUser ? mode : 'view'"
                         :should-snap-to-grid="shouldSnapToGrid"
-                        :viewport-top="40"
-                        :viewport-left="sidePanelLeftExpanded && mode === 'edit' ? 160: 0"
+                        :viewport-top="viewportTopOffset"
+                        :viewport-left="viewportLeftOffset"
                         :zoom="zoom"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
@@ -144,6 +144,8 @@
                                 :revision="schemeRevision"
                                 :project-id="projectId"
                                 :scheme-container="schemeContainer" 
+                                :viewport-top="viewportTopOffset"
+                                :viewport-left="viewportLeftOffset"
                                 @shape-prop-changed="onItemShapePropChanged"
                                 @item-field-changed="onItemFieldChanged"
                                 @item-style-applied="onItemStyleApplied"
@@ -262,8 +264,6 @@ export default {
     beforeMount() {
         window.onbeforeunload = this.onBrowseClose;
         this.init();
-        EventBus.$on(EventBus.SCHEME_CHANGED, this.onSchemeChange);
-        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
@@ -281,8 +281,6 @@ export default {
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
     beforeDestroy(){
-        EventBus.$off(EventBus.SCHEME_CHANGED, this.onSchemeChange);
-        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onItemChange);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
@@ -304,6 +302,8 @@ export default {
             projectId: this.$route.params.projectId,
             project: null,
             schemeId: null,
+
+            viewportTopOffset: 40,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
@@ -660,19 +660,6 @@ export default {
             this.mode = 'edit';
         },
 
-        onSchemeChange() {
-            this.schemeChanged = true;
-        },
-
-        onItemChange(itemId, propertyPath) {
-            this.schemeChanged = true;
-
-            if (propertyPath === 'area.type') {
-                // need to preform a full reindex since item was moved in/out viewport/world coords
-                this.schemeContainer.reindexItems();
-            }
-        },
-
         onAnyItemClicked(item) {
             this.sidePanelItemForViewMode = null;
             this.sidePanelRightExpanded = false;
@@ -741,6 +728,7 @@ export default {
 
         commitHistory(affinityId) {
             history.commit(this.schemeContainer.scheme, affinityId);
+            this.schemeChanged = true;
             this.updateHistoryState();
         },
 
@@ -1065,6 +1053,10 @@ export default {
     computed: {
         currentUser() {
             return this.$store.state.currentUser;
+        },
+
+        viewportLeftOffset() {
+            return this.sidePanelLeftExpanded && this.mode === 'edit' ? 160: 0;
         }
     }
 }

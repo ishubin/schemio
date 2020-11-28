@@ -531,6 +531,10 @@ class SchemeContainer {
         });
     }
 
+    remountItemToRoot(itemId) {
+        this.remountItemInsideOtherItem(itemId);
+    }
+
     remountItemInsideOtherItem(itemId, otherItemId, position) {
         if (!position) {
             position = 0;
@@ -544,6 +548,10 @@ class SchemeContainer {
         if (otherItemId) {
             otherItem = this.findItemById(otherItemId);
             if (!otherItem) {
+                return;
+            }
+            if (item.area.type !== otherItem.area.type) {
+                // not allowing viewport items to be remounted to relative
                 return;
             }
         }
@@ -598,6 +606,7 @@ class SchemeContainer {
         item.area.y = newLocalPoint.y;
         item.area.r += angleCorrection;
 
+        this.eventBus.emitSchemeChangeCommited();
         this.reindexItems();
     }
 

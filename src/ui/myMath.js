@@ -173,5 +173,33 @@ export default {
             rightSegment[1] = rightSegment[0] + segmentWidth;
         }
         return closestPoint;
+    },
+
+    /**
+     * Converts world point in relative transform to coords in viewport for a given screen transform
+     * @param {ScreenTransform} screenTransform - transform of a screen
+     * @param {Number} x - X coords in the world (relative) transform
+     * @param {Number} y - Y coords in the world (relative) transform
+     * @returns {Point}
+     */
+    worldPointToViewport(screenTransform, x, y) {
+        return {
+            x: (x + screenTransform.x) / screenTransform.scale,
+            y: (y + screenTransform.y) / screenTransform.scale
+        };
+    },
+
+    /**
+     * Converts viewport point to coords in relative transform for a given screen transform
+     * @param {ScreenTransform} screenTransform - transform of a screen
+     * @param {Number} x - X coords in the viewport transform
+     * @param {Number} y - Y coords in the viewport transform
+     * @returns {Point}
+     */
+    viewportPointToWorld(screenTransform, x, y) {
+        return {
+            x: x * screenTransform.scale - screenTransform.x,
+            y: y * screenTransform.scale - screenTransform.y,
+        };
     }
 }

@@ -46,7 +46,6 @@
         <span class="property-label">Type:</span>
         <select v-model="type">
             <option v-for="knownType in knownTypes">{{knownType}}</option>
-
         </select>
 
     </panel>
@@ -101,14 +100,13 @@ export default {
 
         updateAreaProperty(propertyName, value) {
             this.item.area[propertyName] = value;
-            this.$emit('item-changed', `area.${propertyName}`);
+            this.$emit('item-area-changed', `area.${propertyName}`);
         }
     },
 
     watch: {
         type(text) {
-            this.item.area.type = text;
-            this.$emit('item-transform-type-changed');
+            this.$emit('item-transform-type-changed', text);
         }
     }
 }

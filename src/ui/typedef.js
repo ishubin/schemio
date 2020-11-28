@@ -75,3 +75,11 @@
  * @name SchemeContainer#addItem
  * @param {Item} item
  */
+
+
+ /**
+  * @typedef {Object} ScreenTransform
+  * @property {Number} x - offset on X axis
+  * @property {Number} y - offset on Y axis
+  * @property {Number} scale - scale of the zoom where 1.0 is normal zoom.
+  */

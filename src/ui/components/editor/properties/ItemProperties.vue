@@ -19,7 +19,7 @@
             :key="`position-panel-${item.id}`"
             :item="item"
             @item-transform-type-changed="onItemTransformTypeChanged"
-            @item-changed="onItemAreaChanged"
+            @item-area-changed="onItemAreaChanged"
             />
 
         <behavior-properties v-if="currentTab === 'behavior'"
@@ -211,6 +211,7 @@ import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
+import myMath from '../../../myMath';
 
 
 const ALL_TABS = [
@@ -226,7 +227,7 @@ const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
 
 export default {
-    props: ['projectId', 'item', 'schemeContainer'],
+    props: ['projectId', 'item', 'schemeContainer', 'viewportLeft', 'viewportTop'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
@@ -322,9 +323,43 @@ export default {
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
         },
 
-        onItemTransformTypeChanged() {
-            EventBus.emitItemChanged(this.item.id, 'area.type');
+        onItemTransformTypeChanged(areaType) {
+            if (this.item.area.type === areaType) {
+                return;
+            }
+
+            let screenPoint = null;
+            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, this.item);
+            if (this.item.area.type === 'viewport') {
+                screenPoint = worldPoint;
+            } else {
+                screenPoint = myMath.worldPointToViewport(this.schemeContainer.screenTransform, worldPoint.x, worldPoint.y);
+            }
+
+            // Since item transform has changed we need to make sure it is not attached to items with other transform
+            if (this.item.meta && this.item.meta.parentId) {
+                const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
+                if (parentItem && parentItem.area.type !== this.item.area.type) {
+                    this.schemeContainer.remountItemToRoot(this.item.id);
+                }
+            }
+
+            this.item.area.type = areaType;
+
+            // now recalculating item new position so that it stays on the same place in screen
+            if (areaType === 'viewport') {
+                this.item.area.x = screenPoint.x - this.viewportLeft;
+                this.item.area.y = screenPoint.y - this.viewportTop;
+            } else {
+                const recalculatedWorldPoint = myMath.viewportPointToWorld(this.schemeContainer.screenTransform, screenPoint.x + this.viewportLeft, screenPoint.y + this.viewportTop);
+                this.item.area.x = recalculatedWorldPoint.x;
+                this.item.area.y = recalculatedWorldPoint.y;
+            }
+
+            // need to preform a full reindex since item was moved in/out viewport/world coords
+            this.schemeContainer.reindexItems();
             this.schemeContainer.updateAllMultiItemEditBoxes();
+            EventBus.emitItemChanged(this.item.id, 'area.type');
         }
     },
 

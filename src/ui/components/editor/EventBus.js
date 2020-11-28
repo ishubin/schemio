@@ -25,8 +25,6 @@ const EventBus = new Vue({
             MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
             MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
 
-            SCHEME_CHANGED: 'scheme-changed', // should be emitted in case of any changes (e.g. item, scheme properties)
-
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
 
             // triggered from CreateItemMenu component, when user clicks on any style from the list
