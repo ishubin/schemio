@@ -1151,19 +1151,12 @@ export default {
         },
 
         rotateSelectedItemsAroundCenter(angle) {
-            if (this.schemeContainer.selectedItems.length > 0) {
-                forEach(this.schemeContainer.selectedItems, item => {
-                    const originalItemArea = this.rotateAroundCenterModal.originalItemAreas[item.id];
-                    // reseting back to original area, so that a user can re-submit the same angle from a modal and get the same result
-                    if (originalItemArea) {
-                        item.area.x = originalItemArea.x;
-                        item.area.y = originalItemArea.y;
-                        item.area.r = originalItemArea.r;
-                    }
-                });
-                this.schemeContainer.rotateItemsAroundCenter(this.schemeContainer.selectedItems, angle);
-                EventBus.emitSchemeChangeCommited();
-            }
+            forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
+                if (box !== null && box.items.length > 0) {
+                    box.area.r = angle;
+                    this.schemeContainer.updateMultiItemEditBoxItems(box);
+                }
+            });
         },
 
         /**
