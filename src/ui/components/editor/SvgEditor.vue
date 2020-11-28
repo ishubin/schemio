@@ -1200,8 +1200,28 @@ export default {
                     this.schemeContainer.addItem(rect);
                     this.schemeContainer.remountItemBeforeOtherItem(rect.id, box.items[0].id);
 
+                    const remountedItemIds = {};
+
                     forEach(box.items, item => {
-                        this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
+                        let remountAllowed = true;
+                        // making sure we don't have to remount item if it's ancestor was already remounted
+                        if (item.meta && item.meta.ancestorIds) {
+                            for (let i = 0; i < item.meta.ancestorIds.length && remountAllowed; i++) {
+                                if (remountedItemIds[item.meta.ancestorIds[i]]) {
+                                    remountAllowed = false;
+                                }
+                            }
+                        }
+                        if (remountAllowed) {
+                            if (rect.childItems && rect.childItems.length > 0) {
+                                // trying to preserve original order of items
+                                this.schemeContainer.remountItemAfterOtherItem(item.id, rect.childItems[rect.childItems.length - 1].id);
+                            } else {
+                                this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
+                            }
+
+                            remountedItemIds[item.id] = 1;
+                        }
                     });
                 }
             });
