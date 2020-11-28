@@ -22,5 +22,9 @@ export default {
         return '';
     },
 
-    patterns: keys(patterns)
-}
+    patterns: keys(patterns),
+
+    SOLID: 'solid',
+    DASHED: 'dashed',
+    DOTTED: 'dotted'
+};

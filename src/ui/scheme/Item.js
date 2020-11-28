@@ -115,6 +115,7 @@ export function enrichItemWithDefaults(item) {
 
 export const defaultItem = {
     cursor: 'default',
+    area: {x: 0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
     shape: 'empty',
     opacity: 100.0,
     blendMode: 'normal',

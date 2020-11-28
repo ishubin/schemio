@@ -252,6 +252,7 @@ import ValueAnimation from '../../animations/ValueAnimation';
 import Modal from '../Modal.vue';
 import Events from '../../userevents/Events';
 import forEach from 'lodash/forEach';
+import StrokePattern from './items/StrokePattern';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -980,6 +981,9 @@ export default {
             }, {
                 name: 'Rotate around center...',
                 clicked: () => {this.triggerRotateAroundCenterModal();}
+            }, {
+                name: 'Surround items',
+                clicked: () => {this.surroundSelectedItems();}
             }];
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1160,6 +1164,47 @@ export default {
                 this.schemeContainer.rotateItemsAroundCenter(this.schemeContainer.selectedItems, angle);
                 EventBus.emitSchemeChangeCommited();
             }
+        },
+
+        /**
+         * Used to generate a surrounding rect arround selected items.
+         * It also remounts the selected item to the new rect
+         */
+        surroundSelectedItems() {
+            forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
+                if (box !== null && box.items.length > 0) {
+                    const padding = 40;
+                    const rect = utils.clone(defaultItem);
+                    rect.name = 'Group';
+                    rect.area = {
+                        x: box.area.x - padding,
+                        y: box.area.y - padding,
+                        w: box.area.w + padding * 2,
+                        h: box.area.h + padding * 2,
+                        r: box.area.r,
+                        type: box.items[0].area.type
+                    };
+                    rect.shape = 'rect';
+                    rect.shapeProps = {
+                        strokePattern: StrokePattern.DASHED,
+                        strokeSize: 2,
+                        fill: {type: 'none'},
+                    };
+                    rect.textSlots = {
+                        body: {
+                            halign: 'left',
+                            valign: 'top',
+                            text: '<i>Group...</i>'
+                        }
+                    };
+                    this.schemeContainer.addItem(rect);
+                    this.schemeContainer.remountItemBeforeOtherItem(rect.id, box.items[0].id);
+
+                    forEach(box.items, item => {
+                        this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
+                    });
+                }
+            });
         },
 
         //calculates from world to screen
