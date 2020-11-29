@@ -227,7 +227,7 @@ import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
-import snapshotSvg from '../svgPreview.js';
+import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from '../components/editor/items/shapes/Shape.js';

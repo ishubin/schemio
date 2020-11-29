@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
-function filterOutPreviewSvgElements(svgElement) {
+export function filterOutPreviewSvgElements(svgElement) {
     for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
         let child = svgElement.childNodes[i];
         if (child && child.nodeType === 1) {
@@ -17,7 +17,7 @@ function filterOutPreviewSvgElements(svgElement) {
 }
 
 
-export default function snapshotSvg(selector, viewArea) {
+export function snapshotSvg(selector, viewArea) {
     let originalSvgFragment = document.querySelector(selector);
     let svgFragment = originalSvgFragment.cloneNode(true);
     svgFragment.setAttribute("transform", "");

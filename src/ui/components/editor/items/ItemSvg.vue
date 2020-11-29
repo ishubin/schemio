@@ -5,7 +5,7 @@
 <template lang="html">
     <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
-    >
+        :data-svg-item-container-id="item.id" >
         <component
             :key="`item-component-${item.id}-${item.shape}-${revision}`"
             v-if="shouldBeDrawn"

@@ -547,7 +547,7 @@ ul.pagination li a.current {
 .svg-editor {
     position: relative;
 }
-.svg-editor svg {
+#svg_plot {
     position: fixed;
     top: 0;
     left: 0;
@@ -558,48 +558,48 @@ ul.pagination li a.current {
     -ms-user-select: none;
     user-select: none;
 }
-.svg-editor svg foreignObject h1,
-.svg-editor svg foreignObject h2,
-.svg-editor svg foreignObject h3,
-.svg-editor svg foreignObject h4,
-.svg-editor svg foreignObject h4,
-.svg-editor svg foreignObject h6 {
+#svg_plot foreignObject h1,
+#svg_plot foreignObject h2,
+#svg_plot foreignObject h3,
+#svg_plot foreignObject h4,
+#svg_plot foreignObject h4,
+#svg_plot foreignObject h6 {
     color: unset;
 }
-svg .grid line {
+#svg_plot .grid line {
     stroke-width: 1;
 }
-svg rect.multi-select-box {
+#svg_plot rect.multi-select-box {
     stroke-width: 2;
     stroke: #faa;
     stroke-dasharray: 4 4;
     fill: none;
 }
-svg .item-control-point {
+#svg_plot .item-control-point {
     opacity: 0.5;
     cursor: pointer;
 }
-svg .item-control-point:hover {
+#svg_plot .item-control-point:hover {
     opacity: 1;
 }
-svg rect.boundary-box {
+#svg_plot rect.boundary-box {
     stroke-width: 1;
     fill: rgba(255, 255, 255, 0.01);
     opacity: 0.5;
 }
-svg .boundary-box-dragger {
+#svg_plot .boundary-box-dragger {
     stroke: none;
     cursor: pointer;
 }
-svg .boundary-box-dragger:hover {
+#svg_plot .boundary-box-dragger:hover {
     opacity: 0.5;
 }
 
-svg .boundary-box-connector-starter {
+#svg_plot .boundary-box-connector-starter {
     stroke: 'none';
     opacity: 0.6;
 }
-svg .boundary-box-connector-starter:hover {
+#svg_plot .boundary-box-connector-starter:hover {
     opacity: 1;
 }
 
@@ -611,60 +611,60 @@ svg .boundary-box-connector-starter:hover {
 
 
 /********** Item Cursor *******************/
-svg .item-cursor-pointer {
+#svg_plot .item-cursor-pointer {
     cursor: pointer;
 }
 
 
 /**********************/
 /*      Item link    */
-svg .item-link p {
+#svg_plot .item-link p {
     margin: 0;
     padding: 0;
 }
-svg .item-link circle {
+#svg_plot .item-link circle {
     stroke-width: 2;
 }
-svg .item-link .item-link-icon {
+#svg_plot .item-link .item-link-icon {
     fill: #fff;
     font-weight: bold;
     font-size: 12px;
     font-family: "Font Awesome 5 Free";
 }
-svg .item-link .item-link-full-title {
+#svg_plot .item-link .item-link-full-title {
     font-size: 16px;
     font-weight: normal;
     font-family: "Lucida Console", monospace;
     fill: #333;
 }
-svg .item-link .item-link-title {
+#svg_plot .item-link .item-link-title {
     display: inline-block;
     padding: 2px 4px;
     background: #eee;
     color: #111;
     opacity: 0.8;
 }
-svg .item-link:hover .item-link-title {
+#svg_plot .item-link:hover .item-link-title {
     background: #222;
     color: #eee;
 }
-svg .item-edit-menu-link:hover circle {
+#svg_plot .item-edit-menu-link:hover circle {
     r: 15;
     cursor: pointer;
 }
-svg .item-edit-menu-link text.link-icon {
+#svg_plot .item-edit-menu-link text.link-icon {
     font-weight: bold;
     font-size: 12px;
     fill: #fff;
     font-family: "Font Awesome 5 Free";
     cursor: pointer;
 }
-svg .item-edit-menu-link text.item-link-full-title {
+#svg_plot .item-edit-menu-link text.item-link-full-title {
     fill: #222;
     font-size: 12px;
     display: none;
 }
-svg .item-edit-menu-link:hover text.item-link-full-title {
+#svg_plot .item-edit-menu-link:hover text.item-link-full-title {
     display: inline-block;
 }
 
@@ -689,14 +689,21 @@ svg .item-edit-menu-link:hover text.item-link-full-title {
 
 
 
-/**************************************/
+/*****************************************/
 /* Hover state in create component state */
-svg.state-create-item {
+/*****************************************/
+#svg_plot.state-create-item {
     cursor: crosshair;
 }
 
 
-
+/***************************************/
+/* Export SVG Preview                  */
+/***************************************/
+.export-svg-preview {
+    background: white;
+    border: 1px solid var(--faint-strong);
+}
 
 
 /******************************* Modal ********************************/
@@ -1585,18 +1592,6 @@ ul.category-breadcrumb li i {
 .item-list-container .unnamed-item {
     color: #999;
     font-style: italic;
-}
-
-
-
-/***************** Position Panel **************/
-table.position-panel-table {
-    width: 100%;
-}
-table.position-panel-table .property-label {
-    padding-left: 5px;
-    display: inline-block;
-    width: 20px;
 }
 
 

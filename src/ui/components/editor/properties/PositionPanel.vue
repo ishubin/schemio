@@ -13,29 +13,29 @@
                 </span>
             </li>
         </ul>
-        <table class="position-panel-table">
+        <table>
             <tbody>
                 <tr>
-                    <td class="property-row">
+                    <td>
                         <number-textfield :value="x" name="x" @changed="updateAreaProperty('x', arguments[0])"/>
                     </td>
-                    <td class="property-row">
+                    <td>
                         <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', arguments[0])"/>
                     </td>
                 </tr>
                 <tr>
-                    <td class="property-row">
+                    <td>
                         <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', arguments[0])"/>
                     </td>
-                    <td class="property-row">
+                    <td>
                         <number-textfield :value="h" name="h" @changed="updateAreaProperty('h', arguments[0])"/>
                     </td>
                 </tr>
                 <tr>
-                    <td class="property-row">
+                    <td>
                         <number-textfield :value="r" icon="fas fa-sync-alt" @changed="updateAreaProperty('r', arguments[0])"/>
                     </td>
-                    <td class="property-row">
+                    <td>
                     </td>
                 </tr>
             </tbody>

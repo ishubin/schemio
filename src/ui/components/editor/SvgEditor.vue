@@ -93,8 +93,6 @@
                         v-if="item.visible"
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
-                        >
-
                         <item-svg
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
@@ -215,6 +213,11 @@
             <input type="text" class="textfield" v-model="rotateAroundCenterModal.angle" v-on:keyup.enter="onRotateAroundCenterModalSubmit"/>
         </modal>
 
+        <export-svg-modal v-if="exportSVGModal.shown"
+            :exported-items="exportSVGModal.exportedItems"
+            :width="exportSVGModal.width"
+            :height="exportSVGModal.height"
+            @close="exportSVGModal.shown = false"/>
     </div>
 </template>
 
@@ -253,6 +256,8 @@ import Modal from '../Modal.vue';
 import Events from '../../userevents/Events';
 import forEach from 'lodash/forEach';
 import StrokePattern from './items/StrokePattern';
+import ExportSVGModal from './ExportSVGModal.vue';
+import { filterOutPreviewSvgElements } from '../../svgPreview';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -307,7 +312,7 @@ export default {
         zoom            : { value: 1.0, type: Number },
     },
 
-    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
+    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal, 'export-svg-modal': ExportSVGModal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -425,7 +430,12 @@ export default {
 
             curveEditItem: null,
             worldHighlightedItems: [ ],
-            viewportHighlightedItems: [ ]
+            viewportHighlightedItems: [ ],
+
+            exportSVGModal: {
+                shown: false,
+                exportedItems: []
+            }
         };
     },
     methods: {
@@ -980,10 +990,13 @@ export default {
                 clicked: this.deleteSelectedItems
             }, {
                 name: 'Rotate around center...',
-                clicked: () => {this.triggerRotateAroundCenterModal();}
+                clicked: () => { this.triggerRotateAroundCenterModal(); }
             }, {
                 name: 'Surround items',
-                clicked: () => {this.surroundSelectedItems();}
+                clicked: () => { this.surroundSelectedItems(); }
+            }, {
+                name: 'Export as SVG...',
+                clicked: () => { this.openExportSelectedItemsAsSVG(); }
             }];
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1006,6 +1019,54 @@ export default {
             this.customContextMenu.mouseX = mouseX;
             this.customContextMenu.mouseY = mouseY;
             this.customContextMenu.id = shortid.generate();
+        },
+
+        openExportSelectedItemsAsSVG() {
+            if (!this.schemeContainer.multiItemEditBoxes.relative) {
+                return;
+            }
+            const box = this.schemeContainer.multiItemEditBoxes.relative;
+            if (box.items.length === 0) {
+                return;
+            }
+
+            // picking all root selected items
+            // we don't want to double export selected items if their ancestors were already picked for export
+            const items = [];
+            const pickedItemIds = {};
+            forEach(box.items, item => {
+                let shouldExport = true;
+                for (let i = 0; i < item.meta.ancestorIds.length && shouldExport; i++) {
+                    if (pickedItemIds[item.meta.ancestorIds[i]]) {
+                        shouldExport = false;
+                    }
+                }
+                if (shouldExport) {
+                    items.push(item);
+                    pickedItemIds[item.id] = 1;
+                }
+            });
+
+            let html = '';
+            const exportedItems = [];
+            forEach(items, item => {
+                const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
+                const angle = item.meta.transform.r + item.area.r;
+                const x = worldPoint.x - box.area.x;
+                const y = worldPoint.y - box.area.y;
+
+                const itemDom = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`).cloneNode(true);
+                filterOutPreviewSvgElements(itemDom);
+                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
+
+                html += itemDom.outerHTML;
+                exportedItems.push({item, html})
+            });
+
+            this.exportSVGModal.exportedItems = exportedItems;
+            this.exportSVGModal.width = box.area.w;
+            this.exportSVGModal.height = box.area.h;
+            this.exportSVGModal.shown = true;
         },
 
         onItemTextSlotEditTriggered(item, slotName, area) {
