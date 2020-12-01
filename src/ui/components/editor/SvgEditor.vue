@@ -1066,6 +1066,12 @@ export default {
             this.exportSVGModal.exportedItems = exportedItems;
             this.exportSVGModal.width = box.area.w;
             this.exportSVGModal.height = box.area.h;
+            if (this.exportSVGModal.width > 5) {
+                this.exportSVGModal.width = Math.round(this.exportSVGModal.width);
+            }
+            if (this.exportSVGModal.height > 5) {
+                this.exportSVGModal.height = Math.round(this.exportSVGModal.height);
+            }
             this.exportSVGModal.shown = true;
         },
 

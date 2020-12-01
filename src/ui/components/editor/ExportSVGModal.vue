@@ -9,17 +9,30 @@
                     <td>
                         <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
                     </td>
+                    <td>
+                        <number-textfield :value="viewBoxWidth" name="Width" @changed="viewBoxWidth = arguments[0]"/>
+                    </td>
+                    <td>
+                        <number-textfield :value="viewBoxHeight" name="Height" @changed="viewBoxHeight = arguments[0]"/>
+                    </td>
+                    <td>
+                        <select v-model="placement">
+                            <option value="top-left">Top Left</option>
+                            <option value="centered">Centered</option>
+                            <option value="stretched">Stretched</option>
+                        </select>
+                    </td>
                 </tr>
             </tbody>
         </table>
 
         <svg ref="svgContainer" class="export-svg-preview" width="300px" height="300px"
-            :viewBox="`0 0 ${width} ${height}`"
-            xml:space="preserve"
+            :viewBox="`${-paddingLeft} ${-paddingTop} ${viewBoxWidth} ${viewBoxHeight}`"
+            :preserveAspectRatio="preserveAspectRatio"
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xhtml="http://www.w3.org/1999/xhtml"
             xmlns:xlink="http://www.w3.org/1999/xlink" >
-            <g :transform="`translate(${paddingLeft}, ${paddingTop})`" v-html="svgHtml"></g>
+            <g :transform="`translate(0, 0)`" v-html="svgHtml"></g>
         </svg>
     </modal>
 </template>
@@ -44,6 +57,9 @@ export default {
         return {
             paddingTop: 0,
             paddingLeft: 0,
+            viewBoxWidth: this.width,
+            viewBoxHeight: this.height,
+            placement: 'top-left', // can be top-left, centered, stretched
             svgHtml: svgHtml
         };
     },
@@ -69,6 +85,17 @@ export default {
             }
             setTimeout(() => document.body.removeChild(link), 100);
 
+        }
+    },
+
+    computed: {
+        preserveAspectRatio() {
+            if (this.placement === 'stretched') {
+                return 'none';
+            } else if (this.placement === 'centered') {
+                return 'xMidYMid';
+            }
+            return 'xMinYMin';
         }
     }
 }
