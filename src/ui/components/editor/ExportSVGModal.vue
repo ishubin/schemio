@@ -26,7 +26,8 @@
             </tbody>
         </table>
 
-        <svg ref="svgContainer" class="export-svg-preview" width="300px" height="300px"
+        <svg ref="svgContainer" class="export-svg-preview"
+            width="100%" height="300px"
             :viewBox="`${-paddingLeft} ${-paddingTop} ${viewBoxWidth} ${viewBoxHeight}`"
             :preserveAspectRatio="preserveAspectRatio"
             xmlns="http://www.w3.org/2000/svg"
