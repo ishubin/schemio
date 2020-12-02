@@ -350,6 +350,7 @@ export default {
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
+        EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
     },
     mounted() {
         const svgElement = document.getElementById('svg_plot');
@@ -383,6 +384,7 @@ export default {
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
+        EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
 
         var svgElement = document.getElementById('svg_plot');
         if (svgElement) {
@@ -996,7 +998,7 @@ export default {
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
                 name: 'Export as SVG...',
-                clicked: () => { this.openExportSelectedItemsAsSVG(); }
+                clicked: () => { this.exportSelectedItemsAsSVG(); }
             }];
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1021,7 +1023,12 @@ export default {
             this.customContextMenu.id = shortid.generate();
         },
 
-        openExportSelectedItemsAsSVG() {
+        onExportSVGRequested() {
+            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            this.openExportSVGModal(this.schemeContainer.scheme.items, area);
+        },
+
+        exportSelectedItemsAsSVG() {
             if (!this.schemeContainer.multiItemEditBoxes.relative) {
                 return;
             }
@@ -1047,13 +1054,17 @@ export default {
                 }
             });
 
+            this.openExportSVGModal(items, box.area);
+        },
+
+        openExportSVGModal(items, viewArea) {
             let html = '';
             const exportedItems = [];
             forEach(items, item => {
                 const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
                 const angle = item.meta.transform.r + item.area.r;
-                const x = worldPoint.x - box.area.x;
-                const y = worldPoint.y - box.area.y;
+                const x = worldPoint.x - viewArea.x;
+                const y = worldPoint.y - viewArea.y;
 
                 const itemDom = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`).cloneNode(true);
                 filterOutPreviewSvgElements(itemDom);
@@ -1064,8 +1075,8 @@ export default {
             });
 
             this.exportSVGModal.exportedItems = exportedItems;
-            this.exportSVGModal.width = box.area.w;
-            this.exportSVGModal.height = box.area.h;
+            this.exportSVGModal.width = viewArea.w;
+            this.exportSVGModal.height = viewArea.h;
             if (this.exportSVGModal.width > 5) {
                 this.exportSVGModal.width = Math.round(this.exportSVGModal.width);
             }

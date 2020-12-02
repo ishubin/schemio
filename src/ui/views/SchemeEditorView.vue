@@ -803,22 +803,7 @@ export default {
         },
 
         exportAsSVG() {
-            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-            const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
-
-            const dataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
-
-            const link = document.createElement('a');
-            document.body.appendChild(link);
-
-            try {
-                link.href = dataUrl;
-                link.download = `${this.schemeContainer.scheme.name}.svg`;
-                link.click();
-            } catch(e) {
-                console.error(e);
-            }
-            setTimeout(() => document.body.removeChild(link), 100);
+            EventBus.$emit(EventBus.EXPORT_SVG_REQUESTED);
         },
 
         onItemTextSlotEditTriggered(item, slotName) {

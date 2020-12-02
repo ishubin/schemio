@@ -82,7 +82,9 @@ const EventBus = new Vue({
 
             SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
 
-            ITEMS_HIGHLIGHTED: 'items-highlighted'
+            ITEMS_HIGHLIGHTED: 'items-highlighted',
+
+            EXPORT_SVG_REQUESTED: 'export-svg-requested'
         };
     },
     methods: {
