@@ -3,6 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
+/**
+ * Filters out irrelevant elements from svg element
+ * also adds proper styles to elements which are usual provided by css
+ * @param {SVGElement} svgElement 
+ */
 export function filterOutPreviewSvgElements(svgElement) {
     for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
         let child = svgElement.childNodes[i];
@@ -10,6 +15,12 @@ export function filterOutPreviewSvgElements(svgElement) {
             if (child.getAttribute('data-preview-ignore') === 'true') {
                 svgElement.removeChild(child);
             } else {
+                if (child.nodeName.toLowerCase() === 'p') {
+                    child.style.marginTop = 0;
+                    child.style.marginBottom = 0;
+                    child.style.padding = 0;
+                    child.style.minHeight = '18px';
+                }
                 filterOutPreviewSvgElements(child);
             }
         }
