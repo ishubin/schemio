@@ -258,6 +258,9 @@ import forEach from 'lodash/forEach';
 import StrokePattern from './items/StrokePattern';
 import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
+import { Logger } from '../../logger';
+
+const log = new Logger('SvgEditor.vue');
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -1054,23 +1057,56 @@ export default {
                 }
             });
 
-            this.openExportSVGModal(items, box.area);
+            this.openExportSVGModal(items);
         },
 
-        openExportSVGModal(items, viewArea) {
-            let html = '';
+        openExportSVGModal(items) {
             const exportedItems = [];
+            let viewArea = null;
+
+            const collectedItems = [];
+
             forEach(items, item => {
+                if (item.area.type !== 'viewport' && item.visible) {
+                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
+                    if (domElement) {
+                        // TODO refactor not to construct array all the time
+                        const itemBoundingBox =  this.schemeContainer.getBoundingBoxOfItems([item]);
+                        if (viewArea) {
+                            if (viewArea.x > itemBoundingBox.x) {
+                                viewArea.x = itemBoundingBox.x;
+                            }
+                            if (viewArea.y > itemBoundingBox.y) {
+                                viewArea.y = itemBoundingBox.y;
+                            }
+                            if (viewArea.x + viewArea.w < itemBoundingBox.x + itemBoundingBox.w) {
+                                viewArea.w = itemBoundingBox.x + itemBoundingBox.w - viewArea.x;
+                            }
+                            if (viewArea.y + viewArea.h < itemBoundingBox.y + itemBoundingBox.h) {
+                                viewArea.h = itemBoundingBox.y + itemBoundingBox.h - viewArea.y;
+                            }
+                        } else {
+                            viewArea = itemBoundingBox;
+                        }
+                        const itemDom = domElement.cloneNode(true);
+                        filterOutPreviewSvgElements(itemDom);
+                        collectedItems.push({
+                            item, itemDom
+                        });
+                    }
+                }
+            });
+
+            forEach(collectedItems, collectedItem => {
+                const item = collectedItem.item;
+                const itemDom = collectedItem.itemDom;
                 const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
                 const angle = item.meta.transform.r + item.area.r;
                 const x = worldPoint.x - viewArea.x;
                 const y = worldPoint.y - viewArea.y;
 
-                const itemDom = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`).cloneNode(true);
-                filterOutPreviewSvgElements(itemDom);
                 itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
-
-                html += itemDom.outerHTML;
+                const html = itemDom.outerHTML;
                 exportedItems.push({item, html})
             });
 
