@@ -1074,7 +1074,6 @@ export default {
                 if (item.area.type !== 'viewport' && item.visible && item.opacity > 0.0001) {
                     const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
                     if (domElement) {
-                        // TODO refactor not to construct array all the time
                         const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
                         if (minP) {
                             minP.x = Math.min(minP.x, itemBoundingBox.x);

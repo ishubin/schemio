@@ -5,7 +5,9 @@
         <foreignObject
             :x="0" :y="-20" :width="item.area.w" :height="20">
             <div :style="{background: item.shapeProps.strokeColor, color: 'white'}"
-                style="font-size: 12px; font-weight: bold; display: inline-block; padding: 2px 5px; height: 20px; font-family: Arial, Helvetica, sans-serif; text-align: left; vertical-align: bottom; white-space: normal; display: table-cell;">
+                style="font-size: 12px; font-weight: bold; display: inline-block; padding: 2px 5px; height: 20px; font-family: Arial, Helvetica, sans-serif; text-align: left; vertical-align: bottom; white-space: normal; display: table-cell;"
+                :data-item-id="item.id"
+                >
                 {{item.name}}
             </div>
         </foreignObject>
