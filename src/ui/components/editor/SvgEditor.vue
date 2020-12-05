@@ -1065,7 +1065,8 @@ export default {
 
         openExportSVGModal(schemeContainer, items) {
             const exportedItems = [];
-            let viewArea = null;
+            let minP = null;
+            let maxP = null;
 
             const collectedItems = [];
 
@@ -1075,21 +1076,23 @@ export default {
                     if (domElement) {
                         // TODO refactor not to construct array all the time
                         const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
-                        if (viewArea) {
-                            if (viewArea.x > itemBoundingBox.x) {
-                                viewArea.x = itemBoundingBox.x;
-                            }
-                            if (viewArea.y > itemBoundingBox.y) {
-                                viewArea.y = itemBoundingBox.y;
-                            }
-                            if (viewArea.x + viewArea.w < itemBoundingBox.x + itemBoundingBox.w) {
-                                viewArea.w = itemBoundingBox.x + itemBoundingBox.w - viewArea.x;
-                            }
-                            if (viewArea.y + viewArea.h < itemBoundingBox.y + itemBoundingBox.h) {
-                                viewArea.h = itemBoundingBox.y + itemBoundingBox.h - viewArea.y;
-                            }
+                        if (minP) {
+                            minP.x = Math.min(minP.x, itemBoundingBox.x);
+                            minP.y = Math.min(minP.y, itemBoundingBox.y);
                         } else {
-                            viewArea = itemBoundingBox;
+                            minP = {
+                                x: itemBoundingBox.x,
+                                y: itemBoundingBox.y
+                            };
+                        }
+                        if (maxP) {
+                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
+                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
+                        } else {
+                            maxP = {
+                                x: itemBoundingBox.x + itemBoundingBox.w,
+                                y: itemBoundingBox.y + itemBoundingBox.h
+                            };
                         }
                         const itemDom = domElement.cloneNode(true);
                         filterOutPreviewSvgElements(itemDom);
@@ -1105,8 +1108,8 @@ export default {
                 const itemDom = collectedItem.itemDom;
                 const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
                 const angle = item.meta.transform.r + item.area.r;
-                const x = worldPoint.x - viewArea.x;
-                const y = worldPoint.y - viewArea.y;
+                const x = worldPoint.x - minP.x;
+                const y = worldPoint.y - minP.y;
 
                 itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
                 const html = itemDom.outerHTML;
@@ -1114,8 +1117,8 @@ export default {
             });
 
             this.exportSVGModal.exportedItems = exportedItems;
-            this.exportSVGModal.width = viewArea.w;
-            this.exportSVGModal.height = viewArea.h;
+            this.exportSVGModal.width = maxP.x - minP.x;
+            this.exportSVGModal.height = maxP.y - minP.y;
             if (this.exportSVGModal.width > 5) {
                 this.exportSVGModal.width = Math.round(this.exportSVGModal.width);
             }

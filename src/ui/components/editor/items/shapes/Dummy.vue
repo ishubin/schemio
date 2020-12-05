@@ -1,5 +1,5 @@
 <template>
-    <g>
+    <g data-preview-ignore="true">
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
         <foreignObject
