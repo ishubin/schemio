@@ -1027,8 +1027,11 @@ export default {
         },
 
         onExportSVGRequested() {
-            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-            this.openExportSVGModal(this.schemeContainer.scheme.items, area);
+            let schemeContainer = this.schemeContainer;
+            if (this.mode === 'view') {
+                schemeContainer = this.interactiveSchemeContainer;
+            }
+            this.openExportSVGModal(schemeContainer, schemeContainer.scheme.items);
         },
 
         exportSelectedItemsAsSVG() {
@@ -1057,21 +1060,21 @@ export default {
                 }
             });
 
-            this.openExportSVGModal(items);
+            this.openExportSVGModal(this.schemeContainer, items);
         },
 
-        openExportSVGModal(items) {
+        openExportSVGModal(schemeContainer, items) {
             const exportedItems = [];
             let viewArea = null;
 
             const collectedItems = [];
 
             forEach(items, item => {
-                if (item.area.type !== 'viewport' && item.visible) {
+                if (item.area.type !== 'viewport' && item.visible && item.opacity > 0.0001) {
                     const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
                     if (domElement) {
                         // TODO refactor not to construct array all the time
-                        const itemBoundingBox =  this.schemeContainer.getBoundingBoxOfItems([item]);
+                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
                         if (viewArea) {
                             if (viewArea.x > itemBoundingBox.x) {
                                 viewArea.x = itemBoundingBox.x;
@@ -1100,7 +1103,7 @@ export default {
             forEach(collectedItems, collectedItem => {
                 const item = collectedItem.item;
                 const itemDom = collectedItem.itemDom;
-                const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
+                const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
                 const angle = item.meta.transform.r + item.area.r;
                 const x = worldPoint.x - viewArea.x;
                 const y = worldPoint.y - viewArea.y;
@@ -1120,6 +1123,28 @@ export default {
                 this.exportSVGModal.height = Math.round(this.exportSVGModal.height);
             }
             this.exportSVGModal.shown = true;
+        },
+
+        /**
+         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
+         */
+        calculateBoundingBoxOfAllSubItems(schemeContainer, item) {
+            const items = [];
+            const traverse = (item) => {
+                if (item.visible && item.opacity > 0.0001) {
+                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
+                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
+                        items.push(item);
+                    }
+                    if (item.childItems) {
+                        forEach(item.childItems, childItem => {
+                            traverse(childItem);
+                        });
+                    }
+                }
+            };
+            traverse(item);
+            return schemeContainer.getBoundingBoxOfItems(items)
         },
 
         onItemTextSlotEditTriggered(item, slotName, area) {
