@@ -217,6 +217,7 @@
             :exported-items="exportSVGModal.exportedItems"
             :width="exportSVGModal.width"
             :height="exportSVGModal.height"
+            :background-color="exportSVGModal.backgroundColor"
             @close="exportSVGModal.shown = false"/>
     </div>
 </template>
@@ -439,7 +440,8 @@ export default {
 
             exportSVGModal: {
                 shown: false,
-                exportedItems: []
+                exportedItems: [],
+                backgroundColor: 'rgba(255,255,255,1.0)'
             }
         };
     },
@@ -1124,6 +1126,7 @@ export default {
             if (this.exportSVGModal.height > 5) {
                 this.exportSVGModal.height = Math.round(this.exportSVGModal.height);
             }
+            this.exportSVGModal.backgroundColor = schemeContainer.scheme.style.backgroundColor
             this.exportSVGModal.shown = true;
         },
 

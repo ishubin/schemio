@@ -40,7 +40,7 @@
         </g>
 
 
-        <g :id="`animation-container-${item.id}`"></g>
+        <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
         <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
             class="svg-event-layer"

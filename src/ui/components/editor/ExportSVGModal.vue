@@ -15,12 +15,18 @@
                     <td>
                         <number-textfield :value="viewBoxHeight" name="Height" @changed="viewBoxHeight = arguments[0]"/>
                     </td>
-                    <td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        Placement
                         <select v-model="placement">
                             <option value="top-left">Top Left</option>
                             <option value="centered">Centered</option>
                             <option value="stretched">Stretched</option>
                         </select>
+                    </td>
+                    <td colspan="2">
+                        <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background"> Export SVG Background</label>
                     </td>
                 </tr>
             </tbody>
@@ -30,6 +36,7 @@
             width="100%" height="300px"
             :viewBox="`${-paddingLeft} ${-paddingTop} ${viewBoxWidth} ${viewBoxHeight}`"
             :preserveAspectRatio="preserveAspectRatio"
+            :style="svgStyle"
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xhtml="http://www.w3.org/1999/xhtml"
             xmlns:xlink="http://www.w3.org/1999/xlink" >
@@ -46,9 +53,10 @@ import map from 'lodash/map';
 export default {
     props: {
         // array of {item, html} elements
-        exportedItems: { value: [], type: Array },
-        width        : { value: 300, type: Number },
-        height       : { value: 300, type: Number },
+        exportedItems  : { value: [], type: Array },
+        width          : { value: 300, type: Number },
+        height         : { value: 300, type: Number },
+        backgroundColor: { value: 'rgba(255,255,255,1.0)', type: String}
     },
 
     components: {Modal, NumberTextfield},
@@ -56,6 +64,7 @@ export default {
     data() {
         const svgHtml = map(this.exportedItems, e => e.html).join('\n');
         return {
+            shouldExportBackground: false,
             paddingTop: 0,
             paddingLeft: 0,
             viewBoxWidth: this.width,
@@ -97,6 +106,15 @@ export default {
                 return 'xMidYMid';
             }
             return 'xMinYMin';
+        },
+
+        svgStyle() {
+            if (this.shouldExportBackground) {
+                return {
+                    background: this.backgroundColor
+                };
+            }
+            return {};
         }
     }
 }
