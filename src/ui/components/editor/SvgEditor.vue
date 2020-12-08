@@ -1370,6 +1370,7 @@ export default {
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
 
         //calculates coords from world to screen in view mode
+        //TODO check why this formula is not aligned with myMath.js, how the hell is it working then?
         _vx(x) { return x * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.x },
         _vy(y) { return y * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.y; },
         _vz(v) { return v * this.interactiveSchemeContainer.screenTransform.scale; },

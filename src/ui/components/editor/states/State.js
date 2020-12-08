@@ -99,12 +99,14 @@ class State {
         const bbox = this.schemeContainer.screenSettings.boundingBox;
         const scale = this.schemeContainer.screenTransform.scale;
 
+        const padding = 10; // we use padding to so that small part of the scheme stays visible and user does not get lost
+        const paddingTop = 70; // we need to compensate for the header
+
         if (bbox) {
-            // recalculating min/max offset on the screen so that bbox is always visible
-            const minScreenX = - bbox.x * scale;
-            const minScreenY = - bbox.y * scale;
-            const maxScreenX = this.schemeContainer.screenSettings.width - (bbox.x + bbox.w) * scale;
-            const maxScreenY = this.schemeContainer.screenSettings.height - (bbox.y + bbox.h) * scale;
+            const minScreenX = - (bbox.x + bbox.w) * scale + padding;
+            const maxScreenX = this.schemeContainer.screenSettings.width - bbox.x * scale - padding;
+            const minScreenY = - (bbox.y + bbox.h) * scale + paddingTop;
+            const maxScreenY = this.schemeContainer.screenSettings.height - bbox.y * scale - padding;
 
             this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));
             this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY)); 
@@ -114,7 +116,6 @@ class State {
         }
 
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
-
     }
 
     snapX(value) {
