@@ -439,7 +439,7 @@ export default class StateEditCurve extends State {
     snapCurvePoint(localX, localY) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
         const snappedWorldX = this.snapX(worldCurvePoint.x);
-        const snappedWorldY = this.snapX(worldCurvePoint.y);
+        const snappedWorldY = this.snapY(worldCurvePoint.y);
 
         return this.schemeContainer.localPointOnItem(snappedWorldX, snappedWorldY, this.item);
     }
@@ -485,12 +485,24 @@ export default class StateEditCurve extends State {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
         const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
-        
         const index = this.draggedObject.controlPointIndex;
         const oppositeIndex = index === 1 ? 2: 1;
+
+        // Since control points are relative to their base curve points, we need to calculate their absolute world position
+        // This way we can snap them to the grid and then recalculate the relative to base curve point in its local coords
+        const worldAbsoluteControlPoint = this.schemeContainer.worldPointOnItem(
+            curvePoint.x + this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOriginalPoint.x,
+            curvePoint.y + this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOriginalPoint.y,
+            this.item
+        );
+        const snappedWorldAbsoluteCurvePoint = {
+            x: this.snapX(worldAbsoluteControlPoint.x),
+            y: this.snapY(worldAbsoluteControlPoint.y)
+        };
+        const snappedLocalAbsoluteCurvePoint = this.schemeContainer.localPointOnItem(snappedWorldAbsoluteCurvePoint.x, snappedWorldAbsoluteCurvePoint.y, this.item);
         
-        curvePoint[`x${index}`] = this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOriginalPoint.x;
-        curvePoint[`y${index}`] = this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOriginalPoint.y;
+        curvePoint[`x${index}`] = snappedLocalAbsoluteCurvePoint.x - curvePoint.x;
+        curvePoint[`y${index}`] = snappedLocalAbsoluteCurvePoint.y - curvePoint.y;
         
         if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
