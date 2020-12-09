@@ -37,7 +37,22 @@ const routes = [
 ];
 
 
-const router = new VueRouter({ mode: 'history', routes: routes });
+const router = new VueRouter({
+    mode: 'history',
+    routes: routes,
+});
+
+router.beforeEach((to, from, next) => {
+    if (from.name === 'SchemeEditorView' && store.state.schemeModified) {
+        if (window.confirm('Scheme was modified. If you leave you will loose all your changes. Do you still want to leave?')) {
+            next();
+        } else {
+            next(false);
+        }
+    } else {
+        next();
+    }
+});
 
 new Vue(Vue.util.extend({
     router,

@@ -6,11 +6,15 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     state: {
-        currentUser: null
+        currentUser: null,
+        schemeModified: false
     },
     mutations: {
         SET_CURRENT_USER(state, user) {
             state.currentUser = user;
+        },
+        SET_SCHEME_MODIFIED(state, isModified) {
+            state.schemeModified = isModified;
         }
     },
     actions: {
@@ -18,10 +22,17 @@ const store = new Vuex.Store({
             apiClient.getCurrentUser().then(user => {
                 commit('SET_CURRENT_USER', user);
             });
+        },
+        markSchemeAsModified({commit}) {
+            commit('SET_SCHEME_MODIFIED', true);
+        },
+        markSchemeAsUnmodified({commit}) {
+            commit('SET_SCHEME_MODIFIED', false);
         }
     },
     getters: {
-        currentUser: state => state.currentUser
+        currentUser: state => state.currentUser,
+        schemeModified: state => state.schemeModified
     }
 });
 

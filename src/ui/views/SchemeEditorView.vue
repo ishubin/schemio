@@ -63,7 +63,7 @@
                             </span>
                         </li>
                     </ul>
-                    <span class="btn btn-secondary" v-if="schemeChanged && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
+                    <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
 
@@ -263,6 +263,7 @@ export default {
 
     beforeMount() {
         window.onbeforeunload = this.onBrowseClose;
+        this.markSchemeAsUnmodified();
         this.init();
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
@@ -281,6 +282,7 @@ export default {
         EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
     beforeDestroy(){
+        window.onbeforeunload = null;
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
@@ -297,6 +299,7 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEdited);
         EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
+
     data() {
         return {
             projectId: this.$route.params.projectId,
@@ -319,7 +322,6 @@ export default {
             },
 
             itemListShown: false,
-            schemeChanged: false, //used in order to render Save button
 
             shouldSnapToGrid: true,
 
@@ -458,12 +460,12 @@ export default {
         },
 
         saveScheme() {
-            this.schemeChanged = false;
+            this.markSchemeAsUnmodified();
 
             this.createSchemePreview();
 
             apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme).catch(err => {
-                this.schemeChanged = true;
+                this.markSchemeAsModified();
             });
         },
 
@@ -707,7 +709,7 @@ export default {
         },
 
         onBrowseClose() {
-            if (this.schemeChanged) {
+            if (this.$store.state.schemeModified) {
                 return 'The changes were not saved';
             }
             return null;
@@ -728,7 +730,7 @@ export default {
 
         commitHistory(affinityId) {
             history.commit(this.schemeContainer.scheme, affinityId);
-            this.schemeChanged = true;
+            this.markSchemeAsModified();
             this.updateHistoryState();
         },
 
@@ -784,7 +786,7 @@ export default {
             this.schemeContainer.bringSelectedItemsToFront();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.schemeChanged = true;
+            this.markSchemeAsModified();
             this.updateRevision();
         },
 
@@ -792,8 +794,16 @@ export default {
             this.schemeContainer.bringSelectedItemsToBack();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.schemeChanged = true;
+            this.markSchemeAsModified();
             this.updateRevision();
+        },
+
+        markSchemeAsModified() {
+            this.$store.dispatch('markSchemeAsModified');
+        },
+
+        markSchemeAsUnmodified() {
+            this.$store.dispatch('markSchemeAsUnmodified');
         },
 
         onScreenTransformUpdated(screenTransform) {
@@ -1042,6 +1052,10 @@ export default {
 
         viewportLeftOffset() {
             return this.sidePanelLeftExpanded && this.mode === 'edit' ? 160: 0;
+        },
+
+        schemeModified() {
+            return this.$store.state.schemeModified;
         }
     }
 }
