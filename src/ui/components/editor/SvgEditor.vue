@@ -1417,21 +1417,26 @@ export default {
             return `translate(${this.viewportLeft} ${this.viewportTop})`;
         },
         gridStep() {
-            return 20 * this.schemeContainer.screenTransform.scale;
+            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            return snapSize * this.schemeContainer.screenTransform.scale;
         },
         gridCount() {
-            if (this.schemeContainer.screenTransform.scale > 0.6) {
+            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            const screenStep = (snapSize * this.schemeContainer.screenTransform.scale);
+            if (screenStep < 4) {
                 return {
-                    x: Math.ceil(this.width / (20 *this.schemeContainer.screenTransform.scale)),
-                    y: Math.ceil(this.height / (20 * this.schemeContainer.screenTransform.scale))
+                    x: 0, y: 0
                 };
-            } else {
-                return 0;
             }
+            return {
+                x: Math.ceil(this.width / screenStep),
+                y: Math.ceil(this.height / screenStep)
+            };
         },
         gridTransform() {
-            let x = Math.ceil(this.schemeContainer.screenTransform.x % (20 * this.schemeContainer.screenTransform.scale));
-            let y = Math.ceil(this.schemeContainer.screenTransform.y % (20 * this.schemeContainer.screenTransform.scale));
+            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            let x = Math.ceil(this.schemeContainer.screenTransform.x % (snapSize * this.schemeContainer.screenTransform.scale));
+            let y = Math.ceil(this.schemeContainer.screenTransform.y % (snapSize * this.schemeContainer.screenTransform.scale));
             return `translate(${x} ${y})`;
         },
     },

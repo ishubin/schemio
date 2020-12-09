@@ -201,5 +201,25 @@ export default {
             x: x * screenTransform.scale - screenTransform.x,
             y: y * screenTransform.scale - screenTransform.y,
         };
+    },
+
+
+    _snapScales: [ 100, 50, 20, 5, 1, 0.2, 0.04, 0.008 ],
+
+    /**
+     * 
+     * @param {Number} scale The scale value on screen transform
+     * @returns {Number} size of grid snapping in world coords
+     */
+    getSnappinWidthForScale(scale) {
+        const log5 = Math.round(Math.log(scale) / Math.log(5));
+        const snapIndex = log5 + 2;
+        if (snapIndex > 0 && snapIndex < this._snapScales.length) {
+            return this._snapScales[snapIndex];
+        }
+        if (snapIndex > this._snapScales.length) {
+            return this._snapScales[this._snapScales.length - 1];
+        }
+        return this._snapScales[0];
     }
 }

@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
- import EventBus from '../EventBus';
+import EventBus from '../EventBus';
+import myMath from '../../../myMath';
 
 class State {
     /**
@@ -127,8 +128,9 @@ class State {
     }
 
     snapToGrid(value) {
+        const snap = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
         if (this.editor.shouldSnapToGrid) {
-            return Math.round(value / 20) * 20;
+            return Math.round(value / snap) * snap;
         }
         return Math.round(value);
     }
