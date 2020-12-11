@@ -181,7 +181,7 @@ function loadConfigFromLocalStorage() {
 }
 
 function saveConfigToLocalStorage() {
-    if (!window || !window.localStorage) {
+    if (typeof window !== 'undefined' || !window.localStorage) {
         return;
     }
     window.localStorage.setItem(SCHEMIO_LOG_CONFIG, JSON.stringify(LogConfig));
@@ -189,14 +189,18 @@ function saveConfigToLocalStorage() {
 
 loadConfigFromLocalStorage();
 
-window.SchemioDebugger = Debugger;
-
 let debuggerInitiationCallback = null;
-window.SchemioLogConfig = () => {
-    if (debuggerInitiationCallback) {
-        debuggerInitiationCallback();
-    }
-};
+if (typeof window !== 'undefined') {
+    window.SchemioDebugger = Debugger;
+
+    window.SchemioLogConfig = () => {
+        if (debuggerInitiationCallback) {
+            debuggerInitiationCallback();
+        }
+    };
+}
+
+
 function registerDebuggerInitiation(callback) {
     debuggerInitiationCallback = callback;
 }
