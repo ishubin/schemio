@@ -15,3 +15,9 @@ const dom = new JSDOM(``, {
 
 global.window = dom.window;
 global.document = dom.window.document;
+
+global.performance = {
+    now() {
+        return new Date().getTime() * 1000;
+    }
+};
