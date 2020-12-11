@@ -260,6 +260,7 @@ import StrokePattern from './items/StrokePattern';
 import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import { Logger } from '../../logger';
+import store from '../../store/Store';
 
 const log = new Logger('SvgEditor.vue');
 
@@ -281,11 +282,11 @@ const allDraggerEdges = [
 
 
 const states = {
-    interact: new StateInteract(EventBus, userEventBus),
-    createItem: new StateCreateItem(EventBus),
-    editCurve: new StateEditCurve(EventBus),
-    dragItem: new StateDragItem(EventBus),
-    pickElement: new StatePickElement(EventBus)
+    interact: new StateInteract(EventBus, store, userEventBus),
+    createItem: new StateCreateItem(EventBus, store),
+    editCurve: new StateEditCurve(EventBus, store),
+    dragItem: new StateDragItem(EventBus, store),
+    pickElement: new StatePickElement(EventBus, store)
 };
 let currentState = states.interact;
 
@@ -643,6 +644,7 @@ export default {
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
                 this.state = 'editCurve';
+                EventBus.emitCurveEdited(item);
             } else {
                 this.state = 'createItem';
             }

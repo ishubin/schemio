@@ -267,6 +267,7 @@ export default {
         startCreatingLink(link) {
             this.linkCreation.popupShown = false;
             const item = utils.clone(this.linkCreation.item);
+            item.name = this.makeUniqueName('Link');
             item.shapeProps.url = link.url;
             item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
@@ -281,6 +282,7 @@ export default {
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
                     const newItem = utils.clone(that.selectedImageItem.item);
+                    newItem.name = that.makeUniqueName('Image');
                     newItem.id = shortid.generate();
                     newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
 
@@ -294,6 +296,10 @@ export default {
             };
             img.src = imageUrl;
         },
+
+        makeUniqueName(name) {
+            return this.schemeContainer.copyNameAndMakeUnique(name);
+        }
     }
 }
 </script>

@@ -21,8 +21,8 @@ class StateInteract extends State {
      * @param {EventBus} EventBus 
      * @param {UserEventBus} userEventBus 
      */
-    constructor(eventBus, userEventBus) {
-        super(eventBus);
+    constructor(eventBus, store, userEventBus) {
+        super(eventBus, store);
         this.name = 'interact';
         this.startedDragging = false;
         this.initialClickPoint = null;

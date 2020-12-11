@@ -25,8 +25,8 @@ function isEventRightClick(event) {
 
 
 export default class StateEditCurve extends State {
-    constructor(eventBus) {
-        super(eventBus);
+    constructor(eventBus, store) {
+        super(eventBus, store);
         this.name = 'edit-curve';
         this.item = null;
         this.addedToScheme = false;
@@ -451,6 +451,9 @@ export default class StateEditCurve extends State {
      * @param {Boolean} isSource 
      */
     handleEdgeCurvePointDrag(curvePoint, isSource) {
+        if (!this.store.state.curveEditing.autoAttachEnabled) {
+            return;
+        }
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
         const distanceThreshold = 20;
 

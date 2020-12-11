@@ -511,8 +511,6 @@ ul.pagination li a.current {
 
 
 
-
-
 .scheme-middle-container {
     position: relative;
     width: 100%;
@@ -521,7 +519,7 @@ ul.pagination li a.current {
     margin: 0;
 }
 
-.scheme-top-helper-panel-wrapper {
+.quick-helper-panel-wrapper {
     background: var(--faint-weak);
     border-bottom: 1px solid var(--faint-strong);
     position: absolute;
@@ -529,9 +527,17 @@ ul.pagination li a.current {
     top: 47px;
     text-align: center;
 }
-.scheme-top-helper-panel {
-    display: inline-block;
+.quick-helper-panel {
+    display: block;
     padding: 4px 15px;
+    min-height: 30px;
+}
+.quick-helper-panel-section {
+    display: inline-block;
+    margin-left: 10px;
+    padding-left: 10px;
+    
+    border-left: 2px solid var(--faint-weak-up);
 }
 
 
@@ -870,7 +876,7 @@ ul.button-group li .toggle-button .small-letter {
     height: 100%;
     width: 0px;
     position: absolute;
-    padding-top: 45px;
+    padding-top: 78px;
     top: 0;
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);

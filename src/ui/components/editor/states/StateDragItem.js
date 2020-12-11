@@ -43,7 +43,7 @@ export default class StateDragItem extends State {
     /**
      * @param {EventBus} eventBus 
      */
-    constructor(eventBus) {
+    constructor(eventBus, store) {
         super(eventBus);
         this.name = 'drag-item';
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};

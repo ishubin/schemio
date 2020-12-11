@@ -173,11 +173,7 @@
                 </div>
             </div>
 
-            <div class="scheme-top-helper-panel-wrapper">
-                <div v-if="topHelperPanel.currentPanel === 'curve-edit-helper'" class="scheme-top-helper-panel">
-                    <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
-                </div>
-            </div>
+            <quick-helper-panel v-if="mode === 'edit'"/>
         </div>
 
         <export-html-modal v-if="exportHTMLModalShown === true" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
@@ -242,6 +238,7 @@ import map from 'lodash/map';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
+import QuickHelperPanel from '../components/editor/QuickHelperPanel.vue';
 
 let history = new History({size: 30});
 
@@ -255,7 +252,7 @@ function escapeHTML(html) {
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, MenuDropdown,
+        SchemeDetails, CreateItemMenu, MenuDropdown, QuickHelperPanel,
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
@@ -278,8 +275,6 @@ export default {
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEdited);
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
@@ -296,8 +291,6 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEdited);
-        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
     },
 
     data() {
@@ -383,10 +376,6 @@ export default {
 
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
-
-            topHelperPanel: {
-                currentPanel: null // null - means that the panel is not shown
-            },
 
             exportHTMLModalShown: false
         }
@@ -709,7 +698,7 @@ export default {
         },
 
         onBrowseClose() {
-            if (this.$store.state.schemeModified) {
+            if (this.$store.getters.schemeModified) {
                 return 'The changes were not saved';
             }
             return null;
@@ -871,21 +860,6 @@ export default {
             EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
         },
 
-        onCurveEdited() {
-            this.showTopHelperCurveEdit();
-        },
-
-        stopEditCurve() {
-            EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
-        },
-
-        onCurrentStateCanceled(stateName) {
-            if (stateName === 'edit-curve') {
-                this.topHelperPanel.currentPanel = null;
-                this.hideTopHelperPanel();
-            }
-        },
-
         // triggered from ItemProperties component
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
@@ -972,14 +946,6 @@ export default {
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
-
-        hideTopHelperPanel() {
-            this.topHelperPanel.currentPanel = null;
-        },
-
-        showTopHelperCurveEdit() {
-            this.topHelperPanel.currentPanel = 'curve-edit-helper';
-        }
     },
 
     filters: {
@@ -999,7 +965,6 @@ export default {
             }));
             if (value === 'view') {
                 AnimationsRegistry.enableAnimations();
-                this.topHelperPanel.currentPanel = null;
             } else {
                 AnimationsRegistry.stopAllAnimations();
             }
@@ -1047,7 +1012,7 @@ export default {
 
     computed: {
         currentUser() {
-            return this.$store.state.currentUser;
+            return this.$store.getters.currentUser;
         },
 
         viewportLeftOffset() {
@@ -1055,7 +1020,7 @@ export default {
         },
 
         schemeModified() {
-            return this.$store.state.schemeModified;
+            return this.$store.getters.schemeModified;
         }
     }
 }

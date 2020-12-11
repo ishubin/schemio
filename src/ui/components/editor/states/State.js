@@ -8,12 +8,14 @@ import myMath from '../../../myMath';
 class State {
     /**
      * @param {EventBus} EventBus 
+     * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus) {
+    constructor(eventBus, store) {
         this.schemeContainer = null;
         this.eventBus = eventBus;
         this.name = '';
         this.editor = null;
+        this.store = store;
 
         // Viewport transform correction 
         this.viewportCorrectionTop = 0;

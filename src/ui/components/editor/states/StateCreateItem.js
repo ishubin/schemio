@@ -8,8 +8,8 @@ import forEach from 'lodash/forEach';
 import EventBus from '../EventBus.js';
 
 export default class StateCreateItem extends State {
-    constructor(eventBus) {
-        super(eventBus);
+    constructor(eventBus, store) {
+        super(eventBus, store);
         this.name = 'create-item';
         this.item = null;
         this.addedToScheme = false;

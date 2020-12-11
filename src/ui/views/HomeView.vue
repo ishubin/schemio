@@ -95,10 +95,10 @@ export default {
 
     computed: {
         currentUser() {
-            return this.$store.state.currentUser;
+            return this.$store.getters.currentUser;
         },
         currentUserName() {
-            const user = this.$store.state.currentUser;
+            const user = this.$store.getters.currentUser;
             if (user) {
                 return user.login;
             }
