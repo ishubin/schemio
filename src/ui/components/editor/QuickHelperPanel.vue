@@ -1,7 +1,7 @@
 <template>
     <div class="quick-helper-panel-wrapper">
         <div class="quick-helper-panel">
-            <div v-if="currentPanel === 'curve-edit-helper'" class="quick-helper-panel-section">
+            <div v-if="currentStatePanel === 'curve-edit-helper'" class="quick-helper-panel-section">
                 <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
                 <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
                 <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
@@ -16,18 +16,16 @@ import EventBus from './EventBus';
 
 export default {
     beforeMount() {
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEdited);
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
+        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEdited);
-        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCurrentStateCanceled);
+        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     data() {
         return {
-            currentPanel: null
+            currentStatePanel: null
         };
     },
 
@@ -39,22 +37,17 @@ export default {
                 this.$store.dispatch('disableCurveEditAutoAttach');
             }
         },
-        onCurveEdited() {
-            this.showTopHelperCurveEdit();
-        },
 
-        showTopHelperCurveEdit() {
-            this.currentPanel = 'curve-edit-helper';
+        onEditorStateChanged(stateName) {
+            if (stateName === 'edit-curve') {
+                this.currentStatePanel = 'curve-edit-helper';
+            } else {
+                this.currentStatePanel = null;
+            }
         },
 
         stopEditCurve() {
             EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
-        },
-
-        onCurrentStateCanceled(stateName) {
-            if (stateName === 'edit-curve') {
-                this.currentPanel = null;
-            }
         },
     },
 

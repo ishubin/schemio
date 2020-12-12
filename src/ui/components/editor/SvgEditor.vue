@@ -1379,7 +1379,7 @@ export default {
     },
     watch: {
         state(newState) {
-            EventBus.$emit(EventBus.EDITOR_STATE_CHANGED, newState);
+            EventBus.$emit(EventBus.EDITOR_STATE_CHANGED, states[newState].name);
         },
         mode(newMode) {
             if (newMode === 'edit') {
