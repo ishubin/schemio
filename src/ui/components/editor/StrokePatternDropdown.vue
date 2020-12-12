@@ -1,7 +1,7 @@
 <template>
     <dropdown :options="patternOptions"
         @selected="$emit('selected', arguments[0].name)">
-        <span :style="{'background-image': `url(/images/line-patterns/${selectedPattern}.svg)`, 'display': 'block', 'height': '20px', 'width': '140px', 'background-repeat': 'no-repeat'}"></span>
+        <span :style="{'background-image': `url(/images/line-patterns/${selectedPattern}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat'}"></span>
     </dropdown>
 </template>
 <script>
@@ -10,7 +10,11 @@ import Dropdown from '../Dropdown.vue';
 import map from 'lodash/map';
 
 export default {
-    props: ['value'],
+    props: {
+        value: { type: String },
+        width : {type: String, default: '140px'},
+        height: {type: String, default: '20px'},
+    },
     components: {Dropdown},
 
     computed: {

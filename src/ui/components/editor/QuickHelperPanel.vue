@@ -22,6 +22,13 @@
                             :hollow="true"
                             @input="emitShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
                     </li>
+                    <li>
+                        <stroke-pattern-dropdown
+                            :value="strokePattern"
+                            width="50px"
+                            height="16px"
+                            @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
+                    </li>
                 </ul>
                 
             </div>
@@ -48,6 +55,7 @@ import '../../typedef';
 import EventBus from './EventBus';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
+import StrokePatternDropdown from './StrokePatternDropdown.vue';
 import Shape from './items/shapes/Shape';
 
 export default {
@@ -56,7 +64,7 @@ export default {
         schemeContainer : { value: null, type: Object },
         projectId: {value: null, type: String}
     },
-    components: {AdvancedColorEditor, ColorPicker},
+    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown},
 
     beforeMount() {
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
@@ -76,7 +84,9 @@ export default {
             selectedItemsCount: 0,
 
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
-            strokeColor: 'rgba(255,255,255,1.0)'
+            strokeColor: 'rgba(255,255,255,1.0)',
+
+            strokePattern: 'solid',
         };
     },
 
@@ -91,6 +101,9 @@ export default {
                 }
                 if (shape.argType('strokeColor') === 'color') {
                     this.strokeColor = item.shapeProps.strokeColor;
+                }
+                if (shape.argType('strokePattern') === 'stroke-pattern') {
+                    this.strokePattern = item.shapeProps.strokePattern;
                 }
             }
         },
@@ -123,6 +136,9 @@ export default {
 
         emitShapePropChange(name, type, value) {
             this.$emit('shape-prop-changed', name, type, value);
+            if (name === 'strokePattern' && type === 'stroke-pattern') {
+                this.strokePattern = value;
+            }
         },
 
     },
