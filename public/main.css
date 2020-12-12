@@ -806,9 +806,10 @@ ul.button-group {
     list-style: none;
 }
 ul.button-group > li {
-    display: inline-block;
-    margin: 0 2px 0 2px;
-    padding: 0;
+    display: table-cell;
+    margin: 0;
+    padding: 0 2px 0 2px;
+    vertical-align: middle;
 }
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;

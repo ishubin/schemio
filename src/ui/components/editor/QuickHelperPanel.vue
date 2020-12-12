@@ -26,9 +26,17 @@
                 
             </div>
             <div v-if="currentState === 'curve-edit-helper'" class="quick-helper-panel-section">
-                <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
-                <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
-                <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
+                <ul class="button-group">
+                    <li>
+                        <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
+                    </li>
+                    <li>
+                        <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
+                    </li>
+                    <li>
+                        <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
