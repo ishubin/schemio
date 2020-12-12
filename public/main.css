@@ -535,11 +535,26 @@ ul.pagination li a.current {
     min-height: 30px;
 }
 .quick-helper-panel-section {
+    position: relative;
     display: inline-block;
-    margin-left: 10px;
-    padding-left: 10px;
+    margin-left: 5px;
+    padding-left: 5px;
+}
+.quick-helper-panel-section:before {
+    position: absolute;
+    display: inline-block;
+    width: 1px;
+    height: 16px;
+    top: 7px;
+    left: 0;
+    content: ".";
+    font-size: 0;
     border-left: 1px solid var(--section-delimiter-color);
 }
+.quick-helper-panel-section:first-child:before {
+    display: none;
+}
+
 .quick-helper-panel-section:first-child {
     border-left: none;
     margin-left: 0;
