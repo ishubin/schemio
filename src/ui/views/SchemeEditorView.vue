@@ -173,7 +173,11 @@
                 </div>
             </div>
 
-            <quick-helper-panel v-if="mode === 'edit'"/>
+            <quick-helper-panel v-if="mode === 'edit'"
+                :project-id="projectId"
+                :scheme-container="schemeContainer"
+                @shape-prop-changed="onItemShapePropChanged"
+                />
         </div>
 
         <export-html-modal v-if="exportHTMLModalShown === true" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>

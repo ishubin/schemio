@@ -129,6 +129,10 @@ const EventBus = new Vue({
         unsubscribeForItemDeselected(itemId, callback) {this.$off(this._itemDeselectedEvent(itemId), callback)},
         _itemDeselectedEvent(itemId) { return `${EventBus.ITEM_DESELECTED}/${itemId}`; },
 
+        emitAnyItemDeselected() {
+            this.$emit(EventBus.ANY_ITEM_DESELECTED);
+        },
+
         emitRightClickedItem(item, mouseX, mouseY) {
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
         },

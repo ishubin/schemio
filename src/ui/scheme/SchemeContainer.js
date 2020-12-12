@@ -702,6 +702,8 @@ class SchemeContainer {
             this.multiItemEditBoxes.relative = null;
             this.multiItemEditBoxes.viewport = null;
             this.reindexItems();
+            // This event is needed to inform some components that they need to update their state because selection has dissapeared
+            this.eventBus.emitAnyItemDeselected();
         }
     }
 

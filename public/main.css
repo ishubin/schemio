@@ -31,6 +31,9 @@
 
     --faint-strong-down: #9da4b1;
     --faint-weak-up: #e7eaf7;
+
+    --section-delimiter-color: #b3b5b9;
+    --icon-button-hover-background: #d4d4d6;
 }
 
 
@@ -525,21 +528,23 @@ ul.pagination li a.current {
     position: absolute;
     width: 100%;
     top: 47px;
-    text-align: center;
 }
 .quick-helper-panel {
     display: block;
-    padding: 4px 15px;
+    padding: 2px 2px;
     min-height: 30px;
 }
 .quick-helper-panel-section {
     display: inline-block;
     margin-left: 10px;
     padding-left: 10px;
-    
-    border-left: 2px solid var(--faint-weak-up);
+    border-left: 1px solid var(--section-delimiter-color);
 }
-
+.quick-helper-panel-section:first-child {
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+}
 
 .scheme-not-found-block {
     padding-top: 70px;
@@ -800,12 +805,32 @@ ul.button-group {
     padding: 2px;
     list-style: none;
 }
-ul.button-group li {
+ul.button-group > li {
     display: inline-block;
     margin: 0 2px 0 2px;
     padding: 0;
 }
-ul.button-group li .toggle-button {
+ul.button-group.disabled > li, ul.button-group > li.disabled {
+    opacity: 0.2;
+}
+ul.button-group > li > .icon-button {
+    display: inline-block;
+    text-align: center;
+    padding: 2px;
+    min-width: 25px;
+    min-height: 20px;
+}
+ul.button-group > li > .icon-button:hover {
+    background: var(--icon-button-hover-background);
+}
+ul.button-group.disabled > li > .icon-button:hover, 
+ul.button-group > li.disabled > .icon-button:hover,
+ul.button-group > li > .icon-button.disabled:hover {
+    background: none;
+}
+
+
+ul.button-group > li > .toggle-button {
     display: inline-block;
     min-width: 25px;
     position: relative;
@@ -818,51 +843,51 @@ ul.button-group li .toggle-button {
     font-weight: bold;
     text-transform: capitalize;
 }
-ul.button-group li .toggle-button.toggled {
+ul.button-group > li > .toggle-button.toggled {
     color: var(--base-weak);
     background: var(--base-strong);
     cursor: pointer;
     cursor: hand;
 }
-ul.button-group li .toggle-button:hover {
+ul.button-group > li > .toggle-button:hover {
     background: var(--base-strong-up);
     color: var(--base-weak);
 }
-ul.button-group li .toggle-button.disabled:hover, ul.button-group li .toggle-button.disabled {
+ul.button-group > li > .toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
     color: var(--base-weak) !important;
     opacity: 0.2;
     background: none;
     cursor: default;
 }
-ul.button-group li .toggle-button .small-letter {
+ul.button-group > li > .toggle-button .small-letter {
     position: absolute;
     bottom: 0;
     right: 1px;
     font-size: 8px;
 }
-.header ul.button-group li .toggle-button {
+.header ul.button-group > li > .toggle-button {
     color: var(--accent-weak);
 }
-.header ul.button-group li .toggle-button.toggled {
+.header ul.button-group > li > .toggle-button.toggled {
     color: var(--accent-weak);
     background: var(--accent-strong);
 }
-.header ul.button-group li .toggle-button:hover {
+.header ul.button-group > li > .toggle-button:hover {
     background: var(--accent-faint);
     color: var(--accent-weak);
 }
-.scheme-editor-top-panel ul.button-group li .toggle-button {
+.scheme-editor-top-panel ul.button-group > li > .toggle-button {
     color: #999;
 }
-.scheme-editor-top-panel ul.button-group li .toggle-button.toggled {
+.scheme-editor-top-panel ul.button-group > li > .toggle-button.toggled {
     color: #111;
     background: #fff;
 }
-.scheme-editor-top-panel ul.button-group li .toggle-button:hover {
+.scheme-editor-top-panel ul.button-group > li > .toggle-button:hover {
     background: #999;
     color: #111;
 }
-.scheme-editor-top-panel ul.button-group li .toggle-button.toggled:hover {
+.scheme-editor-top-panel ul.button-group > li > .toggle-button.toggled:hover {
     background: #fff;
 }
 
@@ -975,7 +1000,7 @@ ul.button-group li .toggle-button .small-letter {
     display: inline-block;
     position: relative;
     width: 100%;
-    height: 20px;
+    height: 100%;
     cursor: pointer;
     border: 1px solid #999;
     border-radius: 3px;
@@ -1006,13 +1031,20 @@ ul.button-group li .toggle-button .small-letter {
 
 /*************************** Advanced Color Picker ********************/
 .advanced-color-editor {
-    min-width: 22px;
+    min-width: 20px;
+    display: inline-block;
+}
+.advanced-color-editor .color-picker-toggle-button {
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 .advanced-color-editor .none-picker-toggle-button {
     border: 1px solid #999;
     width: 100%;
     display: block;
-    height: 20px;
+    height: 100%;
+    width: 100%;
     font-size: 10pt;
     padding: 2px 4px;
     border-radius: 3px;
@@ -1020,7 +1052,9 @@ ul.button-group li .toggle-button .small-letter {
 }
 .advanced-color-editor .gradient-container {
     border: 1px solid #999;
-    height: 20px;
+    display: block;
+    height: 100%;
+    width: 100%;
     border-radius: 3px;
     cursor: pointer;
 }
@@ -1035,7 +1069,7 @@ ul.button-group li .toggle-button .small-letter {
 .advanced-color-editor .image-container img {
     max-width: 100%;
     min-height: 20px;
-    max-height: 200px;
+    max-height: 60px;
 }
 
 .advanced-color-editor .image-property-container {

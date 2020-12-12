@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="color-picker">
+    <div class="color-picker" :style="{width: width, height: height}">
         <div ref="toggleButton" class="color-picker-toggle-button">
             <span class="color-picker-toggle-button-background"></span>
 
@@ -24,7 +24,9 @@ import VueColor from 'vue-color';
 
 export default {
     props: {
-        color: {type: String}
+        color: {type: String, required: true},
+        width: {type: String, default: '100%'},
+        height: {type: String, default: '20px'},
     },
 
     components: {'chrome-picker': VueColor.Chrome},

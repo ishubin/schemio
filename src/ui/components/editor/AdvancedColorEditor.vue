@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="advanced-color-editor">
+    <div class="advanced-color-editor" :style="{width: width, height: height}">
         <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
         <span v-if="color.type === 'solid'" class="color-picker-toggle-button" :style="{'background': color.color}" @click="modal.shown = true"></span>
         <div v-if="color.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="color.image"/></div>
@@ -110,14 +110,17 @@ function interpolateGradientColor(midColor, leftColor, rightColor) {
 }
 
 export default {
-    props: ['value', 'projectId'],
+    props: {
+        value: {type: Object, required: true},
+        width: {type: String, default: '100%'},
+        height: {type: String, default: '20px'},
+        projectId: {type: String, required: true}
+    },
 
     components: {'chrome-picker': VueColor.Chrome, Modal, NumberTextfield},
 
     beforeMount() {
-        if (this.color.type === 'gradient') {
-            this.gradient.selectedColor.hex = this.color.gradient.colors[this.gradient.selectedSliderIdx].c;
-        }
+        this.updateCurrentColor(this.value);
     },
     mounted() {
         document.body.addEventListener('mousemove', this.onMouseMove);
@@ -129,10 +132,6 @@ export default {
     },
 
     data() {
-        let gradientPreview = '';
-        if (this.value.type === 'gradient') {
-            gradientPreview = this.computeGradientPreview(this.value.gradient);
-        }
         return {
             id: shortid.generate(),
 
@@ -156,11 +155,27 @@ export default {
                 originalClickPoint: {x: 0},
                 originalKnobPosition: 0
             },
-            gradientPreview
+            gradientPreview: ''
         };
     },
 
+    watch: {
+        value(color) {
+            this.updateCurrentColor(color);
+        }
+    },
+
     methods: {
+        updateCurrentColor(color) {
+            if (color.type === 'gradient') {
+                this.gradient.selectedColor.hex = color.gradient.colors[this.gradient.selectedSliderIdx].c;
+                this.gradientPreview = this.computeGradientPreview(color.gradient);
+            }
+            this.color = utils.clone(color);
+            this.modal.pickerColor = {hex: color.color || '#fff'};
+            this.image = { path: color.image || ''};
+        },
+
         emitChange() {
             this.$emit('changed', utils.clone(this.color));
         },

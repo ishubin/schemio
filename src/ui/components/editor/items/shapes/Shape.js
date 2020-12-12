@@ -30,6 +30,14 @@ const defaultEditorProps = {
     customTextRendering: false
 };
 
+const standardShapeProps = {
+    fill         : {name: 'Fill', type: 'advanced-color'},
+    strokeColor  : {name: 'Stroke', type: 'color'},
+    strokeSize   : {name: 'Stroke Size', type: 'number'},
+    strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
+};
+
+
 function defaultGetTextSlots(item) {
     return [{
         name: 'body',
@@ -51,7 +59,19 @@ function enrichShape(shapeComponent, shapeName) {
         getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
-        vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null
+        vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null,
+
+        argType(argName) {
+            if (this.args && this.args[argName]) {
+                return this.args[argName].type;
+            }
+            if (this.shapeType === 'standard') {
+                if (standardShapeProps[argName]) {
+                    return standardShapeProps[argName].type;
+                }
+            }
+            return null;
+        }
     };
 }
 
@@ -96,13 +116,6 @@ function make(encodedShape) {
         throw new Error('Custom shapes are not yet supported');
     }
 }
-
-const standardShapeProps = {
-    fill         : {name: 'Fill', type: 'advanced-color'},
-    strokeColor  : {name: 'Stroke', type: 'color'},
-    strokeSize   : {name: 'Stroke Size', type: 'number'},
-    strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
-};
 
 function getShapePropDescriptor(shape, propName) {
     if (shape.shapeType === 'standard') {

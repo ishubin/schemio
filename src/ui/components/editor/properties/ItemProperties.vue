@@ -118,7 +118,7 @@
                         <tr>
                             <td class="label" width="50%">Fill</td>
                             <td class="value" width="50%">
-                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
+                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" width="100%" @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
                             </td>
                         </tr>
                         <tr>
