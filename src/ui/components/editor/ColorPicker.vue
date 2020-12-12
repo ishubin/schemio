@@ -8,7 +8,7 @@
             <span class="color-picker-toggle-button-background"></span>
 
             <span class="color-picker-toggle-button-fill"
-                :style="{'background': pickerColor}"
+                :style="cssStyle"
                 @click="toggleColorPicker()"
                 ></span>
         </div>
@@ -24,9 +24,10 @@ import VueColor from 'vue-color';
 
 export default {
     props: {
-        color: {type: String, required: true},
-        width: {type: String, default: '100%'},
+        color : {type: String, default: 'rgba(0,0,0,1.0)'},
+        width : {type: String, default: '100%'},
         height: {type: String, default: '20px'},
+        hollow: {type: Boolean, default: false}
     },
 
     components: {'chrome-picker': VueColor.Chrome},
@@ -106,6 +107,20 @@ export default {
             this.pickerColor = newColor;
             this.chromePickerColor.hex = newColor;
             this.$forceUpdate();
+        }
+    },
+    computed: {
+        cssStyle() {
+            if (this.hollow) {
+                return {
+                    background: 'none',
+                    border: `2px solid ${this.pickerColor}`
+                };
+            }
+            return {
+                background: this.pickerColor,
+                border: `2px solid ${this.pickerColor}`
+            };
         }
     }
 }

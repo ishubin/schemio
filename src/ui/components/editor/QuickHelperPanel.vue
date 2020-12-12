@@ -5,12 +5,22 @@
                 <ul class="button-group" :class="{disabled: selectedItemsCount === 0}">
                     <li>
                         <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
+                    </li>
+                    <li>
                         <advanced-color-editor
                             :project-id="projectId"
                             :value="fillColor"
                             width="20px"
                             height="20px"
                             @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
+                    </li>
+                    <li>
+                        <color-picker
+                            :color="strokeColor"
+                            width="20px"
+                            height="20px"
+                            :hollow="true"
+                            @input="emitShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
                     </li>
                 </ul>
                 
@@ -29,6 +39,7 @@
 import '../../typedef';
 import EventBus from './EventBus';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
+import ColorPicker from './ColorPicker.vue';
 import Shape from './items/shapes/Shape';
 
 export default {
@@ -37,7 +48,7 @@ export default {
         schemeContainer : { value: null, type: Object },
         projectId: {value: null, type: String}
     },
-    components: {AdvancedColorEditor},
+    components: {AdvancedColorEditor, ColorPicker},
 
     beforeMount() {
         EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
@@ -56,7 +67,8 @@ export default {
             currentState: null,
             selectedItemsCount: 0,
 
-            fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'}
+            fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
+            strokeColor: 'rgba(255,255,255,1.0)'
         };
     },
 
@@ -68,6 +80,9 @@ export default {
                 const shape = Shape.find(item.shape);
                 if (shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
+                }
+                if (shape.argType('strokeColor') === 'color') {
+                    this.strokeColor = item.shapeProps.strokeColor;
                 }
             }
         },

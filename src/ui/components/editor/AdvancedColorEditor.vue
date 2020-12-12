@@ -4,7 +4,7 @@
 
 <template>
     <div class="advanced-color-editor" :style="{width: width, height: height}">
-        <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true">None</span>
+        <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true"></span>
         <span v-if="color.type === 'solid'" class="color-picker-toggle-button" :style="{'background': color.color}" @click="modal.shown = true"></span>
         <div v-if="color.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="color.image"/></div>
         <div v-if="color.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>

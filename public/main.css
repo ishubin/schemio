@@ -1043,6 +1043,7 @@ ul.button-group > li > .toggle-button .small-letter {
     border: 1px solid #999;
     width: 100%;
     display: block;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQoU2M8c+bMfwY0oKenhy7EwDgUFP769QvDM5cuXcL0zBBQCADjtDObjg4SggAAAABJRU5ErkJggg==') repeat;
     height: 100%;
     width: 100%;
     font-size: 10pt;
