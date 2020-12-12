@@ -37,28 +37,6 @@
 
                     <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
 
-                    <ul class="button-group" v-if="mode === 'edit' && schemeContainer && currentUser">
-                        <li>
-                            <span title="Undo" class="toggle-button" :class="{'disabled': !historyState.undoable}" @click="historyUndo"><i class="fas fa-undo"></i></span>
-                        </li>
-                        <li>
-                            <span title="Redo" class="toggle-button" :class="{'disabled': !historyState.redoable}" @click="historyRedo"><i class="fas fa-redo"></i></span>
-                        </li>
-                        <li>
-                            <span title="Show Item List" class="toggle-button" @click="itemListShown = true"><i class="fas fa-list"></i></span>
-                        </li>
-                        <li>
-                            <span title="Zoom to Selection" class="toggle-button" @click="zoomToSelection()"><i class="fas fa-bullseye"></i></span>
-                        </li>
-                    </ul>
-                    <ul class="button-group" v-if="mode === 'edit' && currentUser">
-                        <li>
-                            <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="shouldSnapToGrid = !shouldSnapToGrid">
-                                <i class="fas fa-magnet"></i>
-                                <i class="small-letter">G</i>
-                            </span>
-                        </li>
-                    </ul>
                     <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
@@ -173,6 +151,10 @@
                 :project-id="projectId"
                 :scheme-container="schemeContainer"
                 @shape-prop-changed="onItemShapePropChanged"
+                @clicked-show-item-list="itemListShown = true"
+                @clicked-zoom-to-selection="zoomToSelection()"
+                @clicked-undo="historyUndo()"
+                @clicked-redo="historyRedo()"
                 />
         </div>
 
@@ -309,14 +291,7 @@ export default {
             isLoading: false,
             schemeLoadErrorMessage: null,
 
-            historyState: {
-                undoable: false,
-                redoable: false
-            },
-
             itemListShown: false,
-
-            shouldSnapToGrid: true,
 
             zoomOptions: [
                 {name: '10%', value: 10},
@@ -733,7 +708,6 @@ export default {
                     this.restoreItemSelection();
                 }
                 this.updateHistoryState();
-
             }
         },
 
@@ -763,8 +737,9 @@ export default {
         },
 
         updateHistoryState() {
-            this.historyState.undoable = history.undoable();
-            this.historyState.redoable = history.redoable();
+
+            this.$store.dispatch('setHistoryUndoable', history.undoable());
+            this.$store.dispatch('setHistoryRedoable', history.redoable());
         },
 
         updateRevision() {
@@ -1021,6 +996,10 @@ export default {
 
         schemeModified() {
             return this.$store.getters.schemeModified;
+        },
+
+        shouldSnapToGrid() {
+            return this.$store.state.grid.snap;
         }
     }
 }

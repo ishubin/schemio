@@ -814,19 +814,22 @@ ul.button-group > li {
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;
 }
-ul.button-group > li > .icon-button {
+.icon-button {
     display: inline-block;
     text-align: center;
     padding: 2px;
     min-width: 25px;
     min-height: 20px;
 }
-ul.button-group > li > .icon-button:hover {
+.icon-button.disabled {
+    opacity: 0.2;
+}
+.icon-button:hover {
     background: var(--icon-button-hover-background);
 }
 ul.button-group.disabled > li > .icon-button:hover, 
 ul.button-group > li.disabled > .icon-button:hover,
-ul.button-group > li > .icon-button.disabled:hover {
+.icon-button.disabled:hover {
     background: none;
 }
 
@@ -845,8 +848,8 @@ ul.button-group > li > .icon-button.disabled:hover {
     text-transform: capitalize;
 }
 .toggle-button.toggled {
-    color: var(--base-weak);
-    background: var(--base-strong);
+    color: var(--base-strong);
+    background: var(--faint-strong-down);
     cursor: pointer;
     cursor: hand;
 }

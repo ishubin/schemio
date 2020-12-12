@@ -11,6 +11,16 @@ const store = new Vuex.Store({
 
         curveEditing: {
             autoAttachEnabled: true
+        },
+
+        // stores the state of the history in scheme editing
+        history: {
+            undoable: false,
+            redoable: false
+        },
+
+        grid: {
+            snap: true
         }
     },
     mutations: {
@@ -22,6 +32,15 @@ const store = new Vuex.Store({
         },
         SET_CURVE_EDIT_AUTO_ATTACH(state, isEnabled) {
             state.curveEditing.autoAttachEnabled = isEnabled;
+        },
+        SET_HISTORY_UNDOABLE(state, isUndoable) {
+            state.history.undoable = isUndoable;
+        },
+        SET_HISTORY_REDOABLE(state, isRedoable) {
+            state.history.redoable = isRedoable;
+        },
+        SET_GRID_SNAP(state, enabled) {
+            state.grid.snap = enabled;
         }
     },
     actions: {
@@ -44,11 +63,23 @@ const store = new Vuex.Store({
         disableCurveEditAutoAttach({commit}) {
             commit('SET_CURVE_EDIT_AUTO_ATTACH', false);
         },
+        
+        setHistoryUndoable({commit}, isUndoable) {
+            commit('SET_HISTORY_UNDOABLE', isUndoable);
+        },
+        
+        setHistoryRedoable({commit}, isRedoable) {
+            commit('SET_HISTORY_REDOABLE', isRedoable);
+        },
+
+        setGridSnap({commit}, enabled) {
+            commit('SET_GRID_SNAP', enabled);
+        },
     },
     getters: {
         currentUser: state => state.currentUser,
         schemeModified: state => state.schemeModified,
-        curveEditAutoAttachEnabled: state => state.curveEditing.autoAttachEnabled
+        curveEditAutoAttachEnabled: state => state.curveEditing.autoAttachEnabled,
     }
 });
 

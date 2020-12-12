@@ -1,6 +1,28 @@
 <template>
     <div class="quick-helper-panel-wrapper">
         <div class="quick-helper-panel">
+            <div class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
+                    </li>
+                    <li>
+                        <span title="Redo" class="icon-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
+                    </li>
+                    <li>
+                        <span title="Show Item List" class="icon-button" @click="$emit('clicked-show-item-list')"><i class="fas fa-list"></i></span>
+                    </li>
+                    <li>
+                        <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                    </li>
+                    <li>
+                        <span title="Snap to Grid" class="toggle-button" :class="{toggled: snapToGrid}" @click="toggleSnapToGrid()">
+                            <i class="fas fa-magnet"></i>
+                            <i class="small-letter">G</i>
+                        </span>
+                    </li>
+                </ul>
+            </div>
             <div class="quick-helper-panel-section" v-if="selectedItemsCount > 0">
                 <ul class="button-group">
                     <li>
@@ -61,8 +83,8 @@ import Shape from './items/shapes/Shape';
 export default {
     props: {
         /** @type {SchemeContainer} */
-        schemeContainer : { value: null, type: Object },
-        projectId: {value: null, type: String}
+        schemeContainer: { type: Object },
+        projectId      : {type: String},
     },
     components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown},
 
@@ -91,6 +113,10 @@ export default {
     },
 
     methods: {
+        toggleSnapToGrid() {
+            this.$store.dispatch('setGridSnap', !this.$store.state.grid.snap);
+        },
+
         onItemSelectionChanged() {
             this.selectedItemsCount = this.schemeContainer.getSelectedItems().length;
             if (this.schemeContainer.getSelectedItems().length > 0) {
@@ -146,6 +172,18 @@ export default {
     computed: {
         curveEditAutoAttachEnabled() {
             return this.$store.getters.curveEditAutoAttachEnabled;
+        },
+
+        historyRedoable() {
+            return this.$store.state.history.redoable;
+        },
+
+        historyUndoable() {
+            return this.$store.state.history.undoable;
+        },
+
+        snapToGrid() {
+            return this.$store.state.grid.snap;
         }
     }
 }
