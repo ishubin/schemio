@@ -10,9 +10,6 @@ const dom = new JSDOM(``, {
 });
 
 
-// const { window } = new JSDOM('<div></div>');
-// const { document } = (new JSDOM('<div></div>')).window;
-
 global.window = dom.window;
 global.document = dom.window.document;
 
