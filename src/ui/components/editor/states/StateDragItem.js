@@ -44,7 +44,7 @@ export default class StateDragItem extends State {
      * @param {EventBus} eventBus 
      */
     constructor(eventBus, store) {
-        super(eventBus);
+        super(eventBus, store);
         this.name = 'drag-item';
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.startedDragging = true;
@@ -624,9 +624,10 @@ export default class StateDragItem extends State {
                 this.sourceItem.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
         } else {
-            const localPoint = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
-            curvePoint.x = this.snapper.snapX(localPoint.x);
-            curvePoint.y = this.snapper.snapY(localPoint.y);
+            const localPoint = this.schemeContainer.localPointOnItem(this.snapper.snapX(x), this.snapper.snapY(y), this.sourceItem);
+
+            curvePoint.x = localPoint.x;
+            curvePoint.y = localPoint.y;
 
             // nothing to attach to so reseting highlights in case it was set previously
             this.eventBus.emitItemsHighlighted([]);

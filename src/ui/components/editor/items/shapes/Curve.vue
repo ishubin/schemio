@@ -259,11 +259,23 @@ export default {
                 }
             }
         },
-        handleDrag(item, pointId, originalX, originalY, dx, dy, snapper) {
+        /**
+         * @param {Item} item
+         * @param {String} pointId
+         * @param {Number} originalX
+         * @param {Number} originaly
+         * @param {Number} dx
+         * @param {Number} dy
+         * @param {Snapper} snapper
+         * @param {SchemeContainer} schemeContainer
+         */
+        handleDrag(item, pointId, originalX, originalY, dx, dy, snapper, schemeContainer) {
             const point = item.shapeProps.points[pointId];
             if (point) {
-                point.x = snapper.snapX(originalX + dx);
-                point.y = snapper.snapY(originalY + dy);
+                const worldPoint = schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
+                const localPoint = schemeContainer.localPointOnItem(snapper.snapX(worldPoint.x), snapper.snapY(worldPoint.y), item);
+                point.x = localPoint.x;
+                point.y = localPoint.y;
             }
         }
     },

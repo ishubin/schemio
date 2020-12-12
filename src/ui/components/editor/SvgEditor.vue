@@ -313,7 +313,6 @@ export default {
         schemeContainer : { value: null, type: Object },
         viewportTop     : { value: 0, type: Number },
         viewportLeft    : { value: 0, type: Number },
-        shouldSnapToGrid: { value: false, type: Boolean },
         zoom            : { value: 1.0, type: Number },
     },
 
@@ -1421,11 +1420,11 @@ export default {
             return `translate(${this.viewportLeft} ${this.viewportTop})`;
         },
         gridStep() {
-            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            const snapSize = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
             return snapSize * this.schemeContainer.screenTransform.scale;
         },
         gridCount() {
-            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            const snapSize = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
             const screenStep = (snapSize * this.schemeContainer.screenTransform.scale);
             if (screenStep < 4) {
                 return {
@@ -1438,7 +1437,7 @@ export default {
             };
         },
         gridTransform() {
-            const snapSize = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
+            const snapSize = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
             let x = Math.ceil(this.schemeContainer.screenTransform.x % (snapSize * this.schemeContainer.screenTransform.scale));
             let y = Math.ceil(this.schemeContainer.screenTransform.y % (snapSize * this.schemeContainer.screenTransform.scale));
             return `translate(${x} ${y})`;

@@ -130,11 +130,11 @@ class State {
     }
 
     snapToGrid(value) {
-        const snap = myMath.getSnappinWidthForScale(this.schemeContainer.screenTransform.scale);
-        if (this.editor.shouldSnapToGrid) {
+        const snap = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
+        if (this.store.state.grid.snap) {
             return Math.round(value / snap) * snap;
         }
-        return Math.round(value);
+        return value;
     }
 
     updateCursor(cursor) {

@@ -211,7 +211,7 @@ export default {
      * @param {Number} scale The scale value on screen transform
      * @returns {Number} size of grid snapping in world coords
      */
-    getSnappinWidthForScale(scale) {
+    getSnappingWidthForScale(scale) {
         const log5 = Math.round(Math.log(scale) / Math.log(5));
         const snapIndex = log5 + 2;
         if (snapIndex > 0 && snapIndex < this._snapScales.length) {

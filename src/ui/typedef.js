@@ -66,6 +66,13 @@
  * @property {ItemBehavior} behavior
  */
 
+ /**
+  * @typedef {Object} ScreenTransform
+  * @property {Number} x - offset on X axis
+  * @property {Number} y - offset on Y axis
+  * @property {Number} scale - scale of the zoom where 1.0 is normal zoom.
+  */
+
 
 /**
  * @interface SchemeContainer
@@ -77,9 +84,20 @@
  */
 
 
- /**
-  * @typedef {Object} ScreenTransform
-  * @property {Number} x - offset on X axis
-  * @property {Number} y - offset on Y axis
-  * @property {Number} scale - scale of the zoom where 1.0 is normal zoom.
+
+ /** 
+  * Interface for snapping points on X and Y axis. Used for snapping to grid
+  * @interface Snapper
   */
+ /**
+  * @function
+  * @name Snapper#snapX
+  * @param {Number} x - value on X axis which should be snapped
+  */
+ /**
+  * @function
+  * @name Snapper#snapY
+  * @param {Number} x - value on X axis which should be snapped
+  */
+
+

@@ -47,7 +47,6 @@
                         :key="schemeContainer.scheme.id"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="currentUser ? mode : 'view'"
-                        :should-snap-to-grid="shouldSnapToGrid"
                         :viewport-top="viewportTopOffset"
                         :viewport-left="viewportLeftOffset"
                         :zoom="zoom"
@@ -997,10 +996,6 @@ export default {
         schemeModified() {
             return this.$store.getters.schemeModified;
         },
-
-        shouldSnapToGrid() {
-            return this.$store.state.grid.snap;
-        }
     }
 }
 </script>
