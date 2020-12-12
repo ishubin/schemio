@@ -1,8 +1,8 @@
 <template>
     <div class="quick-helper-panel-wrapper">
         <div class="quick-helper-panel">
-            <div class="quick-helper-panel-section">
-                <ul class="button-group" :class="{disabled: selectedItemsCount === 0}">
+            <div class="quick-helper-panel-section" v-if="selectedItemsCount > 0">
+                <ul class="button-group">
                     <li>
                         <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
                     </li>

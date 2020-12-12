@@ -18,18 +18,14 @@
                         @export-html-requested="exportHTMLModalShown = true"
                         />
 
-                    <ul class="button-group" v-if="currentUser">
-                        <li v-for="knownMode in knownModes">
-                            <span class="toggle-button editor-mode"
-                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
-                                @click="toggleMode(knownMode)"
-                                >
-                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
-                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
-                                {{knownMode}}
-                            </span>
-                        </li>
-                    </ul>
+                    <span v-for="knownMode in knownModes" class="toggle-button editor-mode"
+                        :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                        @click="toggleMode(knownMode)"
+                        >
+                        <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
+                        <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
+                        {{knownMode}}
+                    </span>
 
                     <span><i class="fas fa-search-minus" style="color: #fff; cursor: pointer;" @click="onZoomOutClicked"></i></span>
                     <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">

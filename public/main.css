@@ -831,7 +831,7 @@ ul.button-group > li > .icon-button.disabled:hover {
 }
 
 
-ul.button-group > li > .toggle-button {
+.toggle-button {
     display: inline-block;
     min-width: 25px;
     position: relative;
@@ -844,54 +844,39 @@ ul.button-group > li > .toggle-button {
     font-weight: bold;
     text-transform: capitalize;
 }
-ul.button-group > li > .toggle-button.toggled {
+.toggle-button.toggled {
     color: var(--base-weak);
     background: var(--base-strong);
     cursor: pointer;
     cursor: hand;
 }
-ul.button-group > li > .toggle-button:hover {
+.toggle-button:hover {
     background: var(--base-strong-up);
     color: var(--base-weak);
 }
-ul.button-group > li > .toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
+.toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
     color: var(--base-weak) !important;
     opacity: 0.2;
     background: none;
     cursor: default;
 }
-ul.button-group > li > .toggle-button .small-letter {
+.toggle-button .small-letter {
     position: absolute;
     bottom: 0;
     right: 1px;
     font-size: 8px;
 }
-.header ul.button-group > li > .toggle-button {
+.header .toggle-button {
     color: var(--accent-weak);
 }
-.header ul.button-group > li > .toggle-button.toggled {
+.header .toggle-button.toggled {
     color: var(--accent-weak);
     background: var(--accent-strong);
 }
-.header ul.button-group > li > .toggle-button:hover {
+.header .toggle-button:hover {
     background: var(--accent-faint);
     color: var(--accent-weak);
 }
-.scheme-editor-top-panel ul.button-group > li > .toggle-button {
-    color: #999;
-}
-.scheme-editor-top-panel ul.button-group > li > .toggle-button.toggled {
-    color: #111;
-    background: #fff;
-}
-.scheme-editor-top-panel ul.button-group > li > .toggle-button:hover {
-    background: #999;
-    color: #111;
-}
-.scheme-editor-top-panel ul.button-group > li > .toggle-button.toggled:hover {
-    background: #fff;
-}
-
 
 
 
