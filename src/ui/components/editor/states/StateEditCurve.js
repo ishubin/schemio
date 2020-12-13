@@ -241,12 +241,16 @@ export default class StateEditCurve extends State {
                 point.y = snappedLocalCurvePoint.y;
 
                 this.shouldJoinClosedPoints = false;
+
                 if (this.item.shapeProps.points.length > 2) {
+                    // checking if the curve point was moved too close to first point,
+                    // so that the placement of new points can be stopped and curve will become closed
+                    // This needs to be checked in viewport (not in world transform)
                     const p0 = this.item.shapeProps.points[0];
                     const dx = point.x - p0.x;
                     const dy = point.y - p0.y;
                     
-                    if (Math.sqrt(dx * dx + dy * dy) < 15) {
+                    if (Math.sqrt(dx * dx + dy * dy) * this.schemeContainer.screenTransform.scale <= 5) {
                         point.x = p0.x;
                         point.y = p0.y;
                         if (!this.item.shapeProps.sourceItem) {
