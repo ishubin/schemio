@@ -643,6 +643,8 @@ export default {
             this.highlightItems([]);
             if (item.shape === 'curve') {
                 this.curveEditItem = item;
+                // making sure every new curve starts non-closed
+                item.shapeProps.closed = false;
                 this.state = 'editCurve';
                 EventBus.emitCurveEdited(item);
             } else {
