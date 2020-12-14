@@ -22,7 +22,7 @@ const log = new Logger('SchemeContainer');
 
 const IS_SOFT = true;
 const IS_HARD = false;
-
+const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
 
 const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
@@ -1142,24 +1142,26 @@ class SchemeContainer {
         const originalArea = multiItemEditBox.itemData[item.id].originalArea;
         const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
 
-        if (!originalArea || originalArea.w < 0.0001 || originalArea.h < 0.0001) {
-            return;
-        }
-        if (item.area.w < 0.0001 || item.area.h < 0.0001) {
-            return;
-        }
         if (!originalCurvePoints) {
             return;
         }
 
         forEach(originalCurvePoints, (point, index) => {
-            item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
-            item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
+            if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
+                item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
+            }
+            if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
+                item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
+            }
             if (point.t === 'B') {
-                item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
-                item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
-                item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
-                item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
+                if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
+                    item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
+                    item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
+                }
+                if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
+                    item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
+                    item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
+                }
             }
         });
     }
