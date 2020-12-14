@@ -600,7 +600,12 @@ export default class StateDragItem extends State {
         // this function implement the same logic as in StateEditCurve.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
-        const distanceThreshold = 20;
+
+        let distanceThreshold = 0;
+        if (this.schemeContainer.screenTransform.scale > 0) {
+            distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
+        }
+
         const includeOnlyVisibleItems = true;
 
         const curvePoint = this.sourceItem.shapeProps.points[this.controlPoint.id];
