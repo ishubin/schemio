@@ -576,7 +576,7 @@ export default class StateDragItem extends State {
     handleControlPointDrag(x, y) {
         const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
         if (controlPoint) {
-            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
+            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd) && this.store.state.curveEditing.autoAttachEnabled) {
                 this.handleCurveEdgeControlPointDrag(x, y, controlPoint);
             } else {
                 const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
