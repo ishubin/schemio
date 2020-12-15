@@ -215,7 +215,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Dummy',
-    iconUrl: '/images/items/rect.svg',
+    iconUrl: '/images/items/dummy.svg',
     item: utils.extendObject({
         shape: 'dummy',
         shapeProps: {cornerRadius: 0}
