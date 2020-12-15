@@ -9,8 +9,13 @@ const store = new Vuex.Store({
         currentUser: null,
         schemeModified: false,
 
+
+        editorStateName: 'interact',
+
         curveEditing: {
-            autoAttachEnabled: true
+            autoAttachEnabled: true,
+            // item whose curve is currently edited
+            item: null
         },
 
         // stores the state of the history in scheme editing
@@ -33,6 +38,9 @@ const store = new Vuex.Store({
         SET_CURVE_EDIT_AUTO_ATTACH(state, isEnabled) {
             state.curveEditing.autoAttachEnabled = isEnabled;
         },
+        SET_CURVE_EDIT_ITEM(state, item) {
+            state.curveEditing.item = item;
+        },
         SET_HISTORY_UNDOABLE(state, isUndoable) {
             state.history.undoable = isUndoable;
         },
@@ -41,6 +49,9 @@ const store = new Vuex.Store({
         },
         SET_GRID_SNAP(state, enabled) {
             state.grid.snap = enabled;
+        },
+        SET_EDITOR_STATE_NAME(state, stateName) {
+            state.editorStateName = stateName;
         }
     },
     actions: {
@@ -63,6 +74,10 @@ const store = new Vuex.Store({
         disableCurveEditAutoAttach({commit}) {
             commit('SET_CURVE_EDIT_AUTO_ATTACH', false);
         },
+
+        setCurveEditItem({commit}, item) {
+            commit('SET_CURVE_EDIT_ITEM', item);
+        },
         
         setHistoryUndoable({commit}, isUndoable) {
             commit('SET_HISTORY_UNDOABLE', isUndoable);
@@ -75,6 +90,10 @@ const store = new Vuex.Store({
         setGridSnap({commit}, enabled) {
             commit('SET_GRID_SNAP', enabled);
         },
+
+        setEditorStateName({commit}, stateName) {
+            commit('SET_EDITOR_STATE_NAME', stateName);
+        }
     },
     getters: {
         currentUser: state => state.currentUser,

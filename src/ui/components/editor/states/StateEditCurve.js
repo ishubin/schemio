@@ -55,9 +55,10 @@ export default class StateEditCurve extends State {
         if (this.creatingNewPoints) {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
-        }
-        if (this.item.shapeProps.points.length > 0) {
-            this.submitItem();
+
+            if (this.item.shapeProps.points.length > 0) {
+                this.submitItem();
+            }
         }
         super.cancel();
     }
@@ -293,6 +294,11 @@ export default class StateEditCurve extends State {
             }
         }
 
+        // if something was dragged - the scheme change should be commited
+        if (this.draggedObject) {
+            this.eventBus.emitSchemeChangeCommited();
+        }
+
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
     }
@@ -386,6 +392,7 @@ export default class StateEditCurve extends State {
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     convertPointToBeizer(pointIndex) {
@@ -417,6 +424,7 @@ export default class StateEditCurve extends State {
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     handleCurvePointDrag(x, y, pointIndex) {

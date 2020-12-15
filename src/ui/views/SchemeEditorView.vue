@@ -705,6 +705,7 @@ export default {
                     this.schemeContainer.reindexItems();
                     this.updateRevision();
                     this.restoreItemSelection();
+                    this.restoreCurveEditing();
                 }
                 this.updateHistoryState();
             }
@@ -718,8 +719,30 @@ export default {
                     this.schemeContainer.reindexItems();
                     this.updateRevision();
                     this.restoreItemSelection();
+                    this.restoreCurveEditing();
                 }
                 this.updateHistoryState();
+            }
+        },
+
+        restoreCurveEditing() {
+            if (this.$store.state.editorStateName === 'editCurve') {
+                const storeItem = this.$store.state.curveEditing.item;
+                if (!storeItem) {
+                    return;
+                }
+                const existingItem = this.schemeContainer.findItemById(storeItem.id);
+                if (existingItem) {
+                    this.$store.dispatch('setCurveEditItem', existingItem);
+                    EventBus.$emit(EventBus.CURVE_EDITED, existingItem);
+                } else {
+                    this.$store.dispatch('setCurveEditItem', null);
+                    if (this.$store.state.editorStateName === 'editCurve') {
+                        EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+                    }
+                }
+            } else {
+                this.$store.dispatch('setCurveEditItem', null);
             }
         },
 
@@ -736,7 +759,6 @@ export default {
         },
 
         updateHistoryState() {
-
             this.$store.dispatch('setHistoryUndoable', history.undoable());
             this.$store.dispatch('setHistoryRedoable', history.redoable());
         },

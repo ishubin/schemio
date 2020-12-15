@@ -434,7 +434,6 @@ export default {
                 originalItemAreas: {} // used to reset back to it, so that user can experiment with multiple angles
             },
 
-            curveEditItem: null,
             worldHighlightedItems: [ ],
             viewportHighlightedItems: [ ],
 
@@ -641,7 +640,7 @@ export default {
         onSwitchStateCreateItem(item) {
             this.highlightItems([]);
             if (item.shape === 'curve') {
-                this.curveEditItem = item;
+                this.setCurveEditItem(item);
                 // making sure every new curve starts non-closed
                 item.shapeProps.closed = false;
                 this.state = 'editCurve';
@@ -653,6 +652,10 @@ export default {
             states[this.state].setItem(item);
         },
 
+        setCurveEditItem(item) {
+            this.$store.dispatch('setCurveEditItem', item);
+        },
+
         onStartConnecting(item, worldPoint) {
             this.highlightItems([]);
             let localPoint = null;
@@ -661,7 +664,7 @@ export default {
             }
             states.editCurve.reset();
             const curveItem = states.editCurve.initConnectingFromSourceItem(item, localPoint);
-            this.curveEditItem = curveItem;
+            this.setCurveEditItem(curveItem);
             this.state = 'editCurve';
         },
 
@@ -670,7 +673,7 @@ export default {
             this.state = 'editCurve';
             states.editCurve.reset();
             states.editCurve.setItem(item);
-            this.curveEditItem = item;
+            this.setCurveEditItem(item);
         },
 
         onCurveEditStopped() {
@@ -1380,7 +1383,7 @@ export default {
     },
     watch: {
         state(newState) {
-            EventBus.$emit(EventBus.EDITOR_STATE_CHANGED, states[newState].name);
+            this.$store.dispatch('setEditorStateName', newState);
         },
         mode(newMode) {
             if (newMode === 'edit') {
@@ -1442,6 +1445,9 @@ export default {
             let y = Math.ceil(this.schemeContainer.screenTransform.y % (snapSize * this.schemeContainer.screenTransform.scale));
             return `translate(${x} ${y})`;
         },
+        curveEditItem() {
+            return this.$store.state.curveEditing.item;
+        }
     },
     filters: {
         formatLinkTitle(link) {

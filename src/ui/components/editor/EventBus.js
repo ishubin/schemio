@@ -15,7 +15,6 @@ const EventBus = new Vue({
             START_CREATING_COMPONENT: 'start-creating-component',
             START_CONNECTING_ITEM: 'start-connecting-item',
             PLACE_ITEM: 'place-item',
-            EDITOR_STATE_CHANGED: 'editor-state-changed',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',

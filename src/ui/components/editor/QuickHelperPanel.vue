@@ -58,7 +58,7 @@
                 </ul>
                 
             </div>
-            <div v-if="currentState === 'curve-edit-helper'" class="quick-helper-panel-section">
+            <div v-if="currentState === 'editCurve'" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
@@ -91,20 +91,17 @@ export default {
     components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown},
 
     beforeMount() {
-        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
     },
 
     data() {
         return {
-            currentState: null,
             selectedItemsCount: 0,
 
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
@@ -143,14 +140,6 @@ export default {
             }
         },
 
-        onEditorStateChanged(stateName) {
-            if (stateName === 'edit-curve') {
-                this.currentState = 'curve-edit-helper';
-            } else {
-                this.currentState = null;
-            }
-        },
-
         stopEditCurve() {
             EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
         },
@@ -186,6 +175,10 @@ export default {
 
         snapToGrid() {
             return this.$store.state.grid.snap;
+        },
+
+        currentState() {
+            return this.$store.state.editorStateName;
         }
     }
 }
