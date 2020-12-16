@@ -34,13 +34,18 @@
 
         <svg ref="svgContainer" class="export-svg-preview"
             width="100%" height="300px"
-            :viewBox="`${-paddingLeft} ${-paddingTop} ${viewBoxWidth} ${viewBoxHeight}`"
+            :viewBox="`${-paddingLeft - previewPadding} ${-paddingTop - previewPadding} ${viewBoxWidth + 2*previewPadding} ${viewBoxHeight + 2*previewPadding}`"
             :preserveAspectRatio="preserveAspectRatio"
             :style="svgStyle"
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xhtml="http://www.w3.org/1999/xhtml"
             xmlns:xlink="http://www.w3.org/1999/xlink" >
-            <g :transform="`translate(0, 0)`" v-html="svgHtml"></g>
+            <g data-preview-ignore="true">
+                <rect :x="-paddingLeft" :y="-paddingTop" :width="viewBoxWidth+paddingLeft" :height="viewBoxHeight+paddingTop"
+                    style="fill:none; stroke-width:1; stroke:rgba(100,100,255, 0.2)"
+                    :style="{'stroke-width': previewStrokeSize}"/>
+            </g>
+            <g v-html="svgHtml"></g>
         </svg>
     </modal>
 </template>
@@ -49,6 +54,7 @@
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
+import forEach from 'lodash/forEach';
 
 export default {
     props: {
@@ -70,13 +76,24 @@ export default {
             viewBoxWidth: this.width,
             viewBoxHeight: this.height,
             placement: 'centered', // can be top-left, centered, stretched
-            svgHtml: svgHtml
+            svgHtml: svgHtml,
+            previewPadding: 20
         };
     },
 
     methods: {
         saveIt() {
             const svgDom = this.$refs.svgContainer.cloneNode(true);
+            forEach(svgDom.childNodes, child => {
+                if (child && child.nodeType === Node.ELEMENT_NODE) {
+                    if (child.getAttribute('data-preview-ignore') === 'true') {
+                        svgDom.removeChild(child);
+                    }
+                }
+            });
+
+            svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${this.viewBoxWidth} ${this.viewBoxHeight}`);
+
             svgDom.removeAttribute('width');
             svgDom.removeAttribute('height');
 
@@ -115,6 +132,17 @@ export default {
                 };
             }
             return {};
+        },
+
+        previewStrokeSize() {
+            const vw = this.viewBoxWidth + 2 * this.previewPadding + this.paddingLeft;
+            const vh = this.viewBoxHeight + 2 * this.previewPadding + this.paddingTop;
+
+            if (Math.abs(vw) < 0.001 || Math.abs(vh) < 0.001) {
+                return 1;
+            }
+
+            return 2 * Math.max(Math.abs(vw/600), Math.abs(vh/380));
         }
     }
 }
