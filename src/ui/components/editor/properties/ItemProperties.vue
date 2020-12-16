@@ -168,7 +168,12 @@
 
                                 <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
 
-                                <curve-cap-dropdown v-if="arg.type === 'curve-cap'" :value="item.shapeProps[argName]" @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
+                                <curve-cap-dropdown v-if="arg.type === 'curve-cap'"
+                                    :value="item.shapeProps[argName]"
+                                    :is-source="argName === 'sourceCap'"
+                                    width="16px"
+                                    height="16px"
+                                    @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
 
                                 <element-picker v-if="arg.type === 'element'"
                                     :element="item.shapeProps[argName]"

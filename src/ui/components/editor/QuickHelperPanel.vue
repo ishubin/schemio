@@ -29,6 +29,20 @@
                         <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
                     </li>
                     <li>
+                        <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
+                            <img src="/images/helper-panel/bring-to-front.svg"/>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
+                            <img src="/images/helper-panel/bring-to-back.svg"/>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            <div class="quick-helper-panel-section" v-if="selectedItemsCount > 0">
+                <ul class="button-group">
+                    <li>
                         <advanced-color-editor
                             :project-id="projectId"
                             :value="fillColor"
@@ -51,16 +65,6 @@
                             height="16px"
                             @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                     </li>
-                    <li>
-                        <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
-                            <img src="/images/helper-panel/bring-to-front.svg"/>
-                        </span>
-                    </li>
-                    <li>
-                        <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
-                            <img src="/images/helper-panel/bring-to-back.svg"/>
-                        </span>
-                    </li>
                 </ul>
                 
             </div>
@@ -70,6 +74,22 @@
                         <span class="toggle-button" :class="{toggled: curveEditAutoAttachEnabled}" @click="toggleCurveEditAutoAttach" title="Auto-attach curve">
                             <img src="/images/helper-panel/auto-attach-curve.svg"/>
                         </span>
+                    </li>
+                    <li v-if="shouldShowCurveCaps">
+                        <curve-cap-dropdown 
+                            :value="curveSourceCap"
+                            :is-source="true"
+                            width="16px"
+                            height="16px"
+                            @selected="emitShapePropChange('sourceCap', 'curve-cap', arguments[0])"/>
+                    </li>
+                    <li v-if="shouldShowCurveCaps">
+                        <curve-cap-dropdown 
+                            :value="curveDestinationCap"
+                            :is-source="false"
+                            width="16px"
+                            height="16px"
+                            @selected="emitShapePropChange('destinationCap', 'curve-cap', arguments[0])"/>
                     </li>
                     <li v-if="currentState === 'editCurve'">
                         <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
@@ -87,6 +107,7 @@ import EventBus from './EventBus';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
+import CurveCapDropdown from './CurveCapDropdown.vue';
 import Shape from './items/shapes/Shape';
 
 export default {
@@ -95,7 +116,7 @@ export default {
         schemeContainer: { type: Object },
         projectId      : {type: String},
     },
-    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown},
+    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown},
 
     beforeMount() {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
@@ -110,9 +131,13 @@ export default {
     data() {
         return {
             selectedItemsCount: 0,
+            firstSelectedItem: null,
 
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
             strokeColor: 'rgba(255,255,255,1.0)',
+
+            curveSourceCap: 'empty',
+            curveDestinationCap: 'empty',
 
             strokePattern: 'solid',
         };
@@ -128,6 +153,7 @@ export default {
             if (this.schemeContainer.getSelectedItems().length > 0) {
                 const item = this.schemeContainer.getSelectedItems()[0];
                 const shape = Shape.find(item.shape);
+                this.firstSelectedItem = item;
                 if (shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
                 }
@@ -136,6 +162,11 @@ export default {
                 }
                 if (shape.argType('strokePattern') === 'stroke-pattern') {
                     this.strokePattern = item.shapeProps.strokePattern;
+                }
+
+                if (item.shape === 'curve') {
+                    this.curveSourceCap = item.shapeProps.sourceCap;
+                    this.curveDestinationCap = item.shapeProps.destinationCap;
                 }
             }
         },
@@ -164,6 +195,12 @@ export default {
             if (name === 'strokePattern' && type === 'stroke-pattern') {
                 this.strokePattern = value;
             }
+            else if (name === 'sourceCap') {
+                this.curveSourceCap = value;
+            }
+            else if (name === 'destinationCap') {
+                this.curveDestinationCap = value;
+            }
         },
 
     },
@@ -191,6 +228,16 @@ export default {
 
         shouldShownCurveHelpers() {
             return this.$store.state.editorStateName === 'editCurve' || this.selectedItemsCount > 0;
+        },
+
+        shouldShowCurveCaps() {
+            if (this.$store.state.editorStateName === 'editCurve') {
+                return true;
+            }
+            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'curve') {
+                return true;
+            }
+            return false;
         }
     }
 }
