@@ -21,7 +21,12 @@
                 </li>
             </ul>
 
-            <div class="tabs-body">
+            <div class="tabs-body" style="min-height: 320px">
+                <div v-if="color.type === 'none'">
+                    <p>
+                        This setting disables the fill
+                    </p>
+                </div>
                 <div v-if="color.type === 'solid'">
                     <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
                 </div>

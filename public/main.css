@@ -10,8 +10,11 @@
     --base-strong-up: #3b3b3b;
     --base-weak: #fff;
 
-    --faint-strong: #8a94a5;
-    --faint-weak: #f2f5f8;
+    --faint-strong: #9a9b9c;
+    --faint-weak: #eeeeee;
+    --faint-strong-up: #c0c0c0;
+    --faint-strong-up-up: #d1d1d1;
+    --faint-weak-up: #e2e2e2;
 
     --accent-strong: #2373ce;
     --accent-faint: #5291da;
@@ -29,8 +32,6 @@
     --success-strong: #23a85a;
     --success-weak: #d6f1e1;
 
-    --faint-strong-down: #9da4b1;
-    --faint-weak-up: #e7eaf7;
 
     --section-delimiter-color: #b3b5b9;
     --icon-button-hover-background: #d4d4d6;
@@ -50,7 +51,7 @@ body {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background: #eee;
+    background: var(--faint-weak);
 }
 
 * {
@@ -276,18 +277,17 @@ ul.tabs li {
 ul.tabs li .tab {
     display: inline-block;
     padding: 3px 5px;
-    border: 1px solid #aaa;
-    background: #ddd;
-    color: #555;
+    border: 1px solid var(--faint-strong);
+    background: var(--faint-strong-up-up);
+    color: var(--base-strong-up);
     font-size: 10px;
     text-transform: uppercase;
     font-weight: bold;
     cursor: pointer;
 }
 ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
-    color: #444;
-    background: #f4f4f4;
-    border-bottom: 1px solid #f4f4f4;
+    background: var(--faint-weak);
+    border-bottom: 1px solid var(--faint-weak);
     cursor: default;
 }
 ul.tabs li .tab:hover {
@@ -303,7 +303,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     position: relative;
     padding: 10px;
     margin: 0;
-    background: #f4f4f4;
+    background: var(--faint-weak);
 }
 .tabs-body:before {
     z-index: 1;
@@ -881,7 +881,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .toggle-button.toggled {
     color: var(--base-strong);
-    background: var(--faint-strong-down);
+    background: var(--faint-strong-up);
     cursor: pointer;
     cursor: hand;
 }
@@ -1080,7 +1080,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     cursor: pointer;
 }
 .advanced-color-editor .gradient-container.large {
-    height: 60px;
+    height: 30px;
 }
 .advanced-color-editor .image-container {
     border: 1px solid #999;
@@ -1101,7 +1101,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 /*************************** Advanced Color Picker Gradient Controls *********************/
 .gradient-slider-container {
     position: relative;
-    padding-bottom: 40px;
+    padding-bottom: 30px;
 }
 .gradient-slider-container .gradient-slider {
     position: absolute;
