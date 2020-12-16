@@ -1327,7 +1327,7 @@ export default {
         surroundSelectedItems() {
             forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
                 if (box !== null && box.items.length > 0) {
-                    const padding = 40;
+                    const padding = this.$store.state.itemSurround.padding;
                     const rect = utils.clone(defaultItem);
                     rect.name = 'Group';
                     rect.area = {
@@ -1377,6 +1377,8 @@ export default {
                             remountedItemIds[item.id] = 1;
                         }
                     });
+                    this.schemeContainer.selectItem(rect);
+                    EventBus.emitItemSurroundCreated(rect, box.area, padding);
                 }
             });
         },

@@ -96,6 +96,13 @@
                     </li>
                 </ul>
             </div>
+            <div v-if="itemSurround.shown" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <number-textfield :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </template>
@@ -108,7 +115,9 @@ import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
 import CurveCapDropdown from './CurveCapDropdown.vue';
+import NumberTextfield from '../NumberTextfield.vue';
 import Shape from './items/shapes/Shape';
+import forEach from 'lodash/forEach';
 
 export default {
     props: {
@@ -116,16 +125,18 @@ export default {
         schemeContainer: { type: Object },
         projectId      : {type: String},
     },
-    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown},
+    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown, NumberTextfield},
 
     beforeMount() {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
+        EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
+        EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
     },
 
     data() {
@@ -140,6 +151,14 @@ export default {
             curveDestinationCap: 'empty',
 
             strokePattern: 'solid',
+
+            itemSurround: {
+                shown: false,
+                padding: 20,
+                boundingBox: {x: 0, y: 0, w: 0, h: 0, r: 0},
+                item: null,
+                childItemOriginalPositions: {}
+            }
         };
     },
 
@@ -149,6 +168,8 @@ export default {
         },
 
         onItemSelectionChanged() {
+            this.itemSurround.shown = false;
+
             this.selectedItemsCount = this.schemeContainer.getSelectedItems().length;
             if (this.schemeContainer.getSelectedItems().length > 0) {
                 const item = this.schemeContainer.getSelectedItems()[0];
@@ -203,6 +224,42 @@ export default {
             }
         },
 
+        onItemSurroundCreated(item, boundingBox, padding) {
+            this.itemSurround.childItemOriginalPositions = {};
+            this.itemSurround.item        = item;
+            this.itemSurround.boundingBox = boundingBox;
+            this.itemSurround.padding     = padding;
+            this.itemSurround.shown       = true;
+            forEach(item.childItems, childItem => {
+                this.itemSurround.childItemOriginalPositions[childItem.id] = this.schemeContainer.worldPointOnItem(0, 0, childItem);
+            });
+        },
+
+        onItemSurroundPaddingChanged(padding) {
+            const item = this.itemSurround.item;
+            if (!item) {
+                return;
+            }
+
+            this.$store.dispatch('setItemSurroundPadding', padding);
+
+            item.area.x = this.itemSurround.boundingBox.x - padding;
+            item.area.y = this.itemSurround.boundingBox.y - padding;
+            item.area.w = this.itemSurround.boundingBox.w + 2 * padding;
+            item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
+
+            EventBus.emitItemChanged(item.id, 'item.area');
+            this.schemeContainer.updateAllMultiItemEditBoxes();
+
+            forEach(item.childItems, childItem => {
+                const originalWorldPoint = this.itemSurround.childItemOriginalPositions[childItem.id];
+
+                const localPoint = this.schemeContainer.localPointOnItem(originalWorldPoint.x, originalWorldPoint.y, item);
+                childItem.area.x = localPoint.x;
+                childItem.area.y = localPoint.y;
+                EventBus.emitItemChanged(childItem.id, 'item.area');
+            });
+        }
     },
 
     computed: {

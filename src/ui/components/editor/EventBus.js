@@ -83,7 +83,9 @@ const EventBus = new Vue({
 
             ITEMS_HIGHLIGHTED: 'items-highlighted',
 
-            EXPORT_SVG_REQUESTED: 'export-svg-requested'
+            EXPORT_SVG_REQUESTED: 'export-svg-requested',
+
+            ITEM_SURROUND_CREATED: 'item-surround-created'
         };
     },
     methods: {
@@ -168,6 +170,10 @@ const EventBus = new Vue({
 
         emitCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.$emit(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, mouseX, mouseY, menuOptions);
+        },
+
+        emitItemSurroundCreated(item, boundingBox, padding) {
+            this.$emit(EventBus.ITEM_SURROUND_CREATED, item, boundingBox, padding);
         }
     }
 });

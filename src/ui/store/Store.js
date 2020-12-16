@@ -26,6 +26,10 @@ const store = new Vuex.Store({
 
         grid: {
             snap: true
+        },
+
+        itemSurround: {
+            padding: 40
         }
     },
     mutations: {
@@ -52,6 +56,9 @@ const store = new Vuex.Store({
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
+        },
+        SET_ITEM_SURROUND_PADDING(state, padding) {
+            state.itemSurround.padding = padding;
         }
     },
     actions: {
@@ -93,6 +100,10 @@ const store = new Vuex.Store({
 
         setEditorStateName({commit}, stateName) {
             commit('SET_EDITOR_STATE_NAME', stateName);
+        },
+        
+        setItemSurroundPadding({commit}, padding) {
+            commit('SET_ITEM_SURROUND_PADDING', padding);
         }
     },
     getters: {
