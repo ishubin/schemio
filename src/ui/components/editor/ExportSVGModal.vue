@@ -69,7 +69,7 @@ export default {
             paddingLeft: 0,
             viewBoxWidth: this.width,
             viewBoxHeight: this.height,
-            placement: 'top-left', // can be top-left, centered, stretched
+            placement: 'centered', // can be top-left, centered, stretched
             svgHtml: svgHtml
         };
     },

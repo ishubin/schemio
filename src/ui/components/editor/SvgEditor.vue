@@ -438,6 +438,8 @@ export default {
             viewportHighlightedItems: [ ],
 
             exportSVGModal: {
+                width: 100,
+                height: 100,
                 shown: false,
                 exportedItems: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
@@ -1131,6 +1133,15 @@ export default {
             }
             if (this.exportSVGModal.height > 5) {
                 this.exportSVGModal.height = Math.round(this.exportSVGModal.height);
+            }
+
+            // this check is needed when export straigt vertical or horizontal curve lines
+            // in such case area is defined with zero width or height and it makes SVG export confused
+            if (this.exportSVGModal.width < 0.001) {
+                this.exportSVGModal.width = 20;
+            }
+            if (this.exportSVGModal.height < 0.001) {
+                this.exportSVGModal.height = 20;
             }
             this.exportSVGModal.backgroundColor = schemeContainer.scheme.style.backgroundColor
             this.exportSVGModal.shown = true;

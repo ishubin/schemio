@@ -168,6 +168,8 @@
 
                                 <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
 
+                                <curve-cap-dropdown v-if="arg.type === 'curve-cap'" :value="item.shapeProps[argName]" @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
+
                                 <element-picker v-if="arg.type === 'element'"
                                     :element="item.shapeProps[argName]"
                                     :use-self="false"
@@ -211,6 +213,7 @@ import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
+import CurveCapDropdown from '../CurveCapDropdown.vue';
 import myMath from '../../../myMath';
 
 
@@ -231,7 +234,8 @@ export default {
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
-        ElementPicker, StrokePatternDropdown, AdvancedColorEditor
+        ElementPicker, StrokePatternDropdown, AdvancedColorEditor,
+        CurveCapDropdown
     },
 
     beforeMount() {
