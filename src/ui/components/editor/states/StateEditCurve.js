@@ -326,6 +326,18 @@ export default class StateEditCurve extends State {
                     clicked: () => this.convertPointToSimple(object.pointIndex)
                 });
             }
+            if (object.pointIndex === 0 && this.item.shapeProps.sourceItem) {
+                menuOptions.push({
+                    name: 'Detach',
+                    clicked: () => this.detachSource()
+                });
+            }
+            if (object.pointIndex === this.item.shapeProps.points.length - 1 && this.item.shapeProps.destinationItem) {
+                menuOptions.push({
+                    name: 'Detach',
+                    clicked: () => this.detachDestination()
+                });
+            }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
         }
     }
@@ -547,5 +559,15 @@ export default class StateEditCurve extends State {
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.reset();
+    }
+
+    detachSource() {
+        this.item.shapeProps.sourceItem = null;
+        this.schemeContainer.reindexItems();
+    }
+
+    detachDestination() {
+        this.item.shapeProps.destinationItem = null;
+        this.schemeContainer.reindexItems();
     }
 }
