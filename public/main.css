@@ -263,12 +263,14 @@ ul.schemes li .timestamp {
 
 /******************** Tabs *********************/
 ul.tabs {
+    position: relative;
     list-style: none;
-    margin: 0;
     padding: 10px 0 0 0;
-    background: #aaa;
+    margin: 0;
+    z-index: 20;
 }
 ul.tabs li {
+    margin: 2px;
     display: inline;
 }
 ul.tabs li .tab {
@@ -285,7 +287,7 @@ ul.tabs li .tab {
 ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
     color: #444;
     background: #f4f4f4;
-    border: 1px solid #f4f4f4;
+    border-bottom: 1px solid #f4f4f4;
     cursor: default;
 }
 ul.tabs li .tab:hover {
@@ -298,10 +300,24 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     cursor: default;
 }
 .tabs-body {
+    position: relative;
     padding: 10px;
     margin: 0;
     background: #f4f4f4;
 }
+.tabs-body:before {
+    z-index: 1;
+    display: block;
+    top: -2px;
+    position: absolute;
+    height: 1px;
+    content: '';
+    width: 100%;
+    border-bottom: 1px solid #aaa;
+}
+
+
+
 
 /******************* Buttons *******************/
 .btn {

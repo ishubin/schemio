@@ -10,66 +10,74 @@
         <div v-if="color.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>
 
         <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
-            <select :value="color.type" @input="selectColorType(arguments[0].target.value)">
-                <option v-for="colorType in colorTypes">{{colorType}}</option>
-            </select>
+            <ul class="tabs">
+                <li v-for="colorType in colorTypes">
+                    <span class="tab"
+                        :class="{active: color.type === colorType}"
+                        @click="selectColorType(colorType)"
+                        >
+                        {{colorType}}
+                    </span>
+                </li>
+            </ul>
 
-            <div v-if="color.type === 'solid'">
-                <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
-            </div>
+            <div class="tabs-body">
+                <div v-if="color.type === 'solid'">
+                    <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
+                </div>
 
-            <div v-if="color.type === 'image'">
-                <div class="image-property-container">
-                    <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
-                    <div class="upload-button-container">
-                        <div class="upload-button">
-                            <i class="fas fa-file-upload icon"></i>
-                            <input type="file" @change="onImageUpload"/>
+                <div v-if="color.type === 'image'">
+                    <div class="image-property-container">
+                        <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
+                        <div class="upload-button-container">
+                            <div class="upload-button">
+                                <i class="fas fa-file-upload icon"></i>
+                                <input type="file" @change="onImageUpload"/>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="ctrl-group">
-                    <input type="checkbox" v-model="color.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
-                </div>
-
-                <img v-if="color.type === 'image' && color.image" :src="color.image" style="max-width: 360px; max-height: 360px"/>
-            </div>
-
-            <div v-if="color.type === 'gradient'">
-                <div ref="gradientSliderContainer" class="gradient-slider-container text-nonselectable">
-                    <div class="gradient-container large" :style="{'background': gradientPreview}" @dblclick="onGradientContainerDblClick"></div>
-                    <div class="gradient-slider" v-for="(slider, sliderIdx) in color.gradient.colors" :style="{'left': `${slider.p}%`}">
-                        <div class="gradient-slider-knob"
-                            :style="{'background': slider.c}"
-                            :class="{'selected': sliderIdx === gradient.selectedSliderIdx}"
-                            @mousedown="onGradientSliderKnobClick(sliderIdx, arguments[0])"
-                            @dblclick="onGradientSliderKnobDblClick(sliderIdx)"
-                            ></div>
-                    </div>
-
-                </div>
-                <div class="gradient-controls">
                     <div class="ctrl-group">
-                        <div class="ctrl-label">Gradient Type</div>
-                        <select v-model="color.gradient.type" @change="emitChange">
-                            <option value="linear">Linear</option>
-                            <option value="radial">Radial</option>
-                        </select>
+                        <input type="checkbox" v-model="color.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
                     </div>
-                    <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
-                        <div class="ctrl-label">Direction</div>
-                        <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
-                    </div>
-                    <div class="ctrl-group">
-                        <span class="btn btn-secondary" @click="invertGradient">Invert</span>
-                    </div>
+
+                    <img v-if="color.type === 'image' && color.image" :src="color.image" style="max-width: 360px; max-height: 360px"/>
                 </div>
-                <div class="gradient-color-picker">
-                    <chrome-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"></chrome-picker>
+
+                <div v-if="color.type === 'gradient'">
+                    <div ref="gradientSliderContainer" class="gradient-slider-container text-nonselectable">
+                        <div class="gradient-container large" :style="{'background': gradientPreview}" @dblclick="onGradientContainerDblClick"></div>
+                        <div class="gradient-slider" v-for="(slider, sliderIdx) in color.gradient.colors" :style="{'left': `${slider.p}%`}">
+                            <div class="gradient-slider-knob"
+                                :style="{'background': slider.c}"
+                                :class="{'selected': sliderIdx === gradient.selectedSliderIdx}"
+                                @mousedown="onGradientSliderKnobClick(sliderIdx, arguments[0])"
+                                @dblclick="onGradientSliderKnobDblClick(sliderIdx)"
+                                ></div>
+                        </div>
+
+                    </div>
+                    <div class="gradient-controls">
+                        <div class="ctrl-group">
+                            <div class="ctrl-label">Gradient Type</div>
+                            <select v-model="color.gradient.type" @change="emitChange">
+                                <option value="linear">Linear</option>
+                                <option value="radial">Radial</option>
+                            </select>
+                        </div>
+                        <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
+                            <div class="ctrl-label">Direction</div>
+                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
+                        </div>
+                        <div class="ctrl-group">
+                            <span class="btn btn-secondary" @click="invertGradient">Invert</span>
+                        </div>
+                    </div>
+                    <div class="gradient-color-picker">
+                        <chrome-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"></chrome-picker>
+                    </div>
                 </div>
             </div>
-
         </modal>
     </div>
 </template>
