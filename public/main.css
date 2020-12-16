@@ -309,6 +309,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     z-index: 1;
     display: block;
     top: -2px;
+    left: 0;
     position: absolute;
     height: 1px;
     content: '';
