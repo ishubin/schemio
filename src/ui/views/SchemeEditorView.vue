@@ -154,6 +154,8 @@
                 @clicked-zoom-to-selection="zoomToSelection()"
                 @clicked-undo="historyUndo()"
                 @clicked-redo="historyRedo()"
+                @clicked-bring-to-front="bringSelectedItemsToFront()"
+                @clicked-bring-to-back="bringSelectedItemsToBack()"
                 />
         </div>
 

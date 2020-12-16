@@ -51,6 +51,16 @@
                             height="16px"
                             @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                     </li>
+                    <li>
+                        <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
+                            <img src="/images/helper-panel/bring-to-front.svg"/>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
+                            <img src="/images/helper-panel/bring-to-back.svg"/>
+                        </span>
+                    </li>
                 </ul>
                 
             </div>
@@ -58,7 +68,7 @@
                 <ul class="button-group">
                     <li>
                         <span class="toggle-button" :class="{toggled: curveEditAutoAttachEnabled}" @click="toggleCurveEditAutoAttach" title="Auto-attach curve">
-                            <img src="/images/helper-panel/auto-attach-curve.svg" height="16px"/>
+                            <img src="/images/helper-panel/auto-attach-curve.svg"/>
                         </span>
                     </li>
                     <li v-if="currentState === 'editCurve'">
