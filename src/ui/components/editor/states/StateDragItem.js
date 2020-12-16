@@ -576,7 +576,7 @@ export default class StateDragItem extends State {
     handleControlPointDrag(x, y) {
         const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
         if (controlPoint) {
-            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd) && this.store.state.curveEditing.autoAttachEnabled) {
+            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
                 this.handleCurveEdgeControlPointDrag(x, y, controlPoint);
             } else {
                 const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
@@ -613,7 +613,11 @@ export default class StateDragItem extends State {
             return;
         }
 
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems, this.sourceItem.area.type);
+        let closestPointToItem = null;
+        if (this.store.state.curveEditing.autoAttachEnabled) {
+            closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems, this.sourceItem.area.type);
+        }
+        
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
 
