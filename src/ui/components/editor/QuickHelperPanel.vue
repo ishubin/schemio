@@ -57,8 +57,9 @@
             <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
-                        <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
+                        <span class="toggle-button" :class="{toggled: curveEditAutoAttachEnabled}" @click="toggleCurveEditAutoAttach" title="Auto-attach curve">
+                            <img src="/images/helper-panel/auto-attach-curve.svg" height="16px"/>
+                        </span>
                     </li>
                     <li v-if="currentState === 'editCurve'">
                         <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
@@ -128,11 +129,12 @@ export default {
                 }
             }
         },
-        onCurveEditAutoAttachClicked(event) {
-            if (event.target.checked) {
-                this.$store.dispatch('enableCurveEditAutoAttach');
-            } else {
+
+        toggleCurveEditAutoAttach() {
+            if (this.$store.state.curveEditing.autoAttachEnabled) {
                 this.$store.dispatch('disableCurveEditAutoAttach');
+            } else {
+                this.$store.dispatch('enableCurveEditAutoAttach');
             }
         },
 

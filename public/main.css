@@ -869,8 +869,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     cursor: hand;
 }
 .toggle-button:hover {
-    background: var(--base-strong-up);
-    color: var(--base-weak);
+    background: var(--faint-weak-up);
 }
 .toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
     color: var(--base-weak) !important;
