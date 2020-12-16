@@ -51,20 +51,16 @@
                             height="16px"
                             @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                     </li>
-                    <li>
-                        <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
-                        <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
-                    </li>
                 </ul>
                 
             </div>
-            <div v-if="currentState === 'editCurve'" class="quick-helper-panel-section">
+            <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <input type="checkbox" :checked="curveEditAutoAttachEnabled" @input="onCurveEditAutoAttachClicked" id="chk-curve-edit-auto-attach"/>
                         <label for="chk-curve-edit-auto-attach"> Auto-Attach</label>
                     </li>
-                    <li>
+                    <li v-if="currentState === 'editCurve'">
                         <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
                     </li>
                 </ul>
@@ -179,6 +175,10 @@ export default {
 
         currentState() {
             return this.$store.state.editorStateName;
+        },
+
+        shouldShownCurveHelpers() {
+            return this.$store.state.editorStateName === 'editCurve' || this.selectedItemsCount > 0;
         }
     }
 }
