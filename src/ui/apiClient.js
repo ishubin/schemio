@@ -28,13 +28,16 @@ export default {
         return axios.post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    patchProject(projectId, {name, description}) {
+    patchProject(projectId, {name, description, isPublic}) {
         const payload = [];
         if (name) {
             payload.push({ op: 'update', field: 'name', value: name });
         }
         if (description) {
             payload.push({ op: 'update', field: 'description', value: description });
+        }
+        if (typeof isPublic !== 'undefined') {
+            payload.push({ op: 'update', field: 'isPublic', value: isPublic });
         }
 
         return axios.patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);

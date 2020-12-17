@@ -61,6 +61,10 @@ class MongoProjectStorage {
             fields.description = projectFields.description;
             isNotEmpty = true;
         }
+        if (projectFields.hasOwnProperty('isPublic')) {
+            fields.isPublic = projectFields.isPublic;
+            isNotEmpty = true;
+        }
         
         if (isNotEmpty) {
             return this._projects().updateOne({ id: projectId }, { $set: fields });

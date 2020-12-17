@@ -53,6 +53,7 @@ const ApiProjects = {
                     name:           project.name,
                     description:    project.description,
                     createdDate:    project.createdDate,
+                    isPublic:       project.isPublic,
                     permissions: {
                         read:   true,
                         write:  false,
@@ -81,15 +82,26 @@ const ApiProjects = {
         const operations = req.body;
 
         const supportedUpdateFields = {
-            name: 1,
-            description: 1
+            name: 'string',
+            description: 'string',
+            isPublic: 'boolean'
         };
 
         const fields = {};
 
+
         _.forEach(operations, operation => {
-            if (operation && operation.op === 'update' && supportedUpdateFields[operation.field] === 1) {
-                fields[operation.field] = operation.value;
+            const fieldType = supportedUpdateFields[operation.field];
+            if (operation && operation.op === 'update' && fieldType) {
+                if (fieldType === 'string') {
+                    fields[operation.field] = '' + operation.value;
+                } else if (fieldType === 'boolean') {
+                    if (operation.value && operation.value !== 'false') {
+                        fields[operation.field] = true;
+                    } else {
+                        fields[operation.field] = false;
+                    }
+                }
             } 
         });
 

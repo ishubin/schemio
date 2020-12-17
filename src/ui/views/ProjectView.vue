@@ -43,10 +43,20 @@
                             <span class="btn btn-primary" @click="saveProjectDescription">Save</span>
                             <span class="btn btn-secondary" @click="editProjectDescriptionShown = false">Cancel</span>
                         </div>
+
+                    </div>
+
+                    <div class="section">
+                        <div v-if="project.isPublic">
+                            Your project is <b>public</b> <span class="btn btn-dangerous" @click="onMakeProjectPrivateClicked()">Make It Private</span>
+                        </div>
+                        <div v-else>
+                            Your project is <b>public</b> <span class="btn btn-dangerous" @click="onMakeProjectPublicClicked()">Make It Public</span>
+                        </div>
                     </div>
 
                     <div v-if="searchResult">
-                        <div>
+                        <div class="section">
                             <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
                             <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
                         </div>
@@ -441,6 +451,28 @@ export default {
                 this.editProjectDescriptionShown = false;
                 alert('Sorry, could not update your projects description. Something went wrong.');
             });
+        },
+
+        onMakeProjectPrivateClicked() {
+            if (confirm('Are you sure you want to make your project private? It will only be accessible to you')) {
+                apiClient.patchProject(this.projectId, {isPublic: false})
+                .then(() => {
+                    this.project.isPublic = false;
+                }).catch(err => {
+                    alert('Sorry, could not update your projects description. Something went wrong.');
+                });
+            }
+        },
+
+        onMakeProjectPublicClicked() {
+            if (confirm('Are you sure you want to make your project available for everyone else?')) {
+                apiClient.patchProject(this.projectId, {isPublic: true})
+                .then(() => {
+                    this.project.isPublic = true;
+                }).catch(err => {
+                    alert('Sorry, could not update your projects description. Something went wrong.');
+                });
+            }
         }
     },
 
