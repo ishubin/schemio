@@ -96,11 +96,17 @@ h5 {
 
 .link {
     text-decoration: none;
-    color: #2472ab;
+    color: var(--accent-strong);
     cursor: pointer;
 }
 .link:hover {
     text-decoration: underline;
+}
+.dimmed-link {
+    opacity: 0.2;
+}
+.dimmed-link:hover {
+    opacity: 1.0;
 }
 
 

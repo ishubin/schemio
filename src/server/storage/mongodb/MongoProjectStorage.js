@@ -57,11 +57,15 @@ class MongoProjectStorage {
             fields.name = projectFields.name;
             isNotEmpty = true;
         }
+        if (projectFields.description) {
+            fields.description = projectFields.description;
+            isNotEmpty = true;
+        }
         
         if (isNotEmpty) {
             return this._projects().updateOne({ id: projectId }, { $set: fields });
         } else {
-            return Promise.reject('Empty fields');
+            return Promise.reject('Missing valid fields');
         }
     }
 

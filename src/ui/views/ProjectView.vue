@@ -25,12 +25,24 @@
                         @moved-category="onCategoryMoveRequested"
                         />
                 </div>
-                <div class="search-results">
-                    <h3 v-if="project && !editProjectNameShown">{{project.name}} <span class="link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
-                    <div v-if="project && editProjectNameShown" class="section">
+                <div class="search-results" v-if="project">
+                    <h3 v-if="!editProjectNameShown">{{project.name}} <span class="link dimmed-link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
+                    <div v-if="editProjectNameShown" class="section">
                         <input ref="editProjectNameTextfield" class="textfield" style="width: 300px" type="text" :value="project.name"/>
                         <span class="btn btn-primary" @click="saveProjectName">Save</span>
                         <span class="btn btn-secondary" @click="editProjectNameShown = false">Cancel</span>
+                    </div>
+
+                    <div class="section">
+                        <h4>Description <span class="link dimmed-link" @click="editProjectDescriptionShown = true"><i class="fas fa-edit"/></span></h4>
+                        <div v-if="!editProjectDescriptionShown">
+                            {{project.description}}
+                        </div>
+                        <div v-else>
+                            <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px"/>
+                            <span class="btn btn-primary" @click="saveProjectDescription">Save</span>
+                            <span class="btn btn-secondary" @click="editProjectDescriptionShown = false">Cancel</span>
+                        </div>
                     </div>
 
                     <div v-if="searchResult">
@@ -153,6 +165,7 @@ export default {
             categories: [],
 
             editProjectNameShown: false,
+            editProjectDescriptionShown: false,
 
             createCategoryModal: {
                 shown: false,
@@ -415,6 +428,18 @@ export default {
             }).catch(err => {
                 this.editProjectNameShown = false;
                 alert('Sorry, could not update your projects name. Something went wrong.');
+            });
+        },
+
+        saveProjectDescription() {
+            const newProjectDescription = this.$refs.editProjectDescriptionTextarea.value;
+            apiClient.patchProject(this.projectId, {description: newProjectDescription})
+            .then(() => {
+                this.project.description = newProjectDescription;
+                this.editProjectDescriptionShown = false;
+            }).catch(err => {
+                this.editProjectDescriptionShown = false;
+                alert('Sorry, could not update your projects description. Something went wrong.');
             });
         }
     },

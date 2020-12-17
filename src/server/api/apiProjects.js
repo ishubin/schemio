@@ -66,7 +66,7 @@ const ApiProjects = {
                 return Promise.reject('Not authorized');
             }
         })
-        .catch(res.$apiError);
+        .catch(err => res.$apiError(err));
     },
 
     /**
@@ -80,20 +80,22 @@ const ApiProjects = {
         const projectId = req.params.projectId;
         const operations = req.body;
 
-        let nameToUpdate = null;
-        _.forEach(operations, operation => {
-            if (operation && operation.op === 'update' && operation.field === 'name') {
-                nameToUpdate = operation.value;
-            }
-        });
+        const supportedUpdateFields = {
+            name: 1,
+            description: 1
+        };
 
         const fields = {};
-        if (nameToUpdate) {
-            fields.name = nameToUpdate;
-        }
+
+        _.forEach(operations, operation => {
+            if (operation && operation.op === 'update' && supportedUpdateFields[operation.field] === 1) {
+                fields[operation.field] = operation.value;
+            } 
+        });
+
         return projectStorage.updateProject(projectId, fields)
             .then(() => res.json({status: 'ok'}))
-            .catch(res.$apiError);
+            .catch(err => res.$apiError(err));
     }
 
 };

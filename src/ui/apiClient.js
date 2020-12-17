@@ -28,14 +28,13 @@ export default {
         return axios.post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    patchProject(projectId, {name}) {
+    patchProject(projectId, {name, description}) {
         const payload = [];
         if (name) {
-            payload.push({
-                op: 'update',
-                field: 'name',
-                value: name
-            });
+            payload.push({ op: 'update', field: 'name', value: name });
+        }
+        if (description) {
+            payload.push({ op: 'update', field: 'description', value: description });
         }
 
         return axios.patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
