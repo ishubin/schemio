@@ -26,7 +26,13 @@
                         />
                 </div>
                 <div class="search-results">
-                    <h3 v-if="project">{{project.name}}</h3>
+                    <h3 v-if="project && !editProjectNameShown">{{project.name}} <span class="link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
+                    <div v-if="project && editProjectNameShown" class="section">
+                        <input ref="editProjectNameTextfield" class="textfield" style="width: 300px" type="text" :value="project.name"/>
+                        <span class="btn btn-primary" @click="saveProjectName">Save</span>
+                        <span class="btn btn-secondary" @click="editProjectNameShown = false">Cancel</span>
+                    </div>
+
                     <div v-if="searchResult">
                         <div>
                             <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
@@ -145,6 +151,8 @@ export default {
             currentPage: 1,
             totalPages: 0,
             categories: [],
+
+            editProjectNameShown: false,
 
             createCategoryModal: {
                 shown: false,
@@ -396,6 +404,18 @@ export default {
                 }
             });
             return categories;
+        },
+
+        saveProjectName() {
+            const newProjectName = this.$refs.editProjectNameTextfield.value;
+            apiClient.patchProject(this.projectId, {name: newProjectName})
+            .then(() => {
+                this.project.name = newProjectName;
+                this.editProjectNameShown = false;
+            }).catch(err => {
+                this.editProjectNameShown = false;
+                alert('Sorry, could not update your projects name. Something went wrong.');
+            });
         }
     },
 

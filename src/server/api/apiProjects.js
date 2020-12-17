@@ -67,6 +67,33 @@ const ApiProjects = {
             }
         })
         .catch(res.$apiError);
+    },
+
+    /**
+     * Patches project. Currently only "update" operation is supported and only for the following fields:
+     *   - name
+     * Payload should be of the following format: [{op: "update", field: "name", value: "Blah"}]
+     * @param {*} req 
+     * @param {*} res 
+     */
+    patchProject(req, res) {
+        const projectId = req.params.projectId;
+        const operations = req.body;
+
+        let nameToUpdate = null;
+        _.forEach(operations, operation => {
+            if (operation && operation.op === 'update' && operation.field === 'name') {
+                nameToUpdate = operation.value;
+            }
+        });
+
+        const fields = {};
+        if (nameToUpdate) {
+            fields.name = nameToUpdate;
+        }
+        return projectStorage.updateProject(projectId, fields)
+            .then(() => res.json({status: 'ok'}))
+            .catch(res.$apiError);
     }
 
 };

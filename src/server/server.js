@@ -39,21 +39,22 @@ app.use('/v1', [jsonBodyParser, middleware.api]);
 app.get('/v1/user',         [middleware.auth], apiUser.getCurrentUser);
 app.post('/v1/login',       apiUser.login);
 app.get('/user/logout',     apiUser.logout);
-app.post('/v1/user/styles',  [middleware.auth], apiStyles.addToStylingPalette);
+app.post('/v1/user/styles', [middleware.auth], apiStyles.addToStylingPalette);
 app.get('/v1/user/styles',  [middleware.auth], apiStyles.getStylePalette);
 app.delete('/v1/user/styles/:styleId',  [middleware.auth], apiStyles.deleteStyle);
 
 app.post('/v1/projects',            [middleware.auth], apiProjects.createProject);
 app.get('/v1/projects',             apiProjects.findProjects);
 app.get('/v1/projects/:projectId',  [middleware.projectReadPermission], apiProjects.getProject);
+app.patch('/v1/projects/:projectId',[middleware.auth, middleware.projectWritePermission], apiProjects.patchProject);
 
-app.get('/v1/projects/:projectId/schemes',              [middleware.projectReadPermission], apiSchemes.findSchemes);
-app.get('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectReadPermission], apiSchemes.getScheme);
-app.delete('/v1/projects/:projectId/schemes/:schemeId', [middleware.projectWritePermission], apiSchemes.deleteScheme);
-app.post('/v1/projects/:projectId/schemes',             [middleware.projectWritePermission], apiSchemes.createScheme);
-app.put('/v1/projects/:projectId/schemes/:schemeId',    [middleware.projectWritePermission], apiSchemes.saveScheme);
-app.post('/v1/projects/:projectId/scheme-preview/:schemeId', [middleware.projectWritePermission], apiSchemes.savePreview);
-app.get('/projects/:projectId/scheme-preview/:schemeId', [middleware.projectReadPermission], apiSchemes.getPreview);
+app.get('/v1/projects/:projectId/schemes',                      [middleware.projectReadPermission], apiSchemes.findSchemes);
+app.get('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectReadPermission], apiSchemes.getScheme);
+app.delete('/v1/projects/:projectId/schemes/:schemeId',         [middleware.projectWritePermission], apiSchemes.deleteScheme);
+app.post('/v1/projects/:projectId/schemes',                     [middleware.projectWritePermission], apiSchemes.createScheme);
+app.put('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectWritePermission], apiSchemes.saveScheme);
+app.post('/v1/projects/:projectId/scheme-preview/:schemeId',    [middleware.projectWritePermission], apiSchemes.savePreview);
+app.get('/projects/:projectId/scheme-preview/:schemeId',        [middleware.projectReadPermission], apiSchemes.getPreview);
 
 app.get('/v1/projects/:projectId/tags', [middleware.projectReadPermission], apiSchemes.getTags);
 

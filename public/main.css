@@ -80,6 +80,10 @@ h5 {
     -o-user-select: none;
 }
 
+.section {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
 
 /******************* Middle content *********************/
 .middle-content {
@@ -329,6 +333,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     background: #f0f0f0;
     border: 1px solid #777;
     color: #222;
+    border-radius: 3px;
 }
 .btn:hover {
     background: #80aed7;

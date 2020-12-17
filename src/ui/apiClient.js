@@ -28,6 +28,19 @@ export default {
         return axios.post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
+    patchProject(projectId, {name}) {
+        const payload = [];
+        if (name) {
+            payload.push({
+                op: 'update',
+                field: 'name',
+                value: name
+            });
+        }
+
+        return axios.patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
+    },
+
     findProjects(filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
         let url = `/v1/projects?offset=${filters.offset || 0}&q=${encodedQuery}`;
