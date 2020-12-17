@@ -48,10 +48,17 @@
 
                     <div class="section">
                         <div v-if="project.isPublic">
-                            Your project is <b>public</b> <span class="btn btn-dangerous" @click="onMakeProjectPrivateClicked()">Make It Private</span>
+                            This project is <b>public</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
                         </div>
                         <div v-else>
-                            Your project is <b>public</b> <span class="btn btn-dangerous" @click="onMakeProjectPublicClicked()">Make It Public</span>
+                            This project is <b>private</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
+                        </div>
+
+                        <div v-if="editProjectVisibilityShown" class="section">
+                            <span v-if="project.isPublic" class="btn btn-dangerous" @click="onMakeProjectPrivateClicked()">Make It Private</span>
+                            <span v-else class="btn btn-dangerous" @click="onMakeProjectPublicClicked()">Make It Public</span>
+                            <span class="btn btn-dangerous" @click="onDeleteProjectClicked()">Delete Project</span>
+                            <span class="btn btn-secondary" @click="editProjectVisibilityShown = false">Cancel</span>
                         </div>
                     </div>
 
@@ -176,6 +183,7 @@ export default {
 
             editProjectNameShown: false,
             editProjectDescriptionShown: false,
+            editProjectVisibilityShown: false,
 
             createCategoryModal: {
                 shown: false,
@@ -471,6 +479,17 @@ export default {
                     this.project.isPublic = true;
                 }).catch(err => {
                     alert('Sorry, could not update your projects description. Something went wrong.');
+                });
+            }
+        },
+
+        onDeleteProjectClicked() {
+            if (confirm(`Are you sure you want to delete project "${this.project.name}"? You will loose all schemes created in this project`)) {
+                apiClient.deleteProject(this.projectId)
+                .then(() => {
+                    window.location = '/';
+                }).catch(err => {
+                    alert('Sorry, could not delete project. Something went wrong.');
                 });
             }
         }

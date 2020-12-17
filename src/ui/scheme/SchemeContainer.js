@@ -191,7 +191,6 @@ class SchemeContainer {
 
 
             if (item.text && item.text.length > 0) {
-                console.log(item.text);
                 const shape = Shape.find(item.shape);
                 const textSlots = shape.getTextSlots(item);
                 if (textSlots && textSlots.length > 0) {

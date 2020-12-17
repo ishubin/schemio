@@ -14,6 +14,7 @@ class MongoProjectStorage {
     createProject(project) {
         const newProject = {
             id: shortid.generate(),
+            version: CURRENT_PROJECT_VERSION,
             name: '' + project.name,
             description: project.description || '',
             createdDate: Date.now(),
@@ -100,11 +101,7 @@ class MongoProjectStorage {
     isUserAuthorizedToWrite(projectId, userLogin) {
         return this._projects().find({
             id: projectId,
-            $or: [{
-                isPublic: true
-            }, {
-                write: userLogin
-            }]
+            write: userLogin
         }).limit(1).count().then(size => size === 1? true: false);
     }
     
@@ -153,6 +150,37 @@ class MongoProjectStorage {
                 resultsPerPage: limit,
                 offset: 0
             };
+        });
+    }
+
+    /**
+     * Deletes project and all of its related collections
+     * This function is very bad and it should be implemented differently.
+     * Instead of deleting everything inside of a single user request session, it should mark the project as deleted.
+     * Later on the deletion of everything that is related to the project and deletion of project itself should be picked
+     * up by a background scheduled job.
+     * But to implement background job we need to think about the following job locking when multiple instances of app are deployed
+     * 
+     * @param {String} projectId
+     */
+    deleteProject(projectId) {
+        //TODO Implemented background scheduled job for deletion of projects and related collections
+
+        //TODO Figure out how to delete all project files, probably this is something that can only be done in a background job
+
+        const collections = [
+            'art',
+            'schemes',
+            'schemePreviews',
+            'tags',
+            'categories'
+        ];
+
+        return Promise.all(_.map(collections, collectionName => {
+            return mongo.db().collection(collectionName).deleteOne({ projectId: mongo.sanitizeString(projectId) });
+        }))
+        .then(() => {
+            return this._projects().deleteOne({id: mongo.sanitizeString(projectId)});
         });
     }
 }

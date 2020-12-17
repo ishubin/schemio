@@ -51,7 +51,7 @@ module.exports = {
                 const originalLocalPath = `${config.files.uploadFolder}/${req.file.filename}`;
 
                 fsp.mkdir(`${config.files.uploadFolder}/${projectId}`, {recursive: true}).then(() => {
-                    return fileStorage.uploadFromFile(originalLocalPath, req.file.filename, req.file.mimetype);
+                    return fileStorage.uploadFromFile(projectId, originalLocalPath, req.file.filename, req.file.mimetype);
                 }).then(fileData => {
                     return fsp.rename(originalLocalPath, `${config.files.uploadFolder}/${projectId}/${fileData.imageId}`).then(() => fileData);
                 }).then(fileData => {

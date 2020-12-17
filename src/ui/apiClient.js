@@ -53,6 +53,10 @@ export default {
         return axios.get(`/v1/projects/${projectId}`).then(unwrapAxios);
     },
 
+    deleteProject(projectId) {
+        return axios.delete(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
+    },
+
     login(login, password) {
         return axios.post('/v1/login', {login, password}).then(unwrapAxios);
     },

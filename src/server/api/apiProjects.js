@@ -79,6 +79,7 @@ const ApiProjects = {
      */
     patchProject(req, res) {
         const projectId = req.params.projectId;
+        const userLogin = req.session.userLogin;
         const operations = req.body;
 
         const supportedUpdateFields = {
@@ -88,8 +89,6 @@ const ApiProjects = {
         };
 
         const fields = {};
-
-
         _.forEach(operations, operation => {
             const fieldType = supportedUpdateFields[operation.field];
             if (operation && operation.op === 'update' && fieldType) {
@@ -105,11 +104,41 @@ const ApiProjects = {
             } 
         });
 
-        return projectStorage.updateProject(projectId, fields)
-            .then(() => res.json({status: 'ok'}))
-            .catch(err => res.$apiError(err));
-    }
+        projectStorage.getProject(projectId, userLogin)
+        .then(project => {
+            if (project) {
+                if (userLogin && _.indexOf(project.write, userLogin) >= 0) {
+                    return project;
+                }
+            }
+            return Promise.reject('Not authorized to update project');
+        })
+        .then(() => {
+            return projectStorage.updateProject(projectId, fields);
+        })
+        .then(() => res.json({status: 'ok'}))
+        .catch(err => res.$apiError(err));
+    },
 
+    deleteProject(req, res) {
+        const projectId = req.params.projectId;
+        const userLogin = req.session.userLogin;
+
+        projectStorage.getProject(projectId, userLogin)
+        .then(project => {
+            if (project) {
+                if (userLogin && _.indexOf(project.write, userLogin) >= 0) {
+                    return project;
+                }
+            }
+            return Promise.reject('Not authorized to delete this project');
+        })
+        .then(() => {
+            return projectStorage.deleteProject(projectId);
+        })
+        .then(() => res.json({status: 'ok'}))
+        .catch(err => res.$apiError(err));
+    }
 };
 
 module.exports = ApiProjects;

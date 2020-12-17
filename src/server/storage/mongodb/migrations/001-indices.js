@@ -16,6 +16,14 @@ module.exports = {
             db.collection('projects').createIndex({name: 1}, {unique: true})
         ).then(() =>
             db.collection('projects').createIndex({name: "text", description: "text"})
+        ).then(() =>
+            db.collection('art').createIndex({projectId: 1, id: 1}, {unique: true})
+        ).then(() =>
+            db.collection('tags').createIndex({projectId: 1, id: 1}, {unique: true})
+        ).then(() =>
+            db.collection('schemePreviews').createIndex({projectId: 1, id: 1}, {unique: true})
+        ).then(() =>
+            db.collection('images.files').createIndex({ 'metadata.projectId' : 1 })
         );
     }
 }

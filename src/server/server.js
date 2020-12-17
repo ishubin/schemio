@@ -47,6 +47,7 @@ app.post('/v1/projects',            [middleware.auth], apiProjects.createProject
 app.get('/v1/projects',             apiProjects.findProjects);
 app.get('/v1/projects/:projectId',  [middleware.projectReadPermission], apiProjects.getProject);
 app.patch('/v1/projects/:projectId',[middleware.auth, middleware.projectWritePermission], apiProjects.patchProject);
+app.delete('/v1/projects/:projectId',[middleware.auth, middleware.projectWritePermission], apiProjects.deleteProject);
 
 app.get('/v1/projects/:projectId/schemes',                      [middleware.projectReadPermission], apiSchemes.findSchemes);
 app.get('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectReadPermission], apiSchemes.getScheme);
