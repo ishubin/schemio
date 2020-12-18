@@ -312,6 +312,7 @@ export default {
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
         zoom            : { default: 1.0, type: Number },
+        useMouseWheel   : { default: true, type: Boolean}
     },
 
     components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal, 'export-svg-modal': ExportSVGModal},
@@ -353,9 +354,11 @@ export default {
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
     },
     mounted() {
-        const svgElement = document.getElementById('svg_plot');
-        if (svgElement) {
-            svgElement.addEventListener('mousewheel', this.mouseWheel);
+        if (this.useMouseWheel) {
+            var svgElement = this.$refs.svgDomElement;
+            if (svgElement) {
+                svgElement.addEventListener('mousewheel', this.mouseWheel);
+            }
         }
     },
     beforeDestroy(){
@@ -386,9 +389,11 @@ export default {
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
 
-        var svgElement = document.getElementById('svg_plot');
-        if (svgElement) {
-            svgElement.removeEventListener('mousewheel', this.mouseWheel);
+        if (this.useMouseWheel) {
+            var svgElement = this.$refs.svgDomElement;
+            if (svgElement) {
+                svgElement.removeEventListener('mousewheel', this.mouseWheel);
+            }
         }
     },
     data() {

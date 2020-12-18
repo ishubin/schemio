@@ -18,6 +18,7 @@
             :offset-x="offsetX"
             :offset-y="offsetY"
             :zoom="vZoom"
+            :use-mouse-wheel="useMouseWheel"
             mode="view" />
 
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
@@ -37,7 +38,7 @@ import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
 
 export default {
-    props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth'],
+    props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel'],
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
