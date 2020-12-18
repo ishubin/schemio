@@ -21,7 +21,7 @@
             mode="view" />
 
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
-        <div class="ssc-side-panel-right" v-if="sidePanel.item">
+        <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
             <span class="ssc-button" @click="sidePanel.item = null">Close</span>
             <item-details :item="sidePanel.item"/>
         </div>
@@ -37,7 +37,7 @@ import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
 
 export default {
-    props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom'],
+    props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth'],
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 

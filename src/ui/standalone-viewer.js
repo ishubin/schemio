@@ -13,7 +13,7 @@ function objProperty(obj, field, defaultValue) {
     return defaultValue;
 }
 
-window.schemioViewScheme = (id, scheme, opts) => {
+window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
     const options = opts || {};
 
     new Vue({
@@ -26,10 +26,11 @@ window.schemioViewScheme = (id, scheme, opts) => {
                 offsetX: parseInt(options.offsetX) || 0,
                 offsetY: parseInt(options.offsetY) || 0,
                 zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
-                autoZoom: objProperty(options, 'autoZoom', true)
+                autoZoom: objProperty(options, 'autoZoom', true),
+                sidePanelWidth: parseInt(options.sidePanelWidth) || 400
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom"/>'
-    }).$mount(`#${id}`);
+        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom" :side-panel-width="sidePanelWidth"/>'
+    }).$mount(elementOrSelector);
 }
 

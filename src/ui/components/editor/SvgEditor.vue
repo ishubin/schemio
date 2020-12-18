@@ -305,15 +305,15 @@ const lastMousePosition = {
 
 export default {
     props: {
-        mode  : { value: 'edit', type: String },
+        mode  : { default: 'edit', type: String },
         width : { type: Number },
         height: { type: Number },
 
         /** @type {SchemeContainer} */
-        schemeContainer : { value: null, type: Object },
-        viewportTop     : { value: 0, type: Number },
-        viewportLeft    : { value: 0, type: Number },
-        zoom            : { value: 1.0, type: Number },
+        schemeContainer : { default: null, type: Object },
+        viewportTop     : { default: 0, type: Number },
+        viewportLeft    : { default: 0, type: Number },
+        zoom            : { default: 1.0, type: Number },
     },
 
     components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal, 'export-svg-modal': ExportSVGModal},
