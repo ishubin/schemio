@@ -5,10 +5,16 @@
     position: absolute;
     top: 0;
     left: 0;
-    background: #999;
+    background: #dddddd;
+    border-bottom: 1px solid #cccccc;
     display: block;
     width: 100%;
     font-size: 14px;
+}
+.ssc-container .ssc-header .ssc-schemio-logo {
+    position: absolute;
+    right: 5px;
+    top: 6px;
 }
 
 .ssc-button {

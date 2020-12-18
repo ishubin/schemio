@@ -10,6 +10,9 @@
                 <input v-model="textZoom" style="display: inline-block; padding: 2px 4px; border: 1px solid #555; width: 60px;" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
+            <div class="ssc-schemio-logo" style="position: absolute;right: 5px;top: 6px;">
+                Built by <a href="https://github.com/ishubin/schemio">Schemio</a>
+            </div>
         </div>
         <svg-editor ref="svgEditor"
             :scheme-container="schemeContainer"
