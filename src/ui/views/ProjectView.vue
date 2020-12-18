@@ -15,6 +15,7 @@
                     </div>
 
                     <category-tree
+                        :key="`category-tree-revision-${categoryTreeRevision}`"
                         :categories="categories"
                         :selected-category-id="currentCategoryId"
                         :url-prefix="urlPrefix"
@@ -141,7 +142,13 @@
             @primary-submit="onConfirmMoveCategoryClicked"
             @close="moveCategoryModal.shown = false"
             >
-            Are you sure you want to move <b><i>"{{moveCategoryModal.category.name}}"</i></b> category to <b><i>"{{moveCategoryModal.newParentCategory.name}}"</i></b>
+            Are you sure you want to move <b><i>"{{moveCategoryModal.category.name}}"</i></b> category to 
+            <span v-if="moveCategoryModal.newParentCategory">
+                <b><i>"{{moveCategoryModal.newParentCategory.name}}"</i></b>
+            </span>
+            <span v-else>
+                root
+            </span>
             <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
         </modal>
     </div>
@@ -180,6 +187,7 @@ export default {
             currentPage: 1,
             totalPages: 0,
             categories: [],
+            categoryTreeRevision: 0,
 
             editProjectNameShown: false,
             editProjectDescriptionShown: false,
@@ -359,11 +367,17 @@ export default {
         },
 
         onConfirmMoveCategoryClicked() {
-            if (this.moveCategoryModal.category && this.moveCategoryModal.newParentCategory) {
-                apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, this.moveCategoryModal.newParentCategory.id)
+            if (this.moveCategoryModal.category) {
+                let destinationCategoryId = null;
+                if (this.moveCategoryModal.newParentCategory) {
+                    destinationCategoryId = this.moveCategoryModal.newParentCategory.id;
+                }
+
+                apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, destinationCategoryId)
                 .then(categories => {
                     this.moveCategoryModal.shown = false;
                     this.categories = categories;
+                    this.categoryTreeRevision += 1;
                 }).catch(err => {
                     this.moveCategoryModal.errorMessage = 'Internal Server Error. Could not move category';
                 });

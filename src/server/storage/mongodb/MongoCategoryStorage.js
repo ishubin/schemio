@@ -141,7 +141,7 @@ class MongoCategoryStorage {
      * This is NOT FINISHED YET.
      * @param {String} projectId 
      * @param {String} categoryId id of category that is moving to another category as its child
-     * @param {String} destinationCategoryId  id of new parent category
+     * @param {String} destinationCategoryId  id of new parent category. If defined 'null' then it will move it to root
      */
     moveCategory(projectId, categoryId, destinationCategoryId) {
         //TODO move this into background scheduled job. Moving categories can be intensive in case there are a lot of schemes and categories that need to be updated
@@ -153,45 +153,53 @@ class MongoCategoryStorage {
             return Promise.reject('Destination and origin should not match');
         }
 
-        //TODO protect from moving categories into categories where it is defined as an ancestor
-
-
-        return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(destinationCategoryId)})
-        .then(parentCategory => {
-            // Here we need to verify that category is allowed to move to destination category
-            // we need to check that category is not mentioned in the ancestors array of destination category
-            if (!parentCategory) {
-                return Promise.reject(`Cannot find destination category with id ${destinationCategoryId}`);
-            }
-            if (_.find(parentCategory.ancestors, a => a.id === categoryId)) {
-                return Promise.reject(`Cannot move category ${categoryId} into its own children in destination category ${destinationCategoryId}`);
-            }
-            return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)})
-            .then(category => {
-                if (!category) {
-                    return Promise.reject(`Cannot find category with id ${categoryId}`);
+        let chain = null;
+        if (destinationCategoryId) {
+            chain = this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(destinationCategoryId)})
+            .then(parentCategory => {
+                // Here we need to verify that category is allowed to move to destination category
+                // we need to check that category is not mentioned in the ancestors array of destination category
+                if (!parentCategory) {
+                    return Promise.reject(`Cannot find destination category with id ${destinationCategoryId}`);
                 }
-                return parentCategory;
-            });
-        })
-        .then(parentCategory => {
-            const ancestors = parentCategory.ancestors.concat({
-                name: parentCategory.name,
-                id: parentCategory.id
-            });
-            console.log('Moving category', categoryId, 'to its new parent', destinationCategoryId);
-            return this._categories().updateOne(
+                if (_.find(parentCategory.ancestors, a => a.id === categoryId)) {
+                    return Promise.reject(`Cannot move category ${categoryId} into its own children in destination category ${destinationCategoryId}`);
+                }
+                return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)})
+                .then(category => {
+                    if (!category) {
+                        return Promise.reject(`Cannot find category with id ${categoryId}`);
+                    }
+                    return parentCategory;
+                });
+            })
+            .then(parentCategory => {
+                const ancestors = parentCategory.ancestors.concat({
+                    name: parentCategory.name,
+                    id: parentCategory.id
+                });
+                console.log('Moving category', categoryId, 'to its new parent', destinationCategoryId);
+                return this._categories().updateOne(
+                    {projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)},
+                    {$set: {parentId: destinationCategoryId, ancestors: ancestors}}
+                );
+            })
+            .then(() => this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)}))
+            // Preparing ancestors including the current category so that we can update all of its children
+            .then(category => category.ancestors.concat({
+                name: category.name,
+                id: category.id
+            }));
+        } else {
+            // it means that the category was moved to roo
+            chain = this._categories().updateOne(
                 {projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)},
-                {$set: {parentId: destinationCategoryId, ancestors: ancestors}}
-            );
-        })
-        .then(() => this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)}))
-        // Preparing ancestors including the current category so that we can update all of its children
-        .then(category => category.ancestors.concat({
-            name: category.name,
-            id: category.id
-        }))
-        .then(ancestors => {
+                {$set: {parentId: null, ancestors: []}}
+            )
+            .then(() => []);
+        }
+
+        return chain.then(ancestors => {
             console.log('Prepared ancestors for category', categoryId, ancestors);
 
             return this._categories().find({projectId: mongo.sanitizeString(projectId), 'ancestors.id': mongo.sanitizeString(categoryId)}).toArray()
@@ -236,7 +244,8 @@ class MongoCategoryStorage {
             const cat = {
                 name: category.name,
                 id: category.id,
-                childCategories: []
+                childCategories: [],
+                ancestors: category.ancestors
             };
             map[category.id] = cat;
 

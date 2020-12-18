@@ -102,7 +102,7 @@ const ApiCategories = {
     moveCategory(req, res) {
         const projectId = req.params.projectId;
         const moveRequest = req.body;
-        if (moveRequest && moveRequest.categoryId && moveRequest.destinationCategoryId) {
+        if (moveRequest && moveRequest.categoryId) {
             categoryStorage.moveCategory(projectId, moveRequest.categoryId, moveRequest.destinationCategoryId).then(() => {
                 return categoryStorage.getCategoryTree(projectId);
             })

@@ -39,10 +39,19 @@
                     />
             </div>
         </div>
+        <div v-if="isRoot && categoryDragged" style="height: 60px; margin-top:10px; border: 1px dotted #bbb;" @dragenter="onDragEnter(null)">
+            <div v-if="shouldDropToRoot && categoryDragged">
+                <span>{{categoryDragged.name}}</span>
+            </div>
+            <div v-else>
+                Drop to root...
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
+import find from 'lodash/find';
 
 export default {
     props: {
@@ -60,6 +69,7 @@ export default {
         return {
             collapsed: true,
             categoryForDrop: null,
+            shouldDropToRoot: false,
             categoryDragged: null,
         };
     },
@@ -86,10 +96,14 @@ export default {
         },
 
         onEndDragging(category) {
-            if (this.isRoot && this.categoryDragged && this.categoryForDrop && this.categoryDragged.parentId !== this.categoryForDrop.id) {
-                this.$emit('moved-category', this.categoryDragged, this.categoryForDrop);
-                this.categoryForDrop = null;
-                this.categoryDragged = null;
+            if (this.isRoot) {
+                if (this.shouldDropToRoot) {
+                    this.$emit('moved-category', this.categoryDragged, null);
+                } else if (this.categoryDragged && this.categoryForDrop && this.categoryDragged.parentId !== this.categoryForDrop.id) {
+                    this.$emit('moved-category', this.categoryDragged, this.categoryForDrop);
+                    this.categoryForDrop = null;
+                    this.categoryDragged = null;
+                }
             } else {
                 this.$emit('child-drag-end', category);
             }
@@ -98,10 +112,18 @@ export default {
         onDragEnter(category) {
             if (this.isRoot) {
                 if (this.categoryDragged) {
-                    if (this.categoryDragged.id !== category.id && this.categoryDragged.parentId !== category.id) {
-                        this.categoryForDrop = category;
+                    if (category) {
+                        if (this.categoryDragged.id !== category.id
+                            && this.categoryDragged.parentId !== category.id
+                            && !find(category.ancestors, a => a.id === this.categoryDragged.id)) {
+                            this.categoryForDrop = category;
+                            this.shouldDropToRoot = false;
+                        } else {
+                            this.categoryForDrop = null;
+                            this.shouldDropToRoot = false;
+                        }
                     } else {
-                        this.categoryForDrop = null;
+                        this.shouldDropToRoot = true;
                     }
                 }
             } else {
