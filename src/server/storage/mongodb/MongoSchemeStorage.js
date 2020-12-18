@@ -118,7 +118,7 @@ class MongoSchemeStorage {
         let promise = Promise.resolve(null);
         if (scheme.categoryId) {
             promise = this._categories().findOne({
-                id: scheme.categoryId,
+                id: mongo.sanitizeString(scheme.categoryId),
                 projectId: mongo.sanitizeString(projectId)
             }).then(category => {
                 if (!category) {

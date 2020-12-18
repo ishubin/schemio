@@ -103,9 +103,13 @@ const ApiCategories = {
         const projectId = req.params.projectId;
         const moveRequest = req.body;
         if (moveRequest && moveRequest.categoryId && moveRequest.destinationCategoryId) {
-            categoryStorage.moveCategory(projectId, moveRequest.categoryId, moveRequest.destinationCategoryId).then(tree => {
+            categoryStorage.moveCategory(projectId, moveRequest.categoryId, moveRequest.destinationCategoryId).then(() => {
+                return categoryStorage.getCategoryTree(projectId);
+            })
+            .then(tree => {
                 res.json(tree);
-            }).catch(err => res.$apiError(err));
+            })
+            .catch(err => res.$apiError(err));
         } else {
             res.$badRequest();
         }

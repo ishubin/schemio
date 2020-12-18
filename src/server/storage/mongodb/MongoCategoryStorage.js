@@ -132,16 +132,22 @@ class MongoCategoryStorage {
     }
     
     /**
+     * This function is terrible, but have no time to make it properly.
+     * In case something goes wrong the data will be corrupted and all the categories are going to be in a broken state.
+     * Perhaps this should move into background scheduled job or being processed in a background queue.
+     * The problem with background job is that, unlike with project deletion, user would want to have the result immediately
+     * 
      * Move a category into another category as its child
      * This is NOT FINISHED YET.
      * @param {String} projectId 
-     * @param {String} categoryId 
-     * @param {String} destinationCategoryId 
+     * @param {String} categoryId id of category that is moving to another category as its child
+     * @param {String} destinationCategoryId  id of new parent category
      */
     moveCategory(projectId, categoryId, destinationCategoryId) {
+        //TODO move this into background scheduled job. Moving categories can be intensive in case there are a lot of schemes and categories that need to be updated
+
         //TODO finish and optimize moveCategory implementation. The following needs to be done:
         // - moving to top level
-        // - updating category ancestors for all related schemes
         
         if (categoryId === destinationCategoryId) {
             return Promise.reject('Destination and origin should not match');
@@ -149,31 +155,55 @@ class MongoCategoryStorage {
 
         return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(destinationCategoryId)})
         .then(parentCategory => {
-            const ancestors = parentCategory.ancestors.concat([destinationCategoryId]);
+            const ancestors = parentCategory.ancestors.concat({
+                name: parentCategory.name,
+                id: parentCategory.id
+            });
+            console.log('Moving category', categoryId, 'to its new parent', destinationCategoryId);
             return this._categories().updateOne(
                 {projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)},
                 {$set: {parentId: destinationCategoryId, ancestors: ancestors}}
-            ).then(() => ancestors);
-        }).then(ancestors => {
-            return this._categories().find({projectId: mongo.sanitizeString(projectId), ancestors: mongo.sanitizeString(categoryId)}).toArray()
+            );
+        })
+        .then(() => this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)}))
+        // Preparing ancestors including the current category so that we can update all of its children
+        .then(category => category.ancestors.concat({
+            name: category.name,
+            id: category.id
+        }))
+        .then(ancestors => {
+            console.log('Prepared ancestors for category', categoryId, ancestors);
+
+            return this._categories().find({projectId: mongo.sanitizeString(projectId), 'ancestors.id': mongo.sanitizeString(categoryId)}).toArray()
             .then(categories => {
+                console.log('Got categories having ancestor', categoryId, categories);
                 let promise = Promise.resolve(null);
                 _.forEach(categories, category => {
-                    promise = promise.then(this._createCategoryAncestorUpdatePromise(projectId, category, ancestors, categoryId, destinationCategoryId));
+                    console.log('Chaining promise update for category', category.id);
+                    promise = promise.then(this._createCategoryAncestorUpdatePromise(projectId, category, ancestors, categoryId));
                 });
-                return promise;
+            }).then(() => {
+                const ancestorIds = _.map(ancestors, a => a.id);
+                console.log('Updating category ancestors in all schemes in category', categoryId, ancestorIds);
+                return this._schemes().updateMany({projectId, categoryId}, {$set: {allSubCategoryIds: ancestorIds}})
             });
         });
     }
 
-    _createCategoryAncestorUpdatePromise(projectId, category, parentAncestors, categoryId, destinationCategoryId) {
-        const i = _.indexOf(category.ancestors, categoryId);
+    _createCategoryAncestorUpdatePromise(projectId, category, parentAncestors, categoryId) {
+        const i = _.findIndex(category.ancestors, ancestor => ancestor.id === categoryId);
         let ancestors = _.clone(category.ancestors);
         if (i >= 0) {
-            ancestors.splice(0, i);
+            ancestors.splice(0, i + 1);
         } 
-        ancestors = parentAncestors.concat(ancestors);
-        return this._categories().updateOne({projectId: mongo.sanitizeString(projectId), id: category.id}, {$set: {ancestors: ancestors}});
+        const fixedAncestors = parentAncestors.concat(ancestors);
+        const ancestorIds = _.map(fixedAncestors, a => a.id);
+
+        return this._categories().updateOne({projectId: mongo.sanitizeString(projectId), id: category.id}, {$set: {ancestors: fixedAncestors}})
+        .then(() => {
+            console.log('Updating category ancestors in all schemes in category', category.id, ancestorIds);
+            return this._schemes().updateMany({projectId, categoryId: category.id}, {$set: {allSubCategoryIds: ancestorIds}})
+        });
     }
 
     _categoryArrayToTree(categories) {

@@ -11,7 +11,7 @@
                     <span class="btn btn-secondary btn-small" title="Add sub-category" @click="onAddCategoryClicked(category)"><i class="fas fa-folder-plus"></i></span>
                     <span class="btn btn-secondary btn-small" title="Edit category" @click="onEditCategoryClicked(category)"><i class="fas fa-pen-square"></i></span>
                     <span class="btn btn-secondary btn-small" title="Delete category" @click="onDeleteCategoryClicked(category)"><i class="fas fa-trash-alt"></i></span>
-                    <!-- <span class="btn btn-secondary btn-small" style="cursor: grab;" title="Move category" draggable="true" @dragstart="onStartDragging(category)"> <i class="fas fa-arrows-alt"></i> </span> -->
+                    <span class="btn btn-secondary btn-small" style="cursor: grab;" title="Move category" draggable="true" @dragstart="onStartDragging(category)"> <i class="fas fa-arrows-alt"></i> </span>
                 </div>
             </div>
 

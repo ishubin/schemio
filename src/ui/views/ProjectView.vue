@@ -112,7 +112,7 @@
             @primary-submit="onCreateCategorySubmited"
             >
             <h5>Name</h5>
-            <input class="textfield" v-model="createCategoryModal.categoryName" :class="{'missing-field-error' : createCategoryModal.mandatoryFields.name.highlight}"/>
+            <input ref="createCategoryNameTextfield" class="textfield" v-model="createCategoryModal.categoryName" :class="{'missing-field-error' : createCategoryModal.mandatoryFields.name.highlight}"/>
 
             <div v-if="createCategoryModal.errorMessage" class="msg msg-error">{{createCategoryModal.errorMessage}}</div>
         </modal>
@@ -313,6 +313,9 @@ export default {
             this.createCategoryModal.errorMessage = null;
             this.createCategoryModal.shown = true;
             this.createCategoryModal.mandatoryFields.name.highlight = false;
+            this.$nextTick(() => {
+                this.$refs.createCategoryNameTextfield.focus();
+            });
         },
 
         onEditCategoryClicked(category) {
