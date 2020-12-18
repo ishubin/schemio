@@ -76,7 +76,10 @@ class MongoCategoryStorage {
         }, {
             $set: {name: newCategoryName}
         }).then(() => {
-            return this._categories().find({'ancestors.id': mongo.sanitizeString(categoryId)}).toArray()
+            return this._categories().find({
+                projectId: mongo.sanitizeString(projectId),
+                'ancestors.id': mongo.sanitizeString(categoryId)
+            }).toArray()
             .then(categories => {
                 let promise = Promise.resolve(null);
                 _.forEach(categories, category => {

@@ -7,6 +7,8 @@ module.exports = {
         ).then(() =>
             db.collection('categories').createIndex({projectId: 1, id: 1}, {unique: true})
         ).then(() =>
+            db.collection('categories').createIndex({projectId: 1, 'ancestors.id': 1})
+        ).then(() =>
             db.collection('schemes').createIndex({projectId: 1, id: 1}, {unique: true})
         ).then(() =>
             db.collection('schemes').createIndex({name: "text", description: "text", itemsText: "text"})
