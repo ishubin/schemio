@@ -153,7 +153,27 @@ class MongoCategoryStorage {
             return Promise.reject('Destination and origin should not match');
         }
 
+        //TODO protect from moving categories into categories where it is defined as an ancestor
+
+
         return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(destinationCategoryId)})
+        .then(parentCategory => {
+            // Here we need to verify that category is allowed to move to destination category
+            // we need to check that category is not mentioned in the ancestors array of destination category
+            if (!parentCategory) {
+                return Promise.reject(`Cannot find destination category with id ${destinationCategoryId}`);
+            }
+            if (_.find(parentCategory.ancestors, a => a.id === categoryId)) {
+                return Promise.reject(`Cannot move category ${categoryId} into its own children in destination category ${destinationCategoryId}`);
+            }
+            return this._categories().findOne({projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)})
+            .then(category => {
+                if (!category) {
+                    return Promise.reject(`Cannot find category with id ${categoryId}`);
+                }
+                return parentCategory;
+            });
+        })
         .then(parentCategory => {
             const ancestors = parentCategory.ancestors.concat({
                 name: parentCategory.name,
