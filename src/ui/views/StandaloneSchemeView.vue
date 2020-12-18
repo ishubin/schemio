@@ -83,10 +83,6 @@ export default {
         },
 
         onItemTooltipTriggered(item, mouseX, mouseY) {
-            const svgRect = this.$refs.svgEditor.$el.getBoundingClientRect();
-            const absX = mouseX + svgRect.left;
-            const absY = mouseY + svgRect.top;
-
             this.itemTooltip.item = item;
             this.itemTooltip.x = mouseX;
             this.itemTooltip.y = mouseY;

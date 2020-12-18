@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "start-webpack": "webpack-dev-server",
-    "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
+    "start": "npm run build-standalone; NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
     "init-dev": "mkdir -p uploads",
     "build-dev": "npm run init-dev; webpack --config webpack.build.dev.js; cp src/ui/index.html public/",
     "build-standalone": "webpack --config webpack.standalone.js",

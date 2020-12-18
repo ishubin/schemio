@@ -43,7 +43,7 @@
 
 /******************** Item Tooltip ***************/
 .item-tooltip {
-    position: fixed;
+    position: absolute;
     box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 10px;
     overflow: auto;
 }

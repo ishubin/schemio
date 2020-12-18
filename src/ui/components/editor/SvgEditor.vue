@@ -449,10 +449,8 @@ export default {
     methods: {
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
-                targetOffsetX = rect.left + document.body.scrollLeft,
-                targetOffsetY = rect.top + document.body.scrollTop,
-                offsetX = event.clientX - targetOffsetX,
-                offsetY  = event.clientY - targetOffsetY;
+                offsetX = event.clientX - rect.left,
+                offsetY  = event.clientY - rect.top;
 
             return {
                 x: Math.round(offsetX),
