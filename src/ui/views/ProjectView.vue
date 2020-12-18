@@ -26,7 +26,7 @@
                         />
                 </div>
                 <div class="search-results" v-if="project">
-                    <h3 v-if="!editProjectNameShown">{{project.name}} <span class="link dimmed-link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
+                    <h3 v-if="!editProjectNameShown">{{project.name}} <span v-if="hasWritePermission" class="link dimmed-link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
                     <div v-if="editProjectNameShown" class="section">
                         <input ref="editProjectNameTextfield" class="textfield" style="width: 300px" type="text" :value="project.name"/>
                         <span class="btn btn-primary" @click="saveProjectName">Save</span>
@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="section">
-                        <h4>Description <span class="link dimmed-link" @click="editProjectDescriptionShown = true"><i class="fas fa-edit"/></span></h4>
+                        <h4>Description <span v-if="hasWritePermission" class="link dimmed-link" @click="editProjectDescriptionShown = true"><i class="fas fa-edit"/></span></h4>
                         <div v-if="!editProjectDescriptionShown">
                             {{project.description}}
                         </div>
@@ -46,7 +46,7 @@
 
                     </div>
 
-                    <div class="section">
+                    <div class="section" v-if="hasWritePermission">
                         <div v-if="project.isPublic">
                             This project is <b>public</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
                         </div>
@@ -522,6 +522,13 @@ export default {
                 return `Create sub-category for "${this.createCategoryModal.parentCategory.name}"`;
             }
             return 'Create category';
+        },
+
+        hasWritePermission() {
+            if (this.project) {
+                return this.project.permissions.write;
+            }
+            return false;
         }
     }
 }
