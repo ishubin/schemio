@@ -1026,14 +1026,16 @@ export default {
         },
 
         onRightClickedVoid(x, y, mouseX, mouseY) {
-            this.customContextMenu.menuOptions = [{
-                name: 'Paste',
-                clicked: () => {this.$emit('clicked-items-paste')}
-            }];
-            this.customContextMenu.show = true;
-            this.customContextMenu.mouseX = mouseX;
-            this.customContextMenu.mouseY = mouseY;
-            this.customContextMenu.id = shortid.generate();
+            if (this.mode === 'edit') {
+                this.customContextMenu.menuOptions = [{
+                    name: 'Paste',
+                    clicked: () => {this.$emit('clicked-items-paste')}
+                }];
+                this.customContextMenu.show = true;
+                this.customContextMenu.mouseX = mouseX;
+                this.customContextMenu.mouseY = mouseY;
+                this.customContextMenu.id = shortid.generate();
+            }
         },
 
         onExportSVGRequested() {
