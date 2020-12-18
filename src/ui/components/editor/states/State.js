@@ -17,16 +17,7 @@ class State {
         this.editor = null;
         this.store = store;
 
-        // Viewport transform correction 
-        this.viewportCorrectionTop = 0;
-        this.viewportCorrectionLeft = 0;
     }
-
-    setViewportCorrection(viewportTop, viewportLeft) {
-        this.viewportCorrectionLeft = viewportLeft;
-        this.viewportCorrectionTop = viewportTop;
-    }
-
 
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;

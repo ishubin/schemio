@@ -47,8 +47,6 @@
                         :key="schemeContainer.scheme.id"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="currentUser ? mode : 'view'"
-                        :viewport-top="viewportTopOffset"
-                        :viewport-left="viewportLeftOffset"
                         :zoom="zoom"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
@@ -117,8 +115,6 @@
                                 :revision="schemeRevision"
                                 :project-id="projectId"
                                 :scheme-container="schemeContainer" 
-                                :viewport-top="viewportTopOffset"
-                                :viewport-left="viewportLeftOffset"
                                 @shape-prop-changed="onItemShapePropChanged"
                                 @item-field-changed="onItemFieldChanged"
                                 @item-style-applied="onItemStyleApplied"
@@ -281,8 +277,6 @@ export default {
             projectId: this.$route.params.projectId,
             project: null,
             schemeId: null,
-
-            viewportTopOffset: 40,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
@@ -1011,10 +1005,6 @@ export default {
     computed: {
         currentUser() {
             return this.$store.getters.currentUser;
-        },
-
-        viewportLeftOffset() {
-            return this.sidePanelLeftExpanded && this.mode === 'edit' ? 160: 0;
         },
 
         schemeModified() {

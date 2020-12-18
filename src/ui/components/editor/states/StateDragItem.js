@@ -364,8 +364,8 @@ export default class StateDragItem extends State {
      */
     selectByBoundaryBox(box, mx, my) {
         const viewportBox = {
-            x: this.originalPoint.mx - this.viewportCorrectionLeft,
-            y: this.originalPoint.my - this.viewportCorrectionTop,
+            x: this.originalPoint.mx,
+            y: this.originalPoint.my,
             w: mx - this.originalPoint.mx,
             h: my - this.originalPoint.my
         };
@@ -479,7 +479,7 @@ export default class StateDragItem extends State {
         const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
         let angleDegrees = 0;
         if (this.multiItemEditBox.transformType === 'viewport') {
-            angleDegrees = this.calculateRotatedAngle(mx - this.viewportCorrectionLeft, my - this.viewportCorrectionTop, this.originalPoint.mx - this.viewportCorrectionLeft, this.originalPoint.my - this.viewportCorrectionTop, center.x, center.y, event);
+            angleDegrees = this.calculateRotatedAngle(mx, my, this.originalPoint.mx, this.originalPoint.my, center.x, center.y, event);
         } else {
             angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
         }

@@ -146,8 +146,8 @@ export default class StateEditCurve extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportCorrectionLeft;
-            y = my - this.viewportCorrectionTop;
+            x = mx;
+            y = my;
         }
 
         if (this.creatingNewPoints) {
@@ -161,8 +161,8 @@ export default class StateEditCurve extends State {
 
     mouseDown(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportCorrectionLeft;
-            y = my - this.viewportCorrectionTop;
+            x = mx;
+            y = my;
         }
 
         this.originalClickPoint.x = x;
@@ -221,8 +221,8 @@ export default class StateEditCurve extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportCorrectionLeft;
-            y = my - this.viewportCorrectionTop;
+            x = mx;
+            y = my;
         }
 
         if (this.addedToScheme && this.creatingNewPoints) {
@@ -274,8 +274,8 @@ export default class StateEditCurve extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
-            x = mx - this.viewportCorrectionLeft;
-            y = my - this.viewportCorrectionTop;
+            x = mx;
+            y = my;
         }
 
         this.eventBus.emitItemsHighlighted([]);

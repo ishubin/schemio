@@ -37,7 +37,7 @@
                     </g>
                 </g>
 
-                <g :transform="viewportTransform">
+                <g>
                     <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
                         v-if="item.visible"
                         :class="'item-cursor-' + item.cursor">
@@ -128,7 +128,7 @@
                 </g>
 
 
-                <g :transform="viewportTransform">
+                <g>
                     <g v-for="item in schemeContainer.viewportItems"
                         v-if="item.visible"
                         class="item-container"
@@ -156,7 +156,7 @@
                 </g>
 
 
-                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? viewportTransform : transformSvg">
+                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? '' : transformSvg">
                     <curve-edit-box 
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
@@ -311,8 +311,6 @@ export default {
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
-        viewportTop     : { default: 0, type: Number },
-        viewportLeft    : { default: 0, type: Number },
         zoom            : { default: 1.0, type: Number },
     },
 
@@ -327,8 +325,6 @@ export default {
         } else {
             this.switchStateInteract();
         }
-
-        forEach(states, state => state.setViewportCorrection(this.viewportTop, this.viewportLeft));
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
@@ -1183,8 +1179,8 @@ export default {
             this.inPlaceTextEditor.height = area.h;
             this.inPlaceTextEditor.transformType = item.area.type;
             if (item.area.type === 'viewport') {
-                this.inPlaceTextEditor.area.x = worldPoint.x + this.viewportLeft;
-                this.inPlaceTextEditor.area.y = worldPoint.y + this.viewportTop;
+                this.inPlaceTextEditor.area.x = worldPoint.x;
+                this.inPlaceTextEditor.area.y = worldPoint.y;
                 this.inPlaceTextEditor.area.w = area.w;
                 this.inPlaceTextEditor.area.h = area.h;
             } else {
@@ -1407,12 +1403,6 @@ export default {
                 this.switchStateInteract();
             }
         },
-        viewportTop(value) {
-            states[this.state].setViewportCorrection(value, this.viewportLeft);
-        },
-        viewportLeft(value) {
-            states[this.state].setViewportCorrection(this.viewportTop, value);
-        },
         zoom(newZoom) {
             if (this.interactiveSchemeContainer) {
                 this.interactiveSchemeContainer.screenTransform.scale = newZoom / 100.0;
@@ -1431,9 +1421,6 @@ export default {
             const y = Math.floor(this.interactiveSchemeContainer.screenTransform.y || 0);
             const scale = this.interactiveSchemeContainer.screenTransform.scale || 1.0;
             return `translate(${x} ${y}) scale(${scale} ${scale})`;
-        },
-        viewportTransform() {
-            return `translate(${this.viewportLeft} ${this.viewportTop})`;
         },
         gridStep() {
             const snapSize = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);

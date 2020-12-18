@@ -235,7 +235,7 @@ const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
 
 export default {
-    props: ['projectId', 'item', 'schemeContainer', 'viewportLeft', 'viewportTop'],
+    props: ['projectId', 'item', 'schemeContainer'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
@@ -357,10 +357,10 @@ export default {
 
             // now recalculating item new position so that it stays on the same place in screen
             if (areaType === 'viewport') {
-                this.item.area.x = screenPoint.x - this.viewportLeft;
-                this.item.area.y = screenPoint.y - this.viewportTop;
+                this.item.area.x = screenPoint.x;
+                this.item.area.y = screenPoint.y;
             } else {
-                const recalculatedWorldPoint = myMath.viewportPointToWorld(this.schemeContainer.screenTransform, screenPoint.x + this.viewportLeft, screenPoint.y + this.viewportTop);
+                const recalculatedWorldPoint = myMath.viewportPointToWorld(this.schemeContainer.screenTransform, screenPoint.x, screenPoint.y);
                 this.item.area.x = recalculatedWorldPoint.x;
                 this.item.area.y = recalculatedWorldPoint.y;
             }
