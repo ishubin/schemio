@@ -76,11 +76,14 @@ function computePath(item) {
     let path = 'M 0 0';
 
     let prevPoint = null;
+
     forEach(item.shapeProps.points, point => {
-        if (prevPoint) {
+        if (!prevPoint) {
+            path = `M ${point.x} ${point.y} `;
+        } else if (!point.break) {
             path += connectPoints(prevPoint, point);
         } else {
-            path = `M ${point.x} ${point.y} `;
+            path += `M ${point.x} ${point.y} `;
         }
         prevPoint = point;
     });

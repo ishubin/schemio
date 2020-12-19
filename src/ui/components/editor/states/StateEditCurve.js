@@ -309,11 +309,28 @@ export default class StateEditCurve extends State {
             if (!point) {
                 return;
             }
+            let nextPoint = null;
+            if (object.pointIndex < this.item.shapeProps.points.length - 1) {
+                nextPoint = this.item.shapeProps.points[object.pointIndex + 1];
+            }
 
             const menuOptions = [{
                 name: 'Delete point',
                 clicked: () => this.deletePoint(object.pointIndex)
             }];
+
+            if (point.break || (nextPoint && nextPoint.break)) {
+                menuOptions.push({
+                    name: 'Remove break',
+                    clicked: () => this.repairBreak(object.pointIndex)
+                });
+            } else if (object.pointIndex > 0 && object.pointIndex < this.item.shapeProps.points.length - 2){
+                menuOptions.push({
+                    name: 'Break curve',
+                    clicked: () => this.breakCurve(object.pointIndex + 1)
+                });
+            }
+
             if (point.t === 'L') {
                 menuOptions.push({
                     name: 'Convert to beizer point',
@@ -342,10 +359,31 @@ export default class StateEditCurve extends State {
         }
     }
 
+    breakCurve(pointIndex) {
+        this.item.shapeProps.points[pointIndex].break = true;
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
+    repairBreak(pointIndex) {
+        if (this.item.shapeProps.points[pointIndex].break) {
+            this.item.shapeProps.points[pointIndex].break = false;
+        } else if (pointIndex < this.item.shapeProps.points.length - 1 && this.item.shapeProps.points[pointIndex + 1].break) {
+            this.item.shapeProps.points[pointIndex + 1].break = false;
+        } else {
+            return;
+        }
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
     deletePoint(pointIndex) {
         this.item.shapeProps.points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     insertPointAtCoords(x, y) {
@@ -373,6 +411,7 @@ export default class StateEditCurve extends State {
             }
             this.eventBus.emitItemChanged(this.item.id);
             this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.eventBus.emitSchemeChangeCommited();
         }
     }
 
