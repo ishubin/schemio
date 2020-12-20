@@ -1,4 +1,4 @@
-import { defaultifyObject } from '../src/defaultify.js';
+import { defaultifyObject, enrichObjectWithDefaults } from '../src/defaultify.js';
 import expect from 'expect';
 
 describe('defaultifyObject', () => {
@@ -305,3 +305,104 @@ describe('defaultifyObject', () => {
     });
 });
 
+
+describe('enrichObjectWithDefaults', () => {
+    it('should add default simple fields', () => {
+        const obj = {
+            name: 'icon'
+        };
+        
+        const defaultObj = {
+            name: '',
+            color: 'red',
+            visible: true
+        };
+
+        enrichObjectWithDefaults(obj, defaultObj);
+
+        expect(obj).toStrictEqual({
+            name: 'icon',
+            color: 'red',
+            visible: true
+        });
+    });
+
+
+    it('should add default nested fields', () => {
+        const obj = {
+            name: 'icon',
+            shapeProps: {
+                color: 'red'
+            }
+        };
+        
+        const defaultObj = {
+            name: '',
+            shapeProps: {
+                color: 'blue',
+                fill: 'green',
+                strokeSize: 1
+            }
+        };
+
+        enrichObjectWithDefaults(obj, defaultObj);
+
+        expect(obj).toStrictEqual({
+            name: 'icon',
+            shapeProps: {
+                color: 'red',
+                fill: 'green',
+                strokeSize: 1
+            }
+        });
+    });
+
+
+    it('should add defaults to arrays', () => {
+        const obj = {
+            name: 'Hello',
+            items: [ {
+                name: 'icon'
+            }, {
+                name: 'rect',
+                shapeProps: {
+                    color: 'red'
+                }
+            } ]
+        };
+        
+        const defaultObj = {
+            name: '',
+            items: [{
+                name: '',
+                shapeProps: {
+                    color: 'blue',
+                    fill: 'green',
+                    strokeSize: 1
+                }
+            }]
+        };
+
+        enrichObjectWithDefaults(obj, defaultObj);
+
+        expect(obj).toStrictEqual({
+            name: 'Hello',
+            items: [{
+                name: 'icon',
+                shapeProps: {
+                    color: 'blue',
+                    fill: 'green',
+                    strokeSize: 1
+                }
+            }, {
+                name: 'rect',
+                shapeProps: {
+                    color: 'red',
+                    fill: 'green',
+                    strokeSize: 1
+                }
+            }]
+        });
+    });
+
+});
