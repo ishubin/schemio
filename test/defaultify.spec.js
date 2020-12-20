@@ -177,5 +177,83 @@ describe('defaultifyObject', () => {
             }]
         });
     });
+
+
+
+    it('should support custom external defaultifiers based on field path', () => {
+        const obj = {
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'rect',
+                shape: 'rect',
+                shapeProps: {
+                    cornerRadius: 5,
+                    size: 14,
+                    strokeSize: 5
+                }
+            }, {
+                name: 'circle',
+                shape: 'circle',
+                shapeProps: {
+                    radius: 10,
+                    strokeSize: 5
+                }
+            }, {
+                name: 'label',
+                text: 'hello'
+            }]
+        };
+        const defaultObject = {
+            name: '',
+            items: [{
+                name: '',
+                shape: 'none',
+            }]
+        };
+
+        const rectShapePropsDefaults = {
+            cornerRadius: 5
+        };
+        const circleShapePropsDefaults = {
+            radius: 5,
+            strokeSize: 5
+        };
+
+        const result = defaultifyObject(obj, defaultObject, {
+            customDefaultifiers: {
+                '/items/[]/shapeProps': (rootObject, shapeProps) => {
+                    if (rootObject['shape'] === 'rect') {
+                        return defaultifyObject(shapeProps, rectShapePropsDefaults);
+                    } else if (rootObject['shape'] === 'circle') {
+                        return defaultifyObject(shapeProps, circleShapePropsDefaults);
+                    }
+                    return shapeProps;
+                }
+            }
+        });
+
+        expect(result).toStrictEqual({
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'rect',
+                shape: 'rect',
+                shapeProps: {
+                    size: 14,
+                    strokeSize: 5
+                }
+            }, {
+                name: 'circle',
+                shape: 'circle',
+                shapeProps: {
+                    radius: 10,
+                }
+            }, {
+                name: 'label',
+                text: 'hello'
+            }]
+        });
+    });
 });
 
