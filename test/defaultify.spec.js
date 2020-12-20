@@ -405,4 +405,47 @@ describe('enrichObjectWithDefaults', () => {
         });
     });
 
+    it('should use asterisk to apply defaults to all fields in object', () => {
+        const obj = {
+            name: 'icon',
+            textSlots: {
+                header: {
+                    text: 'Hello'
+                },
+                body: {
+                    text: 'World',
+                    color: 'black'
+                }
+            }
+        };
+
+        const defaultObj = {
+            name: 'icon',
+            textSlots: {
+                '*': {
+                    text: '',
+                    color: 'black',
+                    fontSize: 16
+                }
+            }
+        };
+
+        enrichObjectWithDefaults(obj, defaultObj);
+
+        expect(obj).toStrictEqual({
+            name: 'icon',
+            textSlots: {
+                header: {
+                    text: 'Hello',
+                    color: 'black',
+                    fontSize: 16
+                },
+                body: {
+                    text: 'World',
+                    color: 'black',
+                    fontSize: 16
+                }
+            }
+        });
+    });
 });

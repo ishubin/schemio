@@ -104,22 +104,28 @@ export function defaultifyObject(obj, defaultObject, options, path) {
 export function enrichObjectWithDefaults(obj, defaultObj) {
     for (let field in defaultObj) {
         if (defaultObj.hasOwnProperty(field)) {
-            const subDefObj = defaultObj[field]
-
-            if (!obj.hasOwnProperty(field) || typeof obj[field] !== typeof subDefObj || (Array.isArray(subDefObj) && !Array.isArray(obj[field]))) {
-                // in case they have different types - we should correct the object, otherwise it will be in broken state
-                if (Array.isArray(subDefObj)) {
-                    obj[field] = [];
-                } else {
-                    obj[field] = utils.clone(subDefObj);
+            if (field === '*') {
+                for (let objField in obj) {
+                    enrichObjectWithDefaults(obj[objField], defaultObj['*']);
                 }
             } else {
-                if (typeof subDefObj === 'object' && !Array.isArray(subDefObj)) {
-                    enrichObjectWithDefaults(obj[field], subDefObj);
-                } else if (Array.isArray(subDefObj) && subDefObj.length === 1) {
-                    for (let i = 0; i < obj[field].length; i++) {
-                        // enriching each array element
-                        enrichObjectWithDefaults(obj[field][i], subDefObj[0]);
+                const subDefObj = defaultObj[field]
+
+                if (!obj.hasOwnProperty(field) || typeof obj[field] !== typeof subDefObj || (Array.isArray(subDefObj) && !Array.isArray(obj[field]))) {
+                    // in case they have different types - we should correct the object, otherwise it will be in broken state
+                    if (Array.isArray(subDefObj)) {
+                        obj[field] = [];
+                    } else {
+                        obj[field] = utils.clone(subDefObj);
+                    }
+                } else {
+                    if (typeof subDefObj === 'object' && !Array.isArray(subDefObj)) {
+                        enrichObjectWithDefaults(obj[field], subDefObj);
+                    } else if (Array.isArray(subDefObj) && subDefObj.length === 1) {
+                        for (let i = 0; i < obj[field].length; i++) {
+                            // enriching each array element
+                            enrichObjectWithDefaults(obj[field][i], subDefObj[0]);
+                        }
                     }
                 }
             }
