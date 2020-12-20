@@ -121,6 +121,54 @@ describe('defaultifyObject', () => {
     });
 
 
+    it('should defaultify arrays and remove them in case they are empty', () => {
+        const obj = {
+            items: [ {
+                name: 'item 1',
+                behavior: {
+                    events: [ {
+                        on: 'mouseover'
+                    }]
+                }
+            }, {
+                name: 'item 2',
+                behavior: {
+                    events: []
+                }
+            } ]
+        }
+
+        const defaultObject = {
+            name: '',
+            items: [{
+                name: '',
+                shape: 'none',
+                color: 'blue',
+                behavior: {
+                    events: [ {
+                        // empty object for the sake of test
+                    } ]
+                }
+            }]
+        };
+
+        const result = defaultifyObject(obj, defaultObject);
+
+        expect(result).toStrictEqual({
+            items: [ {
+                name: 'item 1',
+                behavior: {
+                    events: [ {
+                        on: 'mouseover'
+                    }]
+                }
+            }, {
+                name: 'item 2'
+            } ]
+        });
+    });
+
+
     it('should allow to specify asterisk defaultifiers to match any fields in the object', () => {
         const obj = {
             name: 'Scheme',

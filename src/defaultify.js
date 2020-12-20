@@ -27,6 +27,8 @@ function defaultifyObject(obj, defaultObject, options, path) {
 
             let subDefObj = undefined;
             if (defaultObject.hasOwnProperty('*')) {
+                // this means that all fields of the object should be checked
+                // this is going to be applied for item.textSlots
                 subDefObj = defaultObject['*'];
             } else if (defaultObject.hasOwnProperty(field)) {
                 subDefObj = defaultObject[field];
@@ -40,15 +42,19 @@ function defaultifyObject(obj, defaultObject, options, path) {
                     completeMatch = false;
                     resultingObject[field] = nestedResult;
                 }
-            }
-
-            if (typeof subDefObj !== 'undefined') {
+            } else if (typeof subDefObj !== 'undefined') {
                 if (typeof obj[field] === typeof subDefObj) {
+
                     if (Array.isArray(obj[field])) {
-                        completeMatch = false;
                         resultingObject[field] = [];
+
                         if (Array.isArray(subDefObj) && subDefObj.length === 1) {
+                            if (obj[field].length > 0) {
+                                // if there is at least one item in array - we should not let it be removed completelly 
+                                completeMatch = false;
+                            }
                             for (let i = 0; i < obj[field].length; i++) {
+
                                 const nestedResult = defaultifyObject(obj[field][i], subDefObj[0], options, `${fieldPath}/[]`);
                                 if (typeof nestedResult !== 'undefined') {
                                     resultingObject[field][i] = nestedResult;
@@ -88,6 +94,7 @@ function defaultifyObject(obj, defaultObject, options, path) {
     return resultingObject;
 }
 
+
 module.exports = {
-    defaultifyObject
+    defaultifyObject,
 };
