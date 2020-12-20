@@ -79,5 +79,46 @@ describe('defaultifyObject', () => {
             }
         });
     });
+
+
+
+    it('should also defaultify arrays', () => {
+        const obj = {
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'rect 1',
+                shape: 'rect',
+                color: 'red'
+            }, {
+                name: 'label',
+                shape: 'none',
+                color: 'blue'
+            }]
+        };
+        const defaultObject = {
+            name: '',
+            items: [{
+                name: '',
+                shape: 'none',
+                color: 'blue'
+            }]
+        };
+
+        const result = defaultifyObject(obj, defaultObject);
+
+        // it should have removed field color as it matches in the defaultObject
+        expect(result).toStrictEqual({
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'rect 1',
+                shape: 'rect',
+                color: 'red'
+            }, {
+                name: 'label',
+            }]
+        });
+    });
 });
 

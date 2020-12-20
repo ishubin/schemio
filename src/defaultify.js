@@ -1,6 +1,5 @@
 
 
-
 /**
  * Performs a deep scan and returns object without fields that are exactly the same as in default object
  * @param {Object} obj object that is supposed to be cleaned up
@@ -21,7 +20,22 @@ function defaultifyObject(obj, defaultObject) {
             let shouldCopy = true;
             if (defaultObject.hasOwnProperty(field)) {
                 if (typeof obj[field] === typeof defaultObject[field]) {
-                    if (typeof obj[field] === 'object') {
+                    if (Array.isArray(obj[field])) {
+                        resultingObject[field] = [];
+                        if (Array.isArray(defaultObject[field]) && defaultObject[field].length === 1) {
+                            for (let i = 0; i < obj[field].length; i++) {
+                                const nestedResult = defaultifyObject(obj[field][i], defaultObject[field][0]);
+                                if (typeof nestedResult !== 'undefined') {
+                                    resultingObject[field][i] = nestedResult;
+                                } else {
+                                    resultingObject[field][i] = {};
+                                }
+                            }
+                            shouldCopy = false;
+                        } else {
+                            shouldCopy = true;
+                        }
+                    } else if (typeof obj[field] === 'object') {
                         const nestedResult = defaultifyObject(obj[field], defaultObject[field]);
                         if (typeof nestedResult !== 'undefined') {
                             resultingObject[field] = nestedResult;
@@ -30,7 +44,6 @@ function defaultifyObject(obj, defaultObject) {
                         } else {
                             shouldCopy = false;
                         }
-
                     } else if (obj[field] === defaultObject[field]) {
                         shouldCopy = false;
                     }
