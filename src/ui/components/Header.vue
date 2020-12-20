@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="header text-nonselectable">
         <router-link :to="{path: '/'}" class="header-caption">
-            <img src="/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
+            <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
         </router-link>
 
         <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>

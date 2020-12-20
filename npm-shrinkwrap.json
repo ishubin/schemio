@@ -1976,6 +1976,11 @@
       "resolved": "https://registry.npmjs.org/binary-extensions/-/binary-extensions-1.12.0.tgz",
       "integrity": "sha512-DYWGk01lDcxeS/K9IHPGWfT8PsJmbXRtRd2Sx72Tnb8pcYZQFF1oSDb8hJtS1vhp212q1Rzi5dUf9+nq0o9UIg=="
     },
+    "bintrees": {
+      "version": "1.0.1",
+      "resolved": "https://registry.npmjs.org/bintrees/-/bintrees-1.0.1.tgz",
+      "integrity": "sha1-DmVcm5wkNeqraL9AJyJtK1WjRSQ="
+    },
     "bluebird": {
       "version": "3.7.2",
       "resolved": "https://registry.npmjs.org/bluebird/-/bluebird-3.7.2.tgz",
@@ -7642,6 +7647,14 @@
       "integrity": "sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==",
       "dev": true
     },
+    "prom-client": {
+      "version": "13.0.0",
+      "resolved": "https://registry.npmjs.org/prom-client/-/prom-client-13.0.0.tgz",
+      "integrity": "sha512-M7ZNjIO6x+2R/vjSD13yjJPjpoZA8eEwH2Bp2Re0/PvzozD7azikv+SaBtZes4Q1ca/xHjZ4RSCuTag3YZLg1A==",
+      "requires": {
+        "tdigest": "^0.1.1"
+      }
+    },
     "promise-inflight": {
       "version": "1.0.1",
       "resolved": "https://registry.npmjs.org/promise-inflight/-/promise-inflight-1.0.1.tgz",
@@ -9144,6 +9157,14 @@
       "resolved": "https://registry.npmjs.org/tapable/-/tapable-1.1.3.tgz",
       "integrity": "sha512-4WK/bYZmj8xLr+HUCODHGF1ZFzsYffasLUgEiMBY4fgtltdO6B4WJtlSbPaDTLpYTcGVwM2qLnFTICEcNxs3kA==",
       "dev": true
+    },
+    "tdigest": {
+      "version": "0.1.1",
+      "resolved": "https://registry.npmjs.org/tdigest/-/tdigest-0.1.1.tgz",
+      "integrity": "sha1-Ljyyw56kSeVdHmzZEReszKRYgCE=",
+      "requires": {
+        "bintrees": "1.0.1"
+      }
     },
     "term-size": {
       "version": "1.2.0",

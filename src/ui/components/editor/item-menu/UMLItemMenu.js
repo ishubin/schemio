@@ -15,7 +15,7 @@ const defaultItem = {
 
 export default [{
     name: 'Object',
-    iconUrl: '/images/items/uml-object.svg',
+    iconUrl: '/assets/images/items/uml-object.svg',
     item: utils.extendObject({
         textSlots: {
             title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
@@ -26,7 +26,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Module',
-    iconUrl: '/images/items/uml-module.svg',
+    iconUrl: '/assets/images/items/uml-module.svg',
     item: utils.extendObject({
         shape: 'uml_module',
         textSlots: {
@@ -37,14 +37,14 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Package',
-    iconUrl: '/images/items/uml-package.svg',
+    iconUrl: '/assets/images/items/uml-package.svg',
     item: utils.extendObject({
         shape: 'uml_package',
         shapeProps: {}
     }, defaultItem)
 }, {
     name: 'Node',
-    iconUrl: '/images/items/uml-node.svg',
+    iconUrl: '/assets/images/items/uml-node.svg',
     item: utils.extendObject({
         shape: 'uml_node',
         shapeProps: {}

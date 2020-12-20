@@ -3,42 +3,42 @@ import {defaultItem} from '../../../scheme/Item';
 
 export default [{
     name: 'Rect',
-    iconUrl: '/images/items/rect.svg',
+    iconUrl: '/assets/images/items/rect.svg',
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {cornerRadius: 0}
     }, defaultItem)
 }, {
     name: 'Rounded Rect',
-    iconUrl: '/images/items/rounded-rect.svg',
+    iconUrl: '/assets/images/items/rounded-rect.svg',
     item: utils.extendObject({
         shape: 'rect',
         shapeProps: {cornerRadius: 20}
     }, defaultItem)
 }, {
     name: 'Ellipse',
-    iconUrl: '/images/items/ellipse.svg',
+    iconUrl: '/assets/images/items/ellipse.svg',
     item: utils.extendObject({
         shape: 'ellipse',
         shapeProps: {}
     }, defaultItem)
 }, {
     name: 'N-Polygon',
-    iconUrl: '/images/items/npolygon.svg',
+    iconUrl: '/assets/images/items/npolygon.svg',
     item: utils.extendObject({
         shape: 'npoly',
         shapeProps: {}
     }, defaultItem)
 }, {
     name: 'Curve',
-    iconUrl: '/images/items/curve.svg',
+    iconUrl: '/assets/images/items/curve.svg',
     item: utils.extendObject({
         shape: 'curve',
         shapeProps: { }
     }, defaultItem)
 }, {
     name: 'Curly Bracket',
-    iconUrl: '/images/items/curly-bracket.svg',
+    iconUrl: '/assets/images/items/curly-bracket.svg',
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
@@ -48,7 +48,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Square Bracket',
-    iconUrl: '/images/items/square-bracket.svg',
+    iconUrl: '/assets/images/items/square-bracket.svg',
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
@@ -58,7 +58,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Round Bracket',
-    iconUrl: '/images/items/round-bracket.svg',
+    iconUrl: '/assets/images/items/round-bracket.svg',
     item: utils.extendObject({
         shape: 'bracket',
         shapeProps: {
@@ -68,7 +68,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Overlay',
-    iconUrl: '/images/items/overlay.svg',
+    iconUrl: '/assets/images/items/overlay.svg',
     description: `
         It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
         E.g. you can select it, trigger events or connect it to other items on the page.
@@ -83,7 +83,7 @@ export default [{
 }, {
     name: 'Image',
     imageProperty: 'shapeProps.fill.image',
-    iconUrl: '/images/items/image.svg',
+    iconUrl: '/assets/images/items/image.svg',
     description: `
         It lets you upload an image or specify a link to external image
     `,
@@ -96,7 +96,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Comment',
-    iconUrl: '/images/items/comment.svg',
+    iconUrl: '/assets/images/items/comment.svg',
     shapeProps: {
         fontSize: 8,
         cornerRadius: 5,
@@ -110,7 +110,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Text',
-    iconUrl: '/images/items/text.svg',
+    iconUrl: '/assets/images/items/text.svg',
     item: utils.extendObject({
         shape: 'none',
         textSlots: {
@@ -123,7 +123,7 @@ export default [{
 
 }, {
     name: 'Link',
-    iconUrl: '/images/items/link.svg',
+    iconUrl: '/assets/images/items/link.svg',
     item: utils.extendObject({
         shape: 'link',
         textSlots: { 
@@ -143,7 +143,7 @@ export default [{
 
 }, {
     name: 'Frame Player',
-    iconUrl: '/images/items/frame-player.svg',
+    iconUrl: '/assets/images/items/frame-player.svg',
     item: utils.extendObject({
         shape: 'frame_player',
         shapeProps: { },
@@ -157,7 +157,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Code Block',
-    iconUrl: '/images/items/code-block.svg',
+    iconUrl: '/assets/images/items/code-block.svg',
     item: utils.extendObject({
         shape: 'code_block',
         shapeProps: { },
@@ -194,7 +194,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Button',
-    iconUrl: '/images/items/button.svg',
+    iconUrl: '/assets/images/items/button.svg',
     item: utils.extendObject({
         shape: 'button',
         cursor: 'pointer',
@@ -215,7 +215,7 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Dummy',
-    iconUrl: '/images/items/dummy.svg',
+    iconUrl: '/assets/images/items/dummy.svg',
     item: utils.extendObject({
         shape: 'dummy',
         shapeProps: {cornerRadius: 0}

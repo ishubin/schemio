@@ -1,3 +1,6 @@
+const ip = require("ip");
+
+
 const PropertiesReader = require('properties-reader');
 
 const props = PropertiesReader('schemio.properties');
@@ -6,8 +9,15 @@ function conf(envName, propertyName, defaultValue) {
     return process.env[envName] || props.get(propertyName) || defaultValue;
 }
 
+const ipAddress = ip.address('public');
+const serverPort = conf('SERVER_PORT', 'server.port' , 4010);
+const instanceId = `${ipAddress}:${serverPort}`;
+
+
 module.exports = {
-    serverPort: conf('SERVER_PORT', 'server.port' , 4010),
+    serverPort,
+
+    instanceId: conf('INSTANCE_ID', 'instance.id', instanceId),
 
     mongodb: {
         url: conf('MONGODB_URL', 'mongodb.url', 'mongodb://localhost:27017'),

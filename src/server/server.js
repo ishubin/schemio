@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const express               = require('express');
-const path                  = require('path');
 const bodyParser            = require('body-parser');
 const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
@@ -21,6 +20,8 @@ const config                = require('./config.js');
 const jsonBodyParser        = bodyParser.json({limit: config.api.payloadSize, extended: true});
 const mongoMigrate          = require('./storage/mongodb/migrations/migrate.js').migrate;
 
+const metrics               = require('./metrics.js');
+
 const app = express();
 
 app.use(session({
@@ -32,51 +33,81 @@ app.use(session({
 }));
 
 app.use(cookieParser());
-app.use(express.static('public'));
+app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
+app.use('/assets', express.static('public'));
 app.use('/v1', [jsonBodyParser, middleware.api]);
 
-
-app.get('/v1/user',         [middleware.auth], apiUser.getCurrentUser);
-app.post('/v1/login',       apiUser.login);
-app.get('/user/logout',     apiUser.logout);
-app.post('/v1/user/styles', [middleware.auth], apiStyles.addToStylingPalette);
-app.get('/v1/user/styles',  [middleware.auth], apiStyles.getStylePalette);
-app.delete('/v1/user/styles/:styleId',  [middleware.auth], apiStyles.deleteStyle);
-
-app.post('/v1/projects',            [middleware.auth], apiProjects.createProject);
-app.get('/v1/projects',             apiProjects.findProjects);
-app.get('/v1/projects/:projectId',  [middleware.projectReadPermission], apiProjects.getProject);
-app.patch('/v1/projects/:projectId',[middleware.auth, middleware.projectWritePermission], apiProjects.patchProject);
-app.delete('/v1/projects/:projectId',[middleware.auth, middleware.projectWritePermission], apiProjects.deleteProject);
-
-app.get('/v1/projects/:projectId/schemes',                      [middleware.projectReadPermission], apiSchemes.findSchemes);
-app.get('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectReadPermission], apiSchemes.getScheme);
-app.delete('/v1/projects/:projectId/schemes/:schemeId',         [middleware.projectWritePermission], apiSchemes.deleteScheme);
-app.post('/v1/projects/:projectId/schemes',                     [middleware.projectWritePermission], apiSchemes.createScheme);
-app.put('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectWritePermission], apiSchemes.saveScheme);
-app.post('/v1/projects/:projectId/scheme-preview/:schemeId',    [middleware.projectWritePermission], apiSchemes.savePreview);
-app.get('/projects/:projectId/scheme-preview/:schemeId',        [middleware.projectReadPermission], apiSchemes.getPreview);
-
-app.get('/v1/projects/:projectId/tags', [middleware.projectReadPermission], apiSchemes.getTags);
-
-app.post('/v1/projects/:projectId/art',         [middleware.projectWritePermission],    apiArt.createArt);
-app.put('/v1/projects/:projectId/art/:artId',   [middleware.projectWritePermission],    apiArt.saveArt);
-app.delete('/v1/projects/:projectId/art/:artId',[middleware.projectWritePermission],    apiArt.deleteArt);
-app.get('/v1/projects/:projectId/art',          [middleware.projectReadPermission],     apiArt.getArt);
-app.get('/v1/art', apiArt.getGlobalArt);
-
-app.post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
-app.get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission], apiFiles.downloadFile);
+app.get('/',   express.static('public/index.html'));
 
 
-app.get('/v1/projects/:projectId/category-tree',                [middleware.projectReadPermission], apiCategories.getCategoryTree);
-app.get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission], apiCategories.getRootCategory);
-app.get('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectReadPermission], apiCategories.getCategory);
-app.post('/v1/projects/:projectId/categories',                  [middleware.projectWritePermission],  apiCategories.createCategory);
-app.post('/v1/projects/:projectId/move-category',               [middleware.projectWritePermission],  apiCategories.moveCategory);
-app.put('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectWritePermission],  apiCategories.updateCategory);
-app.delete('/v1/projects/:projectId/categories/:categoryId',    [middleware.projectWritePermission],  apiCategories.deleteCategory);
-app.put('/v1/projects/:projectId/category-structure',           [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
+function routeWithMetrics(method, routePath, middleware, handler) {
+    const allMiddleware = [metrics.routeMiddleware({
+        routeName: routePath
+    })].concat(middleware);
+
+    app[method](routePath, allMiddleware, handler);
+}
+
+function $get(routePath, middleware, handler) {
+    routeWithMetrics('get', routePath, middleware, handler);
+}
+function $post(routePath, middleware, handler) {
+    routeWithMetrics('post', routePath, middleware, handler);
+}
+function $delete(routePath, middleware, handler) {
+    routeWithMetrics('delete', routePath, middleware, handler);
+}
+function $patch(routePath, middleware, handler) {
+    routeWithMetrics('patch', routePath, middleware, handler);
+}
+function $put(routePath, middleware, handler) {
+    routeWithMetrics('put', routePath, middleware, handler);
+}
+
+
+app.get('/metrics',         metrics.getPrometheusMetrics);
+
+$get('/v1/user',         [middleware.auth], apiUser.getCurrentUser);
+$post('/v1/login',       [],                apiUser.login);
+$get('/user/logout',     [],                apiUser.logout);
+
+$post('/v1/user/styles',            [middleware.auth], apiStyles.addToStylingPalette);
+$get('/v1/user/styles',             [middleware.auth], apiStyles.getStylePalette);
+$delete('/v1/user/styles/:styleId', [middleware.auth], apiStyles.deleteStyle);
+
+$post('/v1/projects',               [middleware.auth],                                      apiProjects.createProject);
+$get('/v1/projects',                [],                                                     apiProjects.findProjects);
+$get('/v1/projects/:projectId',     [middleware.projectReadPermission],                     apiProjects.getProject);
+$patch('/v1/projects/:projectId',   [middleware.auth, middleware.projectWritePermission],   apiProjects.patchProject);
+$delete('/v1/projects/:projectId',  [middleware.auth, middleware.projectWritePermission],   apiProjects.deleteProject);
+
+$get('/v1/projects/:projectId/schemes',                      [middleware.projectReadPermission],    apiSchemes.findSchemes);
+$get('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectReadPermission],    apiSchemes.getScheme);
+$delete('/v1/projects/:projectId/schemes/:schemeId',         [middleware.projectWritePermission],   apiSchemes.deleteScheme);
+$post('/v1/projects/:projectId/schemes',                     [middleware.projectWritePermission],   apiSchemes.createScheme);
+$put('/v1/projects/:projectId/schemes/:schemeId',            [middleware.projectWritePermission],   apiSchemes.saveScheme);
+$post('/v1/projects/:projectId/scheme-preview/:schemeId',    [middleware.projectWritePermission],   apiSchemes.savePreview);
+$get('/projects/:projectId/scheme-preview/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getPreview);
+$get('/v1/projects/:projectId/tags',                         [middleware.projectReadPermission],    apiSchemes.getTags);
+
+$post('/v1/projects/:projectId/art',         [middleware.projectWritePermission],    apiArt.createArt);
+$put('/v1/projects/:projectId/art/:artId',   [middleware.projectWritePermission],    apiArt.saveArt);
+$delete('/v1/projects/:projectId/art/:artId',[middleware.projectWritePermission],    apiArt.deleteArt);
+$get('/v1/projects/:projectId/art',          [middleware.projectReadPermission],     apiArt.getArt);
+$get('/v1/art',                              [],                                     apiArt.getGlobalArt);
+
+$post('/projects/:projectId/files',             [middleware.projectWritePermission], apiFiles.uploadFile);
+$get('/projects/:projectId/files/:fileName',    [middleware.projectReadPermission],  apiFiles.downloadFile);
+
+
+$get('/v1/projects/:projectId/category-tree',                [middleware.projectReadPermission],   apiCategories.getCategoryTree);
+$get('/v1/projects/:projectId/categories',                   [middleware.projectReadPermission],   apiCategories.getRootCategory);
+$get('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectReadPermission],   apiCategories.getCategory);
+$post('/v1/projects/:projectId/categories',                  [middleware.projectWritePermission],  apiCategories.createCategory);
+$post('/v1/projects/:projectId/move-category',               [middleware.projectWritePermission],  apiCategories.moveCategory);
+$put('/v1/projects/:projectId/categories/:categoryId',       [middleware.projectWritePermission],  apiCategories.updateCategory);
+$delete('/v1/projects/:projectId/categories/:categoryId',    [middleware.projectWritePermission],  apiCategories.deleteCategory);
+$put('/v1/projects/:projectId/category-structure',           [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
 
 
 const cwd = process.cwd();
