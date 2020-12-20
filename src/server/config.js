@@ -28,6 +28,10 @@ module.exports = {
         }
     },
 
+    metrics: {
+        latencyBuckets: conf('METRICS_LATENCY_BUCKETS', 'metrics.latencyBuckets', '0.05, 0.1, 0.3, 0.5, 1, 2, 5')
+    },
+
     session: {
         secret: conf('SESSION_SECRET', 'session.secret', 'somesessionsecret')
     },
