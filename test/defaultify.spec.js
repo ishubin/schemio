@@ -107,7 +107,6 @@ describe('defaultifyObject', () => {
 
         const result = defaultifyObject(obj, defaultObject);
 
-        // it should have removed field color as it matches in the defaultObject
         expect(result).toStrictEqual({
             name: 'Scheme',
             tags: [],
@@ -117,6 +116,64 @@ describe('defaultifyObject', () => {
                 color: 'red'
             }, {
                 name: 'label',
+            }]
+        });
+    });
+
+
+    it('should allow to specify asterisk defaultifiers to match any fields in the object', () => {
+        const obj = {
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'label',
+                textSlots: {
+                    head: {
+                        color: 'black',
+                        text: 'hi',
+                        fontSize: 30
+                    },
+                    body: {
+                        color: 'red',
+                        text: 'Hello',
+                        fontSize: 20
+                    }
+                }
+            }]
+        };
+        const defaultObject = {
+            name: '',
+            items: [{
+                name: '',
+                shape: 'none',
+                color: 'blue',
+                textSlots: {
+                    '*': {
+                        color: 'black',
+                        text: '',
+                        fontSize: 20
+                    }
+                }
+            }]
+        };
+
+        const result = defaultifyObject(obj, defaultObject);
+
+        expect(result).toStrictEqual({
+            name: 'Scheme',
+            tags: [],
+            items: [{
+                name: 'label',
+                textSlots: {
+                    head: {
+                        text: 'hi',
+                        fontSize: 30
+                    },
+                    body: {
+                        color: 'red',
+                        text: 'Hello'
+                    }
+                }
             }]
         });
     });

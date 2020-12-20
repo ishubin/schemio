@@ -18,13 +18,22 @@ function defaultifyObject(obj, defaultObject) {
     for (let field in obj) {
         if (obj.hasOwnProperty(field)) {
             let shouldCopy = true;
-            if (defaultObject.hasOwnProperty(field)) {
-                if (typeof obj[field] === typeof defaultObject[field]) {
+
+            let subDefObj = undefined;
+            if (defaultObject.hasOwnProperty('*')) {
+                subDefObj = defaultObject['*'];
+            } else if (defaultObject.hasOwnProperty(field)) {
+                subDefObj = defaultObject[field];
+            }
+
+            if (typeof subDefObj !== 'undefined') {
+                if (typeof obj[field] === typeof subDefObj) {
                     if (Array.isArray(obj[field])) {
+                        completeMatch = false;
                         resultingObject[field] = [];
-                        if (Array.isArray(defaultObject[field]) && defaultObject[field].length === 1) {
+                        if (Array.isArray(subDefObj) && subDefObj.length === 1) {
                             for (let i = 0; i < obj[field].length; i++) {
-                                const nestedResult = defaultifyObject(obj[field][i], defaultObject[field][0]);
+                                const nestedResult = defaultifyObject(obj[field][i], subDefObj[0]);
                                 if (typeof nestedResult !== 'undefined') {
                                     resultingObject[field][i] = nestedResult;
                                 } else {
@@ -36,7 +45,7 @@ function defaultifyObject(obj, defaultObject) {
                             shouldCopy = true;
                         }
                     } else if (typeof obj[field] === 'object') {
-                        const nestedResult = defaultifyObject(obj[field], defaultObject[field]);
+                        const nestedResult = defaultifyObject(obj[field], subDefObj);
                         if (typeof nestedResult !== 'undefined') {
                             resultingObject[field] = nestedResult;
                             shouldCopy = false;
@@ -44,7 +53,7 @@ function defaultifyObject(obj, defaultObject) {
                         } else {
                             shouldCopy = false;
                         }
-                    } else if (obj[field] === defaultObject[field]) {
+                    } else if (obj[field] === subDefObj) {
                         shouldCopy = false;
                     }
                 }
