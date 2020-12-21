@@ -22,6 +22,9 @@ const mongoMigrate          = require('./storage/mongodb/migrations/migrate.js')
 
 const metrics               = require('./metrics.js');
 
+const logger                = require('./logger.js').createLog('server.js')
+
+
 const app = express();
 
 
@@ -34,12 +37,12 @@ app.use(session({
     })
 }));
 
-middleware.configureIpFilter(app);
-
 app.use(cookieParser());
-app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
 app.use('/assets', express.static('public'));
+app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
 app.use('/v1', [jsonBodyParser, middleware.api]);
+middleware.configureIpFilter(app);
+app.use(middleware.accessLogging);
 
 app.use(function (err, req, res, next) {
     console.error('Global error handler', err.stack);
@@ -130,14 +133,14 @@ app.set('port', config.serverPort);
 
 mongo.connectDb().then(() => {
     return mongoMigrate().catch(err => {
-        console.error('Could not execute mongo migrations', err);
+        logger.error('Could not execute mongo migrations', err);
         process.exit(1);
     });
 }).then(() => {
     app.listen(config.serverPort, () => {
-        console.log('Listening on port ' + config.serverPort);
+        logger.info('Listening on port ' + config.serverPort);
     });
 }).catch(err => {
-    console.error('Could not connect to Mongodb', err);
+    logger.error('Could not connect to Mongodb', err);
     process.exit(1);
 });

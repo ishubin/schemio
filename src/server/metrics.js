@@ -51,7 +51,6 @@ function reportLatency(latency) {
 
 
 function getPrometheusMetrics(req, res) {
-    //TODO check for allowed IP range, do not expose it to the world
     console.log('colleting metrics');
     client.register.metrics().then(metrics => {
         res.set('Content-Type', client.register.contentType);

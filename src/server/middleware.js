@@ -4,6 +4,7 @@
 const config         = require('./config.js');
 const projectStorage = require('./storage/storageProvider').provideProjectStorage();
 const ipfilter       = require('express-ipfilter').IpFilter;
+const logger         = require('./logger.js').createLog('middleware.js');
 
 function apiError(error, message) {
     let msg = message;
@@ -134,6 +135,13 @@ module.exports = {
         } else {
             reject();
         }
+    },
+
+    accessLogging(req, res, next) {
+        res.once('finish', () => {
+            logger.access(req, res);
+        });
+        next();
     },
     
     configureIpFilter

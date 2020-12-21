@@ -65,5 +65,17 @@ module.exports = {
     ipFilter: {
         whitelist: conf('IPFILTER_WHITELIST', 'ipfilter.whitelist', ''),
         blacklist: conf('IPFILTER_BLACKLIST', 'ipfilter.blacklist', ''),
+    },
+
+    logger: {
+        access: {
+            type: conf('LOGGER_ACCESS_TYPE', 'logger.access.type', 'text'),
+            destination: conf('LOGGER_ACCESS_DESTINATION', 'logger.access.destination', 'stdout')
+        },
+        default: {
+            type: conf('LOGGER_DEFAULT_TYPE', 'logger.default.type', 'text'),
+            destination: conf('LOGGER_DEFAULT_DESTINATION', 'logger.default.destination', 'stderr')
+        },
+        level: conf('LOGGER_LEVEL', 'logger.level', 'info')
     }
 };
