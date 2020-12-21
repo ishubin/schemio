@@ -15,8 +15,9 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import {Item, enrichItemWithDefaults} from './Item.js';
-import {Debugger, Logger} from '../logger';
+import { Item, enrichItemWithDefaults } from './Item.js';
+import { enrichSchemeWithDefaults } from './Scheme';
+import { Debugger, Logger } from '../logger';
 
 const log = new Logger('SchemeContainer');
 
@@ -30,13 +31,6 @@ const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     rotated: false,
     resized: false
 };
-
-const defaultSchemeStyle = {
-    backgroundColor:    'rgba(240,240,240,1.0)',
-    gridColor:          'rgba(128,128,128,0.2)',
-    boundaryBoxColor:   'rgba(36, 182, 255, 0.8)'
-};
-
 
 /*
 how to calculate item top-let corner position
@@ -118,22 +112,10 @@ class SchemeContainer {
             viewport: null
         };
 
-        this.enrichSchemeWithDefaults(this.scheme);
+        enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
     }
     
-    enrichSchemeWithDefaults(scheme) {
-        if (!scheme.style) {
-            scheme.style = {};
-        }
-
-        forEach(defaultSchemeStyle, (value, name) => {
-            if (!scheme.style[name]) {
-                scheme.style[name] = value;
-            }
-        });
-    }
-
     /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
