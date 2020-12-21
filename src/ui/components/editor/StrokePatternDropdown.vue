@@ -1,7 +1,7 @@
 <template>
     <dropdown :options="patternOptions"
         @selected="$emit('selected', arguments[0].name)">
-        <span :style="{'background-image': `url(/images/line-patterns/${selectedPattern}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat'}"></span>
+        <span :style="{'background-image': `url(/assets/images/line-patterns/${selectedPattern}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat'}"></span>
     </dropdown>
 </template>
 <script>
@@ -23,7 +23,7 @@ export default {
                 return {
                     name: pattern,
                     style: {
-                        'background-image': `url(/images/line-patterns/${pattern}.svg)`,
+                        'background-image': `url(/assets/images/line-patterns/${pattern}.svg)`,
                         'background-repeat': 'no-repeat',
                         'height': '20px',
                         'font-size': '0',

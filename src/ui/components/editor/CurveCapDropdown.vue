@@ -1,7 +1,7 @@
 <template>
     <dropdown :options="capOptions"
         @selected="$emit('selected', arguments[0].name)">
-        <span :style="{'background-image': `url(/images/curves/curve-cap-${selectedOption}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat', transform: cssTransform}"></span>
+        <span :style="{'background-image': `url(/assets/images/curves/curve-cap-${selectedOption}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat', transform: cssTransform}"></span>
     </dropdown>
 </template>
 <script>
@@ -29,7 +29,7 @@ export default {
                 return {
                     name: capType,
                     style: {
-                        'background-image' : `url(/images/curves/curve-cap-${capType}.svg)`,
+                        'background-image' : `url(/assets/images/curves/curve-cap-${capType}.svg)`,
                         'background-repeat': 'no-repeat',
                         'width'            : '20px',
                         'height'           : '20px',
