@@ -6,6 +6,7 @@ const multer            = require('multer');
 const fs                = require('fs');
 const fsp               = fs.promises;
 const config            = require('../config.js');
+const logger            = require('../logger.js');
 const fileStorage      = require('../storage/storageProvider.js').provideFileStorage();
 
 const storage = multer.diskStorage({
@@ -60,12 +61,12 @@ module.exports = {
                     });
                 }).catch(err => {
                     res.status(500);
-                    console.error(err, 'Could not upload to image storage');
+                    logger.error('Could not upload to image storage', err);
                     res.json({error: 'Could not upload image'});
                 });
             } else {
                 res.status(500);
-                console.error(err);
+                logger.error('Could not upload file', err);
                 res.json({error: 'Could not upload file'});
             }
         });
@@ -84,12 +85,12 @@ module.exports = {
                 fileStorage.downloadFile(fileName, localFilePath).then(() => {
                     handleLocalFileDownload(res, localFilePath, fileName);
                 }).catch(err => {
-                    console.error(err);
+                    logger.error('Could not download file', err);
                     res.sendStatus(404);
                 });
             }
         }).catch(err => {
-            console.error('Not able to mkdir', err);
+            logger.error('Not able to mkdir', err);
             res.sendStatus(500);
         });
     }

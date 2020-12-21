@@ -1,6 +1,7 @@
 
-const mongo = require('../Mongo.js');
-const _     = require('lodash');
+const mongo  = require('../Mongo.js');
+const _      = require('lodash');
+const logger = require('../../../logger.js').createLog('migrate.js');
 
 function executeMigration(migrationId) {
     return new Promise((resolve, reject) => {
@@ -9,19 +10,19 @@ function executeMigration(migrationId) {
 
             mongo.db().collection('migrations').find({id: migrationId}).count().then(count => {
                 if (count === 0) {
-                    console.log(`Executing migration ${migrationId}`);
+                    logger.info(`Executing migration ${migrationId}`);
 
                     migrationScript.up(mongo.db()).then(() => {
-                        console.log(`Migration ${migrationId} executed successfully`);
+                        logger.info(`Migration ${migrationId} executed successfully`);
                         return mongo.db().collection('migrations').insert({id: migrationId, executionTime: Date.now()});
                     }).then(() => {
                         resolve();
                     }).catch(err => {
-                        console.error(`Migration ${migrationId} failed`);
+                        logger.error(`Migration ${migrationId} failed`, err);
                         reject(err);
                     });
                 } else {
-                    console.log(`Migration ${migrationId} is already executed`);
+                    logger.info(`Migration ${migrationId} is already executed`);
                     resolve();
                 }
             });
@@ -42,7 +43,7 @@ function executeMigrations(migrationIds) {
 
 
 function migrate() {
-    console.log('Executing mongo migrations');
+    logger.info('Executing mongo migrations');
     return executeMigrations([
         '001-indices.js'
     ]);

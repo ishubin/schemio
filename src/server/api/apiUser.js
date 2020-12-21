@@ -4,6 +4,7 @@
 
 const ldapAuthService   = require('../services/ldapAuthService.js');
 const config            = require('../config.js');
+const logger            = require('../logger.js').createLog('apiUser.js');
 const authType          = config.auth.type;
 
 if (authType !== 'ldap' && authType !== 'disabled') {
@@ -29,7 +30,7 @@ module.exports = {
 
         if (authType === 'ldap') {
             ldapAuthService.findUser(credentials.login, credentials.password).then(user => {
-                console.log('Logged user', user.login);
+                logger.info(`Logged user ${user.login}`);
                 req.session.userLogin = user.login;
                 req.session.userEmail = user.email;
                 req.session.userName = user.userName;
@@ -38,7 +39,7 @@ module.exports = {
                 res.$apiError(err, 'Could not authorize');
             });
         } else if (authType === 'disabled') {
-            console.log('Logged user with disabled authentication', credentials.login);
+            logger.info(`Logged user with disabled authentication ${credentials.login}`);
             req.session.userLogin = credentials.login;
             req.session.userEmail = 'unknownemail';
             req.session.userName = credentials.login;

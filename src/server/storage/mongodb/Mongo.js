@@ -4,16 +4,17 @@
 
 const MongoClient       = require('mongodb').MongoClient;
 const config            = require('../../config.js');
+const logger            = require('../../logger.js').createLog('Mongo.js');
 
 let db = null;
 
 module.exports = {
     connectDb() {
-        console.log('Connecting to MongoDb', config.mongodb.url);
+        logger.info(`Connecting to MongoDb, ${config.mongodb.url}`);
         return MongoClient.connect(config.mongodb.url, {
             poolSize: config.mongodb.poolSize
         }).then(client => {
-            console.log('Connected to MongoDb');
+            logger.info('Connected to MongoDb');
             db = client.db(config.mongodb.dbName);
         });
     },

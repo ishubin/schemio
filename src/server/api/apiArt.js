@@ -5,14 +5,14 @@
 const artStorage    = require('../storage/storageProvider.js').provideArtStorage();
 const fs            = require('fs-extra');
 const yaml          = require('js-yaml');
-
+const logger        = require('../logger.js').createLog('apiArt.js');
 const globalArt = [];
 
 
 // Loading global art from config
 fs.readdir('conf/art', function (err, files) {
     files.forEach(function (file) {
-        console.log('Loading gloabl art', file);
+        logger.info(`Loading gloabl art ${file}`);
         const artContent = yaml.safeLoad(fs.readFileSync(`conf/art/${file}`, 'utf8'));
         globalArt.push(artContent);
     });

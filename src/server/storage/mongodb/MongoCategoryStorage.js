@@ -178,7 +178,6 @@ class MongoCategoryStorage {
                     name: parentCategory.name,
                     id: parentCategory.id
                 });
-                console.log('Moving category', categoryId, 'to its new parent', destinationCategoryId);
                 return this._categories().updateOne(
                     {projectId: mongo.sanitizeString(projectId), id: mongo.sanitizeString(categoryId)},
                     {$set: {parentId: destinationCategoryId, ancestors: ancestors}}
@@ -200,19 +199,14 @@ class MongoCategoryStorage {
         }
 
         return chain.then(ancestors => {
-            console.log('Prepared ancestors for category', categoryId, ancestors);
-
             return this._categories().find({projectId: mongo.sanitizeString(projectId), 'ancestors.id': mongo.sanitizeString(categoryId)}).toArray()
             .then(categories => {
-                console.log('Got categories having ancestor', categoryId, categories);
                 let promise = Promise.resolve(null);
                 _.forEach(categories, category => {
-                    console.log('Chaining promise update for category', category.id);
                     promise = promise.then(this._createCategoryAncestorUpdatePromise(projectId, category, ancestors, categoryId));
                 });
             }).then(() => {
                 const ancestorIds = _.map(ancestors, a => a.id);
-                console.log('Updating category ancestors in all schemes in category', categoryId, ancestorIds);
                 return this._schemes().updateMany({projectId, categoryId}, {$set: {allSubCategoryIds: ancestorIds}})
             });
         });
@@ -229,7 +223,6 @@ class MongoCategoryStorage {
 
         return this._categories().updateOne({projectId: mongo.sanitizeString(projectId), id: category.id}, {$set: {ancestors: fixedAncestors}})
         .then(() => {
-            console.log('Updating category ancestors in all schemes in category', category.id, ancestorIds);
             return this._schemes().updateMany({projectId, categoryId: category.id}, {$set: {allSubCategoryIds: ancestorIds}})
         });
     }

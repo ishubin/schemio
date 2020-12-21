@@ -1,7 +1,8 @@
-const client = require('prom-client');
-const config = require('./config.js');
-const _      = require('lodash');
+const client          = require('prom-client');
+const _               = require('lodash');
 const { performance } = require('perf_hooks');
+const config          = require('./config.js');
+const logger          = require('./logger.js').createLog('metrics.js');
 
 client.collectDefaultMetrics({
     labels: {
@@ -51,13 +52,13 @@ function reportLatency(latency) {
 
 
 function getPrometheusMetrics(req, res) {
-    console.log('colleting metrics');
+    logger.info('Colleting metrics');
     client.register.metrics().then(metrics => {
         res.set('Content-Type', client.register.contentType);
         res.send(metrics);
     })
     .catch(err => {
-        console.error('Error collecting metrics', err)
+        logger.error('Error collecting metrics', err)
     });
 }
 

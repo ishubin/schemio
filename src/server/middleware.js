@@ -14,7 +14,7 @@ function apiError(error, message) {
         msg = arguments[0];
     }
     if (err) {
-        console.error(error);
+        logger.error(message, error);
     }
     this.status(500);
     this.json({
@@ -23,7 +23,7 @@ function apiError(error, message) {
 }
 
 function badRequest(message) {
-    console.log('Bad request', message);
+    logger.info(`Bad request. ${message}`);
     this.status(400);
     this.json({
         error: message || 'Bad request'
@@ -31,7 +31,7 @@ function badRequest(message) {
 }
 
 function notAuthorized(message) {
-    console.log('401 Not Authorized', message);
+    logger.info(`401 Not Authorized ${message}`);
     this.status(401);
     this.json({
         error: message || 'Not authorized'
@@ -39,7 +39,7 @@ function notAuthorized(message) {
 }
 
 function notFound(message) {
-    console.log('404 Not found', message);
+    logger.info(`404 Not found ${message}`);
     this.status(404);
     this.json({
         error: message || 'Not found'
@@ -57,13 +57,13 @@ function parseIps(text) {
 function configureIpFilter(app) {
     const whiteListIps = parseIps(config.ipFilter.whitelist);
     if (whiteListIps && whiteListIps.length > 0) {
-        console.log('Configured IP whitelisting for:', whiteListIps);
+        logger.info(`Configured IP whitelisting for: ${JSON.stringify(whiteListIps)}`);
         app.use(ipfilter(whiteListIps, { mode: 'allow' }));
     }
 
     const blackListIps = parseIps(config.ipFilter.blacklist);
     if (blackListIps && blackListIps.length > 0) {
-        console.log('Configured IP blacklisting for:', blackListIps);
+        logger.info(`Configured IP blacklisting for: ${JSON.stringify(blackListIps)}`);
         app.use(ipfilter(blackListIps));
     }
 }
@@ -106,7 +106,7 @@ module.exports = {
                     next();
                 }
             }).catch(err => {
-                console.error(err);
+                logger.error('Could not check user read permission', err);
                 reject();
             });
         } else {
@@ -129,7 +129,7 @@ module.exports = {
                     next();
                 }
             }).catch(err => {
-                console.error(err);
+                logger.error('Could not check user write permission', err);
                 reject();
             });
         } else {

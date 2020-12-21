@@ -45,7 +45,7 @@ middleware.configureIpFilter(app);
 app.use(middleware.accessLogging);
 
 app.use(function (err, req, res, next) {
-    console.error('Global error handler', err.stack);
+    logger.error('Global error handler', err);
     res.status(500).send('Internal Server Error');
 })
 
