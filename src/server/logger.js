@@ -1,5 +1,6 @@
-const config = require('./config.js');
+const config   = require('./config.js');
 const hostname = require('os').hostname();
+const fs       = require('fs');
 
 function levelToNumber(levelName) {
     if (levelName === 'error') {
@@ -21,6 +22,39 @@ const currentLogLevelNumber = levelToNumber(config.logger.level);
 
 function isLevelAllowed(levelName) {
     return levelToNumber(levelName) <= currentLogLevelNumber;
+}
+
+function createFileLogStream(destination) {
+    if (destination.trim().indexOf('file:') === 0) {
+        const path = destination.substr(destination.indexOf(':') + 1).trim();
+        if (path) {
+            return fs.createWriteStream(path, { flags: 'a' });
+        }
+    }
+    return null;
+}
+
+let accessLogStream = createFileLogStream(config.logger.access.destination);
+let defaultLogStream = createFileLogStream(config.logger.default.destination);
+
+function writeAccessLog(logLine) {
+    if (accessLogStream) {
+        accessLogStream.write(logLine + '\n');
+    } else if (config.logger.access.destination === 'stdout') {
+        process.stdout.write(logLine + '\n');
+    } else if (config.logger.access.destination === 'stderr') {
+        process.stderr.write(logLine + '\n');
+    }
+}
+
+function writeDefaultLog(logLine) {
+    if (defaultLogStream) {
+        defaultLogStream.write(logLine + '\n');
+    } else if (config.logger.default.destination === 'stdout') {
+        process.stdout.write(logLine + '\n');
+    } else if (config.logger.default.destination === 'stderr') {
+        process.stderr.write(logLine + '\n');
+    }
 }
 
 class Logger {
@@ -55,7 +89,7 @@ class Logger {
             } else {
                 logLine = `${date} access ${res.statusCode} ${req.method} ${req.connection.remoteAddress} ${fullUrl}`;
             }
-            console.log(logLine)
+            writeAccessLog(logLine);
         } catch(err) {
             this.error('Not able to write to access logs', err);
         }
@@ -97,11 +131,7 @@ class Logger {
             logLine = `${date} ${level} ${this.loggerName} ${message}`;
         }
 
-        if (config.logger.default.destination === 'stdout') {
-            process.stdout.write(logLine+'\n');
-        } else if (config.logger.default.destination === 'stderr') {
-            process.stderr.write(logLine+'\n');
-        }
+        writeDefaultLog(logLine);
     }
 }
 
