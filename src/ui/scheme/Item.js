@@ -2,7 +2,7 @@ import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
 import {getDefaultFont, getAllFonts} from './Fonts';
 import forEach from 'lodash/forEach';
-import { enrichObjectWithDefaults } from '../../defaultify';
+import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
 
 export const ItemInteractionMode = {
@@ -76,6 +76,7 @@ const defaultItemDefinition = {
     visible: true,
     groups: [],
     blendMode: 'normal',
+    cursor: 'default',
     shape: 'none',
     textSlots: {
         '*': defaultTextSlotProps
@@ -90,12 +91,30 @@ const defaultItemDefinition = {
 
 
 export function enrichItemWithDefaults(item) {
-    enrichObjectWithDefaults(item, defaultItemDefinition);
+    if (!item.textSlots)  {
+        item.textSlots = {};
+    }
+
+    if (!item.shape) {
+        item.shape = 'none';
+    }
 
     const shape = Shape.find(item.shape);
+
+    const textSlots = shape.getTextSlots(item);
+    if (textSlots) {
+        forEach(textSlots, textSlot => {
+            if (!item.textSlots.hasOwnProperty(textSlot.name)) {
+                item.textSlots[textSlot.name] = {};
+            }
+        });
+    }
+
+    enrichObjectWithDefaults(item, defaultItemDefinition);
+
     forEach(shape.args, (arg, argName) => {
         if (!item.shapeProps.hasOwnProperty(argName)) {
-            item.shapeProps[argName] = arg.value;
+            item.shapeProps[argName] = utils.clone(arg.value);
         }
     });
 
@@ -119,3 +138,41 @@ export const defaultItem = {
         events: []
     }
 };
+
+const shapePropsDefaults = {};
+
+function getShapePropsDefaults(shapeId) {
+    if (shapePropsDefaults[shapeId]) {
+        return shapePropsDefaults[shapeId];
+    }
+
+    const shape = Shape.find(shapeId);
+    if (shape) {
+        shapePropsDefaults[shapeId] = {};
+        forEach(shape.args, (arg, argName) => {
+            shapePropsDefaults[shapeId][argName] = utils.clone(arg.value);
+        });
+        if (shape.shapeType === 'standard') {
+            forEach(STANDARD_SHAPE_PROPS, (value, argName) => {
+                shapePropsDefaults[shapeId][argName] = utils.clone(value);
+            });
+        }
+        return shapePropsDefaults[shapeId];
+    }
+
+    return {};
+}
+
+
+export function defaultifyItem(item) {
+    const shapeId = item.shape;
+    const resultedItem = defaultifyObject(item, defaultItemDefinition);
+
+    const resultedShapeProps = defaultifyObject(resultedItem.shapeProps, getShapePropsDefaults(shapeId));
+    if (resultedShapeProps) {
+        resultedItem.shapeProps = resultedShapeProps;
+    } else {
+        delete resultedItem.shapeProps;
+    }
+    return resultedItem;
+}

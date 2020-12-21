@@ -17,6 +17,7 @@ import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.js';
 import UMLNode from './uml/UMLNode.js';
 import mapValues from 'lodash/mapValues';
+import keys from 'lodash/keys';
 
 
 function defaultGetEventsFunc(item) {
@@ -133,6 +134,9 @@ function getShapePropDescriptor(shape, propName) {
 export default {
     make,
     shapeRegistry,
+    getShapeIds() {
+        return keys(shapeRegistry);
+    },
     find(id) {
         return shapeRegistry[id];
     },

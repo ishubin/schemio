@@ -14,9 +14,14 @@ const MISSING_PREVIEW_SVG = `
 
 function sanitizeItem(item) {
     item.name = item.name;
-    item.description = htmlSanitize(item.description);
+    if (item.description) {
+        item.description = htmlSanitize(item.description);
+    }
 
-    item.meta = {};
+    if (item.meta) {
+        delete item.meta;
+    }
+
     if (!item.hasOwnProperty('id')) {
         item.id = shortid.generate();
     }

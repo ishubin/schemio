@@ -4,6 +4,7 @@
 
 import axios from 'axios';
 import utils from './utils.js';
+import { defaultifyScheme } from './scheme/Scheme';
 
 
 function unwrapAxios(response) {
@@ -91,7 +92,10 @@ export default {
 
     saveScheme(projectId, schemeId, scheme) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.put(`/v1/projects/${projectId}/schemes/${schemeId}`, utils.sanitizeScheme(scheme)).then(response => {
+            const sanitizedScheme = utils.sanitizeScheme(scheme);
+            const defScheme = defaultifyScheme(sanitizedScheme);
+
+            return axios.put(`/v1/projects/${projectId}/schemes/${schemeId}`, defScheme).then(response => {
                 return 'saved';
             });
         } else {

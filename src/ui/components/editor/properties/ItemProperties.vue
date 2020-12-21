@@ -199,7 +199,6 @@ import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
-import keys from 'lodash/keys';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
@@ -259,7 +258,7 @@ export default {
 
     data() {
         const shapeComponent = Shape.make(this.item.shape);
-        const knownShapes = keys(Shape.shapeRegistry);
+        const knownShapes = Shape.getShapeIds();
         knownShapes.sort();
         return {
             tabs: ALL_TABS,

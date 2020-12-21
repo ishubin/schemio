@@ -4,25 +4,17 @@ import utils from './ui/utils';
  * Performs a deep scan and returns object without fields that are exactly the same as in default object
  * @param {Object} obj object that is supposed to be cleaned up
  * @param {Object} defaultObject an object representing the default object with default fields
- * @param {Object} options
- * @param {string} path path to the current object
  * @returns {Object} object with removed default fields
  */
-export function defaultifyObject(obj, defaultObject, options, path) {
+export function defaultifyObject(obj, defaultObject) {
     if (!obj) {
         return null;
     }
-    if (!path) {
-        path = '';
-    }
-
     const resultingObject = {};
-    
     let completeMatch = true;
 
     for (let field in obj) {
         if (obj.hasOwnProperty(field)) {
-            const fieldPath = `${path}/${field}`;
             let shouldCopy = true;
 
             let subDefObj = undefined;
@@ -34,15 +26,7 @@ export function defaultifyObject(obj, defaultObject, options, path) {
                 subDefObj = defaultObject[field];
             }
 
-            if (options && options.customDefaultifiers && options.customDefaultifiers[fieldPath]) {
-                shouldCopy = false;
-
-                const nestedResult = options.customDefaultifiers[fieldPath](obj, obj[field]);
-                if (nestedResult !== 'undefined') {
-                    completeMatch = false;
-                    resultingObject[field] = nestedResult;
-                }
-            } else if (typeof subDefObj !== 'undefined') {
+            if (typeof subDefObj !== 'undefined') {
                 if (typeof obj[field] === typeof subDefObj) {
 
                     if (Array.isArray(obj[field])) {
@@ -55,7 +39,7 @@ export function defaultifyObject(obj, defaultObject, options, path) {
                             }
                             for (let i = 0; i < obj[field].length; i++) {
 
-                                const nestedResult = defaultifyObject(obj[field][i], subDefObj[0], options, `${fieldPath}/[]`);
+                                const nestedResult = defaultifyObject(obj[field][i], subDefObj[0]);
                                 if (typeof nestedResult !== 'undefined') {
                                     resultingObject[field][i] = nestedResult;
                                 } else {
@@ -67,7 +51,7 @@ export function defaultifyObject(obj, defaultObject, options, path) {
                             shouldCopy = true;
                         }
                     } else if (typeof obj[field] === 'object') {
-                        const nestedResult = defaultifyObject(obj[field], subDefObj, options, `${fieldPath}`);
+                        const nestedResult = defaultifyObject(obj[field], subDefObj);
                         if (typeof nestedResult !== 'undefined') {
                             resultingObject[field] = nestedResult;
                             shouldCopy = false;
