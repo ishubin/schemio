@@ -33,7 +33,7 @@
 
                 <div v-if="color.type === 'image'">
                     <div class="image-property-container">
-                        <input class="textfield" :value="modal.image.path" @input="onImagePathChange"/>
+                        <input class="textfield" :value="modal.image.path" @keydown.enter="onImagePathChange" @blur="onImagePathChange"/>
                         <div class="upload-button-container">
                             <div class="upload-button">
                                 <i class="fas fa-file-upload icon"></i>
@@ -186,6 +186,9 @@ export default {
             }
             this.color = utils.clone(color);
             this.modal.pickerColor = {hex: color.color || '#fff'};
+            if (this.color.type === 'image') {
+                this.modal.image.path = this.color.image;
+            }
             this.image = { path: color.image || ''};
         },
 
