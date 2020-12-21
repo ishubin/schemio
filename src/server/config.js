@@ -60,5 +60,10 @@ module.exports = {
     files: {
         uploadFolder: conf('FILES_UPLOADFOLDER', 'files.uploadFolder', 'uploads'),
         maxSize: conf('FILES_MAXSIZE', 'files.maxSize', 5242880)
+    },
+
+    ipFilter: {
+        whitelist: conf('IPFILTER_WHITELIST', 'ipfilter.whitelist', ''),
+        blacklist: conf('IPFILTER_BLACKLIST', 'ipfilter.blacklist', ''),
     }
 };

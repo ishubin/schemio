@@ -54,6 +54,7 @@
     "connect-mongo": "^3.2.0",
     "cookie-parser": "^1.4.4",
     "express": "^4.16.2",
+    "express-ipfilter": "^1.1.2",
     "express-session": "^1.15.6",
     "fs-extra": "^5.0.0",
     "js-yaml": "^3.13.1",

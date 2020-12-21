@@ -24,6 +24,8 @@ const metrics               = require('./metrics.js');
 
 const app = express();
 
+
+
 app.use(session({
     secret: config.session.secret,
     store: new MongoStore({
@@ -32,11 +34,19 @@ app.use(session({
     })
 }));
 
+middleware.configureIpFilter(app);
+
 app.use(cookieParser());
 app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
 app.use('/assets', express.static('public'));
 app.use('/v1', [jsonBodyParser, middleware.api]);
 
+app.use(function (err, req, res, next) {
+    console.error('Global error handler', err.stack);
+    res.status(500).send('Internal Server Error');
+})
+
+  
 app.get('/',   express.static('public/index.html'));
 
 

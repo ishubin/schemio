@@ -1,8 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-
- const projectStorage = require('./storage/storageProvider').provideProjectStorage();
+const config         = require('./config.js');
+const projectStorage = require('./storage/storageProvider').provideProjectStorage();
+const ipfilter       = require('express-ipfilter').IpFilter;
 
 function apiError(error, message) {
     let msg = message;
@@ -42,6 +43,28 @@ function notFound(message) {
     this.json({
         error: message || 'Not found'
     });
+}
+
+function parseIps(text) {
+    text = text.trim();
+    if (!text) {
+        return null;
+    }
+    return text.split(',');
+}
+
+function configureIpFilter(app) {
+    const whiteListIps = parseIps(config.ipFilter.whitelist);
+    if (whiteListIps && whiteListIps.length > 0) {
+        console.log('Configured IP whitelisting for:', whiteListIps);
+        app.use(ipfilter(whiteListIps, { mode: 'allow' }));
+    }
+
+    const blackListIps = parseIps(config.ipFilter.blacklist);
+    if (blackListIps && blackListIps.length > 0) {
+        console.log('Configured IP blacklisting for:', blackListIps);
+        app.use(ipfilter(blackListIps));
+    }
 }
 
 module.exports = {
@@ -111,5 +134,7 @@ module.exports = {
         } else {
             reject();
         }
-    }
+    },
+    
+    configureIpFilter
 };
