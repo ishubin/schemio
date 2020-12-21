@@ -19,6 +19,8 @@ module.exports = {
 
     instanceId: conf('INSTANCE_ID', 'instance.id', instanceId),
 
+    backendless: conf('BACKENDLESS', 'backendless', false),
+
     mongodb: {
         url: conf('MONGODB_URL', 'mongodb.url', 'mongodb://localhost:27017'),
         dbName: conf('MONGODB_DBNAME', 'mongodb.dbName', 'schemio'),

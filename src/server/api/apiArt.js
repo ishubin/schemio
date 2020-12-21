@@ -12,7 +12,7 @@ const globalArt = [];
 // Loading global art from config
 fs.readdir('conf/art', function (err, files) {
     files.forEach(function (file) {
-        logger.info(`Loading gloabl art ${file}`);
+        logger.info(`Loading global art ${file}`);
         const artContent = yaml.safeLoad(fs.readFileSync(`conf/art/${file}`, 'utf8'));
         globalArt.push(artContent);
     });
