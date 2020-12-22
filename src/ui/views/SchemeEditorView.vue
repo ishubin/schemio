@@ -147,7 +147,6 @@
                 :project-id="projectId"
                 :scheme-container="schemeContainer"
                 @shape-prop-changed="onItemShapePropChanged"
-                @clicked-show-item-list="itemListShown = true"
                 @clicked-zoom-to-selection="zoomToSelection()"
                 @clicked-undo="historyUndo()"
                 @clicked-redo="historyRedo()"
@@ -175,8 +174,6 @@
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
 
-        <item-list-popup v-if="itemListShown" :schemeContainer="schemeContainer" @close="itemListShown = false"/>
-
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
     </div>
 
@@ -202,7 +199,6 @@ import SchemeDetails from '../components/editor/SchemeDetails.vue';
 import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
-import ItemListPopup from '../components/editor/ItemListPopup.vue';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
@@ -235,7 +231,7 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, MenuDropdown, QuickHelperPanel,
-        CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
+        CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -289,8 +285,6 @@ export default {
 
             isLoading: false,
             schemeLoadErrorMessage: null,
-
-            itemListShown: false,
 
             zoomOptions: [
                 {name: '10%', value: 10},

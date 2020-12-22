@@ -10,9 +10,6 @@
                         <span title="Redo" class="icon-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
                     </li>
                     <li>
-                        <span title="Show Item List" class="icon-button" @click="$emit('clicked-show-item-list')"><i class="fas fa-list"></i></span>
-                    </li>
-                    <li>
                         <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
                     <li>
