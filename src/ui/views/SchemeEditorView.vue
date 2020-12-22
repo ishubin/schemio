@@ -13,7 +13,8 @@
                 <div v-if="schemeContainer" slot="middle-section">
                     <menu-dropdown 
                         name="Export" icon-class="fas fa-file-export"
-                        :options="[{name: 'Export as SVG', event: 'export-svg-requested'}, {name: 'Export as HTML', event: 'export-html-requested'}]"
+                        :options="exportDropdownOptions"
+                        @export-json-requested="exportAsJSON"
                         @export-svg-requested="exportAsSVG"
                         @export-html-requested="exportHTMLModalShown = true"
                         />
@@ -156,6 +157,7 @@
         </div>
 
         <export-html-modal v-if="exportHTMLModalShown === true" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
+        <export-json-modal v-if="exportJSONModalShown === true" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
 
         <create-new-scheme-modal v-if="newSchemePopup.show"
             :project-id="projectId"
@@ -211,6 +213,7 @@ import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
+import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
@@ -235,6 +238,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, ItemListPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
+        'export-json-modal': ExportJSONModal,
     },
 
     beforeMount() {
@@ -300,6 +304,12 @@ export default {
                 {name: '200%', value: 200},
             ],
 
+            exportDropdownOptions: [
+                {name: 'Export',         event: 'export-json-requested'},
+                {name: 'Export as SVG',  event: 'export-svg-requested'},
+                {name: 'Export as HTML', event: 'export-html-requested'}
+            ],
+
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
             sidePanelItemForViewMode: null,
@@ -347,7 +357,8 @@ export default {
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
 
-            exportHTMLModalShown: false
+            exportHTMLModalShown: false,
+            exportJSONModalShown: false,
         }
     },
     methods: {
@@ -791,6 +802,10 @@ export default {
             if (screenTransform) {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
             }
+        },
+
+        exportAsJSON() {
+            this.exportJSONModalShown = true;
         },
 
         exportAsSVG() {
