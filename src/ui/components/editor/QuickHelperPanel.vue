@@ -8,6 +8,7 @@
                             name=""
                             icon-class="fas fa-bars"
                             :options="menuDropdownOptions"
+                            @import-json-requested="$emit('import-json-requested')"
                             @export-json-requested="$emit('export-json-requested')"
                             @export-svg-requested="$emit('export-svg-requested')"
                             @export-html-requested="$emit('export-html-requested')"
@@ -174,6 +175,7 @@ export default {
             },
 
             menuDropdownOptions: [
+                {name: 'Import scheme',  event: 'import-json-requested'},
                 {name: 'Export as JSON', event: 'export-json-requested'},
                 {name: 'Export as SVG',  event: 'export-svg-requested'},
                 {name: 'Export as HTML', event: 'export-html-requested'}

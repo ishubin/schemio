@@ -37,7 +37,7 @@
             <div class="scheme-container" oncontextmenu="return false;">
                 <div v-if="schemeContainer">
                     <svg-editor
-                        :key="schemeContainer.scheme.id"
+                        :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="currentUser ? mode : 'view'"
                         :zoom="zoom"
@@ -144,14 +144,18 @@
                 @clicked-redo="historyRedo()"
                 @clicked-bring-to-front="bringSelectedItemsToFront()"
                 @clicked-bring-to-back="bringSelectedItemsToBack()"
+                @import-json-requested="onImportSchemeJSONClicked"
                 @export-json-requested="exportAsJSON"
                 @export-svg-requested="exportAsSVG"
                 @export-html-requested="exportHTMLModalShown = true"
                 />
         </div>
 
-        <export-html-modal v-if="exportHTMLModalShown === true" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
-        <export-json-modal v-if="exportJSONModalShown === true" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
+        <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
+        <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
+        <import-scheme-modal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
+            @close="importSchemeModal.shown = false"
+            @import-scheme-submitted="importScheme"/>
 
         <create-new-scheme-modal v-if="newSchemePopup.show"
             :project-id="projectId"
@@ -170,6 +174,10 @@
             @close="addLinkPopup.shown = false"/>
 
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+
+        <div v-if="importSchemeFileShown" style="display: none">
+            <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
+        </div>
     </div>
 
 </template>
@@ -204,6 +212,7 @@ import ItemSelector from '../components/editor/ItemSelector.vue';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
 import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
+import ImportSchemeModal from '../components/editor/ImportSchemeModal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
@@ -229,6 +238,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
+        'import-scheme-modal': ImportSchemeModal,
     },
 
     beforeMount() {
@@ -341,6 +351,11 @@ export default {
 
             exportHTMLModalShown: false,
             exportJSONModalShown: false,
+            importSchemeFileShown: false,
+            importSchemeModal: {
+                sheme: null,
+                shown: false
+            }
         }
     },
     methods: {
@@ -784,6 +799,46 @@ export default {
             if (screenTransform) {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
             }
+        },
+
+        importScheme(scheme) {
+            const newScheme = utils.clone(scheme);
+            newScheme.id = this.schemeContainer.scheme.id;
+            const newSchemeContainer = new SchemeContainer(newScheme, EventBus);
+            newSchemeContainer.revision = this.schemeContainer.revision + 1;
+            this.schemeContainer = newSchemeContainer;
+            this.schemeContainer.reindexItems();
+            this.updateRevision();
+            this.commitHistory();
+        },
+
+        onImportSchemeJSONClicked() {
+            this.importSchemeFileShown = true;
+            this.$nextTick(() => {
+                this.$refs.importSchemeFileInput.click();
+            });
+        },
+
+        onImportSchemeFileInputChanged(event) {
+            this.loadSchemeFile(event.target.files[0]);
+        },
+
+        loadSchemeFile(file) {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                this.importSchemeFileShown = false;
+                try {
+                    const scheme = JSON.parse(event.target.result);
+                    //TODO verify if it is correct scheme file
+                    this.importSchemeModal.scheme = scheme;
+                    this.importSchemeModal.shown = true;
+                } catch(err) {
+                    alert('Not able to import scheme. Malformed json');
+                }
+            };
+
+            reader.readAsText(file);
         },
 
         exportAsJSON() {
