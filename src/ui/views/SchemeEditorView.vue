@@ -11,14 +11,6 @@
                 :category="currentCategory"
                 >
                 <div v-if="schemeContainer" slot="middle-section">
-                    <menu-dropdown 
-                        name="Export" icon-class="fas fa-file-export"
-                        :options="exportDropdownOptions"
-                        @export-json-requested="exportAsJSON"
-                        @export-svg-requested="exportAsSVG"
-                        @export-html-requested="exportHTMLModalShown = true"
-                        />
-
                     <span v-for="knownMode in knownModes" class="toggle-button editor-mode"
                         :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
                         @click="toggleMode(knownMode)"
@@ -152,6 +144,9 @@
                 @clicked-redo="historyRedo()"
                 @clicked-bring-to-front="bringSelectedItemsToFront()"
                 @clicked-bring-to-back="bringSelectedItemsToBack()"
+                @export-json-requested="exportAsJSON"
+                @export-svg-requested="exportAsSVG"
+                @export-html-requested="exportHTMLModalShown = true"
                 />
         </div>
 
@@ -185,7 +180,6 @@ import { Keys } from '../events';
 
 import {enrichItemWithDefaults} from '../scheme/Item';
 import HeaderComponent from '../components/Header.vue';
-import MenuDropdown from '../components/MenuDropdown.vue';
 import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import EventBus from '../components/editor/EventBus.js';
@@ -230,7 +224,7 @@ function escapeHTML(html) {
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, MenuDropdown, QuickHelperPanel,
+        SchemeDetails, CreateItemMenu, QuickHelperPanel,
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         'export-html-modal': ExportHTMLModal,
@@ -296,12 +290,6 @@ export default {
                 {name: '125%', value: 125},
                 {name: '150%', value: 150},
                 {name: '200%', value: 200},
-            ],
-
-            exportDropdownOptions: [
-                {name: 'Export',         event: 'export-json-requested'},
-                {name: 'Export as SVG',  event: 'export-svg-requested'},
-                {name: 'Export as HTML', event: 'export-html-requested'}
             ],
 
             // a reference to an item that was clicked in view mode

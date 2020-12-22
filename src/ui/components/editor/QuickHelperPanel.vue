@@ -4,6 +4,21 @@
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
+                        <menu-dropdown 
+                            name=""
+                            icon-class="fas fa-bars"
+                            :options="menuDropdownOptions"
+                            @export-json-requested="$emit('export-json-requested')"
+                            @export-svg-requested="$emit('export-svg-requested')"
+                            @export-html-requested="$emit('export-html-requested')"
+                            />
+                    </li>
+                </ul>
+            </div>
+
+            <div class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
                     </li>
                     <li>
@@ -113,6 +128,7 @@ import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
 import CurveCapDropdown from './CurveCapDropdown.vue';
 import NumberTextfield from '../NumberTextfield.vue';
+import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
 import forEach from 'lodash/forEach';
 
@@ -122,7 +138,7 @@ export default {
         schemeContainer: { type: Object },
         projectId      : {type: String},
     },
-    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown, NumberTextfield},
+    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown, NumberTextfield, MenuDropdown},
 
     beforeMount() {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
@@ -155,7 +171,13 @@ export default {
                 boundingBox: {x: 0, y: 0, w: 0, h: 0, r: 0},
                 item: null,
                 childItemOriginalPositions: {}
-            }
+            },
+
+            menuDropdownOptions: [
+                {name: 'Export as JSON', event: 'export-json-requested'},
+                {name: 'Export as SVG',  event: 'export-svg-requested'},
+                {name: 'Export as HTML', event: 'export-html-requested'}
+            ],
         };
     },
 

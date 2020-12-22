@@ -1,6 +1,6 @@
 <template>
     <div class="menu-dropdown" :id="uid">
-        <span @click="toggleMenu"><i v-if="iconClass" :class="iconClass"></i> {{name}}</span>
+        <span class="icon-button" @click="toggleMenu"><i v-if="iconClass" :class="iconClass"></i> {{name}}</span>
         <ul v-if="menuDisplayed">
             <li v-for="option in options">
                 <span @click="onOptionClicked(option)"><i v-if="option.iconClass" :class="option.iconClass"></i> {{option.name}}</span>
