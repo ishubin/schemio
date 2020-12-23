@@ -69,4 +69,4 @@ class LdapAuthService {
 }
 
 
-module.exports = new LdapAuthService();
+module.exports = LdapAuthService;

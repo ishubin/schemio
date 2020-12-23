@@ -6,7 +6,17 @@ const PropertiesReader = require('properties-reader');
 const props = PropertiesReader('schemio.properties');
 
 function conf(envName, propertyName, defaultValue) {
-    return process.env[envName] || props.get(propertyName) || defaultValue;
+    // console.log('All envs', process.env);
+    if (process.env.hasOwnProperty(envName)) {
+
+        return process.env[envName];
+    } else {
+        const value = props.get(propertyName);
+        if (typeof value !== 'undefined' && value !== null) {
+            return value;
+        }
+    }
+    return defaultValue;
 }
 
 const ipAddress = ip.address('public');

@@ -6,6 +6,7 @@ const express               = require('express');
 const bodyParser            = require('body-parser');
 const cookieParser          = require('cookie-parser');
 const middleware            = require('./middleware.js');
+const LdapAuthService       = require('./services/ldapAuthService.js');
 const apiUser               = require('./api/apiUser.js');
 const apiProjects           = require('./api/apiProjects.js');
 const apiSchemes            = require('./api/apiSchemes.js');
@@ -25,6 +26,9 @@ const logger                = require('./logger.js').createLog('server.js')
 
 const app = express();
 
+if (config.backendless) {
+    logger.info('Running in backendless mode');
+}
 
 if (!config.backendless) {
     app.use(session({
@@ -79,8 +83,10 @@ function $put(routePath, middleware, handler) {
 app.get('/metrics',         metrics.getPrometheusMetrics);
 
 if (!config.backendless) {
+    const ldapAuthService = new LdapAuthService();
+
     $get('/v1/user',         [middleware.auth], apiUser.getCurrentUser);
-    $post('/v1/login',       [],                apiUser.login);
+    $post('/v1/login',       [],                apiUser.login(ldapAuthService));
     $get('/user/logout',     [],                apiUser.logout);
 
     $post('/v1/user/styles',            [middleware.auth], apiStyles.addToStylingPalette);
