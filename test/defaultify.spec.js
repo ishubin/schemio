@@ -279,6 +279,33 @@ describe('enrichObjectWithDefaults', () => {
         });
     });
 
+    it('should add default nested fields even when they are explicitly set to null in object', () => {
+        const obj = {
+            name: 'icon',
+            shapeProps: null
+        };
+        
+        const defaultObj = {
+            name: '',
+            shapeProps: {
+                color: 'blue',
+                fill: 'green',
+                strokeSize: 1
+            }
+        };
+
+        enrichObjectWithDefaults(obj, defaultObj);
+
+        expect(obj).toStrictEqual({
+            name: 'icon',
+            shapeProps: {
+                color: 'blue',
+                fill: 'green',
+                strokeSize: 1
+            }
+        });
+    });
+
 
     it('should add defaults to arrays', () => {
         const obj = {

@@ -95,7 +95,10 @@ export function enrichObjectWithDefaults(obj, defaultObj) {
             } else {
                 const subDefObj = defaultObj[field]
 
-                if (!obj.hasOwnProperty(field) || typeof obj[field] !== typeof subDefObj || (Array.isArray(subDefObj) && !Array.isArray(obj[field]))) {
+                if (!obj.hasOwnProperty(field) 
+                    || obj[field] === null
+                    || typeof obj[field] !== typeof subDefObj 
+                    || (Array.isArray(subDefObj) && !Array.isArray(obj[field]))) {
                     // in case they have different types - we should correct the object, otherwise it will be in broken state
                     if (Array.isArray(subDefObj)) {
                         obj[field] = [];
