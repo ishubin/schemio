@@ -8,7 +8,7 @@
         <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="schemeName" placeholder="Name..."/>
 
         <h5>Description</h5>
-        <rich-text-editor v-model="schemeDescription" @changed="schemeContainer = arguments[0]" ></rich-text-editor>
+        <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
 
         <h5>Category</h5>
         <category-selector :project-id="projectId" :categories="categories"/>
