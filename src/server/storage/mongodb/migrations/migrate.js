@@ -14,7 +14,7 @@ function executeMigration(migrationId) {
 
                     migrationScript.up(mongo.db()).then(() => {
                         logger.info(`Migration ${migrationId} executed successfully`);
-                        return mongo.db().collection('migrations').insert({id: migrationId, executionTime: Date.now()});
+                        return mongo.db().collection('migrations').insert({id: migrationId, executionTime: new Date().toISOString()});
                     }).then(() => {
                         resolve();
                     }).catch(err => {

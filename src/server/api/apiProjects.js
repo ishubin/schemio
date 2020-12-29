@@ -52,7 +52,7 @@ const ApiProjects = {
                     id:             project.id,
                     name:           project.name,
                     description:    project.description,
-                    createdDate:    project.createdDate,
+                    createdTime:    project.createdTime,
                     isPublic:       project.isPublic,
                     permissions: {
                         read:   true,

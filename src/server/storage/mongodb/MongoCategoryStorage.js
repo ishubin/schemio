@@ -54,7 +54,7 @@ class MongoCategoryStorage {
                 parentId,
                 ancestors,
                 version: CURRENT_CATEGORY_VERSION,
-                modifiedDate: Date.now()
+                modifiedTime: new Date().toISOString()
             };
             return this._categories().insert(categoryData).then(result => {
                 return categoryData;

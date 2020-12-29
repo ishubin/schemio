@@ -85,7 +85,7 @@ const ApiSchemes = {
     createScheme(req, res) {
         const projectId = req.params.projectId;
         const requestScheme = req.body;
-        requestScheme.modifiedDate = Date.now();
+        requestScheme.modifiedTime = new Date().toISOString();
 
         schemeStorage.createScheme(projectId, sanitizeScheme(requestScheme)).then(scheme => {
             res.json(scheme);
@@ -96,7 +96,7 @@ const ApiSchemes = {
         const projectId = req.params.projectId;
         const schemeId = req.params.schemeId;
         const requestScheme = req.body;
-        requestScheme.modifiedDate = Date.now();
+        requestScheme.modifiedTime = new Date().toISOString();
         schemeStorage.saveScheme(projectId, schemeId, sanitizeScheme(requestScheme)).then(scheme => {
             res.json(scheme);
         }).catch(err => res.$apiError(err));

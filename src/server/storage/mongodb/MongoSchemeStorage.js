@@ -89,7 +89,7 @@ class MongoSchemeStorage {
                         "name": scheme.name,
                         "description": scheme.description,
                         "tags": scheme.tags,
-                        "modifiedDate": scheme.modifiedDate
+                        "modifiedTime": scheme.modifiedTime
                     };
                 }),
                 total: count,
@@ -150,7 +150,7 @@ class MongoSchemeStorage {
                     name: scheme.name,
                     description: scheme.description,
                     tags: scheme.tags,
-                    modifiedDate: scheme.modifiedDate,
+                    modifiedTime: scheme.modifiedTime,
                     categoryId: scheme.categoryId,
                     items: scheme.items,
                     style: scheme.style || {}

@@ -31,7 +31,7 @@ function sanitizeScheme(scheme) {
         name: scheme.name,
         description: scheme.description,
         tags: scheme.tags,
-        modifiedDate: scheme.modifiedDate,
+        modifiedTime: scheme.modifiedTime,
         categoryId: scheme.categoryId,
         items: items,
         style: scheme.style || {}

@@ -57,7 +57,7 @@ const ApiArt = {
         const artId = req.params.artId;
         const requestArt = artFromRequest(req);
 
-        requestArt.modifiedDate = Date.now();
+        requestArt.modifiedTime = new Date().toISOString();
         artStorage.saveArt(projectId, artId, requestArt).then(art => {
             res.json(art);
         }).catch(err => res.$apiError(err, 'Could not save art'));

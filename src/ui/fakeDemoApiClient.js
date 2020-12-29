@@ -121,7 +121,7 @@ export default {
 
     saveScheme(schemeId, scheme) {
         scheme = utils.sanitizeScheme(scheme);
-        scheme.modifiedDate = Date.now();
+        scheme.modifiedTime = new Date().toISOString();
         scheme.indexedWords = createSchemeIndexedWords(scheme);
         saveSchemeTags(scheme);
 
@@ -165,7 +165,7 @@ export default {
                         name: scheme.name,
                         description: scheme.description,
                         tags: scheme.tags,
-                        modifiedDate: scheme.modifiedDate
+                        modifiedTime: scheme.modifiedTime
                     };
                 }),
                 total: total,

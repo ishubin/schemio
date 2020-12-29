@@ -95,7 +95,7 @@
                                         <div class="image-wrapper">
                                             <img class="scheme-preview" :src="`/projects/${projectId}/scheme-preview/${scheme.id}`" style="max-width: 200px; max-height: 100px;"/>
                                         </div>
-                                        <span class="timestamp">{{scheme.modifiedDate | formatDateAndTime}}</span>
+                                        <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
                                         <div class="scheme-description">
                                             {{scheme.description | shortDescription}}
                                         </div>

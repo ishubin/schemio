@@ -43,7 +43,7 @@ describe('Utils.sanitizeScheme', () => {
             name: 'some scheme',
             description: 'some description',
             tags: ['a', 'b'],
-            modifiedDate: 123,
+            modifiedTime: '2020-12-29T09:08:34.443Z',
             categoryId: 'rty',
             style: {},
             someUnknownField: {},
@@ -64,7 +64,7 @@ describe('Utils.sanitizeScheme', () => {
             name: 'some scheme',
             description: 'some description',
             tags: ['a', 'b'],
-            modifiedDate: 123,
+            modifiedTime: '2020-12-29T09:08:34.443Z',
             categoryId: 'rty',
             style: {},
             items: [{

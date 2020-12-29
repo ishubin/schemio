@@ -17,7 +17,7 @@ class MongoProjectStorage {
             version: CURRENT_PROJECT_VERSION,
             name: '' + project.name,
             description: project.description || '',
-            createdDate: Date.now(),
+            createdTime: new Date().toISOString(),
             read: project.read,
             write: project.write,
             isPublic: project.isPublic ? true: false
@@ -143,7 +143,7 @@ class MongoProjectStorage {
                         id: project.id,
                         name: project.name,
                         description: project.description,
-                        createdDate: project.createdDate
+                        createdTime: project.createdTime
                     };
                 }),
                 total: count,
