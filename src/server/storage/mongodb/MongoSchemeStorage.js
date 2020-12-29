@@ -89,7 +89,8 @@ class MongoSchemeStorage {
                         "name": scheme.name,
                         "description": scheme.description,
                         "tags": scheme.tags,
-                        "modifiedTime": scheme.modifiedTime
+                        "modifiedTime": scheme.modifiedTime,
+                        "previewUrl": scheme.previewUrl
                     };
                 }),
                 total: count,
@@ -153,6 +154,7 @@ class MongoSchemeStorage {
                     modifiedTime: scheme.modifiedTime,
                     categoryId: scheme.categoryId,
                     items: scheme.items,
+                    previewUrl: scheme.previewUrl,
                     style: scheme.style || {}
                 };
             } else {
@@ -203,6 +205,19 @@ class MongoSchemeStorage {
         });
     }
 
+    /**
+     * Updates scheme preview url inside scheme object
+     * @param {*} projectId 
+     * @param {*} schemeId 
+     * @param {*} schemePreviewUrl 
+     */
+    updateSchemePreviewUrl(projectId, schemeId, schemePreviewUrl) {
+        return this._schemes().updateOne({
+            id: mongo.sanitizeString(schemeId),
+            projectId: mongo.sanitizeString(projectId)
+        }, {$set: {previewUrl: schemePreviewUrl}});
+    }
+
     getTags(projectId) {
         return this._tags().find({
             projectId: mongo.sanitizeString(projectId)
@@ -232,6 +247,12 @@ class MongoSchemeStorage {
         return Promise.all(promises);
     }
 
+    /**
+     * Stores schemes svg in schemePreviews collection
+     * @param {*} projectId 
+     * @param {*} schemeId 
+     * @param {*} svgContent 
+     */
     saveSchemePreview(projectId, schemeId, svgContent) {
         return this._schemePreviews().updateOne(
             {projectId, schemeId},

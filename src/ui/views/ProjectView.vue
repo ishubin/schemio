@@ -93,7 +93,7 @@
                                     <a class="scheme link">
                                         <h5>{{scheme.name}}</h5>
                                         <div class="image-wrapper">
-                                            <img class="scheme-preview" :src="`/projects/${projectId}/scheme-preview/${scheme.id}`" style="max-width: 200px; max-height: 100px;"/>
+                                            <img v-if="scheme.previewUrl" class="scheme-preview" :src="scheme.previewUrl" style="max-width: 200px; max-height: 100px;"/>
                                         </div>
                                         <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
                                         <div class="scheme-description">
