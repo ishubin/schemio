@@ -104,8 +104,8 @@ if (!config.backendless) {
     $get(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
     $delete('/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
     $put(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);
-    $post(  '/v1/projects/:projectId/scheme-preview/:schemeId', [middleware.projectWritePermission],   apiSchemes.savePreview);
-    $get(   '/projects/:projectId/scheme-preview/:schemeId',    [middleware.projectReadPermission],    apiSchemes.getPreview);
+    $post(  '/v1/projects/:projectId/schemes/:schemeId/preview',[middleware.projectWritePermission],   apiSchemes.savePreview);
+    $get(   '/projects/:projectId/schemes/:schemeId/preview',   [middleware.projectReadPermission],    apiSchemes.getPreview);
 
     $get(   '/v1/projects/:projectId/tags',                     [middleware.projectReadPermission],    apiSchemes.getTags);
 

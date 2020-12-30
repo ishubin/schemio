@@ -177,7 +177,7 @@ export default {
     },
 
     uploadSchemeSvgPreview(projectId, schemeId, svgCode) {
-        return axios.post(`/v1/projects/${projectId}/scheme-preview/${schemeId}`, {svg: svgCode}).then(unwrapAxios);
+        return axios.post(`/v1/projects/${projectId}/schemes/${schemeId}/preview`, {svg: svgCode}).then(unwrapAxios);
     },
 
     uploadFile(projectId, file) {
