@@ -146,7 +146,7 @@ export default {
 
         deleteScheme() {
             apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
-                window.location = '/';
+                window.location = `/projects/${this.projectId}`;
             });
         },
 
