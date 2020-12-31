@@ -184,8 +184,8 @@ export default {
         var form = new FormData();
         form.append('file', file, file.name);
         this.errorUploading = false;
-        return axios.post(`/projects/${projectId}/files`, form).then(response => {
-            return response.data.path;
+        return axios.post(`/v1/projects/${projectId}/files`, form).then(response => {
+            return response.data.url;
         });
     },
 

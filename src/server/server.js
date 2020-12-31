@@ -43,7 +43,6 @@ if (!config.backendless) {
 app.use(cookieParser());
 app.use('/assets', express.static('public'));
 app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
-app.use('/v1', [jsonBodyParser, middleware.api]);
 middleware.configureIpFilter(app);
 app.use(middleware.accessLogging);
 
@@ -69,63 +68,71 @@ function $get(routePath, middleware, handler) {
 function $post(routePath, middleware, handler) {
     routeWithMetrics('post', routePath, middleware, handler);
 }
-function $delete(routePath, middleware, handler) {
-    routeWithMetrics('delete', routePath, middleware, handler);
+function $getJSON(routePath, middleware, handler) {
+    routeWithMetrics('get', routePath, [jsonBodyParser].concat(middleware), handler);
 }
-function $patch(routePath, middleware, handler) {
-    routeWithMetrics('patch', routePath, middleware, handler);
+function $postJSON(routePath, middleware, handler) {
+    routeWithMetrics('post', routePath, [jsonBodyParser].concat(middleware), handler);
 }
-function $put(routePath, middleware, handler) {
-    routeWithMetrics('put', routePath, middleware, handler);
+function $deleteJSON(routePath, middleware, handler) {
+    routeWithMetrics('delete', routePath, [jsonBodyParser].concat(middleware), handler);
+}
+function $patchJSON(routePath, middleware, handler) {
+    routeWithMetrics('patch', routePath, [jsonBodyParser].concat(middleware), handler);
+}
+function $putJSON(routePath, middleware, handler) {
+    routeWithMetrics('put', routePath, [jsonBodyParser].concat(middleware), handler);
 }
 
 
 app.get('/metrics',         metrics.getPrometheusMetrics);
 
+// app.use('/v1', [jsonBodyParser, middleware.api]);
+
 if (!config.backendless) {
     const ldapAuthService = new LdapAuthService();
 
-    $get(   '/v1/user',                                         [middleware.auth], apiUser.getCurrentUser);
-    $post(  '/v1/login',                                        [],                apiUser.login(ldapAuthService));
-    $get(   '/user/logout',                                     [],                apiUser.logout);
+    $getJSON(   '/v1/user',                                         [middleware.auth], apiUser.getCurrentUser);
+    $postJSON(  '/v1/login',                                        [],                apiUser.login(ldapAuthService));
+    $getJSON(   '/user/logout',                                     [],                apiUser.logout);
 
-    $post(  '/v1/user/styles',                                  [middleware.auth], apiStyles.addToStylingPalette);
-    $get(   '/v1/user/styles',                                  [middleware.auth], apiStyles.getStylePalette);
-    $delete('/v1/user/styles/:styleId',                         [middleware.auth], apiStyles.deleteStyle);
+    $postJSON(  '/v1/user/styles',                                  [middleware.auth], apiStyles.addToStylingPalette);
+    $getJSON(   '/v1/user/styles',                                  [middleware.auth], apiStyles.getStylePalette);
+    $deleteJSON('/v1/user/styles/:styleId',                         [middleware.auth], apiStyles.deleteStyle);
 
-    $post(  '/v1/projects',                                     [middleware.auth],                                      apiProjects.createProject);
-    $get(   '/v1/projects',                                     [],                                                     apiProjects.findProjects);
-    $get(   '/v1/projects/:projectId',                          [middleware.projectReadPermission],                     apiProjects.getProject);
-    $patch( '/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.patchProject);
-    $delete('/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.deleteProject);
+    $postJSON(  '/v1/projects',                                     [middleware.auth],                                      apiProjects.createProject);
+    $getJSON(   '/v1/projects',                                     [],                                                     apiProjects.findProjects);
+    $getJSON(   '/v1/projects/:projectId',                          [middleware.projectReadPermission],                     apiProjects.getProject);
+    $patchJSON( '/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.patchProject);
+    $deleteJSON('/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.deleteProject);
 
-    $get(   '/v1/projects/:projectId/schemes',                  [middleware.projectReadPermission],    apiSchemes.findSchemes);
-    $post(  '/v1/projects/:projectId/schemes',                  [middleware.projectWritePermission],   apiSchemes.createScheme);
-    $get(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
-    $delete('/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
-    $put(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);
-    $post(  '/v1/projects/:projectId/schemes/:schemeId/preview',[middleware.projectWritePermission],   apiSchemes.savePreview);
-    $get(   '/projects/:projectId/schemes/:schemeId/preview',   [middleware.projectReadPermission],    apiSchemes.getPreview);
+    $getJSON(   '/v1/projects/:projectId/schemes',                  [middleware.projectReadPermission],    apiSchemes.findSchemes);
+    $postJSON(  '/v1/projects/:projectId/schemes',                  [middleware.projectWritePermission],   apiSchemes.createScheme);
+    $getJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
+    $deleteJSON('/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
+    $putJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);
+    $postJSON(  '/v1/projects/:projectId/schemes/:schemeId/preview',[middleware.projectWritePermission],   apiSchemes.savePreview);
+    $getJSON(   '/projects/:projectId/schemes/:schemeId/preview',   [middleware.projectReadPermission],    apiSchemes.getPreview);
 
-    $get(   '/v1/projects/:projectId/tags',                     [middleware.projectReadPermission],    apiSchemes.getTags);
+    $getJSON(   '/v1/projects/:projectId/tags',                     [middleware.projectReadPermission],    apiSchemes.getTags);
 
-    $post(  '/v1/projects/:projectId/art',                      [middleware.projectWritePermission],    apiArt.createArt);
-    $put(   '/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.saveArt);
-    $delete('/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.deleteArt);
-    $get(   '/v1/projects/:projectId/art',                      [middleware.projectReadPermission],     apiArt.getArt);
-    $get(   '/v1/art',                                          [],                                     apiArt.getGlobalArt);
+    $postJSON(  '/v1/projects/:projectId/art',                      [middleware.projectWritePermission],    apiArt.createArt);
+    $putJSON(   '/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.saveArt);
+    $deleteJSON('/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.deleteArt);
+    $getJSON(   '/v1/projects/:projectId/art',                      [middleware.projectReadPermission],     apiArt.getArt);
+    $getJSON(   '/v1/art',                                          [],                                     apiArt.getGlobalArt);
 
-    $post(  '/projects/:projectId/files',                       [middleware.projectWritePermission], apiFiles.uploadFile);
-    $get(   '/projects/:projectId/files/:fileName',             [middleware.projectReadPermission],  apiFiles.downloadFile);
+    $post(      '/v1/projects/:projectId/files',                    [middleware.projectWritePermission], apiFiles.uploadFile);
+    $get(       '/projects/:projectId/files/:fileName',             [middleware.projectReadPermission],  apiFiles.downloadFile);
 
-    $get(   '/v1/projects/:projectId/category-tree',            [middleware.projectReadPermission],   apiCategories.getCategoryTree);
-    $get(   '/v1/projects/:projectId/categories',               [middleware.projectReadPermission],   apiCategories.getRootCategory);
-    $get(   '/v1/projects/:projectId/categories/:categoryId',   [middleware.projectReadPermission],   apiCategories.getCategory);
-    $post(  '/v1/projects/:projectId/categories',               [middleware.projectWritePermission],  apiCategories.createCategory);
-    $post(  '/v1/projects/:projectId/move-category',            [middleware.projectWritePermission],  apiCategories.moveCategory);
-    $put(   '/v1/projects/:projectId/categories/:categoryId',   [middleware.projectWritePermission],  apiCategories.updateCategory);
-    $delete('/v1/projects/:projectId/categories/:categoryId',   [middleware.projectWritePermission],  apiCategories.deleteCategory);
-    $put(   '/v1/projects/:projectId/category-structure',       [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
+    $getJSON(   '/v1/projects/:projectId/category-tree',            [middleware.projectReadPermission],   apiCategories.getCategoryTree);
+    $getJSON(   '/v1/projects/:projectId/categories',               [middleware.projectReadPermission],   apiCategories.getRootCategory);
+    $getJSON(   '/v1/projects/:projectId/categories/:categoryId',   [middleware.projectReadPermission],   apiCategories.getCategory);
+    $postJSON(  '/v1/projects/:projectId/categories',               [middleware.projectWritePermission],  apiCategories.createCategory);
+    $postJSON(  '/v1/projects/:projectId/move-category',            [middleware.projectWritePermission],  apiCategories.moveCategory);
+    $putJSON(   '/v1/projects/:projectId/categories/:categoryId',   [middleware.projectWritePermission],  apiCategories.updateCategory);
+    $deleteJSON('/v1/projects/:projectId/categories/:categoryId',   [middleware.projectWritePermission],  apiCategories.deleteCategory);
+    $putJSON(   '/v1/projects/:projectId/category-structure',       [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
 }
 
 const cwd = process.cwd();

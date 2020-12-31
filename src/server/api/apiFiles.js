@@ -57,7 +57,7 @@ module.exports = {
                     return fsp.rename(originalLocalPath, `${config.files.uploadFolder}/${projectId}/${fileData.imageId}`).then(() => fileData);
                 }).then(fileData => {
                     res.json({
-                        path: `/projects/${projectId}/files/${fileData.imageId}`
+                        url: `/projects/${projectId}/files/${fileData.imageId}`
                     });
                 }).catch(err => {
                     res.status(500);
