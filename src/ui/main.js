@@ -10,6 +10,7 @@ import axios from 'axios';
 import App from './App.vue';
 import LoginView from './views/LoginView.vue';
 import SchemeEditorView from './views/SchemeEditorView.vue';
+import ProjectListView from './views/ProjectListView.vue';
 import HomeView from './views/HomeView.vue';
 import ProjectView from './views/ProjectView.vue';
 import ProjectCreateView from './views/ProjectCreateView.vue';
@@ -33,6 +34,7 @@ const routes = [
     route('CreateProject', '/create-project', ProjectCreateView),
     route('SchemeEditorView', '/projects/:projectId/schemes/:schemeId', SchemeEditorView),
     route('HomeView', '/', HomeView),
+    route('ProjectListView', '/projects', ProjectListView),
     route('ProjectView', '/projects/:projectId', ProjectView)
 ];
 

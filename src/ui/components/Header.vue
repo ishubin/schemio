@@ -17,6 +17,7 @@
 
         <div class="top-right-panel">
             <div v-if="currentUser">
+                Welcome {{currentUserName}}
                 <a href="/user/logout">Logout</a>
             </div>
             <div v-else>
@@ -85,6 +86,13 @@ export default {
     computed: {
         currentUser() {
             return this.$store.getters.currentUser;
+        },
+        currentUserName() {
+            const user = this.$store.getters.currentUser;
+            if (user) {
+                return user.login;
+            }
+            return '';
         }
     }
 }
