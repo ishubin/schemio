@@ -62,7 +62,7 @@ export default {
                 link: '/projects'
             }, {
                 name: 'Logout',
-                link: '/user/logout'
+                link: '/auth/logout'
             }]
         };
     },
@@ -100,7 +100,7 @@ export default {
         currentUserName() {
             const user = this.$store.getters.currentUser;
             if (user) {
-                return user.login;
+                return user.name;
             }
             return '';
         }

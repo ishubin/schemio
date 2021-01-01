@@ -94,7 +94,7 @@ if (!config.backendless) {
 
     $getJSON(   '/v1/user',                                         [middleware.auth], apiUser.getCurrentUser);
     $postJSON(  '/v1/login',                                        [],                apiUser.login(ldapAuthService));
-    $getJSON(   '/user/logout',                                     [],                apiUser.logout);
+    $getJSON(   '/auth/logout',                                     [],                apiUser.logout);
 
     $postJSON(  '/v1/user/styles',                                  [middleware.auth], apiStyles.addToStylingPalette);
     $getJSON(   '/v1/user/styles',                                  [middleware.auth], apiStyles.getStylePalette);
