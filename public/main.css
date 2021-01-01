@@ -12,13 +12,15 @@
 
     --faint-strong: #9a9b9c;
     --faint-weak: #eeeeee;
+    --faint-weak-up: #e2e2e2;
     --faint-strong-up: #c0c0c0;
     --faint-strong-up-up: #d1d1d1;
-    --faint-weak-up: #e2e2e2;
 
     --accent-strong: #2373ce;
     --accent-faint: #5291da;
+    --accent-faint-up: #83addd;
     --accent-weak: #e1ebf7;
+    --accent-weak-down: #c4daf5;
 
     --complement-strong: #bbe288;
     --complement-weak: #fafdec;
@@ -130,9 +132,11 @@ h5 {
 .header .header-middle-section {
     display: inline-block;
 }
-.header a, .header .link {
+.header > a, .header > .link {
     margin-left: 10px;
-    margin-right: 10xo;
+    margin-right: 10px;
+}
+.header a, .header .link {
     color: #eee;
     text-decoration: none;
 }
@@ -155,20 +159,24 @@ h5 {
     left: 8px;
     top: 8px;
 }
-
+.header .menu-dropdown > .icon-button {
+    color: var(--critic-weak);
+}
 
 
 .menu-dropdown {
-    position: relative;
     display: inline-block;
 }
 .menu-dropdown span {
     cursor: pointer;
     color: var(--base-strong-up);
 }
+.menu-dropdown .menu-dropdown-title {
+    display: inline-block;
+}
 .menu-dropdown > ul {
     z-index: 99;
-    position: absolute;
+    position: fixed;
     margin: 0;
     padding: 0;
     min-width: 200px;
@@ -188,13 +196,13 @@ h5 {
     display: block;
     padding: 6px 8px;
     text-decoration: none;
-    color: #333;
+    color: var(--base-strong-up);
     font-weight: normal;
     white-space: nowrap;
 }
 .menu-dropdown > ul li a:hover, .menu-dropdown > ul li span:hover {
-    color: #fff;
-    background: #2472ab;
+    color: var(--critic-weak);
+    background: var(--accent-strong);
 }
 
 
@@ -562,13 +570,15 @@ ul.pagination li a.current {
     background: var(--faint-weak);
     border-bottom: 1px solid var(--faint-strong);
     position: absolute;
+    display: table;
     width: 100%;
     top: 47px;
 }
 .quick-helper-panel {
-    display: block;
-    padding: 2px 2px;
-    min-height: 30px;
+    display: table-cell;
+    vertical-align: middle;
+    overflow: hidden;
+    height: 40px;
 }
 .quick-helper-panel-section {
     position: relative;
@@ -834,14 +844,13 @@ ul.pagination li a.current {
 
 
 
-.top-right-panel a {
-    color: #c1e5fb;
-}
-
 .top-right-panel {
     position: absolute;
-    right: 5px;
-    top: 5px;
+    right: 15px;
+    top: 14px;
+}
+.top-right-panel a, .top-right-panel span.link {
+    color: var(--accent-weak-down);
 }
 
 .scheme-container {

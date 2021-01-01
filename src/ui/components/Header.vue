@@ -17,8 +17,10 @@
 
         <div class="top-right-panel">
             <div v-if="currentUser">
-                Welcome {{currentUserName}}
-                <a href="/user/logout">Logout</a>
+                <menu-dropdown 
+                    :name="currentUserName"
+                    :options="userDropDownOptions"
+                    />
             </div>
             <div v-else>
                 <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
@@ -34,7 +36,8 @@
 </template>
 
 <script>
-import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
+import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
+import MenuDropdown from './MenuDropdown.vue'
 import map from 'lodash/map';
 
 export default {
@@ -44,7 +47,7 @@ export default {
         category:   {type: Object, default: null}
     },
 
-    components: {CreateNewSchemeModal},
+    components: {CreateNewSchemeModal, MenuDropdown},
 
     data() {
         return {
@@ -53,7 +56,14 @@ export default {
                 categories: [],
                 show: false
             },
-            menuDisplayed: false
+            menuDisplayed: false,
+            userDropDownOptions: [{
+                name: 'My Projects',
+                link: '/projects'
+            }, {
+                name: 'Logout',
+                link: '/user/logout'
+            }]
         };
     },
     methods: {
