@@ -36,18 +36,21 @@ const latencyBuckets = _.map(config.metrics.latencyBuckets.split(','), bucketTex
     };
 }).sort((a, b) => a.value > b.value ? 1 : -1);
 
+// making sure all latency buckets will be exported even when they have 0 count
 _.forEach(latencyBuckets, bucket => {
     latencyBucketsCounter.inc({le: bucket.label, instance: config.instanceId}, 0);
 });
+latencyBucketsCounter.inc({le: '+Inf', instance: config.instanceId}, 0);
+
 
 function reportLatency(latency) {
-    let bucketLabel = '+Inf';
-    const bucket = _.find(latencyBuckets, bucket => latency < bucket.value);
-    if (bucket) {
-        bucketLabel = bucket.label;
-    }
+    latencyBucketsCounter.inc({le: '+Inf', instance: config.instanceId});
 
-    latencyBucketsCounter.inc({le: bucketLabel, instance: config.instanceId});
+    _.forEach(latencyBuckets, bucket => {
+        if (latency < bucket.value) {
+            latencyBucketsCounter.inc({le: bucket.label, instance: config.instanceId});
+        }
+    });
 }
 
 
