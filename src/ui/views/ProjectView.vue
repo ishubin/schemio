@@ -316,6 +316,7 @@ export default {
 
         removeTagFilter() {
             this.filterTag = null;
+            this.toggleSearch();
         },
 
         toggleFilterByTag(tag) {
