@@ -14,7 +14,6 @@ const store = new Vuex.Store({
         editorStateName: 'interact',
 
         curveEditing: {
-            autoAttachEnabled: true,
             // item whose curve is currently edited
             item: null
         },
@@ -41,9 +40,6 @@ const store = new Vuex.Store({
         },
         SET_SCHEME_MODIFIED(state, isModified) {
             state.schemeModified = isModified;
-        },
-        SET_CURVE_EDIT_AUTO_ATTACH(state, isEnabled) {
-            state.curveEditing.autoAttachEnabled = isEnabled;
         },
         SET_CURVE_EDIT_ITEM(state, item) {
             state.curveEditing.item = item;
@@ -97,14 +93,6 @@ const store = new Vuex.Store({
             commit('SET_SCHEME_MODIFIED', false);
         },
 
-        enableCurveEditAutoAttach({commit}) {
-            commit('SET_CURVE_EDIT_AUTO_ATTACH', true);
-        },
-
-        disableCurveEditAutoAttach({commit}) {
-            commit('SET_CURVE_EDIT_AUTO_ATTACH', false);
-        },
-
         setCurveEditItem({commit}, item) {
             commit('SET_CURVE_EDIT_ITEM', item);
         },
@@ -150,7 +138,6 @@ const store = new Vuex.Store({
     getters: {
         currentUser: state => state.currentUser,
         schemeModified: state => state.schemeModified,
-        curveEditAutoAttachEnabled: state => state.curveEditing.autoAttachEnabled,
         
         itemControlPointsList: state => state.itemControlPoints,
     }

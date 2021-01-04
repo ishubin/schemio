@@ -532,11 +532,8 @@ export default class StateEditCurve extends State {
             distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
         }
 
-        let closestPointToItem = null;
-        if (this.store.state.curveEditing.autoAttachEnabled) {
-            const includeOnlyVisibleItems = true;
-            closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);
-        }
+        const includeOnlyVisibleItems = true;
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);
 
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);

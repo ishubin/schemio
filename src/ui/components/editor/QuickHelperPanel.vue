@@ -83,11 +83,6 @@
             </div>
             <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
-                    <li>
-                        <span class="toggle-button" :class="{toggled: curveEditAutoAttachEnabled}" @click="toggleCurveEditAutoAttach" title="Auto-attach curve">
-                            <img src="/assets/images/helper-panel/auto-attach-curve.svg"/>
-                        </span>
-                    </li>
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
                             :value="curveSourceCap"
@@ -213,14 +208,6 @@ export default {
             }
         },
 
-        toggleCurveEditAutoAttach() {
-            if (this.$store.state.curveEditing.autoAttachEnabled) {
-                this.$store.dispatch('disableCurveEditAutoAttach');
-            } else {
-                this.$store.dispatch('enableCurveEditAutoAttach');
-            }
-        },
-
         stopEditCurve() {
             EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
         },
@@ -284,10 +271,6 @@ export default {
     },
 
     computed: {
-        curveEditAutoAttachEnabled() {
-            return this.$store.getters.curveEditAutoAttachEnabled;
-        },
-
         historyRedoable() {
             return this.$store.state.history.redoable;
         },
