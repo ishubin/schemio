@@ -1,4 +1,5 @@
 import forEach from 'lodash/forEach';
+import myMath from '../../../../myMath';
 
 function makeTailControlPoint(item) {
     const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
@@ -31,6 +32,8 @@ const controlPointFuncs = {
     cornerRadius: makeCornerRadiusControlPoint
 };
 
+
+
 export default {
     shapeType: 'standard',
 
@@ -55,16 +58,17 @@ export default {
                 const TL = item.shapeProps.tailLength;
                 const TW = Math.min(Math.max(0, side.length - item.shapeProps.tailWidth), item.shapeProps.tailWidth);
                 const t = (100 - Math.max(0, Math.min(item.shapeProps.tailPosition, 100.0))) / 100.0;
+                const t2 = (100 - item.shapeProps.tailPosition) / 100.0;
                 const rotatedX = side.vy;
                 const rotatedY = -side.vx;
                 const p1x = (side.length - TW) * t * side.vx;
                 const p1y = (side.length - TW) * t * side.vy;
 
-                const p2x = TW * t * side.vx + rotatedX * TL;
-                const p2y = TW * t * side.vy + rotatedY * TL;
+                const p2x = TW * t2 * side.vx + rotatedX * TL;
+                const p2y = TW * t2 * side.vy + rotatedY * TL;
 
-                const p3x = TW * (1.0 - t) * side.vx - rotatedX * TL;
-                const p3y = TW * (1.0 - t) * side.vy - rotatedY * TL;
+                const p3x = TW * (1.0 - t2) * side.vx - rotatedX * TL;
+                const p3y = TW * (1.0 - t2) * side.vy - rotatedY * TL;
 
                 const p4x = (side.length - TW - (side.length - TW) * t) * side.vx;
                 const p4y = (side.length - TW - (side.length - TW) * t) * side.vy;
@@ -99,31 +103,35 @@ export default {
                 let x1 = R, x2 = item.area.w - R,
                     y1 = R, y2 = item.area.h - R;
 
-                if (Math.abs(x2 - x1) < 1 || Math.abs(y2 - y1) < 1) {
-                    return;
+
+                // here we identify from which side of the two diagonal lines does is the current point positioned
+                // This way we divide the space into 4 regions which would correspond to the tail side
+                const side1 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, 0, item.area.w, item.area.h));
+                const side2 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, item.area.h, item.area.w, 0));
+                let sideId = 3;
+                if (side1 < 0) {
+                    sideId = sideId & 1;
+                }
+                if (side2 < 0) {
+                    sideId = sideId & 2;
                 }
 
-                if (x >= x1 && x <= x2) {
-                    if (y < 0) {
-                        item.shapeProps.tailSide = 'top';
-                        item.shapeProps.tailPosition = 100 - 100 * Math.max(0, Math.min(1.0, (x - x1) / (x2 - x1)));
-                        item.shapeProps.tailLength = -y;
-                    } else if (y > item.area.h) {
-                        item.shapeProps.tailSide = 'bottom';
-                        item.shapeProps.tailPosition = 100 * Math.max(0, Math.min(1.0, (x - x1) / (x2 - x1)));
-                        item.shapeProps.tailLength = y - item.area.h;
-                    }
-                }
-                if (y >= y1 && y <= y2) {
-                    if (x < 0) {
-                        item.shapeProps.tailSide = 'left';
-                        item.shapeProps.tailPosition = 100 * Math.max(0, Math.min(1.0, (y - y1) / (y2 - y1)));
-                        item.shapeProps.tailLength = -x;
-                    } else if (x > item.area.w) {
-                        item.shapeProps.tailSide = 'right';
-                        item.shapeProps.tailPosition = 100 - 100 * Math.max(0, Math.min(1.0, (y - y1) / (y2 - y1)));
-                        item.shapeProps.tailLength = x - item.area.w;
-                    }
+                if (sideId === 0) {
+                    item.shapeProps.tailSide = 'top';
+                    item.shapeProps.tailPosition = 100 - 100 * (x - x1) / (x2 - x1);
+                    item.shapeProps.tailLength = -y;
+                } else if (sideId === 3) {
+                    item.shapeProps.tailSide = 'bottom';
+                    item.shapeProps.tailPosition = 100 * (x - x1) / (x2 - x1);
+                    item.shapeProps.tailLength = y - item.area.h;
+                } if (sideId == 2) {
+                    item.shapeProps.tailSide = 'left';
+                    item.shapeProps.tailPosition = 100 * (y - y1) / (y2 - y1);
+                    item.shapeProps.tailLength = -x;
+                } else if (sideId == 1) {
+                    item.shapeProps.tailSide = 'right';
+                    item.shapeProps.tailPosition = 100 - 100 * (y - y1) / (y2 - y1);
+                    item.shapeProps.tailLength = x - item.area.w;
                 }
             } else if (controlPointName === 'cornerRadius') {
                 item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
@@ -136,6 +144,6 @@ export default {
         tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
         tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
         tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
-        tailPosition        : {type: 'number', value: 0, name: 'Tail Position (%)', min: 0, max: 100.0},
+        tailPosition        : {type: 'number', value: 0, name: 'Tail Position (%)'},
     },
 }

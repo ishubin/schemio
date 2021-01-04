@@ -10,6 +10,36 @@ const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 20;
 
 export default {
+
+    /**
+     * Generates line equation in form of ax + by + c = 0 which intersects given two points
+     * returns an object with a, b, c parameters
+     * @param {*} x1 
+     * @param {*} y1 
+     * @param {*} x2 
+     * @param {*} y2 
+     */
+    createLineEquation(x1, y1, x2, y2) {
+        return {
+            a: y1 - y2,
+            b: x2 - x1,
+            c: x1*y2 - x2*y1
+        };
+    },
+
+    /**
+     * Returns either -1 or 1 depending on which plane the point is lying agaist specified line
+     * @param {*} x 
+     * @param {*} y 
+     * @param {*} line Line equation in form of {a, b, c} object
+     */
+    identifyPointSideAgainstLine(x, y, {a, b, c}) {
+        if (a * x + b * y + c >= 0) {
+            return 1;
+        }
+        return -1;
+    },
+
     isPointInArea(x, y, area) {
         return x >= area.x && x <= (area.x + area.w)
             && y >= area.y && y <= (area.y + area.h);
