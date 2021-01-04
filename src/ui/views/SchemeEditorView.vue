@@ -534,8 +534,16 @@ export default {
             this.addLinkPopup.shown = true;
         },
 
-        onClickedStartConnecting(sourceItem) {
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem);
+        onClickedStartConnecting(sourceItem, x, y, mouseX, mouseY) {
+            const point = { x: 0, y: 0 };
+            if (sourceItem.area.type === 'viewport') {
+                point.x = mouseX;
+                point.y = mouseY;
+            } else {
+                point.x = x;
+                point.y = y;
+            }
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem, point);
         },
 
         onItemLinkSubmit(link) {

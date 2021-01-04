@@ -989,7 +989,7 @@ export default {
             }, {
                 name: 'Connect',
                 iconClass: 'fas fa-network-wired',
-                clicked: () => {this.$emit('clicked-start-connecting', item);}
+                clicked: () => {this.$emit('clicked-start-connecting', item, this.x_(mouseX), this.y_(mouseY), mouseX, mouseY);}
             }, {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
@@ -1390,6 +1390,11 @@ export default {
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
+
+        //calculates from screen to world
+        x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
+        y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
+        z_(v) { return v * this.schemeContainer.screenTransform.scale; },
 
         //calculates coords from world to screen in view mode
         //TODO check why this formula is not aligned with myMath.js, how the hell is it working then?

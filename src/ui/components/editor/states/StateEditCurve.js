@@ -15,7 +15,7 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     id: '',
     moved: true,
     rotated: false,
-    resized: true
+    resized: false
 };
 
 
