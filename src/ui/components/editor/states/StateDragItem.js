@@ -206,8 +206,19 @@ export default class StateDragItem extends State {
         }
     }
 
+    findItemControlPoint(pointId) {
+        for(let i = 0; i < this.store.state.itemControlPoints.length; i++) {
+            const controlPoint = this.store.state.itemControlPoints[i];
+            if (controlPoint.id === pointId) {
+                return controlPoint.point;
+            }
+        }
+
+        return null;
+    }
+
     initDraggingForControlPoint(controlPointDef, x, y) {
-        const controlPoint = controlPointDef.item.meta.controlPoints[controlPointDef.pointId];
+        const controlPoint = this.findItemControlPoint(controlPointDef.pointId);
         if (controlPoint) {
             this.reset();
             this.originalPoint.x = x;
@@ -574,7 +585,7 @@ export default class StateDragItem extends State {
     }
 
     handleControlPointDrag(x, y) {
-        const controlPoint = this.sourceItem.meta.controlPoints[this.controlPoint.id];
+        const controlPoint = this.findItemControlPoint(this.controlPoint.id);
         if (controlPoint) {
             if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
                 this.handleCurveEdgeControlPointDrag(x, y, controlPoint);
@@ -586,8 +597,12 @@ export default class StateDragItem extends State {
                 const shape = Shape.find(this.sourceItem.shape);
                 shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
                 const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
-                this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
-                this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
+                
+                this.store.dispatch('updateItemControlPoint', {
+                    pointId: this.controlPoint.id,
+                    point: newPoint
+                })
+                
                 this.eventBus.emitItemChanged(this.sourceItem.id);
                 this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
                 this.reindexNeeded = true;
@@ -651,8 +666,12 @@ export default class StateDragItem extends State {
 
         const shape = Shape.find(this.sourceItem.shape);
         const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
-        this.sourceItem.meta.controlPoints[this.controlPoint.id].x = newPoint.x;
-        this.sourceItem.meta.controlPoints[this.controlPoint.id].y = newPoint.y;
+        
+        this.store.dispatch('updateItemControlPoint', {
+            pointId: this.controlPoint.id,
+            point: newPoint
+        });
+
         this.eventBus.emitItemChanged(this.sourceItem.id);
         this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         this.reindexNeeded = true;

@@ -112,6 +112,7 @@
                     </g>
 
                     <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative && state !== 'editCurve' && !inPlaceTextEditor.shown"
+                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.relative.boxUID}`"
                         :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
@@ -142,6 +143,7 @@
                             />
                     </g>
                     <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve' && !inPlaceTextEditor.shown"
+                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.viewport.boxUID}`"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :zoom="1"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>

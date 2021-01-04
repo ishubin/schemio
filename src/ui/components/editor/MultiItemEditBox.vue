@@ -4,11 +4,12 @@
         <g v-if="editBox.items.length === 1"
             :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
             <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
-                <circle v-for="(controlPoint, controlPointName) in editBox.items[0].meta.controlPoints"
+                <circle v-for="controlPoint in controlPoints"
+                    :key="`item-control-point-${controlPoint.id}`"
                     class="item-control-point"
                     :data-control-point-item-id="editBox.items[0].id"
-                    :data-control-point-id="controlPointName"
-                    :cx="controlPoint.x" :cy="controlPoint.y"
+                    :data-control-point-id="controlPoint.id"
+                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
                     :fill="boundaryBoxColor"
                     :r="5/safeZoom"
                     />
@@ -157,7 +158,6 @@
                 :width="draggerSize * 2 / safeZoom"
                 :height="draggerSize * 2 / safeZoom"
             />
-
         </g>
     </g>
 </template>
@@ -165,10 +165,24 @@
 <script>
 import utils from '../../utils';
 import forEach from 'lodash/forEach';
+import Shape from './items/shapes/Shape';
 
 
 export default {
     props: ['editBox', 'zoom', 'boundaryBoxColor'],
+
+    beforeMount() {
+        if (this.editBox.items.length === 1) {
+            const shape = Shape.find(this.editBox.items[0].shape);
+            if (shape && shape.controlPoints) {
+                this.$store.dispatch('setItemControlPoints', shape.controlPoints.make(this.editBox.items[0]));
+            } else {
+                this.$store.dispatch('clearItemControlPoints');
+            }
+        } else {
+            this.$store.dispatch('clearItemControlPoints');
+        }
+    },
 
     data() {
         return {
@@ -182,6 +196,10 @@ export default {
                 return this.zoom;
             }
             return 1.0;
+        },
+
+        controlPoints() {
+            return this.$store.getters.itemControlPointsList;
         }
     }
 }

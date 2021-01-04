@@ -130,7 +130,7 @@ export default class StateCreateItem extends State {
     refreshControlPoints(item) {
         const shape = Shape.find(item.shape);
         if (shape && shape.controlPoints) {
-            item.meta.controlPoints = shape.controlPoints.make(item);
+            this.store.dispatch('setItemControlPoints', shape.controlPoints.make(item));
         }
     }
 }

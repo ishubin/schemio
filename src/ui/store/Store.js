@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import apiClient from '../apiClient';
+import forEach from 'lodash/forEach';
 
 Vue.use(Vuex);
 
@@ -30,7 +31,9 @@ const store = new Vuex.Store({
 
         itemSurround: {
             padding: 40
-        }
+        },
+
+        itemControlPoints: []
     },
     mutations: {
         SET_CURRENT_USER(state, user) {
@@ -59,6 +62,26 @@ const store = new Vuex.Store({
         },
         SET_ITEM_SURROUND_PADDING(state, padding) {
             state.itemSurround.padding = padding;
+        },
+
+        /*************** Item Control Points *****************/
+        SET_ITEM_CONTROL_POINTS(state, itemControlPoints) {
+            state.itemControlPoints = itemControlPoints;
+        },
+        CLEAR_ITEM_CONTROL_POINTS(state) {
+            state.itemControlPoints.length = 0;
+        },
+
+        UPDATE_ITEM_CONTROL_POINT(state, { pointId, point }) {
+            // this is called when user drags control point of an item
+            for (let i = 0; i < state.itemControlPoints.length; i++) {
+                if (state.itemControlPoints[i].id === pointId) {
+                    forEach(point, (value, arg) => {
+                        state.itemControlPoints[i].point[arg] = value;
+                    })
+                    return;
+                }
+            }
         }
     },
     actions: {
@@ -104,12 +127,32 @@ const store = new Vuex.Store({
         
         setItemSurroundPadding({commit}, padding) {
             commit('SET_ITEM_SURROUND_PADDING', padding);
+        },
+
+        setItemControlPoints({commit}, itemControlPoints) {
+            const list = [];
+            forEach(itemControlPoints, (controlPoint, pointId) => {
+                list.push({
+                    id: pointId,
+                    point: controlPoint
+                });
+            });
+            commit('SET_ITEM_CONTROL_POINTS', list);
+        },
+
+        updateItemControlPoint({commit}, { pointId, point }) {
+            commit('UPDATE_ITEM_CONTROL_POINT', { pointId, point });
+        },
+        clearItemControlPoints({commit}) {
+            commit('CLEAR_ITEM_CONTROL_POINTS');
         }
     },
     getters: {
         currentUser: state => state.currentUser,
         schemeModified: state => state.schemeModified,
         curveEditAutoAttachEnabled: state => state.curveEditing.autoAttachEnabled,
+        
+        itemControlPointsList: state => state.itemControlPoints,
     }
 });
 

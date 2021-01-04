@@ -284,9 +284,6 @@ class SchemeContainer {
         }
 
         const shape = Shape.find(item.shape);
-        if (shape && shape.controlPoints) {
-            item.meta.controlPoints = shape.controlPoints.make(item);
-        }
     }
 
     /**
@@ -692,7 +689,6 @@ class SchemeContainer {
         if (!item.hasOwnProperty('meta')) {
             item.meta = {}
         }
-        item.meta.controlPoints = [];
         if (!item.id) {
             item.id = shortid.generate();
         }
@@ -1342,6 +1338,7 @@ class SchemeContainer {
 
         return {
             id: boxId,
+            boxUID: shortid.generate(),
             items,
             itemData,
             area,
