@@ -165,7 +165,7 @@
 <script>
 import utils from '../../utils';
 import forEach from 'lodash/forEach';
-import Shape from './items/shapes/Shape';
+import StoreUtils from '../../store/StoreUtils';
 
 
 export default {
@@ -173,14 +173,9 @@ export default {
 
     beforeMount() {
         if (this.editBox.items.length === 1) {
-            const shape = Shape.find(this.editBox.items[0].shape);
-            if (shape && shape.controlPoints) {
-                this.$store.dispatch('setItemControlPoints', shape.controlPoints.make(this.editBox.items[0]));
-            } else {
-                this.$store.dispatch('clearItemControlPoints');
-            }
+            StoreUtils.setItemControlPoints(this.$store, this.editBox.items[0])
         } else {
-            this.$store.dispatch('clearItemControlPoints');
+            StoreUtils.clearItemControlPoints(this.$store);
         }
     },
 

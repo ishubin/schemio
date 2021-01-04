@@ -1046,9 +1046,6 @@ export default {
                 this.searchHighlights = filteredItems;
                 EventBus.emitItemsHighlighted(highlightedItemIds);
             } else {
-                forEach(this.schemeContainer.getItems(), item => {
-                    item.meta.searchHighlighted = false;
-                });
                 this.searchHighlights = [];
                 EventBus.emitItemsHighlighted([]);
             }

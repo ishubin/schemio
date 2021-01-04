@@ -11,6 +11,7 @@ import {Logger} from '../../../logger';
 import '../../../typedef';
 import shortid from 'shortid';
 import { Keys } from '../../../events';
+import StoreUtils from '../../../store/StoreUtils.js';
 
 const log = new Logger('StateDragItem');
 
@@ -598,10 +599,7 @@ export default class StateDragItem extends State {
                 shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
                 const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
                 
-                this.store.dispatch('updateItemControlPoint', {
-                    pointId: this.controlPoint.id,
-                    point: newPoint
-                })
+                StoreUtils.updateItemControlPoint(this.store, this.controlPoint.id, newPoint);
                 
                 this.eventBus.emitItemChanged(this.sourceItem.id);
                 this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
@@ -667,10 +665,7 @@ export default class StateDragItem extends State {
         const shape = Shape.find(this.sourceItem.shape);
         const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
         
-        this.store.dispatch('updateItemControlPoint', {
-            pointId: this.controlPoint.id,
-            point: newPoint
-        });
+        StoreUtils.updateItemControlPoint(this.store, this.controlPoint.id, newPoint);
 
         this.eventBus.emitItemChanged(this.sourceItem.id);
         this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);

@@ -6,6 +6,7 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import forEach from 'lodash/forEach';
 import EventBus from '../EventBus.js';
+import StoreUtils from '../../../store/StoreUtils';
 
 export default class StateCreateItem extends State {
     constructor(eventBus, store) {
@@ -128,9 +129,6 @@ export default class StateCreateItem extends State {
     }
 
     refreshControlPoints(item) {
-        const shape = Shape.find(item.shape);
-        if (shape && shape.controlPoints) {
-            this.store.dispatch('setItemControlPoints', shape.controlPoints.make(item));
-        }
+        StoreUtils.setItemControlPoints(this.store, item);
     }
 }
