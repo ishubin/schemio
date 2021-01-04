@@ -126,6 +126,7 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             }
         } else {
             oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+            worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
         }
         let destinationPoint = null;
 
