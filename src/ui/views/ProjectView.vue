@@ -7,7 +7,7 @@
         <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
         <div class="content-wrapper">
             <div class="search-layout">
-                <div class="search-attributes-panel">
+                <div v-if="categoriesConfig.enabled" class="search-attributes-panel">
                     <h4>Categories</h4>
 
                     <div v-if="project && project.permissions.write">
@@ -162,9 +162,7 @@ import apiClient from '../apiClient.js';
 import utils from '../utils.js';
 import Pagination from '../components/Pagination.vue';
 import Modal from '../components/Modal.vue';
-
-//TODO Align it with the server side
-const RESULTS_PER_PAGE = 20;
+import config from '../config';
 
 export default {
     components: {HeaderComponent, CategoryTree, Pagination, Modal},
@@ -186,6 +184,7 @@ export default {
             currentCategoryId: null,
             currentPage: 1,
             totalPages: 0,
+            resultsPerPage: 20,
             categories: [],
             categoryTreeRevision: 0,
 
@@ -229,6 +228,10 @@ export default {
                 category: null,
                 newParentCategory: null,
                 errorMessage: null
+            },
+
+            categoriesConfig: {
+                enabled: config.project.categories.enabled
             }
         };
     },
@@ -238,9 +241,11 @@ export default {
             this.currentCategoryId = this.$route.query.category || null;
             apiClient.getTags(this.projectId).then(tags => this.tags = tags);
             apiClient.getProject(this.projectId).then(project => this.project = project);
-            apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
-                this.currentCategory = category;
-            });
+            if (this.categoriesConfig.enabled) {
+                apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
+                    this.currentCategory = category;
+                });
+            }
 
             this.currentPage = parseInt(this.$route.query.page) || 1;
             this.filterTag = this.$route.query.tag || null;
@@ -262,17 +267,19 @@ export default {
         },
 
         reloadCategoryTree() {
-            return apiClient.getCategoryTree(this.projectId)
-            .then(this.enrichCategories)
-            .then(categories => {
-                this.categories = categories;
-            });
+            if (this.categoriesConfig.enabled) {
+                return apiClient.getCategoryTree(this.projectId)
+                .then(this.enrichCategories)
+                .then(categories => {
+                    this.categories = categories;
+                });
+            }
         },
 
         searchSchemes() {
             let offset = 0;
             if (this.currentPage > 0) {
-                offset = (this.currentPage - 1) * RESULTS_PER_PAGE;
+                offset = (this.currentPage - 1) * this.resultsPerPage;
             }
             apiClient.findSchemes(this.projectId, {
                 query: this.query,
@@ -283,6 +290,7 @@ export default {
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
+                this.resultsPerPage = searchResponse.resultsPerPage;
             });
         },
 

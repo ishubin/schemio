@@ -42,9 +42,6 @@ import Pagination from '../components/Pagination.vue';
 import apiClient from '../apiClient.js';
 import utils from '../utils.js';
 
-//TODO Align it with the server side
-const RESULTS_PER_PAGE = 20;
-
 export default {
     components: {HeaderComponent, Pagination},
 
@@ -60,7 +57,8 @@ export default {
             searchResult: null,
             currentPage: 1,
             totalPages: 0,
-            urlPrefix: `/projects?q=${encodeURIComponent(query)}`
+            urlPrefix: `/projects?q=${encodeURIComponent(query)}`,
+            resultsPerPage : 20,
         };
     },
 
@@ -75,7 +73,7 @@ export default {
         searchProjects() {
             let offset = 0;
             if (this.currentPage > 0) {
-                offset = (this.currentPage - 1) * RESULTS_PER_PAGE;
+                offset = (this.currentPage - 1) * this.resultsPerPage;
             }
             apiClient.findProjects({
                 query: this.query,
@@ -83,6 +81,7 @@ export default {
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
+                this.resultsPerPage = searchResponse.resultsPerPage;
             });
         },
 
