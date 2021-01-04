@@ -4,7 +4,7 @@
         <g v-if="editBox.items.length === 1"
             :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
             <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
-                <circle v-for="controlPoint in controlPoints"
+                <circle v-if="isItemConnector" v-for="controlPoint in controlPoints"
                     :key="`item-control-point-${controlPoint.id}`"
                     class="item-control-point"
                     :data-control-point-item-id="editBox.items[0].id"

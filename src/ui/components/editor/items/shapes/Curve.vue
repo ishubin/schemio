@@ -168,19 +168,20 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
 function readjustItem(item, schemeContainer, isSoft, context) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context});
 
-    const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-    if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
-            item.shapeProps.points[0] = newPoint;
-            item.shapeProps.sourceItemPosition = newSourceItemPosition;
-        });
-    }
+    if (item.shapeProps.connector) {
+        if (item.shapeProps.sourceItem) {
+            readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
+                item.shapeProps.points[0] = newPoint;
+                item.shapeProps.sourceItemPosition = newSourceItemPosition;
+            });
+        }
 
-    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
-            item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
-            item.shapeProps.destinationItemPosition = newDestinationItemPosition;
-        });
+        if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+            readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
+                item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
+                item.shapeProps.destinationItemPosition = newDestinationItemPosition;
+            });
+        }
     }
 
     if (!isSoft) {
@@ -416,6 +417,9 @@ export default {
         },
 
         fill() {
+            if (this.item.shapeProps.connector) {
+                return 'none';
+            }
             return AdvancedFill.computeStandardFill(this.item);
         }
     }

@@ -15,7 +15,7 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     id: '',
     moved: true,
     rotated: false,
-    resized: false
+    resized: true
 };
 
 
@@ -59,6 +59,9 @@ export default class StateEditCurve extends State {
             if (this.item.shapeProps.points.length > 0) {
                 this.submitItem();
             }
+        } else {
+            this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.updateAllMultiItemEditBoxes();
         }
         super.cancel();
     }
