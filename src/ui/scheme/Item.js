@@ -101,15 +101,6 @@ export function enrichItemWithDefaults(item) {
 
     const shape = Shape.find(item.shape);
 
-    const textSlots = shape.getTextSlots(item);
-    if (textSlots) {
-        forEach(textSlots, textSlot => {
-            if (!item.textSlots.hasOwnProperty(textSlot.name)) {
-                item.textSlots[textSlot.name] = {};
-            }
-        });
-    }
-
     enrichObjectWithDefaults(item, defaultItemDefinition);
 
     forEach(shape.args, (arg, argName) => {
@@ -120,6 +111,17 @@ export function enrichItemWithDefaults(item) {
 
     if (shape.shapeType === 'standard') {
         enrichItemWithStandardShapeProps(item);
+    }
+
+    // Some getTextSlots functions in some shapes rely on specific fields in shapeProps
+    // that is why it is important to enrich all shapeProps before we call getTextSlots function
+    const textSlots = shape.getTextSlots(item);
+    if (textSlots) {
+        forEach(textSlots, textSlot => {
+            if (!item.textSlots.hasOwnProperty(textSlot.name)) {
+                item.textSlots[textSlot.name] = {};
+            }
+        });
     }
 }
 

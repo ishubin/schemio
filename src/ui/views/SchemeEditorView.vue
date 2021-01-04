@@ -412,6 +412,7 @@ export default {
                     this.schemeLoadErrorMessage = 'Sorry, but you are not authorized to read this document';
                 } else {
                     this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document';
+                    console.error(err);
                 }
             });
 
