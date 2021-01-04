@@ -534,8 +534,8 @@ export default {
             this.addLinkPopup.shown = true;
         },
 
-        onClickedStartConnecting(item) {
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, item);
+        onClickedStartConnecting(sourceItem) {
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem);
         },
 
         onItemLinkSubmit(link) {

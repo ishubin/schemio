@@ -13,7 +13,7 @@
                     :fill="boundaryBoxColor"
                     :r="5/safeZoom"
                     />
-                <g v-if="editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
+                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
                     <foreignObject :x="0" :y="0" width="100" height="20">
                         <div>
                             <span class="link"
@@ -26,7 +26,7 @@
             </g>
         </g>
 
-        <g :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
+        <g v-if="!isItemConnector" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
                 :data-multi-item-edit-box-id="editBox.id"
@@ -168,6 +168,10 @@ import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
 
 
+function isItemConnector(items) {
+    return items.length === 1 && items[0].shape === 'curve' && items[0].shapeProps.connector === true;
+}
+
 export default {
     props: ['editBox', 'zoom', 'boundaryBoxColor'],
 
@@ -181,7 +185,7 @@ export default {
 
     data() {
         return {
-            draggerSize: 5
+            draggerSize: 5,
         };
     },
 
@@ -195,7 +199,11 @@ export default {
 
         controlPoints() {
             return this.$store.getters.itemControlPointsList;
-        }
+        },
+
+        isItemConnector() {
+            return isItemConnector(this.editBox.items);
+        } 
     }
 }
 </script>

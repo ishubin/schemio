@@ -34,7 +34,9 @@ export default [{
     iconUrl: '/assets/images/items/curve.svg',
     item: utils.extendObject({
         shape: 'curve',
-        shapeProps: { }
+        shapeProps: {
+            connector: false
+        }
     }, defaultItem)
 }, {
     name: 'Curly Bracket',

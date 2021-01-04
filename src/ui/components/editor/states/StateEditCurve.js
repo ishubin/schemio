@@ -85,7 +85,10 @@ export default class StateEditCurve extends State {
         let curveItem = {
             shape: 'curve',
             name: `${sourceItem.name} :: `,
-            area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type}
+            area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type},
+            shapeProps: {
+                connector: true
+            }
         };
         enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
@@ -227,8 +230,10 @@ export default class StateEditCurve extends State {
 
         if (this.addedToScheme && this.creatingNewPoints) {
             const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
-            if (this.candidatePointSubmited) {
+
+            if (this.candidatePointSubmited && !this.item.shapeProps.connector) {
                 // convert last point to Beizer and drag its control points
+                // but only in case this is a regular curve and not a connector
                 point.t = 'B';
                 point.x2 = x - point.x;
                 point.y2 = y - point.y;
@@ -514,6 +519,12 @@ export default class StateEditCurve extends State {
      * @param {Boolean} isSource 
      */
     handleEdgeCurvePointDrag(curvePoint, isSource) {
+        if (!this.item.shapeProps.connector) {
+            // should not do anything since this is not a connecytor but a regular curve
+            // regular curves should not be allowed to attach to other items
+            return;
+        }
+
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
 
         let distanceThreshold = 0;

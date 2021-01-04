@@ -659,14 +659,14 @@ export default {
             this.$store.dispatch('setCurveEditItem', item);
         },
 
-        onStartConnecting(item, worldPoint) {
+        onStartConnecting(sourceItem, worldPoint) {
             this.highlightItems([]);
             let localPoint = null;
             if (worldPoint) {
-                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, item);
+                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
             states.editCurve.reset();
-            const curveItem = states.editCurve.initConnectingFromSourceItem(item, localPoint);
+            const curveItem = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
             this.setCurveEditItem(curveItem);
             this.state = 'editCurve';
         },

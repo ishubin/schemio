@@ -297,6 +297,8 @@ export default {
         destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
         destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
         destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+
+        connector         : {type: 'boolean',       value: false, name: 'Item Connector', description: 'Allows to attach it edge curve to other items'},
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
         sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},

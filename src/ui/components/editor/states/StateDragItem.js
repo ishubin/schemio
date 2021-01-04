@@ -423,7 +423,7 @@ export default class StateDragItem extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            if (object.item.shape === 'curve') {
+            if (object.item.shape === 'curve' && !object.item.shapeProps.connector) {
                 this.eventBus.emitCurveEdited(object.item);
             } else {
                 this.findTextSlotAndEmitInPlaceEdit(object.item, x, y)
@@ -593,8 +593,8 @@ export default class StateDragItem extends State {
     handleControlPointDrag(x, y) {
         const controlPoint = this.findItemControlPoint(this.controlPoint.id);
         if (controlPoint) {
-            if (this.sourceItem.shape === 'curve' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
-                this.handleCurveEdgeControlPointDrag(x, y, controlPoint);
+            if (this.sourceItem.shape === 'curve' && this.sourceItem.shapeProps.connector && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
+                this.handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint);
             } else {
                 const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
                 const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
@@ -614,7 +614,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    handleCurveEdgeControlPointDrag(x, y, controlPoint) {
+    handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
         // this function implement the same logic as in StateEditCurve.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
