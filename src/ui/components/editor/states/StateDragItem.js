@@ -581,6 +581,11 @@ export default class StateDragItem extends State {
             resized: true,
             id: this.modificationContextId
         });
+        if (this.multiItemEditBox.items.length === 1) {
+            // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points
+            // But setting it from scratch is safer
+            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
+        }
         this.reindexNeeded = true;
         log.info('Resized multi item edit box', this.multiItemEditBox);
     }
