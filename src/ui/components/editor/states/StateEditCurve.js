@@ -53,7 +53,8 @@ export default class StateEditCurve extends State {
         this.originalScreenOffset = {x: 0, y: 0};
 
         this.draggedObject = null;
-        this.draggedObjectOriginalPoint = null;
+        this.originalCurvePoints = null;
+
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
 
@@ -72,7 +73,7 @@ export default class StateEditCurve extends State {
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
         this.draggedObject = null;
-        this.draggedObjectOriginalPoint = null;
+        this.originalCurvePoints = null;
     }
 
     cancel() {
@@ -275,7 +276,7 @@ export default class StateEditCurve extends State {
             if (isEventRightClick(event)) {
                 this.handleRightClick(x, y, mx, my, object);
             } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
-                this.draggedObjectOriginalPoint = utils.clone(this.item.shapeProps.points[object.pointIndex]);
+                this.originalCurvePoints = utils.clone(this.item.shapeProps.points);
                 this.draggedObject = object;
 
                 StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
@@ -407,7 +408,7 @@ export default class StateEditCurve extends State {
         }
 
         this.draggedObject = null;
-        this.draggedObjectOriginalPoint = null;
+        this.originalCurvePoints = null;
 
         this.softReset();
     }
@@ -617,12 +618,24 @@ export default class StateEditCurve extends State {
         const curvePoint = this.item.shapeProps.points[pointIndex];
 
         const snappedLocalCurvePoint = this.snapCurvePoint(
-            this.draggedObjectOriginalPoint.x + localPoint.x - localOriginalPoint.x,
-            this.draggedObjectOriginalPoint.y + localPoint.y - localOriginalPoint.y
+            this.originalCurvePoints[pointIndex].x + localPoint.x - localOriginalPoint.x,
+            this.originalCurvePoints[pointIndex].y + localPoint.y - localOriginalPoint.y
         );
 
         curvePoint.x = snappedLocalCurvePoint.x;
         curvePoint.y = snappedLocalCurvePoint.y;
+
+        const dx = curvePoint.x - this.originalCurvePoints[pointIndex].x;
+        const dy = curvePoint.y - this.originalCurvePoints[pointIndex].y;
+
+        // dragging the rest of selected points
+        forEach(StoreUtils.getCurveEditPoints(this.store), storePoint => {
+            if (storePoint.selected && storePoint.id !== pointIndex) {
+                this.item.shapeProps.points[storePoint.id].x = this.originalCurvePoints[storePoint.id].x + dx;
+                this.item.shapeProps.points[storePoint.id].y = this.originalCurvePoints[storePoint.id].y + dy;
+                StoreUtils.updateCurveEditPoint(this.store, storePoint.id, this.item.shapeProps.points[storePoint.id]);
+            }
+        });
         
         if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
             this.handleEdgeCurvePointDrag(pointIndex, curvePoint, pointIndex === 0);
@@ -700,8 +713,8 @@ export default class StateEditCurve extends State {
         // Since control points are relative to their base curve points, we need to calculate their absolute world position
         // This way we can snap them to the grid and then recalculate the relative to base curve point in its local coords
         const worldAbsoluteControlPoint = this.schemeContainer.worldPointOnItem(
-            curvePoint.x + this.draggedObjectOriginalPoint[`x${index}`] + localPoint.x - localOriginalPoint.x,
-            curvePoint.y + this.draggedObjectOriginalPoint[`y${index}`] + localPoint.y - localOriginalPoint.y,
+            curvePoint.x + this.originalCurvePoints[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
+            curvePoint.y + this.originalCurvePoints[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
             this.item
         );
         const snappedWorldAbsoluteCurvePoint = {
