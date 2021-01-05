@@ -60,6 +60,18 @@ const store = new Vuex.Store({
                 state.curveEditing.points[pointId][field] = value;
             });
         },
+        TOGGLE_CURVE_EDIT_POINT_SELECTION(state, { pointId, inclusive }) {
+            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+                return;
+            }
+            if (inclusive) {
+                state.curveEditing.points[pointId].selected = !state.curveEditing.points[pointId].selected;
+            } else {
+                forEach(state.curveEditing.points, (point, pId) => {
+                    point.selected = pId === pointId;
+                });
+            }
+        },
 
         /* History */
         SET_HISTORY_UNDOABLE(state, isUndoable) {
@@ -127,6 +139,10 @@ const store = new Vuex.Store({
         updateCurveEditPoint({ commit }, { pointId, point }) {
             commit('UPDATE_CURVE_EDIT_POINT', { pointId, point });
         },
+        toggleCurveEditPointSelection({ commit }, { pointId, inclusive }) {
+            commit('TOGGLE_CURVE_EDIT_POINT_SELECTION', { pointId, inclusive });
+        },
+
         
         setHistoryUndoable({commit}, isUndoable) {
             commit('SET_HISTORY_UNDOABLE', isUndoable);

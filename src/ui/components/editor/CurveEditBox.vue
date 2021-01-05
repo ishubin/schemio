@@ -7,19 +7,20 @@
                     <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="controlPointsColor" :stroke-width="1/safeZoom"/>
                 </g>
 
-                <circle v-if="(item.shapeProps.sourceItem && point.id === 0) || (item.shapeProps.destinationItem && point.id === item.shapeProps.points.length - 1)"
+                <circle v-if="point.selected"
                     data-type="curve-point"
-                    style="opacity: 0.5"
                     :data-curve-point-index="point.id"
                     :cx="point.x" :cy="point.y"
-                    :r="10/safeZoom"
-                    :fill="boundaryBoxColor" stroke="none"/>
-                <circle
+                    :r="5/safeZoom"
+                    fill="red" stroke="none"/>
+
+                <circle v-else
                     data-type="curve-point"
                     :data-curve-point-index="point.id"
                     :cx="point.x" :cy="point.y"
                     :r="5/safeZoom"
                     :fill="boundaryBoxColor" stroke="none"/>
+
 
                 <g v-if="point.t === 'B'">
                     <circle

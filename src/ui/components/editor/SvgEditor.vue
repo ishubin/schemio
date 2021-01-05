@@ -776,7 +776,11 @@ export default {
             if (key === Keys.ESCAPE) {
                 states[this.state].cancel();
             } else if (key === Keys.DELETE && this.mode === 'edit') {
-                this.deleteSelectedItems();
+                if (this.state === 'editCurve') {
+                    states.editCurve.deleteSelectedPoints();
+                } else if (this.state === 'dragItem') {
+                    this.deleteSelectedItems();
+                }
             } else {
                 states[this.state].keyPressed(key, keyOptions);
             }

@@ -9,6 +9,7 @@ import Shape from '../items/shapes/Shape.js';
 import {enrichItemWithDefaults} from '../../../scheme/Item';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
+import forEach from 'lodash/forEach';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -25,6 +26,13 @@ function isEventRightClick(event) {
     return event.button === 2;
 }
 
+/**
+ * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
+ * @param {MouseEvent} event 
+ */
+function isMultiSelectKey(event) {
+    return event.metaKey || event.ctrlKey || event.shiftKey;
+}
 
 export default class StateEditCurve extends State {
     constructor(eventBus, store) {
@@ -85,8 +93,9 @@ export default class StateEditCurve extends State {
         if (this.schemeContainer.findItemById(item.id)) {
             this.addedToScheme = true;
             this.creatingNewPoints = false;
+        } else {
+            this.updateCursor('crosshair');
         }
-        this.updateCursor('crosshair');
     }
 
     initConnectingFromSourceItem(sourceItem, localPoint) {
@@ -255,6 +264,8 @@ export default class StateEditCurve extends State {
             } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
                 this.draggedObjectOriginalPoint = utils.clone(this.item.shapeProps.points[object.pointIndex]);
                 this.draggedObject = object;
+
+                StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
             }
         }
     }
@@ -442,6 +453,26 @@ export default class StateEditCurve extends State {
 
     deletePoint(pointIndex) {
         this.item.shapeProps.points.splice(pointIndex, 1);
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
+    deleteSelectedPoints() {
+        const points = StoreUtils.getCurveEditPoints(this.store);
+        
+        const selectedIds = [];
+        forEach(points, p => {
+            if (p.selected) {
+                selectedIds.push(p.id);
+            }
+        });
+
+        forEach(selectedIds.sort().reverse(), pointIndex => {
+            this.item.shapeProps.points.splice(pointIndex, 1);
+        });
+
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);

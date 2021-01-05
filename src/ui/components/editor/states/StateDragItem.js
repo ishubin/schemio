@@ -37,7 +37,6 @@ function isEventRightClick(event) {
  */
 function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
-
 }
 
 export default class StateDragItem extends State {
