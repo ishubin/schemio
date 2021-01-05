@@ -115,7 +115,8 @@
                         :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.relative.boxUID}`"
                         :edit-box="schemeContainer.multiItemEditBoxes.relative"
                         :zoom="schemeContainer.screenTransform.scale"
-                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -146,7 +147,8 @@
                         :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.viewport.boxUID}`"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :zoom="1"
-                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"/>
+                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"

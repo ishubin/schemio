@@ -144,8 +144,8 @@
                     :data-control-point-item-id="editBox.items[0].id"
                     :data-control-point-id="controlPoint.id"
                     :cx="controlPoint.point.x" :cy="controlPoint.point.y"
-                    :fill="boundaryBoxColor"
-                    :r="5/safeZoom"
+                    :fill="controlPointsColor"
+                    :r="6/safeZoom"
                     />
                 <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
                     <foreignObject :x="0" :y="0" width="100" height="20">
@@ -174,7 +174,7 @@ function isItemConnector(items) {
 }
 
 export default {
-    props: ['editBox', 'zoom', 'boundaryBoxColor'],
+    props: ['editBox', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
 
     beforeMount() {
         if (this.editBox.items.length === 1) {
