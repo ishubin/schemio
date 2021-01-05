@@ -14,7 +14,7 @@
         </div>
 
         <div ref="tooltip" class="color-picker-tooltip" v-if="tooltip.shown" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
-            <chrome-picker v-model="chromePickerColor" @input="updateColor"></chrome-picker>
+            <color-picker v-model="vuePickerColor" @input="updateColor"/>
         </div>
     </div>
 </template>
@@ -30,11 +30,11 @@ export default {
         hollow: {type: Boolean, default: false}
     },
 
-    components: {'chrome-picker': VueColor.Chrome},
+    components: {'color-picker': VueColor.Sketch},
     data() {
         return {
             pickerColor: this.color,
-            chromePickerColor: {hex: this.color},
+            vuePickerColor: {hex: this.color},
             showColorPicker: false,
             tooltip: {
                 shown: false,
@@ -49,7 +49,7 @@ export default {
     methods: {
         toggleColorPicker() {
             this.oldColor = this.color;
-            this.chromePickerColor = {hex: this.color};
+            this.vuePickerColor = {hex: this.color};
             this.tooltip.shown = true;
             this.registerClickAwayHandler();
             this.$nextTick(() => {
@@ -105,7 +105,7 @@ export default {
     watch: {
         color(newColor) {
             this.pickerColor = newColor;
-            this.chromePickerColor.hex = newColor;
+            this.vuePickerColor.hex = newColor;
             this.$forceUpdate();
         }
     },

@@ -1065,7 +1065,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 .vc-chrome-body {
     box-shadow: none !important;
 }
-.vc-chrome {
+.vc-chrome, .vc-sketch {
     box-shadow: none !important;
     margin: auto;
 }

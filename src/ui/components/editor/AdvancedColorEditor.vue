@@ -28,7 +28,7 @@
                     </p>
                 </div>
                 <div v-if="color.type === 'solid'">
-                    <chrome-picker v-model="modal.pickerColor" @input="updateSolidColor"></chrome-picker>
+                    <color-picker v-model="modal.pickerColor" @input="updateSolidColor"/>
                 </div>
 
                 <div v-if="color.type === 'image'">
@@ -79,7 +79,7 @@
                         </div>
                     </div>
                     <div class="gradient-color-picker">
-                        <chrome-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"></chrome-picker>
+                        <color-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"/>
                     </div>
                 </div>
             </div>
@@ -130,7 +130,7 @@ export default {
         projectId: {type: String, required: true}
     },
 
-    components: {'chrome-picker': VueColor.Chrome, Modal, NumberTextfield},
+    components: {'color-picker': VueColor.Sketch, Modal, NumberTextfield},
 
     beforeMount() {
         this.updateCurrentColor(this.value);
