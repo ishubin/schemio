@@ -2,7 +2,6 @@ import forEach from 'lodash/forEach';
 import myMath from '../../../../myMath';
 
 function makeTailControlPoint(item) {
-    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
     let x = 0, y = 0;
     if (item.shapeProps.tailSide === 'top') {
         x = item.shapeProps.tailPosition;
@@ -20,6 +19,138 @@ function makeTailControlPoint(item) {
     return { x, y };
 }
 
+function handleTailControlPointDrag(item, originalX, originalY, dx, dy) {
+    let x = originalX + dx;
+    let y = originalY + dy;
+
+    // here we identify from which side of the two diagonal lines does is the current point positioned
+    // This way we divide the space into 4 regions which would correspond to the tail side
+    const side1 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, 0, item.area.w, item.area.h));
+    const side2 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, item.area.h, item.area.w, 0));
+    let sideId = 3;
+    if (side1 < 0) {
+        sideId = sideId & 1;
+    }
+    if (side2 < 0) {
+        sideId = sideId & 2;
+    }
+
+    if (sideId === 0) {
+        item.shapeProps.tailSide = 'top';
+        item.shapeProps.tailPosition = x;
+        item.shapeProps.tailLength = -y;
+    } else if (sideId === 3) {
+        item.shapeProps.tailSide = 'bottom';
+        item.shapeProps.tailPosition = x;
+        item.shapeProps.tailLength = y - item.area.h;
+    } if (sideId == 2) {
+        item.shapeProps.tailSide = 'left';
+        item.shapeProps.tailPosition = y;
+        item.shapeProps.tailLength = -x;
+    } else if (sideId == 1) {
+        item.shapeProps.tailSide = 'right';
+        item.shapeProps.tailPosition = y;
+        item.shapeProps.tailLength = x - item.area.w;
+    }
+
+}
+
+function makeTailWidthPoint(item) {
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+    const W = item.area.w;
+    const H = item.area.h;
+    let x = 0, y = 0;
+
+    const tailWidth = Math.max(0, item.shapeProps.tailWidth);
+
+    if (item.shapeProps.tailSide === 'top') {
+        let t = 0;
+        const length = Math.max(0, W - 2 *R);
+        if (length > 0) {
+            t = myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        x = R + tailWidth + (length - tailWidth) * t;
+        y = 0;
+
+    } else if (item.shapeProps.tailSide === 'bottom') {
+        let t = 0;
+        const length = Math.max(0, W - 2 *R);
+        if (length > 0) {
+            t = 1 - myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        x = W - R - tailWidth - (length - tailWidth) * t;
+        y = H;
+
+    } else if (item.shapeProps.tailSide === 'left') {
+        let t = 0;
+        const length = Math.max(0, H - 2 *R);
+        if (length > 0) {
+            t = 1 - myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+
+        x = 0;
+        y = H-R - tailWidth - (length - tailWidth) * t;
+
+    } else if (item.shapeProps.tailSide === 'right') {
+        let t = 0;
+        const length = Math.max(0, H - 2 *R);
+        if (length > 0) {
+            t = myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+
+        x = W;
+        y = R + tailWidth + (length - tailWidth) * t;
+    }
+    return { x, y };
+}
+
+function handleTailWidthControlPointDrag(item, originalX, originalY, dx, dy) {
+    const x = originalX + dx;
+    const y = originalY + dy;
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+    const W = item.area.w;
+    const H = item.area.h;
+
+    const tailWidth = Math.max(0, item.shapeProps.tailWidth);
+
+    if (item.shapeProps.tailSide === 'top') {
+        let t = 0;
+        const length = Math.max(0, W - 2 *R);
+        if (length > 0) {
+            t = myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        const x0 = R + (length - tailWidth) * t;
+        item.shapeProps.tailWidth = myMath.clamp(x - x0, 0, length / 2);
+
+    } else if (item.shapeProps.tailSide === 'bottom') {
+        let t = 0;
+        const length = Math.max(0, W - 2 *R);
+        if (length > 0) {
+            t = 1 - myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        const x0 = W - R - (length - tailWidth) * t;
+        item.shapeProps.tailWidth = myMath.clamp(x0 - x, 0, length / 2);
+
+    } else if (item.shapeProps.tailSide === 'left') {
+        let t = 0;
+        const length = Math.max(0, H - 2 *R);
+        if (length > 0) {
+            t = 1 - myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        const y0 = H-R - (length - tailWidth) * t;
+        item.shapeProps.tailWidth = myMath.clamp(y0 - y, 0, length / 2);
+
+    } else if (item.shapeProps.tailSide === 'right') {
+        let t = 0;
+        const length = Math.max(0, H - 2 *R);
+        if (length > 0) {
+            t = myMath.clamp(item.shapeProps.tailPosition / length, 0, 1);
+        }
+        const y0 = R + (length - tailWidth) * t;
+        item.shapeProps.tailWidth = myMath.clamp(y - y0, 0, length / 2);
+    }
+}
+
 function makeCornerRadiusControlPoint(item) {
     return {
         x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
@@ -29,6 +160,7 @@ function makeCornerRadiusControlPoint(item) {
 
 const controlPointFuncs = {
     tail: makeTailControlPoint,
+    tailWidth: makeTailWidthPoint,
     cornerRadius: makeCornerRadiusControlPoint
 };
 
@@ -77,12 +209,14 @@ export default {
             {name: 'left',      length: H - 2*R, invertT: false,  p1x: 0,   p1y: H-R,  vx: 0,  vy: -1,    nx: -1,ny: 0,   ax: -1, ay: -1 },
         ];
 
+        const tailWidth = Math.max(0, item.shapeProps.tailWidth);
+
         for (let i = 0; i < sides.length; i++) {
             const side = sides[i];
             path += `a ${R} ${R} 0 0 1 ${R*side.ax} ${R*side.ay} `;
             if (item.shapeProps.tailSide === side.name) {
                 const TL = item.shapeProps.tailLength;
-                const TW = Math.min(Math.max(0, side.length - item.shapeProps.tailWidth), item.shapeProps.tailWidth);
+                const TW = Math.min(Math.max(0, side.length - tailWidth), tailWidth);
                 let t = 0;
                 if (side.length > 0) {
                     t = myMath.clamp(item.shapeProps.tailPosition / side.length, 0, 1);
@@ -135,44 +269,11 @@ export default {
         },
         handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
             if (controlPointName === 'tail') {
-                const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
-                let x = originalX + dx;
-                let y = originalY + dy;
-                let x1 = R, x2 = item.area.w - R,
-                    y1 = R, y2 = item.area.h - R;
-
-
-                // here we identify from which side of the two diagonal lines does is the current point positioned
-                // This way we divide the space into 4 regions which would correspond to the tail side
-                const side1 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, 0, item.area.w, item.area.h));
-                const side2 = myMath.identifyPointSideAgainstLine(x, y, myMath.createLineEquation(0, item.area.h, item.area.w, 0));
-                let sideId = 3;
-                if (side1 < 0) {
-                    sideId = sideId & 1;
-                }
-                if (side2 < 0) {
-                    sideId = sideId & 2;
-                }
-
-                if (sideId === 0) {
-                    item.shapeProps.tailSide = 'top';
-                    item.shapeProps.tailPosition = x;
-                    item.shapeProps.tailLength = -y;
-                } else if (sideId === 3) {
-                    item.shapeProps.tailSide = 'bottom';
-                    item.shapeProps.tailPosition = x;
-                    item.shapeProps.tailLength = y - item.area.h;
-                } if (sideId == 2) {
-                    item.shapeProps.tailSide = 'left';
-                    item.shapeProps.tailPosition = y;
-                    item.shapeProps.tailLength = -x;
-                } else if (sideId == 1) {
-                    item.shapeProps.tailSide = 'right';
-                    item.shapeProps.tailPosition = y;
-                    item.shapeProps.tailLength = x - item.area.w;
-                }
+                handleTailControlPointDrag(item, originalX, originalY, dx, dy);
             } else if (controlPointName === 'cornerRadius') {
                 item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+            } else if (controlPointName === 'tailWidth') {
+                handleTailWidthControlPointDrag(item, originalX, originalY, dx, dy);
             }
         }
     },

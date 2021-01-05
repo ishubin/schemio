@@ -1,31 +1,5 @@
 <template>
     <g>
-        <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1"
-            :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
-            <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
-                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
-                    :key="`item-control-point-${controlPoint.id}`"
-                    class="item-control-point"
-                    :data-control-point-item-id="editBox.items[0].id"
-                    :data-control-point-id="controlPoint.id"
-                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
-                    :fill="boundaryBoxColor"
-                    :r="5/safeZoom"
-                    />
-                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
-                    <foreignObject :x="0" :y="0" width="100" height="20">
-                        <div>
-                            <span class="link"
-                                data-type="multi-item-edit-box-edit-curve-link"
-                                :data-multi-item-edit-box-id="editBox.id">
-                                Edit Curve</span>
-                        </div>
-                    </foreignObject>
-                </g>
-            </g>
-        </g>
-
         <g v-if="!isItemConnector" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
@@ -159,6 +133,33 @@
                 :height="draggerSize * 2 / safeZoom"
             />
         </g>
+
+        <!-- rendering item custom control points -->
+        <g v-if="editBox.items.length === 1"
+            :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
+            <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
+                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
+                    :key="`item-control-point-${controlPoint.id}`"
+                    class="item-control-point"
+                    :data-control-point-item-id="editBox.items[0].id"
+                    :data-control-point-id="controlPoint.id"
+                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
+                    :fill="boundaryBoxColor"
+                    :r="5/safeZoom"
+                    />
+                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
+                    <foreignObject :x="0" :y="0" width="100" height="20">
+                        <div>
+                            <span class="link"
+                                data-type="multi-item-edit-box-edit-curve-link"
+                                :data-multi-item-edit-box-id="editBox.id">
+                                Edit Curve</span>
+                        </div>
+                    </foreignObject>
+                </g>
+            </g>
+        </g>
+
     </g>
 </template>
 
