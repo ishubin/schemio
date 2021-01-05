@@ -5,17 +5,17 @@ function makeTailControlPoint(item) {
     const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
     let x = 0, y = 0;
     if (item.shapeProps.tailSide === 'top') {
-        x = (item.area.w - 2 * R) * (100 - item.shapeProps.tailPosition) / 100 + R;
+        x = item.shapeProps.tailPosition;
         y = -item.shapeProps.tailLength;
     } else if (item.shapeProps.tailSide === 'bottom') {
-        x = (item.area.w - 2 * R) * item.shapeProps.tailPosition / 100 + R;
+        x = item.shapeProps.tailPosition;
         y = item.area.h + item.shapeProps.tailLength;
     } else if (item.shapeProps.tailSide === 'left') {
         x = -item.shapeProps.tailLength;
-        y = (item.area.h - 2 * R) * item.shapeProps.tailPosition / 100 + R;
+        y = item.shapeProps.tailPosition;
     } else if (item.shapeProps.tailSide === 'right') {
         x = item.area.w + item.shapeProps.tailLength;
-        y = (item.area.h - 2 * R) * (100 - item.shapeProps.tailPosition) / 100 + R;
+        y = item.shapeProps.tailPosition;
     }
     return { x, y };
 }
@@ -32,6 +32,32 @@ const controlPointFuncs = {
     cornerRadius: makeCornerRadiusControlPoint
 };
 
+/*
+
+Example of constructing tail shape for bottom side
+ /--------------------------\
+|                           |
+|         Coment            |
+|                           |
+|                           |
+| P5     P4       P2     P1 |
+\<-------x<-------x<------x/ .     <---- V (side vector (vx, vy))
+    b     \  TW  /    a      .             N (perpendicular vector (nx, ny))
+           \    /            .             .
+            \  /             .             .
+             \/              .             .
+             x               .             v
+             P3              TL
+          ........
+             TW
+ ...........................
+           side.length
+
+TL = tail length
+TW = tail width
+V1 = a * V
+P2 = P1 + V1
+*/
 
 
 export default {
@@ -45,10 +71,10 @@ export default {
         let path = `M 0 ${R} `;
 
         let sides = [
-            {name: 'top',       length: W - 2*R, vx: 1,     vy: 0,  ax: 1,  ay: -1 },
-            {name: 'right',     length: H - 2*R, vx: 0,     vy: 1,  ax: 1,  ay: 1 },
-            {name: 'bottom',    length: W - 2*R, vx: -1,    vy: 0,  ax: -1, ay: 1 },
-            {name: 'left',      length: H - 2*R, vx: 0,     vy: -1, ax: -1, ay: -1 },
+            {name: 'top',       length: W - 2*R, invertT: true,   p1x: R,   p1y: 0,    vx: 1,  vy: 0,     nx: 0, ny: -1,  ax: 1,  ay: -1 },
+            {name: 'right',     length: H - 2*R, invertT: true,   p1x: W,   p1y: R,    vx: 0,  vy: 1,     nx: 1, ny: 0,   ax: 1,  ay: 1 },
+            {name: 'bottom',    length: W - 2*R, invertT: false,  p1x: W-R, p1y: H,    vx: -1, vy: 0,     nx: 0, ny: 1,   ax: -1, ay: 1 },
+            {name: 'left',      length: H - 2*R, invertT: false,  p1x: 0,   p1y: H-R,  vx: 0,  vy: -1,    nx: -1,ny: 0,   ax: -1, ay: -1 },
         ];
 
         for (let i = 0; i < sides.length; i++) {
@@ -57,23 +83,35 @@ export default {
             if (item.shapeProps.tailSide === side.name) {
                 const TL = item.shapeProps.tailLength;
                 const TW = Math.min(Math.max(0, side.length - item.shapeProps.tailWidth), item.shapeProps.tailWidth);
-                const t = (100 - Math.max(0, Math.min(item.shapeProps.tailPosition, 100.0))) / 100.0;
-                const t2 = (100 - item.shapeProps.tailPosition) / 100.0;
-                const rotatedX = side.vy;
-                const rotatedY = -side.vx;
-                const p1x = (side.length - TW) * t * side.vx;
-                const p1y = (side.length - TW) * t * side.vy;
+                let t = 0;
+                if (side.length > 0) {
+                    t = myMath.clamp(item.shapeProps.tailPosition / side.length, 0, 1);
+                }
+                if (side.invertT) {
+                    t = 1 - t;
+                }
+                const a = (side.length - TW) * (1 - t);
+                const b = (side.length - TW) * t;
+                const v1x = a * side.vx;
+                const v1y = a * side.vy;
+                const p2x = side.p1x + v1x;
+                const p2y = side.p1y + v1y;
+                const p4x = p2x + TW * side.vx;
+                const p4y = p2y + TW * side.vy;
+                const p5x = p4x + b * side.vx;
+                const p5y = p4y + b * side.vy;
 
-                const p2x = TW * t2 * side.vx + rotatedX * TL;
-                const p2y = TW * t2 * side.vy + rotatedY * TL;
+                let p3x = 0, p3y = 0;
+                if (side.name === 'bottom' || side.name === 'top') {
+                    p3x = item.shapeProps.tailPosition;
+                    p3y = side.p1y + TL * side.ny;
+                } else {
+                    p3y = item.shapeProps.tailPosition;
+                    p3x = side.p1x + TL * side.nx;
+                }
 
-                const p3x = TW * (1.0 - t2) * side.vx - rotatedX * TL;
-                const p3y = TW * (1.0 - t2) * side.vy - rotatedY * TL;
+                path += `L ${side.p1x} ${side.p1y} L ${p2x} ${p2y} L ${p3x} ${p3y}  L ${p4x} ${p4y} L ${p5x} ${p5y} `;
 
-                const p4x = (side.length - TW - (side.length - TW) * t) * side.vx;
-                const p4y = (side.length - TW - (side.length - TW) * t) * side.vy;
-
-                path += `l ${p1x} ${p1y} l ${p2x} ${p2y} l ${p3x} ${p3y} l ${p4x} ${p4y} `
             } else {
                 path += `l ${side.length*side.vx} ${side.length*side.vy} `
             }
@@ -118,19 +156,19 @@ export default {
 
                 if (sideId === 0) {
                     item.shapeProps.tailSide = 'top';
-                    item.shapeProps.tailPosition = 100 - 100 * (x - x1) / (x2 - x1);
+                    item.shapeProps.tailPosition = x;
                     item.shapeProps.tailLength = -y;
                 } else if (sideId === 3) {
                     item.shapeProps.tailSide = 'bottom';
-                    item.shapeProps.tailPosition = 100 * (x - x1) / (x2 - x1);
+                    item.shapeProps.tailPosition = x;
                     item.shapeProps.tailLength = y - item.area.h;
                 } if (sideId == 2) {
                     item.shapeProps.tailSide = 'left';
-                    item.shapeProps.tailPosition = 100 * (y - y1) / (y2 - y1);
+                    item.shapeProps.tailPosition = y;
                     item.shapeProps.tailLength = -x;
                 } else if (sideId == 1) {
                     item.shapeProps.tailSide = 'right';
-                    item.shapeProps.tailPosition = 100 - 100 * (y - y1) / (y2 - y1);
+                    item.shapeProps.tailPosition = y;
                     item.shapeProps.tailLength = x - item.area.w;
                 }
             } else if (controlPointName === 'cornerRadius') {
@@ -144,6 +182,6 @@ export default {
         tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
         tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
         tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
-        tailPosition        : {type: 'number', value: 0, name: 'Tail Position (%)'},
+        tailPosition        : {type: 'number', value: 0, name: 'Tail Position'},
     },
 }

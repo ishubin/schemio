@@ -10,6 +10,15 @@ const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 20;
 
 export default {
+    clamp(value, min, max) {
+        if (value < min) {
+            return min;
+        }
+        if (value > max) {
+            return max;
+        }
+        return value;
+    },
 
     /**
      * Generates line equation in form of ax + by + c = 0 which intersects given two points
