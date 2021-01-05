@@ -8,6 +8,7 @@ import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
 import {enrichItemWithDefaults} from '../../../scheme/Item';
 import { Keys } from '../../../events.js';
+import StoreUtils from '../../../store/StoreUtils.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -245,7 +246,7 @@ export default class StateEditCurve extends State {
                     this.submitItem();
                 }
             }
-
+            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
             this.candidatePointSubmited = true;
         } else {
             // editing existing curve
@@ -280,7 +281,8 @@ export default class StateEditCurve extends State {
         }
 
         if (this.addedToScheme && this.creatingNewPoints) {
-            const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
+            const pointIndex = this.item.shapeProps.points.length - 1;
+            const point = this.item.shapeProps.points[pointIndex];
 
             if (this.candidatePointSubmited && !this.item.shapeProps.connector) {
                 // convert last point to Beizer and drag its control points
@@ -318,9 +320,10 @@ export default class StateEditCurve extends State {
             }
             if (!this.shouldJoinClosedPoints) {
                 // what if we want to attach this point to another item
-                this.handleEdgeCurvePointDrag(point, false);
+                this.handleEdgeCurvePointDrag(pointIndex, point, false);
             }
             this.eventBus.emitItemChanged(this.item.id);
+            StoreUtils.updateCurveEditPoint(this.store, pointIndex, point);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
             this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
@@ -441,6 +444,7 @@ export default class StateEditCurve extends State {
         this.item.shapeProps.points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -469,6 +473,7 @@ export default class StateEditCurve extends State {
             }
             this.eventBus.emitItemChanged(this.item.id);
             this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
             this.eventBus.emitSchemeChangeCommited();
         }
     }
@@ -501,6 +506,7 @@ export default class StateEditCurve extends State {
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -533,6 +539,7 @@ export default class StateEditCurve extends State {
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -550,10 +557,11 @@ export default class StateEditCurve extends State {
         curvePoint.y = snappedLocalCurvePoint.y;
         
         if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
-            this.handleEdgeCurvePointDrag(curvePoint, pointIndex === 0);
+            this.handleEdgeCurvePointDrag(pointIndex, curvePoint, pointIndex === 0);
         }
 
         this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateCurveEditPoint(this.store, pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
@@ -571,7 +579,7 @@ export default class StateEditCurve extends State {
      * @param {Point} curvePoint 
      * @param {Boolean} isSource 
      */
-    handleEdgeCurvePointDrag(curvePoint, isSource) {
+    handleEdgeCurvePointDrag(pointIndex, curvePoint, isSource) {
         if (!this.item.shapeProps.connector) {
             // should not do anything since this is not a connecytor but a regular curve
             // regular curves should not be allowed to attach to other items
@@ -611,6 +619,7 @@ export default class StateEditCurve extends State {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
+        StoreUtils.updateCurveEditPoint(this.store, pointIndex, curvePoint);
     }
 
     handleCurveControlPointDrag(x, y, event) {
@@ -641,6 +650,7 @@ export default class StateEditCurve extends State {
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateCurveEditPoint(this.store, this.draggedObject.pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 

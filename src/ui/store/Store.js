@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import apiClient from '../apiClient';
 import forEach from 'lodash/forEach';
+import utils from '../utils';
 
 Vue.use(Vuex);
 
@@ -15,7 +16,8 @@ const store = new Vuex.Store({
 
         curveEditing: {
             // item whose curve is currently edited
-            item: null
+            item: null,
+            points: []
         },
 
         // stores the state of the history in scheme editing
@@ -32,7 +34,7 @@ const store = new Vuex.Store({
             padding: 40
         },
 
-        itemControlPoints: []
+        itemControlPoints: [],
     },
     mutations: {
         SET_CURRENT_USER(state, user) {
@@ -41,15 +43,32 @@ const store = new Vuex.Store({
         SET_SCHEME_MODIFIED(state, isModified) {
             state.schemeModified = isModified;
         },
-        SET_CURVE_EDIT_ITEM(state, item) {
+
+        /* Curve Editing */ 
+        SET_CURVE_EDIT_ITEM(state, {item, points}) {
             state.curveEditing.item = item;
+            state.curveEditing.points.length = 0;
+            forEach(points, point => {
+                state.curveEditing.points.push(point);
+            });
         },
+        UPDATE_CURVE_EDIT_POINT(state, {pointId, point}) {
+            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+                return;
+            }
+            forEach(point, (value, field) => {
+                state.curveEditing.points[pointId][field] = value;
+            });
+        },
+
+        /* History */
         SET_HISTORY_UNDOABLE(state, isUndoable) {
             state.history.undoable = isUndoable;
         },
         SET_HISTORY_REDOABLE(state, isRedoable) {
             state.history.redoable = isRedoable;
         },
+
         SET_GRID_SNAP(state, enabled) {
             state.grid.snap = enabled;
         },
@@ -94,7 +113,19 @@ const store = new Vuex.Store({
         },
 
         setCurveEditItem({commit}, item) {
-            commit('SET_CURVE_EDIT_ITEM', item);
+            const points = [];
+            if (item) {
+                forEach(item.shapeProps.points, (point, pointId) => {
+                    const p = utils.clone(point);
+                    p.id = pointId;
+                    p.selected = false;
+                    points.push(p);
+                });
+            }
+            commit('SET_CURVE_EDIT_ITEM', {item, points});
+        },
+        updateCurveEditPoint({ commit }, { pointId, point }) {
+            commit('UPDATE_CURVE_EDIT_POINT', { pointId, point });
         },
         
         setHistoryUndoable({commit}, isUndoable) {
@@ -140,6 +171,8 @@ const store = new Vuex.Store({
         schemeModified: state => state.schemeModified,
         
         itemControlPointsList: state => state.itemControlPoints,
+        
+        curveEditPoints: state => state.curveEditing.points,
     }
 });
 
