@@ -10,7 +10,7 @@ import {enrichItemWithDefaults} from '../../../scheme/Item';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
-import EventBus from '../EventBus';
+import filter from 'lodash/filter';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -427,11 +427,30 @@ export default class StateEditCurve extends State {
     }
 
     handleRightClick(x, y, mx, my, object) {
+        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
+        if (selectedPoints.length > 1) {
+            const menuOptions = [{
+                name: 'Delete points',
+                clicked: () => this.deleteSelectedPoints()
+            }, {
+                name: 'Convert to beizer',
+                clicked: () => {
+                    forEach(selectedPoints, point => this.convertPointToBeizer(point.id));
+                }
+            }, {
+                name: 'Convert to simple',
+                clicked: () => {
+                    forEach(selectedPoints, point => this.convertPointToSimple(point.id));
+                }
+            }];
+            this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+        }
+
         if (object && object.type === 'curve-point') {
+            StoreUtils.selectCurveEditPoint(this.store, object.pointIndex, false);
+
             const point = this.item.shapeProps.points[object.pointIndex];
-            if (!point) {
-                return;
-            }
+
             let nextPoint = null;
             if (object.pointIndex < this.item.shapeProps.points.length - 1) {
                 nextPoint = this.item.shapeProps.points[object.pointIndex + 1];
@@ -464,18 +483,6 @@ export default class StateEditCurve extends State {
                 menuOptions.push({
                     name: 'Convert to simple point',
                     clicked: () => this.convertPointToSimple(object.pointIndex)
-                });
-            }
-            if (object.pointIndex === 0 && this.item.shapeProps.sourceItem) {
-                menuOptions.push({
-                    name: 'Detach',
-                    clicked: () => this.detachSource()
-                });
-            }
-            if (object.pointIndex === this.item.shapeProps.points.length - 1 && this.item.shapeProps.destinationItem) {
-                menuOptions.push({
-                    name: 'Detach',
-                    clicked: () => this.detachDestination()
                 });
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
@@ -763,16 +770,6 @@ export default class StateEditCurve extends State {
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.reset();
-    }
-
-    detachSource() {
-        this.item.shapeProps.sourceItem = null;
-        this.schemeContainer.reindexItems();
-    }
-
-    detachDestination() {
-        this.item.shapeProps.destinationItem = null;
-        this.schemeContainer.reindexItems();
     }
 
     dragScreen(x, y) {
