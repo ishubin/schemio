@@ -10,6 +10,7 @@ import {enrichItemWithDefaults} from '../../../scheme/Item';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
+import EventBus from '../EventBus';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -41,9 +42,10 @@ export default class StateEditCurve extends State {
         this.item = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
-        this.originalClickPoint = {x: 0, y: 0};
+        this.originalClickPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
+        this.multiSelectBox = null;
 
         // used in order to drag screen when user holds spacebar
         this.shouldDragScreen = false;
@@ -65,6 +67,7 @@ export default class StateEditCurve extends State {
 
     softReset() {
         this.shouldDragScreen = false;
+        this.multiSelectBox = null;
         this.startedDraggingScreen = false;
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -182,6 +185,14 @@ export default class StateEditCurve extends State {
         this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
+    initMulitSelectBox(x, y, mx, my) {
+        this.originalClickPoint.x = x;
+        this.originalClickPoint.y = y;
+        this.originalClickPoint.mx = mx;
+        this.originalClickPoint.my = my;
+        this.multiSelectBox = {x, y, w: 0, h: 0};
+    }
+
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE && !this.startedDraggingScreen) {
             this.shouldDragScreen = true;
@@ -220,6 +231,8 @@ export default class StateEditCurve extends State {
 
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
+        this.originalClickPoint.mx = mx;
+        this.originalClickPoint.my = my;
 
         if (this.shouldDragScreen) {
             this.updateCursor('grabbing');
@@ -266,6 +279,8 @@ export default class StateEditCurve extends State {
                 this.draggedObject = object;
 
                 StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
+            } else {
+                this.initMulitSelectBox(x, y, mx, my);
             }
         }
     }
@@ -339,6 +354,23 @@ export default class StateEditCurve extends State {
             this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
+        } else if (this.multiSelectBox) {
+            this.wasMouseMoved = true;
+            if (x > this.originalClickPoint.x) {
+                this.multiSelectBox.x = this.originalClickPoint.x;
+                this.multiSelectBox.w = x - this.originalClickPoint.x;
+            } else {
+                this.multiSelectBox.x = x;
+                this.multiSelectBox.w = this.originalClickPoint.x - x;
+            }
+            if (y > this.originalClickPoint.y) {
+                this.multiSelectBox.y = this.originalClickPoint.y;
+                this.multiSelectBox.h = y - this.originalClickPoint.y;
+            } else {
+                this.multiSelectBox.y = y;
+                this.multiSelectBox.h = this.originalClickPoint.y - y;
+            }
+            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
         }
     }
 
@@ -350,7 +382,12 @@ export default class StateEditCurve extends State {
 
         this.eventBus.emitItemsHighlighted([]);
 
-        if (this.addedToScheme && this.creatingNewPoints) {
+        if (this.multiSelectBox) {
+            const inclusive = isMultiSelectKey(event);
+            this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
+            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
+
+        } else if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
 
@@ -717,4 +754,41 @@ export default class StateEditCurve extends State {
         this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + y - this.originalClickPoint.y);
     }
 
+    selectByBoundaryBox(box, inclusive, mx, my) {
+        const viewportBox = {
+            x: this.originalClickPoint.mx,
+            y: this.originalClickPoint.my,
+            w: mx - this.originalClickPoint.mx,
+            h: my - this.originalClickPoint.my
+        };
+
+        // normalizing box
+        if (viewportBox.w < 0) {
+            viewportBox.x += viewportBox.w;
+            viewportBox.w = Math.abs(viewportBox.w);
+        }
+        if (viewportBox.h < 0) {
+            viewportBox.y += viewportBox.h;
+            viewportBox.h = Math.abs(viewportBox.h);
+        }
+
+        if (!inclusive) {
+            StoreUtils.resetCurveEditPointSelection(this.store);
+        }
+
+        forEach(this.item.shapeProps.points, (point, pointId) => {
+            const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+            
+            let isInArea = false;
+            if (this.item.area.type === 'viewport') {
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, viewportBox);
+            } else {
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
+            }
+
+            if (isInArea) {
+                StoreUtils.selectCurveEditPoint(this.store, pointId, true);
+            }
+        });
+    }
 }

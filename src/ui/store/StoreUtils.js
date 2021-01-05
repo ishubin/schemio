@@ -29,6 +29,12 @@ export default {
     toggleCurveEditPointSelection(store, pointId, inclusive) {
         store.dispatch('toggleCurveEditPointSelection', { pointId, inclusive });
     },
+    resetCurveEditPointSelection(store) {
+        store.dispatch('resetCurveEditPointSelection');
+    },
+    selectCurveEditPoint(store, pointId, inclusive) {
+        store.dispatch('selectCurveEditPoint', { pointId, inclusive });
+    },
     getCurveEditPoints(store) {
         return store.state.curveEditing.points;
     }

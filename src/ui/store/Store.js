@@ -72,6 +72,24 @@ const store = new Vuex.Store({
                 });
             }
         },
+        RESET_CURVE_EDIT_POINT_SELECTION(state) {
+            forEach(state.curveEditing.points, point => {
+                point.selected = false;
+            });
+        },
+        SELECT_CURVE_EDIT_POINT(state, { pointId, inclusive }) {
+            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+                return;
+            }
+            if (inclusive) {
+                state.curveEditing.points[pointId].selected = true;
+            } else {
+                forEach(state.curveEditing.points, (point, pId) => {
+                    point.selected = pId === pointId;
+                });
+            }
+        },
+
 
         /* History */
         SET_HISTORY_UNDOABLE(state, isUndoable) {
@@ -141,6 +159,12 @@ const store = new Vuex.Store({
         },
         toggleCurveEditPointSelection({ commit }, { pointId, inclusive }) {
             commit('TOGGLE_CURVE_EDIT_POINT_SELECTION', { pointId, inclusive });
+        },
+        resetCurveEditPointSelection({ commit }) {
+            commit('RESET_CURVE_EDIT_POINT_SELECTION');
+        },
+        selectCurveEditPoint({ commit }, { pointId, inclusive }) {
+            commit('SELECT_CURVE_EDIT_POINT', { pointId, inclusive });
         },
 
         
