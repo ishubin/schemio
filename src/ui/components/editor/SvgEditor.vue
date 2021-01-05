@@ -147,8 +147,8 @@
                         :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.viewport.boxUID}`"
                         :edit-box="schemeContainer.multiItemEditBoxes.viewport"
                         :zoom="1"
-                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                        :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
 
                     <g v-for="item in viewportHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"
@@ -165,7 +165,8 @@
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
                         :zoom="schemeContainer.screenTransform.scale"
-                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"/>
+                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                        :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
                 </g>
 
                 <g v-if="multiSelectBox">

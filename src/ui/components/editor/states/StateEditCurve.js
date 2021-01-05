@@ -7,6 +7,7 @@ import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
 import {enrichItemWithDefaults} from '../../../scheme/Item';
+import { Keys } from '../../../events.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -34,6 +35,12 @@ export default class StateEditCurve extends State {
         this.originalClickPoint = {x: 0, y: 0};
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
+
+        // used in order to drag screen when user holds spacebar
+        this.shouldDragScreen = false;
+        this.startedDraggingScreen = false;
+        this.originalScreenOffset = {x: 0, y: 0};
+
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -42,10 +49,16 @@ export default class StateEditCurve extends State {
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
-        this.candidatePointSubmited = false;
-        this.shouldJoinClosedPoints = false;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
+        this.softReset();
+    }
+
+    softReset() {
+        this.shouldDragScreen = false;
+        this.startedDraggingScreen = false;
+        this.candidatePointSubmited = false;
+        this.shouldJoinClosedPoints = false;
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
     }
@@ -150,6 +163,30 @@ export default class StateEditCurve extends State {
         this.addedToScheme = true;
     }
 
+    initScreenDrag(mx, my) {
+        this.startedDraggingScreen = true;
+        this.originalClickPoint.x = mx;
+        this.originalClickPoint.y = my;
+        this.originalClickPoint.mx = mx;
+        this.originalClickPoint.my = my;
+        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+    }
+
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE && !this.startedDraggingScreen) {
+            this.shouldDragScreen = true;
+            this.updateCursor('grabbing');
+        }
+    }
+
+    keyUp(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.shouldDragScreen = false;
+            this.updateCursor('default');
+        }
+    }
+
+
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (this.item.area.type === 'viewport') {
             x = mx;
@@ -173,6 +210,12 @@ export default class StateEditCurve extends State {
 
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
+
+        if (this.shouldDragScreen) {
+            this.updateCursor('grabbing');
+            this.initScreenDrag(mx, my);
+            return;
+        }
 
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
@@ -229,6 +272,11 @@ export default class StateEditCurve extends State {
         if (this.item.area.type === 'viewport') {
             x = mx;
             y = my;
+        }
+
+        if (this.shouldDragScreen && this.startedDraggingScreen) {
+            this.dragScreen(mx, my);
+            return;
         }
 
         if (this.addedToScheme && this.creatingNewPoints) {
@@ -309,6 +357,8 @@ export default class StateEditCurve extends State {
 
         this.draggedObject = null;
         this.draggedObjectOriginalPoint = null;
+
+        this.softReset();
     }
 
     handleRightClick(x, y, mx, my, object) {
@@ -620,4 +670,10 @@ export default class StateEditCurve extends State {
         this.item.shapeProps.destinationItem = null;
         this.schemeContainer.reindexItems();
     }
+
+    dragScreen(x, y) {
+        this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + x - this.originalClickPoint.x);
+        this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + y - this.originalClickPoint.y);
+    }
+
 }

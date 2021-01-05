@@ -106,7 +106,7 @@ export default class StateDragItem extends State {
             this.dragItemsByKeyboard(0, delta);
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
-            this.updateCursor('grab');
+            this.updateCursor('grabbing');
         }
     }
 

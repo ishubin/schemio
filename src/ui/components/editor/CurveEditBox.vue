@@ -3,8 +3,8 @@
         <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
             <g v-for="(point, pointIndex) in item.shapeProps.points">
                 <g v-if="point.t === 'B'">
-                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
-                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="controlPointsColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="controlPointsColor" :stroke-width="1/safeZoom"/>
                 </g>
 
                 <circle v-if="(item.shapeProps.sourceItem && pointIndex === 0) || (item.shapeProps.destinationItem && pointIndex === item.shapeProps.points.length - 1)"
@@ -28,14 +28,14 @@
                         data-curve-control-point-index="1"
                         :cx="point.x1+point.x" :cy="point.y1+point.y"
                         :r="5/safeZoom"
-                        :fill="boundaryBoxColor" stroke="none"/>
+                        :fill="controlPointsColor" stroke="none"/>
                     <circle
                         data-type="curve-control-point"
                         :data-curve-point-index="pointIndex"
                         data-curve-control-point-index="2"
                         :cx="point.x2+point.x" :cy="point.y2+point.y"
                         :r="5/safeZoom"
-                        :fill="boundaryBoxColor" stroke="none"/>
+                        :fill="controlPointsColor" stroke="none"/>
                 </g>
             </g>
         </g>
@@ -44,7 +44,7 @@
 <script>
 import EventBus from './EventBus';
 export default {
-    props: ['item', 'zoom', 'boundaryBoxColor'],
+    props: ['item', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
     mounted() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },
