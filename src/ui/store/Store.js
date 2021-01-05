@@ -35,6 +35,8 @@ const store = new Vuex.Store({
         },
 
         itemControlPoints: [],
+
+        multiSelectBox: null
     },
     mutations: {
         SET_CURRENT_USER(state, user) {
@@ -127,6 +129,9 @@ const store = new Vuex.Store({
                     return;
                 }
             }
+        },
+        SET_MULTI_SELECT_BOX(state, box) {
+            state.multiSelectBox = box;
         }
     },
     actions: {
@@ -204,6 +209,10 @@ const store = new Vuex.Store({
         },
         clearItemControlPoints({commit}) {
             commit('CLEAR_ITEM_CONTROL_POINTS');
+        },
+
+        setMultiSelectBox({commit}, box) {
+            commit('SET_MULTI_SELECT_BOX', box);
         }
     },
     getters: {
@@ -213,6 +222,8 @@ const store = new Vuex.Store({
         itemControlPointsList: state => state.itemControlPoints,
         
         curveEditPoints: state => state.curveEditing.points,
+
+        multiSelectBox: state => state.multiSelectBox,
     }
 });
 

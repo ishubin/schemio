@@ -346,8 +346,6 @@ export default {
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
-        EventBus.$on(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
-        EventBus.$on(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
@@ -382,8 +380,6 @@ export default {
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
-        EventBus.$off(EventBus.MULTI_SELECT_BOX_APPEARED, this.onMultiSelectBoxAppear);
-        EventBus.$off(EventBus.MULTI_SELECT_BOX_DISAPPEARED, this.onMultiSelectBoxDisappear);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
@@ -413,8 +409,6 @@ export default {
 
             selectedItemLinks: [],
             lastHoveredItem: null,
-
-            multiSelectBox: null,
 
             customContextMenu: {
                 id: shortid.generate(),
@@ -799,13 +793,6 @@ export default {
             this.schemeContainer.deleteSelectedItems();
             EventBus.emitSchemeChangeCommited();
             this.$forceUpdate();
-        },
-
-        onMultiSelectBoxAppear(multiSelectBox) {
-            this.multiSelectBox = multiSelectBox;
-        },
-        onMultiSelectBoxDisappear() {
-            this.multiSelectBox = null;
         },
 
         onShowItemLinks(item) {
@@ -1466,6 +1453,9 @@ export default {
         },
         curveEditItem() {
             return this.$store.state.curveEditing.item;
+        },
+        multiSelectBox() {
+            return this.$store.getters.multiSelectBox;
         }
     },
     filters: {

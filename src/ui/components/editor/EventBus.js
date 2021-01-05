@@ -21,9 +21,6 @@ const EventBus = new Vue({
             BRING_TO_VIEW: 'bring-to-view',
             SWITCH_MODE_TO_EDIT: 'switch-mode-edit', //TODO rename it to MODE_CHANGED and pass the value of the mode
 
-            MULTI_SELECT_BOX_APPEARED: 'multi-select-box-appeared',
-            MULTI_SELECT_BOX_DISAPPEARED: 'multi-select-box-diappeared',
-
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
 
             // triggered from CreateItemMenu component, when user clicks on any style from the list

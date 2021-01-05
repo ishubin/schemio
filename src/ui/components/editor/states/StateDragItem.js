@@ -324,7 +324,7 @@ export default class StateDragItem extends State {
                 this.multiSelectBox.y = y;
                 this.multiSelectBox.h = this.originalPoint.y - y;
             }
-            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
+            StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
         }
     }
 
@@ -338,7 +338,7 @@ export default class StateDragItem extends State {
             }
             this.selectByBoundaryBox(this.multiSelectBox, mx, my);
             this.emitEventsForAllSelectedItems();
-            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
+            StoreUtils.setMultiSelectBox(this.store, null);
 
         } else if (object.item && !this.wasMouseMoved) {
             // when clicking right button - it should not deselected

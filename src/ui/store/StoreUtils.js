@@ -37,5 +37,9 @@ export default {
     },
     getCurveEditPoints(store) {
         return store.state.curveEditing.points;
+    },
+
+    setMultiSelectBox(store, box) {
+        store.dispatch('setMultiSelectBox', box);
     }
 }

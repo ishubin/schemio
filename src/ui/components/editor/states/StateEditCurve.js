@@ -371,7 +371,7 @@ export default class StateEditCurve extends State {
                 this.multiSelectBox.y = y;
                 this.multiSelectBox.h = this.originalClickPoint.y - y;
             }
-            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_APPEARED, this.multiSelectBox);
+            StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
         }
     }
 
@@ -386,7 +386,7 @@ export default class StateEditCurve extends State {
         if (this.multiSelectBox) {
             const inclusive = isMultiSelectKey(event);
             this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
-            this.eventBus.$emit(EventBus.MULTI_SELECT_BOX_DISAPPEARED);
+            StoreUtils.setMultiSelectBox(this.store, null);
 
         } else if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
