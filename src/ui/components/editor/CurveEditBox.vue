@@ -3,40 +3,33 @@
         <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`">
             <g v-for="point in curvePoints">
                 <g v-if="point.t === 'B'">
-                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="controlPointsColor" :stroke-width="1/safeZoom"/>
-                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="controlPointsColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
                 </g>
 
-                <circle v-if="point.selected"
+                <circle 
                     data-type="curve-point"
                     :data-curve-point-index="point.id"
                     :cx="point.x" :cy="point.y"
                     :r="5/safeZoom"
-                    fill="red" stroke="none"/>
-
-                <circle v-else
-                    data-type="curve-point"
-                    :data-curve-point-index="point.id"
-                    :cx="point.x" :cy="point.y"
-                    :r="5/safeZoom"
-                    :fill="boundaryBoxColor" stroke="none"/>
+                    :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
 
 
                 <g v-if="point.t === 'B'">
-                    <circle
+                    <path 
                         data-type="curve-control-point"
                         :data-curve-point-index="point.id"
                         data-curve-control-point-index="1"
-                        :cx="point.x1+point.x" :cy="point.y1+point.y"
-                        :r="5/safeZoom"
-                        :fill="controlPointsColor" stroke="none"/>
-                    <circle
+                        :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
+                        :d="`M ${5*point.vx1 + 5*point.vy1} ${5*point.vy1 - 5*point.vx1}  l ${-10*point.vx1} ${-10*point.vy1}  l ${-10*point.vy1} ${10*point.vx1} l ${10*point.vx1} ${10*point.vy1} z`"
+                        :fill="boundaryBoxColor" stroke="none"/>
+                    <path 
                         data-type="curve-control-point"
                         :data-curve-point-index="point.id"
                         data-curve-control-point-index="2"
-                        :cx="point.x2+point.x" :cy="point.y2+point.y"
-                        :r="5/safeZoom"
-                        :fill="controlPointsColor" stroke="none"/>
+                        :transform="`translate(${point.x2+point.x} ${point.y2+point.y})`"
+                        :d="`M ${5*point.vx2 + 5*point.vy2} ${5*point.vy2 - 5*point.vx2}  l ${-10*point.vx2} ${-10*point.vy2}  l ${-10*point.vy2} ${10*point.vx2} l ${10*point.vx2} ${10*point.vy2} z`"
+                        :fill="boundaryBoxColor" stroke="none"/>
                 </g>
             </g>
         </g>

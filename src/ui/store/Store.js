@@ -6,6 +6,27 @@ import utils from '../utils';
 
 Vue.use(Vuex);
 
+function enrichCurvePoint(point) {
+    if (point.t === 'B') {
+        let length = Math.sqrt(point.x1*point.x1 + point.y1*point.y1);
+        let vx1 = 1, vy1 = 0;
+        if (length > 0.000001) {
+            vx1 = point.x1 / length;
+            vy1 = point.y1 / length;
+        }
+        length = Math.sqrt(point.x2*point.x2 + point.y2*point.y2);
+        let vx2 = 1, vy2 = 0;
+        if (length > 0.000001) {
+            vx2 = point.x2 / length;
+            vy2 = point.y2 / length;
+        }
+        point.vx1 = vx1;
+        point.vy1 = vy1;
+        point.vx2 = vx2;
+        point.vy2 = vy2;
+    }
+}
+
 const store = new Vuex.Store({
     state: {
         currentUser: null,
@@ -60,6 +81,7 @@ const store = new Vuex.Store({
             }
             forEach(point, (value, field) => {
                 state.curveEditing.points[pointId][field] = value;
+                enrichCurvePoint(state.curveEditing.points[pointId]);
             });
         },
         TOGGLE_CURVE_EDIT_POINT_SELECTION(state, { pointId, inclusive }) {
@@ -154,6 +176,7 @@ const store = new Vuex.Store({
                     const p = utils.clone(point);
                     p.id = pointId;
                     p.selected = false;
+                    enrichCurvePoint(p);
                     points.push(p);
                 });
             }
