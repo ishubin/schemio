@@ -47,6 +47,9 @@ export default class StateEditCurve extends State {
         this.shouldJoinClosedPoints = false;
         this.multiSelectBox = null;
 
+        // used to identify whether mouse was moved between mouseDown and mouseUp events
+        this.wasMouseMoved = false;
+
         // used in order to drag screen when user holds spacebar
         this.shouldDragScreen = false;
         this.startedDraggingScreen = false;
@@ -69,6 +72,7 @@ export default class StateEditCurve extends State {
     softReset() {
         this.shouldDragScreen = false;
         this.multiSelectBox = null;
+        this.wasMouseMoved = false;
         this.startedDraggingScreen = false;
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -279,7 +283,9 @@ export default class StateEditCurve extends State {
                 this.originalCurvePoints = utils.clone(this.item.shapeProps.points);
                 this.draggedObject = object;
 
-                StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
+                if (!StoreUtils.getCurveEditPoints(this.store)[object.pointIndex].selected) {
+                    StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
+                }
             } else {
                 this.initMulitSelectBox(x, y, mx, my);
             }
@@ -301,6 +307,7 @@ export default class StateEditCurve extends State {
             x = mx;
             y = my;
         }
+        this.wasMouseMoved = true;
 
         if (this.shouldDragScreen && this.startedDraggingScreen) {
             this.dragScreen(mx, my);
@@ -383,11 +390,11 @@ export default class StateEditCurve extends State {
 
         this.eventBus.emitItemsHighlighted([]);
 
+
         if (this.multiSelectBox) {
             const inclusive = isMultiSelectKey(event);
             this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
             StoreUtils.setMultiSelectBox(this.store, null);
-
         } else if (this.addedToScheme && this.creatingNewPoints) {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
@@ -399,6 +406,12 @@ export default class StateEditCurve extends State {
                     t: 'L'
                 });
                 this.eventBus.emitItemChanged(this.item.id);
+            }
+        } else if (!this.wasMouseMoved && object && object.type === 'curve-point') {
+            // correcting for click on a point
+            // it should clear selection of other points in case ctrl key was not pressed
+            if (isMultiSelectKey(event)) {
+                StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, false);
             }
         }
 
