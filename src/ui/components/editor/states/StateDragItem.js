@@ -39,6 +39,13 @@ function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
 }
 
+/**
+ * @typedef {Object} SnappingPoints
+ * @property {Array} vertical - array of points for vertical snapping
+ * @property {Array} horizontal - array of points for horizontal snapping
+ */
+
+
 export default class StateDragItem extends State {
     /**
      * @param {EventBus} eventBus 
@@ -53,6 +60,11 @@ export default class StateDragItem extends State {
         this.controlPoint = null; // stores coords for item control point
 
         this.multiSelectBox = null;
+
+        /**
+         * @type SnappingPoints
+         */
+        this.boxPointsForSnapping = null;
 
         this.isRotating = false;
 
@@ -75,19 +87,23 @@ export default class StateDragItem extends State {
             /**
              * Checks snapping of item and returns new offset that should be applied to item
              * 
-             * @param {*} area - world item area
+             * @param {SnappingPoints} points - points of an item by which it should snap it to other items
              * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
              * @param {Number} dx - pre-snap candidate offset on x axis
              * @param {Number} dy - pre-snap candidate offset on y axis
              */
-            snapItem: (area, excludeItemIds, dx, dy) => {
+            snapPoints: (points, excludeItemIds, dx, dy) => {
                 StoreUtils.clearItemSnappers(this.store);
+
+                if (!points) {
+                    return {dx, dy};
+                }
 
                 let snappedDx = dx;
                 let snappedDy = dy;
 
                 //TODO configure snapping precision
-                const maxSnapProximity = 20;
+                const maxSnapProximity = 6;
 
                 let zoomScale = this.schemeContainer.screenTransform.scale;
 
@@ -96,25 +112,16 @@ export default class StateDragItem extends State {
 
                 forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
                     if (!excludeItemIds.has(snapper.item.id)) {
-                        let proximity = Math.abs(snapper.value - area.y - dy);
-                        if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
-                            horizontalSnapper = {
-                                snapper,
-                                dy: snapper.value - area.y
-                            };
-                            bestHorizontalProximity = proximity;
-                        }
-
-                        // trying to snap it by lower edge
-                        proximity = Math.abs(snapper.value - area.y - area.h - dy);
-                        if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
-                            horizontalSnapper = {
-                                snapper,
-                                dy: snapper.value - area.y - area.h
-                            };
-                            bestHorizontalProximity = proximity;
-                        }
-                    
+                        forEach(points.horizontal, point => {
+                            let proximity = Math.abs(snapper.value - point.y - dy);
+                            if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
+                                horizontalSnapper = {
+                                    snapper,
+                                    dy: snapper.value - point.y
+                                };
+                                bestHorizontalProximity = proximity;
+                            }
+                        });
                     }
                 });
 
@@ -122,25 +129,16 @@ export default class StateDragItem extends State {
                 let bestVerticalProximity = 1000;
                 forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
                     if (!excludeItemIds.has(snapper.item.id)) {
-                        let proximity = Math.abs(snapper.value - area.x - dx);
-                        if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
-                            verticalSnapper = {
-                                snapper,
-                                dx: snapper.value - area.x
-                            };
-                            bestVerticalProximity = proximity;
-                        }
-
-                        // trying to snap it by lower edge
-                        proximity = Math.abs(snapper.value - area.x - area.w - dx);
-                        if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
-                            verticalSnapper = {
-                                snapper,
-                                dx: snapper.value - area.x - area.w
-                            };
-                            bestVerticalProximity = proximity;
-                        }
-                    
+                        forEach(points.horizontal, point => {
+                            let proximity = Math.abs(snapper.value - point.x - dx);
+                            if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
+                                verticalSnapper = {
+                                    snapper,
+                                    dx: snapper.value - point.x
+                                };
+                                bestVerticalProximity = proximity;
+                            }
+                        });
                     }
                 });
 
@@ -176,6 +174,7 @@ export default class StateDragItem extends State {
         this.wasMouseMoved = false;
         this.multiItemEditBox = null;
         this.multiItemEditBoxOriginalArea = null;
+        this.boxPointsForSnapping = null;
         this.modificationContextId = null;
     }
 
@@ -218,6 +217,7 @@ export default class StateDragItem extends State {
         this.initDragging(x, y, mx, my);
         this.multiItemEditBox = multiItemEditBox;
         this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
+        this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
         this.isRotating = false;
     }
 
@@ -556,14 +556,7 @@ export default class StateDragItem extends State {
         const preSnapDx = x - this.originalPoint.x;
         const preSnapDy = y - this.originalPoint.y;
 
-        const snapResult = this.snapper.snapItem(this.multiItemEditBoxOriginalArea, this.multiItemEditBox.itemIds, preSnapDx, preSnapDy);
-        
-        // const snappedBoxX = this.snapper.snapX(this.multiItemEditBoxOriginalArea.x + preSnapDx);
-        // const snappedBoxY = this.snapper.snapY(this.multiItemEditBoxOriginalArea.y + preSnapDy);
-
-        // const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
-        // const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
-
+        const snapResult = this.snapper.snapPoints(this.boxPointsForSnapping, this.multiItemEditBox.itemIds, preSnapDx, preSnapDy);
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
@@ -862,4 +855,47 @@ export default class StateDragItem extends State {
         this.schemeContainer.screenTransform.y = Math.floor(this.originalOffset.y + y - this.originalPoint.y);
     }
 
+    /**
+     * Creates a lines for box which will be used for snapping when draging this box.
+     * In case the box is rotated it will generate vertical and horizontal lines that are surrounding the box from the outside
+     * @param {*} box
+     * @returns {SnappingPoints} {vertical: [], horizontal: []}
+     */
+    generateBoxPointsForSnapping(box) {
+        const localPoints = [
+            [0, 0],
+            [box.area.w, 0],
+            [box.area.w, box.area.h],
+            [0, box.area.h],
+        ];
+
+        const minPoint = {x: 0, y: 0};
+        const maxPoint = {x: 0, y: 0};
+
+        forEach(localPoints, (localPoint, i) => {
+            const worldPoint = myMath.worldPointInArea(localPoint[0], localPoint[1], box.area);
+            if (i === 0) {
+                minPoint.x = worldPoint.x;
+                minPoint.y = worldPoint.y;
+                maxPoint.x = worldPoint.x;
+                maxPoint.y = worldPoint.y;
+            } else {
+                minPoint.x = Math.min(minPoint.x, worldPoint.x);
+                minPoint.y = Math.min(minPoint.y, worldPoint.y);
+                maxPoint.x = Math.max(maxPoint.x, worldPoint.x);
+                maxPoint.y = Math.max(maxPoint.y, worldPoint.y);
+            }
+        });
+
+        return {
+            vertical: [
+                {x: minPoint.x, y: minPoint.y}, //top edge
+                {x: maxPoint.x, y: maxPoint.y}, //bottom edge
+            ],
+            horizontal: [
+                {x: minPoint.x, y: minPoint.y}, //left edge
+                {x: maxPoint.x, y: maxPoint.y}, //bottom edge
+            ]
+        };
+    }
 }
