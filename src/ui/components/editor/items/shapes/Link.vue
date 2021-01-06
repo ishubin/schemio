@@ -7,7 +7,7 @@
                     <i :class="iconClass"></i>
                 </div>
             </foreignObject>
-            <foreignObject v-if="textWidth > 0" :x="textOffset" y="0" :width="textWidth" :height="item.area.h" style="linkStyle">
+            <foreignObject v-if="textWidth > 0" :x="textOffset" y="0" :width="textWidth" :height="item.area.h" :style="linkStyle">
                 <div xmlns="http://www.w3.org/1999/xhtml" v-html="linkHtml"></div>
             </foreignObject>
         </a>
@@ -116,6 +116,8 @@ export default {
         iconStyle() {
             return {
                 'color': this.item.shapeProps.iconColor,
+                'padding-top': this.linkStyle['padding-left'],
+                'padding-bottom': this.linkStyle['padding-left'],
             }
         },
         linkHtml() {
