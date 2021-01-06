@@ -228,6 +228,11 @@ function readjustItemArea(item) {
     });
 }
 
+const _zeroTransform = {x: 0, y: 0, r: 0};
+function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
 
 export default {
     props: ['item'],
@@ -242,6 +247,33 @@ export default {
      * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
      */ 
     getTextSlots() {
+        return [];
+    },
+
+    getSnappers(item) {
+        // for now only generating snapper if this curve is just a simple straight line
+        if (item.shapeProps.points.length === 2) {
+            const p0 = item.shapeProps.points[0];
+            const p1 = item.shapeProps.points[1];
+            if (p0.t === 'L' && p0.t === 'L') {
+                const w0 = worldPointOnItem(p0.x, p0.y, item);
+                const w1 = worldPointOnItem(p1.x, p1.y, item);
+                if (Math.abs(w0.x - w1.x) < 0.0001) {
+                    return [{
+                        item,
+                        snapperType: 'vertical',
+                        value: w0.x
+                    }];
+                }
+                if (Math.abs(w0.y - w1.y) < 0.0001) {
+                    return [{
+                        item,
+                        snapperType: 'horizontal',
+                        value: w0.y
+                    }];
+                }
+            }
+        }
         return [];
     },
 

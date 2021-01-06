@@ -894,7 +894,7 @@ export default class StateDragItem extends State {
             ],
             horizontal: [
                 {x: minPoint.x, y: minPoint.y}, //left edge
-                {x: maxPoint.x, y: maxPoint.y}, //bottom edge
+                {x: maxPoint.x, y: maxPoint.y}, //right edge
             ]
         };
     }
