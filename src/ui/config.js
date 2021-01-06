@@ -3,5 +3,11 @@ export default {
         categories: {
             enabled: false
         }
+    },
+
+    auth: {
+        alternative: {
+            enabled: true
+        }
     }
 };

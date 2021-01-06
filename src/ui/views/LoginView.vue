@@ -9,13 +9,24 @@
         <div class="content-wrapper">
 
             <div class="login-box">
-                <h2>Login</h2>
-
                 <div class="login-box-body">
+
+                    <span class="ctrl-label">Login or Email Address</span>
+
                     <input ref="loginTextfield" class="textfield" type="text" v-model="login" placeholder="Login..." @keydown.enter="submitLogin"/>
+
+                    <span class="ctrl-label">Password</span>
                     <input class="textfield" type="password" v-model="password" placeholder="Password..." @keydown.enter="submitLogin"/>
-                    <span class="btn btn-primary" @click="submitLogin">Submit</span>
+
+                    <span class="btn btn-primary btn-login" @click="submitLogin">Submit</span>
                     <span class="error-message" v-if="errorMessage">{{errorMessage}}</span>
+
+                    <div v-if="alternativeAuthEnabled">
+                        <div class="login-alternative-caption">Or login with another provider</div>
+
+                        <a href="/auth/google/login" class="btn btn-login btn-login-alt btn-login-google">Google</a>
+                        <a href="/auth/github/login" class="btn btn-login btn-login-alt btn-login-github">GitHub</a>
+                    </div>
                 </div>
             </div>
 
@@ -26,6 +37,7 @@
 <script>
 import HeaderComponent from '../components/Header.vue';
 import apiClient from '../apiClient.js';
+import config from '../config';
 
 export default {
     components: {HeaderComponent},
@@ -36,7 +48,8 @@ export default {
         return {
             login: '',
             password: '',
-            errorMessage: null
+            errorMessage: null,
+            alternativeAuthEnabled: config.auth.alternative.enabled
         }
     },
     methods: {

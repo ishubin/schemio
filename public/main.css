@@ -10,23 +10,30 @@
     --base-strong-up: #3b3b3b;
     --base-weak: #fff;
 
-    --faint-strong: #9a9b9c;
+    --faint-weak-down: #dddddd;
     --faint-weak: #eeeeee;
-    --faint-weak-up: #e2e2e2;
+    --faint-weak-up: #f0f0f0;
+
+    --faint-strong-down: #7f8081;
+    --faint-strong: #9a9b9c;
     --faint-strong-up: #c0c0c0;
     --faint-strong-up-up: #d1d1d1;
 
     --accent-strong: #2373ce;
     --accent-faint: #5291da;
     --accent-faint-up: #83addd;
-    --accent-weak: #e1ebf7;
+
     --accent-weak-down: #c4daf5;
+    --accent-weak: #e1ebf7;
+    --accent-weak-up: #f0f4fa;
 
     --complement-strong: #bbe288;
     --complement-weak: #fafdec;
 
     --critic-strong: #f05045;
+    --critic-weak-down: #f3dedb;
     --critic-weak: #f5e7e5;
+    --critic-weak-up: #f3e8e7;
 
     --warning-strong: #eeaa45;
     --warning-weak: #eedaba;
@@ -405,11 +412,16 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 input.textfield, textarea.textfield {
     display: inline-block;
     width: 100%;
-    color: #444;
+    color: var(--base-strong);
     padding: 5px 10px 5px 10px;
-    background: #fff;
+    background: var(--base-weak);
     font-size: 16px;
-    border: 1px solid #999;
+    border: 1px solid var(--faint-strong);
+    border-radius: 2px;
+}
+input.textfield:focus, textarea.textfield:focus {
+    outline: 0;
+    background: var(--accent-weak-up);
 }
 textarea.textfield {
     height: 150px;
@@ -420,8 +432,8 @@ input.textfield.textfield-small {
     font-size: 12px;
 }
 input.textfield.missing-field-error {
-    border: 1px solid #f55;
-    box-shadow: 0 0 5px #f55;
+    border: 1px solid var(--critic-strong);
+    box-shadow: 0 0 5px var(--critic-strong);
 }
 
 /********************** Number Textfield **************/
@@ -491,8 +503,11 @@ input.textfield.missing-field-error {
 
 /********************** Control Labels & Groups ******************/
 .ctrl-label {
+    display: block;
     font-weight: bold;
     font-size: 10pt;
+    margin-top: 10px;
+    margin-bottom: 5px;
 }
 .ctrl-group {
     margin-bottom: 10px;
@@ -1685,27 +1700,86 @@ ul.category-breadcrumb li i {
 /************** Login Box ******************/
 .login-box {
     max-width: 400px;
-    margin: auto;
+    margin: 0 auto;
     vertical-align: middle;
-    border: 1px solid #aaa;
-    background: #fff;
-}
-.login-box h2 {
-    margin: 0;
-    padding: 5px;
-    background: #666;
-    color: white;
+    background: var(--base-weak);
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.3);
 }
 .login-box .login-box-body {
-    padding: 20px;
+    padding: 20px 40px 60px 40px;
 }
 .login-box .login-box-body .textfield {
     margin-bottom: 10px;
 }
 .login-box .error-message {
-    color: red;
+    display: block;
+    font-style: italic;
+    padding: 5px 10px;
+    margin-top: 10px;
+    color: var(--critic-strong);
+    background: var(--critic-weak);
+    border-radius: 2px;
 }
-
+.login-box .ctrl-label {
+    margin-top: 20px;
+}
+.login-box input.textfield::placeholder {
+    font-style: italic;
+}
+.login-box input.textfield {
+    display: block;
+    padding: 10px 10px;
+    margin-bottom: 20px;
+}
+.login-box .btn-login {
+    margin-top: 20px;
+    display: block;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+}
+.login-box .login-alternative-caption {
+    margin-top: 20px;
+    color: var(--faint-strong-down);
+    text-align: center;
+}
+.login-box .btn-login-alt {
+    position: relative;
+    color: var(--base-strong-up);
+    text-decoration: none;
+    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-weak-down);
+}
+.login-box .btn-login-alt:hover {
+    text-decoration: none;
+    background: var(--accent-weak-up);
+}
+.login-box .btn-login-google::after {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 30px;
+    height: 30px;
+    background: url('/assets/images/icons/google.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    content: "";
+}
+.login-box .btn-login-github::after {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 30px;
+    height: 30px;
+    background: url('/assets/images/icons/github.svg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    content: "";
+}
 
 
 /****************** search page ****************/
