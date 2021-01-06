@@ -3,8 +3,12 @@ import Vuex from 'vuex';
 import apiClient from '../apiClient';
 import forEach from 'lodash/forEach';
 import utils from '../utils';
+import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import { setState } from 'expect';
 
 Vue.use(Vuex);
+
+const settingsStorage = new LimitedSettingsStorage(window.localStorage, 'store', 100);
 
 function enrichCurvePoint(point) {
     if (point.t === 'B') {
@@ -48,7 +52,7 @@ const store = new Vuex.Store({
         },
 
         grid: {
-            snap: true
+            snap: settingsStorage.get('grid.snap', true)
         },
 
         itemSurround: {
@@ -125,6 +129,7 @@ const store = new Vuex.Store({
 
         SET_GRID_SNAP(state, enabled) {
             state.grid.snap = enabled;
+            settingsStorage.save('grid.snap', enabled);
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
