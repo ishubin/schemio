@@ -18,7 +18,10 @@ import UMLPackage from './uml/UMLPackage.js';
 import UMLNode from './uml/UMLNode.js';
 import mapValues from 'lodash/mapValues';
 import keys from 'lodash/keys';
+import myMath from '../../../../myMath.js';
 
+
+const _zeroTransform = {x: 0, y: 0, r: 0};
 
 function defaultGetEventsFunc(item) {
     return [];
@@ -46,6 +49,30 @@ function defaultGetTextSlots(item) {
     }];
 }
 
+function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
+function defaultGetSnappers(item) {
+    const p1 = worldPointOnItem(0, 0, item);
+    const p2 = worldPointOnItem(item.area.w, 0, item);
+    const p3 = worldPointOnItem(item.area.w, item.area.h, item);
+    const p4 = worldPointOnItem(0, item.area.h, item);
+
+    const snappers = [];
+
+    if (item.area.w > 0.0001) {
+        if (Math.abs(p1.y - p2.y) < 0.0001) {
+            snappers.push({
+                item,
+                snapperType: 'horizontal',
+                value: p1.y
+            });
+        }
+    }
+    return snappers;
+}
+
 function enrichShape(shapeComponent, shapeName) {
     if (!shapeComponent.shapeType) {
         console.error(`Missing shapeType for shape "${shapeName}"`);
@@ -60,6 +87,9 @@ function enrichShape(shapeComponent, shapeName) {
         getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeComponent.controlPoints || null,
+
+        // used for generating item snapers which are used for snapping dragged item to other items
+        getSnappers             : shapeComponent.getSnappers || defaultGetSnappers,
         vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null,
 
         argType(argName) {

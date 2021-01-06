@@ -177,6 +177,8 @@
                         :height="_z(multiSelectBox.h)"
                     />
                 </g>
+
+                <line v-if="horizontalSnapper" :x1="0" :y1="_y(horizontalSnapper.value)" :x2="width" :y2="_y(horizontalSnapper.value)" style="stroke: red; stroke-width: 1px;"/>
             </g>
         </svg>
 
@@ -1456,6 +1458,12 @@ export default {
         },
         multiSelectBox() {
             return this.$store.getters.multiSelectBox;
+        },
+        horizontalSnapper() {
+            return this.$store.getters.horizontalSnapper;
+        },
+        verticalSnapper() {
+            return this.$store.getters.verticalSnapper;
         }
     },
     filters: {

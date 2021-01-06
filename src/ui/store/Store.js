@@ -61,7 +61,13 @@ const store = new Vuex.Store({
 
         itemControlPoints: [],
 
-        multiSelectBox: null
+        multiSelectBox: null,
+
+        // used to render snapping lines when user drags item and it is snapped to other items
+        snappers: {
+            horizontal: null,
+            vertical: null,
+        }
     },
     mutations: {
         SET_CURRENT_USER(state, user) {
@@ -159,7 +165,20 @@ const store = new Vuex.Store({
         },
         SET_MULTI_SELECT_BOX(state, box) {
             state.multiSelectBox = box;
-        }
+        },
+
+        /************ Snappers ****************/
+        SET_ITEM_SNAPPER(state, snapper) {
+            if (snapper.snapperType === 'horizontal') {
+                state.snappers.horizontal = snapper;
+            } else if (snapper.snapperType === 'vertical') {
+                state.snappers.vertical = snapper;
+            }
+        },
+        CLEAR_ITEM_SNAPPERS(state) {
+            state.snappers.horizontal = null;
+            state.snappers.vertical = null;
+        },
     },
     actions: {
         loadCurrentUser({commit}) {
@@ -241,6 +260,13 @@ const store = new Vuex.Store({
 
         setMultiSelectBox({commit}, box) {
             commit('SET_MULTI_SELECT_BOX', box);
+        },
+
+        setItemSnapper({commit}, snapper) {
+            commit('SET_ITEM_SNAPPER', snapper);
+        },
+        clearItemSnappers({commit}) {
+            commit('CLEAR_ITEM_SNAPPERS');
         }
     },
     getters: {
@@ -252,6 +278,9 @@ const store = new Vuex.Store({
         curveEditPoints: state => state.curveEditing.points,
 
         multiSelectBox: state => state.multiSelectBox,
+
+        horizontalSnapper: state => state.snappers.horizontal,
+        verticalSnapper: state => state.snappers.vertical,
     }
 });
 

@@ -41,5 +41,13 @@ export default {
 
     setMultiSelectBox(store, box) {
         store.dispatch('setMultiSelectBox', box);
+    },
+
+    setItemSnapper(store, snapper) {
+        store.dispatch('setItemSnapper', snapper);
+    },
+
+    clearItemSnappers(store) {
+        store.dispatch('clearItemSnappers');
     }
 }

@@ -102,6 +102,12 @@ class SchemeContainer {
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
 
+        // stores all snapping rules for items (used when user drags an item)
+        this.relativeSnappers = {
+            horizontal: [],
+            vertical: [],
+        };
+
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
@@ -149,6 +155,8 @@ class SchemeContainer {
         this.viewportItems = [];
         this.worldItems = [];
         this._itemGroupsToIds = {};
+        this.relativeSnappers.horizontal = [];
+        this.relativeSnappers.vertical = [];
 
         // stores element selectors with their dependants
         // this will be used once it has visited all items
@@ -209,6 +217,22 @@ class SchemeContainer {
                 parentVisible = parentItem.meta.calculatedVisibility;
             }
             item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
+
+            // generating item snappers
+            //TODO check also that root item is in relative transform
+
+            if (item.area.type === 'relative') {
+                const itemSnappers = this.generateItemSnappers(item);
+                if (itemSnappers) {
+                    forEach(itemSnappers, itemSnapper => {
+                        if (itemSnapper.snapperType === 'horizontal') {
+                            this.relativeSnappers.horizontal.push(itemSnapper);
+                        } else if (itemSnapper.snapperType === 'vertical') {
+                            this.relativeSnappers.vertical.push(itemSnapper);
+                        }
+                    });
+                }
+            }
         });
 
         this.itemGroups = keys(this._itemGroupsToIds);
@@ -1290,10 +1314,14 @@ class SchemeContainer {
         // used to store additional information that might be needed when modifying items
         const itemData = {};
 
+        //storing ids of all items that are included in the box
+        const itemIds = new Set();
+
         forEach(items, item => {
             itemData[item.id] = {
                 originalArea: utils.clone(item.area)
             };
+            itemIds.add(item.id);
 
             // caclulating projection of item world coords on the top and left edges of original edit box
             // since some items can be children of other items we need to project only their world location
@@ -1324,7 +1352,7 @@ class SchemeContainer {
                 topRightY: projectionTopRightY,
                 bottomLeftX: projectionBottomLeftX,
                 bottomLeftY: projectionBottomLeftY,
-                // the following angle correction is need in case only one item is selected,
+                // the following angle correction is needed in case only one item is selected,
                 // in that case the initial edit box area might have a starting angle that matches item area
                 // in all other cases the initial angle will be 0
                 r: item.area.r - area.r
@@ -1340,11 +1368,21 @@ class SchemeContainer {
             id: boxId,
             boxUID: shortid.generate(),
             items,
+            itemIds,
             itemData,
             area,
             itemProjections,
             transformType
         };
+    }
+
+    generateItemSnappers(item) {
+        const shape = Shape.find(item.shape);
+        if (!shape) {
+            return null;
+        }
+
+        return shape.getSnappers(item);
     }
 }
 

@@ -6,6 +6,7 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
@@ -71,6 +72,44 @@ export default class StateDragItem extends State {
         this.snapper = {
             snapX: (x) => this.snapX(x),
             snapY: (y) => this.snapY(y),
+
+            /**
+             * Checks snapping of item and returns new offset that should be applied to item
+             * 
+             * @param {*} area - world item area
+             * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
+             * @param {Number} dx - pre-snap candidate offset on x axis
+             * @param {Number} dy - pre-snap candidate offset on y axis
+             */
+            snapItem: (area, excludeItemIds, dx, dy) => {
+                StoreUtils.clearItemSnappers(this.store);
+                console.log('dx', dx, 'dy', dy, 'area.x', area.x, 'area.y', area.y);
+                if (Math.abs(area.r) < 0.0001) {
+
+                    let snappedDx = dx;
+                    let snappedDy = dy;
+
+                    const horizontalSnapper = find(this.schemeContainer.relativeSnappers.horizontal, snapper => {
+                        //TODO convert this to screen coords
+                        //TODO configure snapping precision
+                        //TODO choose best snapping candidate based on distance to snapped value instead of picking the first available one
+                        return !excludeItemIds.has(snapper.item.id) && Math.abs(snapper.value - area.y - dy) < 10;
+                    });
+
+                    if (horizontalSnapper) {
+                        console.log('Found horizontal snapper', horizontalSnapper.item.name, horizontalSnapper.value);
+                        StoreUtils.setItemSnapper(this.store, horizontalSnapper);
+                        
+                        snappedDy = horizontalSnapper.value - area.y;
+                    } else {
+                    }
+                    return {
+                        dx: snappedDx,
+                        dy: snappedDy
+                    };
+                }
+                return {dx, dy};
+            }
         };
 
         // used in order to track the uniqueness of modification context from mouse down to mouse up events
@@ -329,6 +368,8 @@ export default class StateDragItem extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
+
         // doing it just in case the highlighting was previously set
         this.eventBus.emitItemsHighlighted([]);
 
@@ -466,16 +507,18 @@ export default class StateDragItem extends State {
 
         const preSnapDx = x - this.originalPoint.x;
         const preSnapDy = y - this.originalPoint.y;
+
+        const snapResult = this.snapper.snapItem(this.multiItemEditBoxOriginalArea, this.multiItemEditBox.itemIds, preSnapDx, preSnapDy);
         
-        const snappedBoxX = this.snapper.snapX(this.multiItemEditBoxOriginalArea.x + preSnapDx);
-        const snappedBoxY = this.snapper.snapY(this.multiItemEditBoxOriginalArea.y + preSnapDy);
+        // const snappedBoxX = this.snapper.snapX(this.multiItemEditBoxOriginalArea.x + preSnapDx);
+        // const snappedBoxY = this.snapper.snapY(this.multiItemEditBoxOriginalArea.y + preSnapDy);
 
-        const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
-        const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
+        // const dx = snappedBoxX - this.multiItemEditBoxOriginalArea.x;
+        // const dy = snappedBoxY - this.multiItemEditBoxOriginalArea.y;
 
 
-        this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + dx;
-        this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + dy;
+        this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
+        this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_MOVED);
         this.reindexNeeded = true;
     }
