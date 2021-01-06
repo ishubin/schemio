@@ -2,7 +2,7 @@
     <g data-preview-ignore="true">
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-        <foreignObject
+        <foreignObject v-if="item.shapeProps.showName"
             :x="0" :y="-20" :width="item.area.w" :height="20">
             <div :style="{background: item.shapeProps.strokeColor, color: 'white'}"
                 style="font-size: 12px; font-weight: bold; display: inline-block; padding: 2px 5px; height: 20px; font-family: Arial, Helvetica, sans-serif; text-align: left; vertical-align: bottom; white-space: normal; display: table-cell;"
@@ -54,9 +54,10 @@ export default {
     args: {
         fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(159, 227, 249, 0.1)'}},
         strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
-        strokeSize   : {name: 'Stroke Size', type: 'number', value: 2},
+        strokeSize   : {name: 'Stroke Size', type: 'number', value: 1},
         strokePattern: {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
-        cornerRadius : {type: 'number', value: 4, name: 'Corner radius'},
+        cornerRadius : {type: 'number', value: 0, name: 'Corner radius'},
+        showName     : {type: 'boolean', value: true, name: 'Display Name'},
     },
 
     computed: {
