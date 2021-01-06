@@ -69,6 +69,28 @@ function defaultGetSnappers(item) {
                 value: p1.y
             });
         }
+        if (Math.abs(p3.y - p4.y) < 0.0001) {
+            snappers.push({
+                item,
+                snapperType: 'horizontal',
+                value: p3.y
+            });
+        }
+
+        if (Math.abs(p1.x - p4.x) < 0.0001) {
+            snappers.push({
+                item,
+                snapperType: 'vertical',
+                value: p1.x
+            });
+        }
+        if (Math.abs(p2.x - p3.x) < 0.0001) {
+            snappers.push({
+                item,
+                snapperType: 'vertical',
+                value: p2.x
+            });
+        }
     }
     return snappers;
 }

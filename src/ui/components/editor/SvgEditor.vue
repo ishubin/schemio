@@ -179,6 +179,7 @@
                 </g>
 
                 <line v-if="horizontalSnapper" :x1="0" :y1="_y(horizontalSnapper.value)" :x2="width" :y2="_y(horizontalSnapper.value)" style="stroke: red; stroke-width: 1px;"/>
+                <line v-if="verticalSnapper" :x1="_x(verticalSnapper.value)" :y1="0" :x2="_x(verticalSnapper.value)" :y2="height" style="stroke: red; stroke-width: 1px;"/>
             </g>
         </svg>
 

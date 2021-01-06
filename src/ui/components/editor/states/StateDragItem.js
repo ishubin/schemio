@@ -6,7 +6,6 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
-import find from 'lodash/find';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
@@ -83,32 +82,81 @@ export default class StateDragItem extends State {
              */
             snapItem: (area, excludeItemIds, dx, dy) => {
                 StoreUtils.clearItemSnappers(this.store);
-                console.log('dx', dx, 'dy', dy, 'area.x', area.x, 'area.y', area.y);
-                if (Math.abs(area.r) < 0.0001) {
 
-                    let snappedDx = dx;
-                    let snappedDy = dy;
+                let snappedDx = dx;
+                let snappedDy = dy;
 
-                    const horizontalSnapper = find(this.schemeContainer.relativeSnappers.horizontal, snapper => {
-                        //TODO convert this to screen coords
-                        //TODO configure snapping precision
-                        //TODO choose best snapping candidate based on distance to snapped value instead of picking the first available one
-                        return !excludeItemIds.has(snapper.item.id) && Math.abs(snapper.value - area.y - dy) < 10;
-                    });
+                //TODO configure snapping precision
+                const maxSnapProximity = 20;
 
-                    if (horizontalSnapper) {
-                        console.log('Found horizontal snapper', horizontalSnapper.item.name, horizontalSnapper.value);
-                        StoreUtils.setItemSnapper(this.store, horizontalSnapper);
-                        
-                        snappedDy = horizontalSnapper.value - area.y;
-                    } else {
+                let zoomScale = this.schemeContainer.screenTransform.scale;
+
+                let horizontalSnapper = null;
+                let bestHorizontalProximity = 1000;
+
+                forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
+                    if (!excludeItemIds.has(snapper.item.id)) {
+                        let proximity = Math.abs(snapper.value - area.y - dy);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
+                            horizontalSnapper = {
+                                snapper,
+                                dy: snapper.value - area.y
+                            };
+                            bestHorizontalProximity = proximity;
+                        }
+
+                        // trying to snap it by lower edge
+                        proximity = Math.abs(snapper.value - area.y - area.h - dy);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
+                            horizontalSnapper = {
+                                snapper,
+                                dy: snapper.value - area.y - area.h
+                            };
+                            bestHorizontalProximity = proximity;
+                        }
+                    
                     }
-                    return {
-                        dx: snappedDx,
-                        dy: snappedDy
-                    };
+                });
+
+                let verticalSnapper = null;
+                let bestVerticalProximity = 1000;
+                forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
+                    if (!excludeItemIds.has(snapper.item.id)) {
+                        let proximity = Math.abs(snapper.value - area.x - dx);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
+                            verticalSnapper = {
+                                snapper,
+                                dx: snapper.value - area.x
+                            };
+                            bestVerticalProximity = proximity;
+                        }
+
+                        // trying to snap it by lower edge
+                        proximity = Math.abs(snapper.value - area.x - area.w - dx);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
+                            verticalSnapper = {
+                                snapper,
+                                dx: snapper.value - area.x - area.w
+                            };
+                            bestVerticalProximity = proximity;
+                        }
+                    
+                    }
+                });
+
+                if (horizontalSnapper) {
+                    StoreUtils.setItemSnapper(this.store, horizontalSnapper.snapper);
+                    snappedDy = horizontalSnapper.dy;
                 }
-                return {dx, dy};
+
+                if (verticalSnapper) {
+                    StoreUtils.setItemSnapper(this.store, verticalSnapper.snapper);
+                    snappedDx = verticalSnapper.dx;
+                }
+                return {
+                    dx: snappedDx,
+                    dy: snappedDy
+                };
             }
         };
 
