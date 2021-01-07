@@ -145,15 +145,9 @@ class State {
             return {dx, dy};
         }
 
-        let snappedDx = this.snapToGrid(dx);
-        let snappedDy = this.snapToGrid(dy);
+        let snappedDx = dx;
+        let snappedDy = dy;
 
-        if (!this.store.state.snap.items) {
-            return {
-                dx: snappedDx,
-                dy: snappedDy,
-            }
-        }
 
         //TODO configure snapping precision
         const maxSnapProximity = 6;
@@ -162,47 +156,71 @@ class State {
 
         let horizontalSnapper = null;
         let bestHorizontalProximity = 1000;
-
-        forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
-            if (!excludeItemIds.has(snapper.item.id)) {
-                forEach(points.horizontal, point => {
-                    let proximity = Math.abs(snapper.value - point.y - dy);
-                    if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
-                        horizontalSnapper = {
-                            snapper,
-                            dy: snapper.value - point.y
-                        };
-                        bestHorizontalProximity = proximity;
-                    }
-                });
-            }
-        });
-
         let verticalSnapper = null;
         let bestVerticalProximity = 1000;
-        forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
-            if (!excludeItemIds.has(snapper.item.id)) {
-                forEach(points.vertical, point => {
-                    let proximity = Math.abs(snapper.value - point.x - dx);
-                    if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
-                        verticalSnapper = {
-                            snapper,
-                            dx: snapper.value - point.x
-                        };
-                        bestVerticalProximity = proximity;
-                    }
-                });
-            }
-        });
+
+        if (this.store.state.snap.items) {
+            forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
+                if (!excludeItemIds.has(snapper.item.id)) {
+                    forEach(points.horizontal, point => {
+                        let proximity = Math.abs(snapper.value - point.y - dy);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
+                            horizontalSnapper = {
+                                snapper,
+                                dy: snapper.value - point.y
+                            };
+                            bestHorizontalProximity = proximity;
+                        }
+                    });
+                }
+            });
+
+            forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
+                if (!excludeItemIds.has(snapper.item.id)) {
+                    forEach(points.vertical, point => {
+                        let proximity = Math.abs(snapper.value - point.x - dx);
+                        if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
+                            verticalSnapper = {
+                                snapper,
+                                dx: snapper.value - point.x
+                            };
+                            bestVerticalProximity = proximity;
+                        }
+                    });
+                }
+            });
+        }
 
         if (horizontalSnapper) {
             StoreUtils.setItemSnapper(this.store, horizontalSnapper.snapper);
             snappedDy = horizontalSnapper.dy;
+        } else if (this.store.state.snap.grid) {
+            //snap to grid
+            let bestGridProximity = 1000;
+            forEach(points.horizontal, point => {
+                const snappedValue = this.snapToGrid(point.y + dy);
+                const proximity = Math.abs(snappedValue - point.y);
+                if (proximity < bestGridProximity) {
+                    bestGridProximity = proximity;
+                    snappedDy = snappedValue - point.y;
+                }
+            });
         }
 
         if (verticalSnapper) {
             StoreUtils.setItemSnapper(this.store, verticalSnapper.snapper);
             snappedDx = verticalSnapper.dx;
+        } else if (this.store.state.snap.grid) {
+            //snap to grid
+            let bestGridProximity = 1000;
+            forEach(points.vertical, point => {
+                const snappedValue = this.snapToGrid(point.x + dx);
+                const proximity = Math.abs(snappedValue - point.x);
+                if (proximity < bestGridProximity) {
+                    bestGridProximity = proximity;
+                    snappedDx = snappedValue - point.x;
+                }
+            });
         }
         return {
             dx: snappedDx,
