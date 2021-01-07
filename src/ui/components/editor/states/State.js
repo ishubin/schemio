@@ -4,6 +4,9 @@
 
 import EventBus from '../EventBus';
 import myMath from '../../../myMath';
+import StoreUtils from '../../../store/StoreUtils';
+import '../../../typedef';
+import forEach from 'lodash/forEach';
 
 class State {
     /**
@@ -126,6 +129,85 @@ class State {
             return Math.round(value / snap) * snap;
         }
         return value;
+    }
+
+    /**
+     * Checks snapping of item and returns new offset that should be applied to item
+     * 
+     * @param {SnappingPoints} points - points of an item by which it should snap it to other items
+     * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
+     * @param {Number} dx - pre-snap candidate offset on x axis
+     * @param {Number} dy - pre-snap candidate offset on y axis
+     * @returns {Offset} offset with dx and dy fields specifying how these points should be moved to be snapped
+     */
+    snapPoints(points, excludeItemIds, dx, dy) {
+        if (!points) {
+            return {dx, dy};
+        }
+
+        let snappedDx = this.snapToGrid(dx);
+        let snappedDy = this.snapToGrid(dy);
+
+        if (!this.store.state.snap.items) {
+            return {
+                dx: snappedDx,
+                dy: snappedDy,
+            }
+        }
+
+        //TODO configure snapping precision
+        const maxSnapProximity = 6;
+
+        let zoomScale = this.schemeContainer.screenTransform.scale;
+
+        let horizontalSnapper = null;
+        let bestHorizontalProximity = 1000;
+
+        forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
+            if (!excludeItemIds.has(snapper.item.id)) {
+                forEach(points.horizontal, point => {
+                    let proximity = Math.abs(snapper.value - point.y - dy);
+                    if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
+                        horizontalSnapper = {
+                            snapper,
+                            dy: snapper.value - point.y
+                        };
+                        bestHorizontalProximity = proximity;
+                    }
+                });
+            }
+        });
+
+        let verticalSnapper = null;
+        let bestVerticalProximity = 1000;
+        forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
+            if (!excludeItemIds.has(snapper.item.id)) {
+                forEach(points.vertical, point => {
+                    let proximity = Math.abs(snapper.value - point.x - dx);
+                    if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
+                        verticalSnapper = {
+                            snapper,
+                            dx: snapper.value - point.x
+                        };
+                        bestVerticalProximity = proximity;
+                    }
+                });
+            }
+        });
+
+        if (horizontalSnapper) {
+            StoreUtils.setItemSnapper(this.store, horizontalSnapper.snapper);
+            snappedDy = horizontalSnapper.dy;
+        }
+
+        if (verticalSnapper) {
+            StoreUtils.setItemSnapper(this.store, verticalSnapper.snapper);
+            snappedDx = verticalSnapper.dx;
+        }
+        return {
+            dx: snappedDx,
+            dy: snappedDy
+        };
     }
 
     updateCursor(cursor) {

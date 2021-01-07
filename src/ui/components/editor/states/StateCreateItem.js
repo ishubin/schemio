@@ -29,7 +29,12 @@ export default class StateCreateItem extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
-        this.originalPoint = {x: this.snapX(x), y: this.snapY(y)};
+        const newOffset = this.snapPoints({
+            vertical: [{x, y}],
+            horizontal: [{x, y}]
+        }, new Set(), 0, 0);
+
+        this.originalPoint = {x: x + newOffset.dx, y: y + newOffset.dy};
         this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
         this.schemeContainer.addItem(this.item);
         this.refreshControlPoints(this.item);
@@ -38,6 +43,7 @@ export default class StateCreateItem extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
         if (this.addedToScheme) {
             if (event.buttons === 0) {
                 // no buttons are pressed so it should cancel the dragging state
@@ -45,17 +51,26 @@ export default class StateCreateItem extends State {
                 return;
             }
 
-            this.updateItemArea(this.snapX(x), this.snapY(y));
+            const newOffset = this.snapPoints({
+                vertical: [{x, y}],
+                horizontal: [{x, y}]
+            }, new Set(), 0, 0);
+            this.updateItemArea(x + newOffset.dx, y + newOffset.dy);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.addedToScheme) {
-            this.updateItemArea(this.snapX(x), this.snapY(y));
+            const newOffset = this.snapPoints({
+                vertical: [{x, y}],
+                horizontal: [{x, y}]
+            }, new Set(), 0, 0);
+            this.updateItemArea(x + newOffset.dx, y + newOffset.dy);
             this.submitItemAndFinishCreating();
         } else {
             this.cancel();
         }
+        StoreUtils.clearItemSnappers(this.store);
     }
 
     submitItemAndFinishCreating() {

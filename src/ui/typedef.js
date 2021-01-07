@@ -101,3 +101,15 @@
   */
 
 
+/**
+ * @typedef {Object} SnappingPoints
+ * @property {Array} vertical - array of points for vertical snapping
+ * @property {Array} horizontal - array of points for horizontal snapping
+ */
+
+/**
+ * @typedef {Object} Offset
+ * @property {Number} dx
+ * @property {Number} dy
+ */
+

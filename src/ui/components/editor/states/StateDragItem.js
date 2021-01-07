@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+
 import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
@@ -38,18 +39,6 @@ function isEventRightClick(event) {
 function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
 }
-
-/**
- * @typedef {Object} SnappingPoints
- * @property {Array} vertical - array of points for vertical snapping
- * @property {Array} horizontal - array of points for horizontal snapping
- */
-
-/**
- * @typedef {Object} Offset
- * @property {Number} dx
- * @property {Number} dy
- */
 
 export default class StateDragItem extends State {
     /**
@@ -98,75 +87,7 @@ export default class StateDragItem extends State {
              * @param {Number} dy - pre-snap candidate offset on y axis
              * @returns {Offset} offset with dx and dy fields specifying how these points should be moved to be snapped
              */
-            snapPoints: (points, excludeItemIds, dx, dy) => {
-                if (!points) {
-                    return {dx, dy};
-                }
-
-                let snappedDx = this.snapToGrid(dx);
-                let snappedDy = this.snapToGrid(dy);
-
-                if (!this.store.state.snap.items) {
-                    return {
-                        dx: snappedDx,
-                        dy: snappedDy,
-                    }
-                }
-
-                //TODO configure snapping precision
-                const maxSnapProximity = 6;
-
-                let zoomScale = this.schemeContainer.screenTransform.scale;
-
-                let horizontalSnapper = null;
-                let bestHorizontalProximity = 1000;
-
-                forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
-                    if (!excludeItemIds.has(snapper.item.id)) {
-                        forEach(points.horizontal, point => {
-                            let proximity = Math.abs(snapper.value - point.y - dy);
-                            if (proximity*zoomScale < maxSnapProximity && proximity < bestHorizontalProximity) {
-                                horizontalSnapper = {
-                                    snapper,
-                                    dy: snapper.value - point.y
-                                };
-                                bestHorizontalProximity = proximity;
-                            }
-                        });
-                    }
-                });
-
-                let verticalSnapper = null;
-                let bestVerticalProximity = 1000;
-                forEach(this.schemeContainer.relativeSnappers.vertical, snapper => {
-                    if (!excludeItemIds.has(snapper.item.id)) {
-                        forEach(points.vertical, point => {
-                            let proximity = Math.abs(snapper.value - point.x - dx);
-                            if (proximity*zoomScale < maxSnapProximity && proximity < bestVerticalProximity) {
-                                verticalSnapper = {
-                                    snapper,
-                                    dx: snapper.value - point.x
-                                };
-                                bestVerticalProximity = proximity;
-                            }
-                        });
-                    }
-                });
-
-                if (horizontalSnapper) {
-                    StoreUtils.setItemSnapper(this.store, horizontalSnapper.snapper);
-                    snappedDy = horizontalSnapper.dy;
-                }
-
-                if (verticalSnapper) {
-                    StoreUtils.setItemSnapper(this.store, verticalSnapper.snapper);
-                    snappedDx = verticalSnapper.dx;
-                }
-                return {
-                    dx: snappedDx,
-                    dy: snappedDy
-                };
-            }
+            snapPoints: (points, excludeItemIds, dx, dy) => this.snapPoints(points, excludeItemIds, dx, dy)
         };
 
         // used in order to track the uniqueness of modification context from mouse down to mouse up events
