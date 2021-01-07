@@ -21,8 +21,6 @@ import { Debugger, Logger } from '../logger';
 
 const log = new Logger('SchemeContainer');
 
-const IS_SOFT = true;
-const IS_HARD = false;
 const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
 
 const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
@@ -476,7 +474,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      */
     _readjustItemAndDescendants(itemId, visitedItems, isSoft, context) {
-        this._readjustItem(itemId, visitedItems, IS_HARD, context);
+        this._readjustItem(itemId, visitedItems, isSoft, context);
         const item = this.findItemById(itemId);
         if (!item) {
             return;
@@ -1040,7 +1038,7 @@ class SchemeContainer {
 
             boxArea.x += dx;
             boxArea.y += dy;
-            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
     }
 
@@ -1064,9 +1062,10 @@ class SchemeContainer {
     /**
      * 
      * @param {MultiItemEditBox} multiItemEditBox 
+     * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context 
      */
-    updateMultiItemEditBoxItems(multiItemEditBox, context) {
+    updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context) {
         if (!context) {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;
         }
@@ -1132,7 +1131,7 @@ class SchemeContainer {
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
                 }
-                this.readjustItemAndDescendants(item.id, IS_HARD, context);
+                this.readjustItemAndDescendants(item.id, isSoft, context);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
         });

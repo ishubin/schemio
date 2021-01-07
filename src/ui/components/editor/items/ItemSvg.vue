@@ -222,7 +222,7 @@ export default {
 
     computed: {
         hoverPathStrokeWidth() {
-            if (this.item.shape === 'curve') {
+            if (this.item.shape === 'curve' || this.item.shape === 'connector') {
                 return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
             }
             return '0px';
@@ -233,6 +233,9 @@ export default {
                 if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
                     return 'none';
                 }
+            }
+            if (this.item.shape === 'connector') {
+                return 'none';
             }
             return 'rgba(255, 255, 255, 0)';
         },

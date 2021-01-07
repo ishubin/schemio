@@ -498,7 +498,7 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, ITEM_MODIFICATION_CONTEXT_MOVED);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
         this.reindexNeeded = true;
     }
 
@@ -523,7 +523,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
 
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, {
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             id: this.modificationContextId,
             moved: false,
             rotated: true,
@@ -621,7 +621,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.y = ny;
         this.multiItemEditBox.area.w = nw;
         this.multiItemEditBox.area.h = nh;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, {
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             moved: false,
             rotated: false,
             resized: true,
@@ -738,7 +738,7 @@ export default class StateDragItem extends State {
                 if (multiItemEditBox && (multiItemEditBox.items.length > 1 || !multiItemEditBox.items[0].locked)) {
                     multiItemEditBox.area.x += dx;
                     multiItemEditBox.area.y += dy;
-                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox, ITEM_MODIFICATION_CONTEXT_MOVED);
+                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
                 }
             });
         }

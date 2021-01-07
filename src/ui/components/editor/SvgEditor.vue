@@ -1315,7 +1315,7 @@ export default {
             forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
                 if (box !== null && box.items.length > 0) {
                     box.area.r = angle;
-                    this.schemeContainer.updateMultiItemEditBoxItems(box);
+                    this.schemeContainer.updateMultiItemEditBoxItems(box, false);
                 }
             });
         },

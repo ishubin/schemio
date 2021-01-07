@@ -183,6 +183,7 @@ function readjustItem(item, schemeContainer, isSoft, context) {
 }
 
 function readjustItemArea(item) {
+    log.info('readjustItemArea', item.id, item.name, {item});
     if (item.shapeProps.points.length < 1) {
         return;
     }
