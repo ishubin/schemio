@@ -103,8 +103,15 @@ export default class StateDragItem extends State {
                     return {dx, dy};
                 }
 
-                let snappedDx = dx;
-                let snappedDy = dy;
+                let snappedDx = this.snapToGrid(dx);
+                let snappedDy = this.snapToGrid(dy);
+
+                if (!this.store.state.snap.items) {
+                    return {
+                        dx: snappedDx,
+                        dy: snappedDy,
+                    }
+                }
 
                 //TODO configure snapping precision
                 const maxSnapProximity = 6;
@@ -643,8 +650,6 @@ export default class StateDragItem extends State {
         if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
             const projectionBottom = snapEdge(0, 0, 100, 0, bottomVector);
             const projectionRight = snapEdge(0, 0, 0, this.multiItemEditBoxOriginalArea.h, rightVector);
-            // const projectionBottom = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
-            // const projectionRight = this.snapX(dx * rightVector.x + dy * rightVector.y);
 
             nx = this.multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
             ny = this.multiItemEditBoxOriginalArea.y + projectionRight * rightVector.y + projectionBottom * bottomVector.y;
