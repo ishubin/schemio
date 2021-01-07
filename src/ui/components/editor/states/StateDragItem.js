@@ -632,6 +632,8 @@ export default class StateDragItem extends State {
     }
 
     handleControlPointDrag(x, y) {
+        StoreUtils.clearItemSnappers(this.store);
+
         const controlPoint = this.findItemControlPoint(this.controlPoint.id);
         if (controlPoint) {
             if (this.sourceItem.shape === 'curve' && this.sourceItem.shapeProps.connector && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {

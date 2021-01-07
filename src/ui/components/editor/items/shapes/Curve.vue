@@ -310,7 +310,13 @@ export default {
             const point = item.shapeProps.points[pointId];
             if (point) {
                 const worldPoint = schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
-                const localPoint = schemeContainer.localPointOnItem(snapper.snapX(worldPoint.x), snapper.snapY(worldPoint.y), item);
+
+                const newOffset = snapper.snapPoints({
+                    vertical: [worldPoint],
+                    horizontal: [worldPoint],
+                }, new Set(), 0, 0);
+
+                const localPoint = schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, item);
                 point.x = localPoint.x;
                 point.y = localPoint.y;
             }
