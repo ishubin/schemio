@@ -51,8 +51,9 @@ const store = new Vuex.Store({
             redoable: false
         },
 
-        grid: {
-            snap: settingsStorage.get('grid.snap', true)
+        snap: {
+            grid: settingsStorage.get('snap.grid', false),
+            items: settingsStorage.get('snap.items', true),
         },
 
         itemSurround: {
@@ -134,8 +135,12 @@ const store = new Vuex.Store({
         },
 
         SET_GRID_SNAP(state, enabled) {
-            state.grid.snap = enabled;
-            settingsStorage.save('grid.snap', enabled);
+            state.snap.grid = enabled;
+            settingsStorage.save('snap.grid', enabled);
+        },
+        SET_ITEM_SNAP(state, enabled) {
+            state.snap.items = enabled;
+            settingsStorage.save('snap.items', enabled);
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
@@ -231,6 +236,9 @@ const store = new Vuex.Store({
         setGridSnap({commit}, enabled) {
             commit('SET_GRID_SNAP', enabled);
         },
+        setItemSnap({commit}, enabled) {
+            commit('SET_ITEM_SNAP', enabled);
+        },
 
         setEditorStateName({commit}, stateName) {
             commit('SET_EDITOR_STATE_NAME', stateName);
@@ -281,6 +289,9 @@ const store = new Vuex.Store({
 
         horizontalSnapper: state => state.snappers.horizontal,
         verticalSnapper: state => state.snappers.vertical,
+
+        shouldSnapToGrid: state => state.snap.grid,
+        shouldSnapToItems: state => state.snap.items,
     }
 });
 

@@ -122,7 +122,7 @@ class State {
 
     snapToGrid(value) {
         const snap = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
-        if (this.store.state.grid.snap) {
+        if (this.store.state.snap.grid) {
             return Math.round(value / snap) * snap;
         }
         return value;

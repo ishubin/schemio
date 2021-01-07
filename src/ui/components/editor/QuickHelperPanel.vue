@@ -29,9 +29,14 @@
                         <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
                     <li>
-                        <span title="Snap to Grid" class="toggle-button" :class="{toggled: snapToGrid}" @click="toggleSnapToGrid()">
+                        <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="toggleSnapToGrid(!shouldSnapToGrid)">
                             <i class="fas fa-magnet"></i>
                             <i class="small-letter">G</i>
+                        </span>
+                    </li>
+                    <li>
+                        <span title="Snap to Items" class="toggle-button" :class="{toggled: shouldSnapToItems}" @click="toggleSnapToItems(!shouldSnapToItems)">
+                            <i class="fas fa-magnet"></i>
                         </span>
                     </li>
                 </ul>
@@ -179,8 +184,11 @@ export default {
     },
 
     methods: {
-        toggleSnapToGrid() {
-            this.$store.dispatch('setGridSnap', !this.$store.state.grid.snap);
+        toggleSnapToGrid(enabled) {
+            this.$store.dispatch('setGridSnap', enabled);
+        },
+        toggleSnapToItems(enabled) {
+            this.$store.dispatch('setItemSnap', enabled);
         },
 
         onItemSelectionChanged() {
@@ -279,8 +287,12 @@ export default {
             return this.$store.state.history.undoable;
         },
 
-        snapToGrid() {
-            return this.$store.state.grid.snap;
+        shouldSnapToGrid() {
+            return this.$store.getters.shouldSnapToGrid;
+        },
+
+        shouldSnapToItems() {
+            return this.$store.getters.shouldSnapToItems;
         },
 
         currentState() {
