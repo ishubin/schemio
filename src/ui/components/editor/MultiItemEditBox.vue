@@ -170,7 +170,7 @@ import StoreUtils from '../../store/StoreUtils';
 
 
 function isItemConnector(items) {
-    return items.length === 1 && items[0].shape === 'curve' && items[0].shapeProps.connector === true;
+    return items.length === 1 && items[0].shape === 'connector';
 }
 
 export default {
@@ -209,7 +209,7 @@ export default {
         shouldShowControlPoints() {
             if (this.editBox.items.length === 1) {
                 const item = this.editBox.items[0];
-                if (item.shape === 'curve' && !item.shapeProps.connector) {
+                if (item.shape === 'curve') {
                     return false;
                 }
                 return true;

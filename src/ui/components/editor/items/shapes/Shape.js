@@ -5,6 +5,7 @@ import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.js';
 import Link from './Link.vue';
 import Curve from './Curve.vue';
+import Connector from './Connector.vue';
 import Comment from './Comment.js';
 import FramePlayer from './FramePlayer.vue';
 import CodeBlock from './CodeBlock.vue';
@@ -136,6 +137,7 @@ const shapeRegistry = mapValues({
     comment: Comment,
     frame_player: FramePlayer,
     curve: Curve,
+    connector: Connector,
     link: Link,
     npoly: NPoly,
     bracket: Bracket,

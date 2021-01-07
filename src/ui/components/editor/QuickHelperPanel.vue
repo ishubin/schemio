@@ -83,11 +83,6 @@
                             height="16px"
                             @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                     </li>
-                </ul>
-                
-            </div>
-            <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
-                <ul class="button-group">
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
                             :value="curveSourceCap"
@@ -104,6 +99,11 @@
                             height="16px"
                             @selected="emitShapePropChange('destinationCap', 'curve-cap', arguments[0])"/>
                     </li>
+                </ul>
+                
+            </div>
+            <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
+                <ul class="button-group">
                     <li v-if="currentState === 'editCurve'">
                         <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
                     </li>
@@ -307,7 +307,7 @@ export default {
             if (this.$store.state.editorStateName === 'editCurve') {
                 return true;
             }
-            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'curve') {
+            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'curve') {
                 return true;
             }
             return false;

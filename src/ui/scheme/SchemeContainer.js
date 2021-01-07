@@ -202,7 +202,7 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.shape === 'curve') {
+            if (item.shape === 'connector') {
                 if (item.shapeProps.sourceItem) {
                     registerDependant(item.shapeProps.sourceItem, item.id);
                 }

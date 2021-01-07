@@ -1,12 +1,10 @@
 <template>
     <g>
-        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            fill="none"></path>
 
         <path v-for="cap in caps" :d="cap.path"
             :stroke="item.shapeProps.strokeColor"
@@ -19,7 +17,6 @@
 
 <script>
 import forEach from 'lodash/forEach';
-import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
@@ -29,7 +26,7 @@ import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import '../../../../typedef';
 
-const log = new Logger('Curve');
+const log = new Logger('Connector');
 
 
 function connectPoints(p1, p2) {
@@ -88,11 +85,6 @@ function computePath(item) {
         prevPoint = point;
     });
 
-    if (item.shapeProps.closed && item.shapeProps.points.length) {
-        path += connectPoints(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[0]);
-        path += ' Z';
-    }
-
     return path;
 };
 
@@ -100,6 +92,65 @@ function computePath(item) {
 const DST_READJUST_CTX = Symbol('dstReadjustCtx');
 const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
 
+/**
+ * @param {SchemeContainer} schemeContainer
+ * @param {Item} item
+ * @param {CurvePoint} curvePoint
+ * @param {String} attachmentItemSelector
+ * @param {Number} attachmentItemPosition
+ * @param {ItemModificationContext} context
+ * @param {Function} callback - function which is used to pass changed attachment item position
+ */
+function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, callback) {
+    const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
+    if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
+        const shadowSvgPath = computeOutlinePath(attachmentItem);
+        let oldPoint = null;
+        let worldOldPoint = null;
+        if (context && context.id) {
+            if (item.meta[DST_READJUST_CTX] && item.meta[DST_READJUST_CTX].id === context.id) {
+                oldPoint  = item.meta[DST_READJUST_CTX].oldPoint;
+                worldOldPoint  = item.meta[DST_READJUST_CTX].worldOldPoint;
+            } else {
+                oldPoint = curvePoint;
+                worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
+                item.meta[DST_READJUST_CTX] = { id: context.id, oldPoint, worldOldPoint };
+            }
+        } else {
+            oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+            worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
+        }
+        let destinationPoint = null;
+
+        let distanceOnPath = attachmentItemPosition;
+        
+        if (context && (context.rotated || context.resized)) {
+            const localToDestinationItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, attachmentItem);
+            const closestPointOnPath = myMath.closestPointOnPath(localToDestinationItemOldPoint.x, localToDestinationItemOldPoint.y, shadowSvgPath);
+
+            // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
+            distanceOnPath = closestPointOnPath.distance;
+
+            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, distanceOnPath, schemeContainer);
+            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+        } else {
+            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, attachmentItemPosition, schemeContainer);
+            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+        }
+        const newPoint = {
+            t: oldPoint.t,
+            x: destinationPoint.x,
+            y: destinationPoint.y,
+        };
+        if (oldPoint.t === 'B') {
+            newPoint.x1 = oldPoint.x1;
+            newPoint.y1 = oldPoint.y1;
+            newPoint.x2 = oldPoint.x2;
+            newPoint.y2 = oldPoint.y2;
+        }
+        callback(newPoint, distanceOnPath);
+    }
+}
 
 /**
  * @property {Item} item 
@@ -109,6 +160,20 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
  */
 function readjustItem(item, schemeContainer, isSoft, context) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context});
+
+    if (item.shapeProps.sourceItem) {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
+            item.shapeProps.points[0] = newPoint;
+            item.shapeProps.sourceItemPosition = newSourceItemPosition;
+        });
+    }
+
+    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
+            item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
+            item.shapeProps.destinationItemPosition = newDestinationItemPosition;
+        });
+    }
 
     if (!isSoft) {
         readjustItemArea(item);
@@ -161,7 +226,7 @@ function worldPointOnItem(x, y, item) {
 
 export default {
     props: ['item'],
-    components: {AdvancedFill},
+    components: {},
 
     shapeType: 'vue',
 
@@ -206,14 +271,54 @@ export default {
         description: 'rich',
     },
 
-    controlPoints: null,
+    controlPoints: {
+        make(item, pointId) {
+            if (!pointId) {
+                const controlPoints = {};
+                forEach(item.shapeProps.points, (point, pointIndex) => {
+                    controlPoints[pointIndex] = {x: point.x, y: point.y, isEdgeStart: pointIndex === 0, isEdgeEnd: pointIndex === item.shapeProps.points.length - 1};
+                });
+                return controlPoints;
+            } else {
+                const pId = parseInt(pointId);
+                if (item.shapeProps.points[pointId]) {
+                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y, isEdgeStart: pId === 0, isEdgeEnd: pId === item.shapeProps.points.length - 1};
+                }
+            }
+        },
+        /**
+         * @param {Item} item
+         * @param {String} pointId
+         * @param {Number} originalX
+         * @param {Number} originaly
+         * @param {Number} dx
+         * @param {Number} dy
+         * @param {Snapper} snapper
+         * @param {SchemeContainer} schemeContainer
+         */
+        handleDrag(item, pointId, originalX, originalY, dx, dy, snapper, schemeContainer) {
+            const point = item.shapeProps.points[pointId];
+            if (point) {
+                const worldPoint = schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
+
+                const newOffset = snapper.snapPoints({
+                    vertical: [worldPoint],
+                    horizontal: [worldPoint],
+                }, new Set(), 0, 0);
+
+                const localPoint = schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, item);
+                point.x = localPoint.x;
+                point.y = localPoint.y;
+            }
+        }
+    },
+
 
     args: {
         fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
         strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
         strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
         strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-        closed            : {type: 'boolean',       value: false, name: 'Closed path'},
         points            : {type: 'curve-points',  value: [], name: 'Curve points'},
         sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
         sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
@@ -221,6 +326,11 @@ export default {
         destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
         destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
         destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+
+        sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
+        destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
+        sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+        destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
     },
 
     mounted() {
@@ -331,10 +441,6 @@ export default {
     computed: {
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-        },
-
-        fill() {
-            return AdvancedFill.computeStandardFill(this.item);
         }
     }
 }

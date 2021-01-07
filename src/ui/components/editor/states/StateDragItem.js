@@ -443,7 +443,7 @@ export default class StateDragItem extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            if (object.item.shape === 'curve' && !object.item.shapeProps.connector) {
+            if (object.item.shape === 'curve') {
                 this.eventBus.emitCurveEdited(object.item);
             } else {
                 this.findTextSlotAndEmitInPlaceEdit(object.item, x, y)
@@ -636,7 +636,7 @@ export default class StateDragItem extends State {
 
         const controlPoint = this.findItemControlPoint(this.controlPoint.id);
         if (controlPoint) {
-            if (this.sourceItem.shape === 'curve' && this.sourceItem.shapeProps.connector && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
+            if (this.sourceItem.shape === 'connector' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
                 this.handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint);
             } else {
                 const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
