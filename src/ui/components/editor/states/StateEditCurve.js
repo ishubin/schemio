@@ -314,6 +314,8 @@ export default class StateEditCurve extends State {
             return;
         }
 
+        StoreUtils.clearItemSnappers(this.store);
+
         if (this.addedToScheme && this.creatingNewPoints) {
             const pointIndex = this.item.shapeProps.points.length - 1;
             const point = this.item.shapeProps.points[pointIndex];
@@ -423,6 +425,7 @@ export default class StateEditCurve extends State {
         this.draggedObject = null;
         this.originalCurvePoints = null;
 
+        StoreUtils.clearItemSnappers(this.store);
         this.softReset();
     }
 
@@ -668,8 +671,14 @@ export default class StateEditCurve extends State {
 
     snapCurvePoint(localX, localY) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
-        const snappedWorldX = this.snapX(worldCurvePoint.x);
-        const snappedWorldY = this.snapY(worldCurvePoint.y);
+
+        const newOffset = this.snapPoints({
+            vertical: [worldCurvePoint],
+            horizontal: [worldCurvePoint]
+        }, new Set(), 0, 0);
+
+        const snappedWorldX = worldCurvePoint.x + newOffset.dx;
+        const snappedWorldY = worldCurvePoint.y + newOffset.dy;
 
         return this.schemeContainer.localPointOnItem(snappedWorldX, snappedWorldY, this.item);
     }
