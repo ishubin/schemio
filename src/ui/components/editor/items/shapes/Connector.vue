@@ -197,12 +197,6 @@ function readjustItemArea(item) {
         minY = Math.min(minY, point.y + item.area.y);
         maxX = Math.max(maxX, point.x + item.area.x);
         maxY = Math.max(maxY, point.y + item.area.y);
-        if (point.t === 'B') {
-            minX = Math.min(minX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
-            minY = Math.min(minY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
-            maxX = Math.max(maxX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
-            maxY = Math.max(maxY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
-        }
     });
 
     const dx = item.area.x - minX;

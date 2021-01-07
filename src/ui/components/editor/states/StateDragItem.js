@@ -13,6 +13,7 @@ import '../../../typedef';
 import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
+import { Store } from 'express-session';
 
 const log = new Logger('StateDragItem');
 
@@ -385,6 +386,10 @@ export default class StateDragItem extends State {
             }
             this.schemeContainer.reindexItems();
         }
+
+        if (this.sourceItem) {
+            StoreUtils.setItemControlPoints(this.store, this.sourceItem);
+        }
         this.reset();
     }
 
@@ -645,12 +650,12 @@ export default class StateDragItem extends State {
 
                 const shape = Shape.find(this.sourceItem.shape);
                 shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
-
-                // updating all control points as they might affect one another
-                StoreUtils.setItemControlPoints(this.store, this.sourceItem);
                 
                 this.eventBus.emitItemChanged(this.sourceItem.id);
                 this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+
+                // updating all control points as they might affect one another
+                StoreUtils.setItemControlPoints(this.store, this.sourceItem);
                 this.reindexNeeded = true;
                 this.lastDraggedItem = this.sourceItem;
             }
