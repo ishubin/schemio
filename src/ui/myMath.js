@@ -35,6 +35,10 @@ export default {
         return value;
     },
 
+    distanceBetweenPoints(x1, y1, x2, y2) {
+        return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
+    },
+
     /**
      * Generates line equation in form of ax + by + c = 0 which intersects given two points
      * returns an object with a, b, c parameters

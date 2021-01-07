@@ -29,17 +29,6 @@ import '../../../../typedef';
 const log = new Logger('Connector');
 
 
-function connectPoints(p1, p2) {
-    if (p1.t === 'L' && p2.t === 'B') {
-        return `Q ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
-    } else if (p1.t === 'B' && p2.t === 'L') {
-        return `Q ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x} ${p2.y} `;
-    } else if (p1.t === 'B' && p2.t === 'B') {
-        return `C ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
-    }
-    return `L ${p2.x} ${p2.y} `;
-}
-
 /**
  * Computes item outline path and return a shadow svg path for it
  * @returns {SVGPathElement}
@@ -66,23 +55,97 @@ function getPointOnItemPath(item, shadowSvgPath, positionOnPath, schemeContainer
     return schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
 }
 
+function computeSmoothPath(item) {
+    const points = item.shapeProps.points;
+
+    // special situation, it is easier to handle it separately
+    if (points.length === 2 && item.shapeProps.sourceItem && item.shapeProps.destinationItem
+         && typeof points[0].bx !== 'undefined' && typeof points[1].bx !== 'undefined') {
+
+        const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
+        return `M ${points[0].x} ${points[0].x} `
+            +`C ${points[0].x + k * points[0].bx} ${points[0].y + k * points[0].by}`
+            + ` ${points[1].x + k * points[1].bx}  ${points[1].y + k * points[1].by}`
+            + ` ${points[1].x} ${points[1].y}`
+    }
+
+    let path = '';
+    let previousPoint = null;
+
+    const vectors = [];
+    forEach(item.shapeProps.points, (point, i) => {
+        if (i > 0 && i < item.shapeProps.points.length - 1) {
+            const prevPoint = item.shapeProps.points[i - 1];
+            const nextPoint = item.shapeProps.points[i + 1];
+            // temp divide by 4
+            let x = (nextPoint.x - prevPoint.x) / 4;
+            let y = (nextPoint.y - prevPoint.y) / 4;
+            const d = Math.sqrt(x*x + y*y);
+            if (d > 0.00001) {
+                x = x / d;
+                y = y / d;
+            }
+            vectors[i] = {x, y};
+        }
+    });
+
+    forEach(points, (point, i) => {
+        if (i === 0) {
+            path = `M ${point.x} ${point.y} `;
+
+        } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.bx !== 'undefined') {
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            let vx = 0;
+            let vy = 0;
+            if (i < points.length - 1) {
+                vx = vectors[i].x;
+                vy = vectors[i].y;
+            }
+            path += ` C ${previousPoint.x + k * previousPoint.bx} ${previousPoint.y + k * previousPoint.by} ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
+
+        } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.bx !== 'undefined') {
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            let vx = 0;
+            let vy = 0;
+            if (i > 1) {
+                vx = vectors[i-1].x;
+                vy = vectors[i-1].y;
+            }
+            path += ` C ${previousPoint.x + k * vx} ${previousPoint.y + k *vy}  ${point.x + k*point.bx} ${point.y + k*point.by} ${point.x} ${point.y}`;
+
+        } else if (i > 1 && i < points.length - 1) {
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            let pvx = vectors[i - 1].x;
+            let pvy = vectors[i - 1].y;
+            let vx = vectors[i].x;
+            let vy = vectors[i].y;
+
+            path += ` C ${previousPoint.x + k * pvx} ${previousPoint.y + k * pvy}  ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
+        } else {
+            path += ` L ${point.x} ${point.y} `;
+        }
+        previousPoint = point;
+    });
+
+    return path;
+}
+
 function computePath(item) {
     if (item.shapeProps.points.length < 2) {
         return null;
     }
-    let path = 'M 0 0';
 
-    let prevPoint = null;
+    if (item.shapeProps.smoothing === 'smooth') {
+        return computeSmoothPath(item);
+    }
 
-    forEach(item.shapeProps.points, point => {
-        if (!prevPoint) {
+    let path = '';
+    forEach(item.shapeProps.points, (point, i) => {
+        if (i === 0) {
             path = `M ${point.x} ${point.y} `;
-        } else if (!point.break) {
-            path += connectPoints(prevPoint, point);
         } else {
-            path += `M ${point.x} ${point.y} `;
+            path += ` L ${point.x} ${point.y} `;
         }
-        prevPoint = point;
     });
 
     return path;
@@ -142,13 +205,7 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             x: destinationPoint.x,
             y: destinationPoint.y,
         };
-        if (oldPoint.t === 'B') {
-            newPoint.x1 = oldPoint.x1;
-            newPoint.y1 = oldPoint.y1;
-            newPoint.x2 = oldPoint.x2;
-            newPoint.y2 = oldPoint.y2;
-        }
-        callback(newPoint, distanceOnPath);
+        callback(newPoint, distanceOnPath, shadowSvgPath);
     }
 }
 
@@ -162,16 +219,63 @@ function readjustItem(item, schemeContainer, isSoft, context) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context});
 
     if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition, svgPath) => {
             item.shapeProps.points[0] = newPoint;
             item.shapeProps.sourceItemPosition = newSourceItemPosition;
+            // trying to calculate perpendicular vector which will be used in connector smoothing
+
+            let leftPosition = newSourceItemPosition - 2;
+            if (leftPosition < 0) {
+                leftPosition = svgPath.getTotalLength() - leftPosition;
+            }
+            const pointA = svgPath.getPointAtLength(leftPosition);
+            const totalLength = svgPath.getTotalLength();
+            const rightPosition = (newSourceItemPosition + 2) % totalLength;
+            const pointB = svgPath.getPointAtLength(rightPosition);
+
+            let vx = pointB.x - pointA.x;
+            let vy = pointB.y - pointA.y; 
+            const d = Math.sqrt(vx*vx + vy*vy);
+            if (d > 0.0001) {
+                //normalize vector
+                vx = vx / d;
+                vy = vy / d;
+            }
+
+            // here we are rotating the vector by 90 degrees
+            item.shapeProps.points[0].bx = vy;
+            item.shapeProps.points[0].by = -vx;
         });
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition, svgPath) => {
             item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
             item.shapeProps.destinationItemPosition = newDestinationItemPosition;
+
+            // trying to calculate perpendicular vector which will be used in connector smoothing
+
+            let leftPosition = newDestinationItemPosition - 2;
+            if (leftPosition < 0) {
+                leftPosition = svgPath.getTotalLength() - leftPosition;
+            }
+            const pointA = svgPath.getPointAtLength(leftPosition);
+            const totalLength = svgPath.getTotalLength();
+            const rightPosition = (newDestinationItemPosition + 2) % totalLength;
+            const pointB = svgPath.getPointAtLength(rightPosition);
+
+            let vx = pointB.x - pointA.x;
+            let vy = pointB.y - pointA.y; 
+            const d = Math.sqrt(vx*vx + vy*vy);
+            if (d > 0.0001) {
+                //normalize vector
+                vx = vx / d;
+                vy = vy / d;
+            }
+
+            // here we are rotating the vector by 90 degrees
+            item.shapeProps.points[item.shapeProps.points.length - 1].bx = vy;
+            item.shapeProps.points[item.shapeProps.points.length - 1].by = -vx;
         });
     }
 
@@ -321,6 +425,8 @@ export default {
         destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
         destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
         destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+
+        smoothing         : {type: 'choice',        value: 'linear', options: ['linear', 'smooth'], name: 'Smoothing Type'},
 
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},

@@ -574,7 +574,7 @@ export default class StateDragItem extends State {
 
         // dirty hack as dragging of top left edge is special
         if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
-            const projectionBottom = snapEdge(0, 0, 100, 0, bottomVector);
+            const projectionBottom = snapEdge(0, 0, this.multiItemEditBoxOriginalArea.w, 0, bottomVector);
             const projectionRight = snapEdge(0, 0, 0, this.multiItemEditBoxOriginalArea.h, rightVector);
 
             nx = this.multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
@@ -587,7 +587,7 @@ export default class StateDragItem extends State {
         } else {
             forEach(draggerEdges, edge => {
                 if (edge === 'top') {
-                    const projection = snapEdge(0, 0, 100, 0, bottomVector);
+                    const projection = snapEdge(0, 0, this.multiItemEditBoxOriginalArea.w, 0, bottomVector);
                     nx = this.multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
                     ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
                     nh = this.multiItemEditBoxOriginalArea.h - projection;
