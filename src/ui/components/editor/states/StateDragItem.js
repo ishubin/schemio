@@ -628,28 +628,31 @@ export default class StateDragItem extends State {
                 nh = 0;
             }
         } else {
+            const snapEdge = (x1, y1, x2, y2, vector) => {
+                const p0 = myMath.worldPointInArea(x1, y1, this.multiItemEditBoxOriginalArea);
+                const p1 = myMath.worldPointInArea(x2, y2, this.multiItemEditBoxOriginalArea);
+                let snappingType = null;
+                if (myMath.sameFloatingValue(p0.x, p1.x)) {
+                    snappingType = 'vertical';
+                } else if (myMath.sameFloatingValue(p0.y, p1.y)) {
+                    snappingType = 'horizontal';
+                }
+
+                let projection = dx * vector.x + dy * vector.y;
+                if (snappingType) {
+                    const snappingPoints = {};
+                    snappingPoints[snappingType] = [p0];
+
+                    // calculating the real absolute dx and dy of points
+                    const newOffset = this.snapper.snapPoints(snappingPoints, this.multiItemEditBox.itemIds, projection * vector.x, projection * vector.y);
+                    projection = newOffset.dx * vector.x + newOffset.dy * vector.y;
+                }
+                return projection
+            };
+
             forEach(draggerEdges, edge => {
                 if (edge === 'top') {
-                    const p0 = myMath.worldPointInArea(0, 0, this.multiItemEditBoxOriginalArea);
-                    const p1 = myMath.worldPointInArea(100, 0, this.multiItemEditBoxOriginalArea);
-                    let snappingType = null;
-                    if (myMath.sameFloatingValue(p0.x, p1.x)) {
-                        snappingType = 'vertical';
-                    } else if (myMath.sameFloatingValue(p0.y, p1.y)) {
-                        snappingType = 'horizontal';
-                    }
-
-                    let projection = dx * bottomVector.x + dy * bottomVector.y;
-                    if (snappingType) {
-                        const snappingPoints = {};
-                        snappingPoints[snappingType] = [p0];
-                        console.log('Snapping it', snappingType);
-
-                        // calculating the real absolute dx and dy of points
-                        const newOffset = this.snapper.snapPoints(snappingPoints, this.multiItemEditBox.itemIds, projection * bottomVector.x, projection * bottomVector.y);
-                        projection = newOffset.dx * bottomVector.x + newOffset.dy * bottomVector.y;
-                    }
-
+                    const projection = snapEdge(0, 0, 100, 0, bottomVector);
                     nx = this.multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
                     ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
                     nh = this.multiItemEditBoxOriginalArea.h - projection;
@@ -657,13 +660,13 @@ export default class StateDragItem extends State {
                         nh = 0;
                     }
                 } else if (edge === 'bottom') {
-                    const projection = this.snapX(dx * bottomVector.x + dy * bottomVector.y);
+                    const projection = snapEdge(0, this.multiItemEditBoxOriginalArea.h, this.multiItemEditBoxOriginalArea.w, this.multiItemEditBoxOriginalArea.h, bottomVector);
                     nh = this.multiItemEditBoxOriginalArea.h + projection;
                     if (nh < 0) {
                         nh = 0;
                     }
                 } else if (edge === 'left') {
-                    const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
+                    const projection = snapEdge(0, 0, 0, this.multiItemEditBoxOriginalArea.h, rightVector);
                     nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
                     ny = this.multiItemEditBoxOriginalArea.y + projection * rightVector.y;
                     nw = this.multiItemEditBoxOriginalArea.w - projection;
@@ -671,7 +674,7 @@ export default class StateDragItem extends State {
                         nw = 0;
                     }
                 } else if (edge === 'right') {
-                    const projection = this.snapX(dx * rightVector.x + dy * rightVector.y);
+                    const projection = snapEdge(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea.w, this.multiItemEditBoxOriginalArea.h, rightVector);
                     nw = this.multiItemEditBoxOriginalArea.w + projection;
                     if (nw < 0) {
                         nw = 0;
