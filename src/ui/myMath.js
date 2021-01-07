@@ -10,6 +10,21 @@ const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 20;
 
 export default {
+    
+    /**
+     * Checks whether two float values are considered to be the same within specified precision
+     * @param {Number} a 
+     * @param {Number} b 
+     * @param {Number} precision Precision to which it should defined two values as "same". If not specified a default of 0.0001 will be used
+     * @returns {Boolean} true if a is the same as b
+     */
+    sameFloatingValue(a, b, precision) {
+        if (typeof precision === 'undefined' || precision === null) {
+            precision = 0.0001;
+        }
+        return Math.abs(a - b) < precision;
+    },
+
     clamp(value, min, max) {
         if (value < min) {
             return min;
