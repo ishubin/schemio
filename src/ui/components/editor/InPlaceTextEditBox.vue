@@ -52,12 +52,9 @@ export default {
 
         generateStyle(cssStyle) {
             const editorCssStyle = utils.clone(cssStyle);
-            let scale = 1.0
-            if (this.item.area.type !== 'viewport') {
-                scale = this.zoom;
-                editorCssStyle.transform = `scale(${this.zoom})`;
-                editorCssStyle['transform-origin'] = 'top left';
-            }
+            let scale = this.zoom;
+            editorCssStyle.transform = `scale(${this.zoom})`;
+            editorCssStyle['transform-origin'] = 'top left';
 
             if (this.item.area.w > 20) {
                 editorCssStyle.width = `${this.area.w/scale}px`;

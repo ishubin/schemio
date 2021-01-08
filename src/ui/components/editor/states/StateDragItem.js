@@ -287,11 +287,8 @@ export default class StateDragItem extends State {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
         
-        if (this.schemeContainer.multiItemEditBoxes.relative && this.schemeContainer.multiItemEditBoxes.relative.itemData[item.id]) {
-            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBoxes.relative, x, y);
-        }
-        if (this.schemeContainer.multiItemEditBoxes.viewport && this.schemeContainer.multiItemEditBoxes.viewport.itemData[item.id]) {
-            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBoxes.viewport, x, y);
+        if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.itemData[item.id]) {
+            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBox, x, y);
         }
     }
 
@@ -381,7 +378,7 @@ export default class StateDragItem extends State {
                 this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
 
                 if (this.lastDraggedItem.shape === 'curve' && this.controlPoint) {
-                    this.schemeContainer.updateAllMultiItemEditBoxes();
+                    this.schemeContainer.updateMultiItemEditBox();
                 }
             }
             this.schemeContainer.reindexItems();
@@ -432,11 +429,7 @@ export default class StateDragItem extends State {
             for(let i = 0; i < points.length && isInArea; i++) {
                 const wolrdPoint = this.schemeContainer.worldPointOnItem(points[i].x, points[i].y, item);
 
-                if (item.area.type === 'viewport') {
-                    isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, viewportBox);
-                } else {
-                    isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
-                }
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
             }
 
             if (isInArea) {
@@ -510,12 +503,7 @@ export default class StateDragItem extends State {
         }
 
         const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
-        let angleDegrees = 0;
-        if (this.multiItemEditBox.transformType === 'viewport') {
-            angleDegrees = this.calculateRotatedAngle(mx, my, this.originalPoint.mx, this.originalPoint.my, center.x, center.y, event);
-        } else {
-            angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
-        }
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
         const angle = angleDegrees * Math.PI / 180;
 
         const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
@@ -679,7 +667,7 @@ export default class StateDragItem extends State {
             return;
         }
 
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems, this.sourceItem.area.type);
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems);
         
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
@@ -734,13 +722,12 @@ export default class StateDragItem extends State {
     dragItemsByKeyboard(dx, dy) {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
-            forEach(this.schemeContainer.multiItemEditBoxes, multiItemEditBox => {
-                if (multiItemEditBox && (multiItemEditBox.items.length > 1 || !multiItemEditBox.items[0].locked)) {
-                    multiItemEditBox.area.x += dx;
-                    multiItemEditBox.area.y += dy;
-                    this.schemeContainer.updateMultiItemEditBoxItems(multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
-                }
-            });
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box && (box.items.length > 1 || !box.items[0].locked)) {
+                box.area.x += dx;
+                box.area.y += dy;
+                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+            }
         }
     }
 

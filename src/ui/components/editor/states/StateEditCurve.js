@@ -91,7 +91,7 @@ export default class StateEditCurve extends State {
             }
         } else {
             this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT);
-            this.schemeContainer.updateAllMultiItemEditBoxes();
+            this.schemeContainer.updateMultiItemEditBox();
         }
         super.cancel();
     }
@@ -119,7 +119,7 @@ export default class StateEditCurve extends State {
         let curveItem = {
             shape: 'connector',
             name: `${sourceItem.name} :: `,
-            area: {x: 0, y: 0, w: 200, h: 200, r: 0, type: sourceItem.area.type},
+            area: {x: 0, y: 0, w: 200, h: 200, r: 0},
             shapeProps: { }
         };
         enrichItemWithDefaults(curveItem);
@@ -212,11 +212,6 @@ export default class StateEditCurve extends State {
 
 
     mouseDoubleClick(x, y, mx, my, object, event) {
-        if (this.item.area.type === 'viewport') {
-            x = mx;
-            y = my;
-        }
-
         if (this.creatingNewPoints) {
             return;
         }
@@ -227,11 +222,6 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
-        if (this.item.area.type === 'viewport') {
-            x = mx;
-            y = my;
-        }
-
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
         this.originalClickPoint.mx = mx;
@@ -301,10 +291,6 @@ export default class StateEditCurve extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        if (this.item.area.type === 'viewport') {
-            x = mx;
-            y = my;
-        }
         this.wasMouseMoved = true;
 
         if (this.shouldDragScreen && this.startedDraggingScreen) {
@@ -383,11 +369,6 @@ export default class StateEditCurve extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (this.item.area.type === 'viewport') {
-            x = mx;
-            y = my;
-        }
-
         this.eventBus.emitItemsHighlighted([]);
 
 
@@ -702,7 +683,7 @@ export default class StateEditCurve extends State {
         }
 
         const includeOnlyVisibleItems = true;
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems, this.item.area.type);
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
 
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
@@ -808,15 +789,7 @@ export default class StateEditCurve extends State {
 
         forEach(this.item.shapeProps.points, (point, pointId) => {
             const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
-            
-            let isInArea = false;
-            if (this.item.area.type === 'viewport') {
-                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, viewportBox);
-            } else {
-                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
-            }
-
-            if (isInArea) {
+            if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
                 StoreUtils.selectCurveEditPoint(this.store, pointId, true);
             }
         });

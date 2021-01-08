@@ -18,7 +18,6 @@
         <position-panel v-if="currentTab === 'position'"
             :key="`position-panel-${item.id}`"
             :item="item"
-            @item-transform-type-changed="onItemTransformTypeChanged"
             @item-area-changed="onItemAreaChanged"
             />
 
@@ -326,49 +325,10 @@ export default {
         },
 
         onItemAreaChanged(propertyPath) {
-            this.schemeContainer.updateAllMultiItemEditBoxes();
+            this.schemeContainer.updateMultiItemEditBox();
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
         },
-
-        onItemTransformTypeChanged(areaType) {
-            if (this.item.area.type === areaType) {
-                return;
-            }
-
-            let screenPoint = null;
-            const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, this.item);
-            if (this.item.area.type === 'viewport') {
-                screenPoint = worldPoint;
-            } else {
-                screenPoint = myMath.worldPointToViewport(this.schemeContainer.screenTransform, worldPoint.x, worldPoint.y);
-            }
-
-            // Since item transform has changed we need to make sure it is not attached to items with other transform
-            if (this.item.meta && this.item.meta.parentId) {
-                const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
-                if (parentItem && parentItem.area.type !== this.item.area.type) {
-                    this.schemeContainer.remountItemToRoot(this.item.id);
-                }
-            }
-
-            this.item.area.type = areaType;
-
-            // now recalculating item new position so that it stays on the same place in screen
-            if (areaType === 'viewport') {
-                this.item.area.x = screenPoint.x;
-                this.item.area.y = screenPoint.y;
-            } else {
-                const recalculatedWorldPoint = myMath.viewportPointToWorld(this.schemeContainer.screenTransform, screenPoint.x, screenPoint.y);
-                this.item.area.x = recalculatedWorldPoint.x;
-                this.item.area.y = recalculatedWorldPoint.y;
-            }
-
-            // need to preform a full reindex since item was moved in/out viewport/world coords
-            this.schemeContainer.reindexItems();
-            this.schemeContainer.updateAllMultiItemEditBoxes();
-            EventBus.emitItemChanged(this.item.id, 'area.type');
-        }
     },
 
     watch: {

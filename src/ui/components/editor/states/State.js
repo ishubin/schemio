@@ -92,7 +92,6 @@ class State {
      */
     dragScreenTo(sx, sy) {
         // getting bounding box of items in relative transform
-        // viewport items should be ignored
         const bbox = this.schemeContainer.screenSettings.boundingBox;
         const scale = this.schemeContainer.screenTransform.scale;
 

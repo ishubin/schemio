@@ -40,14 +40,6 @@
                 </tr>
             </tbody>
         </table>
-
-
-        <br/>
-        <span class="property-label">Type:</span>
-        <select v-model="type">
-            <option v-for="knownType in knownTypes">{{knownType}}</option>
-        </select>
-
     </panel>
 </template>
 
@@ -75,11 +67,7 @@ export default {
             w: this.item.area.w,
             h: this.item.area.h,
             r: this.item.area.r,
-            type: this.item.area.type,
-
             itemLocked: this.item.locked || false,
-
-            knownTypes: ['relative', 'viewport']
         };
     },
 
@@ -95,7 +83,6 @@ export default {
             this.w = this.item.area.w;
             this.h = this.item.area.h;
             this.r = this.item.area.r;
-            this.type = this.item.area.type;
         },
 
         updateAreaProperty(propertyName, value) {
@@ -103,12 +90,6 @@ export default {
             this.$emit('item-area-changed', `area.${propertyName}`);
         }
     },
-
-    watch: {
-        type(text) {
-            this.$emit('item-transform-type-changed', text);
-        }
-    }
 }
 </script>
 

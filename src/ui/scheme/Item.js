@@ -70,7 +70,7 @@ function enrichItemWithStandardShapeProps(item) {
 }
 
 const defaultItemDefinition = {
-    area: {x:0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
+    area: {x:0, y: 0, w: 0, h: 0, r: 0},
     opacity: 100,
     selfOpacity: 100,
     visible: true,
@@ -128,7 +128,7 @@ export function enrichItemWithDefaults(item) {
 
 export const defaultItem = {
     cursor: 'default',
-    area: {x: 0, y: 0, w: 0, h: 0, r: 0, type: 'relative'},
+    area: {x: 0, y: 0, w: 0, h: 0, r: 0},
     shape: 'empty',
     opacity: 100.0,
     blendMode: 'normal',

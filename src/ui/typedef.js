@@ -21,7 +21,6 @@
  * @property {number} w - width
  * @property {number} h - height
  * @property {number} r - rotation in degrees
- * @property {string} type - type of transform: 'relative' or 'viewport'
  */
 
 
@@ -42,7 +41,6 @@
  * @property {Area}  area  - area of edit box
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
- * @property {String} transformType - type of transform: relative or viewport
  */
 
 

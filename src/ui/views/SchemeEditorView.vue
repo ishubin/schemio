@@ -463,16 +463,13 @@ export default {
         },
 
         zoomToItems(items) {
-            if (!items) {
+            if (!items || items.length === 0) {
                 return;
             }
 
-            const zoomableItems = filter(items, item => item.area.type !== 'viewport');
-            if (zoomableItems.length > 0) {
-                let area = this.schemeContainer.getBoundingBoxOfItems(zoomableItems);
-                if (area) {
-                    EventBus.$emit(EventBus.BRING_TO_VIEW, area);
-                }
+            let area = this.schemeContainer.getBoundingBoxOfItems(items);
+            if (area) {
+                EventBus.$emit(EventBus.BRING_TO_VIEW, area);
             }
         },
 
@@ -541,13 +538,8 @@ export default {
 
         onClickedStartConnecting(sourceItem, x, y, mouseX, mouseY) {
             const point = { x: 0, y: 0 };
-            if (sourceItem.area.type === 'viewport') {
-                point.x = mouseX;
-                point.y = mouseY;
-            } else {
-                point.x = x;
-                point.y = y;
-            }
+            point.x = x;
+            point.y = y;
             EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem, point);
         },
 

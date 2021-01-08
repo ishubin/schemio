@@ -93,7 +93,6 @@ class SchemeContainer {
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
         this.revision = 0;
-        this.viewportItems = []; // used for storing top-level items that are supposed to be located within viewport (ignore offset and zoom)
         this.worldItems = []; // used for storing top-level items with default area
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
@@ -109,12 +108,9 @@ class SchemeContainer {
         // Used for calculating closest point to svg path
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
 
-        // Used to drag, resize and rotate multiple items in two transforms: relative and viewport
+        // Used to drag, resize and rotate multiple items
         // Since both the SvgEditor component and StateDragItem state needs access to it, it is easier to keep it here
-        this.multiItemEditBoxes = {
-            relative: null,
-            viewport: null
-        };
+        this.multiItemEditBox = null;
 
         enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
@@ -150,7 +146,6 @@ class SchemeContainer {
         //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
         this.itemMap = {};
         this._itemArray = [];
-        this.viewportItems = [];
         this.worldItems = [];
         this._itemGroupsToIds = {};
         this.relativeSnappers.horizontal = [];
@@ -189,11 +184,7 @@ class SchemeContainer {
 
             // only storing top-level items 
             if (!parentItem) {
-                if (item.area.type === 'viewport') {
-                    this.viewportItems.push(item);
-                } else {
-                    this.worldItems.push(item);
-                }
+                this.worldItems.push(item);
             }
 
             if (item.id) {
@@ -217,19 +208,15 @@ class SchemeContainer {
             item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
 
             // generating item snappers
-            //TODO check also that root item is in relative transform
-
-            if (item.area.type === 'relative') {
-                const itemSnappers = this.generateItemSnappers(item);
-                if (itemSnappers) {
-                    forEach(itemSnappers, itemSnapper => {
-                        if (itemSnapper.snapperType === 'horizontal') {
-                            this.relativeSnappers.horizontal.push(itemSnapper);
-                        } else if (itemSnapper.snapperType === 'vertical') {
-                            this.relativeSnappers.vertical.push(itemSnapper);
-                        }
-                    });
-                }
+            const itemSnappers = this.generateItemSnappers(item);
+            if (itemSnappers) {
+                forEach(itemSnappers, itemSnapper => {
+                    if (itemSnapper.snapperType === 'horizontal') {
+                        this.relativeSnappers.horizontal.push(itemSnapper);
+                    } else if (itemSnapper.snapperType === 'vertical') {
+                        this.relativeSnappers.vertical.push(itemSnapper);
+                    }
+                });
             }
         });
 
@@ -358,9 +345,8 @@ class SchemeContainer {
      * @param {Number} d - maximum distance to items path
      * @param {String} excludedId - item that should be excluded
      * @param {Boolean} onlyVisibleItems - specifies whether it should check only items that are visible
-     * @param {String} areaType - if specified it will only check items in given type of placement: viewport or relative
      */
-    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems, areaType) {
+    findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
         let globalPoint = {x, y};
         let item = null;
@@ -373,9 +359,6 @@ class SchemeContainer {
             
             if (onlyVisibleItems) {
                 doCheckItem = doCheckItem && item.meta.calculatedVisibility;
-            }
-            if (areaType) {
-                doCheckItem = doCheckItem && item.area.type === areaType;
             }
 
             if (doCheckItem) {
@@ -410,39 +393,37 @@ class SchemeContainer {
         let range = null;
 
         forEach(items, item => {
-            if (item.area.type !== 'viewport') {
-                const points = [
-                    this.worldPointOnItem(0, 0, item),
-                    this.worldPointOnItem(item.area.w, 0, item),
-                    this.worldPointOnItem(item.area.w, item.area.h, item),
-                    this.worldPointOnItem(0, item.area.h, item),
-                ];
+            const points = [
+                this.worldPointOnItem(0, 0, item),
+                this.worldPointOnItem(item.area.w, 0, item),
+                this.worldPointOnItem(item.area.w, item.area.h, item),
+                this.worldPointOnItem(0, item.area.h, item),
+            ];
 
-                forEach(points, point => {
-                    if (!range) {
-                        range = {
-                            x1: point.x,
-                            x2: point.x,
-                            y1: point.y,
-                            y2: point.y,
-                        }
-                    } else {
-                        if (range.x1 > point.x) {
-                            range.x1 = point.x;
-                        }
-                        if (range.x2 < point.x) {
-                            range.x2 = point.x;
-                        }
-                        if (range.y1 > point.y) {
-                            range.y1 = point.y;
-                        }
-                        if (range.y2 < point.y) {
-                            range.y2 = point.y;
-                        }
+            forEach(points, point => {
+                if (!range) {
+                    range = {
+                        x1: point.x,
+                        x2: point.x,
+                        y1: point.y,
+                        y2: point.y,
                     }
-                });
-            }
-        }) ;
+                } else {
+                    if (range.x1 > point.x) {
+                        range.x1 = point.x;
+                    }
+                    if (range.x2 < point.x) {
+                        range.x2 = point.x;
+                    }
+                    if (range.y1 > point.y) {
+                        range.y1 = point.y;
+                    }
+                    if (range.y2 < point.y) {
+                        range.y2 = point.y;
+                    }
+                }
+            });
+        });
 
         const schemeBoundaryBox = {
             x: range.x1,
@@ -548,10 +529,6 @@ class SchemeContainer {
         if (otherItemId) {
             otherItem = this.findItemById(otherItemId);
             if (!otherItem) {
-                return;
-            }
-            if (item.area.type !== otherItem.area.type) {
-                // not allowing viewport items to be remounted to relative
                 return;
             }
         }
@@ -699,8 +676,7 @@ class SchemeContainer {
             });
 
             this.selectedItems = [];
-            this.multiItemEditBoxes.relative = null;
-            this.multiItemEditBoxes.viewport = null;
+            this.multiItemEditBox = null;
             this.reindexItems();
             // This event is needed to inform some components that they need to update their state because selection has dissapeared
             this.eventBus.emitAnyItemDeselected();
@@ -758,7 +734,7 @@ class SchemeContainer {
             this.selectItemInclusive(item);
             this.eventBus.emitItemSelected(item.id);
         }
-        this.updateAllMultiItemEditBoxes();
+        this.updateMultiItemEditBox();
     }
 
     selectMultipleItems(items) {
@@ -767,7 +743,7 @@ class SchemeContainer {
         forEach(this.selectedItems, item => {
             this.selectedItemsMap[item.id] = true;
         });
-        this.updateAllMultiItemEditBoxes();
+        this.updateMultiItemEditBox();
     }
 
     selectItemInclusive(item) {
@@ -818,7 +794,7 @@ class SchemeContainer {
         // Some components check selectedItems array to get information whether item is selected or not
         forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
 
-        this.updateAllMultiItemEditBoxes();
+        this.updateMultiItemEditBox();
     }
 
     /**
@@ -1029,8 +1005,8 @@ class SchemeContainer {
 
         //since all items are already selected, the relative multi item edit box should centered on the specified center point
         //this is not needed to viewport items
-        if (this.multiItemEditBoxes.relative) {
-            const boxArea = this.multiItemEditBoxes.relative.area;
+        if (this.multiItemEditBox) {
+            const boxArea = this.multiItemEditBox.area;
             const boxCenterX = boxArea.x + boxArea.w / 2;
             const boxCenterY = boxArea.y + boxArea.h / 2;
             const dx = centerX - boxCenterX;
@@ -1038,7 +1014,7 @@ class SchemeContainer {
 
             boxArea.x += dx;
             boxArea.y += dy;
-            this.updateMultiItemEditBoxItems(this.multiItemEditBoxes.relative, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+            this.updateMultiItemEditBoxItems(this.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
     }
 
@@ -1186,28 +1162,11 @@ class SchemeContainer {
         return this.generateUniqueName(name);
     }
 
-    updateAllMultiItemEditBoxes() {
-        const relativeItems = [];
-        const viewportItems = [];
-
-        forEach(this.selectedItems, item => {
-            if (item.area.type === 'viewport') {
-                viewportItems.push(item);
-            } else {
-                relativeItems.push(item)
-            }
-        });
-
-        if (relativeItems.length > 0) {
-            this.multiItemEditBoxes.relative = this.generateMultiItemEditBox(relativeItems, 'relative', 'relative');
+    updateMultiItemEditBox() {
+        if (this.selectedItems.length > 0) {
+            this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems, 'relative');
         } else {
-            this.multiItemEditBoxes.relative = null;
-        }
-
-        if (viewportItems.length > 0) {
-            this.multiItemEditBoxes.viewport = this.generateMultiItemEditBox(viewportItems, 'viewport', 'viewport');
-        } else {
-            this.multiItemEditBoxes.viewport = null;
+            this.multiItemEditBox = null;
         }
     }
 
@@ -1273,10 +1232,9 @@ class SchemeContainer {
      * 
      * @param {Array} items 
      * @param {String} boxId 
-     * @param {String} transformType 
      * @returns {MultiItemEditBox}
      */
-    generateMultiItemEditBox(items, boxId, transformType) {
+    generateMultiItemEditBox(items, boxId) {
         let area = null;
         if (items.length === 1) {
             // we want the item edit box to align with item if only that item was selected
@@ -1371,7 +1329,6 @@ class SchemeContainer {
             itemData,
             area,
             itemProjections,
-            transformType
         };
     }
 

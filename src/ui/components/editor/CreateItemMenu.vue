@@ -145,7 +145,7 @@ export default {
          */
         prepareItemsForMenu(items) {
             return map(items, item => {
-                item.item.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
+                item.item.area = {x: 6, y: 6, w: 140, h: 90};
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
                     if (shape.component) {
@@ -153,7 +153,7 @@ export default {
                         item.shapeComponent = shape.component;
 
                         if (item.previewItem) {
-                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90, type: 'relative'};
+                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90};
                             this.enrichItemWithShapeProps(item.previewItem, shape);
                         }
                     }
@@ -235,7 +235,7 @@ export default {
                 text: '',
                 links: [],
                 shape: 'rect',
-                area: { x: 0, y: 0, w: 0, h: 0, type: 'relative'},
+                area: { x: 0, y: 0, w: 0, h: 0},
                 shapeProps: {
                     strokeSize: 0,
                     fill: {type: 'image', image: art.url}
@@ -256,7 +256,7 @@ export default {
             } else {
                 const newItem = utils.clone(item.item);
                 newItem.id = shortid.generate();
-                newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
+                newItem.area = { x: 0, y: 0, w: 0, h: 0};
                 newItem.name = item.name;
                 recentPropsChanges.applyItemProps(newItem);
 
@@ -284,7 +284,7 @@ export default {
                     const newItem = utils.clone(that.selectedImageItem.item);
                     newItem.name = that.makeUniqueName('Image');
                     newItem.id = shortid.generate();
-                    newItem.area = { x: 0, y: 0, w: 0, h: 0, type: 'relative'};
+                    newItem.area = { x: 0, y: 0, w: 0, h: 0};
 
                     utils.setObjectProperty(newItem, that.selectedImageItem.imageProperty, imageUrl);
                     EventBus.$emit(EventBus.START_CREATING_COMPONENT, newItem);

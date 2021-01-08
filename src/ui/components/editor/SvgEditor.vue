@@ -37,25 +37,6 @@
                     </g>
                 </g>
 
-                <g>
-                    <g v-for="item in interactiveSchemeContainer.viewportItems" class="item-container"
-                        v-if="item.visible"
-                        :class="'item-cursor-' + item.cursor">
-                        <item-svg 
-                            :key="`${item.id}-${item.shape}`"
-                            :item="item"
-                            :mode="mode"
-                            @custom-event="onItemCustomEvent"/>
-                    </g>
-                    <g v-for="item in viewportHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
-                            :stroke-width="item.strokeSize+'px'"
-                            :data-item-id="item.id"
-                            style="opacity: 0.5"
-                            data-preview-ignore="true"/>
-                    </g>
-                </g>
-
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
                     <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
@@ -111,9 +92,9 @@
                         />
                     </g>
 
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.relative && state !== 'editCurve' && !inPlaceTextEditor.shown"
-                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.relative.boxUID}`"
-                        :edit-box="schemeContainer.multiItemEditBoxes.relative"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && !inPlaceTextEditor.shown"
+                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.boxUID}`"
+                        :edit-box="schemeContainer.multiItemEditBox"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                         :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
@@ -130,37 +111,7 @@
                 </g>
 
 
-                <g>
-                    <g v-for="item in schemeContainer.viewportItems"
-                        v-if="item.visible"
-                        class="item-container"
-                        :class="'item-cursor-'+item.cursor">
-                        >
-
-                        <item-svg
-                            :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
-                            :item="item"
-                            :mode="mode"
-                            />
-                    </g>
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBoxes.viewport && state !== 'editCurve' && !inPlaceTextEditor.shown"
-                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBoxes.viewport.boxUID}`"
-                        :edit-box="schemeContainer.multiItemEditBoxes.viewport"
-                        :zoom="1"
-                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                        :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
-
-                    <g v-for="item in viewportHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" fill="none" :stroke="item.stroke"
-                            :stroke-width="item.strokeSize+'px'"
-                            :data-item-id="item.id"
-                            style="opacity: 0.5"
-                            data-preview-ignore="true"/>
-                    </g>
-                </g>
-
-
-                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="curveEditItem.area.type === 'viewport' ? '' : transformSvg">
+                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="transformSvg">
                     <curve-edit-box 
                         :key="`item-curve-edit-box-${curveEditItem.id}`"
                         :item="curveEditItem"
@@ -427,7 +378,6 @@ export default {
                 shown: false,
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
-                transformType: 'relative',
                 style: {}
             },
 
@@ -438,7 +388,6 @@ export default {
             },
 
             worldHighlightedItems: [ ],
-            viewportHighlightedItems: [ ],
 
             exportSVGModal: {
                 width: 100,
@@ -476,23 +425,20 @@ export default {
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
                     };
                 } else if (elementType === 'multi-item-edit-box' || elementType === 'multi-item-edit-box-rotational-dragger') {
-                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
                     return {
                         type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId]
+                        multiItemEditBox: this.schemeContainer.multiItemEditBox
                     };
                 } else if (elementType === 'multi-item-edit-box-resize-dragger') {
-                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
                     return {
                         type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
+                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
                 } else if (elementType === 'multi-item-edit-box-edit-curve-link') {
-                    const boxId = element.getAttribute('data-multi-item-edit-box-id');
                     return {
                         type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBoxes[boxId],
+                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
                     };
                 }
 
@@ -687,7 +633,6 @@ export default {
 
         highlightItems(itemIds) {
             this.worldHighlightedItems = [];
-            this.viewportHighlightedItems = [];
 
             forEach(itemIds, itemId => {
                 const item = this.schemeContainer.findItemById(itemId);
@@ -729,11 +674,7 @@ export default {
                     strokeSize,
                     stroke: this.schemeContainer.scheme.style.boundaryBoxColor
                 };
-                if (item.area.type === 'viewport') {
-                    this.viewportHighlightedItems.push(itemHighlight);
-                } else {
-                    this.worldHighlightedItems.push(itemHighlight);
-                }
+                this.worldHighlightedItems.push(itemHighlight);
             });
         },
 
@@ -826,9 +767,6 @@ export default {
         },
 
         resetHighlightedItems() {
-            if (this.viewportHighlightedItems.length > 0) {
-                this.viewportHighlightedItems = [];
-            }
             if (this.worldHighlightedItems.length > 0) {
                 this.worldHighlightedItems = [];
             }
@@ -1045,10 +983,10 @@ export default {
         },
 
         exportSelectedItemsAsSVG() {
-            if (!this.schemeContainer.multiItemEditBoxes.relative) {
+            if (!this.schemeContainer.multiItemEditBox) {
                 return;
             }
-            const box = this.schemeContainer.multiItemEditBoxes.relative;
+            const box = this.schemeContainer.multiItemEditBox;
             if (box.items.length === 0) {
                 return;
             }
@@ -1081,7 +1019,7 @@ export default {
             const collectedItems = [];
 
             forEach(items, item => {
-                if (item.area.type !== 'viewport' && item.visible && item.opacity > 0.0001) {
+                if (item.visible && item.opacity > 0.0001) {
                     const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
                     if (domElement) {
                         const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
@@ -1181,18 +1119,11 @@ export default {
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.width = area.w;
             this.inPlaceTextEditor.height = area.h;
-            this.inPlaceTextEditor.transformType = item.area.type;
-            if (item.area.type === 'viewport') {
-                this.inPlaceTextEditor.area.x = worldPoint.x;
-                this.inPlaceTextEditor.area.y = worldPoint.y;
-                this.inPlaceTextEditor.area.w = area.w;
-                this.inPlaceTextEditor.area.h = area.h;
-            } else {
-                this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
-                this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
-                this.inPlaceTextEditor.area.w = this._z(area.w);
-                this.inPlaceTextEditor.area.h = this._z(area.h);
-            }
+
+            this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
+            this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
+            this.inPlaceTextEditor.area.w = this._z(area.w);
+            this.inPlaceTextEditor.area.h = this._z(area.h);
             this.inPlaceTextEditor.shown = true;
         },
 
@@ -1312,12 +1243,11 @@ export default {
         },
 
         rotateSelectedItemsAroundCenter(angle) {
-            forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
-                if (box !== null && box.items.length > 0) {
-                    box.area.r = angle;
-                    this.schemeContainer.updateMultiItemEditBoxItems(box, false);
-                }
-            });
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box !== null && box.items.length > 0) {
+                box.area.r = angle;
+                this.schemeContainer.updateMultiItemEditBoxItems(box, false);
+            }
         },
 
         /**
@@ -1325,62 +1255,60 @@ export default {
          * It also remounts the selected item to the new rect
          */
         surroundSelectedItems() {
-            forEach(this.schemeContainer.multiItemEditBoxes, (box) => {
-                if (box !== null && box.items.length > 0) {
-                    const padding = this.$store.state.itemSurround.padding;
-                    const rect = utils.clone(defaultItem);
-                    rect.name = 'Group';
-                    rect.area = {
-                        x: box.area.x - padding,
-                        y: box.area.y - padding,
-                        w: box.area.w + padding * 2,
-                        h: box.area.h + padding * 2,
-                        r: box.area.r,
-                        type: box.items[0].area.type
-                    };
-                    rect.shape = 'rect';
-                    rect.shapeProps = {
-                        strokePattern: StrokePattern.DASHED,
-                        strokeSize: 2,
-                        fill: {type: 'none'},
-                    };
-                    rect.textSlots = {
-                        body: {
-                            halign: 'left',
-                            valign: 'top',
-                            text: '<i>Group...</i>'
-                        }
-                    };
-                    this.schemeContainer.addItem(rect);
-                    this.schemeContainer.remountItemBeforeOtherItem(rect.id, box.items[0].id);
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box !== null && box.items.length > 0) {
+                const padding = this.$store.state.itemSurround.padding;
+                const rect = utils.clone(defaultItem);
+                rect.name = 'Group';
+                rect.area = {
+                    x: box.area.x - padding,
+                    y: box.area.y - padding,
+                    w: box.area.w + padding * 2,
+                    h: box.area.h + padding * 2,
+                    r: box.area.r,
+                };
+                rect.shape = 'rect';
+                rect.shapeProps = {
+                    strokePattern: StrokePattern.DASHED,
+                    strokeSize: 2,
+                    fill: {type: 'none'},
+                };
+                rect.textSlots = {
+                    body: {
+                        halign: 'left',
+                        valign: 'top',
+                        text: '<i>Group...</i>'
+                    }
+                };
+                this.schemeContainer.addItem(rect);
+                this.schemeContainer.remountItemBeforeOtherItem(rect.id, box.items[0].id);
 
-                    const remountedItemIds = {};
+                const remountedItemIds = {};
 
-                    forEach(box.items, item => {
-                        let remountAllowed = true;
-                        // making sure we don't have to remount item if it's ancestor was already remounted
-                        if (item.meta && item.meta.ancestorIds) {
-                            for (let i = 0; i < item.meta.ancestorIds.length && remountAllowed; i++) {
-                                if (remountedItemIds[item.meta.ancestorIds[i]]) {
-                                    remountAllowed = false;
-                                }
+                forEach(box.items, item => {
+                    let remountAllowed = true;
+                    // making sure we don't have to remount item if it's ancestor was already remounted
+                    if (item.meta && item.meta.ancestorIds) {
+                        for (let i = 0; i < item.meta.ancestorIds.length && remountAllowed; i++) {
+                            if (remountedItemIds[item.meta.ancestorIds[i]]) {
+                                remountAllowed = false;
                             }
                         }
-                        if (remountAllowed) {
-                            if (rect.childItems && rect.childItems.length > 0) {
-                                // trying to preserve original order of items
-                                this.schemeContainer.remountItemAfterOtherItem(item.id, rect.childItems[rect.childItems.length - 1].id);
-                            } else {
-                                this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
-                            }
-
-                            remountedItemIds[item.id] = 1;
+                    }
+                    if (remountAllowed) {
+                        if (rect.childItems && rect.childItems.length > 0) {
+                            // trying to preserve original order of items
+                            this.schemeContainer.remountItemAfterOtherItem(item.id, rect.childItems[rect.childItems.length - 1].id);
+                        } else {
+                            this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
                         }
-                    });
-                    this.schemeContainer.selectItem(rect);
-                    EventBus.emitItemSurroundCreated(rect, box.area, padding);
-                }
-            });
+
+                        remountedItemIds[item.id] = 1;
+                    }
+                });
+                this.schemeContainer.selectItem(rect);
+                EventBus.emitItemSurroundCreated(rect, box.area, padding);
+            }
         },
 
         //calculates from world to screen

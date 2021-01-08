@@ -278,7 +278,7 @@ export default {
             item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
 
             EventBus.emitItemChanged(item.id, 'item.area');
-            this.schemeContainer.updateAllMultiItemEditBoxes();
+            this.schemeContainer.updateMultiItemEditBox();
 
             forEach(item.childItems, childItem => {
                 const originalWorldPoint = this.itemSurround.childItemOriginalPositions[childItem.id];
