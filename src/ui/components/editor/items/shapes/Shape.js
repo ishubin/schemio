@@ -13,6 +13,7 @@ import Button from './Button.vue';
 import NPoly from './NPoly.js';
 import Bracket from './Bracket.js';
 import Dummy from './Dummy.vue';
+import HUD from './HUD.vue';
 import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.js';
@@ -143,6 +144,7 @@ const shapeRegistry = mapValues({
     bracket: Bracket,
     button: Button,
     dummy: Dummy,
+    hud: HUD,
     uml_object: UMLObject,
     uml_module: UMLModule,
     uml_package: UMLPackage,

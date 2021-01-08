@@ -17,10 +17,10 @@
             @dblclick="mouseDoubleClick"
             data-void="true">
 
-            <g v-if="mode === 'view'">
-                <g v-if="interactiveSchemeContainer" data-type="scene-transform" :transform="transformSvgInteractiveMode">
+            <g v-if="mode === 'view' && interactiveSchemeContainer">
+                <g data-type="scene-transform" :transform="transformSvgInteractiveMode">
                     <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
-                        v-if="item.visible"
+                        v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
                         <item-svg 
                             :key="`${item.id}-${item.shape}`"
@@ -51,6 +51,18 @@
                             <span class="item-link-title">{{link | formatLinkTitle}}</span>
                         </foreignObject>
                     </a>
+                </g>
+
+                <g>
+                    <g v-for="hud in interactiveSchemeContainer.hudItems" v-if="hud.visible">
+                        <item-svg 
+                            v-for="item in hud.childItems"
+                            v-if="item.visible"
+                            :key="`${item.id}-${item.shape}`"
+                            :item="item"
+                            :mode="mode"
+                            @custom-event="onItemCustomEvent"/>
+                    </g>
                 </g>
             </g>
 

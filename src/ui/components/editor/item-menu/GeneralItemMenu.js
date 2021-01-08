@@ -222,4 +222,15 @@ export default [{
         shape: 'dummy',
         shapeProps: {cornerRadius: 0}
     }, defaultItem)
+}, {
+    name: 'HUD',
+    iconUrl: '/assets/images/items/hud.svg',
+    description: `
+        HUD stands for Heads Up Display. 
+        When going into view mode, HUD item will always be rendered in the viewport.
+        This lets you design your own menu on top of the scheme which will always stay in the same place even if you drag screen`,
+    item: utils.extendObject({
+        shape: 'hud',
+        shapeProps: {}
+    }, defaultItem)
 }];

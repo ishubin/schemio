@@ -93,6 +93,7 @@ class SchemeContainer {
         this.itemMap = {};
         this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
         this.revision = 0;
+        this.hudItems = []; //used for storing hud items that are supposed to be rendered in the viewport transform
         this.worldItems = []; // used for storing top-level items with default area
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
@@ -185,6 +186,9 @@ class SchemeContainer {
             // only storing top-level items 
             if (!parentItem) {
                 this.worldItems.push(item);
+                if (item.shape === 'hud') {
+                    this.hudItems.push(item);
+                }
             }
 
             if (item.id) {
