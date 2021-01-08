@@ -63,7 +63,8 @@ function computeSmoothPath(item) {
          && typeof points[0].bx !== 'undefined' && typeof points[1].bx !== 'undefined') {
 
         const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
-        return `M ${points[0].x} ${points[0].x} `
+
+        return `M ${points[0].x} ${points[0].y} `
             +`C ${points[0].x + k * points[0].bx} ${points[0].y + k * points[0].by}`
             + ` ${points[1].x + k * points[1].bx}  ${points[1].y + k * points[1].by}`
             + ` ${points[1].x} ${points[1].y}`;
