@@ -463,6 +463,11 @@ export default {
         },
 
         zoomToItems(items) {
+            if (this.mode === 'view') {
+                //filtering HUD items out as they are always shown in the viewport  in view mode
+                items = filter(this.schemeContainer.getItems(), item => item.shape !== 'hud' && !item.meta.isInHUD)
+            }
+
             if (!items || items.length === 0) {
                 return;
             }
@@ -1026,6 +1031,12 @@ export default {
                 let filteredItems = [];
                 forEach(this.schemeContainer.getItems(), item => {
                     let shouldHighlight = false;
+
+                    if (this.mode === 'view' && (item.shape === 'hud' || item.meta.isInHUD)) {
+                        //ignoring item highlight for HUD elements in view mode
+                        return;
+                    }
+
                     var name = item.name || '';
                     if (name.toLowerCase().indexOf(keyword) >= 0) {
                         shouldHighlight = true;

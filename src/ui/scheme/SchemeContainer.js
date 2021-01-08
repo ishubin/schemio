@@ -173,6 +173,9 @@ class SchemeContainer {
                 this.indexItemGroups(item.id, item.groups);
             }
 
+            if (parentItem && (parentItem.meta.isInHUD || parentItem.shape === 'hud')) {
+                item.meta.isInHUD = true;
+            }
 
             if (item.text && item.text.length > 0) {
                 const shape = Shape.find(item.shape);
