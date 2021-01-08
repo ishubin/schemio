@@ -66,7 +66,7 @@ function computeSmoothPath(item) {
         return `M ${points[0].x} ${points[0].x} `
             +`C ${points[0].x + k * points[0].bx} ${points[0].y + k * points[0].by}`
             + ` ${points[1].x + k * points[1].bx}  ${points[1].y + k * points[1].by}`
-            + ` ${points[1].x} ${points[1].y}`
+            + ` ${points[1].x} ${points[1].y}`;
     }
 
     let path = '';
@@ -126,7 +126,6 @@ function computeSmoothPath(item) {
         }
         previousPoint = point;
     });
-
     return path;
 }
 
@@ -183,27 +182,58 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
             worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
         }
-        let destinationPoint = null;
+        let attachmentPoint = null;
 
         let distanceOnPath = attachmentItemPosition;
-        
+
         if (context && (context.rotated || context.resized)) {
-            const localToDestinationItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, attachmentItem);
             const closestPointOnPath = myMath.closestPointOnPath(localToDestinationItemOldPoint.x, localToDestinationItemOldPoint.y, shadowSvgPath);
 
             // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
             distanceOnPath = closestPointOnPath.distance;
 
-            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, distanceOnPath, schemeContainer);
-            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+            const attachmentWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, distanceOnPath, schemeContainer);
+            attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         } else {
-            const destinationWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, attachmentItemPosition, schemeContainer);
-            destinationPoint = schemeContainer.localPointOnItem(destinationWorldPoint.x, destinationWorldPoint.y, item);
+            const attachmentWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, attachmentItemPosition, schemeContainer);
+            attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         }
+
+
+        let leftPosition = distanceOnPath - 2;
+        if (leftPosition < 0) {
+            leftPosition = shadowSvgPath.getTotalLength() - leftPosition;
+        }
+        const pointA = shadowSvgPath.getPointAtLength(leftPosition);
+        const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % shadowSvgPath.getTotalLength());
+
+        let vx = pointB.x - pointA.x;
+        let vy = pointB.y - pointA.y; 
+
+        // rotating vector by 90 degrees, could have done it earlier but doing it explicitly, to keep algorithm clear
+        let t = vx;
+        vx = vy;
+        vy = -t;
+
+        // ^ calculated perpendicular vector in local to attachmentItem transform, now it should be converted to the world transform
+        const topLeftCorner = schemeContainer.worldPointOnItem(0, 0, attachmentItem);
+        const vectorOffset = schemeContainer.worldPointOnItem(vx, vy, attachmentItem);
+        let Vx = vectorOffset.x - topLeftCorner.x;
+        let Vy = vectorOffset.y - topLeftCorner.y;
+
+        // normalizing vector
+        const d = Math.sqrt(Vx*Vx + Vy*Vy);
+        if (d > 0.0001) {
+            Vx = Vx / d;
+            Vy = Vy / d;
+        }
+
         const newPoint = {
             t: oldPoint.t,
-            x: destinationPoint.x,
-            y: destinationPoint.y,
+            x: attachmentPoint.x,
+            y: attachmentPoint.y,
+            bx: Vx,
+            by: Vy
         };
         callback(newPoint, distanceOnPath, shadowSvgPath);
     }
@@ -219,63 +249,17 @@ function readjustItem(item, schemeContainer, isSoft, context) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context});
 
     if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition, svgPath) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
             item.shapeProps.points[0] = newPoint;
             item.shapeProps.sourceItemPosition = newSourceItemPosition;
-            // trying to calculate perpendicular vector which will be used in connector smoothing
 
-            let leftPosition = newSourceItemPosition - 2;
-            if (leftPosition < 0) {
-                leftPosition = svgPath.getTotalLength() - leftPosition;
-            }
-            const pointA = svgPath.getPointAtLength(leftPosition);
-            const totalLength = svgPath.getTotalLength();
-            const rightPosition = (newSourceItemPosition + 2) % totalLength;
-            const pointB = svgPath.getPointAtLength(rightPosition);
-
-            let vx = pointB.x - pointA.x;
-            let vy = pointB.y - pointA.y; 
-            const d = Math.sqrt(vx*vx + vy*vy);
-            if (d > 0.0001) {
-                //normalize vector
-                vx = vx / d;
-                vy = vy / d;
-            }
-
-            // here we are rotating the vector by 90 degrees
-            item.shapeProps.points[0].bx = vy;
-            item.shapeProps.points[0].by = -vx;
         });
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition, svgPath) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
             item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
             item.shapeProps.destinationItemPosition = newDestinationItemPosition;
-
-            // trying to calculate perpendicular vector which will be used in connector smoothing
-
-            let leftPosition = newDestinationItemPosition - 2;
-            if (leftPosition < 0) {
-                leftPosition = svgPath.getTotalLength() - leftPosition;
-            }
-            const pointA = svgPath.getPointAtLength(leftPosition);
-            const totalLength = svgPath.getTotalLength();
-            const rightPosition = (newDestinationItemPosition + 2) % totalLength;
-            const pointB = svgPath.getPointAtLength(rightPosition);
-
-            let vx = pointB.x - pointA.x;
-            let vy = pointB.y - pointA.y; 
-            const d = Math.sqrt(vx*vx + vy*vy);
-            if (d > 0.0001) {
-                //normalize vector
-                vx = vx / d;
-                vy = vy / d;
-            }
-
-            // here we are rotating the vector by 90 degrees
-            item.shapeProps.points[item.shapeProps.points.length - 1].bx = vy;
-            item.shapeProps.points[item.shapeProps.points.length - 1].by = -vx;
         });
     }
 
