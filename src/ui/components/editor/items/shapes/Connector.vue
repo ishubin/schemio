@@ -77,9 +77,9 @@ function computeSmoothPath(item) {
         if (i > 0 && i < item.shapeProps.points.length - 1) {
             const prevPoint = item.shapeProps.points[i - 1];
             const nextPoint = item.shapeProps.points[i + 1];
-            // temp divide by 4
-            let x = (nextPoint.x - prevPoint.x) / 4;
-            let y = (nextPoint.y - prevPoint.y) / 4;
+
+            let x = (nextPoint.x - prevPoint.x);
+            let y = (nextPoint.y - prevPoint.y);
             const d = Math.sqrt(x*x + y*y);
             if (d > 0.00001) {
                 x = x / d;
