@@ -100,7 +100,20 @@
                             @selected="emitShapePropChange('destinationCap', 'curve-cap', arguments[0])"/>
                     </li>
                 </ul>
-                
+            </div>
+            <div class="quick-helper-panel-section" v-if="shouldShowConnectorControls">
+                <ul class="button-group">
+                    <li>
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'linear'}" title="Linear" @click="emitShapePropChange('smoothing', 'choice', 'linear')">
+                            <img src="/assets/images/helper-panel/connector-linear.svg"/>
+                        </span>
+                    </li>
+                    <li>
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'smooth'}" title="Smooth" @click="emitShapePropChange('smoothing', 'choice', 'smooth')">
+                            <img src="/assets/images/helper-panel/connector-smooth.svg"/>
+                        </span>
+                    </li>
+                </ul>
             </div>
             <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
@@ -300,7 +313,7 @@ export default {
         },
 
         shouldShownCurveHelpers() {
-            return this.$store.state.editorStateName === 'editCurve' || this.selectedItemsCount > 0;
+            return this.$store.state.editorStateName === 'editCurve';
         },
 
         shouldShowCurveCaps() {
@@ -311,6 +324,17 @@ export default {
                 return true;
             }
             return false;
+        },
+
+        shouldShowConnectorControls() {
+            return this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector';
+        },
+
+        currentConnectorSmoothing() {
+            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') {
+                return this.firstSelectedItem.shapeProps.smoothing;
+            }
+            return '';
         }
     }
 }

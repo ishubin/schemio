@@ -413,7 +413,7 @@ export default {
         destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
         destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
 
-        smoothing         : {type: 'choice',        value: 'linear', options: ['linear', 'smooth'], name: 'Smoothing Type'},
+        smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
 
         sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
         destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},

@@ -893,11 +893,15 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     display: inline-block;
     text-align: center;
     padding: 2px;
-    min-width: 25px;
-    min-height: 20px;
+    width: 24px;
+    height: 20px;
+    cursor: pointer;
 }
 .icon-button.disabled {
     opacity: 0.2;
+}
+.icon-button.dimmed {
+    opacity: 0.4;
 }
 .icon-button:hover {
     background: var(--icon-button-hover-background);
