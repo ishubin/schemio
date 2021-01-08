@@ -54,7 +54,9 @@
                 </g>
 
                 <g>
-                    <g v-for="hud in interactiveSchemeContainer.hudItems" v-if="hud.visible">
+                    <g v-for="hud in interactiveSchemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
+                        :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
+                        >
                         <item-svg 
                             v-for="item in hud.childItems"
                             v-if="item.visible"
@@ -1321,6 +1323,29 @@ export default {
                 this.schemeContainer.selectItem(rect);
                 EventBus.emitItemSurroundCreated(rect, box.area, padding);
             }
+        },
+
+        /**
+         * Generates transform for HUD item so that it is rendered in correct position in view mode
+         */
+        createHUDTransform(hud) {
+            let x = 0;
+            let y = 0;
+            if (hud.shapeProps.horizontalPosition === 'left') {
+                x = 0;
+            } else if (hud.shapeProps.horizontalPosition === 'right') {
+                x = this.width - hud.area.w;
+            } else if (hud.shapeProps.horizontalPosition === 'center') {
+                x = (this.width - hud.area.w) / 2;
+            }
+
+            if (hud.shapeProps.verticalPosition === 'top') {
+                y = 0;
+            } else if (hud.shapeProps.verticalPosition === 'bottom') {
+                y = this.height - hud.area.h;
+            } else if (hud.shapeProps.verticalPosition === 'center') {
+                y = (this.height - hud.area.h) / 2;
+            }return `translate(${x} ${y})`;
         },
 
         //calculates from world to screen
