@@ -3,7 +3,6 @@
         <g v-if="!isItemConnector" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
-                :data-multi-item-edit-box-id="editBox.id"
                 :stroke-width="1/safeZoom"
                 fill="none"
                 :stroke="boundaryBoxColor"
@@ -11,7 +10,6 @@
 
             <ellipse class="boundary-box-dragger"
                 data-type="multi-item-edit-box-rotational-dragger"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
                 :cy="-60/safeZoom"
@@ -48,7 +46,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="top,left"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="-2 * draggerSize / safeZoom"
                 :y="-2 * draggerSize / safeZoom"
@@ -59,7 +56,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="top"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="editBox.area.w / 2 - draggerSize / safeZoom"
                 :y="-2 * draggerSize / safeZoom"
@@ -70,7 +66,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="top,right"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="editBox.area.w"
                 :y="-2 * draggerSize / safeZoom"
@@ -81,7 +76,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="left"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="-2 * draggerSize / safeZoom"
                 :y="editBox.area.h / 2 - draggerSize / safeZoom"
@@ -92,7 +86,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="right"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="editBox.area.w"
                 :y="editBox.area.h / 2 - draggerSize / safeZoom"
@@ -103,7 +96,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="bottom,left"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="-2 * draggerSize / safeZoom"
                 :y="editBox.area.h"
@@ -114,7 +106,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="bottom"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="editBox.area.w / 2 - draggerSize / safeZoom"
                 :y="editBox.area.h"
@@ -125,7 +116,6 @@
             <rect class="boundary-box-dragger"
                 data-type="multi-item-edit-box-resize-dragger"
                 data-dragger-edges="bottom,right"
-                :data-multi-item-edit-box-id="editBox.id"
                 :fill="boundaryBoxColor"
                 :x="editBox.area.w"
                 :y="editBox.area.h"
@@ -150,10 +140,7 @@
                 <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
                     <foreignObject :x="0" :y="0" width="100" height="20">
                         <div>
-                            <span class="link"
-                                data-type="multi-item-edit-box-edit-curve-link"
-                                :data-multi-item-edit-box-id="editBox.id">
-                                Edit Curve</span>
+                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
                         </div>
                     </foreignObject>
                 </g>

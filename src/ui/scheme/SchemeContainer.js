@@ -1164,7 +1164,7 @@ class SchemeContainer {
 
     updateMultiItemEditBox() {
         if (this.selectedItems.length > 0) {
-            this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems, 'relative');
+            this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems);
         } else {
             this.multiItemEditBox = null;
         }
@@ -1231,10 +1231,9 @@ class SchemeContainer {
     /**
      * 
      * @param {Array} items 
-     * @param {String} boxId 
      * @returns {MultiItemEditBox}
      */
-    generateMultiItemEditBox(items, boxId) {
+    generateMultiItemEditBox(items) {
         let area = null;
         if (items.length === 1) {
             // we want the item edit box to align with item if only that item was selected
@@ -1322,8 +1321,7 @@ class SchemeContainer {
         });
 
         return {
-            id: boxId,
-            boxUID: shortid.generate(),
+            id: shortid.generate(),
             items,
             itemIds,
             itemData,

@@ -93,7 +93,7 @@
                     </g>
 
                     <multi-item-edit-box  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && !inPlaceTextEditor.shown"
-                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.boxUID}`"
+                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
                         :edit-box="schemeContainer.multiItemEditBox"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
