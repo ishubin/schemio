@@ -87,7 +87,7 @@ function $putJSON(routePath, middleware, handler) {
 
 app.get('/metrics',         metrics.getPrometheusMetrics);
 
-// app.use('/v1', [jsonBodyParser, middleware.api]);
+app.use('/v1', [middleware.api]);
 
 if (!config.backendless) {
     const ldapAuthService = new LdapAuthService();
