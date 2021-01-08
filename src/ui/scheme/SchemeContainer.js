@@ -4,6 +4,7 @@
 
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
 import keys from 'lodash/keys';
 import indexOf from 'lodash/indexOf';
 import findIndex from 'lodash/findIndex';
@@ -704,6 +705,14 @@ class SchemeContainer {
 
     getItems() {
         return this._itemArray;
+    }
+
+    filterNonHUDItems(items) {
+        return filter(items, item => item.shape !== 'hud' && !item.meta.isInHUD);
+    }
+
+    isItemInHUD(item) {
+        return item.shape === 'hud' || item.meta.isInHUD;
     }
 
     setActiveBoundaryBox(area) {
