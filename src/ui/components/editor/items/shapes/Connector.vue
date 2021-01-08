@@ -188,7 +188,8 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
         let distanceOnPath = attachmentItemPosition;
 
         if (context && (context.rotated || context.resized)) {
-            const closestPointOnPath = myMath.closestPointOnPath(localToDestinationItemOldPoint.x, localToDestinationItemOldPoint.y, shadowSvgPath);
+            const localToAttachmentItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, attachmentItem);
+            const closestPointOnPath = myMath.closestPointOnPath(localToAttachmentItemOldPoint.x, localToAttachmentItemOldPoint.y, shadowSvgPath);
 
             // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
             distanceOnPath = closestPointOnPath.distance;
