@@ -300,6 +300,11 @@ export default {
                 {name: '125%', value: 125},
                 {name: '150%', value: 150},
                 {name: '200%', value: 200},
+                {name: '300%', value: 300},
+                {name: '400%', value: 400},
+                {name: '500%', value: 500},
+                {name: '750%', value: 750},
+                {name: '1000%', value: 1000},
             ],
 
             // a reference to an item that was clicked in view mode
@@ -596,12 +601,6 @@ export default {
             var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
             this.newSchemePopup.show = false;
             window.open(`${urlPrefix}${url}#m:edit`, '_blank');
-        },
-
-        onUpdateZoom(zoom) {
-            var value = Math.floor(zoom * 1000) / 10;
-            this.zoom = Math.min(1000, Math.max(2, value));
-            this.initOffsetSave();
         },
 
         onUpdateOffset(x, y) {
