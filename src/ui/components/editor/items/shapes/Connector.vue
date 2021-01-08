@@ -4,6 +4,7 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
+            style="stroke-linejoin: round;"
             fill="none"></path>
 
         <path v-for="cap in caps" :d="cap.path"

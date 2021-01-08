@@ -4,6 +4,7 @@
 
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
+            style="stroke-linejoin: round;"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
