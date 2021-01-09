@@ -1238,6 +1238,10 @@ class SchemeContainer {
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
                 }
+
+                // changing item revision so that its shape will be recomputed
+                item.meta.revision += 1;
+
                 this.readjustItemAndDescendants(item.id, isSoft, context);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
