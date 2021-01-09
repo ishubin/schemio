@@ -151,9 +151,10 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
  * @param {String} attachmentItemSelector
  * @param {Number} attachmentItemPosition
  * @param {ItemModificationContext} context
+ * @param {Boolean} isSource 
  * @param {Function} callback - function which is used to pass changed attachment item position
  */
-function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, callback) {
+function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
         const shadowSvgPath = schemeContainer.getSvgOutlineOfItem(attachmentItem);
@@ -163,14 +164,18 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
 
         let oldPoint = null;
         let worldOldPoint = null;
+        let metaCtxKey = SRC_READJUST_CTX;
+        if (!isSource) {
+            metaCtxKey = DST_READJUST_CTX;
+        }
         if (context && context.id) {
-            if (item.meta[DST_READJUST_CTX] && item.meta[DST_READJUST_CTX].id === context.id) {
-                oldPoint  = item.meta[DST_READJUST_CTX].oldPoint;
-                worldOldPoint  = item.meta[DST_READJUST_CTX].worldOldPoint;
+            if (item.meta[metaCtxKey] && item.meta[metaCtxKey].id === context.id) {
+                oldPoint  = item.meta[metaCtxKey].oldPoint;
+                worldOldPoint  = item.meta[metaCtxKey].worldOldPoint;
             } else {
                 oldPoint = curvePoint;
                 worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
-                item.meta[DST_READJUST_CTX] = { id: context.id, oldPoint, worldOldPoint };
+                item.meta[metaCtxKey] = { id: context.id, oldPoint, worldOldPoint };
             }
         } else {
             oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
@@ -217,7 +222,7 @@ function readjustItem(item, schemeContainer, isSoft, context) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context});
 
     if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, (newPoint, newSourceItemPosition) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, true, (newPoint, newSourceItemPosition) => {
             item.shapeProps.points[0] = newPoint;
             item.shapeProps.sourceItemPosition = newSourceItemPosition;
 
@@ -225,7 +230,7 @@ function readjustItem(item, schemeContainer, isSoft, context) {
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, (newPoint, newDestinationItemPosition) => {
+        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, false, (newPoint, newDestinationItemPosition) => {
             item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
             item.shapeProps.destinationItemPosition = newDestinationItemPosition;
         });
