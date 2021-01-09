@@ -76,7 +76,7 @@ export default class StateCreateItem extends State {
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
         
-        const parentItem = this.findItemSuitableForParent(this.schemeContainer.selectedItems, this.item.area);
+        const parentItem = this.findItemSuitableForParent(this.item.area);
         this.schemeContainer.deselectAllItems();
         if (parentItem) {
             this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
@@ -90,21 +90,24 @@ export default class StateCreateItem extends State {
 
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
-     * @param {*} items 
      * @param {*} area 
      * @returns {Item}
      */
-    findItemSuitableForParent(items, area) {
+    findItemSuitableForParent(area) {
         let maxArea = -1;
         let itemFound = null;
 
-        forEach(items, item => {
-            const points = [
-                { x: area.x,  y: area.y },
-                { x: area.x + area.w,  y: area.y },
-                { x: area.x + area.w,  y: area.y + area.h},
-                { x: area.x,  y: area.y + area.h},
-            ];
+        const points = [
+            { x: area.x,  y: area.y },
+            { x: area.x + area.w,  y: area.y },
+            { x: area.x + area.w,  y: area.y + area.h},
+            { x: area.x,  y: area.y + area.h},
+        ];
+
+        forEach(this.schemeContainer.getItems(), item => {
+            if (!item.visible || item.id === this.item.id) {
+                return;
+            }
 
             let fitsInside = true;
             for (let i = 0; i < points.length && fitsInside; i++) {
