@@ -15,12 +15,6 @@
 
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
-        <position-panel v-if="currentTab === 'position'"
-            :key="`position-panel-${item.id}`"
-            :item="item"
-            @item-area-changed="onItemAreaChanged"
-            />
-
         <behavior-properties v-if="currentTab === 'behavior'"
             :key="`behavior-panel-${item.id}`"
             :project-id="projectId"
@@ -34,6 +28,12 @@
         </div>
 
         <div v-if="currentTab === 'shape'">
+            <position-panel
+                :key="`position-panel-${item.id}`"
+                :item="item"
+                @item-area-changed="onItemAreaChanged"
+                />
+
             <panel name="General" uid="general-item-properties">
                 <table class="properties-table">
                     <tbody>
@@ -142,7 +142,7 @@
                 </table>
             </panel>
 
-            <panel name="Shape Properties">
+            <panel name="Shape Properties" v-if="hasShapeArgs">
                 <table class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
@@ -223,7 +223,6 @@ import myMath from '../../../myMath';
 const ALL_TABS = [
     {name: 'description',   icon: 'fas fa-paragraph'},
     {name: 'shape',         icon: 'fas fa-vector-square'},
-    {name: 'position',      icon: 'fas fa-map-marker-alt'},
     {name: 'behavior',      icon: 'far fa-hand-point-up'},
     {name: 'styles',        icon: 'fas fa-palette'}
 ];
@@ -329,6 +328,19 @@ export default {
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
         },
+    },
+    computed: {
+        hasShapeArgs() {
+            const shape = Shape.find(this.item.shape);
+            if (shape) {
+                for(let argName in shape.args) {
+                    if (shape.args.hasOwnProperty(argName)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     },
 
     watch: {
