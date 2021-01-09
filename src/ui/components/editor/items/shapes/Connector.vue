@@ -95,12 +95,15 @@ function computeSmoothPath(item) {
         vectors[i] = {x, y};
     });
 
+    // tested different values and this one works best so far
+    const smoothingFactor = 3.5;
+
     forEach(points, (point, i) => {
         if (i === 0) {
             path = `M ${point.x} ${point.y} `;
 
         } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.bx !== 'undefined') {
-            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
             if (i < points.length - 1) {
@@ -110,7 +113,7 @@ function computeSmoothPath(item) {
             path += ` C ${previousPoint.x + k * previousPoint.bx} ${previousPoint.y + k * previousPoint.by} ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
 
         } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.bx !== 'undefined') {
-            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
             if (i > 1) {
@@ -120,7 +123,7 @@ function computeSmoothPath(item) {
             path += ` C ${previousPoint.x + k * vx} ${previousPoint.y + k *vy}  ${point.x + k*point.bx} ${point.y + k*point.by} ${point.x} ${point.y}`;
 
         } else {
-            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
+            const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let pvx = vectors[i - 1].x;
             let pvy = vectors[i - 1].y;
             let vx = vectors[i].x;

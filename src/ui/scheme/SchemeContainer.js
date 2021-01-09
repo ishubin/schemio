@@ -107,9 +107,6 @@ class SchemeContainer {
             vertical: [],
         };
 
-        // Used for calculating closest point to svg path
-        this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-
         // Used to drag, resize and rotate multiple items
         // Since both the SvgEditor component and StateDragItem state needs access to it, it is easier to keep it here
         this.multiItemEditBox = null;
@@ -646,16 +643,14 @@ class SchemeContainer {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
-        if (!this.shadowSvgPath) {
-            this.shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        }
-        this.shadowSvgPath.setAttribute('d', path);
-        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
+        const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        shadowSvgPath.setAttribute('d', path);
+        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath);
         const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;
 
         if (withNormal) {
-            const normal = this.calculateNormalOnPointOnPath(item, this.shadowSvgPath, closestPoint.distance);
+            const normal = this.calculateNormalOnPointOnPath(item, shadowSvgPath, closestPoint.distance);
             worldPoint.bx = normal.x;
             worldPoint.by = normal.y;
         }
