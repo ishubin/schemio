@@ -13,7 +13,6 @@ import '../../../typedef';
 import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
-import { Store } from 'express-session';
 
 const log = new Logger('StateDragItem');
 
