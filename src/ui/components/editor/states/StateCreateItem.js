@@ -76,10 +76,12 @@ export default class StateCreateItem extends State {
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
         
-        const parentItem = this.findItemSuitableForParent(this.item.area);
-        this.schemeContainer.deselectAllItems();
-        if (parentItem) {
-            this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
+        if (this.store.state.itemCreating.autoRemount) {
+            const parentItem = this.findItemSuitableForParent(this.item.area);
+            this.schemeContainer.deselectAllItems();
+            if (parentItem) {
+                this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
+            }
         }
         this.schemeContainer.selectItem(this.item);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);

@@ -49,5 +49,9 @@ export default {
 
     clearItemSnappers(store) {
         store.dispatch('clearItemSnappers');
+    },
+
+    setItemCreatingAutoRemount(store, shouldAutoRemount) {
+        store.dispatch('setItemCreatingAutoRemount', shouldAutoRemount);
     }
 }

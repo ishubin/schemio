@@ -122,6 +122,17 @@
                     </li>
                 </ul>
             </div>
+            <div v-if="currentState === 'createItem'" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <input type="checkbox" title="Automatically mount items into other items"
+                            id="item-creating-auto-remount"
+                            :checked="itemCreatingAutoRemount"
+                            @change="onItemCreatingAutoRemountChange"/>
+                        <label for="item-creating-auto-remount">Auto Remount</label>
+                    </li>
+                </ul>
+            </div>
             <div v-if="itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
@@ -145,6 +156,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
 import forEach from 'lodash/forEach';
+import StoreUtils from '../../store/StoreUtils';
 
 export default {
     props: {
@@ -288,6 +300,10 @@ export default {
                 childItem.area.y = localPoint.y;
                 EventBus.emitItemChanged(childItem.id, 'item.area');
             });
+        },
+
+        onItemCreatingAutoRemountChange(event) {
+            StoreUtils.setItemCreatingAutoRemount(this.$store, event.target.checked);
         }
     },
 
@@ -335,6 +351,10 @@ export default {
                 return this.firstSelectedItem.shapeProps.smoothing;
             }
             return '';
+        },
+
+        itemCreatingAutoRemount() {
+            return this.$store.getters.itemCreatingAutoRemount;
         }
     }
 }
