@@ -278,9 +278,10 @@ const lastMousePosition = {
 
 export default {
     props: {
-        mode  : { default: 'edit', type: String },
-        width : { type: Number },
-        height: { type: Number },
+        offline: { type: Boolean, default: false},
+        mode   : { type: String, default: 'edit' },
+        width  : { type: Number },
+        height : { type: Number },
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },

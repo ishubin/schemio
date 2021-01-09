@@ -23,6 +23,7 @@
 
                     <div v-if="alternativeAuthEnabled">
                         <div class="login-alternative-caption">Or login with another provider</div>
+                        <a href="/offline-scheme-editor" class="btn btn-login btn-login-alt">Edit Scheme Offline</a>
 
                         <a href="/auth/google/login" class="btn btn-login btn-login-alt btn-login-google">Google</a>
                         <a href="/auth/github/login" class="btn btn-login btn-login-alt btn-login-github">GitHub</a>

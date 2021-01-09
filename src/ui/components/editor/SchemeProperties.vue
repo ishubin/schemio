@@ -27,7 +27,7 @@
             </li>
         </ul>
         <div v-else>
-            <span class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
+            <span v-if="projectId" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
         </div>
 
         <div v-if="schemeContainer.scheme">
@@ -81,7 +81,7 @@
             </panel>
 
             <panel name="Operations">
-                <span class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+                <span v-if="projectId" class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
             </panel>
 
             <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
@@ -122,11 +122,13 @@ export default {
     props: ['projectId', 'schemeContainer'],
     components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
     mounted() {
-        apiClient.getTags(this.projectId).then(tags => {
-            this.existingSchemeTags = map(tags, tag => {
-                return {text: tag};
+        if (this.projectId) {
+            apiClient.getTags(this.projectId).then(tags => {
+                this.existingSchemeTags = map(tags, tag => {
+                    return {text: tag};
+                });
             });
-        });
+        }
     },
     data() {
         return {

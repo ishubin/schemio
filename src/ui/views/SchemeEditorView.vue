@@ -39,7 +39,8 @@
                     <svg-editor
                         :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
-                        :mode="currentUser ? mode : 'view'"
+                        :mode="mode"
+                        :offline="offlineMode"
                         :zoom="zoom"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
@@ -56,7 +57,7 @@
                 <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
 
-            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer && currentUser" :class="{expanded: sidePanelLeftExpanded}">
+            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
                 <span class="side-panel-expander" @click="sidePanelLeftExpanded = !sidePanelLeftExpanded">
                     <i v-if="sidePanelLeftExpanded" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
@@ -187,6 +188,7 @@ import utils from '../utils.js';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults} from '../scheme/Item';
+import {enrichSchemeWithDefaults} from '../scheme/Scheme';
 import HeaderComponent from '../components/Header.vue';
 import Dropdown from '../components/Dropdown.vue';
 import SvgEditor from '../components/editor/SvgEditor.vue';
@@ -279,6 +281,7 @@ export default {
     data() {
         return {
             projectId: this.$route.params.projectId,
+            offlineMode: false,
             project: null,
             schemeId: null,
 
@@ -365,8 +368,13 @@ export default {
     },
     methods: {
         init() {
-            this.isLoading = true;
-            this.schemeLoadErrorMessage = null;
+
+            if (!this.projectId) {
+                this.initOfflineMode();
+                return;
+            }
+
+            this.offlineMode = false;
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
             if (pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
@@ -374,41 +382,16 @@ export default {
                 this.mode = 'view';
             }
 
+            this.isLoading = true;
+            this.schemeLoadErrorMessage = null;
+
             this.schemeId = this.$route.params.schemeId;
 
             apiClient.getProject(this.projectId).then(project => {
                 this.project = project;
             });
             apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
-                this.currentCategory = scheme.category;
-                this.schemeContainer = new SchemeContainer(scheme, EventBus);
-
-                this.schemeContainer.screenSettings.width = this.svgWidth;
-                this.schemeContainer.screenSettings.height = this.svgHeight;
-
-                this.isLoading = false;
-
-                history = new History({size: 30});
-                history.commit(scheme);
-                document._history = history;
-
-                const schemeSettings = schemeSettingsStorage.get(this.schemeId);
-                if (schemeSettings && schemeSettings.screenPosition) {
-                    // Text tab is only rendered when in place text edit is triggered
-                    // therefore it does not make sense to set it as current on scheme load
-                    if (schemeSettings.currentTab !== 'Text') {
-                        this.currentTab = schemeSettings.currentTab;
-                    }
-                    this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
-                    this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
-                    this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                    this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
-                } else {
-                    // Should automatically bring to view the entire scheme
-                    setTimeout(() => {
-                        this.zoomToSelection();
-                    }, 100);
-                }
+                this.initScheme(scheme);
             }).catch(err => {
                 this.isLoading = false;
                 if (err.statusCode == 404) {
@@ -421,6 +404,53 @@ export default {
                 }
             });
 
+        },
+
+        initOfflineMode() {
+            // here the edit mode is default since user chose to edit offline
+            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            if (pageParams.m && pageParams.m === 'view') {
+                this.mode = 'view';
+            } else {
+                this.mode = 'edit';
+            }
+
+            const scheme = {};
+            enrichSchemeWithDefaults(scheme);
+            this.offlineMode = true;
+            this.initScheme(scheme);
+        },
+
+        initScheme(scheme) {
+            this.currentCategory = scheme.category;
+            this.schemeContainer = new SchemeContainer(scheme, EventBus);
+
+            this.schemeContainer.screenSettings.width = this.svgWidth;
+            this.schemeContainer.screenSettings.height = this.svgHeight;
+
+            this.isLoading = false;
+
+            history = new History({size: 30});
+            history.commit(scheme);
+            document._history = history;
+
+            const schemeSettings = schemeSettingsStorage.get(this.schemeId);
+            if (schemeSettings && schemeSettings.screenPosition) {
+                // Text tab is only rendered when in place text edit is triggered
+                // therefore it does not make sense to set it as current on scheme load
+                if (schemeSettings.currentTab !== 'Text') {
+                    this.currentTab = schemeSettings.currentTab;
+                }
+                this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
+                this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
+                this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
+            } else {
+                // Should automatically bring to view the entire scheme
+                setTimeout(() => {
+                    this.zoomToSelection();
+                }, 100);
+            }
         },
 
         toggleMode(mode) {

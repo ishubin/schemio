@@ -15,7 +15,7 @@
                 </div>
             </panel>
 
-            <panel name="Project Art">
+            <panel v-if="projectId" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
                 <div class="item-menu">
@@ -175,9 +175,11 @@ export default {
         },
         reloadArt() {
             this.artPacks = [];
-            apiClient.getAllArt(this.projectId).then(artList => {
-                this.artList = artList;
-            });
+            if (this.projectId) {
+                apiClient.getAllArt(this.projectId).then(artList => {
+                    this.artList = artList;
+                });
+            }
             apiClient.getGlobalArt().then(globalArt => {
                 forEach(globalArt, artPack => {
                     forEach(artPack.icons, icon => {

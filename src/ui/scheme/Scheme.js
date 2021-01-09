@@ -3,6 +3,11 @@ import { defaultifyItem } from './Item';
 import map from 'lodash/map';
 
 const defaultScheme = {
+    name: '',
+    description: '',
+    tags: [],
+    categoryId: null,
+    items: [],
     style: {
         backgroundColor:    'rgba(240, 240, 240, 1.0)',
         gridColor:          'rgba(128 ,128, 128, 0.2)',
