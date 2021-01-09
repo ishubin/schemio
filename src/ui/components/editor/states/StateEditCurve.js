@@ -146,15 +146,20 @@ export default class StateEditCurve extends State {
         return this.item;
     }
 
+    /**
+     * 
+     * @param {Item} item 
+     * @param {Point} localPoint 
+     * @returns {ItemClosestPoint}
+     */
     findAttachmentPointToItem(item, localPoint) {
-        const shape = Shape.find(item.shape);
-        if (shape) {
-            const path = shape.computeOutline(item);
-            if (path) {
-                const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
-                return this.schemeContainer.closestPointToSvgPath(item, path, worldPoint, true);
-            }
+        const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
+        const closestPoint = this.schemeContainer.closestPointToItemOutline(item, worldPoint, true);
+
+        if (closestPoint) {
+            return closestPoint;
         }
+
         return {
             x: item.area.w / 2,
             y: item.area.h / 2
@@ -695,12 +700,10 @@ export default class StateEditCurve extends State {
             curvePoint.x = localCurvePoint.x;
             curvePoint.y = localCurvePoint.y;
 
-            if (closestPointToItem.path) {
-                const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
-                const normal = this.schemeContainer.calculateNormalOnPointOnPath(item, closestPointToItem.path, closestPointToItem.distanceOnPath);
-                curvePoint.bx = normal.x;
-                curvePoint.by = normal.y;
-            }
+            const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
+            const normal = this.schemeContainer.calculateNormalOnPointInItemOutline(item, closestPointToItem.distanceOnPath);
+            curvePoint.bx = normal.x;
+            curvePoint.by = normal.y;
 
             this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
             if (isSource) {

@@ -30,23 +30,6 @@ import '../../../../typedef';
 const log = new Logger('Connector');
 
 
-/**
- * Computes item outline path and return a shadow svg path for it
- * @returns {SVGPathElement}
- */
-function computeOutlinePath(item) {
-    const shape = Shape.find(item.shape);
-    if (shape && shape.computeOutline) {
-        const path = shape.computeOutline(item);
-        if (path) {
-            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shadowSvgPath.setAttribute('d', path);
-            return shadowSvgPath;
-        }
-    }
-    return null;
-}
-
 function getPointOnItemPath(item, shadowSvgPath, positionOnPath, schemeContainer) {
     if (shadowSvgPath) {
         const point = shadowSvgPath.getPointAtLength(positionOnPath);
@@ -173,7 +156,11 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
 function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, callback) {
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
-        const shadowSvgPath = computeOutlinePath(attachmentItem);
+        const shadowSvgPath = schemeContainer.getSvgOutlineOfItem(attachmentItem);
+        if (!shadowSvgPath) {
+            return;
+        }
+
         let oldPoint = null;
         let worldOldPoint = null;
         if (context && context.id) {
@@ -207,7 +194,7 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         }
 
-        const normal = schemeContainer.calculateNormalOnPointOnPath(attachmentItem, shadowSvgPath, distanceOnPath);
+        const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
 
         const newPoint = {
             t: oldPoint.t,

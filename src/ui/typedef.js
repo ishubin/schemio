@@ -98,6 +98,14 @@
   * @param {Number} x - value on X axis which should be snapped
   */
 
+/**
+ * @typedef {Object} ItemClosestPoint
+ * @property {Number} x - value on x axis
+ * @property {Number} y - value on y axis
+ * @property {Number} distanceOnPath - distance on the item path from its beginning to the closest point on that path
+ * @property {String} itemId - id of item
+ */
+
 
 /**
  * @typedef {Object} SnappingPoints

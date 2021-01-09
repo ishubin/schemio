@@ -67,6 +67,35 @@ function visitItems(items, callback, transform, parentItem, ancestorIds) {
     }
 }
 
+
+// used for computing closest points to item paths
+// it caches paths of items and resets the cache in case the items were reindexed
+class ItemCache {
+    /**
+     * 
+     * @param {Function} cacheMissFallback 
+     */
+    constructor(cacheMissFallback) {
+        this.itemPaths = new Map();
+        this.cacheMissFallback = cacheMissFallback;
+    }
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    get(item) {
+        const entryId = `${item.id}-${item.meta.revision}`;
+        if (this.itemPaths.has(entryId)) {
+            return this.itemPaths.get(entryId);
+        }
+        const path = this.cacheMissFallback(item);
+        this.itemPaths.set(entryId, path);
+        return path;
+    }
+}
+
+
 /*
 Providing access to scheme elements and provides modifiers for it
 */
@@ -100,6 +129,19 @@ class SchemeContainer {
 
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
+
+        this.svgOutlinePathCache = new ItemCache((item) => {
+            const shape = Shape.find(item.shape);
+            if (shape) {
+                const path = shape.computeOutline(item);
+                if (path) {
+                    const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    shadowSvgPath.setAttribute('d', path);
+                    return shadowSvgPath;
+                }
+            }
+            return null;
+        });
 
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
@@ -163,6 +205,9 @@ class SchemeContainer {
         if (!this.scheme.items) {
             return;
         }
+
+        const newRevision = this.revision + 1;
+
         visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
             this._itemArray.push(item);
             enrichItemWithDefaults(item);
@@ -223,6 +268,11 @@ class SchemeContainer {
                     }
                 });
             }
+
+            // storing revision in item as in future I am plannign to optimize reindeItems function to only reindex changed and affected items
+            // this way not all items wold have the same revision
+            // revision itself is going to be used in item path cache handling
+            item.revision = newRevision;
         });
 
         this.itemGroups = keys(this._itemGroupsToIds);
@@ -230,7 +280,7 @@ class SchemeContainer {
 
 
         this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
-        this.revision += 1;
+        this.revision = newRevision;
         log.timeEnd('reindexItems');
     }
 
@@ -350,6 +400,7 @@ class SchemeContainer {
      * @param {Number} d - maximum distance to items path
      * @param {String} excludedId - item that should be excluded
      * @param {Boolean} onlyVisibleItems - specifies whether it should check only items that are visible
+     * @returns {ItemClosestPoint}
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
@@ -368,21 +419,16 @@ class SchemeContainer {
 
             if (doCheckItem) {
                 if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
-                    const shape = Shape.find(item.shape);
-                    if (shape) {
-                        const path = shape.computeOutline(item);
-                        if (path) {
-                            const closestPoint = this.closestPointToSvgPath(item, path, globalPoint);
-                            const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
-                            if (squaredDistance < d * d) {
-                                return {
-                                    x                 : closestPoint.x,
-                                    y                 : closestPoint.y,
-                                    distanceOnPath    : closestPoint.distanceOnPath,
-                                    path,
-                                    itemId            : item.id
-                                };
-                            }
+                    const closestPoint = this.closestPointToItemOutline(item, globalPoint);
+                    if (closestPoint) {
+                        const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
+                        if (squaredDistance < d * d) {
+                            return {
+                                x                 : closestPoint.x,
+                                y                 : closestPoint.y,
+                                distanceOnPath    : closestPoint.distanceOnPath,
+                                itemId            : item.id
+                            };
                         }
                     }
                 }
@@ -632,25 +678,32 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + indexOffset);
     }
 
+    getSvgOutlineOfItem(item) {
+        return this.svgOutlinePathCache.get(item);
+    }
+
     /**
      * 
      * @param {*} item 
-     * @param {String} path 
      * @param {Point} globalPoint 
      * @param {Boolean} withNormal specifies whether it should calculate the normal vector on the point on specified path
+     * @param {ItemClosestPoint}
      */
-    closestPointToSvgPath(item, path, globalPoint, withNormal) {
+    closestPointToItemOutline(item, globalPoint, withNormal) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
-        const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        shadowSvgPath.setAttribute('d', path);
+        const shadowSvgPath = this.svgOutlinePathCache.get(item);
+        if (!shadowSvgPath) {
+            return null;
+        }
+
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath);
         const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;
 
         if (withNormal) {
-            const normal = this.calculateNormalOnPointOnPath(item, shadowSvgPath, closestPoint.distance);
+            const normal = this.calculateNormalOnPointInItemOutline(item, closestPoint.distance, shadowSvgPath);
             worldPoint.bx = normal.x;
             worldPoint.by = normal.y;
         }
@@ -660,25 +713,24 @@ class SchemeContainer {
     /**
      * calculates normal of specified point on svg path
      * @param {*} item 
-     * @param {String|SVGPathElement} path can be a string representation of path or the path svg element itself
      * @param {Number} distanceOnPath 
+     * @param {SVGPathElement} shadowSvgPath if not specified it will try to obtain svg path from items cache
      * @returns {Point}
      */
-    calculateNormalOnPointOnPath(item, path, distanceOnPath) {
-        let svgPath = null;
-        if (typeof path === 'string') {
-            svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            svgPath.setAttribute('d', path);
-        } else {
-            svgPath = path;
+    calculateNormalOnPointInItemOutline(item, distanceOnPath, shadowSvgPath) {
+        if (!shadowSvgPath) {
+            shadowSvgPath = this.svgOutlinePathCache.get(item);
+            if (!shadowSvgPath) {
+                return {x: 1, y: 0};
+            }
         }
 
         let leftPosition = distanceOnPath - 2;
         if (leftPosition < 0) {
-            leftPosition = svgPath.getTotalLength() - leftPosition;
+            leftPosition = shadowSvgPath.getTotalLength() - leftPosition;
         }
-        const pointA = svgPath.getPointAtLength(leftPosition);
-        const pointB = svgPath.getPointAtLength((distanceOnPath + 2) % svgPath.getTotalLength());
+        const pointA = shadowSvgPath.getPointAtLength(leftPosition);
+        const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % shadowSvgPath.getTotalLength());
 
         let vx = pointB.x - pointA.x;
         let vy = pointB.y - pointA.y; 
