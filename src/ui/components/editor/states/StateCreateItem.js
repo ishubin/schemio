@@ -94,9 +94,6 @@ export default class StateCreateItem extends State {
      * @returns {Item}
      */
     findItemSuitableForParent(area) {
-        let maxArea = -1;
-        let itemFound = null;
-
         const points = [
             { x: area.x,  y: area.y },
             { x: area.x + area.w,  y: area.y },
@@ -104,26 +101,26 @@ export default class StateCreateItem extends State {
             { x: area.x,  y: area.y + area.h},
         ];
 
-        forEach(this.schemeContainer.getItems(), item => {
-            if (!item.visible || item.id === this.item.id) {
-                return;
-            }
+        const items = this.schemeContainer.getItems();
 
-            let fitsInside = true;
-            for (let i = 0; i < points.length && fitsInside; i++) {
-                const localPoint = this.schemeContainer.localPointOnItem(points[i].x, points[i].y, item);
-                fitsInside = localPoint.x >= 0 && localPoint.y >= 0 && localPoint.x <= item.area.w && localPoint.y <= item.area.h;
-            }
+        // doing backwards search as getItems() returns a list of all items ordered by their layering position on screen
+        for (let i = items.length - 1; i >= 0; i--) {
+            const item = items[i];
 
-            if (fitsInside) {
-                if (maxArea < 0 || maxArea > item.area.w*item.area.h) {
-                    itemFound = item;
-                    maxArea = item.area.w * item.area.h;
+            if (item.visible && item.id !== this.item.id) {
+                let fitsInside = true;
+                for (let i = 0; i < points.length && fitsInside; i++) {
+                    const localPoint = this.schemeContainer.localPointOnItem(points[i].x, points[i].y, item);
+                    fitsInside = localPoint.x >= 0 && localPoint.y >= 0 && localPoint.x <= item.area.w && localPoint.y <= item.area.h;
+                }
+
+                if (fitsInside) {
+                    return item;
                 }
             }
-        });
+        }
 
-        return itemFound;
+        return null;
     }
 
     updateItemArea(x, y) {
