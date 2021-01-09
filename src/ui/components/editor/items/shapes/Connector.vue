@@ -76,19 +76,23 @@ function computeSmoothPath(item) {
 
     const vectors = [];
     forEach(item.shapeProps.points, (point, i) => {
-        if (i > 0 && i < item.shapeProps.points.length - 1) {
-            const prevPoint = item.shapeProps.points[i - 1];
-            const nextPoint = item.shapeProps.points[i + 1];
-
-            let x = (nextPoint.x - prevPoint.x);
-            let y = (nextPoint.y - prevPoint.y);
-            const d = Math.sqrt(x*x + y*y);
-            if (d > 0.00001) {
-                x = x / d;
-                y = y / d;
-            }
-            vectors[i] = {x, y};
+        let prevPoint = point;
+        if (i > 0) {
+            prevPoint = item.shapeProps.points[i - 1];
         }
+        let nextPoint = point;
+        if (i < item.shapeProps.points.length - 1) {
+            nextPoint = item.shapeProps.points[i + 1];
+        }
+
+        let x = (nextPoint.x - prevPoint.x);
+        let y = (nextPoint.y - prevPoint.y);
+        const d = Math.sqrt(x*x + y*y);
+        if (d > 0.00001) {
+            x = x / d;
+            y = y / d;
+        }
+        vectors[i] = {x, y};
     });
 
     forEach(points, (point, i) => {
@@ -115,7 +119,7 @@ function computeSmoothPath(item) {
             }
             path += ` C ${previousPoint.x + k * vx} ${previousPoint.y + k *vy}  ${point.x + k*point.bx} ${point.y + k*point.by} ${point.x} ${point.y}`;
 
-        } else if (i > 1 && i < points.length - 1) {
+        } else {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / 3;
             let pvx = vectors[i - 1].x;
             let pvy = vectors[i - 1].y;
@@ -123,8 +127,6 @@ function computeSmoothPath(item) {
             let vy = vectors[i].y;
 
             path += ` C ${previousPoint.x + k * pvx} ${previousPoint.y + k * pvy}  ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
-        } else {
-            path += ` L ${point.x} ${point.y} `;
         }
         previousPoint = point;
     });
@@ -202,41 +204,14 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         }
 
-
-        let leftPosition = distanceOnPath - 2;
-        if (leftPosition < 0) {
-            leftPosition = shadowSvgPath.getTotalLength() - leftPosition;
-        }
-        const pointA = shadowSvgPath.getPointAtLength(leftPosition);
-        const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % shadowSvgPath.getTotalLength());
-
-        let vx = pointB.x - pointA.x;
-        let vy = pointB.y - pointA.y; 
-
-        // rotating vector by 90 degrees, could have done it earlier but doing it explicitly, to keep algorithm clear
-        let t = vx;
-        vx = vy;
-        vy = -t;
-
-        // ^ calculated perpendicular vector in local to attachmentItem transform, now it should be converted to the world transform
-        const topLeftCorner = schemeContainer.worldPointOnItem(0, 0, attachmentItem);
-        const vectorOffset = schemeContainer.worldPointOnItem(vx, vy, attachmentItem);
-        let Vx = vectorOffset.x - topLeftCorner.x;
-        let Vy = vectorOffset.y - topLeftCorner.y;
-
-        // normalizing vector
-        const d = Math.sqrt(Vx*Vx + Vy*Vy);
-        if (d > 0.0001) {
-            Vx = Vx / d;
-            Vy = Vy / d;
-        }
+        const normal = schemeContainer.calculateNormalOnPointOnPath(attachmentItem, shadowSvgPath, distanceOnPath);
 
         const newPoint = {
             t: oldPoint.t,
             x: attachmentPoint.x,
             y: attachmentPoint.y,
-            bx: Vx,
-            by: Vy
+            bx: normal.x,
+            by: normal.y
         };
         callback(newPoint, distanceOnPath, shadowSvgPath);
     }

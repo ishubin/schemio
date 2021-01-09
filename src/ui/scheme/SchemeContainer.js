@@ -382,6 +382,7 @@ class SchemeContainer {
                                     x                 : closestPoint.x,
                                     y                 : closestPoint.y,
                                     distanceOnPath    : closestPoint.distanceOnPath,
+                                    path,
                                     itemId            : item.id
                                 };
                             }
@@ -634,7 +635,14 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + indexOffset);
     }
 
-    closestPointToSvgPath(item, path, globalPoint) {
+    /**
+     * 
+     * @param {*} item 
+     * @param {String} path 
+     * @param {Point} globalPoint 
+     * @param {Boolean} withNormal specifies whether it should calculate the normal vector on the point on specified path
+     */
+    closestPointToSvgPath(item, path, globalPoint, withNormal) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
@@ -645,7 +653,62 @@ class SchemeContainer {
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
         const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;
+
+        if (withNormal) {
+            const normal = this.calculateNormalOnPointOnPath(item, this.shadowSvgPath, closestPoint.distance);
+            worldPoint.bx = normal.x;
+            worldPoint.by = normal.y;
+        }
         return worldPoint;
+    }
+
+    /**
+     * calculates normal of specified point on svg path
+     * @param {*} item 
+     * @param {String|SVGPathElement} path can be a string representation of path or the path svg element itself
+     * @param {Number} distanceOnPath 
+     * @returns {Point}
+     */
+    calculateNormalOnPointOnPath(item, path, distanceOnPath) {
+        let svgPath = null;
+        if (typeof path === 'string') {
+            svgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            svgPath.setAttribute('d', path);
+        } else {
+            svgPath = path;
+        }
+
+        let leftPosition = distanceOnPath - 2;
+        if (leftPosition < 0) {
+            leftPosition = svgPath.getTotalLength() - leftPosition;
+        }
+        const pointA = svgPath.getPointAtLength(leftPosition);
+        const pointB = svgPath.getPointAtLength((distanceOnPath + 2) % svgPath.getTotalLength());
+
+        let vx = pointB.x - pointA.x;
+        let vy = pointB.y - pointA.y; 
+
+        // rotating vector by 90 degrees, could have done it earlier but doing it explicitly, to keep algorithm clear
+        let t = vx;
+        vx = vy;
+        vy = -t;
+
+        // ^ calculated perpendicular vector in local to attachmentItem transform, now it should be converted to the world transform
+        const topLeftCorner = this.worldPointOnItem(0, 0, item);
+        const vectorOffset = this.worldPointOnItem(vx, vy, item);
+        let Vx = vectorOffset.x - topLeftCorner.x;
+        let Vy = vectorOffset.y - topLeftCorner.y;
+
+        // normalizing vector
+        const d = Math.sqrt(Vx*Vx + Vy*Vy);
+        if (d > 0.0001) {
+            Vx = Vx / d;
+            Vy = Vy / d;
+        }
+        return {
+            x: Vx,
+            y: Vy
+        };
     }
 
     getSelectedItems() {
