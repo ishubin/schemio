@@ -944,11 +944,17 @@ export default {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
                 clicked: () => {this.$emit('clicked-add-item-link', item);}
-            }, {
-                name: 'Create scheme for this element...',
-                iconClass: 'far fa-file',
-                clicked: () => {this.$emit('clicked-create-child-scheme-to-item', item);}
-            }, {
+            }];
+
+            if (!this.offline) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Create scheme for this element...',
+                    iconClass: 'far fa-file',
+                    clicked: () => {this.$emit('clicked-create-child-scheme-to-item', item); }
+                });
+            }
+
+            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
                 name: 'Copy',
                 clicked: () => {this.$emit('clicked-copy-selected-items', item);}
             }, {
@@ -963,7 +969,7 @@ export default {
             }, {
                 name: 'Export as SVG...',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
-            }];
+            }]);
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
                     name: 'Edit Curve',

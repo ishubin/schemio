@@ -17,7 +17,7 @@
            <table width="100%">
                <tbody>
                    <tr>
-                       <td width="30px">
+                       <td v-if="projectId" width="30px">
                            <span class="btn btn-secondary"><i class="fas fa-search" @click="toggleSchemeSearch"></i></span>
                        </td>
                        <td>

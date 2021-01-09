@@ -1,6 +1,6 @@
 <template>
     <div>
-        <panel name="Default Styles">
+        <panel uid="default-styles" name="Default Styles">
             <div v-for="styleSection in defaultStyleSections">
                 <ul class="shape-styles-preview">
                     <li v-for="stylePreview in styleSection.styles">
@@ -14,7 +14,7 @@
                 </ul>
             </div>
         </panel>
-        <panel name="User Styles">
+        <panel v-if="currentUser" uid="user-styles" name="User Styles">
             <span class="btn" @click="saveStyleFromItem">Save to Styles</span>
             <span v-if="!isEdit" class="btn" @click="isEdit = true"><i class="fas fa-edit"></i> Edit</span>
             <span v-else class="btn" @click="isEdit = false"><i class="fas fa-edit"></i> Stop Edit</span>
@@ -146,6 +146,11 @@ export default {
             });
 
             cachedUserStyles = filter(cachedUserStyles, style => style.id !== styleId);
+        },
+    },
+    computed: {
+        currentUser() {
+            return this.$store.getters.currentUser;
         },
     }
 }
