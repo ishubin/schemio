@@ -443,14 +443,71 @@ export default class StateDragItem extends State {
         if (object.item) {
             if (object.item.shape === 'curve') {
                 this.eventBus.emitCurveEdited(object.item);
+            } else if (object.item.shape === 'connector') {
+                this.handleDoubleClickOnConnector(object.item, x, y);
             } else {
                 this.findTextSlotAndEmitInPlaceEdit(object.item, x, y)
             }
+        } else if (object.controlPoint && object.controlPoint.item.shape === 'connector') {
+            this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, object.controlPoint.pointId);
         } else if (object.itemTextElement) { 
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
             this.eventBus.$emit(EventBus.VOID_DOUBLE_CLICKED, x, y, mx, my);
         }
+    }
+    
+    handleDoubleClickOnConnector(item, x, y) {
+        const shape = Shape.find(item.shape);
+        if (!shape) {
+            return;
+        }
+        const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const path = shape.computePath(item);
+        if (!path) {
+            return;
+        }
+        shadowSvgPath.setAttribute('d', path);
+
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, item);
+        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath);
+
+        // checking how far away from the curve stroke has the user clicked
+        const dx = localPoint.x - closestPoint.x;
+        const dy = localPoint.y - closestPoint.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d <= parseInt(item.shapeProps.strokeSize) + 1) {
+            const index = this.findClosestLineSegment(closestPoint.distance, item.shapeProps.points, shadowSvgPath);
+            item.shapeProps.points.splice(index + 1, 0, {
+                x: closestPoint.x,
+                y: closestPoint.y,
+            });
+            this.eventBus.emitItemChanged(item.id);
+            this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            StoreUtils.setItemControlPoints(this.store, item);
+            this.eventBus.emitSchemeChangeCommited();
+        }
+    }
+
+    findClosestLineSegment(distanceOnPath, points, svgPath) {
+        //TODO this function is a copy paste form StateEditCurve, it should be moved to myMath
+        let i = points.length - 1;
+        while(i > 0) {
+            const closestPoint = myMath.closestPointOnPath(points[i].x, points[i].y, svgPath);
+            if (closestPoint.distance < distanceOnPath) {
+                return i;
+            }
+            i--;
+        }
+        return 0;
+    }
+
+    handleDoubleClickOnConnectorControlPoint(item, pointId) {
+        item.shapeProps.points.splice(pointId, 1);
+        this.eventBus.emitItemChanged(item.id);
+        this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        StoreUtils.setItemControlPoints(this.store, item);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     findTextSlotAndEmitInPlaceEdit(item, x, y) {
