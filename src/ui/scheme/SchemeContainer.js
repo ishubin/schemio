@@ -85,13 +85,17 @@ class ItemCache {
      * @param {Item} item 
      */
     get(item) {
-        const entryId = `${item.id}-${item.meta.revision}`;
-        if (this.itemPaths.has(entryId)) {
-            return this.itemPaths.get(entryId);
+        const entry = this.itemPaths.get(item.id);
+        if (entry && entry.revision === item.meta.revision) {
+            return entry.value;
         }
-        const path = this.cacheMissFallback(item);
-        this.itemPaths.set(entryId, path);
-        return path;
+        
+        const value = this.cacheMissFallback(item);
+        this.itemPaths.set(item.id, {
+            revision: item.meta.revision,
+            value
+        });
+        return value;
     }
 }
 
@@ -131,6 +135,7 @@ class SchemeContainer {
         this.itemGroups = []; // stores groups from all items
 
         this.svgOutlinePathCache = new ItemCache((item) => {
+            log.info('Computing shape outline for item', item.id, item.name);
             const shape = Shape.find(item.shape);
             if (shape) {
                 const path = shape.computeOutline(item);
@@ -272,7 +277,7 @@ class SchemeContainer {
             // storing revision in item as in future I am plannign to optimize reindeItems function to only reindex changed and affected items
             // this way not all items wold have the same revision
             // revision itself is going to be used in item path cache handling
-            item.revision = newRevision;
+            item.meta.revision = newRevision;
         });
 
         this.itemGroups = keys(this._itemGroupsToIds);
