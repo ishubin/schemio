@@ -2037,11 +2037,6 @@ ul.category-breadcrumb li i {
     max-height: 350px;
     overflow: auto;
 }
-.connector-destination-proposal .item-container {
-    display: inline-block;
-    margin: 5px;
-    cursor: pointer;
-}
 .connector-destination-proposal .item-container:hover {
     background: var(--faint-strong-up);
 }

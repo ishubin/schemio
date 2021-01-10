@@ -1,9 +1,9 @@
 <template>
-    <div class="connector-destination-proposal" :style="{left: `${x}px`, top: `${y}px`}" oncontextmenu="return false;">
-        <div v-for="item in items" class="item-container" @click="onDestinationItemSelected(item)">
-            <svg :width="iconWidth+'px'" :height="iconHeight+'px'">
-                <item-svg :item="item" mode="edit"/>
-            </svg>
+    <div ref="panelContainer" class="connector-destination-proposal" :style="{left: `${position.left}px`, top: `${position.top}px`}" oncontextmenu="return false;">
+        <div class="item-menu">
+            <div v-for="item in itemEntries" :title="item.name" class="item-container" @click="onDestinationItemSelected(item)">
+                <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
+            </div>
         </div>
     </div>
 </template>
@@ -27,13 +27,19 @@ export default {
 
     components: { ItemSvg },
 
-    beforeMount() {
-
-    },
-
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
         document.body.addEventListener('keydown', this.onGlobalKeydown);
+
+    
+        const rect = this.$refs.panelContainer.getBoundingClientRect();
+
+        if (rect.bottom > window.innerHeight) {
+            this.position.top = window.innerHeight - rect.height - 40;
+        }
+        if (rect.right > window.innerWidth) {
+            this.position.left = window.innerWidth - rect.width - 40;
+        }
     },
 
     beforeDestroy() {
@@ -42,49 +48,30 @@ export default {
     },
 
     data() {
-        const padding = 5;
-        const iconWidth = 100;
-        const iconHeight = 60;
-
-        const connectorItem = this.schemeContainer.findItemById(this.connectorItemId);
-        const items = [];
-
-        // will first propose to duplicate source item and make it its destination item
-        if (connectorItem.shapeProps.sourceItem) {
-            const sourceItem = this.schemeContainer.findFirstElementBySelector(connectorItem.shapeProps.sourceItem);
-            if (sourceItem) {
-                const item = utils.clone(sourceItem);
-                item.id = null;
-                item.cursor = 'pointer';
-                item.area = {x: padding, y: padding, w: iconWidth - 2*padding, h: iconHeight - 2*padding};
-                enrichItemWithDefaults(item);
-                items.push(item);
-            }
-        }
+        const itemEntries = [];
 
         const appendItem = (menuEntry) => {
-            const item = utils.clone(menuEntry.item);
-            item.id = null;
-            item.area = {x: padding, y: padding, w: iconWidth - 2*padding, h: iconHeight - 2*padding};
-            item.cursor = 'pointer';
-            item.name = menuEntry.name;
-            enrichItemWithDefaults(item);
-            items.push(item);
+            if (!menuEntry.imageProperty) {
+                itemEntries.push(menuEntry);
+            }
         }
 
         forEach(GeneralItemMenu, appendItem);
         forEach(UMLItemMenu, appendItem);
 
         return {
-            padding,
-            iconWidth,
-            iconHeight,
-            items
+            itemEntries,
+            position: {
+                left: this.x,
+                top: this.y
+            }
         };
     },
 
     methods: {
-        onDestinationItemSelected(item) {
+        onDestinationItemSelected(itemEntry) {
+            const item = utils.clone(itemEntry.item);
+            enrichItemWithDefaults(item);
             this.$emit('item-selected', item);
             this.$emit('close');
         },
