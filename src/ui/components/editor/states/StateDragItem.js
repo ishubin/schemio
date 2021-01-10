@@ -685,12 +685,17 @@ export default class StateDragItem extends State {
             if (this.sourceItem.shape === 'connector' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
                 this.handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint);
             } else {
-                const localPoint = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
+                const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
                 const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
-                const dx = localPoint2.x - localPoint.x, dy = localPoint2.y - localPoint.y;
+                const dx          = localPoint2.x - localPoint.x;
+                const dy          = localPoint2.y - localPoint.y;
 
                 const shape = Shape.find(this.sourceItem.shape);
-                shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
+                if (this.sourceItem.shape === 'connector') {
+                    this.handleConnectorPointDrag(this.sourceItem, this.controlPoint.id, dx, dy, this.controlPoint.originalX, this.controlPoint.originalY);
+                } else {
+                    shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
+                }
                 
                 this.eventBus.emitItemChanged(this.sourceItem.id);
                 this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
@@ -700,6 +705,22 @@ export default class StateDragItem extends State {
                 this.reindexNeeded = true;
                 this.lastDraggedItem = this.sourceItem;
             }
+        }
+    }
+
+    handleConnectorPointDrag(item, pointId, dx, dy, originalX, originalY) {
+        const point = item.shapeProps.points[pointId];
+        if (point) {
+            const worldPoint = this.schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
+
+            const newOffset = this.snapPoints({
+                vertical: [worldPoint],
+                horizontal: [worldPoint],
+            }, new Set(), 0, 0);
+
+            const localPoint = this.schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, item);
+            point.x = localPoint.x;
+            point.y = localPoint.y;
         }
     }
 
