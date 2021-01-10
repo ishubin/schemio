@@ -59,5 +59,13 @@ export default {
 
     setItemCreatingAutoRemount(store, shouldAutoRemount) {
         store.dispatch('setItemCreatingAutoRemount', shouldAutoRemount);
+    },
+
+    proposeConnectorDestinationItems(store, connectorItemId, mx, my) {
+        store.dispatch('proposeConnectorDestinationItems', {connectorItemId, mx, my});
+    },
+
+    disableProposeConnectorDestinationItems(store) {
+        store.dispatch('disableProposeConnectorDestinationItems', {connectorItemId, mx, my});
     }
 }

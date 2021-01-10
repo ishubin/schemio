@@ -2027,6 +2027,27 @@ ul.category-breadcrumb li i {
     background: #ccc;
 }
 
+/***************** Connector Destination Proposal ************/
+.connector-destination-proposal {
+    position: fixed;
+    padding: 5px;
+    box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 10px;
+    background: var(--faint-weak-down);
+    max-width: 600px;
+    max-height: 400px;
+    overflow: auto;
+}
+.connector-destination-proposal .item-container {
+    display: inline-block;
+    margin: 5px;
+    cursor: pointer;
+}
+.connector-destination-proposal .item-container:hover {
+    background: var(--faint-strong-up);
+}
+.connector-destination-proposal .item-container svg {
+    cursor: pointer;
+}
 
 /******************** Item Tooltip ***************/
 .item-tooltip {

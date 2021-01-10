@@ -179,6 +179,13 @@
 
         <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
+        <connector-destination-proposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
+            :x="connectorProposedDestination.mx"
+            :y="connectorProposedDestination.my"
+            :connector-item-id="connectorProposedDestination.connectorItemId"
+            :scheme-container="schemeContainer"
+        />
+
         <div v-if="importSchemeFileShown" style="display: none">
             <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
         </div>
@@ -207,6 +214,7 @@ import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
 import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
+import ConnectorDestinationProposal from '../components/editor/ConnectorDestinationProposal.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
@@ -244,6 +252,7 @@ export default {
         SchemeDetails, CreateItemMenu, QuickHelperPanel,
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
+        ConnectorDestinationProposal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -1122,6 +1131,10 @@ export default {
         schemeModified() {
             return this.$store.getters.schemeModified;
         },
+
+        connectorProposedDestination() {
+            return this.$store.getters.connectorProposedDestination;
+        }
     }
 }
 </script>

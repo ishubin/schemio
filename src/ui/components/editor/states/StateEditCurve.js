@@ -248,33 +248,37 @@ export default class StateEditCurve extends State {
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
-            const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
+            if (isEventRightClick(event) && this.item.shape === 'connector') {
+                this.proposeNewDestinationItemForConnector(this.item, mx, my);
+            } else {
+                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
 
-            // checking if the curve was attached to another item
-            if (this.item.shapeProps.destinationItem) {
-                if (this.item.shapeProps.sourceItem) {
-                    this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
-                }
-                this.submitItem();
-                return;
-            }
-
-            const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
-            point.x = snappedCurvePoint.x;
-            point.y = snappedCurvePoint.y;
-
-            //checking whether curve got closed
-            if (this.item.shapeProps.points.length > 2) {
-                if (this.shouldJoinClosedPoints) {
-                    //closing the curve
-                    this.item.shapeProps.closed = true;
-                    // deleting last point
-                    this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
+                // checking if the curve was attached to another item
+                if (this.item.shapeProps.destinationItem) {
+                    if (this.item.shapeProps.sourceItem) {
+                        this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
+                    }
                     this.submitItem();
+                    return;
                 }
+
+                const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
+                point.x = snappedCurvePoint.x;
+                point.y = snappedCurvePoint.y;
+
+                //checking whether curve got closed
+                if (this.item.shapeProps.points.length > 2) {
+                    if (this.shouldJoinClosedPoints) {
+                        //closing the curve
+                        this.item.shapeProps.closed = true;
+                        // deleting last point
+                        this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
+                        this.submitItem();
+                    }
+                }
+                StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+                this.candidatePointSubmited = true;
             }
-            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-            this.candidatePointSubmited = true;
         } else {
             // editing existing curve
             if (isEventRightClick(event)) {
@@ -862,5 +866,9 @@ export default class StateEditCurve extends State {
                 StoreUtils.selectCurveEditPoint(this.store, pointId, true);
             }
         });
+    }
+
+    proposeNewDestinationItemForConnector(item, mx, my) {
+        StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my);
     }
 }

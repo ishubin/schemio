@@ -36,7 +36,6 @@ const store = new Vuex.Store({
         currentUser: null,
         schemeModified: false,
 
-
         editorStateName: 'interact',
 
         curveEditing: {
@@ -72,6 +71,14 @@ const store = new Vuex.Store({
         snappers: {
             horizontal: null,
             vertical: null,
+        },
+
+        // used to display proposed new items 
+        connectorProposedDestination: {
+            shown: false,
+            connectorItemId: null,
+            mx: 0, // value on x viewport axis
+            my: 0, // value on y viewport axis
         }
     },
     mutations: {
@@ -192,6 +199,16 @@ const store = new Vuex.Store({
             state.snappers.horizontal = null;
             state.snappers.vertical = null;
         },
+
+        PROPOSE_CONNECTOR_DESTINATION_ITEMS(state, {connectorItemId, mx, my}) {
+            state.connectorProposedDestination.connectorItemId = connectorItemId;
+            state.connectorProposedDestination.mx = mx;
+            state.connectorProposedDestination.my = my;
+            state.connectorProposedDestination.shown = true;
+        },
+        DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS(state) {
+            state.connectorProposedDestination.shown = false;
+        }
     },
     actions: {
         loadCurrentUser({commit}) {
@@ -287,6 +304,13 @@ const store = new Vuex.Store({
 
         setItemCreatingAutoRemount({commit}, autoRemount) {
             commit('SET_ITEM_CREATING_AUTO_REMOUNT', autoRemount);
+        },
+
+        proposeConnectorDestinationItems({commit}, payload) {
+            commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
+        },
+        disableProposeConnectorDestinationItems({commit}) {
+            commit('DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS');
         }
     },
     getters: {
@@ -308,6 +332,8 @@ const store = new Vuex.Store({
         shouldSnapToItems: state => state.snap.items,
 
         itemCreatingAutoRemount: state => state.itemCreating.autoRemount,
+
+        connectorProposedDestination: state => state.connectorProposedDestination
     }
 });
 
