@@ -897,12 +897,35 @@ export default class StateEditCurve extends State {
         //TODO calculate correct placement 
         
         const worldPoint2 = this.schemeContainer.worldPointOnItem(p2.x, p2.y, this.item);
+        const worldPoint1 = this.schemeContainer.worldPointOnItem(p1.x, p1.y, this.item);
+
+        const Vx = worldPoint2.x - worldPoint1.x;
+        const Vy = worldPoint2.y - worldPoint1.y;
 
         const destinationItem = this.schemeContainer.addItem(item);
         destinationItem.area.w = 100;
         destinationItem.area.h = 50;
-        destinationItem.area.x = worldPoint2.x;
-        destinationItem.area.y = worldPoint2.y;
+
+        if (Math.abs(Vx) > Math.abs(Vy)) {
+            destinationItem.area.y = worldPoint2.y - destinationItem.area.h / 2;
+            if (Vx > 0) {
+                //should attach from left side
+                destinationItem.area.x = worldPoint2.x;
+            } else {
+                //should attach from right side
+                destinationItem.area.x = worldPoint2.x - destinationItem.area.w;
+            }
+        } else {
+            destinationItem.area.x = worldPoint2.x - destinationItem.area.w / 2;
+            if (Vy > 0) {
+                //should attach from top
+                destinationItem.area.y = worldPoint2.y;
+            } else {
+                //should attach from bottom
+                destinationItem.area.y = worldPoint2.y - destinationItem.area.h;
+            }
+        }
+
 
         const localToDstItemPoint = this.schemeContainer.localPointOnItem(worldPoint2.x, worldPoint2.y, destinationItem);
 
