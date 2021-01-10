@@ -44,9 +44,9 @@ export default {
         return axios.patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    findProjects(filters) {
-        let encodedQuery = encodeURIComponent(filters.query || '');
-        let url = `/v1/projects?offset=${filters.offset || 0}&q=${encodedQuery}`;
+    findProjects({query, offset}) {
+        let encodedQuery = encodeURIComponent(query || '');
+        let url = `/v1/projects?offset=${offset || 0}&q=${encodedQuery}`;
         return axios.get(url).then(unwrapAxios);
     },
 

@@ -189,7 +189,6 @@ function getShapePropDescriptor(shape, propName) {
 
 export default {
     make,
-    shapeRegistry,
     getShapeIds() {
         return keys(shapeRegistry);
     },

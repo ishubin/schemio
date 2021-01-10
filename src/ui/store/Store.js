@@ -315,6 +315,7 @@ const store = new Vuex.Store({
     },
     getters: {
         currentUser: state => state.currentUser,
+
         schemeModified: state => state.schemeModified,
         
         itemControlPointsList: state => state.itemControlPoints,

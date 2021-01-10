@@ -7,89 +7,23 @@
         </header-component>
 
         <div class="middle-content">
-            <div>
-                <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
-                <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
-            </div>
-            <div v-if="searchResult">
-                <div>
-                    Total results <b>{{searchResult.total}}</b>
-                </div>
-
-                <pagination
-                    :current-page="currentPage"
-                    :total-pages="totalPages"
-                    :url-prefix="urlPrefix"
-                    :use-router="true"
-                />
-
-                <ul class="projects">
-                    <li v-for="project in searchResult.results" :key="project.id">
-                        <router-link :to="{path: `/projects/${project.id}`}">
-                            <a class="project link">
-                                {{project.name}}
-                            </a>
-                        </router-link>
-                    </li>
-                </ul>
-            </div>
+            <projects-list :key="`projects-list-${revision}`" route-prefix="/projects"/>
         </div>
     </div>
 </template>
+
 <script>
 import HeaderComponent from '../components/Header.vue';
-import Pagination from '../components/Pagination.vue';
-import apiClient from '../apiClient.js';
+import ProjectsList from '../components/ProjectsList.vue';
 import utils from '../utils.js';
 
 export default {
-    components: {HeaderComponent, Pagination},
-
-    mounted() {
-        this.init();
-    },
+    components: { HeaderComponent, ProjectsList },
 
     data() {
-        const query = this.$route.query.q || '';
         return {
-            currentPage: parseInt(this.$route.query.page) || 1,
-            query: query,
-            searchResult: null,
-            currentPage: 1,
-            totalPages: 0,
-            urlPrefix: `/projects?q=${encodeURIComponent(query)}`,
-            resultsPerPage : 20,
+            revision: 0
         };
-    },
-
-    methods: {
-        init() {
-            this.query = this.$route.query.q || '';
-            this.currentPage = parseInt(this.$route.query.page) || 1;
-            this.urlPrefix = `/projects?q=${encodeURIComponent(this.query)}`
-            this.searchProjects();
-        },
-
-        searchProjects() {
-            let offset = 0;
-            if (this.currentPage > 0) {
-                offset = (this.currentPage - 1) * this.resultsPerPage;
-            }
-            apiClient.findProjects({
-                query: this.query,
-                offset: offset
-            }).then(searchResponse => {
-                this.searchResult = searchResponse;
-                this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
-                this.resultsPerPage = searchResponse.resultsPerPage;
-            });
-        },
-
-        onSearchClicked() {
-            this.urlPrefix = `/projects?q=${encodeURIComponent(this.query)}`;
-            let url = `${this.urlPrefix}&page=${this.currentPage}`;
-            this.$router.push({path: url});
-        },
     },
 
     computed: {
@@ -100,7 +34,8 @@ export default {
 
     watch:{
         $route(to, from) {
-            this.init();
+            // forcing it to refresh projects list
+            this.revision += 1;
         }
     }
 }

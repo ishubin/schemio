@@ -2,6 +2,8 @@
     <div>
         <header-component/>
         <div class="middle-content">
+            <h1>Create New Project</h1>
+
             <h4>Name:</h4>
             <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="name"/>
             <div class="msg msg-error" v-if="mandatoryFields.name.errorMessage">{{mandatoryFields.name.errorMessage}}</div>

@@ -143,7 +143,8 @@ class MongoProjectStorage {
                         id: project.id,
                         name: project.name,
                         description: project.description,
-                        createdTime: project.createdTime
+                        createdTime: project.createdTime,
+                        isPublic:       project.isPublic,
                     };
                 }),
                 total: count,

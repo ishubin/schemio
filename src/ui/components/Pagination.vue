@@ -1,6 +1,6 @@
 <template lang="html">
     <div class="pagination-container">
-        <ul class="pagination">
+        <ul v-if="pages.length > 1" class="pagination">
             <li>
                 <span v-if="currentPage > 1">
                     <router-link v-if="useRouter" :to="{path: urlForPage(currentPage - 1)}"><i class="fas fa-chevron-circle-left"></i></router-link>
