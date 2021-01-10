@@ -332,12 +332,8 @@ export default {
     computed: {
         hasShapeArgs() {
             const shape = Shape.find(this.item.shape);
-            if (shape) {
-                for(let argName in shape.args) {
-                    if (shape.args.hasOwnProperty(argName)) {
-                        return true;
-                    }
-                }
+            if (shape && shape.args) {
+                return Object.keys(shape.args).length > 0;
             }
             return false;
         }
