@@ -2,9 +2,9 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import apiClient from '../apiClient';
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import utils from '../utils';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
-import { setState } from 'expect';
 
 Vue.use(Vuex);
 
@@ -296,6 +296,8 @@ const store = new Vuex.Store({
         itemControlPointsList: state => state.itemControlPoints,
         
         curveEditPoints: state => state.curveEditing.points,
+
+        firstSelectedCurveEditPoint: state => find(state.curveEditing.points, p => p.selected),
 
         multiSelectBox: state => state.multiSelectBox,
 

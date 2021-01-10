@@ -1374,6 +1374,7 @@ export default {
     watch: {
         state(newState) {
             this.$store.dispatch('setEditorStateName', newState);
+            this.$emit('switched-state', states[newState]);
         },
         mode(newMode) {
             if (newMode === 'edit') {

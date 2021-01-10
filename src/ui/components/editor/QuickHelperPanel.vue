@@ -117,7 +117,17 @@
             </div>
             <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
-                    <li v-if="currentState === 'editCurve'">
+                    <li v-if="firstSelectedCurveEditPoint">
+                        <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-curve-points-to-simple')">
+                            <img src="/assets/images/helper-panel/curve-point-simple.svg"/>
+                        </span>
+                    </li>
+                    <li v-if="firstSelectedCurveEditPoint">
+                        <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-curve-points-to-beizer')">
+                            <img src="/assets/images/helper-panel/curve-point-beizer.svg"/>
+                        </span>
+                    </li>
+                    <li>
                         <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
                     </li>
                 </ul>
@@ -355,6 +365,10 @@ export default {
 
         itemCreatingAutoRemount() {
             return this.$store.getters.itemCreatingAutoRemount;
+        },
+
+        firstSelectedCurveEditPoint() {
+            return this.$store.getters.firstSelectedCurveEditPoint;
         }
     }
 }

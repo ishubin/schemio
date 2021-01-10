@@ -38,7 +38,7 @@ function isMultiSelectKey(event) {
 export default class StateEditCurve extends State {
     constructor(eventBus, store) {
         super(eventBus, store);
-        this.name = 'edit-curve';
+        this.name = 'editCurve';
         this.item = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
@@ -418,6 +418,16 @@ export default class StateEditCurve extends State {
         this.softReset();
     }
 
+    convertSelectedPointsToBeizer() {
+        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
+        forEach(selectedPoints, point => this.convertPointToBeizer(point.id));
+    }
+
+    convertSelectedPointsToSimple() {
+        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
+        forEach(selectedPoints, point => this.convertPointToSimple(point.id));
+    }
+
     handleRightClick(x, y, mx, my, object) {
         const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
         if (selectedPoints.length > 1) {
@@ -426,14 +436,10 @@ export default class StateEditCurve extends State {
                 clicked: () => this.deleteSelectedPoints()
             }, {
                 name: 'Convert to beizer',
-                clicked: () => {
-                    forEach(selectedPoints, point => this.convertPointToBeizer(point.id));
-                }
+                clicked: () => this.convertSelectedPointsToBeizer()
             }, {
                 name: 'Convert to simple',
-                clicked: () => {
-                    forEach(selectedPoints, point => this.convertPointToSimple(point.id));
-                }
+                clicked: () => this.convertSelectedPointsToSimple()
             }];
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
         }

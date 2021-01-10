@@ -42,6 +42,7 @@
                         :mode="mode"
                         :offline="offlineMode"
                         :zoom="zoom"
+                        @switched-state="onSvgEditorSwitchedState"
                         @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
                         @clicked-add-item-link="onClickedAddItemLink"
                         @clicked-start-connecting="onClickedStartConnecting"
@@ -145,6 +146,8 @@
                 @clicked-redo="historyRedo()"
                 @clicked-bring-to-front="bringSelectedItemsToFront()"
                 @clicked-bring-to-back="bringSelectedItemsToBack()"
+                @convert-curve-points-to-simple="convertCurvePointToSimple()"
+                @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
                 @import-json-requested="onImportSchemeJSONClicked"
                 @export-json-requested="exportAsJSON"
                 @export-svg-requested="exportAsSVG"
@@ -231,6 +234,9 @@ const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 's
 function escapeHTML(html) {
     return new Option(html).innerHTML;
 }
+
+
+let currentState = null;
 
 export default {
     components: {
@@ -1025,6 +1031,22 @@ export default {
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
+
+        onSvgEditorSwitchedState(state) {
+            currentState = state;
+        },
+
+        convertCurvePointToSimple() {
+            if (currentState && currentState.name === 'editCurve') {
+                currentState.convertSelectedPointsToSimple();
+            }
+        },
+
+        convertCurvePointToBeizer() {
+            if (currentState && currentState.name === 'editCurve') {
+                currentState.convertSelectedPointsToBeizer();
+            }
+        },
     },
 
     filters: {
@@ -1089,7 +1111,7 @@ export default {
                 this.searchHighlights = [];
                 EventBus.emitItemsHighlighted([]);
             }
-        }
+        },
     },
 
     computed: {
