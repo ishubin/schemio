@@ -1,4 +1,5 @@
 import Shape from '../components/editor/items/shapes/Shape';
+import '../typedef';
 
 export default {
     setItemControlPoints(store, item) {
@@ -43,6 +44,11 @@ export default {
         store.dispatch('setMultiSelectBox', box);
     },
 
+    /**
+     * 
+     * @param {*} store 
+     * @param {ItemSnapper} snapper 
+     */
     setItemSnapper(store, snapper) {
         store.dispatch('setItemSnapper', snapper);
     },

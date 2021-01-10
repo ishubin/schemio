@@ -167,22 +167,24 @@ export default class StateEditCurve extends State {
     }
 
     initFirstClick(x, y) {
-        this.item.shapeProps.points = [{
-            x, y, t: 'L'
-        }, {
-            x, y, t: 'L'
-        }];
+        this.item.shapeProps.points = [];
 
         this.schemeContainer.addItem(this.item);
 
         // snapping can only be performed once the item is added to the scheme
         // that is why we have to re-adjust curve points afterwords so that they are snapped
-        const snappedCurvePoint = this.snapCurvePoint(x, y);
+        const snappedCurvePoint = this.snapCurvePoint(-1, x, y);
 
-        this.item.shapeProps.points[0].x = snappedCurvePoint.x;
-        this.item.shapeProps.points[0].y = snappedCurvePoint.y;
-        this.item.shapeProps.points[1].x = snappedCurvePoint.x;
-        this.item.shapeProps.points[1].y = snappedCurvePoint.y;
+        this.item.shapeProps.points.push({
+            x: snappedCurvePoint.x,
+            y: snappedCurvePoint.y,
+            t: 'L'
+        });
+        this.item.shapeProps.points.push({
+            x: snappedCurvePoint.x,
+            y: snappedCurvePoint.y,
+            t: 'L'
+        });
 
         // in case user tried to attach source to another item
         this.handleEdgeCurvePointDrag(this.item.shapeProps.points[0], true);
@@ -246,7 +248,7 @@ export default class StateEditCurve extends State {
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
-            const snappedCurvePoint = this.snapCurvePoint(x, y);
+            const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
 
             // checking if the curve was attached to another item
             if (this.item.shapeProps.destinationItem) {
@@ -325,7 +327,7 @@ export default class StateEditCurve extends State {
                 point.y1 = -point.y2;
             } else {
                 // drag last point
-                const snappedLocalCurvePoint = this.snapCurvePoint(x, y);
+                const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, x, y);
                 point.x = snappedLocalCurvePoint.x;
                 point.y = snappedLocalCurvePoint.y;
 
@@ -390,7 +392,7 @@ export default class StateEditCurve extends State {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
 
-                const snappedLocalCurvePoint = this.snapCurvePoint(x, y);
+                const snappedLocalCurvePoint = this.snapCurvePoint(-1, x, y);
                 this.item.shapeProps.points.push({
                     x: snappedLocalCurvePoint.x,
                     y: snappedLocalCurvePoint.y,
@@ -636,6 +638,7 @@ export default class StateEditCurve extends State {
         const curvePoint = this.item.shapeProps.points[pointIndex];
 
         const snappedLocalCurvePoint = this.snapCurvePoint(
+            pointIndex,
             this.originalCurvePoints[pointIndex].x + localPoint.x - localOriginalPoint.x,
             this.originalCurvePoints[pointIndex].y + localPoint.y - localOriginalPoint.y
         );
@@ -664,18 +667,66 @@ export default class StateEditCurve extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
     }
 
-    snapCurvePoint(localX, localY) {
+    snapCurvePoint(pointId, localX, localY) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
+
+        let bestSnappedHorizontalProximity = 100000;
+        let bestSnappedVerticalProximity = 100000;
+        //TODO configure snapping precision
+        const maxSnapProximity = 6;
+        
+        let horizontalSnapper = null;
+        let verticalSnapper = null;
+
+        // first it should try to snap to its own curve points and only then to any other snappers of other items
+        forEach(this.item.shapeProps.points, (point, idx) => {
+            if (pointId === idx) {
+                return;
+            }
+            
+            const wp = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+
+            let d = Math.abs(wp.y - worldCurvePoint.y);
+            if (d < maxSnapProximity && d < bestSnappedHorizontalProximity) {
+                bestSnappedHorizontalProximity = d;
+                horizontalSnapper = {
+                    localValue: point.y,
+                    value: wp.y,
+                    item: this.item,
+                    snapperType: 'horizontal'
+                };
+            }
+
+            d = Math.abs(wp.x - worldCurvePoint.x);
+            if (d < maxSnapProximity && d < bestSnappedVerticalProximity) {
+                bestSnappedVerticalProximity = d;
+                verticalSnapper = {
+                    localValue: point.x,
+                    value: wp.x,
+                    item: this.item,
+                    snapperType: 'vertical'
+                };
+            }
+        });
 
         const newOffset = this.snapPoints({
             vertical: [worldCurvePoint],
             horizontal: [worldCurvePoint]
         }, new Set(), 0, 0);
 
-        const snappedWorldX = worldCurvePoint.x + newOffset.dx;
-        const snappedWorldY = worldCurvePoint.y + newOffset.dy;
+        let snappedWorldX = worldCurvePoint.x + newOffset.dx;
+        let snappedWorldY = worldCurvePoint.y + newOffset.dy;
 
-        return this.schemeContainer.localPointOnItem(snappedWorldX, snappedWorldY, this.item);
+        const localPoint = this.schemeContainer.localPointOnItem(snappedWorldX, snappedWorldY, this.item);
+        if (horizontalSnapper) {
+            localPoint.y = horizontalSnapper.localValue;
+            StoreUtils.setItemSnapper(this.store, horizontalSnapper);
+        }
+        if (verticalSnapper) {
+            localPoint.x = verticalSnapper.localValue;
+            StoreUtils.setItemSnapper(this.store, verticalSnapper);
+        }
+        return localPoint;
     }
 
     /**

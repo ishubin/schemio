@@ -82,6 +82,13 @@
  */
 
 
+ /**
+  * @typedef {Object} ItemSnapper
+  * @property {Number} value - world value to which it should snap
+  * @property {String} snapperType - type of a snapper (e.g. "horizontal", "vertical")
+  * @property {Item} item - item to which it snaps value
+  */
+
 
  /** 
   * Interface for snapping points on X and Y axis. Used for snapping to grid
