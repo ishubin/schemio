@@ -14,6 +14,7 @@ import ProjectListView from './views/ProjectListView.vue';
 import HomeView from './views/HomeView.vue';
 import ProjectView from './views/ProjectView.vue';
 import ProjectCreateView from './views/ProjectCreateView.vue';
+import NotFoundView from './views/NotFoundView.vue';
 
 
 Vue.use(VueRouter);
@@ -36,7 +37,9 @@ const routes = [
     route('SchemeEditorView', '/offline-scheme-editor', SchemeEditorView),
     route('HomeView', '/', HomeView),
     route('ProjectListView', '/projects', ProjectListView),
-    route('ProjectView', '/projects/:projectId', ProjectView)
+    route('ProjectView', '/projects/:projectId', ProjectView),
+    route('NotFound', '/not-found', NotFoundView),
+    { path: '*', redirect: '/not-found' },
 ];
 
 
