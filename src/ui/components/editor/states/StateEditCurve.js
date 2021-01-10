@@ -793,17 +793,13 @@ export default class StateEditCurve extends State {
 
         // Since control points are relative to their base curve points, we need to calculate their absolute world position
         // This way we can snap them to the grid and then recalculate the relative to base curve point in its local coords
-        const worldAbsoluteControlPoint = this.schemeContainer.worldPointOnItem(
+
+        const snappedLocalAbsoluteCurvePoint = this.snapCurvePoint(
+            -1,
             curvePoint.x + this.originalCurvePoints[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
             curvePoint.y + this.originalCurvePoints[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
-            this.item
         );
-        const snappedWorldAbsoluteCurvePoint = {
-            x: this.snapX(worldAbsoluteControlPoint.x),
-            y: this.snapY(worldAbsoluteControlPoint.y)
-        };
-        const snappedLocalAbsoluteCurvePoint = this.schemeContainer.localPointOnItem(snappedWorldAbsoluteCurvePoint.x, snappedWorldAbsoluteCurvePoint.y, this.item);
-        
+
         curvePoint[`x${index}`] = snappedLocalAbsoluteCurvePoint.x - curvePoint.x;
         curvePoint[`y${index}`] = snappedLocalAbsoluteCurvePoint.y - curvePoint.y;
         
