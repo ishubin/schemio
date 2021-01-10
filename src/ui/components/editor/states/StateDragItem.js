@@ -75,9 +75,6 @@ export default class StateDragItem extends State {
         this.draggerEdges = null;
 
         this.snapper = {
-            snapX: (x) => this.snapX(x),
-            snapY: (y) => this.snapY(y),
-
             /**
              * Checks snapping of item and returns new offset that should be applied to item
              * 
@@ -722,8 +719,21 @@ export default class StateDragItem extends State {
         if (!curvePoint) {
             return;
         }
+        
+        let excludedIds = null
+        if (this.multiItemEditBox) {
+            excludedIds = this.multiItemEditBox.itemIds;
+        } else {
+            excludedIds = new Set();
+            excludedIds.add(this.sourceItem.id);
+        }
 
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(this.snapper.snapX(x), this.snapper.snapY(y), distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems);
+        const snappedOffset = this.snapper.snapPoints({
+            horizontal: [{x, y}],
+            vertical: [{x, y}],
+        }, excludedIds, 0, 0);
+
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems);
         
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
@@ -740,7 +750,7 @@ export default class StateDragItem extends State {
                 this.sourceItem.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
         } else {
-            const localPoint = this.schemeContainer.localPointOnItem(this.snapper.snapX(x), this.snapper.snapY(y), this.sourceItem);
+            const localPoint = this.schemeContainer.localPointOnItem(x + snappedOffset.dx, y + snappedOffset.dy, this.sourceItem);
 
             curvePoint.x = localPoint.x;
             curvePoint.y = localPoint.y;

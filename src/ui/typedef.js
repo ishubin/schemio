@@ -96,12 +96,7 @@
   */
  /**
   * @function
-  * @name Snapper#snapX
-  * @param {Number} x - value on X axis which should be snapped
-  */
- /**
-  * @function
-  * @name Snapper#snapY
+  * @name Snapper#snapPoints
   * @param {Number} x - value on X axis which should be snapped
   */
 

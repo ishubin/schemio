@@ -114,14 +114,6 @@ class State {
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
     }
 
-    snapX(value) {
-        return this.snapToGrid(value);
-    }
-
-    snapY(value) {
-        return this.snapToGrid(value);
-    }
-
     snapToGrid(value) {
         const snap = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
         if (this.store.state.snap.grid) {
