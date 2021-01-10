@@ -307,6 +307,11 @@ export default class StateEditCurve extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        // not handling any mouse movement if connector proposed destination panel is shown
+        if (this.store.state.connectorProposedDestination.shown) {
+            return;
+        }
+
         this.wasMouseMoved = true;
 
         if (this.shouldDragScreen && this.startedDraggingScreen) {
@@ -870,5 +875,49 @@ export default class StateEditCurve extends State {
 
     proposeNewDestinationItemForConnector(item, mx, my) {
         StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my);
+    }
+
+    /**
+     * Invoked when user selects an item from ConnectorDestinationProposal panel
+     * @param {Item} dstItem 
+     */
+    submitConnectorDestinationItem(item) {
+        if (this.item.shape !== 'connector') {
+            return;
+        }
+
+        let shape = Shape.find(this.item.shape);
+        let path = shape.computePath(this.item);
+        let shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        shadowSvgPath.setAttribute('d', path);
+
+        const pathLength = shadowSvgPath.getTotalLength();
+        const p2 = shadowSvgPath.getPointAtLength(pathLength);
+        const p1 = shadowSvgPath.getPointAtLength(pathLength - 4);
+        //TODO calculate correct placement 
+        
+        const worldPoint2 = this.schemeContainer.worldPointOnItem(p2.x, p2.y, this.item);
+
+        const destinationItem = this.schemeContainer.addItem(item);
+        destinationItem.area.w = 100;
+        destinationItem.area.h = 50;
+        destinationItem.area.x = worldPoint2.x;
+        destinationItem.area.y = worldPoint2.y;
+
+        const localToDstItemPoint = this.schemeContainer.localPointOnItem(worldPoint2.x, worldPoint2.y, destinationItem);
+
+
+        shape = Shape.find(destinationItem.shape);
+        path = shape.computeOutline(destinationItem);
+        shadowSvgPath.setAttribute('d', path);
+        const closestPoint = myMath.closestPointOnPath(localToDstItemPoint.x, localToDstItemPoint.y, shadowSvgPath);
+
+        // this is a hack but have to do it as when user cancels state edit curve
+        // it actually deletes the last point since it is considered as not submited
+        this.item.shapeProps.points.push(utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]));
+        
+        this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
+        this.item.shapeProps.destinationItemPosition = closestPoint.distance;
+        this.cancel();
     }
 }

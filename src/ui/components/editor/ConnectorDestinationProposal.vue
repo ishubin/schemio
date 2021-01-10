@@ -1,6 +1,6 @@
 <template>
     <div class="connector-destination-proposal" :style="{left: `${x}px`, top: `${y}px`}" oncontextmenu="return false;">
-        <div v-for="item in items" class="item-container">
+        <div v-for="item in items" class="item-container" @click="onDestinationItemSelected(item)">
             <svg :width="iconWidth+'px'" :height="iconHeight+'px'">
                 <item-svg :item="item" mode="edit"/>
             </svg>
@@ -31,6 +31,16 @@ export default {
 
     },
 
+    mounted() {
+        document.body.addEventListener('click', this.onBodyClick);
+        document.body.addEventListener('keydown', this.onGlobalKeydown);
+    },
+
+    beforeDestroy() {
+        document.body.removeEventListener('click', this.onBodyClick);
+        document.body.removeEventListener('keydown', this.onGlobalKeydown);
+    },
+
     data() {
         const padding = 5;
         const iconWidth = 100;
@@ -45,6 +55,7 @@ export default {
             if (sourceItem) {
                 const item = utils.clone(sourceItem);
                 item.id = null;
+                item.cursor = 'pointer';
                 item.area = {x: padding, y: padding, w: iconWidth - 2*padding, h: iconHeight - 2*padding};
                 enrichItemWithDefaults(item);
                 items.push(item);
@@ -53,7 +64,9 @@ export default {
 
         const appendItem = (menuEntry) => {
             const item = utils.clone(menuEntry.item);
+            item.id = null;
             item.area = {x: padding, y: padding, w: iconWidth - 2*padding, h: iconHeight - 2*padding};
+            item.cursor = 'pointer';
             item.name = menuEntry.name;
             enrichItemWithDefaults(item);
             items.push(item);
@@ -68,6 +81,22 @@ export default {
             iconHeight,
             items
         };
+    },
+
+    methods: {
+        onDestinationItemSelected(item) {
+            this.$emit('item-selected', item);
+            this.$emit('close');
+        },
+
+        onBodyClick(event) {
+            if (!event.target || !event.target.closest('.connector-destination-proposal')) {
+                this.$emit('close');
+            }
+        },
+        onGlobalKeydown(event) {
+            this.$emit('close');
+        }
     }
 }
 </script>

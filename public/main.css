@@ -2032,9 +2032,9 @@ ul.category-breadcrumb li i {
     position: fixed;
     padding: 5px;
     box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 10px;
-    background: var(--faint-weak-down);
-    max-width: 600px;
-    max-height: 400px;
+    background: var(--base-weak);
+    max-width: 500px;
+    max-height: 350px;
     overflow: auto;
 }
 .connector-destination-proposal .item-container {

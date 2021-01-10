@@ -184,6 +184,8 @@
             :y="connectorProposedDestination.my"
             :connector-item-id="connectorProposedDestination.connectorItemId"
             :scheme-container="schemeContainer"
+            @item-selected="onConnectorDestinationItemSelected"
+            @close="closeConnectorProposedDestination()"
         />
 
         <div v-if="importSchemeFileShown" style="display: none">
@@ -233,6 +235,7 @@ import filter from 'lodash/filter';
 import find from 'lodash/find';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from '../components/editor/QuickHelperPanel.vue';
+import StoreUtils from '../store/StoreUtils.js';
 
 let history = new History({size: 30});
 
@@ -1056,6 +1059,19 @@ export default {
                 currentState.convertSelectedPointsToBeizer();
             }
         },
+
+        closeConnectorProposedDestination() {
+            StoreUtils.disableProposeConnectorDestinationItems(this.$store);
+        },
+
+        /**
+         * Invoked when user selects an item from ConnectorDestinationProposal panel during creation of a connector
+         */
+        onConnectorDestinationItemSelected(item) {
+            if (currentState && currentState.name === 'editCurve') {
+                currentState.submitConnectorDestinationItem(item);
+            }
+        }
     },
 
     filters: {

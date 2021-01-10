@@ -66,6 +66,6 @@ export default {
     },
 
     disableProposeConnectorDestinationItems(store) {
-        store.dispatch('disableProposeConnectorDestinationItems', {connectorItemId, mx, my});
+        store.dispatch('disableProposeConnectorDestinationItems');
     }
 }
