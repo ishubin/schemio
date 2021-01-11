@@ -89,17 +89,15 @@
 
                         <ul class="schemes">
                             <li v-for="scheme in searchResult.results">
-                                <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}">
-                                    <a class="scheme link">
-                                        <h5>{{scheme.name}}</h5>
-                                        <div class="image-wrapper">
-                                            <img v-if="scheme.previewUrl" class="scheme-preview" :src="scheme.previewUrl" style="max-width: 200px; max-height: 100px;"/>
-                                        </div>
-                                        <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
-                                        <div class="scheme-description">
-                                            {{scheme.description | shortDescription}}
-                                        </div>
-                                    </a>
+                                <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
+                                    <h5>{{scheme.name}}</h5>
+                                    <div class="image-wrapper">
+                                        <img v-if="scheme.previewUrl" class="scheme-preview" :src="scheme.previewUrl" style="max-width: 200px; max-height: 100px;"/>
+                                    </div>
+                                    <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
+                                    <div class="scheme-description">
+                                        {{scheme.description | shortDescription}}
+                                    </div>
                                 </router-link>
                             </li>
                         </ul>
