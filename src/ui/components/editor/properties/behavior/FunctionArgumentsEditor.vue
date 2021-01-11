@@ -2,28 +2,33 @@
     <modal :title="`${functionDescription.name} arguments`" @close="$emit('close')" :width="400" :use-mask="false">
         <div style="max-height: 400px; overflow: auto;">
             <table class="properties-table">
-                <tr v-for="(arg, argName) in functionDescription.args" v-if="argumentControlStates[argName] && argumentControlStates[argName].shown">
-                    <td class="label" width="50%">
+                <tr v-for="(arg, argName) in functionDescription.args" v-if="argumentControlStates[argName]">
+                    <td class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                         {{arg.name}}
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                     </td>
-                    <td class="value" width="50%">
+                    <td class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                         <input v-if="arg.type === 'string' || arg.type === 'image'"
                             class="textfield"
                             :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
                             @input="onValueChange(argName, arguments[0].target.value)"/>
 
-                        <number-textfield v-if="arg.type === 'number'" :value="argumentValues[argName]" @changed="onValueChange(argName, arguments[0])"/>
+                        <number-textfield v-if="arg.type === 'number'" :value="argumentValues[argName]" :disabled="!argumentControlStates[argName].shown" @changed="onValueChange(argName, arguments[0])"/>
 
                         <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
                             @input="onValueChange(argName, arguments[0])"/>
 
-                        <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"/>
+                        <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown" />
 
                         <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
                             @input="onValueChange(argName, arguments[0].target.checked)"/>
 
                         <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
                             @input="onValueChange(argName, arguments[0].target.value)">
                             <option v-for="option in arg.options">{{option}}</option>
                         </select>
@@ -31,6 +36,7 @@
                         <element-picker v-if="arg.type === 'element'"
                             :scheme-container="schemeContainer"
                             :element="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
                             :use-self="false"
                             @selected="onValueChange(argName, arguments[0])"
                         />

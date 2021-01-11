@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="color-picker" :style="{width: width, height: height}">
-        <div ref="toggleButton" class="color-picker-toggle-button">
+        <div ref="toggleButton" class="color-picker-toggle-button" :class="{disabled: disabled}">
             <span class="color-picker-toggle-button-background"></span>
 
             <span class="color-picker-toggle-button-fill"
@@ -24,10 +24,11 @@ import VueColor from 'vue-color';
 
 export default {
     props: {
-        color : {type: String, default: 'rgba(0,0,0,1.0)'},
-        width : {type: String, default: '100%'},
-        height: {type: String, default: '20px'},
-        hollow: {type: Boolean, default: false}
+        color   : {type: String, default: 'rgba(0,0,0,1.0)'},
+        width   : {type: String, default: '100%'},
+        height  : {type: String, default: '20px'},
+        hollow  : {type: Boolean, default: false},
+        disabled: {type: Boolean, default: false},
     },
 
     components: {'color-picker': VueColor.Sketch},
@@ -48,6 +49,9 @@ export default {
     },
     methods: {
         toggleColorPicker() {
+            if (this.disabled) {
+                return;
+            }
             this.oldColor = this.color;
             this.vuePickerColor = {hex: this.color};
             this.tooltip.shown = true;

@@ -482,7 +482,13 @@ input.textfield.missing-field-error {
     width: 100%;
     font-size: 14px;
     text-align: right;
-    border: 1px solid #999;
+    border: 1px solid var(--faint-strong);
+}
+.number-textfield-container.disabled > input {
+    border: 1px solid var(--faint-strong-up);
+}
+.number-textfield-container.disabled > .step-controls {
+    opacity: 0.5;
 }
 .number-textfield-container > .label {
     position: absolute;
@@ -495,7 +501,7 @@ input.textfield.missing-field-error {
 }
 .number-textfield-container > .step-controls {
     position: absolute;
-    top: -2px;
+    top: -1px;
     right: 1px;
     list-style: none;
     margin: 0;
@@ -1101,6 +1107,9 @@ ul.button-group > li.disabled > .icon-button:hover,
     border: 1px solid #999;
     border-radius: 3px;
 }
+.color-picker-toggle-button.disabled {
+    opacity: 0.3;
+}
 .color-picker-toggle-button span {
     display: inline-block;
     position: absolute;
@@ -1129,6 +1138,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 .advanced-color-editor {
     min-width: 20px;
     display: inline-block;
+}
+.advanced-color-editor.tab.disabled {
+    opacity: 0.3;
 }
 .advanced-color-editor .color-picker-toggle-button {
     display: block;
@@ -1271,6 +1283,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .properties-table .label {
     font-size: 14px;
+}
+.properties-table .label.disabled {
+    opacity: 0.5;
 }
 .properties-table .value select {
     width: 100%;

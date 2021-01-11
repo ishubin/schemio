@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="dropdown-container">
-        <div class="dropdown-click-area" :class="{'hover-effect': hoverEffect}" @click="toggleDropdown">
+        <div class="dropdown-click-area" :class="{'hover-effect': hoverEffect && !disabled}" @click="toggleDropdown">
             <slot v-if="value === null"></slot>
             <div v-else>
                 <div v-if="selectedOption">
@@ -41,7 +41,7 @@ export default {
         value        : {type: String, default: null},
         hoverEffect  : {type: Boolean, default: true},
         searchEnabled: {type: Boolean, default: true},
-        // input
+        disabled     : {type: Boolean, default: false},
     },
 
     mounted() {
@@ -74,6 +74,10 @@ export default {
     },
     methods: {
         toggleDropdown(event) {
+            if (this.disabled) {
+                return;
+            }
+
             const bbRect = event.target.getBoundingClientRect();
             this.elementRect = bbRect;
 

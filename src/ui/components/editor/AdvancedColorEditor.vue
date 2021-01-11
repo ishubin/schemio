@@ -3,11 +3,11 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="advanced-color-editor" :style="{width: width, height: height}">
-        <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="modal.shown = true"></span>
-        <span v-if="color.type === 'solid'" class="color-picker-toggle-button" :style="{'background': color.color}" @click="modal.shown = true"></span>
-        <div v-if="color.type === 'image'" class="image-container" @click="modal.shown = true"><img :src="color.image"/></div>
-        <div v-if="color.type === 'gradient'" class="gradient-container" @click="modal.shown = true" :style="{'background': gradientPreview}"></div>
+    <div class="advanced-color-editor" :style="{width: width, height: height}" :class="{disabled: disabled}">
+        <span v-if="color.type === 'none'" class="none-picker-toggle-button" @click="showModal()"></span>
+        <span v-if="color.type === 'solid'" class="color-picker-toggle-button" :style="{'background': color.color}" @click="showModal()"></span>
+        <div v-if="color.type === 'image'" class="image-container" @click="showModal()"><img :src="color.image"/></div>
+        <div v-if="color.type === 'gradient'" class="gradient-container" @click="showModal()" :style="{'background': gradientPreview}"></div>
 
         <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
             <ul class="tabs">
@@ -124,10 +124,11 @@ function interpolateGradientColor(midColor, leftColor, rightColor) {
 
 export default {
     props: {
-        value: {type: Object, required: true},
-        width: {type: String, default: '100%'},
-        height: {type: String, default: '20px'},
-        projectId: {type: String, required: true}
+        value    : {type: Object, required: true},
+        width    : {type: String, default: '100%'},
+        height   : {type: String, default: '20px'},
+        projectId: {type: String, required: true},
+        disabled : {type: Boolean, default : false},
     },
 
     components: {'color-picker': VueColor.Sketch, Modal, NumberTextfield},
@@ -179,6 +180,14 @@ export default {
     },
 
     methods: {
+        showModal() {
+            if (this.disabled) {
+                return;
+            }
+
+            this.modal.shown = true;
+        },
+
         updateCurrentColor(color) {
             if (color.type === 'gradient') {
                 this.gradient.selectedColor.hex = color.gradient.colors[this.gradient.selectedSliderIdx].c;

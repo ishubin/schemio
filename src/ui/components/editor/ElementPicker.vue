@@ -1,7 +1,7 @@
 <template>
-    <div class="element-picker">
-        <dropdown :options="allOptions" @selected="onElementSelected">
-            <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`]">
+    <div class="element-picker" :class="{disabled: disabled}">
+        <dropdown :options="allOptions" @selected="onElementSelected" :disabled="disabled">
+            <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`, disabled?'disabled': '']">
                 <i :class="enrichedElement.iconClass"/>
                 <span class="element-name">{{enrichedElement.name}}</span>
             </div>
@@ -22,11 +22,12 @@ import shortid from 'shortid';
 export default {
     props: {
         element:            {type: String},
-        selfItem:           {type: Object},
+        selfItem:           {type: Object,  default: null},
         schemeContainer:    {type: Object},
         useSelf:            {type: Boolean, default: true},
         allowNone:          {type: Boolean, default: false},
-        excludedItemIds:    {type: Array,   default: () => []} // array of items that should be excluded from options
+        excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
+        disabled:           {type: Boolean, default: false}
     },
 
     components: {Dropdown},

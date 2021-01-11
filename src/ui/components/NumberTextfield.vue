@@ -1,6 +1,6 @@
 <template>
-    <div class="number-textfield-container">
-        <input type="text" :style="{'padding-left': paddingLeft+'px'}" v-model="text" @input="onUserInput"/>
+    <div class="number-textfield-container" :class="{disabled: disabled}">
+        <input type="text" :style="{'padding-left': paddingLeft+'px'}" v-model="text" @input="onUserInput" :disabled="disabled"/>
         <div v-if="name" class="label" ref="label">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
 
@@ -23,7 +23,8 @@ export default {
         name    : {type: String, default: null},
         icon    : {type: String, default: null},
         min     : {type: Number, default: null},
-        max     : {type: Number, default: null}
+        max     : {type: Number, default: null},
+        disabled: {type: Boolean, default: false},
     },
 
     mounted() {
@@ -74,6 +75,10 @@ export default {
         },
 
         onStepClicked(factor) {
+            if (this.disabled) {
+                return;
+            }
+
             let value = this.textToNumber(this.text);
             value = value + factor;
             
