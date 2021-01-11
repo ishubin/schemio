@@ -581,7 +581,7 @@ export default {
             states.interact.schemeContainer = this.interactiveSchemeContainer;
             this.state = 'interact';
 
-            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems());
+            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.width = this.width;
             this.interactiveSchemeContainer.screenSettings.height = this.height;
