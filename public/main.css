@@ -1907,7 +1907,11 @@ ul.category-breadcrumb li i {
 /************* Behavior Properties **********************/
 .behavior-container {
     position: relative;
+    margin-top: 10px;
     margin-bottom: 10px;
+    background: var(--base-weak);
+    border-radius: 6px;
+    padding: 5px;
 }
 .behavior-container .behavior-event-add-action {
     padding-left: 40px;

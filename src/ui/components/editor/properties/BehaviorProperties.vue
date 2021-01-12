@@ -1,6 +1,6 @@
 <template>
     <div @dragend="onDragEnd">
-        <panel name="Groups">
+        <panel uid="behavior-groups" name="Groups">
             <vue-tags-input v-model="itemGroup"
                 :tags="itemGroups"
                 :autocomplete-items="filteredItemGroupsSuggestions"
@@ -8,101 +8,99 @@
                 ></vue-tags-input>
         </panel>
 
-        <panel name="Events">
-            <div class="behavior-container" v-for="(event, eventIndex) in item.behavior.events">
-                <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
-                    <div class="behavior-menu">
-                        <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
-                            <i class="fas" :class="[eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
-                        </span>
-                        <span class="icon-event"><i class="fas fa-bell"></i></span>
-                    </div>
-                    <div class="behavior-right-menu">
-                        <span class="link"
-                            v-if="eventIndex > 0"
-                            @click="moveBehaviorInOrder(eventIndex, eventIndex - 1)"><i class="fas fa-caret-up"></i></span>
-                        <span class="link"
-                            v-if="eventIndex < item.behavior.events.length - 1"
-                            @click="moveBehaviorInOrder(eventIndex, eventIndex + 1)"
-                            ><i class="fas fa-caret-down"></i></span>
-                        <span class="link icon-delete" @click="removeBehaviorEvent(eventIndex)"><i class="fas fa-times"/></span>
-                    </div>
-                    <dropdown
-                        :options="eventOptions"
-                        @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
-                        >
-                        <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
-                        <input v-else type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
-                    </dropdown>
+        <div class="behavior-container" v-for="(event, eventIndex) in item.behavior.events">
+            <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
+                <div class="behavior-menu">
+                    <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
+                        <i class="fas" :class="[eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
+                    </span>
+                    <span class="icon-event"><i class="fas fa-bell"></i></span>
                 </div>
-
-                <div v-if="!eventMetas[eventIndex].collapsed">
-                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"
-                        v-html="dragging.action">
-                    </div>
-                    <div v-for="(action, actionIndex) in event.actions">
-                        <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === actionIndex"
-                            v-html="dragging.action">
-                        </div>
-                        <div class="behavior-action-container"
-                            :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
-                            @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
-                            :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
-                            >
-                            <div class="icon-container">
-                                <span class="icon-action"><i class="fas fa-circle"></i></span>
-                                <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
-                                <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
-                            </div>
-                            <div>
-                                <element-picker
-                                    :element="action.element" 
-                                    :scheme-container="schemeContainer"
-                                    :self-item="item"
-                                    @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
-                                    />
-                            </div>
-                            <span class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </span>
-                            <div>
-                                <dropdown
-                                    :key="action.element.item"
-                                    :options="createMethodSuggestionsForElement(action.element)"
-                                    @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
-                                    >
-                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                    <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
-                                    <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
-                                </dropdown>
-                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
-                                    class="action-method-arguments-expand"
-                                    @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
-                                    >(...)</span>
-                            </div>
-                            <span v-if="action.method === 'set'" class="function-brackets"> = </span>
-
-                            <set-argument-editor v-if="action.method === 'set'"
-                                :key="action.args.field"
-                                :project-id="projectId"
-                                :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
-                                :argument-value="action.args.value"
-                                @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
-                                />
-                        </div>
-                    </div>
-
-                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex > 0 && dragging.dropTo.actionIndex >= event.actions.length"
-                        v-html="dragging.action">
-                    </div>
-
-                    <div class="behavior-event-add-action">
-                        <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">Add Action</span>
-                        <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate event</span>
-                    </div>
+                <div class="behavior-right-menu">
+                    <span class="link"
+                        v-if="eventIndex > 0"
+                        @click="moveEventInOrder(eventIndex, eventIndex - 1)"><i class="fas fa-caret-up"></i></span>
+                    <span class="link"
+                        v-if="eventIndex < item.behavior.events.length - 1"
+                        @click="moveEventInOrder(eventIndex, eventIndex + 1)"
+                        ><i class="fas fa-caret-down"></i></span>
+                    <span class="link icon-delete" @click="removeBehaviorEvent(eventIndex)"><i class="fas fa-times"/></span>
                 </div>
+                <dropdown
+                    :options="eventOptions"
+                    @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
+                    >
+                    <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
+                    <input v-else type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
+                </dropdown>
             </div>
 
-            <span class="btn btn-primary" @click="addBehaviorEvent()">Add behavior event</span>
-        </panel>
+            <div v-if="!eventMetas[eventIndex].collapsed">
+                <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"
+                    v-html="dragging.action">
+                </div>
+                <div v-for="(action, actionIndex) in event.actions">
+                    <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === actionIndex"
+                        v-html="dragging.action">
+                    </div>
+                    <div class="behavior-action-container"
+                        :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
+                        @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
+                        :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
+                        >
+                        <div class="icon-container">
+                            <span class="icon-action"><i class="fas fa-circle"></i></span>
+                            <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
+                            <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
+                        </div>
+                        <div>
+                            <element-picker
+                                :element="action.element" 
+                                :scheme-container="schemeContainer"
+                                :self-item="item"
+                                @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
+                                />
+                        </div>
+                        <span class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </span>
+                        <div>
+                            <dropdown
+                                :key="action.element.item"
+                                :options="createMethodSuggestionsForElement(action.element)"
+                                @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
+                                >
+                                <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
+                                <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
+                            </dropdown>
+                            <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
+                                class="action-method-arguments-expand"
+                                @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
+                                >(...)</span>
+                        </div>
+                        <span v-if="action.method === 'set'" class="function-brackets"> = </span>
+
+                        <set-argument-editor v-if="action.method === 'set'"
+                            :key="action.args.field"
+                            :project-id="projectId"
+                            :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
+                            :argument-value="action.args.value"
+                            @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
+                            />
+                    </div>
+                </div>
+
+                <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex > 0 && dragging.dropTo.actionIndex >= event.actions.length"
+                    v-html="dragging.action">
+                </div>
+
+                <div class="behavior-event-add-action">
+                    <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">Add Action</span>
+                    <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate event</span>
+                </div>
+            </div>
+        </div>
+
+        <span class="btn btn-primary" @click="addBehaviorEvent()">Add behavior event</span>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
             :function-description="functionArgumentsEditor.functionDescription"

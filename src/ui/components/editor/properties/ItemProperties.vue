@@ -15,13 +15,28 @@
 
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
-        <behavior-properties v-if="currentTab === 'behavior'"
-            :key="`behavior-panel-${item.id}`"
-            :project-id="projectId"
-            :item="item"
-            :scheme-container="schemeContainer"
-            @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
-            />
+
+        <div v-if="currentTab === 'behavior' && !behaviorProperties.inModal">
+            <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Edit in Modal</span>
+
+            <behavior-properties
+                :key="`behavior-panel-${item.id}`"
+                :project-id="projectId"
+                :item="item"
+                :scheme-container="schemeContainer"
+                @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+                />
+        </div>
+        <modal :title="`${item.name} behavior`" v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
+            :stretch-width="true">
+            <behavior-properties
+                :key="`behavior-panel-${item.id}`"
+                :project-id="projectId"
+                :item="item"
+                :scheme-container="schemeContainer"
+                @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+                />
+        </modal>
 
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
@@ -201,6 +216,7 @@ import forEach from 'lodash/forEach';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
+import Modal from '../../Modal.vue';
 import Tooltip from '../../Tooltip.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
@@ -237,7 +253,7 @@ export default {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
         ElementPicker, StrokePatternDropdown, AdvancedColorEditor,
-        CurveCapDropdown
+        CurveCapDropdown, Modal
     },
 
     beforeMount() {
@@ -276,6 +292,9 @@ export default {
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
 
+            behaviorProperties: {
+                inModal: false
+            }
         };
     },
 
@@ -328,6 +347,10 @@ export default {
             EventBus.emitItemChanged(this.item.id);
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
         },
+
+        toggleBehaviorEditorModal() {
+            this.behaviorProperties.inModal = true;
+        }
     },
     computed: {
         hasShapeArgs() {

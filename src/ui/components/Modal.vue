@@ -3,24 +3,24 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-        <div>
-            <div v-if="useMask" class="modal-mask"></div>
-            <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: width + 'px', top: `${y}px`, left: `${x}px`}">
-                <div class="modal-header" @mousedown="initModalDrag" :class="{dragging: dragging}">
-                    <h3>{{title}}</h3>
-                    <span class="modal-close" @click="$emit('close')"><i class="fas fa-times"/></span>
-                </div>
-                <div class="modal-body">
-                    <slot></slot>
-                </div>
-                <div class="modal-footer">
-                    <div class="modal-controls">
-                        <span class="btn btn-primary" v-if="primaryButton" v-on:click="$emit('primary-submit')">{{primaryButton}}</span>
-                        <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
-                    </div>
+    <div>
+        <div v-if="useMask" class="modal-mask"></div>
+        <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
+            <div class="modal-header" @mousedown="initModalDrag" :class="{dragging: dragging}">
+                <h3>{{title}}</h3>
+                <span class="modal-close" @click="$emit('close')"><i class="fas fa-times"/></span>
+            </div>
+            <div class="modal-body">
+                <slot></slot>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-controls">
+                    <span class="btn btn-primary" v-if="primaryButton" v-on:click="$emit('primary-submit')">{{primaryButton}}</span>
+                    <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
                 </div>
             </div>
         </div>
+    </div>
 </template>
 
 <script>
@@ -47,12 +47,15 @@ export default {
     props: {
         title        : String,
         width        : { type: Number, default: 600 },
-        height       : { type: Number, default: null },
+        stretchWidth : { type: Boolean, default: false},
         primaryButton: { type: String, default: null },
         useMask      : { type: Boolean, default: true}
     },
 
     beforeMount() {
+        if (this.stretchWidth) {
+            this.actualWidth = window.innerWidth - 80;
+        }
         document.addEventListener('keydown', this.onKeyPress);
         document.addEventListener('mousemove', this.onMouseMove);
         document.addEventListener('mouseup', this.cancleModalDrag);
@@ -84,6 +87,8 @@ export default {
         return {
             x: 100,
             y: 100,
+
+            actualWidth: this.width,
 
             originalPoint: { x: 0, y: 0 },
             clickPoint: { x: 0, y: 0 },
