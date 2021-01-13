@@ -47,6 +47,9 @@ export default {
     props: {
         title        : String,
         width        : { type: Number, default: 600 },
+
+        // used only if stretchWidth is enabled
+        maxWidth     : { type: Number, default: 0 },
         stretchWidth : { type: Boolean, default: false},
         primaryButton: { type: String, default: null },
         useMask      : { type: Boolean, default: true}
@@ -55,6 +58,9 @@ export default {
     beforeMount() {
         if (this.stretchWidth) {
             this.actualWidth = window.innerWidth - 80;
+            if (this.maxWidth > 0) {
+                this.actualWidth = Math.min(this.actualWidth, this.maxWidth);
+            }
         }
         document.addEventListener('keydown', this.onKeyPress);
         document.addEventListener('mousemove', this.onMouseMove);

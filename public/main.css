@@ -2034,6 +2034,9 @@ ul.category-breadcrumb li i {
 }
 
 /***************** Element Picker ****************/
+.element-picker {
+    display: inline-block;
+}
 .element-picker .picked-element.picked-element-type-item {
     color: #036503;
 }

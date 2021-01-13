@@ -18,31 +18,19 @@
 
         <div v-if="currentTab === 'behavior' && !behaviorProperties.inModal">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
-
             <behavior-properties
                 :key="`behavior-panel-${item.id}`"
                 :project-id="projectId"
                 :item="item"
                 :scheme-container="schemeContainer"
-                :extended="false"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
                 />
         </div>
-
-        <modal title="All items Behavior" v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
-            :stretch-width="true">
-            <div v-for="singleItem in itemsWithBehavior">
-                <h3>{{singleItem.name}}</h3>
-                <behavior-properties
-                    :key="`behavior-panel-${singleItem.id}`"
-                    :project-id="projectId"
-                    :item="singleItem"
-                    :scheme-container="schemeContainer"
-                    :extended="true"
-                    />
-
-            </div>
-        </modal>
+        
+        <advanced-behavior-properties v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
+            :project-id="projectId"
+            :scheme-container="schemeContainer"
+        />
 
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
@@ -219,11 +207,9 @@ import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
-import filter from 'lodash/filter';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
-import Modal from '../../Modal.vue';
 import Tooltip from '../../Tooltip.vue';
 import GeneralPanel from './GeneralPanel.vue';
 import PositionPanel from './PositionPanel.vue';
@@ -232,6 +218,7 @@ import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
+import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import {ItemInteractionMode} from '../../../scheme/Item.js';
 import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
@@ -258,9 +245,8 @@ export default {
     props: ['projectId', 'item', 'schemeContainer'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
-        GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
-        ElementPicker, StrokePatternDropdown, AdvancedColorEditor,
-        CurveCapDropdown, Modal
+        GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
+        ElementPicker, StrokePatternDropdown, AdvancedColorEditor, CurveCapDropdown,
     },
 
     beforeMount() {
@@ -367,10 +353,6 @@ export default {
             }
             return false;
         },
-
-        itemsWithBehavior() {
-            return filter(this.schemeContainer.getItems(), item => item.behavior && item.behavior.events && item.behavior.events.length > 0);
-        }
     },
 
     watch: {

@@ -21,11 +21,12 @@ import shortid from 'shortid';
 
 export default {
     props: {
-        element:            {type: String},
+        element:            {type: String,  default: null},
         selfItem:           {type: Object,  default: null},
         schemeContainer:    {type: Object},
         useSelf:            {type: Boolean, default: true},
         allowNone:          {type: Boolean, default: false},
+        allowGroups:        {type: Boolean, default: true},
         excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
         disabled:           {type: Boolean, default: false}
     },
@@ -81,7 +82,7 @@ export default {
                 let itemShouldBeIncluded = true;                
 
                 if (this.excludedItemIds && this.excludedItemIds.length > 0) {
-                    itemShouldBeIncluded = indexOf(this.excludedItemIds, item.id) >= 0;
+                    itemShouldBeIncluded = indexOf(this.excludedItemIds, item.id) < 0;
                 }
 
                 if (itemShouldBeIncluded) {
@@ -94,14 +95,17 @@ export default {
                 }
             });
 
-            forEach(this.schemeContainer.itemGroups, group => {
-                options.push({
-                    iconClass: 'fas fa-cubes',
-                    name: group,
-                    id: group,
-                    type: 'item-group'
+            if (this.allowGroups) {
+                forEach(this.schemeContainer.itemGroups, group => {
+                    options.push({
+                        iconClass: 'fas fa-cubes',
+                        name: group,
+                        id: group,
+                        type: 'item-group'
+                    });
                 });
-            });
+            }
+
             return options;
         },
 
@@ -131,7 +135,7 @@ export default {
         enrichedElement() {
             if (!this.element) {
                 return {
-                    name: 'None',
+                    name: 'Pick...',
                     type: 'none',
                     iconClass: ''
                 };
