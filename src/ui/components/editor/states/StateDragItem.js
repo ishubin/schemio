@@ -48,6 +48,7 @@ export default class StateDragItem extends State {
         super(eventBus, store);
         this.name = 'drag-item';
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
+        this.wasDraggedEnough = false;
         this.startedDragging = true;
         // used for item control points dragging
         this.sourceItem = null;
@@ -94,6 +95,7 @@ export default class StateDragItem extends State {
     reset() {
         this.updateCursor('default');
         this.reindexNeeded = false;
+        this.wasDraggedEnough = false;
         this.startedDragging = false;
         this.draggerEdges = null;
         this.isRotating = false;
@@ -136,6 +138,7 @@ export default class StateDragItem extends State {
         this.originalPoint.y = y;
         this.originalPoint.mx = mx;
         this.originalPoint.my = my;
+        this.wasDraggedEnough = false;
         this.startedDragging = true;
         this.wasMouseMoved = false;
         this.reindexNeeded = false;
@@ -176,6 +179,7 @@ export default class StateDragItem extends State {
     }
 
     initScreenDrag(mx, my) {
+        this.wasDraggedEnough = false;
         this.startedDragging = true;
         this.originalPoint.x = mx;
         this.originalPoint.y = my;
@@ -200,7 +204,7 @@ export default class StateDragItem extends State {
         } else if (object.connectorStarter) {
             EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
         } else if (object.controlPoint) {
-            this.initDraggingForControlPoint(object.controlPoint, x, y);
+            this.initDraggingForControlPoint(object.controlPoint, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box') {
             this.initDraggingMultiItemBox(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
@@ -233,13 +237,16 @@ export default class StateDragItem extends State {
         return null;
     }
 
-    initDraggingForControlPoint(controlPointDef, x, y) {
+    initDraggingForControlPoint(controlPointDef, x, y, mx, my) {
         const controlPoint = this.findItemControlPoint(controlPointDef.pointId);
         if (controlPoint) {
             this.reset();
             this.originalPoint.x = x;
             this.originalPoint.y = y;
+            this.originalPoint.mx = mx;
+            this.originalPoint.my = my;
             this.startedDragging = true;
+            this.wasDraggedEnough = false;
             this.sourceItem = controlPointDef.item;
             this.controlPoint = {
                 id: controlPointDef.pointId,
@@ -284,7 +291,7 @@ export default class StateDragItem extends State {
         }
         
         if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.itemData[item.id]) {
-            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBox, x, y);
+            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBox, x, y, mx, my);
         }
     }
 
@@ -298,6 +305,7 @@ export default class StateDragItem extends State {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
+
             this.wasMouseMoved = true;
 
             if (this.shouldDragScreen) {
@@ -313,6 +321,11 @@ export default class StateDragItem extends State {
                     } else if (this.draggerEdges) {
                         this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
                     } else {
+                        // doing this check since it is really easy to trigger item drag just by few pixels
+                        if (!this.draggedEnough(mx, my)) {
+                            return;
+                        }
+
                         this.dragMultiItemEditBox(x, y);
                     }
                 }
@@ -339,6 +352,20 @@ export default class StateDragItem extends State {
             }
             StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
         }
+    }
+
+    draggedEnough(mx, my) {
+        if (this.wasDraggedEnough) {
+            return true;
+        }
+
+        const offset = Math.abs(mx - this.originalPoint.mx) + Math.abs(my - this.originalPoint.my);
+        if (offset > 7) {
+            this.wasDraggedEnough = true;
+            return true;
+        }
+
+        return false;
     }
 
     mouseUp(x, y, mx, my, object, event) {
