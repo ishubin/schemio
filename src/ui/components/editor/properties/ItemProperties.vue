@@ -17,7 +17,7 @@
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
 
         <div v-if="currentTab === 'behavior' && !behaviorProperties.inModal">
-            <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Edit in Modal</span>
+            <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
 
             <behavior-properties
                 :key="`behavior-panel-${item.id}`"
@@ -28,16 +28,20 @@
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
                 />
         </div>
-        <modal :title="`${item.name} behavior`" v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
+
+        <modal title="All items Behavior" v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
             :stretch-width="true">
-            <behavior-properties
-                :key="`behavior-panel-${item.id}`"
-                :project-id="projectId"
-                :item="item"
-                :scheme-container="schemeContainer"
-                :extended="true"
-                @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
-                />
+            <div v-for="singleItem in itemsWithBehavior">
+                <h3>{{singleItem.name}}</h3>
+                <behavior-properties
+                    :key="`behavior-panel-${singleItem.id}`"
+                    :project-id="projectId"
+                    :item="singleItem"
+                    :scheme-container="schemeContainer"
+                    :extended="true"
+                    />
+
+            </div>
         </modal>
 
         <div v-if="currentTab === 'styles'">
@@ -215,6 +219,7 @@ import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
 import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
@@ -361,6 +366,10 @@ export default {
                 return Object.keys(shape.args).length > 0;
             }
             return false;
+        },
+
+        itemsWithBehavior() {
+            return filter(this.schemeContainer.getItems(), item => item.behavior && item.behavior.events && item.behavior.events.length > 0);
         }
     },
 

@@ -1,6 +1,6 @@
 <template>
     <div @dragend="onDragEnd">
-        <panel uid="behavior-groups" name="Groups">
+        <panel v-if="!extended" uid="behavior-groups" name="Groups">
             <vue-tags-input v-model="itemGroup"
                 :tags="itemGroups"
                 :autocomplete-items="filteredItemGroupsSuggestions"
@@ -52,7 +52,7 @@
                                 @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
                                 />
                         </div>
-                        <div class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </div>
+                        <div class="behavior-goto-element" title="Double click to jump to element" @dblclick="jumpToElement(action.element)">: </div>
                         <div>
                             <dropdown
                                 :key="action.element.item"
@@ -60,8 +60,8 @@
                                 @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span v-if="action.method !== 'set' && action.method !== 'sendEvent'"><i class="fas fa-play"></i> {{action.method | toPrettyMethod(action.element) }} </span>
-                                <span v-if="action.method === 'sendEvent'"><i class="fas fa-play"></i> {{action.args.event}} </span>
+                                <span class="behavior-function" v-if="action.method !== 'set' && action.method !== 'sendEvent'">{{action.method | toPrettyMethod(action.element) }} </span>
+                                <span class="behavior-function" v-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
                             </dropdown>
                             <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                 class="action-method-arguments-expand"
@@ -265,7 +265,7 @@ export default {
                     options.push({
                         method: funcId,
                         name: func.name,
-                        iconClass: 'fas fa-play'
+                        iconClass: 'fas fa-running'
                     });
                 }
             });
@@ -280,7 +280,7 @@ export default {
                     method: 'custom-event',
                     name: customEvent,
                     event: customEvent,
-                    iconClass: 'fas fa-play'
+                    iconClass: 'fas fa-running'
                 });
             });
 
@@ -322,6 +322,12 @@ export default {
                 method: 'set',
                 name: 'Opacity',
                 fieldPath: 'opacity',
+                iconClass: 'fas fa-cog'
+            });
+            options.push({
+                method: 'set',
+                name: 'Self opacity',
+                fieldPath: 'selfOpacity',
                 iconClass: 'fas fa-cog'
             });
 

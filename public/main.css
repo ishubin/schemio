@@ -2004,13 +2004,15 @@ ul.category-breadcrumb li i {
 
 .behavior-action-container .action-method-arguments-expand {
     display: inline-block;
+    opacity: 0.3;
     padding: 2px 4px;
     margin: 1px;
     cursor: pointer;
 }
 .behavior-action-container .action-method-arguments-expand:hover {
     margin: 0;
-    border: 1px solid #777;
+    opacity: 1;
+    border: 1px solid var(--faint-weak-down);
     border-radius: var(--control-border-radius);
     background: white;
 }
