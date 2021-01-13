@@ -44,6 +44,8 @@
 
     --section-delimiter-color: #b3b5b9;
     --icon-button-hover-background: #d4d4d6;
+
+    --control-border-radius: 3px;
 }
 
 
@@ -389,7 +391,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     background: #f0f0f0;
     border: 1px solid #777;
     color: #222;
-    border-radius: 3px;
+    border-radius: var(--control-border-radius);
     text-decoration: none;
 }
 .btn:hover {
@@ -418,12 +420,12 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     color: #333;
     border: 1px solid #999;
 }
-.btn.btn-dangerous {
+.btn.btn-danger {
     background: #ba2e20;
     color: #fff;
     border: 1px solid #5c1d1d;
 }
-.btn.btn-dangerous:hover {
+.btn.btn-danger:hover {
     background: #e6766b;
     color: #fff;
     border: 1px solid #7e3e3e;
@@ -446,7 +448,7 @@ input.textfield, textarea.textfield {
     background: var(--base-weak);
     font-size: 16px;
     border: 1px solid var(--faint-strong);
-    border-radius: 2px;
+    border-radius: var(--control-border-radius);
 }
 input.textfield:focus, textarea.textfield:focus {
     outline: 0;
@@ -483,6 +485,7 @@ input.textfield.missing-field-error {
     font-size: 14px;
     text-align: right;
     border: 1px solid var(--faint-strong);
+    border-radius: var(--control-border-radius);
 }
 .number-textfield-container.disabled > input {
     border: 1px solid var(--faint-strong-up);
@@ -520,7 +523,7 @@ input.textfield.missing-field-error {
     display: inline-block;
     width: 12px;
     height: 12px;
-    background: var(--faint-weak-up);
+    background: var(--faint-weak);
     color: var(--base-strong-up);
     cursor: pointer;
     overflow: hidden;
@@ -528,8 +531,12 @@ input.textfield.missing-field-error {
 .number-textfield-container > .step-controls li .step:hover {
     background: var(--faint-weak-up);
 }
-.number-textfield-container > .step-controls > li:nth-child(1) .step {
+.number-textfield-container > .step-controls > li .step.step-up {
     border-bottom: 1px solid var(--faint-strong);
+    border-radius: 0 var(--control-border-radius) 0 0;
+}
+.number-textfield-container > .step-controls > li .step.step-down {
+    border-radius: 0  0 var(--control-border-radius) 0;
 }
 .number-textfield-container > .step-controls li .step i {
     margin: 0 2px 2px 2px;
@@ -567,7 +574,7 @@ input.textfield.missing-field-error {
     background: #333;
     color: #eee;
     padding: 5px 7px;
-    border-radius: 4px;
+    border-radius: var(--control-border-radius);
 }
 .tooltip:hover .tooltip-wrapper {
     display: block;
@@ -1105,7 +1112,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     cursor: pointer;
     border: 1px solid #999;
-    border-radius: 3px;
+    border-radius: var(--control-border-radius);
 }
 .color-picker-toggle-button.disabled {
     opacity: 0.3;
@@ -1156,7 +1163,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     width: 100%;
     font-size: 10pt;
     padding: 2px 4px;
-    border-radius: 3px;
+    border-radius: var(--control-border-radius);
     cursor: pointer;
 }
 .advanced-color-editor .gradient-container {
@@ -1164,7 +1171,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     display: block;
     height: 100%;
     width: 100%;
-    border-radius: 3px;
+    border-radius: var(--control-border-radius);
     cursor: pointer;
 }
 .advanced-color-editor .gradient-container.large {
@@ -1172,7 +1179,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .advanced-color-editor .image-container {
     border: 1px solid #999;
-    border-radius: 3px;
+    border-radius: var(--control-border-radius);
     cursor: pointer;
 }
 .advanced-color-editor .image-container img {
@@ -1685,6 +1692,7 @@ ul.category-breadcrumb li i {
 .dropdown-container .dropdown-click-area.hover-effect:hover {
     background: #fff;
     border: 1px solid #777;
+    border-radius: var(--control-border-radius);
     margin: 0;
 }
 .dropdown-container .dropdown-popup {
@@ -1766,7 +1774,7 @@ ul.category-breadcrumb li i {
     margin-top: 10px;
     color: var(--critic-strong);
     background: var(--critic-weak);
-    border-radius: 2px;
+    border-radius: var(--control-border-radius);
 }
 .login-box .ctrl-label {
     margin-top: 20px;
@@ -1913,9 +1921,6 @@ ul.category-breadcrumb li i {
     border-radius: 6px;
     padding: 5px;
 }
-.behavior-container .behavior-event-add-action {
-    padding-left: 40px;
-}
 
 .behavior-event {
     position: relative;
@@ -1926,18 +1931,6 @@ ul.category-breadcrumb li i {
     display: block;
     left: 4px;
     top: 0;
-}
-.behavior-event .behavior-right-menu {
-    position: absolute;
-    display: none;
-    right: 4px;
-    top: 0;
-}
-.behavior-event:hover .behavior-right-menu {
-    display: block;
-}
-.behavior-event .behavior-right-menu .icon-delete {
-    color: #f55;
 }
 .behavior-event .dropdown-click-area {
     font-size: 14px;
@@ -1991,14 +1984,21 @@ ul.category-breadcrumb li i {
 .behavior-action-container:hover .icon-container .icon-move {
     display: inline-block;
 }
+.behavior-action-container .set-argument-editor {
+    display: inline-block;
+}
+.behavior-action-container .set-argument-editor .number-textfield-container {
+    width: 50px;
+}
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;
 }
-.behavior-event-add-action {
+
+.behavior-event-operations {
     visibility: hidden;
     margin-top: 6px;
 }
-.behavior-container:hover .behavior-event-add-action {
+.behavior-container:hover .behavior-event-operations {
     visibility: visible;
 }
 
@@ -2011,6 +2011,7 @@ ul.category-breadcrumb li i {
 .behavior-action-container .action-method-arguments-expand:hover {
     margin: 0;
     border: 1px solid #777;
+    border-radius: var(--control-border-radius);
     background: white;
 }
 .behavior-action-container.dragged {
@@ -2021,6 +2022,7 @@ ul.category-breadcrumb li i {
 }
 
 .behavior-goto-element {
+    display: inline-block;
     user-select: none;
     cursor: pointer;
     opacity: 0.6;

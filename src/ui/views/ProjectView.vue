@@ -56,9 +56,9 @@
                         </div>
 
                         <div v-if="editProjectVisibilityShown" class="section">
-                            <span v-if="project.isPublic" class="btn btn-dangerous" @click="onMakeProjectPrivateClicked()">Make It Private</span>
-                            <span v-else class="btn btn-dangerous" @click="onMakeProjectPublicClicked()">Make It Public</span>
-                            <span class="btn btn-dangerous" @click="onDeleteProjectClicked()">Delete Project</span>
+                            <span v-if="project.isPublic" class="btn btn-danger" @click="onMakeProjectPrivateClicked()">Make It Private</span>
+                            <span v-else class="btn btn-danger" @click="onMakeProjectPublicClicked()">Make It Public</span>
+                            <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
                             <span class="btn btn-secondary" @click="editProjectVisibilityShown = false">Cancel</span>
                         </div>
                     </div>

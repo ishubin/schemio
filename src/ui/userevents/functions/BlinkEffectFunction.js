@@ -59,7 +59,7 @@ export default {
         duration        : {name: 'Duration (sec)',    type: 'number', value: 5.0},
         minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
         maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80},
-        inBackground    : {name: 'In Background', type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other acctions'}
+        inBackground    : {name: 'In Background',     type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other acctions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

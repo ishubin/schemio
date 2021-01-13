@@ -8,7 +8,7 @@
                 ></vue-tags-input>
         </panel>
 
-        <div class="behavior-container" v-for="(event, eventIndex) in item.behavior.events">
+        <div class="behavior-container" :class="{extended: extended}" v-for="(event, eventIndex) in item.behavior.events">
             <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
                 <div class="behavior-menu">
                     <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
@@ -16,16 +16,7 @@
                     </span>
                     <span class="icon-event"><i class="fas fa-bell"></i></span>
                 </div>
-                <div class="behavior-right-menu">
-                    <span class="link"
-                        v-if="eventIndex > 0"
-                        @click="moveEventInOrder(eventIndex, eventIndex - 1)"><i class="fas fa-caret-up"></i></span>
-                    <span class="link"
-                        v-if="eventIndex < item.behavior.events.length - 1"
-                        @click="moveEventInOrder(eventIndex, eventIndex + 1)"
-                        ><i class="fas fa-caret-down"></i></span>
-                    <span class="link icon-delete" @click="removeBehaviorEvent(eventIndex)"><i class="fas fa-times"/></span>
-                </div>
+                
                 <dropdown
                     :options="eventOptions"
                     @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
@@ -61,7 +52,7 @@
                                 @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
                                 />
                         </div>
-                        <span class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </span>
+                        <div class="behavior-goto-element" title="Double click to jumpt to element" @dblclick="jumpToElement(action.element)">: </div>
                         <div>
                             <dropdown
                                 :key="action.element.item"
@@ -75,8 +66,10 @@
                             <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                 class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
+                                title="Edit function arguments"
                                 >(...)</span>
                         </div>
+
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
                         <set-argument-editor v-if="action.method === 'set'"
@@ -93,9 +86,12 @@
                     v-html="dragging.action">
                 </div>
 
-                <div class="behavior-event-add-action">
-                    <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">Add Action</span>
-                    <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate event</span>
+                <div class="behavior-event-operations">
+                    <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">+ Action</span>
+                    <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate</span>
+                    <span class="btn btn-secondary" v-if="eventIndex > 0" @click="moveEventInOrder(eventIndex, eventIndex - 1)" title="Move event up"><i class="fas fa-caret-up"></i></span>
+                    <span class="btn btn-secondary" v-if="eventIndex < item.behavior.events.length - 1" @click="moveEventInOrder(eventIndex, eventIndex + 1)" title="Move event down"><i class="fas fa-caret-down"></i></span>
+                    <span class="btn btn-danger" @click="removeBehaviorEvent(eventIndex)">Delete</span>
                 </div>
             </div>
         </div>
@@ -148,7 +144,12 @@ const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStor
 
 
 export default {
-    props: ['item', 'schemeContainer', 'projectId'],
+    props: {
+        item: Object,
+        schemeContainer: Object,
+        projectId: String,
+        extended: { type: Boolean, default: false }
+    },
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
 

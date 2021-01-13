@@ -15,8 +15,17 @@
             </div>
         </div>
 
-        <div :id="`dropdown-${id}`" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
-            <input class="dropdown-search" v-if="searchEnabled" placeholder="Search..." v-model="searchKeyword" data-input-type="dropdown-search" autofocus/>
+        <div ref="dropdownPopup" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
+            <input 
+                ref="searchTextfield"
+                class="dropdown-search"
+                v-if="searchEnabled"
+                placeholder="Search..."
+                v-model="searchKeyword"
+                @keydown.esc="cancelPopup()"
+                @keydown.enter="pickFirstOption(filteredOptions)"
+                data-input-type="dropdown-search"/>
+
             <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
                     <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
@@ -32,7 +41,6 @@
 <script>
 import filter from 'lodash/filter';
 import find from 'lodash/find';
-import shortid from 'shortid';
 
 export default {
     /* options is an array of {name and any other fields} */
@@ -60,7 +68,6 @@ export default {
             selectedOption = find(this.options, option => option.name === this.value);
         }
         return {
-            id: shortid.generate(),
             shown: false,
             lastTimeClicked: 0,
             searchKeyword: '',
@@ -86,12 +93,16 @@ export default {
             if (this.shown) {
                 this.$nextTick(() => {
                     this.readjustDropdownPopup();
+
+                    if (this.$refs.searchTextfield) {
+                        this.$refs.searchTextfield.focus();
+                    }
                 });
             }
         },
         
         readjustDropdownPopup() {
-            const popup = document.getElementById(`dropdown-${this.id}`);
+            const popup = this.$refs.dropdownPopup;
             if (!popup || !this.elementRect) {
                 return;
             }
@@ -125,6 +136,7 @@ export default {
                     return;
                 }
                 this.shown = false;
+                this.cancelPopup();
             }
         },
         onGlobalKeydown(event) {
@@ -132,8 +144,19 @@ export default {
                 if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
                     return;
                 }
-                this.shown = false;
+                this.cancelPopup();
             }
+        },
+
+        cancelPopup() {
+            this.shown = false;
+        },
+
+        pickFirstOption(options) {
+            if (options.length > 0) {
+                this.onOptionClicked(options[0]);
+            }
+            this.cancelPopup();
         }
     },
     computed: {

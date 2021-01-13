@@ -81,7 +81,7 @@
             </panel>
 
             <panel name="Operations">
-                <span v-if="projectId" class="btn btn-dangerous" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+                <span v-if="projectId" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
             </panel>
 
             <modal v-if="showDeleteSchemeWarning" title="Delete scheme"

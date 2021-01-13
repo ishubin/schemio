@@ -132,8 +132,8 @@ class MoveAnimation extends Animation {
 export default {
     name: 'Move',
     args: {
-        x               : {name: 'X',                 type: 'number', value: 50},
-        y               : {name: 'Y',                 type: 'number', value: 50},
+        x               : {name: 'X',                 type: 'number', value: 50, depends: {usePath: false}},
+        y               : {name: 'Y',                 type: 'number', value: 50, depends: {usePath: false}},
         animate         : {name: 'Animate',           type: 'boolean',value: false},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
         movement        : {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},

@@ -9,7 +9,7 @@
                             <input v-else class="textfield" type="text" v-model="artList[selectedIndex].name" @change="changedArtIndex = selectedIndex"/>
                         </td>
                         <td>
-                            <span v-if="selectedIndex >= 0" class="btn btn-dangerous" @click="deleteArtAtIndex(selectedIndex)">Delete</span>
+                            <span v-if="selectedIndex >= 0" class="btn btn-danger" @click="deleteArtAtIndex(selectedIndex)">Delete</span>
                         </td>
                     </tr>
                 </tbody>

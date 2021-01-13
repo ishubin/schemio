@@ -1,11 +1,13 @@
 <template>
-    <div>
-        <input v-if="argumentType === 'string' || argumentType === 'number' || argumentType === 'image'"
+    <div class="set-argument-editor">
+        <input v-if="argumentType === 'string'  || argumentType === 'image'"
             style="width: 100px" :value="argumentValue" @input="onInputValue"/>
 
-        <color-picker v-if="argumentType === 'color'" :color="argumentValue" @input="emitValue"></color-picker>
+        <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
-        <advanced-color-editor v-if="argumentType === 'advanced-color'" :value="argumentValue" @changed="emitValue"/>
+        <color-picker v-if="argumentType === 'color'" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
+
+        <advanced-color-editor v-if="argumentType === 'advanced-color'" :project-id="projectId" height="18px" :value="argumentValue" @changed="emitValue"/>
 
         <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
@@ -16,6 +18,7 @@
 </template>
 <script>
 import Dropdown from '../../../Dropdown.vue';
+import NumberTextfield from '../../../NumberTextfield.vue';
 import Shape from '../../items/shapes/Shape.js';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
@@ -27,19 +30,22 @@ const SHAPE_PROPS_PREFIX = 'shapeProps.';
 export default {
     props: ['argumentValue', 'argumentDescription', 'projectId'],
 
-    components: {Dropdown, ColorPicker, AdvancedColorEditor},
+    components: {Dropdown, ColorPicker, AdvancedColorEditor, NumberTextfield},
 
     data() {
         let isChoice = false;
         let choiceOptions = [];
 
-        if (this.argumentDescription.type === 'stroke-pattern') {
-            isChoice = true;
-            choiceOptions = StrokePattern.patterns;
-        } else if (this.argumentDescription.type === 'choice') {
-            isChoice = true;
-            choiceOptions = this.argumentDescription.options;
+        if (this.argumentDescription) {
+            if (this.argumentDescription.type === 'stroke-pattern') {
+                isChoice = true;
+                choiceOptions = StrokePattern.patterns;
+            } else if (this.argumentDescription.type === 'choice') {
+                isChoice = true;
+                choiceOptions = this.argumentDescription.options;
+            }
         }
+
         return {
             isChoice,
             choiceOptions,

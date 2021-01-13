@@ -6,10 +6,10 @@
 
         <ul class="step-controls">
             <li>
-                <span class="step" @click="onStepClicked(1)"><i class="fas fa-caret-up"></i></span>
+                <span class="step step-up" @click="onStepClicked(1)"><i class="fas fa-caret-up"></i></span>
             </li>
             <li>
-                <span class="step" @click="onStepClicked(-1)"><i class="fas fa-caret-down"></i></span>
+                <span class="step step-down" @click="onStepClicked(-1)"><i class="fas fa-caret-down"></i></span>
             </li>
         </ul>
         </div>

@@ -64,15 +64,15 @@
                         <advanced-color-editor
                             :project-id="projectId"
                             :value="fillColor"
-                            width="20px"
-                            height="20px"
+                            width="18px"
+                            height="18px"
                             @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
                     </li>
                     <li>
                         <color-picker
                             :color="strokeColor"
-                            width="20px"
-                            height="20px"
+                            width="18px"
+                            height="18px"
                             :hollow="true"
                             @input="emitShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
                     </li>

@@ -24,6 +24,7 @@
                 :project-id="projectId"
                 :item="item"
                 :scheme-container="schemeContainer"
+                :extended="false"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
                 />
         </div>
@@ -34,6 +35,7 @@
                 :project-id="projectId"
                 :item="item"
                 :scheme-container="schemeContainer"
+                :extended="true"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
                 />
         </modal>
