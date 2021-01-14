@@ -123,8 +123,18 @@ h5 {
 
 /******************** Message panels *****************/
 .msg.msg-error {
-    color: #a42020;
+    color: var(--critic-strong);
 }
+
+/******************* Hints **********************/
+.hint {
+    font-style: italic;
+    color: var(--faint-strong-down);
+}
+.hint.hint-small {
+    font-size: 12px;
+}
+
 
 
 /******************** Header *********************/
@@ -1957,7 +1967,7 @@ ul.category-breadcrumb li i {
     white-space: nowrap;
     position: absolute;
     left: 5px;
-    top: 0;
+    top: 3px;
 }
 .behavior-action-container .icon-container .icon-action {
     display: inline-block;

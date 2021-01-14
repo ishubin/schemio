@@ -1,31 +1,43 @@
 <template>
     <modal title="Advanced Behavior Editor" @close="$emit('close')" :stretch-width="true" :max-width="900" :use-mask="false">
+        <div ref="advancedBehaviorContainer" class="advanced-behavior-editor">
+            <input type="text" class="textfield" v-model="searchKeyword" placeholder="Search...">
 
-        <input type="text" class="textfield" v-model="searchKeyword" placeholder="Search...">
+            <element-picker
+                :key="`advanced-behavior-pick-item-1-${revision}`"
+                :scheme-container="schemeContainer"
+                :excluded-item-ids="existingItemIds"
+                :use-self="false"
+                :allow-groups="false"
+                none-label="Choose item..."
+                @selected="prependItemForElement(arguments[0])"
+                />
 
-        <div class="behavior-advanced-editor">
-            <div v-for="item in itemsWithBehavior">
-                <h3>{{item.name}}</h3>
+            <div class="behavior-advanced-editor">
+                <div :id="`advanced-behavior-item-${item.id}`" v-for="item in itemsWithBehavior">
+                    <h3>{{item.name}}</h3>
 
-                <behavior-properties
-                    :key="`behavior-panel-${item.id}`"
-                    :project-id="projectId"
-                    :item="item"
-                    :extended="true"
-                    :scheme-container="schemeContainer"
-                    />
+                    <behavior-properties
+                        :key="`behavior-panel-${item.id}`"
+                        :project-id="projectId"
+                        :item="item"
+                        :extended="true"
+                        :scheme-container="schemeContainer"
+                        />
+                </div>
             </div>
-        </div>
 
-        Choose item for behavior editing: 
-        
-        <element-picker
-            :scheme-container="schemeContainer"
-            :excluded-item-ids="existingItemIds"
-            :use-self="false"
-            :allow-groups="false"
-            @selected="appendItemForElement(arguments[0])"
-            />
+            <element-picker
+                :key="`advanced-behavior-pick-item-2-${revision}`"
+                :scheme-container="schemeContainer"
+                :excluded-item-ids="existingItemIds"
+                :use-self="false"
+                :allow-groups="false"
+                none-label="Choose item..."
+                @selected="appendItemForElement(arguments[0])"
+                />
+            </div>
+
     </modal>
 </template>
 
@@ -34,6 +46,7 @@ import Modal from '../../Modal.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import ElementPicker from '../ElementPicker.vue';
 import filter from 'lodash/filter';
+import find from 'lodash/find';
 import map from 'lodash/map';
 import shortid from 'shortid';
 
@@ -51,6 +64,7 @@ export default {
 
     data() {
         return {
+            revision: 0,
             searchKeyword: '',
             existingItems: [],
             existingItemIds: [],
@@ -58,17 +72,37 @@ export default {
     },
 
     methods: {
+        prependItemForElement(elementSelector) {
+            this.addItemForElement(elementSelector, false);
+        },
+
         appendItemForElement(elementSelector) {
+            this.addItemForElement(elementSelector, true);
+        },
+
+        addItemForElement(elementSelector, atTheEnd) {
             const item = this.schemeContainer.findFirstElementBySelector(elementSelector);
-            if (item) {
-                item.behavior.events.push({
-                    id: shortid.generate(),
-                    event: 'clicked',
-                    actions: []
-                });
+            if (!item) {
+                return;
+            }
+            if (find(this.existingItems, existingItem => existingItem.id === item.id)) {
+                this.scrollToItem(item.id);
+                return;
             }
 
-            this.refreshExistingItems();
+            item.behavior.events.push({
+                id: shortid.generate(),
+                event: 'clicked',
+                actions: []
+            });
+
+            let idx = 0;
+            if (atTheEnd) {
+                idx = this.this.existingItems.length;
+            }
+            this.existingItems.splice(idx, 0, item);
+            this.existingItemIds.splice(idx, 0, item.id);
+            this.revision += 1;
         },
 
         refreshExistingItems() {
@@ -78,6 +112,15 @@ export default {
 
         filterItems() {
             return filter(this.schemeContainer.getItems(), item => item.behavior && item.behavior.events && item.behavior.events.length > 0);
+        },
+
+        scrollToItem(itemId) {
+            const itemDiv = document.getElementById(`advanced-behavior-item-${itemId}`);
+            if (!itemDiv) {
+                return;
+            }
+
+            this.$refs.advancedBehaviorContainer.parentElement.scrollTop = itemDiv.offsetTop;
         }
     },
 

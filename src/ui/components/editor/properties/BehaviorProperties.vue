@@ -26,7 +26,10 @@
                 </dropdown>
             </div>
 
+
             <div v-if="!eventMetas[eventIndex].collapsed">
+                <div class="hint hint-small" v-if="event.actions.length === 0">This event has no actions yet...</div>
+
                 <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"
                     v-html="dragging.action">
                 </div>
@@ -40,7 +43,6 @@
                         :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
                         >
                         <div class="icon-container">
-                            <span class="icon-action"><i class="fas fa-circle"></i></span>
                             <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
                             <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
                         </div>

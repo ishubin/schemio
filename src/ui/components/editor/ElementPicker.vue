@@ -25,6 +25,7 @@ export default {
         selfItem:           {type: Object,  default: null},
         schemeContainer:    {type: Object},
         useSelf:            {type: Boolean, default: true},
+        noneLabel:          {type: String,  default: 'None'},
         allowNone:          {type: Boolean, default: false},
         allowGroups:        {type: Boolean, default: true},
         excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
@@ -135,7 +136,7 @@ export default {
         enrichedElement() {
             if (!this.element) {
                 return {
-                    name: 'Pick...',
+                    name: this.noneLabel,
                     type: 'none',
                     iconClass: ''
                 };
