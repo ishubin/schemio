@@ -93,9 +93,14 @@
                     <ul v-else class="tabs">
                         <li><span class="tab active">Text</span></li>
                     </ul>
+
                     <div class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
-                            <scheme-properties :project-id="projectId" v-if="mode === 'edit'" :scheme-container="schemeContainer"></scheme-properties>
+                            <scheme-properties v-if="mode === 'edit'"
+                                :project-id="projectId"
+                                :scheme-container="schemeContainer"
+                                @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
+
                             <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
                         </div>
 
@@ -117,9 +122,6 @@
                                     @shape-changed="onItemShapeChanged"
                                     @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 />
-                                <div v-else>
-                                    <span class="btn btn-secondary" @click="advancedBehaviorProperties.shown = true"><i class="fas fa-running"/> Behavior Editor</span>
-                                </div>
                             </div>
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>

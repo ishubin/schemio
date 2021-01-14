@@ -3,19 +3,21 @@
         <div ref="advancedBehaviorContainer" class="advanced-behavior-editor">
             <input type="text" class="textfield" v-model="searchKeyword" placeholder="Search...">
 
-            <element-picker
-                :key="`advanced-behavior-pick-item-1-${revision}`"
-                :scheme-container="schemeContainer"
-                :excluded-item-ids="existingItemIds"
-                :use-self="false"
-                :allow-groups="false"
-                none-label="Choose item..."
-                @selected="prependItemForElement(arguments[0])"
-                />
+            <div class="advanced-behavior-menu">
+                <element-picker
+                    :key="`advanced-behavior-pick-item-1-${revision}`"
+                    :scheme-container="schemeContainer"
+                    :excluded-item-ids="existingItemIds"
+                    :use-self="false"
+                    :allow-groups="false"
+                    none-label="Choose item..."
+                    @selected="prependItemForElement(arguments[0])"
+                    />
+            </div>
 
             <div class="behavior-advanced-editor">
                 <div :id="`advanced-behavior-item-${item.id}`" v-for="item in itemsWithBehavior">
-                    <h3>{{item.name}}</h3>
+                    <span class="item-title">{{item.name}}</span>
 
                     <behavior-properties
                         :key="`behavior-panel-${item.id}`"
@@ -27,15 +29,17 @@
                 </div>
             </div>
 
-            <element-picker
-                :key="`advanced-behavior-pick-item-2-${revision}`"
-                :scheme-container="schemeContainer"
-                :excluded-item-ids="existingItemIds"
-                :use-self="false"
-                :allow-groups="false"
-                none-label="Choose item..."
-                @selected="appendItemForElement(arguments[0])"
-                />
+            <div class="advanced-behavior-menu">
+                <element-picker
+                    :key="`advanced-behavior-pick-item-2-${revision}`"
+                    :scheme-container="schemeContainer"
+                    :excluded-item-ids="existingItemIds"
+                    :use-self="false"
+                    :allow-groups="false"
+                    none-label="Choose item..."
+                    @selected="appendItemForElement(arguments[0])"
+                    />
+                </div>
             </div>
 
     </modal>

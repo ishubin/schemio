@@ -81,6 +81,7 @@
             </panel>
 
             <panel name="Operations">
+                <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
                 <span v-if="projectId" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
             </panel>
 

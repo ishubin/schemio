@@ -45,11 +45,12 @@ import find from 'lodash/find';
 export default {
     /* options is an array of {name and any other fields} */
     props: {
-        options      : {type: Array, required: true},
-        value        : {type: String, default: null},
-        hoverEffect  : {type: Boolean, default: true},
-        searchEnabled: {type: Boolean, default: true},
-        disabled     : {type: Boolean, default: false},
+        options        : {type: Array, required: true},
+        value          : {type: String, default: null},
+        hoverEffect    : {type: Boolean, default: true},
+        searchEnabled  : {type: Boolean, default: true},
+        disabled       : {type: Boolean, default: false},
+        autoFocusSearch: {type: Boolean, default: true}
     },
 
     mounted() {
@@ -94,7 +95,7 @@ export default {
                 this.$nextTick(() => {
                     this.readjustDropdownPopup();
 
-                    if (this.$refs.searchTextfield) {
+                    if (this.$refs.searchTextfield && this.autoFocusSearch) {
                         this.$refs.searchTextfield.focus();
                     }
                 });

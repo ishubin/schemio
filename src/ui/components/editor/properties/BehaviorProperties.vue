@@ -14,15 +14,16 @@
                     <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
                         <i class="fas" :class="[eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
                     </span>
-                    <span class="icon-event"><i class="fas fa-bell"></i></span>
                 </div>
                 
                 <dropdown
                     :options="eventOptions"
+                    :auto-focus-search="isStandardEvent(event.event)"
                     @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
                     >
+                    <span class="icon-event"><i class="fas fa-bell"></i></span>
                     <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
-                    <input v-else type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
+                    <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
                 </dropdown>
             </div>
 
@@ -98,7 +99,7 @@
             </div>
         </div>
 
-        <span class="btn btn-primary" @click="addBehaviorEvent()">Add behavior event</span>
+        <span class="btn btn-primary" @click="addBehaviorEvent()">+ Event</span>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
             :function-description="functionArgumentsEditor.functionDescription"
@@ -375,6 +376,14 @@ export default {
         onBehaviorEventSelected(eventIndex, eventOption) {
             if (eventOption.id === 'custom-event') {
                 this.item.behavior.events[eventIndex].event = 'Unknown event...';
+
+                this.$nextTick(() => {
+                    const textfield = document.getElementById(`custom-event-textfield-${this.item.id}-${eventIndex}`);
+                    if (textfield) {
+                        textfield.focus();
+                    }
+                });
+                
             } else {
                 this.item.behavior.events[eventIndex].event = eventOption.id;
             }
