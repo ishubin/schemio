@@ -24,6 +24,7 @@
                 :item="item"
                 :scheme-container="schemeContainer"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+                @jumped-to-item="onJumpedToItem"
                 />
         </div>
         
@@ -334,6 +335,14 @@ export default {
 
         toggleBehaviorEditorModal() {
             this.$emit('clicked-advanced-behavior-editor');
+        },
+
+        // triggered from behavior properties when user wants to jump to another item
+        onJumpedToItem(item) {
+            if (!item) {
+                return;
+            }
+            this.schemeContainer.selectItem(item);
         }
     },
     computed: {

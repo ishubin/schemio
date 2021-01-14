@@ -8,6 +8,8 @@
                 ></vue-tags-input>
         </panel>
 
+        <div class="hint" v-if="item.behavior.events.length === 0">There are no events defined for this item yet. Start by adding an event</div>
+
         <div class="behavior-container" :class="{extended: extended}" v-for="(event, eventIndex) in item.behavior.events">
             <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
                 <div class="behavior-menu">
@@ -626,7 +628,7 @@ export default {
         jumpToElement(elementSelector) {
             const item = this.schemeContainer.findFirstElementBySelector(elementSelector);
             if (item) {
-                this.schemeContainer.selectItem(item);
+                this.$emit('jumped-to-item', item);
             }
         }
     },

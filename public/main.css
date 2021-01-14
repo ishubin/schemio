@@ -128,6 +128,8 @@ h5 {
 
 /******************* Hints **********************/
 .hint {
+    margin-top: 10px;
+    margin-bottom: 10px;
     font-style: italic;
     color: var(--faint-strong-down);
 }

@@ -25,6 +25,7 @@
                         :item="item"
                         :extended="true"
                         :scheme-container="schemeContainer"
+                        @jumped-to-item="jumpToItem"
                         />
                 </div>
             </div>
@@ -77,34 +78,27 @@ export default {
 
     methods: {
         prependItemForElement(elementSelector) {
-            this.addItemForElement(elementSelector, false);
-        },
-
-        appendItemForElement(elementSelector) {
-            this.addItemForElement(elementSelector, true);
-        },
-
-        addItemForElement(elementSelector, atTheEnd) {
             const item = this.schemeContainer.findFirstElementBySelector(elementSelector);
             if (!item) {
                 return;
             }
-            if (find(this.existingItems, existingItem => existingItem.id === item.id)) {
-                this.scrollToItem(item.id);
+            this.addItem(item, false);
+        },
+
+        appendItemForElement(elementSelector) {
+            const item = this.schemeContainer.findFirstElementBySelector(elementSelector);
+            if (!item) {
                 return;
             }
+            this.addItem(item, true);
+        },
 
+        addItem(item, atTheEnd) {
             this.searchKeyword = '';
-
-            item.behavior.events.push({
-                id: shortid.generate(),
-                event: 'clicked',
-                actions: []
-            });
 
             let idx = 0;
             if (atTheEnd) {
-                idx = this.this.existingItems.length;
+                idx = this.existingItems.length;
             }
             this.existingItems.splice(idx, 0, item);
             this.existingItemIds.splice(idx, 0, item.id);
@@ -120,13 +114,28 @@ export default {
             return filter(this.schemeContainer.getItems(), item => item.behavior && item.behavior.events && item.behavior.events.length > 0);
         },
 
-        scrollToItem(itemId) {
-            const itemDiv = document.getElementById(`advanced-behavior-item-${itemId}`);
+        scrollToItem(item) {
+            if (!item) {
+                return;
+            }
+
+            const itemDiv = document.getElementById(`advanced-behavior-item-${item.id}`);
             if (!itemDiv) {
                 return;
             }
 
             this.$refs.advancedBehaviorContainer.parentElement.scrollTop = itemDiv.offsetTop;
+        },
+
+
+        jumpToItem(item) {
+            if (!find(this.existingItemIds, id => id === item.id)) {
+                this.addItem(item, true);
+                this.$nextTick(() => {
+                    this.scrollToItem(item);
+                });
+            } else {
+            }
         }
     },
 
