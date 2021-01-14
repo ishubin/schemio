@@ -1249,11 +1249,6 @@ ul.button-group > li.disabled > .icon-button:hover,
     width: 100%;
     min-height: 150px;
 }
-.item-properties .btn {
-    font-size: 14px;
-    padding: 2px 5px 2px 5px;
-}
-
 
 .image-property-container {
     position: relative;

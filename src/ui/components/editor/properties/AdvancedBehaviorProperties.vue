@@ -90,6 +90,8 @@ export default {
                 return;
             }
 
+            this.searchKeyword = '';
+
             item.behavior.events.push({
                 id: shortid.generate(),
                 event: 'clicked',

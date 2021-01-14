@@ -100,22 +100,30 @@
                         </div>
 
                         <div v-if="currentTab === 'Item' && !textSlotEditted.item">
-                            <panel name="Items" v-if="mode === 'edit'">
-                                <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="schemeContainer.revision"/>
-                            </panel>
+                            <div v-if="mode === 'edit'">
+                                <panel name="Items">
+                                    <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="schemeContainer.revision"/>
+                                </panel>
 
-                            <item-properties v-if="schemeContainer.selectedItems.length > 0 && mode === 'edit'"
-                                :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
-                                :item="schemeContainer.selectedItems[0]"
-                                :revision="schemeRevision"
-                                :project-id="projectId"
-                                :scheme-container="schemeContainer" 
-                                @shape-prop-changed="onItemShapePropChanged"
-                                @item-field-changed="onItemFieldChanged"
-                                @item-style-applied="onItemStyleApplied"
-                                @shape-changed="onItemShapeChanged"
-                            />
+                                <item-properties v-if="schemeContainer.selectedItems.length > 0"
+                                    :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                    :item="schemeContainer.selectedItems[0]"
+                                    :revision="schemeRevision"
+                                    :project-id="projectId"
+                                    :scheme-container="schemeContainer" 
+                                    @shape-prop-changed="onItemShapePropChanged"
+                                    @item-field-changed="onItemFieldChanged"
+                                    @item-style-applied="onItemStyleApplied"
+                                    @shape-changed="onItemShapeChanged"
+                                    @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
+                                />
+                                <div v-else>
+                                    <span class="btn btn-secondary" @click="advancedBehaviorProperties.shown = true"><i class="fas fa-running"/> Behavior Editor</span>
+                                </div>
+                            </div>
+
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+
                         </div>
 
                         <div v-if="textSlotEditted.item">
@@ -191,6 +199,12 @@
         <div v-if="importSchemeFileShown" style="display: none">
             <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
         </div>
+
+        <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
+            :project-id="projectId"
+            :scheme-container="schemeContainer"
+        />
+
     </div>
 
 </template>
@@ -208,6 +222,7 @@ import EventBus from '../components/editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import ItemProperties from '../components/editor/properties/ItemProperties.vue';
+import AdvancedBehaviorProperties from '../components/editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from '../components/editor/properties/TextSlotProperties.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import SchemeProperties from '../components/editor/SchemeProperties.vue';
@@ -255,7 +270,7 @@ export default {
         SchemeDetails, CreateItemMenu, QuickHelperPanel,
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
-        ConnectorDestinationProposal,
+        ConnectorDestinationProposal, AdvancedBehaviorProperties,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -380,6 +395,10 @@ export default {
             importSchemeFileShown: false,
             importSchemeModal: {
                 sheme: null,
+                shown: false
+            },
+
+            advancedBehaviorProperties: {
                 shown: false
             }
         }

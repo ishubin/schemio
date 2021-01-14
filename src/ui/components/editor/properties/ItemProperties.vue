@@ -16,7 +16,7 @@
         <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
 
-        <div v-if="currentTab === 'behavior' && !behaviorProperties.inModal">
+        <div v-if="currentTab === 'behavior'">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
             <behavior-properties
                 :key="`behavior-panel-${item.id}`"
@@ -27,11 +27,6 @@
                 />
         </div>
         
-        <advanced-behavior-properties v-if="currentTab === 'behavior' && behaviorProperties.inModal" @close="behaviorProperties.inModal = false"
-            :project-id="projectId"
-            :scheme-container="schemeContainer"
-        />
-
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
         </div>
@@ -233,7 +228,7 @@ import myMath from '../../../myMath';
 const ALL_TABS = [
     {name: 'description',   icon: 'fas fa-paragraph'},
     {name: 'shape',         icon: 'fas fa-vector-square'},
-    {name: 'behavior',      icon: 'far fa-hand-point-up'},
+    {name: 'behavior',      icon: 'fas fa-running'},
     {name: 'styles',        icon: 'fas fa-palette'}
 ];
 
@@ -284,10 +279,6 @@ export default {
 
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
-
-            behaviorProperties: {
-                inModal: false
-            }
         };
     },
 
@@ -342,7 +333,7 @@ export default {
         },
 
         toggleBehaviorEditorModal() {
-            this.behaviorProperties.inModal = true;
+            this.$emit('clicked-advanced-behavior-editor');
         }
     },
     computed: {
