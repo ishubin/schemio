@@ -31,6 +31,10 @@
                             <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
                         </div>
                     </li>
+                    <li>
+                        <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
+                        <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
+                    </li>
                 </ul>
             </div>
 
@@ -211,6 +215,9 @@ export default {
 
     data() {
         return {
+            searchKeyword: '',
+            searchHighlights: [],
+
             zoomOptions: [
                 {name: '10%', value: 10},
                 {name: '25%', value: 25},
@@ -410,7 +417,52 @@ export default {
 
         initOffsetSave() {
             this.$emit('zoom-offset-changed');
-        }
+        },
+
+        toggleSearchedItems() {
+            this.$emit('zoomed-to-items', this.searchHighlights);
+        },
+    },
+
+    watch: {
+        searchKeyword(keyword) {
+            keyword = keyword.trim().toLowerCase();
+
+            if (keyword.length > 0) {
+                const highlightedItemIds = [];
+                let filteredItems = [];
+                forEach(this.schemeContainer.getItems(), item => {
+                    let shouldHighlight = false;
+
+                    if (this.mode === 'view' && this.schemeContainer.isItemInHUD(item)) {
+                        //ignoring item highlight for HUD elements in view mode
+                        return;
+                    }
+
+                    var name = item.name || '';
+                    if (name.toLowerCase().indexOf(keyword) >= 0) {
+                        shouldHighlight = true;
+                    } else {
+                        //search in tags
+                        if (item.tags && item.tags.length > 0) {
+                            if (find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
+                                shouldHighlight = true;
+                            }
+                        }
+                    }
+                    if (shouldHighlight) {
+                        filteredItems.push(item);
+                        highlightedItemIds.push(item.id);
+                    }
+                });
+                this.searchHighlights = filteredItems;
+                EventBus.emitItemsHighlighted(highlightedItemIds);
+            } else {
+                this.searchHighlights = [];
+                EventBus.emitItemsHighlighted([]);
+            }
+        },
+
     },
 
     computed: {

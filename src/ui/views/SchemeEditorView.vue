@@ -20,9 +20,6 @@
                         {{knownMode}}
                     </span>
 
-                    <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-
-                    <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
 
                     <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
                 </div>
@@ -161,6 +158,7 @@
                 @export-html-requested="exportHTMLModalShown = true"
                 @zoom-offset-changed="initOffsetSave"
                 @zoom-changed="onZoomChanged"
+                @zoomed-to-items="zoomToItems"
                 />
         </div>
 
@@ -334,13 +332,11 @@ export default {
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
             schemeContainer: null,
-            searchKeyword: '',
             svgWidth: window.innerWidth,
             svgHeight: window.innerHeight,
             zoom: 100,
             mode: 'view',
             knownModes: ['view', 'edit'],
-            searchHighlights: [],
 
             addLinkPopup: {
                 item: null,
@@ -528,10 +524,6 @@ export default {
             if (area) {
                 EventBus.$emit(EventBus.BRING_TO_VIEW, area);
             }
-        },
-
-        toggleSearchedItems() {
-            this.zoomToItems(this.searchHighlights);
         },
 
         onClickedAddItemLink(item) {
@@ -1052,44 +1044,6 @@ export default {
 
         currentTab(newValue) {
             this.saveSchemeSettings();
-        },
-
-        searchKeyword(keyword) {
-            keyword = keyword.trim().toLowerCase();
-
-            if (keyword.length > 0) {
-                const highlightedItemIds = [];
-                let filteredItems = [];
-                forEach(this.schemeContainer.getItems(), item => {
-                    let shouldHighlight = false;
-
-                    if (this.mode === 'view' && this.schemeContainer.isItemInHUD(item)) {
-                        //ignoring item highlight for HUD elements in view mode
-                        return;
-                    }
-
-                    var name = item.name || '';
-                    if (name.toLowerCase().indexOf(keyword) >= 0) {
-                        shouldHighlight = true;
-                    } else {
-                        //search in tags
-                        if (item.tags && item.tags.length > 0) {
-                            if (find(item.tags, tag => tag.toLowerCase().indexOf(keyword) >= 0)) {
-                                shouldHighlight = true;
-                            }
-                        }
-                    }
-                    if (shouldHighlight) {
-                        filteredItems.push(item);
-                        highlightedItemIds.push(item.id);
-                    }
-                });
-                this.searchHighlights = filteredItems;
-                EventBus.emitItemsHighlighted(highlightedItemIds);
-            } else {
-                this.searchHighlights = [];
-                EventBus.emitItemsHighlighted([]);
-            }
         },
     },
 

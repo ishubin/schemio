@@ -676,6 +676,13 @@ ul.pagination li a.current {
     padding-left: 0;
 }
 
+.quick-helper-panel input.textfield {
+    font-size: 14px;
+    padding: 3px 5px;
+}
+
+
+
 .scheme-not-found-block {
     padding-top: 70px;
     max-width: 400px;
