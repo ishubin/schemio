@@ -683,6 +683,48 @@ ul.pagination li a.current {
     text-align: center;
 }
 
+
+/******************* Zoom Control ********************/
+.zoom-control {
+    margin-left: 5px;
+    display: flex;
+}
+.zoom-control .zoom-button {
+    display: inline-block;
+    margin: 0;
+    padding: 4px 5px;
+    color: var(--base-strong-up);
+    background: var(--faint-weak-up);
+    font-size: 12px;
+    height: 24px;
+    cursor: pointer;
+    border: 1px solid var(--faint-strong-up);
+}
+.zoom-control .zoom-button:hover {
+    background: var(--faint-weak-down);
+}
+.zoom-control .zoom-button.zoom-out {
+    border-radius: var(--control-border-radius) 0 0 var(--control-border-radius);
+}
+.zoom-control .zoom-button.zoom-in {
+    border-radius:  0 var(--control-border-radius) var(--control-border-radius) 0;
+}
+.zoom-control .dropdown-container,
+.zoom-control .dropdown-container .dropdown-click-area {
+    padding: 0;
+    margin: 0
+}
+.zoom-control .dropdown-container input {
+    border: none;
+    padding: 2px 7px;
+    height: 24px;
+    width: 50px;
+    font-size: 14px;
+    text-align: center;
+    border-top: 1px solid var(--faint-strong-up);
+    border-bottom: 1px solid var(--faint-strong-up);
+}
+
 /********************* Svg editor *******************/
 
 .svg-editor {

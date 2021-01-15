@@ -20,13 +20,27 @@
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
+                        <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                    </li>
+                    <li>
+                        <div class="zoom-control">
+                            <span class="zoom-button zoom-out" @click="onZoomOutClicked"><i class="fas fa-search-minus"></i></span>
+                            <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
+                                <input :value="zoom" @keydown.enter="onZoomSubmit"/>
+                            </dropdown>
+                            <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="quick-helper-panel-section" v-if="mode === 'edit'">
+                <ul class="button-group">
+                    <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
                     </li>
                     <li>
                         <span title="Redo" class="icon-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
-                    </li>
-                    <li>
-                        <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
                     <li>
                         <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="toggleSnapToGrid(!shouldSnapToGrid)">
@@ -41,7 +55,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="quick-helper-panel-section" v-if="selectedItemsCount > 0">
+            <div class="quick-helper-panel-section" v-if="mode === 'edit' && selectedItemsCount > 0">
                 <ul class="button-group">
                     <li>
                         <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
@@ -58,7 +72,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="quick-helper-panel-section" v-if="selectedItemsCount > 0">
+            <div class="quick-helper-panel-section" v-if="mode === 'edit' && selectedItemsCount > 0">
                 <ul class="button-group">
                     <li>
                         <advanced-color-editor
@@ -101,7 +115,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="quick-helper-panel-section" v-if="shouldShowConnectorControls">
+            <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
                     <li>
                         <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'linear'}" title="Linear" @click="emitShapePropChange('smoothing', 'choice', 'linear')">
@@ -115,7 +129,7 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="shouldShownCurveHelpers" class="quick-helper-panel-section">
+            <div v-if="mode === 'edit' && shouldShownCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li v-if="firstSelectedCurveEditPoint">
                         <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-curve-points-to-simple')">
@@ -132,7 +146,7 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="currentState === 'createItem'" class="quick-helper-panel-section">
+            <div v-if="mode === 'edit' && currentState === 'createItem'" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <input type="checkbox" title="Automatically mount items into other items"
@@ -143,7 +157,7 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="itemSurround.shown" class="quick-helper-panel-section">
+            <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <number-textfield :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
@@ -158,6 +172,7 @@
 <script>
 import '../../typedef';
 import EventBus from './EventBus';
+import Dropdown from '../../components/Dropdown.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
@@ -171,10 +186,16 @@ import StoreUtils from '../../store/StoreUtils';
 export default {
     props: {
         /** @type {SchemeContainer} */
-        schemeContainer: { type: Object },
-        projectId      : {type: String},
+        schemeContainer: { type: Object, required: true },
+        projectId      : { type: String  },
+        mode           : { type: String, required: true }, // "edit" or "view"
+        zoom           : { type: Number, required: true },
     },
-    components: {AdvancedColorEditor, ColorPicker, StrokePatternDropdown, CurveCapDropdown, NumberTextfield, MenuDropdown},
+
+    components: {
+        AdvancedColorEditor, ColorPicker, StrokePatternDropdown,
+        CurveCapDropdown, NumberTextfield, MenuDropdown, Dropdown
+    },
 
     beforeMount() {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
@@ -190,6 +211,23 @@ export default {
 
     data() {
         return {
+            zoomOptions: [
+                {name: '10%', value: 10},
+                {name: '25%', value: 25},
+                {name: '35%', value: 35},
+                {name: '50%', value: 50},
+                {name: '75%', value: 75},
+                {name: '100%', value: 100},
+                {name: '125%', value: 125},
+                {name: '150%', value: 150},
+                {name: '200%', value: 200},
+                {name: '300%', value: 300},
+                {name: '400%', value: 400},
+                {name: '500%', value: 500},
+                {name: '750%', value: 750},
+                {name: '1000%', value: 1000},
+            ],
+
             selectedItemsCount: 0,
             firstSelectedItem: null,
 
@@ -314,6 +352,64 @@ export default {
 
         onItemCreatingAutoRemountChange(event) {
             StoreUtils.setItemCreatingAutoRemount(this.$store, event.target.checked);
+        },
+
+        onZoomOutClicked() {
+            let selectedZoom = this.zoomOptions[0].value;
+            let found = false;
+            for (let i = 0; i < this.zoomOptions.length && !found; i++) {
+                if (this.zoomOptions[i].value < this.zoom) {
+                    selectedZoom = this.zoomOptions[i].value;
+                } else {
+                    found = true;
+                }
+            }
+            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
+            this.$emit('zoom-changed', selectedZoom);
+            this.initOffsetSave();
+        },
+
+        onZoomInClicked() {
+            let selectedZoom = this.zoomOptions[this.zoomOptions.length - 1].value;
+            let found = false;
+            let i = this.zoomOptions.length - 1;
+            while(!found) {
+                if (this.zoomOptions[i].value > this.zoom) {
+                    selectedZoom = this.zoomOptions[i].value;
+                } else {
+                    found = true;
+                }
+                i = i - 1;
+                if (i < 0) {
+                    found = true;
+                }
+            }
+            this.$emit('zoom-changed', selectedZoom);
+            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
+            this.initOffsetSave();
+        },
+
+        onZoomOptionSelected(option) {
+            this.$emit('zoom-changed', option.value);
+            this.schemeContainer.screenTransform.scale = option.value / 100.0;
+            this.initOffsetSave();
+        },
+
+        onZoomSubmit(event) {
+            const zoomText = event.target.value;
+            const zoom = parseInt(zoomText);
+
+            if (isNaN(zoom)) {
+                return;
+            }
+            if (zoom > 0) {
+                this.schemeContainer.screenTransform.scale = zoom / 100.0;
+                this.initOffsetSave();
+            }
+        },
+
+        initOffsetSave() {
+            this.$emit('zoom-offset-changed');
         }
     },
 

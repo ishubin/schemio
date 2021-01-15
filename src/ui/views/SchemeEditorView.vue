@@ -20,12 +20,6 @@
                         {{knownMode}}
                     </span>
 
-                    <span><i class="fas fa-search-minus" style="color: #fff; cursor: pointer;" @click="onZoomOutClicked"></i></span>
-                    <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
-                        <input class="textfield" style="width: 60px;" type="text" :value="zoom" @keydown.enter="onZoomSubmit"/>
-                    </dropdown>
-                    <span><i class="fas fa-search-plus" style="color: #fff; cursor: pointer;" @click="onZoomInClicked"></i></span>
-
                     <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
 
                     <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
@@ -147,9 +141,12 @@
                 </div>
             </div>
 
-            <quick-helper-panel v-if="mode === 'edit'"
+            <quick-helper-panel
+                v-if="schemeContainer"
                 :project-id="projectId"
                 :scheme-container="schemeContainer"
+                :mode="mode"
+                :zoom="zoom"
                 @shape-prop-changed="onItemShapePropChanged"
                 @clicked-zoom-to-selection="zoomToSelection()"
                 @clicked-undo="historyUndo()"
@@ -162,6 +159,8 @@
                 @export-json-requested="exportAsJSON"
                 @export-svg-requested="exportAsSVG"
                 @export-html-requested="exportHTMLModalShown = true"
+                @zoom-offset-changed="initOffsetSave"
+                @zoom-changed="onZoomChanged"
                 />
         </div>
 
@@ -328,22 +327,6 @@ export default {
             isLoading: false,
             schemeLoadErrorMessage: null,
 
-            zoomOptions: [
-                {name: '10%', value: 10},
-                {name: '25%', value: 25},
-                {name: '35%', value: 35},
-                {name: '50%', value: 50},
-                {name: '75%', value: 75},
-                {name: '100%', value: 100},
-                {name: '125%', value: 125},
-                {name: '150%', value: 150},
-                {name: '200%', value: 200},
-                {name: '300%', value: 300},
-                {name: '400%', value: 400},
-                {name: '500%', value: 500},
-                {name: '750%', value: 750},
-                {name: '1000%', value: 1000},
-            ],
 
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
@@ -547,60 +530,6 @@ export default {
             }
         },
 
-        onZoomOutClicked() {
-            let selectedZoom = this.zoomOptions[0].value;
-            let found = false;
-            for (let i = 0; i < this.zoomOptions.length && !found; i++) {
-                if (this.zoomOptions[i].value < this.zoom) {
-                    selectedZoom = this.zoomOptions[i].value;
-                } else {
-                    found = true;
-                }
-            }
-            this.zoom = selectedZoom;
-            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
-            this.initOffsetSave();
-        },
-
-        onZoomInClicked() {
-            let selectedZoom = this.zoomOptions[this.zoomOptions.length - 1].value;
-            let found = false;
-            let i = this.zoomOptions.length - 1;
-            while(!found) {
-                if (this.zoomOptions[i].value > this.zoom) {
-                    selectedZoom = this.zoomOptions[i].value;
-                } else {
-                    found = true;
-                }
-                i = i - 1;
-                if (i < 0) {
-                    found = true;
-                }
-            }
-            this.zoom = selectedZoom;
-            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
-            this.initOffsetSave();
-        },
-
-        onZoomOptionSelected(option) {
-            this.zoom = option.value;
-            this.schemeContainer.screenTransform.scale = option.value / 100.0;
-            this.initOffsetSave();
-        },
-
-        onZoomSubmit(event) {
-            const zoomText = event.target.value;
-            const zoom = parseInt(zoomText);
-
-            if (isNaN(zoom)) {
-                return;
-            }
-            if (zoom > 0) {
-                this.schemeContainer.screenTransform.scale = zoom / 100.0;
-                this.initOffsetSave();
-            }
-        },
-
         toggleSearchedItems() {
             this.zoomToItems(this.searchHighlights);
         },
@@ -671,6 +600,10 @@ export default {
 
         onUpdateOffset(x, y) {
             this.initOffsetSave();
+        },
+
+        onZoomChanged(newZoom) {
+            this.zoom = newZoom;
         },
 
         initOffsetSave() {
