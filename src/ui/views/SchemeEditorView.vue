@@ -162,9 +162,9 @@
                 @zoomed-to-items="zoomToItems"
                 @new-scheme-requested="onNewSchemeRequested"
                 >
-                <ul class="button-group">
+                <ul class="button-group" v-if="schemeModified && mode === 'edit' && currentUser">
                     <li>
-                        <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
+                        <span class="btn btn-secondary" @click="saveScheme()">Save</span>
                     </li>
                 </ul>
             </quick-helper-panel>
