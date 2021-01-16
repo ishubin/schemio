@@ -1265,7 +1265,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     min-width: 20px;
     display: inline-block;
 }
-.advanced-color-editor.tab.disabled {
+.advanced-color-editor.disabled {
     opacity: 0.3;
 }
 .advanced-color-editor .color-picker-toggle-button {
@@ -1401,6 +1401,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .properties-table td {
     padding: 2px;
+}
+.properties-table td.disabled {
+    opacity: 0.3;
 }
 .properties-table .label {
     font-size: 14px;

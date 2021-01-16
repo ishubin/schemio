@@ -4,6 +4,7 @@ import Rect from './Rect.js';
 import Overlay from './Overlay.vue';
 import Ellipse from './Ellipse.js';
 import Link from './Link.vue';
+import ImageShape from './Image.vue';
 import Curve from './Curve.vue';
 import Connector from './Connector.vue';
 import Comment from './Comment.js';
@@ -137,6 +138,7 @@ const shapeRegistry = mapValues({
     overlay: Overlay,
     comment: Comment,
     frame_player: FramePlayer,
+    image: ImageShape,
     curve: Curve,
     connector: Connector,
     link: Link,

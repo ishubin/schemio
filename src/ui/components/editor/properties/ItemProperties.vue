@@ -122,25 +122,25 @@
                         <tr>
                             <td class="label" width="50%">Fill</td>
                             <td class="value" width="50%">
-                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" width="100%" @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
+                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" width="100%" @changed="onShapePropChange('fill', 'advanced-color', arguments[0])" />
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Stroke</td>
                             <td class="value" width="50%">
-                                <color-picker :color="item.shapeProps.strokeColor" @input="emitShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
+                                <color-picker :color="item.shapeProps.strokeColor" @input="onShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Stroke Size</td>
                             <td class="value" width="50%">
-                                <number-textfield :value="item.shapeProps.strokeSize" @changed="emitShapePropChange('strokeSize', 'number', arguments[0])" :min="0"/>
+                                <number-textfield :value="item.shapeProps.strokeSize" @changed="onShapePropChange('strokeSize', 'number', arguments[0])" :min="0"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Stroke Pattern</td>
                             <td class="value" width="50%">
-                                <stroke-pattern-dropdown :value="item.shapeProps.strokePattern" @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
+                                <stroke-pattern-dropdown :value="item.shapeProps.strokePattern" @selected="onShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                             </td>
                         </tr>
                     </tbody>
@@ -150,42 +150,46 @@
             <panel name="Shape Properties" v-if="hasShapeArgs">
                 <table class="properties-table">
                     <tbody>
-                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && shapePropsControlStates[argName].shown">
-                            <td class="label" width="50%">
+                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName]">
+                            <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
                                 {{arg.name}}
                                 <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" @input="emitShapePropChange(argName, arg.type, arguments[0])"/>
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"/>
 
-                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" @changed="emitShapePropChange(argName, arg.type, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
+                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"/>
 
-                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" @input="emitShapePropChange(argName, arg.type, arguments[0])"></color-picker>
+                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @changed="onShapePropChange(argName, arg.type, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
 
-                                <advanced-color-editor v-if="arg.type === 'advanced-color'" :project-id="projectId" :value="item.shapeProps[argName]" @changed="emitShapePropChange(argName, arg.type, arguments[0])" />
+                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"></color-picker>
 
-                                <input v-if="arg.type === 'boolean'" type="checkbox" :checked="item.shapeProps[argName]" @input="emitShapePropChange(argName, arg.type, arguments[0].srcElement.checked)"/>
+                                <advanced-color-editor v-if="arg.type === 'advanced-color'" :project-id="projectId" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @changed="onShapePropChange(argName, arg.type, arguments[0])" />
 
-                                <select v-if="arg.type === 'choice'" :value="item.shapeProps[argName]" @input="emitShapePropChange(argName, arg.type, arguments[0].target.value)">
+                                <input v-if="arg.type === 'boolean'" type="checkbox" :checked="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].srcElement.checked)"/>
+
+                                <select v-if="arg.type === 'choice'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)">
                                     <option v-for="argOption in arg.options">{{argOption}}</option>
                                 </select>
 
-                                <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
+                                <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @selected="onShapePropChange(argName, arg.type, arguments[0])"/>
 
                                 <curve-cap-dropdown v-if="arg.type === 'curve-cap'"
                                     :value="item.shapeProps[argName]"
                                     :is-source="argName === 'sourceCap'"
                                     width="16px"
                                     height="16px"
-                                    @selected="emitShapePropChange(argName, arg.type, arguments[0])"/>
+                                    :disabled="!shapePropsControlStates[argName].shown"
+                                    @selected="onShapePropChange(argName, arg.type, arguments[0])"/>
 
                                 <element-picker v-if="arg.type === 'element'"
                                     :element="item.shapeProps[argName]"
                                     :use-self="false"
                                     :allow-none="true"
                                     :scheme-container="schemeContainer"
+                                    :disabled="!shapePropsControlStates[argName].shown"
                                     :excluded-item-ids="[item.id]"
-                                    @selected="emitShapePropChange(argName, arg.type, arguments[0])"
+                                    @selected="onShapePropChange(argName, arg.type, arguments[0])"
                                     />
 
                             </td>
@@ -288,8 +292,10 @@ export default {
             this.$emit('item-field-changed', name, value);
         },
 
-        emitShapePropChange(name, type, value) {
+        onShapePropChange(name, type, value) {
             this.$emit('shape-prop-changed', name, type, value);
+            this.updateShapePropsDependencies();
+            this.$forceUpdate();
         },
 
         updateShapePropsDependencies() {

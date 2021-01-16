@@ -84,17 +84,14 @@ export default [{
     }, defaultItem)
 }, {
     name: 'Image',
-    imageProperty: 'shapeProps.fill.image',
+    imageProperty: 'shapeProps.image',
     iconUrl: '/assets/images/items/image.svg',
     description: `
         It lets you upload an image or specify a link to external image
     `,
     item: utils.extendObject({
-        shape: 'rect',
-        shapeProps: {
-            strokeSize: 0,
-            fill: {type: 'image', image: ''}
-        }
+        shape: 'image',
+        shapeProps: { }
     }, defaultItem)
 }, {
     name: 'Comment',

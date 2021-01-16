@@ -31,7 +31,11 @@ export default {
 
     // Uses 'fill' property of shapeProps
     computeStandardFill(item) {
-        return this.computeSvgFill(item.shapeProps.fill, `fill-pattern-${item.id}`);
+        return this.computeStandardFillForValue(item.shapeProps.fill, `fill-pattern-${item.id}`);
+    },
+
+    computeStandardFillForValue(fill, fillId) {
+        return this.computeSvgFill(fill, fillId);
     },
 
     computed: {

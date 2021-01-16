@@ -44,7 +44,7 @@ function formatDateAndTime(dateInMillis) {
 }
 
 function clone(obj) {
-    if (obj === undefined && obj === null) {
+    if (typeof obj === 'undefined' || obj === null) {
         return null;
     }
     return JSON.parse(JSON.stringify(obj));
