@@ -5,7 +5,7 @@
             <span v-else class="link" @click="toggleMenu">{{name}} <i class="fas fa-caret-down"></i></span>
         </div>
         <ul ref="menuList" v-if="menuDisplayed" :style="{'top': `${y}px`, 'left': `${x}px`}">
-            <li v-for="option in options">
+            <li v-for="option in options" :class="{disabled: option.disabled}">
                 <a v-if="option.link" :href="option.link">{{option.name}}</a>
                 <span v-else @click="onOptionClicked(option)"><i v-if="option.iconClass" :class="option.iconClass"></i> {{option.name}}</span>
             </li>
@@ -78,6 +78,9 @@ export default {
         },
 
         onOptionClicked(option) {
+            if (option.disabled) {
+                return;
+            }
             this.menuDisplayed = false;
             this.$emit(option.event);
         },

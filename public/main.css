@@ -180,9 +180,6 @@ h5 {
     left: 8px;
     top: 8px;
 }
-.header .menu-dropdown > .icon-button {
-    color: var(--critic-weak);
-}
 
 
 .menu-dropdown {
@@ -215,7 +212,7 @@ h5 {
 }
 .menu-dropdown > ul > li a, .menu-dropdown > ul > li span {
     display: block;
-    padding: 6px 8px;
+    padding: 10px 10px;
     text-decoration: none;
     color: var(--base-strong-up);
     font-weight: normal;
@@ -224,6 +221,11 @@ h5 {
 .menu-dropdown > ul li a:hover, .menu-dropdown > ul li span:hover {
     color: var(--critic-weak);
     background: var(--accent-strong);
+}
+.menu-dropdown > ul li.disabled a, .menu-dropdown > ul li.disabled span,
+.menu-dropdown > ul li.disabled a:hover, .menu-dropdown > ul li.disabled span:hover {
+    color: var(--faint-strong);
+    background: none;
 }
 
 
@@ -647,7 +649,7 @@ ul.pagination li a.current {
     display: table-cell;
     vertical-align: middle;
     overflow: hidden;
-    height: 40px;
+    height: 36px;
 }
 .quick-helper-panel-section {
     position: relative;

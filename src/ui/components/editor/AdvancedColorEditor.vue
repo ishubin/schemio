@@ -127,7 +127,7 @@ export default {
         value    : {type: Object, required: true},
         width    : {type: String, default: '100%'},
         height   : {type: String, default: '16px'},
-        projectId: {type: String, required: true},
+        projectId: {type: String, default: null },
         disabled : {type: Boolean, default : false},
     },
 

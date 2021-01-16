@@ -8,7 +8,8 @@
             <header-component 
                 :project-id="projectId"
                 :project="project"
-                :category="currentCategory"
+                :allow-new-scheme="false"
+                @new-scheme-requested="openNewSchemePopup"
                 >
                 <div v-if="schemeContainer" slot="middle-section">
                     <span v-for="knownMode in knownModes" class="toggle-button editor-mode"
@@ -141,6 +142,7 @@
             <quick-helper-panel
                 v-if="schemeContainer"
                 :project-id="projectId"
+                :project="project"
                 :scheme-container="schemeContainer"
                 :mode="mode"
                 :zoom="zoom"
@@ -159,6 +161,7 @@
                 @zoom-offset-changed="initOffsetSave"
                 @zoom-changed="onZoomChanged"
                 @zoomed-to-items="zoomToItems"
+                @new-scheme-requested="onNewSchemeRequested"
                 />
         </div>
 
@@ -478,6 +481,38 @@ export default {
             } else if (mode === 'edit') {
                 this.sidePanelRightExpanded = true;
             }
+        },
+
+        onNewSchemeRequested() {
+            if (this.schemeId && this.project) {
+                this.openNewSchemePopup();
+            } else if (this.offlineMode) {
+                if (confirm('Area you sure you want to reset all your changes?')) {
+                    this.initOfflineMode();
+                }
+            }
+        },
+
+        openNewSchemePopup() {
+            if (this.currentCategory && this.currentCategory.id) {
+                var categories = map(this.currentCategory.ancestors, ancestor => {
+                    return {name: ancestor.name, id: ancestor.id};
+                });
+
+                categories.push({
+                    name: this.currentCategory.name,
+                    id: this.currentCategory.id
+                });
+                this.newSchemePopup.categories = categories;
+            } else {
+                this.newSchemePopup.categories = [];
+            }
+            this.newSchemePopup.show = true;
+        },
+
+        openNewSchemePopupSchemeCreated(projectId, scheme) {
+            this.newSchemePopup.show = false;
+            window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
         },
 
         saveScheme() {

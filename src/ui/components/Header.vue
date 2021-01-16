@@ -9,7 +9,7 @@
         </router-link>
 
         <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>
-        <span v-if="currentUser && projectId" class="link" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
+        <span v-if="currentUser && projectId && allowNewScheme" class="link" @click="$emit('new-scheme-requested')"><i class="far fa-file-alt"></i> New Scheme</span>
 
         <div class="header-middle-section">
             <slot name="middle-section"></slot>
@@ -26,37 +26,25 @@
                 <a :href="'/login?redirect=' + originalUrlEncoded">Login</a>
             </div>
         </div>
-
-        <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories"
-            :project-id="projectId"
-            @close="newSchemePopup.show = false"
-            @scheme-created="openNewSchemePopupSchemeCreated"
-            ></create-new-scheme-modal>
     </div>
 </template>
 
 <script>
-import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import MenuDropdown from './MenuDropdown.vue'
 import map from 'lodash/map';
 
 export default {
     props: {
-        projectId:  {type: String, default: null},
-        project:    {type: Object, default: null},
-        category:   {type: Object, default: null}
+        projectId     : { type: String, default: null},
+        project       : { type: Object, default: null},
+        allowNewScheme: { type: Boolean, default: true }
     },
 
-    components: {CreateNewSchemeModal, MenuDropdown},
+    components: { MenuDropdown },
 
     data() {
         return {
             originalUrlEncoded: encodeURIComponent(window.location),
-            newSchemePopup: {
-                categories: [],
-                show: false
-            },
-            menuDisplayed: false,
             userDropDownOptions: [{
                 name: 'My Projects',
                 link: '/projects'
@@ -65,33 +53,6 @@ export default {
                 link: '/auth/logout'
             }]
         };
-    },
-    methods: {
-        toggleMenu() {
-            this.menuDisplayed = !this.menuDisplayed;
-        },
-        openNewSchemePopup() {
-            this.menuDisplayed = false;
-            if (this.category && this.category.id) {
-                var categories = map(this.category.ancestors, ancestor => {
-                    return {name: ancestor.name, id: ancestor.id};
-                });
-
-                categories.push({
-                    name: this.category.name,
-                    id: this.category.id
-                });
-                this.newSchemePopup.categories = categories;
-            } else {
-                this.newSchemePopup.categories = [];
-            }
-            this.newSchemePopup.show = true;
-        },
-
-        openNewSchemePopupSchemeCreated(projectId, scheme) {
-            this.newSchemePopup.show = false;
-            window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
-        },
     },
     computed: {
         currentUser() {

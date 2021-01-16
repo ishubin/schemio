@@ -8,6 +8,7 @@
                             name=""
                             icon-class="fas fa-bars"
                             :options="menuDropdownOptions"
+                            @new-scheme-requested="$emit('new-scheme-requested')"
                             @import-json-requested="$emit('import-json-requested')"
                             @export-json-requested="$emit('export-json-requested')"
                             @export-svg-requested="$emit('export-svg-requested')"
@@ -192,6 +193,7 @@ export default {
         /** @type {SchemeContainer} */
         schemeContainer: { type: Object, required: true },
         projectId      : { type: String  },
+        project        : { type: Object  },
         mode           : { type: String, required: true }, // "edit" or "view"
         zoom           : { type: Number, required: true },
     },
@@ -214,6 +216,11 @@ export default {
     },
 
     data() {
+        let newSchemeDisabled = false;
+        if (this.project && !this.project.permissions.write) {
+            newSchemeDisabled = true;
+        }
+
         return {
             searchKeyword: '',
             searchHighlights: [],
@@ -255,6 +262,7 @@ export default {
             },
 
             menuDropdownOptions: [
+                {name: 'New scheme',     event: 'new-scheme-requested', disabled: newSchemeDisabled}, 
                 {name: 'Import scheme',  event: 'import-json-requested'},
                 {name: 'Export as JSON', event: 'export-json-requested'},
                 {name: 'Export as SVG',  event: 'export-svg-requested'},
@@ -462,7 +470,6 @@ export default {
                 EventBus.emitItemsHighlighted([]);
             }
         },
-
     },
 
     computed: {
