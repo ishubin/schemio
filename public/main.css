@@ -1022,6 +1022,8 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 
 
+/************* Toggle Button *****************/
+
 .toggle-button {
     display: inline-block;
     min-width: 25px;
@@ -1030,9 +1032,9 @@ ul.button-group > li.disabled > .icon-button:hover,
     padding: 3px 5px 3px 5px;
     color: var(--base-strong);
     background: none;
+    font-size: 14px;
     cursor: pointer;
     cursor: hand;
-    font-weight: bold;
     text-transform: capitalize;
 }
 .toggle-button.toggled {
@@ -1042,7 +1044,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     cursor: hand;
 }
 .toggle-button:hover {
-    background: var(--faint-weak-up);
+    background: var(--faint-strong-up-up);
 }
 .toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
     color: var(--base-weak) !important;
@@ -1056,18 +1058,34 @@ ul.button-group > li.disabled > .icon-button:hover,
     right: 1px;
     font-size: 8px;
 }
-.header .toggle-button {
-    color: var(--accent-weak);
-}
-.header .toggle-button.toggled {
-    color: var(--accent-weak);
-    background: var(--accent-strong);
-}
-.header .toggle-button:hover {
-    background: var(--accent-faint);
-    color: var(--accent-weak);
-}
 
+
+.toggle-group {
+    display: inline-block;
+    padding: 0;
+}
+.toggle-group > .toggle-button {
+    color: var(--faint-strong);
+    margin: 0;
+}
+.toggle-group > .toggle-button:hover {
+    color: var(--base-strong-up);
+    margin: 0;
+}
+.toggle-group > .toggle-button.toggled {
+    background: var(--faint-strong-up-up);
+    color: var(--base-strong);
+}
+.toggle-group > .toggle-button:first-child {
+    border: 1px solid var(--faint-strong-up);
+    border-radius: var(--control-border-radius) 0 0 var(--control-border-radius);
+}
+.toggle-group > .toggle-button:last-child {
+    border-top: 1px solid var(--faint-strong-up);
+    border-right: 1px solid var(--faint-strong-up);
+    border-bottom: 1px solid var(--faint-strong-up);
+    border-radius: 0 var(--control-border-radius) var(--control-border-radius) 0;
+}
 
 
 /***************************/

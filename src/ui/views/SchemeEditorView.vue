@@ -11,18 +11,6 @@
                 :allow-new-scheme="false"
                 @new-scheme-requested="openNewSchemePopup"
                 >
-                <div v-if="schemeContainer" slot="middle-section">
-                    <span v-for="knownMode in knownModes" class="toggle-button editor-mode"
-                        :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
-                        @click="toggleMode(knownMode)"
-                        >
-                        <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
-                        <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
-                        {{knownMode}}
-                    </span>
-
-
-                </div>
             </header-component>
 
             <div class="scheme-container" oncontextmenu="return false;">
@@ -161,6 +149,7 @@
                 @zoom-changed="onZoomChanged"
                 @zoomed-to-items="zoomToItems"
                 @new-scheme-requested="onNewSchemeRequested"
+                @mode-changed="toggleMode"
                 >
                 <ul class="button-group" v-if="schemeModified && mode === 'edit' && currentUser">
                     <li>
@@ -344,7 +333,6 @@ export default {
             svgHeight: window.innerHeight,
             zoom: 100,
             mode: 'view',
-            knownModes: ['view', 'edit'],
 
             addLinkPopup: {
                 item: null,

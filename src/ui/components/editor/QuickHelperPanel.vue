@@ -36,6 +36,19 @@
                         <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                         <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
                     </li>
+                    <li>
+                        <div class="toggle-group">
+                            <span v-for="knownMode in knownModes" class="toggle-button"
+                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                                @click="$emit('mode-changed', knownMode)"
+                                >
+                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
+                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
+                                {{knownMode}}
+                            </span>
+                        </div>
+                    </li>
+
                 </ul>
             </div>
 
@@ -225,6 +238,7 @@ export default {
         }
 
         return {
+            knownModes: ['view', 'edit'],
             searchKeyword: '',
             searchHighlights: [],
 
