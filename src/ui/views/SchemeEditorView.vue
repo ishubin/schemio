@@ -15,13 +15,12 @@
                 <div slot="middle-section">
                     <div class="scheme-title" v-if="schemeContainer" @dblclick="triggerSchemeTitleEdit">
                         <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
-                        <span v-if="!schemeTitleEdit.shown">{{schemeContainer.scheme.name}}</span>
-                        <input v-else ref="schemeTitleInput" type="text"
-                            v-model="schemeTitleEdit.text"
+                        <span ref="schemeTitle"
+                            :contenteditable="schemeTitleEdit.shown"
                             @keydown.enter="submitTitleEdit"
                             @keydown.esc="submitTitleEdit"
                             @blur="submitTitleEdit"
-                            />
+                            >{{schemeContainer.scheme.name}}</span>
                     </div>
                 </div>
             </header-component>
@@ -394,7 +393,6 @@ export default {
 
             schemeTitleEdit: {
                 shown: false,
-                text: ''
             }
         }
     },
@@ -1067,18 +1065,17 @@ export default {
         },
 
         triggerSchemeTitleEdit() {
-            this.schemeTitleEdit.text = this.schemeContainer.scheme.name;
             this.schemeTitleEdit.shown = true;
             this.$nextTick(() => {
-                if (this.$refs.schemeTitleInput) {
-                    this.$refs.schemeTitleInput.focus();
+                if (this.$refs.schemeTitle) {
+                    this.$refs.schemeTitle.focus();
                 }
             });
         },
 
         submitTitleEdit() {
-            if (this.schemeContainer.scheme.name !== this.schemeTitleEdit.text) {
-                this.schemeContainer.scheme.name = this.schemeTitleEdit.text;
+            if (this.$refs.schemeTitle) {
+                this.schemeContainer.scheme.name = this.$refs.schemeTitle.innerHTML;
                 this.updateRevision();
                 this.commitHistory();
             }
