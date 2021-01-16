@@ -22,7 +22,6 @@
                     </span>
 
 
-                    <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
                 </div>
             </header-component>
 
@@ -162,7 +161,13 @@
                 @zoom-changed="onZoomChanged"
                 @zoomed-to-items="zoomToItems"
                 @new-scheme-requested="onNewSchemeRequested"
-                />
+                >
+                <ul class="button-group">
+                    <li>
+                        <span class="btn btn-secondary" v-if="schemeModified && mode === 'edit' && currentUser" @click="saveScheme()">Save</span>
+                    </li>
+                </ul>
+            </quick-helper-panel>
         </div>
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>

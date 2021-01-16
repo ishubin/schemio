@@ -683,6 +683,10 @@ ul.pagination li a.current {
     padding: 3px 5px;
 }
 
+.quick-helper-panel .btn {
+    padding: 2px 5px;
+    font-size: 14px;
+}
 
 
 .scheme-not-found-block {

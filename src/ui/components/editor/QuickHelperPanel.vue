@@ -169,6 +169,9 @@
                     </li>
                 </ul>
             </div>
+            <div class="quick-helper-panel-section">
+                <slot></slot>
+            </div>
         </div>
     </div>
 </template>
