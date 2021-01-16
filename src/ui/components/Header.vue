@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="header text-nonselectable">
+    <div class="header">
         <router-link :to="{path: '/'}" class="header-caption">
             <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
         </router-link>

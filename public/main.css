@@ -181,6 +181,40 @@ h5 {
     top: 8px;
 }
 
+.header .scheme-title {
+    position: relative;
+    display: block;
+    height: 25px;
+    margin-left: 20px;
+    padding-left: 20px;
+    cursor: pointer;
+    color: var(--base-weak);
+}
+.header .scheme-title .icon {
+    position: absolute;
+    top: -1px;
+    left: 0px;
+}
+.header .scheme-title span {
+    display: inline-block;
+    height: 25px;
+    padding: 2px 5px;
+    margin: 0;
+    min-width: 40px;
+}
+.header .scheme-title input {
+    display: inline-block;
+    top: 0;
+    left: 30px;
+    height: 25px;
+    font-size: 16px;
+    background: var(--base-strong-up);
+    border: none;
+    color: var(--faint-weak-down);
+    margin: 0;
+    padding: 2px 5px;
+    outline: none;
+}
 
 .menu-dropdown {
     display: inline-block;
