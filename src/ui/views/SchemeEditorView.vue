@@ -9,8 +9,8 @@
             <header-component 
                 :project-id="projectId"
                 :project="project"
+                :category="currentCategory"
                 :allow-new-scheme="false"
-                @new-scheme-requested="openNewSchemePopup"
                 >
                 <div slot="middle-section">
                     <div class="scheme-title" v-if="schemeContainer" @dblclick="triggerSchemeTitleEdit">
@@ -505,6 +505,7 @@ export default {
         },
 
         openNewSchemePopup() {
+            console.log('sdfdsfsdafa');
             if (this.currentCategory && this.currentCategory.id) {
                 var categories = map(this.currentCategory.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};
