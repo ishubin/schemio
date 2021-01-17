@@ -6,7 +6,7 @@
     <div class="login-view">
         <header-component/>
 
-        <div class="content-wrapper">
+        <div class="middle-content">
 
             <div class="login-box">
                 <div class="login-box-body">

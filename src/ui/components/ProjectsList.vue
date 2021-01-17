@@ -5,8 +5,8 @@
             Loading <i class="fas fa-spinner fa-spin"></i>
         </div>
 
-        <div class="section">
-            <input ref="searchTextfield" @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
+        <div class="section search-controls">
+            <input ref="searchTextfield" @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
             <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
         </div>
         <div v-if="searchResult" class="section">

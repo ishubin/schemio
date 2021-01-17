@@ -5,7 +5,7 @@
 <template lang="html">
     <div class="search-view">
         <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
-        <div class="content-wrapper">
+        <div class="middle-content">
             <div class="search-layout">
                 <div v-if="categoriesConfig.enabled" class="search-attributes-panel">
                     <h4>Categories</h4>
@@ -49,10 +49,10 @@
 
                     <div class="section" v-if="hasWritePermission">
                         <div v-if="project.isPublic">
-                            This project is <b>public</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
+                            This project is <i class="fas fa-unlock"></i> <b>public</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
                         </div>
                         <div v-else>
-                            This project is <b>private</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
+                            This project is <i class="fas fa-lock"></i> <b>private</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
                         </div>
 
                         <div v-if="editProjectVisibilityShown" class="section">
@@ -64,8 +64,8 @@
                     </div>
 
                     <div v-if="searchResult">
-                        <div class="section">
-                            <input @keyup.enter="onSearchClicked()" class="textfield" style="width: 300px" type="text" v-model="query" placeholder="Search ..."/>
+                        <div class="section search-controls">
+                            <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
                             <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
                         </div>
 
@@ -80,27 +80,60 @@
                             :use-router="true"
                         />
 
-                        <div class="tag-filter-container">
+                        <div class="tag-filter-container section">
                             <ul class="tag-filter">
                                 <li v-if="filterTag"><span class="tag selected" @click="removeTagFilter()">{{filterTag}}</span></li>
                                 <li v-for="tag in tags" v-if="tag !== filterTag"><span class="tag" @click="toggleFilterByTag(tag)">{{tag}}</span></li>
                             </ul>
                         </div>
 
-                        <ul class="schemes">
-                            <li v-for="scheme in searchResult.results">
-                                <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
-                                    <h5>{{scheme.name}}</h5>
-                                    <div class="image-wrapper">
-                                        <img v-if="scheme.previewUrl" class="scheme-preview" :src="scheme.previewUrl" style="max-width: 200px; max-height: 100px;"/>
-                                    </div>
-                                    <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
-                                    <div class="scheme-description">
-                                        {{scheme.description | shortDescription}}
-                                    </div>
-                                </router-link>
-                            </li>
-                        </ul>
+                        <div class="section">
+                            <div class="toggle-group">
+                                <span v-for="view in knownViews" class="toggle-button"
+                                    :class="{toggled: currentView === view.id}"
+                                    @click="currentView = view.id"
+                                    >{{view.name}}</span>
+                            </div>
+
+                            <div class="gallery-view" v-if="currentView === 'gallery'">
+                                <ul class="schemes">
+                                    <li v-for="scheme in searchResult.results">
+                                        <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
+                                            <div class="scheme-title">{{scheme.name}}</div>
+                                            <div class="scheme-preview">
+                                                <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                                <img v-else class="scheme-preview" src="/assets/images/missing-preview.svg"/>
+                                            </div>
+                                            <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
+                                            <div class="scheme-description">
+                                                {{scheme.description | shortDescription}}
+                                            </div>
+                                        </router-link>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div v-else class="list-view">
+                                <ul class="schemes">
+                                    <li v-for="scheme in searchResult.results">
+                                        <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
+                                            <div class="scheme-preview">
+                                                <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                                <img v-else src="/assets/images/missing-preview.svg"/>
+                                            </div>
+                                            <div class="scheme-info">
+                                                <div class="scheme-title">{{scheme.name}}</div>
+                                                <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
+                                                <div class="scheme-description">
+                                                    {{scheme.description | shortDescription}}
+                                                </div>
+                                            </div>
+                                        </router-link>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                            
                     </div>
                 </div>
             </div>
@@ -161,6 +194,9 @@ import utils from '../utils.js';
 import Pagination from '../components/Pagination.vue';
 import Modal from '../components/Modal.vue';
 import config from '../config';
+import LimitedSettingsStorage from '../LimitedSettingsStorage';
+
+const settingsStorage = new LimitedSettingsStorage(window.localStorage, 'project-view', 10);
 
 export default {
     components: {HeaderComponent, CategoryTree, Pagination, Modal},
@@ -189,6 +225,16 @@ export default {
             editProjectNameShown: false,
             editProjectDescriptionShown: false,
             editProjectVisibilityShown: false,
+
+            knownViews: [{
+                id: 'gallery',
+                name: 'Gallery View'
+            }, {
+                id: 'List',
+                name: 'List View'
+            }],
+
+            currentView: settingsStorage.get('currentView', 'gallery'),
 
             createCategoryModal: {
                 shown: false,
@@ -537,6 +583,10 @@ export default {
     watch:{
         $route(to, from) {
             this.init();
+        },
+
+        currentView(view) {
+            settingsStorage.save('currentView', view);
         }
     },
 
