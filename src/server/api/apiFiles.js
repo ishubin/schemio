@@ -6,7 +6,7 @@ const multer            = require('multer');
 const fs                = require('fs');
 const fsp               = fs.promises;
 const config            = require('../config.js');
-const logger            = require('../logger.js');
+const logger            = require('../logger.js').createLog('apiFiles');
 const fileStorage      = require('../storage/storageProvider.js').provideFileStorage();
 
 const storage = multer.diskStorage({
