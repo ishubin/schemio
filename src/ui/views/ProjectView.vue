@@ -91,11 +91,18 @@
                                     @click="currentView = view.id"
                                     >{{view.name}}</span>
                             </div>
+                        </div>
 
+                        <div class="section" v-if="isEditingProject && searchResult && searchResult.results.length > 0">
+                            <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
+                        </div>
+
+                        <div class="section">
                             <div class="gallery-view" v-if="currentView === 'gallery'">
                                 <ul class="schemes">
                                     <li v-for="scheme in searchResult.results">
-                                        <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
+                                        <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                            <input v-if="isEditingProject && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
                                             <div class="scheme-title">{{scheme.name}}</div>
                                             <div class="scheme-preview">
                                                 <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
@@ -105,7 +112,7 @@
                                             <div class="scheme-description">
                                                 {{scheme.description | shortDescription}}
                                             </div>
-                                        </router-link>
+                                        </a>
                                     </li>
                                 </ul>
                             </div>
@@ -113,7 +120,8 @@
                             <div v-else class="list-view">
                                 <ul class="schemes">
                                     <li v-for="scheme in searchResult.results">
-                                        <router-link :to="{path: `/projects/${projectId}/schemes/${scheme.id}`}" class="scheme link">
+                                        <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                            <input v-if="isEditingProject && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
                                             <div class="scheme-preview">
                                                 <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
                                                 <img v-else src="/assets/images/missing-preview.svg"/>
@@ -125,7 +133,7 @@
                                                     {{scheme.description | shortDescription}}
                                                 </div>
                                             </div>
-                                        </router-link>
+                                        </a>
                                     </li>
                                 </ul>
                             </div>
@@ -179,11 +187,31 @@
             </span>
             <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
         </modal>
+
+        <modal title="Delete schemes" v-if="schemeDeleteModal.shown" primary-button="Delete"
+            @primary-submit="onDeleteSchemesSubmited"
+            @close="schemeDeleteModal.shown = false"
+            >
+            <div v-if="schemeDeleteModal.schemes.length === 1">
+                Are you sure you want to delete <b>"{{schemeDeleteModal.schemes[0].name}}"</b> scheme?
+            </div>
+            <div v-else>
+                Are you sure you want to delete the following <b>"{{schemeDeleteModal.schemes.length}}"</b> schemes?
+                <ul>
+                    <li v-for="scheme in schemeDeleteModal.schemes">
+                        {{scheme.name}}
+                    </li>
+                </ul>
+            </div>
+            <div v-if="schemeDeleteModal.errorMessage" class="msg msg-error">{{schemeDeleteModal.errorMessage}}</div>
+        </modal>
+
     </div>
 </template>
 
 <script>
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import HeaderComponent from '../components/Header.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
@@ -211,6 +239,11 @@ export default {
             query: '',
             urlPrefix: null,
             searchResult: null,
+
+            // storing scheme checkbox states
+            schemeStates: {},
+            hasSelectedAnyScheme: false,
+
             currentCategory: null,
             currentCategoryId: null,
             currentPage: 1,
@@ -272,6 +305,12 @@ export default {
 
             categoriesConfig: {
                 enabled: config.project.categories.enabled
+            },
+
+            schemeDeleteModal: {
+                schemes: [],
+                shown: false,
+                errorMessage: null
             }
         };
     },
@@ -331,7 +370,19 @@ export default {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
+                this.updateSchemeStates();
             });
+        },
+
+        updateSchemeStates() {
+            this.schemeStates = {};
+            if (!this.searchResult) {
+                return;
+            }
+            forEach(this.searchResult.results, scheme => {
+                this.schemeStates[scheme.id] = {checked: false};
+            });
+            this.hasSelectedAnyScheme = false;
         },
 
         onSearchClicked() {
@@ -553,6 +604,56 @@ export default {
                     alert('Sorry, could not delete project. Something went wrong.');
                 });
             }
+        },
+
+        onSchemeClick(event, scheme) {
+            if (this.isEditingProject) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                this.schemeStates[scheme.id].checked = !this.schemeStates[scheme.id].checked;
+
+                if (find(this.schemeStates, state => state.checked))  {
+                    this.hasSelectedAnyScheme = true;
+                } else {
+                    this.hasSelectedAnyScheme = false;
+                }
+                this.$forceUpdate();
+                return false;
+            }
+            return true;
+        },
+
+        deleteSectedSchemes() {
+            if (!this.hasSelectedAnyScheme) {
+                return;
+            }
+
+            const schemesToDelete = [];
+            forEach(this.searchResult.results, scheme => {
+                if (this.schemeStates[scheme.id] && this.schemeStates[scheme.id].checked) {
+                    schemesToDelete.push(scheme);
+                }
+            });
+            if (schemesToDelete.length > 0) {
+                this.schemeDeleteModal.schemes = schemesToDelete;
+                this.schemeDeleteModal.errorMessage = null;
+                this.schemeDeleteModal.shown = true;
+            }
+        },
+
+        onDeleteSchemesSubmited() {
+            const schemeIds = [];
+            forEach(this.schemeDeleteModal.schemes, scheme => {
+                schemeIds.push(scheme.id);
+            });
+            apiClient.deleteMultipleSchemes(this.projectId, schemeIds)
+            .then(() => {
+                this.schemeDeleteModal.shown = false;
+                this.searchSchemes();
+            }).catch(err => {
+                this.schemeDeleteModal.errorMessage = 'Failed to delete schemes';
+            });
         }
     },
 
@@ -578,6 +679,12 @@ export default {
 
         currentView(view) {
             settingsStorage.save('currentView', view);
+        },
+
+        isEditingProject(is) {
+            if (is) {
+                this.updateSchemeStates();
+            }
         }
     },
 

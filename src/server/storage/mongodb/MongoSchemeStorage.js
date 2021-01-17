@@ -170,6 +170,13 @@ class MongoSchemeStorage {
         });
     }
 
+    deleteMultipleSchemes(projectId, schemeIds) {
+        return this._schemes().deleteMany({
+            id: { $in: schemeIds },
+            projectId: mongo.sanitizeString(projectId)
+        });
+    }
+
     extractTagsFromScheme(scheme) {
         const tagsMap = {};
         if (scheme.tags) {

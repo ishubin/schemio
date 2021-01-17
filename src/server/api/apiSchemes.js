@@ -121,6 +121,28 @@ const ApiSchemes = {
         }).catch(err => res.$apiError(err));
     },
 
+    deleteMultipleSchemes(req, res) {
+        const projectId = req.params.projectId;
+        const payload = req.body;
+        
+        const schemeIds = [];
+        if (payload && Array.isArray(payload)) {
+            _.forEach(payload, schemeId => {
+                if (typeof schemeId === 'string') {
+                    schemeIds.push(schemeId);
+                }
+            });
+        }
+
+        if (schemeIds.length > 0) {
+            schemeStorage.deleteMultipleSchemes(projectId, schemeIds).then(() => {
+                res.json({status: "ok"});
+            }).catch(err => res.$apiError(err));
+        } else {
+            res.$badRequest();
+        }
+    },
+
     findSchemes(req, res) {
         const projectId = req.params.projectId;
         const query = {

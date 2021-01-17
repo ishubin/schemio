@@ -108,6 +108,7 @@ if (!config.backendless) {
 
     $getJSON(   '/v1/projects/:projectId/schemes',                  [middleware.projectReadPermission],    apiSchemes.findSchemes);
     $postJSON(  '/v1/projects/:projectId/schemes',                  [middleware.projectWritePermission],   apiSchemes.createScheme);
+    $postJSON(  '/v1/projects/:projectId/delete-schemes',           [middleware.projectWritePermission],   apiSchemes.deleteMultipleSchemes);
     $getJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
     $deleteJSON('/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
     $putJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);

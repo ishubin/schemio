@@ -111,6 +111,10 @@ export default {
         }
     },
 
+    deleteMultipleSchemes(projectId, schemeIds) {
+        return axios.post(`/v1/projects/${projectId}/delete-schemes`, schemeIds).then(unwrapAxios);
+    },
+
     findSchemes(projectId, filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
         let url = `/v1/projects/${projectId}/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`;
