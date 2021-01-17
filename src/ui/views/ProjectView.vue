@@ -27,39 +27,36 @@
                         />
                 </div>
                 <div class="search-results" v-if="project">
-                    <h3 v-if="!editProjectNameShown">{{project.name}} <span v-if="hasWritePermission" class="link dimmed-link" @click="editProjectNameShown = true"><i class="fas fa-edit"/></span></h3>
-                    <div v-if="editProjectNameShown" class="section">
-                        <input ref="editProjectNameTextfield" class="textfield" style="width: 300px" type="text" :value="project.name"/>
-                        <span class="btn btn-primary" @click="saveProjectName">Save</span>
-                        <span class="btn btn-secondary" @click="editProjectNameShown = false">Cancel</span>
+                    <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-edit"/></span></h3>
+                    <div v-if="isEditingProject" class="section">
+                        <h4>Name</h4>
+                        <input ref="editProjectNameTextfield" class="textfield" type="text" :value="project.name"/>
                     </div>
 
                     <div class="section">
-                        <h4>Description <span v-if="hasWritePermission" class="link dimmed-link" @click="editProjectDescriptionShown = true"><i class="fas fa-edit"/></span></h4>
-                        <div v-if="!editProjectDescriptionShown">
+                        <div v-if="!isEditingProject">
                             {{project.description}}
                         </div>
                         <div v-else>
-                            <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px"/>
-                            <span class="btn btn-primary" @click="saveProjectDescription">Save</span>
-                            <span class="btn btn-secondary" @click="editProjectDescriptionShown = false">Cancel</span>
+                            <h4>Description</h4>
+                            <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px; padding: 5px;"/>
                         </div>
-
                     </div>
 
                     <div class="section" v-if="hasWritePermission">
                         <div v-if="project.isPublic">
-                            This project is <i class="fas fa-unlock"></i> <b>public</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
+                            This project is <i class="fas fa-unlock"></i> <b>public</b>
                         </div>
                         <div v-else>
-                            This project is <i class="fas fa-lock"></i> <b>private</b> <span class="link dimmed-link" @click="editProjectVisibilityShown = true"><i class="fas fa-edit"/></span>
+                            This project is <i class="fas fa-lock"></i> <b>private</b>
                         </div>
 
-                        <div v-if="editProjectVisibilityShown" class="section">
+                        <div v-if="isEditingProject" class="section">
+                            <span class="btn btn-primary" @click="saveProjectChanges">Save</span>
+                            <span class="btn btn-secondary" @click="isEditingProject = false">Cancel</span>
                             <span v-if="project.isPublic" class="btn btn-danger" @click="onMakeProjectPrivateClicked()">Make It Private</span>
                             <span v-else class="btn btn-danger" @click="onMakeProjectPublicClicked()">Make It Public</span>
                             <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
-                            <span class="btn btn-secondary" @click="editProjectVisibilityShown = false">Cancel</span>
                         </div>
                     </div>
 
@@ -222,9 +219,8 @@ export default {
             categories: [],
             categoryTreeRevision: 0,
 
-            editProjectNameShown: false,
-            editProjectDescriptionShown: false,
-            editProjectVisibilityShown: false,
+            isEditingProject: false,
+
 
             knownViews: [{
                 id: 'gallery',
@@ -507,28 +503,23 @@ export default {
             return categories;
         },
 
-        saveProjectName() {
-            const newProjectName = this.$refs.editProjectNameTextfield.value;
-            apiClient.patchProject(this.projectId, {name: newProjectName})
-            .then(() => {
-                this.project.name = newProjectName;
-                this.editProjectNameShown = false;
-            }).catch(err => {
-                this.editProjectNameShown = false;
-                alert('Sorry, could not update your projects name. Something went wrong.');
-            });
-        },
+        saveProjectChanges() {
+            let name = this.project.name;
+            let description = this.project.description;
 
-        saveProjectDescription() {
-            const newProjectDescription = this.$refs.editProjectDescriptionTextarea.value;
-            apiClient.patchProject(this.projectId, {description: newProjectDescription})
-            .then(() => {
-                this.project.description = newProjectDescription;
-                this.editProjectDescriptionShown = false;
-            }).catch(err => {
-                this.editProjectDescriptionShown = false;
-                alert('Sorry, could not update your projects description. Something went wrong.');
-            });
+            if (this.$refs.editProjectNameTextfield) {
+                name = this.$refs.editProjectNameTextfield.value;
+            }
+
+            if (this.$refs.editProjectDescriptionTextarea) {
+                description = this.$refs.editProjectDescriptionTextarea.value;
+            }
+
+            apiClient.patchProject(this.projectId, { name, description }).then(() => {
+                this.isEditingProject = false;
+                this.project.name = name;
+                this.project.description = description;
+            }); 
         },
 
         onMakeProjectPrivateClicked() {
