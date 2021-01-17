@@ -21,6 +21,7 @@ const config                = require('./config.js');
 const jsonBodyParser        = bodyParser.json({limit: config.api.payloadSize, extended: true});
 const mongoMigrate          = require('./storage/mongodb/migrations/migrate.js').migrate;
 const metrics               = require('./metrics.js');
+const shortid = require('shortid');
 const logger                = require('./logger.js').createLog('server.js')
 
 
@@ -30,17 +31,37 @@ if (config.backendless) {
     logger.info('Running in backendless mode');
 }
 
+app.use(cookieParser());
+
 if (!config.backendless) {
     app.use(session({
+        name: config.session.cookieName,
         secret: config.session.secret,
+        cookie: {
+            maxAge: new Date(Date.now() + config.mongodb.sessionStore.ttl * 1000),
+            path: '/'
+        },
         store: new MongoStore({
             url: `${config.mongodb.url}/${config.mongodb.dbName}`,
             ttl: config.mongodb.sessionStore.ttl
-        })
+        }),
     }));
+
+    // setting userToken which is only used for storing user in local storage
+    // since session cookie is Http only, there is no way to check that cookie has expired
+    app.use(function (req, res, next) {
+        const cookie = req.cookies[config.session.userCookieName];
+
+        if (cookie === undefined) {
+            const userToken = shortid.generate();
+            res.cookie(config.session.userCookieName, userToken, { maxAge: config.session.userCookieMaxAge * 1000, httpOnly: false });
+        }
+        next();
+    });
 }
 
-app.use(cookieParser());
+
+
 app.use('/assets', express.static('public'));
 app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
 middleware.configureIpFilter(app);
@@ -88,6 +109,9 @@ function $putJSON(routePath, middleware, handler) {
 app.get('/metrics',         metrics.getPrometheusMetrics);
 
 app.use('/v1', [middleware.api]);
+
+app.use('/v1', [middleware.testMiddleware]);
+
 
 if (!config.backendless) {
     const ldapAuthService = new LdapAuthService();

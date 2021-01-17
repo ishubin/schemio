@@ -34,7 +34,11 @@ module.exports = {
                     req.session.userLogin = user.login;
                     req.session.userEmail = user.email;
                     req.session.userName = user.userName;
-                    res.json(user);
+                    res.json({
+                        login: user.login,
+                        email: user.email,
+                        name: user.userName
+                    });
                 }).catch(err => {
                     res.$apiError(err, 'Could not authorize');
                 });
@@ -46,7 +50,7 @@ module.exports = {
                 res.json({
                     login: credentials.login,
                     email: 'unknownemail',
-                    userName: credentials.login
+                    name: credentials.login
                 });
             }
         };
@@ -54,6 +58,7 @@ module.exports = {
 
     logout(req, res) {
         req.session.destroy();
+        res.clearCookie(config.session.userCookieName);
         res.redirect('/');
     }
 };

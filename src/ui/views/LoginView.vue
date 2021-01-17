@@ -55,14 +55,17 @@ export default {
     },
     methods: {
         submitLogin() {
-            apiClient.login(this.login, this.password).then(() => {
-                var redirectTo = this.$route.query.redirect;
+            apiClient.login(this.login, this.password).then(user => {
+                this.$store.dispatch('setCurrentUser', user);
+
+                const redirectTo = this.$route.query.redirect;
                 if (!redirectTo || !redirectTo.indexOf('/') === 0) {
                     redirectTo = '/';
                 }
                 this.errorMessage = null;
                 window.location = redirectTo;
             }).catch(err => {
+                this.$store.dispatch('setCurrentUser', null);
                 this.errorMessage = 'Invalid user/password';
             });
         }

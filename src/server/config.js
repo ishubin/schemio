@@ -36,6 +36,7 @@ module.exports = {
         dbName: conf('MONGODB_DBNAME', 'mongodb.dbName', 'schemio'),
         poolSize: conf('MONGODB_POOLSIZE', 'mongodb.poolSize', 10),
         sessionStore: {
+            // ttl in seconds
             ttl: conf('MONGODB_SESSIONSTORE_TTL', 'mongodb.sessionStore.ttl', 1209600)
         }
     },
@@ -45,7 +46,16 @@ module.exports = {
     },
 
     session: {
-        secret: conf('SESSION_SECRET', 'session.secret', 'somesessionsecret')
+        secret: conf('SESSION_SECRET', 'session.secret', 'somesessionsecret'),
+
+        // used as a session identification
+        cookieName: conf('SESSION_COOKIE_NAME', 'session.cookie.name', '_sx'),
+        
+        // used for caching user in local storage
+        userCookieName: conf('SESSION_USER_COOKIE_NAME', 'session.user.cookie.name', 'sx'),
+
+        // max age in seconds of a user coookie, when invalidated - it will trigger it to refetch user data
+        userCookieMaxAge: conf('SESSION_USER_COOKIE_MAX_AGE', 'session.user.cookie.maxAge', 43200)
     },
 
     api: {

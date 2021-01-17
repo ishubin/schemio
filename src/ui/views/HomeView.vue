@@ -19,11 +19,8 @@
                 <a href="/offline-scheme-editor#m:edit" class="btn btn-secondary">Edit Schemes Offline</a>
             </div>
 
-            <div v-if="currentUser" class="section">
-                <h3>My Projects</h3>
-
-                <projects-list route-prefix="/" :key="`projects-list-${revision}`"/>
-            </div>
+            <h3>My Projects</h3>
+            <projects-list route-prefix="/" :key="`projects-list-${revision}`"/>
         </div>
         
     </div>
@@ -43,6 +40,9 @@ export default {
     },
 
     computed: {
+        isLoadingUser() {
+            return this.$store.getters.isLoadingUser;
+        },
         currentUser() {
             return this.$store.getters.currentUser;
         },

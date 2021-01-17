@@ -27,7 +27,7 @@
                         />
                 </div>
                 <div class="search-results" v-if="project">
-                    <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-edit"/></span></h3>
+                    <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-pencil-alt"/> Edit</span></h3>
                     <div v-if="isEditingProject" class="section">
                         <h4>Name</h4>
                         <input ref="editProjectNameTextfield" class="textfield" type="text" :value="project.name"/>

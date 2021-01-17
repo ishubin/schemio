@@ -143,6 +143,24 @@ module.exports = {
         });
         next();
     },
+
+    /**
+     * This middleware is only used for testing purpose. It lets you simulate crashes and add latency to requests
+     * @param {*} req
+     * @param {*} res 
+     * @param {*} next 
+     */
+    testMiddleware(req, res, next) {
+        if (Math.random() < 0.5) {
+            // res.status(500);
+            // res.json({error: 'Simulated crash'});
+            next();
+        } else {
+            setTimeout(() => {
+                next();
+            }, 1000);
+        }
+    },
     
-    configureIpFilter
+    configureIpFilter,
 };

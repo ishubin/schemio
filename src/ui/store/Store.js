@@ -8,7 +8,41 @@ import LimitedSettingsStorage from '../LimitedSettingsStorage';
 
 Vue.use(Vuex);
 
-const settingsStorage = new LimitedSettingsStorage(window.localStorage, 'store', 100);
+const myStorage = new LimitedSettingsStorage(window.localStorage, 'store', 100);
+
+/**
+ * This function retrieves user data from local storage and verifies that it matches current session ID
+ */
+function getVerifiedUserDataFromMyStorage() {
+    const sessionId = getCookie('sx');
+    const userData = myStorage.get('user');
+
+    // check that current session id is the same as the one it has recorded in local storage
+    // when sx cookie expires it will force it to fetch user again
+    if (userData && userData.sessionId === sessionId) {
+        return userData;
+    }
+    return null;
+}
+
+function getCookie(name) {
+    const encodedCookies = document.cookie.split(";");
+    
+    for(var i = 0; i < encodedCookies.length; i++) {
+        const cookieData = encodedCookies[i].split("=");
+        if(cookieData[0].trim() === name) {
+            return decodeURIComponent(cookieData[1]);
+        }
+    }
+    return null;
+}
+
+function saveUserInMyStorage(user) {
+    myStorage.save('user', {
+        sessionId: getCookie('sx'),
+        user
+    });
+}
 
 function enrichCurvePoint(point) {
     if (point.t === 'B') {
@@ -33,6 +67,7 @@ function enrichCurvePoint(point) {
 
 const store = new Vuex.Store({
     state: {
+        isLoadingUser: false,
         currentUser: null,
         schemeModified: false,
 
@@ -55,8 +90,8 @@ const store = new Vuex.Store({
         },
 
         snap: {
-            grid: settingsStorage.get('snap.grid', false),
-            items: settingsStorage.get('snap.items', true),
+            grid: myStorage.get('snap.grid', false),
+            items: myStorage.get('snap.items', true),
         },
 
         itemSurround: {
@@ -82,6 +117,10 @@ const store = new Vuex.Store({
         }
     },
     mutations: {
+        SET_IS_LOADING_USER(state, isLoading) {
+            state.isLoadingUser = isLoading;
+        },
+
         SET_CURRENT_USER(state, user) {
             state.currentUser = user;
         },
@@ -151,11 +190,11 @@ const store = new Vuex.Store({
 
         SET_GRID_SNAP(state, enabled) {
             state.snap.grid = enabled;
-            settingsStorage.save('snap.grid', enabled);
+            myStorage.save('snap.grid', enabled);
         },
         SET_ITEM_SNAP(state, enabled) {
             state.snap.items = enabled;
-            settingsStorage.save('snap.items', enabled);
+            myStorage.save('snap.items', enabled);
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
@@ -212,10 +251,28 @@ const store = new Vuex.Store({
     },
     actions: {
         loadCurrentUser({commit}) {
-            apiClient.getCurrentUser().then(user => {
-                commit('SET_CURRENT_USER', user);
-            });
+            // here we are caching the user data so that it does not have to retrieved over and over again with each page load
+            const userData = getVerifiedUserDataFromMyStorage();
+            if (userData) {
+                commit('SET_CURRENT_USER', userData.user);
+            } else {
+                commit('SET_IS_LOADING_USER', true);
+                apiClient.getCurrentUser().then(user => {
+                    commit('SET_IS_LOADING_USER', false);
+                    saveUserInMyStorage(user);
+                    commit('SET_CURRENT_USER', user);
+                })
+                .catch(err => {
+                    console.log('Error', err);
+                    commit('SET_IS_LOADING_USER', false);
+                });
+            }
         },
+        setCurrentUser({commit}, user) {
+            saveUserInMyStorage(user);
+            commit('SET_CURRENT_USER', user);
+        },
+
         markSchemeAsModified({commit}) {
             commit('SET_SCHEME_MODIFIED', true);
         },
@@ -314,6 +371,7 @@ const store = new Vuex.Store({
         }
     },
     getters: {
+        isLoadingUser: state => state.isLoadingUser,
         currentUser: state => state.currentUser,
 
         schemeModified: state => state.schemeModified,
