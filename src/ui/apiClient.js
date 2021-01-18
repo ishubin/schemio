@@ -126,6 +126,8 @@ export default {
             url = `${url}&tag=${encodeURIComponent(filters.tag)}`;
         }
 
+        url =`${url}&_t=${Math.round(Math.random()*10000)}`;
+
         return axios.get(url).then(unwrapAxios);
     },
 

@@ -73,10 +73,13 @@
 
                     <div class="section search-controls">
                         <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
-                        <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
-                    </div>
+                        <span v-if="isLoadingSchemes" @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-spinner fa-spin"></i> Searching...</span>
+                        <span v-else @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-search"></i> Search</span>
 
-                    <div v-if="isLoadingSchemes" class="mock-container mock-project-schemes section">
+                    </div>
+                    <div class="msg msg-error section" v-if="schemeErrorMessage">{{schemeErrorMessage}}</div>
+
+                    <div v-if="isLoadingSchemes && initialPageLoad" class="mock-container mock-project-schemes section">
                         <div>
                             <span class="mock-element mock-scheme-tag" v-for="i in [0, 1, 2, 3]"></span>
                         </div>
@@ -173,8 +176,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <div class="msg msg-error" v-if="schemeErrorMessage">{{schemeErrorMessage}}</div>
                 </div>
             </div>
         </div>
@@ -287,6 +288,7 @@ export default {
             categories: [],
             categoryTreeRevision: 0,
 
+            initialPageLoad: true,
             isEditingProject: false,
             isLoadingProject: false,
             isLoadingSchemes: false,
@@ -356,7 +358,7 @@ export default {
 
     methods: {
         init() {
-            this.currentCategoryId = this.$route.query.category || null;
+            this.updateAllParametersFromQuery();
 
             this.isLoadingProject = true;
             apiClient.getProject(this.projectId).then(project => {
@@ -371,16 +373,23 @@ export default {
                 }
             });
 
+
             if (this.categoriesConfig.enabled) {
                 apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
                     this.currentCategory = category;
                 });
             }
 
+
+            this.reloadCategoryTree();
+            this.searchSchemes();
+        },
+
+        updateAllParametersFromQuery() {
+            this.currentCategoryId = this.$route.query.category || null;
             this.currentPage = parseInt(this.$route.query.page) || 1;
             this.filterTag = this.$route.query.tag || null;
             this.query = this.$route.query.q || '';
-
             let urlPrefix = `/projects/${this.projectId}/`;
             let hasParamsAlready = false;
             forEach(this.$route.query, (value, name) => {
@@ -392,8 +401,6 @@ export default {
             });
 
             this.urlPrefix = urlPrefix;
-            this.reloadCategoryTree();
-            this.searchSchemes();
         },
 
         reloadCategoryTree() {
@@ -422,13 +429,16 @@ export default {
                 tag: this.filterTag
             })
             .then(searchResponse => {
+                this.initialPageLoad = false;
                 this.isLoadingSchemes = false;
+                this.schemeErrorMessage = null;
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
                 this.updateSchemeStates();
             })
             .catch(err => {
+                this.initialPageLoad = false;
                 this.isLoadingSchemes = false;
                 if (err.response && err.response.status >= 500) {
                     this.schemeErrorMessage = 'Failed to get schemes from the server. Please try again';
@@ -454,8 +464,7 @@ export default {
         toggleSearch() {
             const query = {
                 q: this.query,
-                page: this.currentPage,
-                _t: Math.round(Math.random() * 1000000)
+                page: this.currentPage
             };
             query.q = this.query;
             if (this.currentCategoryId) {
@@ -465,7 +474,9 @@ export default {
                 query.tag = this.filterTag;
             }
 
-            this.$router.push({path: `/projects/${this.projectId}`, query: query});
+            this.$router.replace({path: `/projects/${this.projectId}`, query: query});
+            this.updateAllParametersFromQuery();
+            this.searchSchemes();
         },
 
         removeTagFilter() {
@@ -736,10 +747,6 @@ export default {
     },
 
     watch:{
-        $route(to, from) {
-            this.init();
-        },
-
         currentView(view) {
             settingsStorage.save('currentView', view);
         },
