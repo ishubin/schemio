@@ -507,19 +507,19 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-primary:hover {
-    background: var(--accent-weak);
-    color:var(--accent-strong);
+    background: var(--accent-faint);
+    color: var(--base-weak);
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: var(--faint-weak);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong);
+    background: var(--base-weak);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary:hover {
-    background: var(--faint-strong-up-up);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong-up);
+    background: var(--accent-weak);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {
     background: var(--critic-strong);

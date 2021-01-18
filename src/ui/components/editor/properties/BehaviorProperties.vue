@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <span class="btn btn-primary" @click="addBehaviorEvent()">+ Event</span>
+        <span class="btn btn-secondary" @click="addBehaviorEvent()">+ Event</span>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
             :function-description="functionArgumentsEditor.functionDescription"
