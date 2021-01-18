@@ -26,37 +26,40 @@
                         @moved-category="onCategoryMoveRequested"
                         />
                 </div>
-                <div class="search-results" v-if="project">
-                    <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-pencil-alt"/> Edit</span></h3>
-                    <div v-if="isEditingProject" class="section">
-                        <h4>Name</h4>
-                        <input ref="editProjectNameTextfield" class="textfield" type="text" :value="project.name"/>
-                    </div>
 
-                    <div class="section">
-                        <div v-if="!isEditingProject">
-                            {{project.description}}
-                        </div>
-                        <div v-else>
-                            <h4>Description</h4>
-                            <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px; padding: 5px;"/>
-                        </div>
-                    </div>
-
-                    <div class="section" v-if="hasWritePermission">
-                        <div v-if="project.isPublic">
-                            This project is <i class="fas fa-unlock"></i> <b>public</b>
-                        </div>
-                        <div v-else>
-                            This project is <i class="fas fa-lock"></i> <b>private</b>
-                        </div>
-
+                <div class="search-results">
+                    <div v-if="project">
+                        <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-pencil-alt"/> Edit</span></h3>
                         <div v-if="isEditingProject" class="section">
-                            <span class="btn btn-primary" @click="saveProjectChanges">Save</span>
-                            <span class="btn btn-secondary" @click="isEditingProject = false">Cancel</span>
-                            <span v-if="project.isPublic" class="btn btn-danger" @click="onMakeProjectPrivateClicked()">Make It Private</span>
-                            <span v-else class="btn btn-danger" @click="onMakeProjectPublicClicked()">Make It Public</span>
-                            <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
+                            <h4>Name</h4>
+                            <input ref="editProjectNameTextfield" class="textfield" type="text" :value="project.name"/>
+                        </div>
+
+                        <div class="section">
+                            <div v-if="!isEditingProject">
+                                {{project.description}}
+                            </div>
+                            <div v-else>
+                                <h4>Description</h4>
+                                <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px; padding: 5px;"/>
+                            </div>
+                        </div>
+
+                        <div class="section" v-if="hasWritePermission">
+                            <div v-if="project.isPublic">
+                                This project is <i class="fas fa-unlock"></i> <b>public</b>
+                            </div>
+                            <div v-else>
+                                This project is <i class="fas fa-lock"></i> <b>private</b>
+                            </div>
+
+                            <div v-if="isEditingProject" class="section">
+                                <span class="btn btn-primary" @click="saveProjectChanges">Save</span>
+                                <span class="btn btn-secondary" @click="isEditingProject = false">Cancel</span>
+                                <span v-if="project.isPublic" class="btn btn-danger" @click="onMakeProjectPrivateClicked()">Make It Private</span>
+                                <span v-else class="btn btn-danger" @click="onMakeProjectPublicClicked()">Make It Public</span>
+                                <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
+                            </div>
                         </div>
                     </div>
 
@@ -318,8 +321,11 @@ export default {
     methods: {
         init() {
             this.currentCategoryId = this.$route.query.category || null;
-            apiClient.getTags(this.projectId).then(tags => this.tags = tags);
-            apiClient.getProject(this.projectId).then(project => this.project = project);
+            apiClient.getProject(this.projectId).then(project => {
+                this.project = project;
+                this.tags = project.tags;
+            });
+
             if (this.categoriesConfig.enabled) {
                 apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
                     this.currentCategory = category;

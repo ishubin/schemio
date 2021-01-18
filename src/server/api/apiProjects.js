@@ -1,5 +1,6 @@
 
 const projectStorage = require('../storage/storageProvider.js').provideProjectStorage();
+const schemeStorage = require('../storage/storageProvider.js').provideSchemeStorage();
 const _ = require('lodash');
 
 const ApiProjects = {
@@ -45,8 +46,13 @@ const ApiProjects = {
     getProject(req, res) {
         const projectId = req.params.projectId;
         const userLogin = req.session.userLogin;
-        projectStorage.getProject(projectId, userLogin)
-        .then(project => {
+        Promise.all([
+            schemeStorage.getTags(projectId),
+            projectStorage.getProject(projectId, userLogin)
+        ]).then(args => {
+            const tags = args[0];
+            const project = args[1];
+
             if (project) {
                 const projectResponse = {
                     id:             project.id,
@@ -57,7 +63,8 @@ const ApiProjects = {
                     permissions: {
                         read:   true,
                         write:  false,
-                    }
+                    },
+                    tags
                 };
                 if (userLogin && _.indexOf(project.write, userLogin) >= 0) {
                     projectResponse.permissions.write = true;

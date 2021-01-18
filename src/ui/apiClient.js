@@ -20,9 +20,7 @@ function unwrapAxiosError(err) {
 
 export default {
     getCurrentUser() {
-        return axios.get('/v1/user').then(unwrapAxios).catch(err => {
-            return null;
-        });
+        return axios.get('/v1/user').then(unwrapAxios);
     },
 
     createProject(project) {

@@ -263,8 +263,11 @@ const store = new Vuex.Store({
                     commit('SET_CURRENT_USER', user);
                 })
                 .catch(err => {
-                    console.log('Error', err);
-                    commit('SET_IS_LOADING_USER', false);
+                    if (err.response) {
+                        if (err.response.status >= 400 && err.response.status < 500) {
+                            commit('SET_IS_LOADING_USER', false);
+                        }
+                    }
                 });
             }
         },

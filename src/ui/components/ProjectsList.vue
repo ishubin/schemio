@@ -10,7 +10,16 @@
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 
-        <div v-if="searchResult" class="section">
+        <div v-if="loadingProjects" class="mock-container mock-projects-list section">
+            <div v-for="i in [0, 1, 2]" class="mock-project">
+                <div class="mock-project-header">
+                    <span class="mock-element mock-project-icon"></span>
+                    <span class="mock-element mock-project-title mock-animated"></span>
+                </div>
+                <span class="mock-element mock-project-description mock-animated"></span>
+            </div>
+        </div>
+        <div v-else-if="searchResult" class="section">
             <div>
                 Total results <b>{{searchResult.total}}</b>
             </div>
