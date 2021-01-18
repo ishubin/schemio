@@ -28,7 +28,13 @@
                 </div>
 
                 <div class="search-results">
-                    <div v-if="project">
+
+                    <div v-if="isLoadingProject" class="mock-container mock-project">
+                        <span class="mock-element mock-project-name mock-animated"></span>
+                        <span class="mock-element mock-project-description mock-animated"></span>
+                    </div>
+
+                    <div v-else-if="project">
                         <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-pencil-alt"/> Edit</span></h3>
                         <div v-if="isEditingProject" class="section">
                             <h4>Name</h4>
@@ -63,12 +69,37 @@
                         </div>
                     </div>
 
-                    <div v-if="searchResult">
-                        <div class="section search-controls">
-                            <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
-                            <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
-                        </div>
+                    <div class="msg msg-error" v-if="projectErrorMessage">{{projectErrorMessage}}</div>
 
+                    <div class="section search-controls">
+                        <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
+                        <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
+                    </div>
+
+                    <div v-if="isLoadingSchemes" class="mock-container mock-project-schemes section">
+                        <div>
+                            <span class="mock-element mock-scheme-tag" v-for="i in [0, 1, 2, 3]"></span>
+                        </div>
+                        <div v-if="currentView === 'gallery'" class="section">
+                            <div class="mock-scheme-gallery-row" v-for="row in [0, 1]">
+                                <span class="mock-element mock-scheme" v-for="c in [0, 1, 2, 3,]"></span>
+                            </div>
+                        </div>
+                        <div v-else class="section">
+                            <div class="mock-scheme-list-row" v-for="row in [0, 1]">
+                                <div class="mock-element mock-scheme-preview">
+                                </div>
+                                <div class="mock-scheme-info">
+                                    <div class="mock-element mock-scheme-name mock-animated">
+                                    </div>
+                                    <div class="mock-element mock-scheme-description mock-animated">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-else-if="searchResult">
                         <div>
                             Total results <b>{{searchResult.total}}</b>
                         </div>
@@ -141,8 +172,9 @@
                                 </ul>
                             </div>
                         </div>
-                            
                     </div>
+
+                    <div class="msg msg-error" v-if="schemeErrorMessage">{{schemeErrorMessage}}</div>
                 </div>
             </div>
         </div>
@@ -256,7 +288,11 @@ export default {
             categoryTreeRevision: 0,
 
             isEditingProject: false,
+            isLoadingProject: false,
+            isLoadingSchemes: false,
 
+            projectErrorMessage: null,
+            schemeErrorMessage: null,
 
             knownViews: [{
                 id: 'gallery',
@@ -321,9 +357,18 @@ export default {
     methods: {
         init() {
             this.currentCategoryId = this.$route.query.category || null;
+
+            this.isLoadingProject = true;
             apiClient.getProject(this.projectId).then(project => {
+                this.isLoadingProject = false;
                 this.project = project;
                 this.tags = project.tags;
+            })
+            .catch(err => {
+                this.isLoadingProject = false;
+                if (err.response && err.response.status >= 500) {
+                    this.projectErrorMessage = 'Ops, something went wrong, please try again';
+                }
             });
 
             if (this.categoriesConfig.enabled) {
@@ -366,17 +411,28 @@ export default {
             if (this.currentPage > 0) {
                 offset = (this.currentPage - 1) * this.resultsPerPage;
             }
+
+            this.isLoadingSchemes = true;
+
             apiClient.findSchemes(this.projectId, {
                 query: this.query,
                 categoryId: this.currentCategoryId,
                 offset: offset,
                 includeSubcategories: true,
                 tag: this.filterTag
-            }).then(searchResponse => {
+            })
+            .then(searchResponse => {
+                this.isLoadingSchemes = false;
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
                 this.updateSchemeStates();
+            })
+            .catch(err => {
+                this.isLoadingSchemes = false;
+                if (err.response && err.response.status >= 500) {
+                    this.schemeErrorMessage = 'Failed to get schemes from the server. Please try again';
+                }
             });
         },
 
@@ -398,7 +454,8 @@ export default {
         toggleSearch() {
             const query = {
                 q: this.query,
-                page: this.currentPage
+                page: this.currentPage,
+                _t: Math.round(Math.random() * 1000000)
             };
             query.q = this.query;
             if (this.currentCategoryId) {
