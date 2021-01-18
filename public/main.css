@@ -112,6 +112,9 @@ h5 {
 /******************** Message panels *****************/
 .msg.msg-error {
     color: var(--critic-strong);
+    background: var(--critic-weak-up);
+    border-radius: var(--control-border-radius);
+    padding: 10px;
 }
 
 /******************* Hints **********************/
@@ -537,6 +540,10 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     font-size: 13px;
 }
 
+.btn.search-button {
+    min-width: 130px;
+    text-align: center;
+}
 
 
 

@@ -1,14 +1,15 @@
 <template>
     <div class="projects-list">
 
-        <div v-if="loadingProjects">
-            Loading <i class="fas fa-spinner fa-spin"></i>
-        </div>
-
         <div class="section search-controls">
             <input ref="searchTextfield" @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
-            <span @click="onSearchClicked()" class="btn btn-primary"><i class="fas fa-search"></i> Search</span>
+
+            <span v-if="loadingProjects" @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-spinner fa-spin"></i> Searching...</span>
+            <span v-else @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-search"></i> Search</span>
         </div>
+
+        <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
+
         <div v-if="searchResult" class="section">
             <div>
                 Total results <b>{{searchResult.total}}</b>
@@ -66,6 +67,7 @@ export default {
         const query = this.$route.query.q || '';
         return {
             loadingProjects: false,
+            errorMessage: null,
 
             currentPage: parseInt(this.$route.query.page) || 1,
             query: query,
@@ -91,19 +93,30 @@ export default {
                 offset = (this.currentPage - 1) * this.resultsPerPage;
             }
 
+            this.errorMessage = null;
+            this.loadingProjects = true;
             apiClient.findProjects({
                 query: this.query,
                 offset: offset
             }).then(searchResponse => {
+                this.loadingProjects = false;
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
+            })
+            .catch(err => {
+                this.loadingProjects = false;
+                this.errorMessage = 'Ops, failed to search for projects, please retry again';
             });
         },
 
         onSearchClicked() {
             this.urlPrefix = `${this.routePrefix}?q=${encodeURIComponent(this.query)}`;
-            let url = `${this.urlPrefix}&page=${this.currentPage}`;
+
+            // using unique id to make sure that the request is always sent even if path hasn't changed
+            const uniqueId = Math.round(Math.random() * 10000000);
+
+            let url = `${this.urlPrefix}&page=${this.currentPage}&_t=${uniqueId}`;
             this.$router.push({path: url});
         },
     },

@@ -152,9 +152,8 @@ module.exports = {
      */
     testMiddleware(req, res, next) {
         if (Math.random() < 0.5) {
-            // res.status(500);
-            // res.json({error: 'Simulated crash'});
-            next();
+            res.status(500);
+            res.json({error: 'Simulated crash'});
         } else {
             setTimeout(() => {
                 next();

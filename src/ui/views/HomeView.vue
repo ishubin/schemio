@@ -19,7 +19,6 @@
                 <a href="/offline-scheme-editor#m:edit" class="btn btn-secondary">Edit Schemes Offline</a>
             </div>
 
-            <h3>My Projects</h3>
             <projects-list route-prefix="/" :key="`projects-list-${revision}`"/>
         </div>
         
