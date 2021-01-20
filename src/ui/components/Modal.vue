@@ -6,14 +6,14 @@
     <div>
         <div v-if="useMask" class="modal-mask"></div>
         <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
-            <div class="modal-header" @mousedown="initModalDrag" :class="{dragging: dragging}">
+            <div class="modal-header" v-if="showHeader" @mousedown="initModalDrag" :class="{dragging: dragging}">
                 <h3>{{title}}</h3>
                 <span class="modal-close" @click="$emit('close')"><i class="fas fa-times"/></span>
             </div>
             <div class="modal-body">
                 <slot></slot>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" v-if="showFooter">
                 <div class="modal-controls">
                     <span class="btn btn-primary" v-if="primaryButton" v-on:click="$emit('primary-submit')">{{primaryButton}}</span>
                     <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
@@ -52,7 +52,9 @@ export default {
         maxWidth     : { type: Number, default: 0 },
         stretchWidth : { type: Boolean, default: false},
         primaryButton: { type: String, default: null },
-        useMask      : { type: Boolean, default: true}
+        useMask      : { type: Boolean, default: true },
+        showHeader   : { type: Boolean, default: true },
+        showFooter   : { type: Boolean, default: true },
     },
 
     beforeMount() {

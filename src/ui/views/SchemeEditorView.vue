@@ -213,6 +213,11 @@
             :scheme-container="schemeContainer"
         />
 
+        <modal v-if="isLoading" width="60x" :show-header="false" :show-footer="false" :use-mask="false">
+            <div class="scheme-loading-icon">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+            </div>
+        </modal>
     </div>
 
 </template>
@@ -251,6 +256,7 @@ import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
 import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
 import ImportSchemeModal from '../components/editor/ImportSchemeModal.vue';
+import Modal from '../components/Modal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
@@ -279,6 +285,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
+        Modal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -429,7 +436,7 @@ export default {
                 } else if (err.statusCode === 401) {
                     this.schemeLoadErrorMessage = 'Sorry, but you are not authorized to read this document';
                 } else {
-                    this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document';
+                    this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document. Please try again later';
                     console.error(err);
                 }
             });

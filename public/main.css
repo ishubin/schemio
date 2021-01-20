@@ -918,9 +918,13 @@ ul.pagination li a.current {
 
 .scheme-not-found-block {
     padding-top: 70px;
-    max-width: 400px;
+    max-width: 600px;
     margin: 0 auto;
     text-align: center;
+}
+
+.scheme-loading-icon {
+    padding: 40px;
 }
 
 
@@ -1150,13 +1154,13 @@ ul.pagination li a.current {
     position: fixed;
     margin: 0 auto;
     padding: 0;
-    background-color: #efefef;
+    background-color: var(--faint-weak-up);
     box-shadow: 0 2px 30px rgba(0, 0, 0, 0.63);
 }
 .modal-header {
     position: relative;
     padding: 5px;
-    background: #ddd;
+    background: var(--faint-weak-down);
     cursor: grab;
 }
 .modal-header.dragging {
@@ -1164,7 +1168,7 @@ ul.pagination li a.current {
 }
 .modal-header h3 {
     margin: 0;
-    color: #2f4752;
+    color: var(--base-strong-up);
 }
 .modal-header .modal-close {
     position: absolute;
@@ -1179,7 +1183,7 @@ ul.pagination li a.current {
     overflow: auto;
 }
 .modal-footer {
-    border-top: 1px solid #777;
+    border-top: 1px solid var(--faint-strong);
     padding: 10px;
     margin-top: 10px;
     min-height: 40px;
