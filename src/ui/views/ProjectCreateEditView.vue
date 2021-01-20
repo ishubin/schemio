@@ -32,7 +32,8 @@
 
 
                 <div v-if="createMode" class="section">
-                    <span class="btn btn-primary" @click="createProject()">Create Project</span>
+                    <span v-if="isCreatingProject" class="btn btn-primary" @click="createProject()"><i class="fas fa-spinner fa-spin"></i> Creating...</span>
+                    <span v-else class="btn btn-primary" @click="createProject()">Create Project</span>
                     <a class="btn btn-secondary" href="/">Cancel</a>
                 </div>
 
@@ -78,6 +79,7 @@ export default {
 
             isLoadingProject: false,
             isSavingProject: false,
+            isCreatingProject: false,
 
             mandatoryFields: {
                 name: {
@@ -93,13 +95,16 @@ export default {
         createProject() {
             const name = this.name.trim();
             if (name) {
+                this.isCreatingProject = true;
                 apiClient.createProject({ 
                     name,
                     description: this.description, 
                     isPublic: this.isPublic
                 }).then(project => {
+                    this.isCreatingProject = false;
                     window.location = `/projects/${project.id}`;
                 }).catch(err => {
+                    this.isCreatingProject = false;
                     if (err.data && err.data.error) {
                         this.errorMessage = err.data.error;
                     } else {
