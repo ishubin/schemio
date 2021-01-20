@@ -13,7 +13,7 @@ import SchemeEditorView from './views/SchemeEditorView.vue';
 import ProjectListView from './views/ProjectListView.vue';
 import HomeView from './views/HomeView.vue';
 import ProjectView from './views/ProjectView.vue';
-import ProjectCreateView from './views/ProjectCreateView.vue';
+import ProjectCreateEditView from './views/ProjectCreateEditView.vue';
 import NotFoundView from './views/NotFoundView.vue';
 import ErrorView from './views/ErrorView.vue';
 
@@ -22,25 +22,27 @@ Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
 
 
-function route(name, path, component) {
+function route(name, path, component, props) {
     return {
-        name: name,
-        path: path,
-        component: component
+        name,
+        path,
+        component,
+        props
     };
 }
 
 
 const routes = [
-    route('Login', '/login', LoginView),
-    route('CreateProject', '/create-project', ProjectCreateView),
-    route('SchemeEditorView', '/projects/:projectId/schemes/:schemeId', SchemeEditorView),
-    route('SchemeEditorView', '/offline-scheme-editor', SchemeEditorView),
-    route('HomeView', '/', HomeView),
-    route('ProjectListView', '/projects', ProjectListView),
-    route('ProjectView', '/projects/:projectId', ProjectView),
-    route('NotFoundView', '/not-found', NotFoundView),
-    route('ErrorView', '/error', ErrorView),
+    route('Login',              '/login', LoginView),
+    route('CreateProject',      '/create-project',           ProjectCreateEditView, {createMode: true}),
+    route('EditProject',        '/projects/:projectId/edit', ProjectCreateEditView, {createMode: false}),
+    route('SchemeEditorView',   '/projects/:projectId/schemes/:schemeId', SchemeEditorView),
+    route('SchemeEditorView',   '/offline-scheme-editor', SchemeEditorView),
+    route('HomeView',           '/', HomeView),
+    route('ProjectListView',    '/projects', ProjectListView),
+    route('ProjectView',        '/projects/:projectId', ProjectView),
+    route('NotFoundView',       '/not-found', NotFoundView),
+    route('ErrorView',          '/error', ErrorView),
     { path: '*', redirect: '/not-found' },
 ];
 

@@ -35,36 +35,21 @@
                     </div>
 
                     <div v-else-if="project">
-                        <h3 v-if="!isEditingProject">{{project.name}} <span v-if="hasWritePermission" class="project-edit-button" title="Edit project..." @click="isEditingProject = true"><i class="fas fa-pencil-alt"/> Edit</span></h3>
-                        <div v-if="isEditingProject" class="section">
-                            <h4>Name</h4>
-                            <input ref="editProjectNameTextfield" class="textfield" type="text" :value="project.name"/>
+                        <h3>
+                            {{project.name}} 
+                            <a v-if="hasWritePermission" :href="`/projects/${projectId}/edit`" class="project-edit-button" title="Edit project..."><i class="fas fa-pencil-alt"/> Edit</a>
+                        </h3>
+
+                        <div class="section">
+                            {{project.description}}
                         </div>
 
                         <div class="section">
-                            <div v-if="!isEditingProject">
-                                {{project.description}}
-                            </div>
-                            <div v-else>
-                                <h4>Description</h4>
-                                <textarea ref="editProjectDescriptionTextarea" :value="project.description" style="width: 100%; height: 200px; padding: 5px;"/>
-                            </div>
-                        </div>
-
-                        <div class="section" v-if="hasWritePermission">
                             <div v-if="project.isPublic">
                                 This project is <i class="fas fa-unlock"></i> <b>public</b>
                             </div>
                             <div v-else>
                                 This project is <i class="fas fa-lock"></i> <b>private</b>
-                            </div>
-
-                            <div v-if="isEditingProject" class="section">
-                                <span class="btn btn-primary" @click="saveProjectChanges">Save</span>
-                                <span class="btn btn-secondary" @click="isEditingProject = false">Cancel</span>
-                                <span v-if="project.isPublic" class="btn btn-danger" @click="onMakeProjectPrivateClicked()">Make It Private</span>
-                                <span v-else class="btn btn-danger" @click="onMakeProjectPublicClicked()">Make It Public</span>
-                                <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
                             </div>
                         </div>
                     </div>
@@ -130,8 +115,12 @@
                             </div>
                         </div>
 
-                        <div class="section" v-if="isEditingProject && searchResult && searchResult.results.length > 0">
+                        <div v-if="hasWritePermission && !isEditingScheme && searchResult.results.length > 0">
+                            <span class="link" @click="isEditingScheme = true">Edit Schemes</span>
+                        </div>
+                        <div class="section" v-if="isEditingScheme && searchResult && searchResult.results.length > 0">
                             <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
+                            <span class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
                         </div>
 
                         <div class="section">
@@ -139,7 +128,11 @@
                                 <ul class="schemes">
                                     <li v-for="scheme in searchResult.results">
                                         <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
-                                            <input v-if="isEditingProject && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
+                                            <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
+                                                <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
+                                            </span>
+
+
                                             <div class="scheme-title">{{scheme.name}}</div>
                                             <div class="scheme-preview">
                                                 <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
@@ -158,7 +151,7 @@
                                 <ul class="schemes">
                                     <li v-for="scheme in searchResult.results">
                                         <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
-                                            <input v-if="isEditingProject && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
+                                            <input v-if="isEditingScheme && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
                                             <div class="scheme-preview">
                                                 <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
                                                 <img v-else src="/assets/images/missing-preview.svg"/>
@@ -289,7 +282,7 @@ export default {
             categoryTreeRevision: 0,
 
             initialPageLoad: true,
-            isEditingProject: false,
+            isEditingScheme: false,
             isLoadingProject: false,
             isLoadingSchemes: false,
 
@@ -628,60 +621,8 @@ export default {
             return categories;
         },
 
-        saveProjectChanges() {
-            let name = this.project.name;
-            let description = this.project.description;
-
-            if (this.$refs.editProjectNameTextfield) {
-                name = this.$refs.editProjectNameTextfield.value;
-            }
-
-            if (this.$refs.editProjectDescriptionTextarea) {
-                description = this.$refs.editProjectDescriptionTextarea.value;
-            }
-
-            apiClient.patchProject(this.projectId, { name, description }).then(() => {
-                this.isEditingProject = false;
-                this.project.name = name;
-                this.project.description = description;
-            }); 
-        },
-
-        onMakeProjectPrivateClicked() {
-            if (confirm('Are you sure you want to make your project private? It will only be accessible to you')) {
-                apiClient.patchProject(this.projectId, {isPublic: false})
-                .then(() => {
-                    this.project.isPublic = false;
-                }).catch(err => {
-                    alert('Sorry, could not update your projects description. Something went wrong.');
-                });
-            }
-        },
-
-        onMakeProjectPublicClicked() {
-            if (confirm('Are you sure you want to make your project available for everyone else?')) {
-                apiClient.patchProject(this.projectId, {isPublic: true})
-                .then(() => {
-                    this.project.isPublic = true;
-                }).catch(err => {
-                    alert('Sorry, could not update your projects description. Something went wrong.');
-                });
-            }
-        },
-
-        onDeleteProjectClicked() {
-            if (confirm(`Are you sure you want to delete project "${this.project.name}"? You will loose all schemes created in this project`)) {
-                apiClient.deleteProject(this.projectId)
-                .then(() => {
-                    window.location = '/';
-                }).catch(err => {
-                    alert('Sorry, could not delete project. Something went wrong.');
-                });
-            }
-        },
-
         onSchemeClick(event, scheme) {
-            if (this.isEditingProject) {
+            if (this.isEditingScheme) {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -751,7 +692,7 @@ export default {
             settingsStorage.save('currentView', view);
         },
 
-        isEditingProject(is) {
+        isEditingScheme(is) {
             if (is) {
                 this.updateSchemeStates();
             }
