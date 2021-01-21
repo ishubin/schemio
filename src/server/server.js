@@ -110,8 +110,6 @@ app.get('/metrics',         metrics.getPrometheusMetrics);
 
 app.use('/v1', [middleware.api]);
 
-app.use('/v1', [middleware.testMiddleware]);
-
 
 if (!config.backendless) {
     const ldapAuthService = new LdapAuthService();
