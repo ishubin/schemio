@@ -114,6 +114,12 @@ h5 {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+.msg.msg-info {
+    color: var(--accent-strong);
+    background: var(--accent-weak-up);
+    border-radius: var(--control-border-radius);
+    padding: 10px;
+}
 .msg.msg-error {
     color: var(--critic-strong);
     background: var(--critic-weak-up);

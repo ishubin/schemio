@@ -29,9 +29,10 @@
             </tbody>
         </table>
 
-        <modal title="Error" v-if="errorMessage" @close='errorMessage = null'>
-            {{errorMessage}}
-        </modal>
+        <div v-if="isUploading" class="msg msg-info">
+            <i class="fas fa-spinner fa-spin"></i> Uploading...
+        </div>
+        <div v-if="errorMessage" class="msg msg-error">{{errorMessage}}</div>
     </modal>
 </template>
 
@@ -48,8 +49,8 @@ export default {
             url: '',
             iconName: '',
             selectedFile: null,
-            errorUploading: false,
-            errorMessage: null
+            errorMessage: null,
+            isUploading: false,
         };
     },
     methods: {
@@ -73,11 +74,13 @@ export default {
                 if (!this.iconName) {
                     this.iconName = file.name;
                 }
+                this.isUploading = true;
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
+                    this.isUploading = false;
                     this.url = imageUrl;
                 }).catch(err => {
-                    this.errorUploading = true;
+                    this.isUploading = false;
                     this.errorMessage = 'Unable to upload a file';
                 });
             }
