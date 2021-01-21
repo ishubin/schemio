@@ -46,6 +46,12 @@
                         <input type="checkbox" v-model="color.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
                     </div>
 
+                    <div class="msg msg-info" v-if="isUploading">
+                        <i class="fas fa-spinner fa-spin"></i> Uploading...
+                    </div>
+                    <div class="msg msg-error" v-if="uploadErrorMessage">{{uploadErrorMessage}}</div>
+
+
                     <img v-if="color.type === 'image' && color.image" :src="color.image" style="max-width: 360px; max-height: 360px"/>
                 </div>
 
@@ -169,7 +175,10 @@ export default {
                 originalClickPoint: {x: 0},
                 originalKnobPosition: 0
             },
-            gradientPreview: ''
+            gradientPreview: '',
+
+            isUploading: false,
+            uploadErrorMessage: null,
         };
     },
 
@@ -242,13 +251,18 @@ export default {
         onImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
+                this.isUploading = true;
+                this.uploadErrorMessage = null;
+
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
+                    this.isUploading = false;
                     this.color.image = imageUrl;
                     this.modal.image.path = imageUrl;
                     this.emitChange();
                 }).catch(err => {
-                    console.error('Could not upload file', err);
+                    this.isUploading = false;
+                    this.uploadErrorMessage = 'Failed to upload image';
                 });
             }
         },
