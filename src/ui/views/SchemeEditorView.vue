@@ -29,6 +29,7 @@
                 <div v-if="schemeContainer">
                     <svg-editor
                         :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
+                        :project-id="projectId"
                         :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
                         :mode="mode"
                         :offline="offlineMode"
@@ -217,7 +218,7 @@
             :scheme-container="schemeContainer"
         />
 
-        <modal v-if="isLoading" width="60x" :show-header="false" :show-footer="false" :use-mask="false">
+        <modal v-if="isLoading" :width="140" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <i class="fas fa-spinner fa-spin fa-2x"></i>
             </div>

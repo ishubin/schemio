@@ -15,6 +15,10 @@
             @mousedown="mouseDown"
             @mouseup="mouseUp"
             @dblclick="mouseDoubleClick"
+            @dragenter="onDragEnter"
+            @dragover="onDragOver"
+            @dragleave="onDragLeave"
+            @drop="onDrop"
             data-void="true">
 
             <g v-if="mode === 'view' && interactiveSchemeContainer">
@@ -199,6 +203,8 @@
 import shortid from 'shortid';
 import map from 'lodash/map';
 import max from 'lodash/max';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
 
 import '../../typedef';
 
@@ -228,12 +234,12 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Modal from '../Modal.vue';
 import Events from '../../userevents/Events';
-import forEach from 'lodash/forEach';
 import StrokePattern from './items/StrokePattern';
 import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import { Logger } from '../../logger';
 import store from '../../store/Store';
+import apiClient from '../../apiClient';
 
 const log = new Logger('SvgEditor.vue');
 
@@ -278,10 +284,11 @@ const lastMousePosition = {
 
 export default {
     props: {
-        offline: { type: Boolean, default: false},
-        mode   : { type: String, default: 'edit' },
-        width  : { type: Number },
-        height : { type: Number },
+        offline  : { type: Boolean, default: false},
+        projectId: { type: String, default: null },
+        mode     : { type: String, default: 'edit' },
+        width    : { type: Number },
+        height   : { type: Number },
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -410,7 +417,8 @@ export default {
                 shown: false,
                 exportedItems: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
-            }
+            },
+
         };
     },
     methods: {
@@ -1353,6 +1361,64 @@ export default {
             } else if (hud.shapeProps.verticalPosition === 'center') {
                 y = (this.height - hud.area.h) / 2;
             }return `translate(${x} ${y})`;
+        },
+
+
+        onDragEnter(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        },
+        onDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        },
+        onDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        },
+        onDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (this.projectId && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+                const files = filter(event.dataTransfer.files, file => file.type.indexOf('image/') === 0);
+
+                const x = this.x_(this.width / 2);
+                const y = this.y_(this.height / 2);
+
+                let chain = Promise.resolve(null);
+                forEach(files, (file, index) => {
+                    chain = chain.then(() => {
+                        return apiClient.uploadFile(this.projectId, file)
+                            .then(imageUrl => {
+                                this.addUploadedImage(imageUrl, x + index * 20, y);
+                            });
+                    });
+                })
+            }
+        },
+
+        addUploadedImage(imageUrl, x, y) {
+            const img = new Image();
+            const that = this;
+            img.onload = function() {
+                that.addUploadedImageWithSize(imageUrl, x, y, this.width, this.height);
+            }
+            img.onerror = function() {
+                that.addUploadedImageWithSize(imageUrl, x, y, 100, 100);
+            }
+            img.src = imageUrl;
+        },
+        addUploadedImageWithSize(imageUrl, x, y, w, h) {
+            const image = {
+                name: this.schemeContainer.copyNameAndMakeUnique('Image'),
+                area: {x, y, w, h, r: 0},
+                shape: 'image',
+                shapeProps: {
+                    image: imageUrl
+                }
+            };
+            this.schemeContainer.addItem(image);
         },
 
         //calculates from world to screen
