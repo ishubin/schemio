@@ -165,7 +165,11 @@
                 >
                 <ul class="button-group" v-if="schemeModified && mode === 'edit' && currentUser">
                     <li>
-                        <span class="btn btn-secondary" @click="saveScheme()">Save</span>
+                        <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
+                        <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
+                    </li>
+                    <li v-if="savingErrorMessage">
+                        <span class="msg msg-error">{{savingErrorMessage}}</span>
                     </li>
                 </ul>
             </quick-helper-panel>
@@ -339,6 +343,8 @@ export default {
             originalUrlEncoded: encodeURIComponent(window.location),
 
             isLoading: false,
+            isSaving: false,
+            savingErrorMessage: null,
             schemeLoadErrorMessage: null,
 
 
@@ -533,11 +539,19 @@ export default {
         },
 
         saveScheme() {
-            this.markSchemeAsUnmodified();
 
             this.createSchemePreview();
 
-            apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme).catch(err => {
+            this.isSaving = true;
+            this.savingErrorMessage = null;
+            apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme)
+            .then(() => {
+                this.markSchemeAsUnmodified();
+                this.isSaving = false;
+            })
+            .catch(err => {
+                this.isSaving = false;
+                this.savingErrorMessage = 'Failed to save scheme, please try again';
                 this.markSchemeAsModified();
             });
         },
