@@ -20,6 +20,9 @@
                 </tr>
             </tbody>
         </table>
+        <div class="msg msg-info" v-if="isUploading">
+            <i class="fas fa-spinner fa-spin"></i> Uploading...
+        </div>
         <div class="msg msg-error" v-if="errorUploading">
             Could not upload image.
         </div>
@@ -46,7 +49,8 @@ export default {
         return {
             url: this.imageUrl,
             selectedFile: null,
-            errorUploading: false
+            errorUploading: false,
+            isUploading: false,
         }
     },
     methods: {
@@ -60,10 +64,15 @@ export default {
     watch: {
         selectedFile(file) {
             if (file) {
+                this.isUploading = true;
+                this.errorUploading = false;
+
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
+                    this.isUploading = false;
                     this.url = imageUrl;
                 }).catch(err => {
+                    this.isUploading = false;
                     this.errorUploading = true;
                 });
             }
