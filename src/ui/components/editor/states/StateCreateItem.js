@@ -109,7 +109,8 @@ export default class StateCreateItem extends State {
         for (let i = items.length - 1; i >= 0; i--) {
             const item = items[i];
 
-            if (item.visible && item.id !== this.item.id) {
+            // connectors should not be parent of any other items
+            if (item.visible && item.shape !== 'connector' && item.id !== this.item.id) {
                 let fitsInside = true;
                 for (let i = 0; i < points.length && fitsInside; i++) {
                     const localPoint = this.schemeContainer.localPointOnItem(points[i].x, points[i].y, item);
