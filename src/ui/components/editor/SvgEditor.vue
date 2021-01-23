@@ -1389,9 +1389,17 @@ export default {
                 let chain = Promise.resolve(null);
                 forEach(files, (file, index) => {
                     chain = chain.then(() => {
+                        const imageId = shortid.generate();
+                        this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: true, uploadFailed: false });
+
                         return apiClient.uploadFile(this.projectId, file)
                             .then(imageUrl => {
                                 this.addUploadedImage(imageUrl, x + index * 20, y);
+
+                                this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: false, uploadFailed: false });
+                            })
+                            .catch(err => {
+                                this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: false, uploadFailed: true });
                             });
                     });
                 })
@@ -1419,6 +1427,7 @@ export default {
                 }
             };
             this.schemeContainer.addItem(image);
+            EventBus.emitSchemeChangeCommited();
         },
 
         //calculates from world to screen

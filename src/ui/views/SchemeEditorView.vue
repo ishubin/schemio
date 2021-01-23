@@ -164,13 +164,16 @@
                 @new-scheme-requested="onNewSchemeRequested"
                 @mode-changed="toggleMode"
                 >
-                <ul class="button-group" v-if="schemeModified && mode === 'edit' && currentUser">
-                    <li>
+                <ul class="button-group" v-if="mode === 'edit' && currentUser && (schemeModified || statusMessage.message)">
+                    <li v-if="schemeModified">
                         <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
                         <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
                     </li>
-                    <li v-if="savingErrorMessage">
-                        <span class="msg msg-error">{{savingErrorMessage}}</span>
+                    <li v-if="statusMessage.message">
+                        <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
+                            {{statusMessage.message}}
+                            <span class="msg-close" @click="clearStatusMessage"><i class="fas fa-times"/></span>
+                        </div>
                     </li>
                 </ul>
             </quick-helper-panel>
@@ -345,7 +348,6 @@ export default {
 
             isLoading: false,
             isSaving: false,
-            savingErrorMessage: null,
             schemeLoadErrorMessage: null,
 
 
@@ -544,7 +546,7 @@ export default {
             this.createSchemePreview();
 
             this.isSaving = true;
-            this.savingErrorMessage = null;
+            this.$store.dispatch('clearStatusMessage');
             apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme)
             .then(() => {
                 this.markSchemeAsUnmodified();
@@ -552,7 +554,7 @@ export default {
             })
             .catch(err => {
                 this.isSaving = false;
-                this.savingErrorMessage = 'Failed to save scheme, please try again';
+                this.$store.dispatch('setErrorStatusMessage', 'Failed to save scheme, please try again');
                 this.markSchemeAsModified();
             });
         },
@@ -1102,6 +1104,10 @@ export default {
                 this.commitHistory();
             }
             this.schemeTitleEdit.shown = false;
+        },
+
+        clearStatusMessage() {
+            this.$store.dispatch('clearStatusMessage');
         }
     },
 
@@ -1143,6 +1149,10 @@ export default {
 
         connectorProposedDestination() {
             return this.$store.getters.connectorProposedDestination;
+        },
+
+        statusMessage() {
+            return this.$store.getters.statusMessage;
         }
     }
 }

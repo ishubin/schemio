@@ -541,7 +541,7 @@ export default {
 
         firstSelectedCurveEditPoint() {
             return this.$store.getters.firstSelectedCurveEditPoint;
-        }
+        },
     }
 }
 </script>

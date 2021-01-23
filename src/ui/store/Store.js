@@ -114,6 +114,16 @@ const store = new Vuex.Store({
             connectorItemId: null,
             mx: 0, // value on x viewport axis
             my: 0, // value on y viewport axis
+        },
+
+        // used for storing information about images that were dropped on svg editor
+        imageUpload: {
+            images: new Map(),
+        },
+
+        statusMessage: {
+            message: null,
+            isError: false
         }
     },
     mutations: {
@@ -247,8 +257,71 @@ const store = new Vuex.Store({
         },
         DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS(state) {
             state.connectorProposedDestination.shown = false;
+        },
+
+
+        UPDATE_IMAGE_UPLOAD_STATUS(state,  { imageId, uploading, uploadFailed }) {
+            if (uploadFailed) {
+                state.statusMessage.message = 'Failed to upload image';
+                state.statusMessage.isError = true;
+            }
+
+            if ((!uploading || uploadFailed) && state.imageUpload.images.has(imageId)) {
+                state.imageUpload.images.delete(imageId);
+            } else {
+                state.imageUpload.images.set(imageId, { uploading, date: new Date() });
+            }
+
+            let imagesUploading = 0;
+
+            state.imageUpload.images.forEach(image => {
+                if (image.uploading) {
+                    imagesUploading += 1;
+                }
+            });
+
+            if (state.statusMessage.isError && state.statusMessage.message) {
+                return;
+            }
+
+            if (imagesUploading > 0) {
+                let suffix = '';
+                if (imagesUploading > 1) {
+                    suffix = 's';
+                }
+                state.statusMessage.message = `Uploading ${imagesUploading} image${suffix}`;
+                state.statusMessage.isError = false;
+            } else {
+                state.statusMessage.message = null;
+                state.statusMessage.isError = false;
+            }
+        },
+
+        RESET_IMAGE_UPLOAD_STATUS(state) {
+            const now = new Date();
+            const toDeleteIds = [];
+            state.imageUpload.images.forEach((image, imageId) => {
+                if (now.getTime() - image.date.getTime() > 45000) {
+                    toDeleteIds.push(imageId);
+                }
+            });
+
+            forEach(toDeleteIds, id => {
+                state.imageUpload.images.delete(id);
+            });
+        },
+
+        CLEAR_STATUS_MESSAGE(state) {
+            state.statusMessage.message = null;
+            state.statusMessage.isError = false;
+        },
+
+        SET_STATUS_MESSAGE(state, { message, isError }) {
+            state.statusMessage.message = message;
+            state.statusMessage.isError = isError;
         }
     },
+
     actions: {
         loadCurrentUser({commit}) {
             // here we are caching the user data so that it does not have to retrieved over and over again with each page load
@@ -371,8 +444,27 @@ const store = new Vuex.Store({
         },
         disableProposeConnectorDestinationItems({commit}) {
             commit('DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS');
+        },
+
+        updateImageUploadStatus({commit}, { imageId, uploading, uploadFailed }) {
+            commit('UPDATE_IMAGE_UPLOAD_STATUS', { imageId, uploading, uploadFailed });
+
+            // triggering an update of all messages in a minute
+            // this is needed in case image uploading gets somehow stuck
+            setTimeout(() => {
+                commit('RESET_IMAGE_UPLOAD_STATUS');
+            }, 60000);
+        },
+
+        clearStatusMessage({commit}) {
+            commit('CLEAR_STATUS_MESSAGE');
+        },
+
+        setErrorStatusMessage({commit}, message) {
+            commit('SET_STATUS_MESSAGE', {message, isError: true});
         }
     },
+
     getters: {
         isLoadingUser: state => state.isLoadingUser,
         currentUser: state => state.currentUser,
@@ -395,7 +487,9 @@ const store = new Vuex.Store({
 
         itemCreatingAutoRemount: state => state.itemCreating.autoRemount,
 
-        connectorProposedDestination: state => state.connectorProposedDestination
+        connectorProposedDestination: state => state.connectorProposedDestination,
+
+        statusMessage: state => state.statusMessage,
     }
 });
 
