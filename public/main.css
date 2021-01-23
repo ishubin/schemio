@@ -889,6 +889,8 @@ ul.pagination li a.current {
     display: inline-block;
     margin-left: 5px;
     padding-left: 5px;
+    height: 26px;
+    overflow: hidden;
 }
 .quick-helper-panel-section:before {
     position: absolute;
