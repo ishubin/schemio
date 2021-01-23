@@ -54,7 +54,7 @@ const defaultTextSlotProps = {
 };
 
 
-export function enrichItemTextSlotWithDefaults(textSlot) {
+function enrichItemTextSlotWithDefaults(textSlot) {
     return enrichObjectWithDefaults(textSlot, defaultTextSlotProps);
 }
 
@@ -120,6 +120,7 @@ export function enrichItemWithDefaults(item) {
         forEach(textSlots, textSlot => {
             if (!item.textSlots.hasOwnProperty(textSlot.name)) {
                 item.textSlots[textSlot.name] = {};
+                enrichItemTextSlotWithDefaults(item.textSlots[textSlot.name]);
             }
         });
     }

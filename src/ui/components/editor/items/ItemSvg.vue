@@ -75,7 +75,6 @@ import myMath from '../../../myMath';
 import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
-import {enrichItemTextSlotWithDefaults} from '../../../scheme/Item';
 import forEach from 'lodash/forEach';
 
 

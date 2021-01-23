@@ -210,7 +210,7 @@ import '../../typedef';
 
 import {Keys} from '../../events';
 import myMath from '../../myMath';
-import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, enrichItemTextSlotWithDefaults} from '../../scheme/Item';
+import {ItemInteractionMode, defaultItem, enrichItemWithDefaults} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
