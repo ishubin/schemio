@@ -140,9 +140,10 @@ const EventBus = new Vue({
          * @param {Item} item 
          * @param {string} slotName 
          * @param {Area} area - Area of a text slot and not of an item
+         * @param {Boolean} creatingNewItem - true if it is triggered for a new item (e.g. double clicking void)
          */
-        emitItemTextSlotEditTriggered(item, slotName, area) {
-            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, area);
+        emitItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, area, creatingNewItem);
         },
 
         emitItemTextSlotEditCanceled(item, slotName) {

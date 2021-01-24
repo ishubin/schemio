@@ -159,9 +159,11 @@
             :area="inPlaceTextEditor.area"
             :css-style="inPlaceTextEditor.style"
             :text="inPlaceTextEditor.text"
+            :creating-new-item="inPlaceTextEditor.creatingNewItem"
             :zoom="schemeContainer.screenTransform.scale"
             @close="closeItemTextEditor"
             @updated="onInPlaceTextEditorUpdate"
+            @item-renamed="onInPlaceTextEditorItemRenamed"
             @item-area-changed="onInPlaceTextEditorItemAreaChanged"
             @item-text-cleared="onInPlaceTextEditorItemTextCleared"
             />
@@ -400,6 +402,7 @@ export default {
                 shown: false,
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
+                creatingNewItem: false,
                 style: {}
             },
 
@@ -802,7 +805,7 @@ export default {
         onVoidDoubleClicked(x, y, mx, my) {
             // this.schemeContain
             const textItem = utils.clone(defaultItem);
-            textItem.name = 'Label';
+            textItem.name = this.schemeContainer.copyNameAndMakeUnique('Label');
             textItem.textSlots = {
                 body: {
                     text  : '',
@@ -818,7 +821,7 @@ export default {
             this.$nextTick(() => {
                 EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
                     x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
-                });
+                }, true);
             });
         },
 
@@ -1136,7 +1139,7 @@ export default {
             return schemeContainer.getBoundingBoxOfItems(items)
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area) {
+        onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
             const itemTextSlot = item.textSlots[slotName];
             const worldPoint = this.schemeContainer.worldPointOnItem(area.x, area.y, item);
@@ -1148,6 +1151,7 @@ export default {
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.width = area.w;
             this.inPlaceTextEditor.height = area.h;
+            this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
             this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
             this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
@@ -1169,6 +1173,10 @@ export default {
             }
         },
 
+        onInPlaceTextEditorItemRenamed(item, name) {
+            item.name = name;
+        },
+
         onInPlaceTextEditorItemTextCleared(item) {
             if (!item.shape === 'none') {
                 return;
@@ -1184,6 +1192,7 @@ export default {
                 EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
                 EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                this.schemeContainer.reindexItems();
             }
             this.inPlaceTextEditor.shown = false;
         },

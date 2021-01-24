@@ -538,7 +538,7 @@ export default class StateDragItem extends State {
         if (!textSlot) {
             return;
         }
-        this.eventBus.emitItemTextSlotEditTriggered(item, textSlot.name, textSlot.area);
+        this.eventBus.emitItemTextSlotEditTriggered(item, textSlot.name, textSlot.area, false);
     }
 
     findItemTextSlotByPoint(item, x, y) {

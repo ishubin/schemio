@@ -20,7 +20,7 @@ import {
 
 
 export default {
-    props: ['item', 'area', 'text', 'cssStyle', 'zoom'],
+    props: ['item', 'area', 'text', 'cssStyle', 'zoom', 'creatingNewItem'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
@@ -106,6 +106,13 @@ export default {
                 const text = el.innerText.trim();
 
                 if (text) {
+                    if (this.creatingNewItem) {
+                        let name = text;
+                        if (name.length > 20) {
+                            name = name.substring(0, 20);
+                        }
+                        this.$emit('item-renamed', this.item, name);
+                    }
                     this.$emit('item-area-changed', this.item, rect.width, rect.height);
                 } else {
                     this.$emit('item-text-cleared', this.item);
