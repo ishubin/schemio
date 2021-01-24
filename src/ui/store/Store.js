@@ -15,6 +15,9 @@ const myStorage = new LimitedSettingsStorage(window.localStorage, 'store', 100);
  */
 function getVerifiedUserDataFromMyStorage() {
     const sessionId = getCookie('sx');
+    if (!sessionId) {
+        return null;
+    }
     const userData = myStorage.get('user');
 
     // check that current session id is the same as the one it has recorded in local storage

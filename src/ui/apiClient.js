@@ -18,13 +18,43 @@ function unwrapAxiosError(err) {
     });
 }
 
+const XSRF_TOKEN_HEADER = 'xsrf-token';
+
+let xsrfToken = window.localStorage.getItem(XSRF_TOKEN_HEADER);
+
+
+const _axiosInstance = axios.create({
+    timeout: 10000,
+});
+
+_axiosInstance.interceptors.request.use(config => {
+    if (xsrfToken && config.method !== 'get') {
+        config.headers[XSRF_TOKEN_HEADER] = xsrfToken;
+    }
+    return config;
+});
+
+_axiosInstance.interceptors.response.use(response => {
+    // renew xsrf token with each request
+    if (response.headers[XSRF_TOKEN_HEADER]) {
+        xsrfToken = response.headers[XSRF_TOKEN_HEADER];
+        window.localStorage.setItem(XSRF_TOKEN_HEADER, xsrfToken);
+    }
+    return response;
+});
+
+
+function $axios() {
+    return _axiosInstance;
+}
+
 export default {
     getCurrentUser() {
-        return axios.get('/v1/user').then(unwrapAxios);
+        return $axios().get('/v1/user').then(unwrapAxios);
     },
 
     createProject(project) {
-        return axios.post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
+        return $axios().post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     patchProject(projectId, {name, description, isPublic}) {
@@ -39,53 +69,53 @@ export default {
             payload.push({ op: 'update', field: 'isPublic', value: isPublic });
         }
 
-        return axios.patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
+        return $axios().patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     findProjects({query, offset}) {
         let encodedQuery = encodeURIComponent(query || '');
         let url = `/v1/projects?offset=${offset || 0}&q=${encodedQuery}`;
-        return axios.get(url).then(unwrapAxios);
+        return $axios().get(url).then(unwrapAxios);
     },
 
     getProject(projectId) {
-        return axios.get(`/v1/projects/${projectId}`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}`).then(unwrapAxios);
     },
 
     deleteProject(projectId) {
-        return axios.delete(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
+        return $axios().delete(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     login(login, password) {
-        return axios.post('/v1/login', {login, password}).then(unwrapAxios);
+        return $axios().post('/v1/login', {login, password}).then(unwrapAxios);
     },
 
     createArt(projectId, art) {
-        return axios.post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
     },
 
     getAllArt(projectId) {
-        return axios.get(`/v1/projects/${projectId}/art`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}/art`).then(unwrapAxios);
     },
 
     getGlobalArt() {
-        return axios.get(`/v1/art`).then(unwrapAxios);
+        return $axios().get(`/v1/art`).then(unwrapAxios);
     },
 
     saveArt(projectId, artId, art) {
-        return axios.put(`/v1/projects/${projectId}/art/${artId}`, art).then(unwrapAxios);
+        return $axios().put(`/v1/projects/${projectId}/art/${artId}`, art).then(unwrapAxios);
     },
 
     deleteArt(projectId, artId) {
-        return axios.delete(`/v1/projects/${projectId}/art/${artId}`).then(unwrapAxios);
+        return $axios().delete(`/v1/projects/${projectId}/art/${artId}`).then(unwrapAxios);
     },
 
     loadScheme(projectId, schemeId) {
-        return axios.get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
+        return $axios().get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     createNewScheme(projectId, scheme) {
-        return axios.post(`/v1/projects/${projectId}/schemes`, scheme).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/schemes`, scheme).then(unwrapAxios);
     },
 
     saveScheme(projectId, schemeId, scheme) {
@@ -93,7 +123,7 @@ export default {
             const sanitizedScheme = utils.sanitizeScheme(scheme);
             const defScheme = defaultifyScheme(sanitizedScheme);
 
-            return axios.put(`/v1/projects/${projectId}/schemes/${schemeId}`, defScheme).then(response => {
+            return $axios().put(`/v1/projects/${projectId}/schemes/${schemeId}`, defScheme).then(unwrapAxios).then(() => {
                 return 'saved';
             });
         } else {
@@ -103,14 +133,14 @@ export default {
 
     deleteScheme(projectId, schemeId) {
         if (schemeId && schemeId.trim().length > 0) {
-            return axios.delete(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
+            return $axios().delete(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
         } else {
             return Promise.resolve(null);
         }
     },
 
     deleteMultipleSchemes(projectId, schemeIds) {
-        return axios.post(`/v1/projects/${projectId}/delete-schemes`, schemeIds).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/delete-schemes`, schemeIds).then(unwrapAxios);
     },
 
     findSchemes(projectId, filters) {
@@ -128,32 +158,32 @@ export default {
 
         url =`${url}&_t=${Math.round(Math.random()*10000)}`;
 
-        return axios.get(url).then(unwrapAxios);
+        return $axios().get(url).then(unwrapAxios);
     },
 
     getTags(projectId) {
-        return axios.get(`/v1/projects/${projectId}/tags`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}/tags`).then(unwrapAxios);
     },
 
     createCategory(projectId, categoryName, parentCategoryId) {
-        return axios.post(`/v1/projects/${projectId}/categories`, {
+        return $axios().post(`/v1/projects/${projectId}/categories`, {
             name: categoryName,
             parentId: parentCategoryId
         }).then(unwrapAxios);
     },
 
     deleteCategory(projectId, categoryId) {
-        return axios.delete(`/v1/projects/${projectId}/categories/${categoryId}`).then(unwrapAxios);
+        return $axios().delete(`/v1/projects/${projectId}/categories/${categoryId}`).then(unwrapAxios);
     },
 
     getCategory(projectId, parentCategoryId) {
         var id = parentCategoryId ? parentCategoryId : '';
-        return axios.get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
     },
 
     updateCategory(projectId, categoryId, category) {
         if (category && category.name) {
-            return axios.put(`/v1/projects/${projectId}/categories/${categoryId}`, {
+            return $axios().put(`/v1/projects/${projectId}/categories/${categoryId}`, {
                 name: category.name
             }).then(unwrapAxios);
         } else {
@@ -162,48 +192,48 @@ export default {
     },
 
     moveCategory(projectId, categoryId, newParentCategoryId) {
-        return axios.post(`/v1/projects/${projectId}/move-category`, {
+        return $axios().post(`/v1/projects/${projectId}/move-category`, {
             categoryId: categoryId,
             destinationCategoryId: newParentCategoryId
         }).then(unwrapAxios);
     },
 
     getCategoryTree(projectId) {
-        return axios.get(`/v1/projects/${projectId}/category-tree`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}/category-tree`).then(unwrapAxios);
     },
 
     ensureCategoryStructure(projectId, categories) {
         if (categories && categories.length > 0) {
-            return axios.put(`/v1/projects/${projectId}/category-structure`, categories).then(unwrapAxios);
+            return $axios().put(`/v1/projects/${projectId}/category-structure`, categories).then(unwrapAxios);
         } else {
             return Promise.resolve(null);
         }
     },
 
     uploadSchemeSvgPreview(projectId, schemeId, svgCode) {
-        return axios.post(`/v1/projects/${projectId}/schemes/${schemeId}/preview`, {svg: svgCode}).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/schemes/${schemeId}/preview`, {svg: svgCode}).then(unwrapAxios);
     },
 
     uploadFile(projectId, file) {
         var form = new FormData();
         form.append('file', file, file.name);
         this.errorUploading = false;
-        return axios.post(`/v1/projects/${projectId}/files`, form).then(response => {
-            return response.data.url;
+        return $axios().post(`/v1/projects/${projectId}/files`, form).then(unwrapAxios).then(data => {
+            return data.url;
         });
     },
 
     styles: {
         saveStyle(fill, strokeColor, textColor) {
-            return axios.post(`/v1/user/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
+            return $axios().post(`/v1/user/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
         },
 
         getStyles() {
-            return axios.get('/v1/user/styles/').then(unwrapAxios);
+            return $axios().get('/v1/user/styles/').then(unwrapAxios);
         },
 
         deleteStyle(styleId) {
-            return axios.delete(`/v1/user/styles/${styleId}`).then(unwrapAxios);
+            return $axios().delete(`/v1/user/styles/${styleId}`).then(unwrapAxios);
         }
     }
 }
