@@ -27,25 +27,27 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
 
-    computePath,
+        computePath,
 
-    getTextSlots(item) {
-        return [{
-            name: "title", area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
-        }, {
-            name: "body", area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(1, item.area.h - item.shapeProps.headerHeight)}
-        }];
-    },
+        getTextSlots(item) {
+            return [{
+                name: "title", area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
+            }, {
+                name: "body", area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(1, item.area.h - item.shapeProps.headerHeight)}
+            }];
+        },
 
-    editorProps: {},
-    args: {
-        fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
-        strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
-        strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
-        cornerRadius: {type: 'number', value: 4, name: 'Corner radius'},
-        headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0}
+        editorProps: {},
+        args: {
+            fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+            strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
+            strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
+            cornerRadius: {type: 'number', value: 4, name: 'Corner radius'},
+            headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0}
+        },
     },
 
     computed: {

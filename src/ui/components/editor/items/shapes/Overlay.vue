@@ -52,7 +52,50 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
+
+        getTextSlots(item) {
+            return [{
+                name: 'body',
+                area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+            }];
+        },
+        computePath,
+
+        args: {
+            fill              : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,0.1)'}, name: 'Fill'},
+            hoverFill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(100,200,255,0.3)'}, name: 'Hover Fill'},
+            strokeColor       : {type: 'color', value: 'rgba(30,30,30,0.1)', name: 'Stroke Color'},
+            hoverStrokeColor  : {type: 'color', value: 'rgba(30,30,30,0.2)', name: 'Hover Stroke Color'},
+            strokeSize        : {type: 'number', value: 2, name: 'Stroke Size'},
+            hoverStrokeSize   : {type: 'number', value: 2, name: 'Hover Stroke Size'},
+            strokePattern     : {type: 'stroke-pattern', value: 'solid', name: 'Stroke Pattern'},
+            cornerRadius      : {type: 'number', value: 0, name: 'Corner Radius'},
+        },
+        controlPoints: {
+            make(item, pointId) {
+                if (!pointId) {
+                    return {
+                        cornerRadius: makeCornerRadiusControlPoint(item),
+                    };
+                } else if (pointId === 'cornerRadius') {
+                    return makeCornerRadiusControlPoint(item);
+                }
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+                }
+            }
+        },
+        
+        editorProps: {
+            customTextRendering: true,
+            ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
+        },
+    },
+
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
@@ -65,45 +108,6 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
 
-    getTextSlots(item) {
-        return [{
-            name: 'body',
-            area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
-        }];
-    },
-    computePath,
-
-    args: {
-        fill              : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,0.1)'}, name: 'Fill'},
-        hoverFill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(100,200,255,0.3)'}, name: 'Hover Fill'},
-        strokeColor       : {type: 'color', value: 'rgba(30,30,30,0.1)', name: 'Stroke Color'},
-        hoverStrokeColor  : {type: 'color', value: 'rgba(30,30,30,0.2)', name: 'Hover Stroke Color'},
-        strokeSize        : {type: 'number', value: 2, name: 'Stroke Size'},
-        hoverStrokeSize   : {type: 'number', value: 2, name: 'Hover Stroke Size'},
-        strokePattern     : {type: 'stroke-pattern', value: 'solid', name: 'Stroke Pattern'},
-        cornerRadius      : {type: 'number', value: 0, name: 'Corner Radius'},
-    },
-    controlPoints: {
-        make(item, pointId) {
-            if (!pointId) {
-                return {
-                    cornerRadius: makeCornerRadiusControlPoint(item),
-                };
-            } else if (pointId === 'cornerRadius') {
-                return makeCornerRadiusControlPoint(item);
-            }
-        },
-        handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-            if (controlPointName === 'cornerRadius') {
-                item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
-            }
-        }
-    },
-    
-    editorProps: {
-        customTextRendering: true,
-        ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
-    },
 
     data() {
         return {

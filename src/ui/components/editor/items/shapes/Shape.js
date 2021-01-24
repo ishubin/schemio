@@ -99,23 +99,27 @@ function defaultGetSnappers(item) {
 }
 
 function enrichShape(shapeComponent, shapeName) {
-    if (!shapeComponent.shapeType) {
+    let shapeConfig = {};
+    if (shapeComponent.shapeConfig) {
+        shapeConfig = shapeComponent.shapeConfig;
+    }
+    if (!shapeConfig.shapeType) {
         console.error(`Missing shapeType for shape "${shapeName}"`);
     }
     return {
-        shapeType               : shapeComponent.shapeType,
-        editorProps             : shapeComponent.editorProps || defaultEditorProps,
-        args                    : shapeComponent.args,
-        computePath             : shapeComponent.computePath,
-        computeOutline          : shapeComponent.computeOutline || shapeComponent.computePath,
-        readjustItem            : shapeComponent.readjustItem,
-        getTextSlots            : shapeComponent.getTextSlots || defaultGetTextSlots,
-        getEvents               : shapeComponent.getEvents || defaultGetEventsFunc,
-        controlPoints           : shapeComponent.controlPoints || null,
+        shapeType               : shapeConfig.shapeType,
+        editorProps             : shapeConfig.editorProps || defaultEditorProps,
+        args                    : shapeConfig.args,
+        computePath             : shapeConfig.computePath,
+        computeOutline          : shapeConfig.computeOutline || shapeConfig.computePath,
+        readjustItem            : shapeConfig.readjustItem,
+        getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,
+        getEvents               : shapeConfig.getEvents || defaultGetEventsFunc,
+        controlPoints           : shapeConfig.controlPoints || null,
 
         // used for generating item snapers which are used for snapping dragged item to other items
-        getSnappers             : shapeComponent.getSnappers || defaultGetSnappers,
-        vueComponent            : shapeComponent.shapeType === 'vue'? shapeComponent: null,
+        getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,
+        vueComponent            : shapeConfig.shapeType === 'vue'? shapeComponent: null,
 
         argType(argName) {
             if (this.args && this.args[argName]) {

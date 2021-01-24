@@ -48,26 +48,28 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
 
-    computePath,
+        computePath,
 
-    getTextSlots(item) {
-        return [{
-            name: "title", area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.titleHeight)}
-        }];
-    },
+        getTextSlots(item) {
+            return [{
+                name: "title", area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.titleHeight)}
+            }];
+        },
 
-    editorProps: {},
-    args: {
-        image       : {type: 'image', name: 'Image'},
-        stretch     : {type: 'boolean', value: false, name: 'Stretch'},
-        strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
-        strokeSize  : {type: 'number', value: 0, name: 'Stroke size'},
-        showTitle   : {type: 'boolean', value: false, name: 'Title'},
-        titleHeight : {type: 'number', value: 36, name: 'Title height', min: 0, depends: {showTitle: true}},
-        titleFill   : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Title Background', depends: {showTitle: true}},
-        fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Background', depends: {showTitle: true}},
+        editorProps: {},
+        args: {
+            image       : {type: 'image', name: 'Image'},
+            stretch     : {type: 'boolean', value: false, name: 'Stretch'},
+            strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
+            strokeSize  : {type: 'number', value: 0, name: 'Stroke size'},
+            showTitle   : {type: 'boolean', value: false, name: 'Title'},
+            titleHeight : {type: 'number', value: 36, name: 'Title height', min: 0, depends: {showTitle: true}},
+            titleFill   : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Title Background', depends: {showTitle: true}},
+            fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Background', depends: {showTitle: true}},
+        },
     },
 
     computed: {

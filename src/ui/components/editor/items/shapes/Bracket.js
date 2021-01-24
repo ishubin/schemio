@@ -51,62 +51,64 @@ function createPointsForRoundBracket(p, d, r, D, R) {
 }
 
 export default {
-    shapeType: 'standard',
+    shapeConfig: {
+        shapeType: 'standard',
 
-    getTextSlots(item) {
-        return [];
-    },
+        getTextSlots(item) {
+            return [];
+        },
 
-    computePath(item) {
-        // starting point
-        const p = {x: 0, y: 0};
+        computePath(item) {
+            // starting point
+            const p = {x: 0, y: 0};
 
-        // direction vector (down)
-        const d = {x: 0, y: 1};
-        let D = item.area.h;
+            // direction vector (down)
+            const d = {x: 0, y: 1};
+            let D = item.area.h;
 
-        // direction vector (right)
-        const r = {x: 1, y: 0};
-        let R = item.area.w;
+            // direction vector (right)
+            const r = {x: 1, y: 0};
+            let R = item.area.w;
 
-        if (item.area.w < item.area.h) {
-            d.x = 1;
-            d.y = 0;
-            D = item.area.w;
+            if (item.area.w < item.area.h) {
+                d.x = 1;
+                d.y = 0;
+                D = item.area.w;
 
-            r.x = 0;
-            r.y = -1;
-            R = item.area.h;
-            p.x = 0;
-            p.y = item.area.h;
-        }
-
-        let points = [];
-        if (item.shapeProps.style === 'curly') {
-            points = createPointsForCurlyBracket(p, d, r, D, R);
-        } else if (item.shapeProps.style === 'curly-sharp') {
-            points = createPointsForCurlySharp(p, d, r, D, R);
-        } else if (item.shapeProps.style === 'round') {
-            points = createPointsForRoundBracket(p, d, r, D, R);
-        } else {
-            points = createPointsForSquareBracket(p, d, r, D, R);
-        }
-        let path = `M ${points[0].x} ${points[0].y}`;
-
-        for (let i = 1; i < points.length; i++) {
-            if (points[i].type === 'C') {
-                path += ` C ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2} ${points[i].x3} ${points[i].y3}`;
-            } else if (points[i].type === 'Q') {
-                path += ` Q ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2}`;
-            } else {
-                path += ` L ${points[i].x} ${points[i].y}`;
+                r.x = 0;
+                r.y = -1;
+                R = item.area.h;
+                p.x = 0;
+                p.y = item.area.h;
             }
-        }
 
-        return path;
-    },
+            let points = [];
+            if (item.shapeProps.style === 'curly') {
+                points = createPointsForCurlyBracket(p, d, r, D, R);
+            } else if (item.shapeProps.style === 'curly-sharp') {
+                points = createPointsForCurlySharp(p, d, r, D, R);
+            } else if (item.shapeProps.style === 'round') {
+                points = createPointsForRoundBracket(p, d, r, D, R);
+            } else {
+                points = createPointsForSquareBracket(p, d, r, D, R);
+            }
+            let path = `M ${points[0].x} ${points[0].y}`;
 
-    args: {
-        style: {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
-    },
+            for (let i = 1; i < points.length; i++) {
+                if (points[i].type === 'C') {
+                    path += ` C ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2} ${points[i].x3} ${points[i].y3}`;
+                } else if (points[i].type === 'Q') {
+                    path += ` Q ${points[i].x1} ${points[i].y1} ${points[i].x2} ${points[i].y2}`;
+                } else {
+                    path += ` L ${points[i].x} ${points[i].y}`;
+                }
+            }
+
+            return path;
+        },
+
+        args: {
+            style: {type: 'choice', value: 'curly', name: 'Style', options: ['curly', 'curly-sharp', 'square', 'round']},
+        },
+    }
 }

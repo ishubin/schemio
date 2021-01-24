@@ -184,38 +184,40 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
 
-    computePath,
-    readjustItem,
-    getSnappers,
+        computePath,
+        readjustItem,
+        getSnappers,
 
-    /**
-     * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
-     */ 
-    getTextSlots() {
-        return [];
-    },
+        /**
+         * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
+         */ 
+        getTextSlots() {
+            return [];
+        },
 
-    editorProps: {
-        description: 'rich',
-    },
+        editorProps: {
+            description: 'rich',
+        },
 
-    controlPoints: null,
+        controlPoints: null,
 
-    args: {
-        fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
-        strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
-        strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-        closed            : {type: 'boolean',       value: false, name: 'Closed path'},
-        points            : {type: 'curve-points',  value: [], name: 'Curve points'},
-        sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
-        sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
-        sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-        destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
-        destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
-        destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+        args: {
+            fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
+            strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
+            strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
+            closed            : {type: 'boolean',       value: false, name: 'Closed path'},
+            points            : {type: 'curve-points',  value: [], name: 'Curve points'},
+            sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
+            sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
+            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
+            destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
+            destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
+            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+        },
     },
 
     mounted() {

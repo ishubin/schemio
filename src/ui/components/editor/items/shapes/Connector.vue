@@ -304,64 +304,66 @@ export default {
     props: ['item'],
     components: {},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
 
-    computePath,
-    readjustItem,
-    getSnappers,
+        computePath,
+        readjustItem,
+        getSnappers,
 
-    /**
-     * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
-     */ 
-    getTextSlots() {
-        return [];
-    },
+        /**
+         * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
+         */ 
+        getTextSlots() {
+            return [];
+        },
 
-    editorProps: {
-        description: 'rich',
-    },
+        editorProps: {
+            description: 'rich',
+        },
 
-    controlPoints: {
-        make(item, pointId) {
-            if (!pointId) {
-                const controlPoints = {};
-                forEach(item.shapeProps.points, (point, pointIndex) => {
-                    controlPoints[pointIndex] = {x: point.x, y: point.y, isEdgeStart: pointIndex === 0, isEdgeEnd: pointIndex === item.shapeProps.points.length - 1};
-                });
-                return controlPoints;
-            } else {
-                const pId = parseInt(pointId);
-                if (item.shapeProps.points[pointId]) {
-                    return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y, isEdgeStart: pId === 0, isEdgeEnd: pId === item.shapeProps.points.length - 1};
+        controlPoints: {
+            make(item, pointId) {
+                if (!pointId) {
+                    const controlPoints = {};
+                    forEach(item.shapeProps.points, (point, pointIndex) => {
+                        controlPoints[pointIndex] = {x: point.x, y: point.y, isEdgeStart: pointIndex === 0, isEdgeEnd: pointIndex === item.shapeProps.points.length - 1};
+                    });
+                    return controlPoints;
+                } else {
+                    const pId = parseInt(pointId);
+                    if (item.shapeProps.points[pointId]) {
+                        return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y, isEdgeStart: pId === 0, isEdgeEnd: pId === item.shapeProps.points.length - 1};
+                    }
                 }
+            },
+
+            handleDrag(item, pointId, originalX, originalY, dx, dy, snapper, schemeContainer) {
+                //do nothing as control point dragging is handled in StateDragItem.js
             }
         },
 
-        handleDrag(item, pointId, originalX, originalY, dx, dy, snapper, schemeContainer) {
-            //do nothing as control point dragging is handled in StateDragItem.js
-        }
-    },
 
+        args: {
+            fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
+            strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
+            strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
+            points            : {type: 'curve-points',  value: [], name: 'Curve points'},
+            sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
+            sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
+            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
+            destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
+            destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
+            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
 
-    args: {
-        fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
-        strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-        strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
-        strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-        points            : {type: 'curve-points',  value: [], name: 'Curve points'},
-        sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
-        sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
-        sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-        destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
-        destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
-        destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+            smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
 
-        smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
-
-        sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
-        destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
-        sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
-        destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
+            destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
+            sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+        },
     },
 
     mounted() {

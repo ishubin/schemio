@@ -52,7 +52,53 @@ export default {
     props: ['item'],
     components: {AdvancedFill},
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
+
+        getTextSlots(item) {
+            return [{
+                name: 'body',
+                area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+            }];
+        },
+        computePath,
+
+        editorProps: {
+            customTextRendering: true,
+            ignoreEventLayer: true
+        },
+
+        controlPoints: {
+            make(item, pointId) {
+                if (!pointId) {
+                    return {
+                        cornerRadius: makeCornerRadiusControlPoint(item),
+                    };
+                } else if (pointId === 'cornerRadius') {
+                    return makeCornerRadiusControlPoint(item);
+                }
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+                }
+            }
+        },
+
+        args: {
+            fill                  : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#2375D3', p: 0}, {c: '#7DB9FE', p: 100}]}}, name: 'Fill'},
+            hoverFill             : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#5C8FCA', p: 0}, {c: '#B1D5FF', p: 100}]}}, name: 'Hover Fill'},
+
+            strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
+            hoverStrokeColor      : {type: 'color', value: '#466AAA', name: 'Hover Stroke color'},
+
+            hoverTextColor        : {type: 'color', value: '#000', name: 'Hovered Text color'},
+
+            strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
+            strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
+            cornerRadius          : {type: 'number', value: 5, name: 'Corner radius'},
+        },
+    },
 
     beforeMount() {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
@@ -65,50 +111,6 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
 
-    getTextSlots(item) {
-        return [{
-            name: 'body',
-            area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
-        }];
-    },
-
-    computePath,
-
-    editorProps: {
-        customTextRendering: true,
-        ignoreEventLayer: true
-    },
-
-    controlPoints: {
-        make(item, pointId) {
-            if (!pointId) {
-                return {
-                    cornerRadius: makeCornerRadiusControlPoint(item),
-                };
-            } else if (pointId === 'cornerRadius') {
-                return makeCornerRadiusControlPoint(item);
-            }
-        },
-        handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-            if (controlPointName === 'cornerRadius') {
-                item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
-            }
-        }
-    },
-
-    args: {
-        fill                  : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#2375D3', p: 0}, {c: '#7DB9FE', p: 100}]}}, name: 'Fill'},
-        hoverFill             : {type: 'advanced-color', value: {type: 'gradient', gradient: {type: 'linear', direction: 0, colors: [{c: '#5C8FCA', p: 0}, {c: '#B1D5FF', p: 100}]}}, name: 'Hover Fill'},
-
-        strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
-        hoverStrokeColor      : {type: 'color', value: '#466AAA', name: 'Hover Stroke color'},
-
-        hoverTextColor        : {type: 'color', value: '#000', name: 'Hovered Text color'},
-
-        strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
-        strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-        cornerRadius          : {type: 'number', value: 5, name: 'Corner radius'},
-    },
     data() {
         return {
             hovered: false,

@@ -193,96 +193,99 @@ P2 = P1 + V1
 
 
 export default {
-    shapeType: 'standard',
+    shapeConfig: {
+        shapeType: 'standard',
 
-    computePath(item) {
-        const W = item.area.w;
-        const H = item.area.h;
-        const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
+        computePath(item) {
+            const W = item.area.w;
+            const H = item.area.h;
+            const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4);
 
-        let path = `M 0 ${R} `;
+            let path = `M 0 ${R} `;
 
-        let sides = [
-            {name: 'top',       length: W - 2*R, invertT: true,   p1x: R,   p1y: 0,    vx: 1,  vy: 0,     nx: 0, ny: -1,  ax: 1,  ay: -1 },
-            {name: 'right',     length: H - 2*R, invertT: true,   p1x: W,   p1y: R,    vx: 0,  vy: 1,     nx: 1, ny: 0,   ax: 1,  ay: 1 },
-            {name: 'bottom',    length: W - 2*R, invertT: false,  p1x: W-R, p1y: H,    vx: -1, vy: 0,     nx: 0, ny: 1,   ax: -1, ay: 1 },
-            {name: 'left',      length: H - 2*R, invertT: false,  p1x: 0,   p1y: H-R,  vx: 0,  vy: -1,    nx: -1,ny: 0,   ax: -1, ay: -1 },
-        ];
+            let sides = [
+                {name: 'top',       length: W - 2*R, invertT: true,   p1x: R,   p1y: 0,    vx: 1,  vy: 0,     nx: 0, ny: -1,  ax: 1,  ay: -1 },
+                {name: 'right',     length: H - 2*R, invertT: true,   p1x: W,   p1y: R,    vx: 0,  vy: 1,     nx: 1, ny: 0,   ax: 1,  ay: 1 },
+                {name: 'bottom',    length: W - 2*R, invertT: false,  p1x: W-R, p1y: H,    vx: -1, vy: 0,     nx: 0, ny: 1,   ax: -1, ay: 1 },
+                {name: 'left',      length: H - 2*R, invertT: false,  p1x: 0,   p1y: H-R,  vx: 0,  vy: -1,    nx: -1,ny: 0,   ax: -1, ay: -1 },
+            ];
 
-        const tailWidth = Math.max(0, item.shapeProps.tailWidth);
+            const tailWidth = Math.max(0, item.shapeProps.tailWidth);
 
-        for (let i = 0; i < sides.length; i++) {
-            const side = sides[i];
-            path += `a ${R} ${R} 0 0 1 ${R*side.ax} ${R*side.ay} `;
-            if (item.shapeProps.tailSide === side.name) {
-                const TL = item.shapeProps.tailLength;
-                const TW = Math.min(Math.max(0, side.length - tailWidth), tailWidth);
-                let t = 0;
-                if (side.length > 0) {
-                    t = myMath.clamp(item.shapeProps.tailPosition / side.length, 0, 1);
-                }
-                if (side.invertT) {
-                    t = 1 - t;
-                }
-                const a = (side.length - TW) * (1 - t);
-                const b = (side.length - TW) * t;
-                const v1x = a * side.vx;
-                const v1y = a * side.vy;
-                const p2x = side.p1x + v1x;
-                const p2y = side.p1y + v1y;
-                const p4x = p2x + TW * side.vx;
-                const p4y = p2y + TW * side.vy;
-                const p5x = p4x + b * side.vx;
-                const p5y = p4y + b * side.vy;
+            for (let i = 0; i < sides.length; i++) {
+                const side = sides[i];
+                path += `a ${R} ${R} 0 0 1 ${R*side.ax} ${R*side.ay} `;
+                if (item.shapeProps.tailSide === side.name) {
+                    const TL = item.shapeProps.tailLength;
+                    const TW = Math.min(Math.max(0, side.length - tailWidth), tailWidth);
+                    let t = 0;
+                    if (side.length > 0) {
+                        t = myMath.clamp(item.shapeProps.tailPosition / side.length, 0, 1);
+                    }
+                    if (side.invertT) {
+                        t = 1 - t;
+                    }
+                    const a = (side.length - TW) * (1 - t);
+                    const b = (side.length - TW) * t;
+                    const v1x = a * side.vx;
+                    const v1y = a * side.vy;
+                    const p2x = side.p1x + v1x;
+                    const p2y = side.p1y + v1y;
+                    const p4x = p2x + TW * side.vx;
+                    const p4y = p2y + TW * side.vy;
+                    const p5x = p4x + b * side.vx;
+                    const p5y = p4y + b * side.vy;
 
-                let p3x = 0, p3y = 0;
-                if (side.name === 'bottom' || side.name === 'top') {
-                    p3x = item.shapeProps.tailPosition;
-                    p3y = side.p1y + TL * side.ny;
+                    let p3x = 0, p3y = 0;
+                    if (side.name === 'bottom' || side.name === 'top') {
+                        p3x = item.shapeProps.tailPosition;
+                        p3y = side.p1y + TL * side.ny;
+                    } else {
+                        p3y = item.shapeProps.tailPosition;
+                        p3x = side.p1x + TL * side.nx;
+                    }
+
+                    path += `L ${side.p1x} ${side.p1y} L ${p2x} ${p2y} L ${p3x} ${p3y}  L ${p4x} ${p4y} L ${p5x} ${p5y} `;
+
                 } else {
-                    p3y = item.shapeProps.tailPosition;
-                    p3x = side.p1x + TL * side.nx;
+                    path += `l ${side.length*side.vx} ${side.length*side.vy} `
                 }
-
-                path += `L ${side.p1x} ${side.p1y} L ${p2x} ${p2y} L ${p3x} ${p3y}  L ${p4x} ${p4y} L ${p5x} ${p5y} `;
-
-            } else {
-                path += `l ${side.length*side.vx} ${side.length*side.vy} `
             }
-        }
 
-        path = path + ' z';
-        return path;
-    },
+            path = path + ' z';
+            return path;
+        },
 
-    controlPoints: {
-        make(item, pointId) {
-            if (!pointId) {
-                const controlPoints = {};
-                forEach(controlPointFuncs, (func, name) => {
-                    controlPoints[name] = func(item);
-                });
-                return controlPoints;
-            } else {
-                return controlPointFuncs[pointId](item);
+        controlPoints: {
+            make(item, pointId) {
+                if (!pointId) {
+                    const controlPoints = {};
+                    forEach(controlPointFuncs, (func, name) => {
+                        controlPoints[name] = func(item);
+                    });
+                    return controlPoints;
+                } else {
+                    return controlPointFuncs[pointId](item);
+                }
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'tail') {
+                    handleTailControlPointDrag(item, originalX, originalY, dx, dy);
+                } else if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+                } else if (controlPointName === 'tailWidth') {
+                    handleTailWidthControlPointDrag(item, originalX, originalY, dx, dy);
+                }
             }
         },
-        handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-            if (controlPointName === 'tail') {
-                handleTailControlPointDrag(item, originalX, originalY, dx, dy);
-            } else if (controlPointName === 'cornerRadius') {
-                item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
-            } else if (controlPointName === 'tailWidth') {
-                handleTailWidthControlPointDrag(item, originalX, originalY, dx, dy);
-            }
-        }
-    },
 
-    args: {
-        cornerRadius        : {type: 'number', value: 10, name: 'Corner radius'},
-        tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
-        tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
-        tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
-        tailPosition        : {type: 'number', value: 0, name: 'Tail Position'},
+        args: {
+            cornerRadius        : {type: 'number', value: 10, name: 'Corner radius'},
+            tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
+            tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
+            tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
+            tailPosition        : {type: 'number', value: 0, name: 'Tail Position'},
+        },
+
     },
 }

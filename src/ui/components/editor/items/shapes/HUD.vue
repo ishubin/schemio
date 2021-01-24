@@ -33,30 +33,33 @@ function computePath(item) {
 export default {
     props: ['item'],
 
-    shapeType: 'vue',
+    shapeConfig: {
+        shapeType: 'vue',
 
-    components: {AdvancedFill},
+        components: {AdvancedFill},
 
-    // it doesn't support text slots
-    getTextSlots(item) {
-        return [];
+        // it doesn't support text slots
+        getTextSlots(item) {
+            return [];
+        },
+
+        computePath,
+
+        editorProps: {
+            // flag to specify that it should only be rendered in edit mode
+            onlyEditMode: true
+        },
+
+        args: {
+            fill              : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(159, 227, 249, 0.1)'}},
+            strokeColor       : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
+            strokeSize        : {name: 'Stroke Size', type: 'number', value: 1},
+            strokePattern     : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
+            horizontalPosition: {type: 'choice', value: 'left', options: ['left', 'right', 'center'], name: 'Horizontal Position'},
+            verticalPosition  : {type: 'choice', value: 'top', options: ['top', 'bottom', 'center'], name: 'Vertical Position'},
+        },
     },
 
-    computePath,
-
-    editorProps: {
-        // flag to specify that it should only be rendered in edit mode
-        onlyEditMode: true
-    },
-
-    args: {
-        fill              : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(159, 227, 249, 0.1)'}},
-        strokeColor       : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
-        strokeSize        : {name: 'Stroke Size', type: 'number', value: 1},
-        strokePattern     : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
-        horizontalPosition: {type: 'choice', value: 'left', options: ['left', 'right', 'center'], name: 'Horizontal Position'},
-        verticalPosition  : {type: 'choice', value: 'top', options: ['top', 'bottom', 'center'], name: 'Vertical Position'},
-    },
 
     computed: {
         shapePath() {

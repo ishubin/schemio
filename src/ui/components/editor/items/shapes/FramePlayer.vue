@@ -40,51 +40,52 @@
 <script>
 export default {
     props: ['item'],
-    
-    shapeType: 'vue',
 
+    shapeConfig: {
+        shapeType: 'vue',
 
-    getTextSlots(item) {
-        return [{
-            name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}
-        }];
-    },
+        getTextSlots(item) {
+            return [{
+                name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}
+            }];
+        },
 
-    computePath(item) {
-        const w = item.area.w;
-        const h = item.area.h;
+        computePath(item) {
+            const w = item.area.w;
+            const h = item.area.h;
 
-        return `M 0 0   L ${w} 0  L ${w} ${h}  L 0 ${h} z`;
-    },
+            return `M 0 0   L ${w} 0  L ${w} ${h}  L 0 ${h} z`;
+        },
 
-    editorProps: {
-        ignoreEventLayer: true
-    },
+        editorProps: {
+            ignoreEventLayer: true
+        },
 
-    args: {
-        totalFrames: {type: 'number', value: 5, name: 'Total frames'},
-        frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},
-        fillColor: {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
-        strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-    },
+        args: {
+            totalFrames: {type: 'number', value: 5, name: 'Total frames'},
+            frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},
+            fillColor: {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
+            strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+        },
 
-    /**
-     * Returns events that given item is able to emit
-     * The result of this function is dynamic based on the item settings.
-     * This is used in order to build suggestions in BehaviorPanel.
-     */
-    getEvents(item) {
-        const events = [];
-        if (item.shapeProps.totalFrames > 0) {
-            for (let i = 1; i <= item.shapeProps.totalFrames; i++) {
-                events.push({
-                    name: `Frame-${i}`
-                });
+        /**
+         * Returns events that given item is able to emit
+         * The result of this function is dynamic based on the item settings.
+         * This is used in order to build suggestions in BehaviorPanel.
+         */
+        getEvents(item) {
+            const events = [];
+            if (item.shapeProps.totalFrames > 0) {
+                for (let i = 1; i <= item.shapeProps.totalFrames; i++) {
+                    events.push({
+                        name: `Frame-${i}`
+                    });
+                }
             }
-        }
-        return events;
+            return events;
+        },
     },
-
+    
     data() {
         return {
             currentFrame: 1,
