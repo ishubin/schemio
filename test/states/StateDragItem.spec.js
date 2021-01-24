@@ -1,3 +1,4 @@
+// Quad Tree based index for storing points
 import StateDragItem from '../../src/ui/components/editor/states/StateDragItem.js';
 import expect from 'expect';
 import sinon from 'sinon';
@@ -72,8 +73,13 @@ describe('StateDragItem', () => {
             selectedItems: [],
             multiItemEditBox: null
         };
-        const fakeEditor = {cursor: 'pointer'};
-        const state = new StateDragItem(whateverEventBus);
+        const fakeEditor = {
+            cursor: 'pointer',
+        };
+        const store = {
+            dispatch() {}
+        };
+        const state = new StateDragItem(whateverEventBus, store);
         state.setSchemeContainer(schemeContainer);
         state.setEditor(fakeEditor);
 
