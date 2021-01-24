@@ -1,20 +1,20 @@
-import { GeoIndex } from '../src/ui/GeoIndex'
+import { SpatialIndex } from '../src/ui/SpatialIndex'
 import expect from 'expect';
 
 
-describe('GeoIndex', () => {
-    const geoIndex = new GeoIndex();
+describe('SpatialIndex', () => {
+    const spatialIndex = new SpatialIndex();
 
-    geoIndex.addPoint(0,    0,      {name: 'A'});
-    geoIndex.addPoint(10,   10,     {name: 'B'});
-    geoIndex.addPoint(-10, -10,     {name: 'C'});
-    geoIndex.addPoint(4,    6,      {name: 'D'});
-    geoIndex.addPoint(5,    7,      {name: 'E'});
-    geoIndex.addPoint(5,    11,      {name: 'F'});
+    spatialIndex.addPoint(0,    0,      {name: 'A'});
+    spatialIndex.addPoint(10,   10,     {name: 'B'});
+    spatialIndex.addPoint(-10, -10,     {name: 'C'});
+    spatialIndex.addPoint(4,    6,      {name: 'D'});
+    spatialIndex.addPoint(5,    7,      {name: 'E'});
+    spatialIndex.addPoint(5,    11,      {name: 'F'});
 
     const findPointsInRange = (x1, y1, x2, y2) => {
         const points = [];
-        geoIndex.forEachInRange(x1, y1, x2, y2, (point, value) => {
+        spatialIndex.forEachInRange(x1, y1, x2, y2, (value, point) => {
             points.push({
                 x: point.x,
                 y: point.y,

@@ -1,6 +1,8 @@
 import SchemeContainer from '../../src/ui/scheme/SchemeContainer';
 import expect from 'expect';
 
+// stubbing this function as it doesn't work in unit tests
+SchemeContainer.prototype.getSvgOutlineOfItem = () => {return null;};
 
 const EventBusStub = {
     emitConnectorDeselected() {},

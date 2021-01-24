@@ -9,7 +9,7 @@ import keys from 'lodash/keys';
 import indexOf from 'lodash/indexOf';
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
-import { GeoIndex } from '../GeoIndex';
+import { SpatialIndex } from '../SpatialIndex';
 
 import '../typedef';
 import collections from '../collections';
@@ -135,7 +135,7 @@ class SchemeContainer {
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
 
-        this.geoIndex = new GeoIndex();
+        this.spatialIndex = new SpatialIndex();
 
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
@@ -200,7 +200,7 @@ class SchemeContainer {
         this._itemGroupsToIds = {};
         this.relativeSnappers.horizontal = [];
         this.relativeSnappers.vertical = [];
-        this.geoIndex = new GeoIndex();
+        this.spatialIndex = new SpatialIndex();
 
         // stores element selectors with their dependants
         // this will be used once it has visited all items
@@ -279,6 +279,8 @@ class SchemeContainer {
                 });
             }
 
+            this.indexItemOutlinePoints(item);
+
             // storing revision in item as in future I am plannign to optimize reindeItems function to only reindex changed and affected items
             // this way not all items wold have the same revision
             // revision itself is going to be used in item path cache handling
@@ -292,6 +294,27 @@ class SchemeContainer {
         this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision = newRevision;
         log.timeEnd('reindexItems');
+    }
+
+    indexItemOutlinePoints(item) {
+        const svgPath = this.getSvgOutlineOfItem(item);
+        if (!svgPath) {
+            return;
+        }
+        
+        const minDistance = 20;
+        let pathDistance = 0;
+        const totalLength = svgPath.getTotalLength();
+
+        while (pathDistance < totalLength) {
+            const point = svgPath.getPointAtLength(pathDistance);
+            const worldPoint = this.worldPointOnItem(point.x, point.y, item);
+            this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
+                itemId: item.id,
+                pathDistance
+            });
+            pathDistance += minDistance;
+        }
     }
 
     buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
@@ -413,38 +436,62 @@ class SchemeContainer {
      * @returns {ItemClosestPoint}
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
-        // TODO: OPTIMIZE this for scheme with large amount of items. It should not search through all items
-        let globalPoint = {x, y};
-        let item = null;
-        for (let i = 0; i < this._itemArray.length; i++) {
-            item = this._itemArray[i];
+        const items = new Map();
 
-            const localPoint = this.localPointOnItem(x, y, item);
-            
-            let doCheckItem = item.id !== excludedId;
-            
-            if (onlyVisibleItems) {
-                doCheckItem = doCheckItem && item.meta.calculatedVisibility;
-            }
-
-            if (doCheckItem) {
-                if (localPoint.x >= -d && localPoint.x <= item.area.w + d && localPoint.y >= -d && localPoint.y < item.area.h + d) {
-                    const closestPoint = this.closestPointToItemOutline(item, globalPoint);
-                    if (closestPoint) {
-                        const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
-                        if (squaredDistance < d * d) {
-                            return {
-                                x                 : closestPoint.x,
-                                y                 : closestPoint.y,
-                                distanceOnPath    : closestPoint.distanceOnPath,
-                                itemId            : item.id
-                            };
-                        }
-                    }
+        this.spatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pathDistance}) => {
+            if (!items.has(itemId)) {
+                items.set(itemId, {min: pathDistance, max: pathDistance});
+            } else {
+                const pathRange = items.get(itemId);
+                if (pathRange.min > pathDistance) {
+                    pathRange.min = pathDistance;
+                }
+                if (pathRange.max < pathDistance) {
+                    pathRange.max = pathDistance;
                 }
             }
-        }
-        return null;
+        });
+
+        let globalPoint = {x, y};
+
+        let foundPoint = null;
+        let bestSquaredDistance = 100000;
+
+        items.forEach((pathRange, itemId) => {
+            const item = this.findItemById(itemId);
+            if (item.id === excludedId) {
+                return;
+            }
+            
+            if (onlyVisibleItems && !item.meta.calculatedVisibility) {
+                return;
+            }
+
+            const closestPoint = this.closestPointToItemOutline(item, globalPoint, {
+                startDistance: Math.max(0, pathRange.min - d),
+                stopDistance: pathRange.max + d
+            });
+
+            if (!closestPoint) {
+                return;
+            }
+            const squaredDistance = (closestPoint.x - globalPoint.x) * (closestPoint.x - globalPoint.x) + (closestPoint.y - globalPoint.y) * (closestPoint.y - globalPoint.y);
+            if (squaredDistance < d * d) {
+                const candidatePoint = {
+                    x                 : closestPoint.x,
+                    y                 : closestPoint.y,
+                    distanceOnPath    : closestPoint.distanceOnPath,
+                    itemId            : item.id
+                };
+
+                if (!foundPoint || bestSquaredDistance > squaredDistance) {
+                    foundPoint = candidatePoint;
+                    bestSquaredDistance = squaredDistance;
+                }
+            }
+        });
+
+        return foundPoint;
     }
 
     getBoundingBoxOfItems(items) {
@@ -688,6 +735,11 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, parentId, index + indexOffset);
     }
 
+    /**
+     * 
+     * @param {Item} item 
+     * @returns {SVGPathElement}
+     */
     getSvgOutlineOfItem(item) {
         return this.svgOutlinePathCache.get(item);
     }
@@ -696,10 +748,10 @@ class SchemeContainer {
      * 
      * @param {*} item 
      * @param {Point} globalPoint 
-     * @param {Boolean} withNormal specifies whether it should calculate the normal vector on the point on specified path
+     * @param {Object} settings specifies whether it should calculate the normal vector on the point on specified path
      * @param {ItemClosestPoint}
      */
-    closestPointToItemOutline(item, globalPoint, withNormal) {
+    closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance}) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
@@ -708,7 +760,10 @@ class SchemeContainer {
             return null;
         }
 
-        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath);
+        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath, {
+            startDistance,
+            stopDistance
+        });
         const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;
 

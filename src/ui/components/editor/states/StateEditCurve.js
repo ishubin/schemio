@@ -154,7 +154,9 @@ export default class StateEditCurve extends State {
      */
     findAttachmentPointToItem(item, localPoint) {
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
-        const closestPoint = this.schemeContainer.closestPointToItemOutline(item, worldPoint, true);
+        const closestPoint = this.schemeContainer.closestPointToItemOutline(item, worldPoint, {
+            withNormal: true
+        });
 
         if (closestPoint) {
             return closestPoint;

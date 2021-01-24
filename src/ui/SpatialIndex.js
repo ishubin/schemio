@@ -42,7 +42,7 @@ class QuadTreeNode {
 
     forEachInRange(x1, y1, x2, y2, callback) {
         if (x1 <= this.point.x && this.point.x <= x2 && y1 <= this.point.y && this.point.y <= y2) {
-            callback(this.point, this.value);
+            callback(this.value, this.point);
         }
 
         if (this.se && (x1 >= this.point.x || x2 >= this.point.x) && (y1 >= this.point.y || y2 >= this.point.y)) {
@@ -70,7 +70,7 @@ function insertPoint(node, x, y, value) {
 
 
 // Quad Tree based index for storing points
-export class GeoIndex {
+export class SpatialIndex {
     
     constructor() {
         this.root = null;
