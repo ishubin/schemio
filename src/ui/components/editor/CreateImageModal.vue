@@ -14,7 +14,7 @@
                     <td width="34px">
                         <div class="file-upload-button">
                             <i class="fas fa-file-upload icon"></i>
-                            <input type="file" @change="onFileSelect"/>
+                            <input type="file" accept="image/*" @change="onFileSelect"/>
                         </div>
                     </td>
                 </tr>

@@ -37,7 +37,7 @@
                         <div class="upload-button-container">
                             <div class="upload-button">
                                 <i class="fas fa-file-upload icon"></i>
-                                <input type="file" @change="onImageUpload"/>
+                                <input type="file" accept="image/*" @change="onImageUpload"/>
                             </div>
                         </div>
                     </div>
