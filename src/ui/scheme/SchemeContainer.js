@@ -9,6 +9,7 @@ import keys from 'lodash/keys';
 import indexOf from 'lodash/indexOf';
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
+import { GeoIndex } from '../GeoIndex';
 
 import '../typedef';
 import collections from '../collections';
@@ -134,6 +135,8 @@ class SchemeContainer {
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
 
+        this.geoIndex = new GeoIndex();
+
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
             const shape = Shape.find(item.shape);
@@ -189,13 +192,15 @@ class SchemeContainer {
         log.info('reindexItems()', this);
         log.time('reindexItems');
 
-        //TODO optimize itemMap to not reconstruct it with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
+        //TODO optimize it to not reconstruct all indices with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
+
         this.itemMap = {};
         this._itemArray = [];
         this.worldItems = [];
         this._itemGroupsToIds = {};
         this.relativeSnappers.horizontal = [];
         this.relativeSnappers.vertical = [];
+        this.geoIndex = new GeoIndex();
 
         // stores element selectors with their dependants
         // this will be used once it has visited all items
