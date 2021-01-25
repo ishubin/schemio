@@ -435,6 +435,7 @@ export default {
                 return;
             }
             if (zoom > 0) {
+                this.$emit('zoom-changed', zoom);
                 this.schemeContainer.screenTransform.scale = zoom / 100.0;
                 this.initOffsetSave();
             }
