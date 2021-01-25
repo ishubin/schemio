@@ -143,7 +143,6 @@ if (!config.backendless) {
     $putJSON(   '/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.saveArt);
     $deleteJSON('/v1/projects/:projectId/art/:artId',               [middleware.projectWritePermission],    apiArt.deleteArt);
     $getJSON(   '/v1/projects/:projectId/art',                      [middleware.projectReadPermission],     apiArt.getArt);
-    $getJSON(   '/v1/art',                                          [],                                     apiArt.getGlobalArt);
 
     $post(      '/v1/projects/:projectId/files',                    [middleware.projectWritePermission], apiFiles.uploadFile);
     $get(       '/projects/:projectId/files/:fileName',             [middleware.projectReadPermission],  apiFiles.downloadFile);
@@ -157,6 +156,9 @@ if (!config.backendless) {
     $deleteJSON('/v1/projects/:projectId/categories/:categoryId',   [middleware.projectWritePermission],  apiCategories.deleteCategory);
     $putJSON(   '/v1/projects/:projectId/category-structure',       [middleware.projectWritePermission],  apiCategories.ensureCategoryStructure);
 }
+
+// the following route should work in both modes
+$getJSON(   '/v1/art',                                          [],                                     apiArt.getGlobalArt);
 
 const cwd = process.cwd();
 app.get('*', [metrics.routeMiddleware({ routeName: '*' })], (req, res) => {
