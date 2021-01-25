@@ -26,13 +26,13 @@ class QuadTreeNode {
      * @param {*} value - value that stored at this point
      */
     addPoint(x, y, value) {
-        if (x > this.point.x && y > this.point.y) {
+        if (x >= this.point.x && y >= this.point.y) {
             this.se = insertPoint(this.se, x, y, value);
 
-        } else if (x < this.point.x && y > this.point.y) {
+        } else if (x <= this.point.x && y >= this.point.y) {
             this.sw = insertPoint(this.sw, x, y, value);
 
-        } else if (x > this.point.x && y < this.point.y) {
+        } else if (x >= this.point.x && y <= this.point.y) {
             this.ne = insertPoint(this.ne, x, y, value);
 
         } else {
