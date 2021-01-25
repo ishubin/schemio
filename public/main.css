@@ -1360,7 +1360,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     width: 0px;
     position: absolute;
-    padding-top: 78px;
+    padding-top: 90px;
     top: 0;
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
@@ -1375,7 +1375,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     left: 0;
 }
 .scheme-middle-container .side-panel.side-panel-left.expanded {
-    width: 160px;
+    width: 220px;
 }
 .scheme-middle-container .side-panel .side-panel-overflow {
     height: 100%;
@@ -1744,7 +1744,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     width: 160px;
     background: #eee;
     right: -160px;
-    top: 60px;
+    top: 100px;
 }
 .create-item-menu .preview-item h4 {
     margin: 5px 0 5px 0;
