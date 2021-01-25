@@ -37,7 +37,6 @@ export default class StateCreateItem extends State {
         this.originalPoint = {x: x + newOffset.dx, y: y + newOffset.dy};
         this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
         this.schemeContainer.addItem(this.item);
-        this.refreshControlPoints(this.item);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.item.area);
     }
@@ -142,11 +141,6 @@ export default class StateCreateItem extends State {
             this.item.area.h = this.originalPoint.y - y;
             this.item.area.y = y;
         }
-        this.refreshControlPoints(this.item);
         EventBus.emitItemChanged(this.item.id);
-    }
-
-    refreshControlPoints(item) {
-        StoreUtils.setItemControlPoints(this.store, item);
     }
 }
