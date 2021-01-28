@@ -303,8 +303,9 @@ class SchemeContainer {
         }
         
         const minDistance = 20;
-        let pathDistance = 0;
         const totalLength = svgPath.getTotalLength();
+        
+        let pathDistance = 0;
 
         while (pathDistance < totalLength) {
             const point = svgPath.getPointAtLength(pathDistance);
@@ -315,6 +316,36 @@ class SchemeContainer {
             });
             pathDistance += minDistance;
         }
+        
+        // the following code should work better in terms of performance since it divides the long shapes in half multiple times
+        // and force the quad tree to index better
+        // but when I tested it it did not give any significant performance
+        // should probably test it on a really large documents with thousands of items
+        // For now I decided not to use it since the code is less clear
+        /*
+        let numberOfDivisions = Math.ceil(Math.log(totalLength / minDistance) / Math.log(2));
+
+        let segments = [[0, totalLength]];
+
+        while(numberOfDivisions > 0) {
+            numberOfDivisions -= 1;
+
+            const newSegments = [];
+            for(let i = 0; i < segments.length; i++) {
+                const pathDistance = (segments[i][0] + segments[i][1]) / 2;
+                const point = svgPath.getPointAtLength(pathDistance);
+                const worldPoint = this.worldPointOnItem(point.x, point.y, item);
+                this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
+                    itemId: item.id,
+                    pathDistance
+                });
+                
+                newSegments.push([segments[i][0], pathDistance]);
+                newSegments.push([pathDistance, segments[i][1]]);
+            }
+            segments = newSegments;
+        }
+        */
     }
 
     buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
