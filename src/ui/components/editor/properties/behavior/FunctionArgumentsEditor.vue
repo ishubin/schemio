@@ -1,5 +1,9 @@
 <template>
     <modal :title="`${functionDescription.name} arguments`" @close="$emit('close')" :width="400" :use-mask="false">
+        <div v-if="functionDescription.description">
+            <p>{{functionDescription.description}}</p>
+        </div>
+
         <div style="max-height: 400px; overflow: auto;">
             <table class="properties-table">
                 <tr v-for="(arg, argName) in functionDescription.args" v-if="argumentControlStates[argName]">
