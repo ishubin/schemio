@@ -1,5 +1,3 @@
-import { resetHistory } from "sinon";
-
 class QuadTreeNode {
     constructor(x, y, value) {
         this.point = { x, y };

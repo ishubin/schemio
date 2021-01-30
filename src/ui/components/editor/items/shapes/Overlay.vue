@@ -30,15 +30,21 @@ import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import AdvancedFill from '../AdvancedFill.vue';
 import htmlSanitize from '../../../../../htmlSanitize';
-import {getFontFamilyFor} from '../../../../scheme/Fonts';
 import {generateTextStyle} from '../../text/ItemText';
 
 const computePath = (item) => {
-    const W = item.area.w;
-    const H = item.area.h;
-    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/2, item.area.h/2);
+    if (item.shapeProps.overlayShape === 'ellipse') {
+        const rx = item.area.w / 2;
+        const ry = item.area.h / 2;
+        return `M ${rx} ${item.area.h} a ${rx} ${ry} 0 1 1 1 0 Z`;
 
-    return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+    } else {
+        const W = item.area.w;
+        const H = item.area.h;
+        const R = Math.min(item.shapeProps.cornerRadius, item.area.w/2, item.area.h/2);
+
+        return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+    }
 };
 
 function makeCornerRadiusControlPoint(item) {
@@ -64,6 +70,7 @@ export default {
         computePath,
 
         args: {
+            overlayShape      : {type: 'choice', value: 'rect', name: 'Overlay Shape', options: ['rect', 'ellipse']},
             fill              : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,0.1)'}, name: 'Fill'},
             hoverFill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(100,200,255,0.3)'}, name: 'Hover Fill'},
             strokeColor       : {type: 'color', value: 'rgba(30,30,30,0.1)', name: 'Stroke Color'},
@@ -71,7 +78,7 @@ export default {
             strokeSize        : {type: 'number', value: 2, name: 'Stroke Size'},
             hoverStrokeSize   : {type: 'number', value: 2, name: 'Hover Stroke Size'},
             strokePattern     : {type: 'stroke-pattern', value: 'solid', name: 'Stroke Pattern'},
-            cornerRadius      : {type: 'number', value: 0, name: 'Corner Radius'},
+            cornerRadius      : {type: 'number', value: 0, name: 'Corner Radius', depends: {overlayShape: 'rect'}},
         },
         controlPoints: {
             make(item, pointId) {
