@@ -107,6 +107,21 @@ function isAreaInsideScreen(area, width, height, screenOffset, screenX, screenY,
             && (y2 >= screenOffset && y2 <= height - screenOffset);
 }
 
+
+function isInsideHUD(item, schemeContainer) {
+    if (item.shape === 'hud') {
+        return true;
+    }
+
+    if (item.meta.parentId) {
+        const parentItem = schemeContainer.findItemById(item.meta.parentId);
+        if (parentItem) {
+            return isInsideHUD(parentItem, schemeContainer);
+        }
+    }
+    return false;
+}
+
 export default {
     name: 'Zoom To It',
     args: {
@@ -117,7 +132,8 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        if (!item || !item.area) {
+        // it doesn't make sense to zoom into HUD items since they are supposed to be rendered in viewport transform
+        if (!item || !item.area || isInsideHUD(item, schemeContainer)) {
             resultCallback();
             return;
         }
@@ -161,10 +177,10 @@ export default {
                     schemeContainer.screenTransform.y = oldY * (1.0-t) + destY * t;
                 }, 
                 destroy: () => {
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                     if (!args.inBackground) {
                         resultCallback();
                     }
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                 }
             }));
             if (args.inBackground) {
@@ -174,8 +190,8 @@ export default {
             schemeContainer.screenTransform.zoom = newZoom;;
             schemeContainer.screenTransform.x = destX;
             schemeContainer.screenTransform.y = destY;
-            resultCallback();
             EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+            resultCallback();
         }
     }
 };
