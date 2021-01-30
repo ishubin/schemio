@@ -75,7 +75,7 @@ export default class StateCreateItem extends State {
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
         
-        if (this.store.state.itemCreating.autoRemount) {
+        if (this.store.state.itemCreating.autoRemount && this.item.shape !== 'hud') {
             const parentItem = this.findItemSuitableForParent(this.item.area);
             this.schemeContainer.deselectAllItems();
             if (parentItem) {
