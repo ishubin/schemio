@@ -166,7 +166,17 @@ export default {
      * @param {Object} settings 
      * @returns {SVGPathPoint}
      */
-    closestPointOnPath(x, y, svgPath, {startDistance, stopDistance}) {
+    closestPointOnPath(x, y, svgPath, settings) {
+        let startDistance = undefined;
+        let stopDistance = undefined;
+
+        if (settings && settings.startDistance !== undefined) {
+            startDistance = settings.startDistance;
+        }
+        if (settings && settings.stopDistance !== undefined) {
+            stopDistance = settings.stopDistance;
+        }
+
         const pathLength = svgPath.getTotalLength();
         if (pathLength < 0.001) {
             const p = svgPath.getPointAtLength(0);

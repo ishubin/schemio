@@ -24,8 +24,6 @@ import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
-import Shape from './Shape';
-import utils from '../../../../utils';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import '../../../../typedef';
@@ -42,32 +40,6 @@ function connectPoints(p1, p2) {
         return `C ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
     }
     return `L ${p2.x} ${p2.y} `;
-}
-
-/**
- * Computes item outline path and return a shadow svg path for it
- * @returns {SVGPathElement}
- */
-function computeOutlinePath(item) {
-    const shape = Shape.find(item.shape);
-    if (shape && shape.computeOutline) {
-        const path = shape.computeOutline(item);
-        if (path) {
-            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shadowSvgPath.setAttribute('d', path);
-            return shadowSvgPath;
-        }
-    }
-    return null;
-}
-
-function getPointOnItemPath(item, shadowSvgPath, positionOnPath, schemeContainer) {
-    if (shadowSvgPath) {
-        const point = shadowSvgPath.getPointAtLength(positionOnPath);
-        return schemeContainer.worldPointOnItem(point.x, point.y, item);
-    }
-    // returning the center of item if it failed to find its path
-    return schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
 }
 
 function computePath(item) {
@@ -97,9 +69,6 @@ function computePath(item) {
     return path;
 };
 
-
-const DST_READJUST_CTX = Symbol('dstReadjustCtx');
-const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
 
 
 /**
