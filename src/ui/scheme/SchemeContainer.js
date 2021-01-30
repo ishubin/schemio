@@ -883,6 +883,10 @@ class SchemeContainer {
         return this._itemArray;
     }
 
+    getTopLevelItems() {
+        return this.worldItems;
+    }
+
     filterNonHUDItems(items) {
         return filter(items, item => item.shape !== 'hud' && !item.meta.isInHUD);
     }

@@ -9,6 +9,8 @@ import ItemParticleEffectFunction from './ItemParticleEffectFunction';
 import BlinkEffectFunction from './BlinkEffectFunction';
 import ItemMoveFunction from './ItemMoveFunction';
 import WaitFunction from './WaitFunction';
+import ToggleFunction from './ToggleFunction';
+import UntoggleFunction from './UntoggleFunction';
 
 export default {
     main: {
@@ -22,7 +24,9 @@ export default {
         move:               ItemMoveFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
-        wait:               WaitFunction
+        wait:               WaitFunction,
+        toggle:             ToggleFunction,
+        untoggle:           UntoggleFunction
     },
     scheme: {
     }
