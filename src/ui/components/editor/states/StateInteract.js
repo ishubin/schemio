@@ -35,6 +35,7 @@ class StateInteract extends State {
     }
 
     reset() {
+        this.initialClickPoint = null;
         this.startedDragging = false;
     }
 
@@ -65,9 +66,7 @@ class StateInteract extends State {
                     }
                 }
             }
-            this.dragScreen(mx, my);
-            this.initialClickPoint = null;
-            this.startedDragging = false;
+            this.reset();
         }
     }
 
