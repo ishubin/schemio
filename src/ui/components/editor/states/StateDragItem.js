@@ -841,6 +841,7 @@ export default class StateDragItem extends State {
                 box.area.x += dx;
                 box.area.y += dy;
                 this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+                this.schemeContainer.updateMultiItemEditBox();
             }
         }
     }
