@@ -304,9 +304,67 @@ class SchemeContainer {
         
         const minDistance = 20;
         const totalLength = svgPath.getTotalLength();
-        
-        let pathDistance = 0;
 
+        const totalPoints = Math.max(1, Math.ceil(totalLength/minDistance));
+
+        // Doing a breadth-first indexing by taking midpoint of each segment
+        // This is needed for more efficient indexing
+        //
+        // For instance if you have a straight line and you perform indexing linearly
+        // - then the lookup of the last point would take O(n)
+        //
+        // But if you index it from the mid point and then do the same for each segment
+        // - then lookup of any points of the segements would take at most O(log(n))
+        //
+        // That's why in this code is indexing by dividing each segment in half and indexes
+        // mid points first
+
+        let segments = [[0, totalPoints]];
+
+        while(segments.length > 0) {
+            const newSegments = [];
+            for (let i = 0; i < segments.length; i++) {
+                const a = segments[i][0];
+                const b = segments[i][1];
+
+                let pathDistance = -1;
+
+                let diff = b - a;
+                if (diff >= 2) {
+                    const mid = Math.floor((a + b) / 2);
+                    pathDistance = mid * minDistance;
+                    if (mid > a) {
+                        newSegments.push([a, mid - 1]);
+                    }
+                    if (mid < b) {
+                        newSegments.push([mid + 1, b]);
+                    }
+
+                } else if (diff >= 1) {
+                    pathDistance = b * minDistance;
+                    newSegments.push([a, a]);
+
+                } else if (diff >= 0) {
+                    pathDistance = a * minDistance;
+                }
+
+                if (pathDistance >= 0) {
+                    const point = svgPath.getPointAtLength(pathDistance);
+                    const worldPoint = this.worldPointOnItem(point.x, point.y, item);
+                    this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
+                        itemId: item.id,
+                        pathDistance
+                    });
+                }
+            }
+
+            segments = newSegments;
+        }
+
+        // The following code is a lot simpler to understand, but it creates a less efficient index
+        // because it indexes points linearly
+        /*
+        let pathDistance = 0;
         while (pathDistance < totalLength) {
             const point = svgPath.getPointAtLength(pathDistance);
             const worldPoint = this.worldPointOnItem(point.x, point.y, item);
@@ -316,6 +374,7 @@ class SchemeContainer {
             });
             pathDistance += minDistance;
         }
+        */
     }
 
     buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
