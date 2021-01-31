@@ -49,6 +49,10 @@ function $axios() {
 }
 
 export default {
+    getUserById(userId) {
+        return $axios().get(`/v1/users/${userId}`).then(unwrapAxios).catch(unwrapAxiosError);
+    },
+
     getCurrentUser() {
         return $axios().get('/v1/user').then(unwrapAxios);
     },
@@ -72,9 +76,12 @@ export default {
         return $axios().patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    findProjects({query, offset}) {
+    findProjects({userId, query, offset}) {
         let encodedQuery = encodeURIComponent(query || '');
         let url = `/v1/projects?offset=${offset || 0}&q=${encodedQuery}`;
+        if (userId) {
+            url += `&userId=${userId}`;
+        }
         return $axios().get(url).then(unwrapAxios);
     },
 

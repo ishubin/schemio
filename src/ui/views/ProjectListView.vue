@@ -6,6 +6,7 @@
             </div>
         </header-component>
 
+        <h3>Projects</h3>
         <div class="middle-content">
             <projects-list :key="`projects-list-${revision}`" route-prefix="/projects"/>
         </div>

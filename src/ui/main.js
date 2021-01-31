@@ -16,6 +16,7 @@ import ProjectView from './views/ProjectView.vue';
 import ProjectCreateEditView from './views/ProjectCreateEditView.vue';
 import NotFoundView from './views/NotFoundView.vue';
 import ErrorView from './views/ErrorView.vue';
+import UserProfileView from './views/UserProfileView.vue';
 
 
 Vue.use(VueRouter);
@@ -41,6 +42,7 @@ const routes = [
     route('HomeView',           '/', HomeView),
     route('ProjectListView',    '/projects', ProjectListView),
     route('ProjectView',        '/projects/:projectId', ProjectView),
+    route('UserProfileView',    '/users/:userId', UserProfileView),
     route('NotFoundView',       '/not-found', NotFoundView),
     route('ErrorView',          '/error', ErrorView),
     { path: '*', redirect: '/not-found' },

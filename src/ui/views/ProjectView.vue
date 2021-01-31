@@ -115,10 +115,10 @@
                             </div>
                         </div>
 
-                        <div v-if="hasWritePermission && !isEditingScheme && searchResult.results.length > 0">
+                        <div v-if="hasWritePermission && !isEditingScheme && searchResult.results">
                             <span class="link" @click="isEditingScheme = true">Edit Schemes</span>
                         </div>
-                        <div class="section" v-if="isEditingScheme && searchResult && searchResult.results.length > 0">
+                        <div class="section" v-if="isEditingScheme && searchResult && searchResult.results">
                             <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
                             <span class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
                         </div>

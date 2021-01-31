@@ -54,14 +54,6 @@ export default {
     data() {
         return {
             originalUrlEncoded: encodeURIComponent(window.location),
-            userDropDownOptions: [{
-                name: 'My Projects',
-                link: '/projects'
-            }, {
-                name: 'Logout',
-                link: '/auth/logout'
-            }],
-
             newSchemePopup: {
                 categories: [],
                 show: false
@@ -104,7 +96,25 @@ export default {
                 return user.name;
             }
             return '';
+        },
+
+        userDropDownOptions() {
+            const user = this.$store.getters.currentUser;
+            if (user) {
+                return [{
+                    name: 'My Projects',
+                    link: '/projects'
+                }, {
+                    name: 'My Profile',
+                    link: `/users/${user.id}`
+                }, {
+                    name: 'Logout',
+                    link: '/auth/logout'
+                }];
+            }
+            return [];
         }
+
     }
 }
 </script>

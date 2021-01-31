@@ -59,6 +59,7 @@ export default {
     components: { Pagination },
 
     props: {
+        userId: { type: String, default: null },
         routePrefix: { type: String, default: '/projects' }
     },
 
@@ -105,6 +106,7 @@ export default {
             this.errorMessage = null;
             this.loadingProjects = true;
             apiClient.findProjects({
+                userId: this.userId,
                 query: this.query,
                 offset: offset
             }).then(searchResponse => {

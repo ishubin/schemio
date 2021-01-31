@@ -285,6 +285,12 @@ ul.projects > li .project-description {
     border-radius: var(--control-border-radius);
 }
 
+.mock-container .mock-long-field {
+    display: block;
+    width: 100%;
+    height: 20px;
+    margin-bottom: 20px;
+}
 
 .mock-projects-list .mock-project {
     display: block;
