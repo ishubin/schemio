@@ -690,35 +690,37 @@ export default class StateEditCurve extends State {
         let verticalSnapper = null;
 
         // first it should try to snap to its own curve points and only then to any other snappers of other items
-        forEach(this.item.shapeProps.points, (point, idx) => {
-            if (pointId === idx) {
-                return;
-            }
-            
-            const wp = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+        if (this.isSnappingToItemsEnabled()) {
+            forEach(this.item.shapeProps.points, (point, idx) => {
+                if (pointId === idx) {
+                    return;
+                }
 
-            let d = Math.abs(wp.y - worldCurvePoint.y);
-            if (d < maxSnapProximity && d < bestSnappedHorizontalProximity) {
-                bestSnappedHorizontalProximity = d;
-                horizontalSnapper = {
-                    localValue: point.y,
-                    value: wp.y,
-                    item: this.item,
-                    snapperType: 'horizontal'
-                };
-            }
+                const wp = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
 
-            d = Math.abs(wp.x - worldCurvePoint.x);
-            if (d < maxSnapProximity && d < bestSnappedVerticalProximity) {
-                bestSnappedVerticalProximity = d;
-                verticalSnapper = {
-                    localValue: point.x,
-                    value: wp.x,
-                    item: this.item,
-                    snapperType: 'vertical'
-                };
-            }
-        });
+                let d = Math.abs(wp.y - worldCurvePoint.y);
+                if (d < maxSnapProximity && d < bestSnappedHorizontalProximity) {
+                    bestSnappedHorizontalProximity = d;
+                    horizontalSnapper = {
+                        localValue: point.y,
+                        value: wp.y,
+                        item: this.item,
+                        snapperType: 'horizontal'
+                    };
+                }
+
+                d = Math.abs(wp.x - worldCurvePoint.x);
+                if (d < maxSnapProximity && d < bestSnappedVerticalProximity) {
+                    bestSnappedVerticalProximity = d;
+                    verticalSnapper = {
+                        localValue: point.x,
+                        value: wp.x,
+                        item: this.item,
+                        snapperType: 'vertical'
+                    };
+                }
+            });
+        }
 
         const newOffset = this.snapPoints({
             vertical: [worldCurvePoint],

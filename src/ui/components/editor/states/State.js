@@ -114,6 +114,10 @@ class State {
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
     }
 
+    isSnappingToItemsEnabled() {
+        return this.store.state.snap.items;
+    }
+
     snapToGrid(value) {
         const snap = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
         if (this.store.state.snap.grid) {
@@ -150,7 +154,7 @@ class State {
         let verticalSnapper = null;
         let bestVerticalProximity = 1000;
 
-        if (this.store.state.snap.items) {
+        if (this.isSnappingToItemsEnabled()) {
             forEach(this.schemeContainer.relativeSnappers.horizontal, snapper => {
                 if (!excludeItemIds.has(snapper.item.id)) {
                     forEach(points.horizontal, point => {
