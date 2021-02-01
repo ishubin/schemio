@@ -18,7 +18,7 @@
 
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 
-            <proejcts-list :user-id="userId" :route-prefix="`/users/${userId}`"/>
+            <proejcts-list :key="`project-list-${revision}`" :user-id="userId" :route-prefix="`/users/${userId}`"/>
         </div>
     </div>
 </template>
@@ -50,7 +50,15 @@ export default {
             user        : null,
             isLoading   : false,
             errorMessage: null,
+            revision    : 0,
         };
+    },
+
+    watch:{
+        $route(to, from) {
+            // forcing it to refresh projects list
+            this.revision += 1;
+        }
     }
 }
 </script>
