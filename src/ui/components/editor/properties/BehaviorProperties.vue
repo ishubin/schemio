@@ -266,7 +266,7 @@ export default {
             const options = [];
 
             forEach(Functions.main, (func, funcId) => {
-                if (funcId !== 'set') {
+                if (funcId !== 'set' && funcId !== 'sendEvent') {
                     options.push({
                         method: funcId,
                         name: func.name,
