@@ -252,7 +252,12 @@ export default {
                 
             const shape = Shape.find(this.item.shape);
             if (shape) {
-                eventOptions = standardItemEvents.concat(map(shape.getEvents(this.item), event => {return {id: event.name, name: event.name}}));
+
+                const itemEvents = shape.getEvents(this.item);
+                if (itemEvents.length > 500) {
+                    itemEvents.length = 500;
+                }
+                eventOptions = standardItemEvents.concat(map(itemEvents, event => {return {id: event.name, name: event.name}}));
             }
 
             eventOptions.push({
