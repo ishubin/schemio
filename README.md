@@ -18,7 +18,7 @@ Item selectors:
 '#abc'                  // matches anything with id abc 
 '~Browser'              // by name "Browser"
 'self'                  // self
-'&reset'                // anything marked as part of 'reset' grouped
+'&reset'                // anything marked as part of 'reset' group
 
 ```
 
@@ -136,6 +136,55 @@ for x, i in [0 to 10] {
 
 }
 
+```
+
+
+Frame Player structure
+--------------------------------------------
+
+```javascript
+const item = {
+    shape: 'frame_player',
+    shapeProps: {
+        // Functions have "animatable" parameters that can be used in frames
+        functions: {
+            func_1: {
+                element: '#some-item',
+                function: 'move_along_path',
+                args: {
+                    pathElement: '#rwererwr',
+                }
+            }
+        },
+        frames: [{
+            frame: 0,
+            element: '#some-item', // element picker
+            property: 'area.x',
+            value: 0,
+            interpolation: 'linear', // e.g. linear, step, smooth, beizer
+        }, {
+            frame: 0,
+            element: '#some-item', // element picker
+            property: 'area.y',
+            value: 0,
+            interpolation: 'linear', // e.g. linear, step, smooth, beizer
+        }, {
+            frame: 5,
+            element: '#some-item',
+            property: 'opacity',
+            value: false,
+            interpolation: 'step'
+        }, 
+        // ..............
+        {
+            frame: 10,
+            function: 'func_1',
+            property: 'pathPercentage',
+            value: 0,
+            interpolation: 'step'
+        }]
+    }
+}
 ```
 
 
