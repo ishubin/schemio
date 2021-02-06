@@ -36,15 +36,12 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import apiClient from '../../../apiClient';
 import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
-import utils from '../../../utils';
-import EventBus from '../EventBus';
 import defaultStyles from './DefaultStyles';
 
 
