@@ -1,7 +1,7 @@
 export default {
     project: {
         categories: {
-            enabled: false
+            enabled: true
         }
     },
 

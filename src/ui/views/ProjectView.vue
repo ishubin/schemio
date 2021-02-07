@@ -366,14 +366,6 @@ export default {
                 }
             });
 
-
-            if (this.categoriesConfig.enabled) {
-                apiClient.getCategory(this.projectId, this.currentCategoryId).then(category => {
-                    this.currentCategory = category;
-                });
-            }
-
-
             this.reloadCategoryTree();
             this.searchSchemes();
         },
@@ -609,13 +601,26 @@ export default {
             return false;
         },
 
-        enrichCategories(categories, parentId) {
+        enrichCategories(categories, parentId, parentCategory) {
             forEach(categories, category => {
                 if (parentId) {
                     category.parentId = parentId;
                 }
+
+                category.ancestors = [];
+
+                if (parentCategory) {
+                    category.ancestors = parentCategory.ancestors.concat([{
+                        id: parentCategory.id,
+                        name: parentCategory.name
+                    }]);
+                }
+
+                if (this.currentCategoryId === category.id) {
+                    this.currentCategory = category;
+                }
                 if (category.childCategories) {
-                    this.enrichCategories(category.childCategories, category.id);
+                    this.enrichCategories(category.childCategories, category.id, category);
                 }
             });
             return categories;

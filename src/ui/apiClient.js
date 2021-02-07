@@ -183,11 +183,6 @@ export default {
         return $axios().delete(`/v1/projects/${projectId}/categories/${categoryId}`).then(unwrapAxios);
     },
 
-    getCategory(projectId, parentCategoryId) {
-        var id = parentCategoryId ? parentCategoryId : '';
-        return $axios().get(`/v1/projects/${projectId}/categories/${id}`).then(unwrapAxios);
-    },
-
     updateCategory(projectId, categoryId, category) {
         if (category && category.name) {
             return $axios().put(`/v1/projects/${projectId}/categories/${categoryId}`, {

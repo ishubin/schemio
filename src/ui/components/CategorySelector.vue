@@ -33,11 +33,35 @@
 <script>
 import apiClient from '../apiClient.js';
 
+
+
+function findCategoryInTree(categoryId, categories) {
+    if (!categories) {
+        return null;
+    }
+
+    for (let i = 0; i < categories.length; i++) {
+        if (categories[i].id === categoryId) {
+            return categories[i];
+        }
+        const foundInChildren = findCategoryInTree(categoryId, categories[i].childCategories);
+        if (foundInChildren) {
+            return foundInChildren;
+        }
+    }
+
+    return null;
+};
+
+
 export default {
     props: ['categories', 'projectId'],
 
     mounted() {
-        this.reloadSuggestions();
+        return apiClient.getCategoryTree(this.projectId).then(categories => {
+            this.treeCategories = categories;
+            this.reloadSuggestions();
+        });
     },
 
     data() {
@@ -45,7 +69,7 @@ export default {
             inputText: '',
             childSuggestions: [],
             showSuggestions: false,
-
+            treeCategories: [], // a tree of categories
             blurTimer: null
         };
     },
@@ -54,15 +78,22 @@ export default {
         reloadSuggestions() {
             var id = null;
             this.showSuggestions = false;
+            this.childSuggestions = [];
             if (this.categories.length > 0) {
                 id = this.categories[this.categories.length - 1].id;
                 if (!id) {
-                    return Promise.resolve(null);
+                    return;
                 }
             }
-            return apiClient.getCategory(this.projectId, id).then(category => {
-                this.childSuggestions = category.childCategories;
-            });
+            if (id) {
+                const category = findCategoryInTree(id, this.treeCategories);
+                if (category && category.childCategories) {
+                    this.childSuggestions = category.childCategories;
+                }
+
+            } else {
+                this.childSuggestions = this.treeCategories;
+            }
         },
 
         enterPressed() {
@@ -76,9 +107,8 @@ export default {
         backspacePressed() {
             if (this.inputText.length === 0) {
                 this.categories.pop();
-                this.reloadSuggestions().then(() => {
-                    this.showSuggestions = true;
-                });
+                this.reloadSuggestions();
+                this.showSuggestions = true;
             }
         },
 

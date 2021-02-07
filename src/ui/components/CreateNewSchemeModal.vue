@@ -37,7 +37,6 @@
 <script>
 import apiClient from '../apiClient.js';
 import RichTextEditor from './RichTextEditor.vue';
-import axios from 'axios';
 import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
 import {enrichItemWithDefaults} from '../scheme/Item';
