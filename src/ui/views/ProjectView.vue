@@ -395,6 +395,8 @@ export default {
                 .then(categories => {
                     this.categories = categories;
                 });
+            } else {
+                return Promise.resolve();
             }
         },
 
@@ -533,9 +535,9 @@ export default {
                 }
 
                 apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, destinationCategoryId)
-                .then(categories => {
+                .then(() => this.reloadCategoryTree())
+                .then(() => {
                     this.moveCategoryModal.shown = false;
-                    this.categories = categories;
                     this.categoryTreeRevision += 1;
                 }).catch(err => {
                     this.moveCategoryModal.errorMessage = 'Internal Server Error. Could not move category';
@@ -553,9 +555,8 @@ export default {
                     if (isCurrentCategoryInDeletedTree) {
                         this.currentCategoryId = null;
                         this.$router.push({path: this.$route.path, query: {}});
-                    } else {
-                        return this.reloadCategoryTree()
                     }
+                    return this.reloadCategoryTree();
                 })
                 .catch(err => {
                     this.deleteCategoryModal.errorMessage = 'Internal Server Error. Could not delete category';
@@ -693,6 +694,15 @@ export default {
     },
 
     watch:{
+        $route(to, from) {
+            if (to.name === 'ProjectView') {
+                if (to.query.category) {
+                    this.currentCategoryId = to.query.category;
+                } else {
+                    this.currentCategoryId = null;
+                }
+            }
+        },
         currentView(view) {
             settingsStorage.save('currentView', view);
         },
