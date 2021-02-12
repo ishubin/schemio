@@ -27,7 +27,8 @@
             </div>
         </div>
 
-        <create-new-scheme-modal v-if="newSchemePopup.show" :categories="newSchemePopup.categories"
+        <create-new-scheme-modal v-if="newSchemePopup.show"
+            :categories="newSchemePopup.categories"
             :project-id="projectId"
             @close="newSchemePopup.show = false"
             @scheme-created="openNewSchemePopupSchemeCreated"
@@ -63,7 +64,6 @@ export default {
 
     methods: {
         openNewSchemePopup() {
-            this.menuDisplayed = false;
             if (this.category && this.category.id) {
                 var categories = map(this.category.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};

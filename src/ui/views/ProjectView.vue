@@ -268,6 +268,7 @@ export default {
             query: '',
             urlPrefix: null,
             searchResult: null,
+            lastSearchPath: '',
 
             // storing scheme checkbox states
             schemeStates: {},
@@ -279,6 +280,7 @@ export default {
             totalPages: 0,
             resultsPerPage: 20,
             categories: [],
+            categoriesMap: new Map(),
             categoryTreeRevision: 0,
 
             initialPageLoad: true,
@@ -391,7 +393,10 @@ export default {
         reloadCategoryTree() {
             if (this.categoriesConfig.enabled) {
                 return apiClient.getCategoryTree(this.projectId)
-                .then(this.enrichCategories)
+                .then(categories => {
+                    this.categoriesMap = new Map();
+                    return this.enrichAndIndexCategories(categories);
+                })
                 .then(categories => {
                     this.categories = categories;
                 });
@@ -423,6 +428,9 @@ export default {
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
                 this.updateSchemeStates();
+
+                // storing full path to avoid doing double search
+                this.lastSearchPath = this.$router.currentRoute.fullPath;
             })
             .catch(err => {
                 this.initialPageLoad = false;
@@ -602,7 +610,7 @@ export default {
             return false;
         },
 
-        enrichCategories(categories, parentId, parentCategory) {
+        enrichAndIndexCategories(categories, parentId, parentCategory) {
             forEach(categories, category => {
                 if (parentId) {
                     category.parentId = parentId;
@@ -621,8 +629,10 @@ export default {
                     this.currentCategory = category;
                 }
                 if (category.childCategories) {
-                    this.enrichCategories(category.childCategories, category.id, category);
+                    this.enrichAndIndexCategories(category.childCategories, category.id, category);
                 }
+
+                this.categoriesMap.set(category.id, category);
             });
             return categories;
         },
@@ -698,8 +708,14 @@ export default {
             if (to.name === 'ProjectView') {
                 if (to.query.category) {
                     this.currentCategoryId = to.query.category;
+                    this.currentCategory = this.categoriesMap.get(this.currentCategoryId);
                 } else {
                     this.currentCategoryId = null;
+                    this.currentCategory = null;
+                }
+
+                if (this.$router.currentRoute.fullPath !== this.lastSearchPath) {
+                    this.searchSchemes();
                 }
             }
         },
