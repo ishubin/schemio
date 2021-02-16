@@ -49,9 +49,11 @@
 }
 
 
-html {
-    overflow: hidden;
+html, body, #app {
+    width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -59,9 +61,6 @@ body {
     margin: 0;
     padding: 0;
     color: #222;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
     background: var(--base-weak);
 }
 
@@ -93,7 +92,6 @@ h5 {
 
 /******************* Middle content *********************/
 .middle-content {
-    margin-top: 60px;
     max-width: 1100px;
     margin-left: auto;
     margin-right: auto;
@@ -142,7 +140,6 @@ h5 {
 
 /******************** Header *********************/
 .header {
-    position: fixed;
     top: 0;
     width: 100%;
     height: 48px;
@@ -868,21 +865,27 @@ ul.pagination li a.current {
 
 
 
-.scheme-middle-container {
-    position: relative;
+.scheme-editor-view {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     padding: 0;
     margin: 0;
+}
+
+.scheme-editor-middle-section {
+    height: 100%;
 }
 
 .quick-helper-panel-wrapper {
     background: var(--faint-weak);
     border-bottom: 1px solid var(--faint-strong);
-    position: absolute;
     display: table;
     width: 100%;
+    height: 37px;
     top: 47px;
+    z-index: 100;
 }
 .quick-helper-panel {
     display: table-cell;
@@ -1005,11 +1008,12 @@ ul.pagination li a.current {
 
 .svg-editor {
     position: relative;
+    width: 100%;
+    height: 100%;
 }
 #svg_plot {
-    position: fixed;
-    top: 0;
-    left: 0;
+    width: 100%;
+    height: 100%;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -1245,6 +1249,8 @@ ul.pagination li a.current {
 
 .scheme-container {
     z-index: 98;
+    width: 100%;
+    height: 100%;
 }
   
 /*********************** Button Group **********************/
@@ -1362,7 +1368,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 /***************************/
 /*   Side Panel            */
 /***************************/
-.scheme-middle-container .side-panel {
+.scheme-editor-view .side-panel {
     height: 100%;
     width: 0px;
     position: absolute;
@@ -1371,24 +1377,24 @@ ul.button-group > li.disabled > .icon-button:hover,
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
-.scheme-middle-container .side-panel.side-panel-right {
+.scheme-editor-view .side-panel.side-panel-right {
     right: 0;
 }
-.scheme-middle-container .side-panel.side-panel-right.expanded {
+.scheme-editor-view .side-panel.side-panel-right.expanded {
     width: 400px;
 }
-.scheme-middle-container .side-panel.side-panel-left {
+.scheme-editor-view .side-panel.side-panel-left {
     left: 0;
 }
-.scheme-middle-container .side-panel.side-panel-left.expanded {
+.scheme-editor-view .side-panel.side-panel-left.expanded {
     width: 220px;
 }
-.scheme-middle-container .side-panel .side-panel-overflow {
+.scheme-editor-view .side-panel .side-panel-overflow {
     height: 100%;
     width: 100%;
     overflow: auto;
 }
-.scheme-middle-container .side-panel .side-panel-expander {
+.scheme-editor-view .side-panel .side-panel-expander {
     display: inline-block;
     position: absolute;
     margin: auto;
@@ -1402,18 +1408,18 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 40px;
     width: 12px;
 }
-.scheme-middle-container .side-panel-right .side-panel-expander {
+.scheme-editor-view .side-panel-right .side-panel-expander {
     border-left: 1px solid #aaa;
     left: -12px;
 }
-.scheme-middle-container .side-panel-left .side-panel-expander {
+.scheme-editor-view .side-panel-left .side-panel-expander {
     border-right: 1px solid #aaa;
     right: -12px;
 }
-.scheme-middle-container .side-panel .side-panel-expander:hover {
+.scheme-editor-view .side-panel .side-panel-expander:hover {
     color: #777;
 }
-.scheme-middle-container .side-panel .side-panel-expander i {
+.scheme-editor-view .side-panel .side-panel-expander i {
     margin-top: 10px;
     margin-left: 1px;
 }

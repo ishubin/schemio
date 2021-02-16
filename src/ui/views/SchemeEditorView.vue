@@ -4,46 +4,83 @@
 
 <template lang="html">
     <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
-        <div class="scheme-middle-container">
+        <header-component 
+            :project-id="projectId"
+            :project="project"
+            :category="currentCategory"
+            :allow-new-scheme="false"
+            >
+            <div slot="middle-section">
+                <div class="scheme-title" v-if="schemeContainer" @dblclick="triggerSchemeTitleEdit">
+                    <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
+                    <span ref="schemeTitle"
+                        :contenteditable="schemeTitleEdit.shown"
+                        @keydown.enter="submitTitleEdit"
+                        @keydown.esc="submitTitleEdit"
+                        @blur="submitTitleEdit"
+                        >{{schemeContainer.scheme.name}}</span>
+                </div>
+            </div>
+        </header-component>
 
-            <header-component 
-                :project-id="projectId"
-                :project="project"
-                :category="currentCategory"
-                :allow-new-scheme="false"
-                >
-                <div slot="middle-section">
-                    <div class="scheme-title" v-if="schemeContainer" @dblclick="triggerSchemeTitleEdit">
-                        <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
-                        <span ref="schemeTitle"
-                            :contenteditable="schemeTitleEdit.shown"
-                            @keydown.enter="submitTitleEdit"
-                            @keydown.esc="submitTitleEdit"
-                            @blur="submitTitleEdit"
-                            >{{schemeContainer.scheme.name}}</span>
+        <quick-helper-panel
+            v-if="schemeContainer"
+            :project-id="projectId"
+            :project="project"
+            :scheme-container="schemeContainer"
+            :mode="mode"
+            :zoom="zoom"
+            @shape-prop-changed="onItemShapePropChanged"
+            @clicked-zoom-to-selection="zoomToSelection()"
+            @clicked-undo="historyUndo()"
+            @clicked-redo="historyRedo()"
+            @clicked-bring-to-front="bringSelectedItemsToFront()"
+            @clicked-bring-to-back="bringSelectedItemsToBack()"
+            @convert-curve-points-to-simple="convertCurvePointToSimple()"
+            @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
+            @import-json-requested="onImportSchemeJSONClicked"
+            @export-json-requested="exportAsJSON"
+            @export-svg-requested="exportAsSVG"
+            @export-html-requested="exportHTMLModalShown = true"
+            @zoom-offset-changed="initOffsetSave"
+            @zoom-changed="onZoomChanged"
+            @zoomed-to-items="zoomToItems"
+            @new-scheme-requested="onNewSchemeRequested"
+            @mode-changed="toggleMode"
+            >
+            <ul class="button-group" v-if="mode === 'edit' && currentUser && (schemeModified || statusMessage.message)">
+                <li v-if="schemeModified">
+                    <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
+                    <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
+                </li>
+                <li v-if="statusMessage.message">
+                    <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
+                        {{statusMessage.message}}
+                        <span class="msg-close" @click="clearStatusMessage"><i class="fas fa-times"/></span>
                     </div>
-                </div>
-            </header-component>
+                </li>
+            </ul>
+            </quick-helper-panel>
 
+        <div class="scheme-editor-middle-section">
             <div class="scheme-container" oncontextmenu="return false;">
-                <div v-if="schemeContainer">
-                    <svg-editor
-                        :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
-                        :project-id="projectId"
-                        :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
-                        :mode="mode"
-                        :offline="offlineMode"
-                        :zoom="zoom"
-                        @switched-state="onSvgEditorSwitchedState"
-                        @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
-                        @clicked-add-item-link="onClickedAddItemLink"
-                        @clicked-start-connecting="onClickedStartConnecting"
-                        @clicked-bring-to-front="bringSelectedItemsToFront()"
-                        @clicked-bring-to-back="bringSelectedItemsToBack()"
-                        @clicked-copy-selected-items="copySelectedItems()"
-                        @clicked-items-paste="pasteItemsFromClipboard()"
-                        ></svg-editor>
-                </div>
+                <svg-editor
+                    v-if="schemeContainer"
+                    :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
+                    :project-id="projectId"
+                    :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
+                    :mode="mode"
+                    :offline="offlineMode"
+                    :zoom="zoom"
+                    @switched-state="onSvgEditorSwitchedState"
+                    @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
+                    @clicked-add-item-link="onClickedAddItemLink"
+                    @clicked-start-connecting="onClickedStartConnecting"
+                    @clicked-bring-to-front="bringSelectedItemsToFront()"
+                    @clicked-bring-to-back="bringSelectedItemsToBack()"
+                    @clicked-copy-selected-items="copySelectedItems()"
+                    @clicked-items-paste="pasteItemsFromClipboard()"
+                    ></svg-editor>
             </div>
 
             <div class="scheme-not-found-block" v-if="schemeLoadErrorMessage">
@@ -138,46 +175,8 @@
                     </div>
                 </div>
             </div>
-
-            <quick-helper-panel
-                v-if="schemeContainer"
-                :project-id="projectId"
-                :project="project"
-                :scheme-container="schemeContainer"
-                :mode="mode"
-                :zoom="zoom"
-                @shape-prop-changed="onItemShapePropChanged"
-                @clicked-zoom-to-selection="zoomToSelection()"
-                @clicked-undo="historyUndo()"
-                @clicked-redo="historyRedo()"
-                @clicked-bring-to-front="bringSelectedItemsToFront()"
-                @clicked-bring-to-back="bringSelectedItemsToBack()"
-                @convert-curve-points-to-simple="convertCurvePointToSimple()"
-                @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
-                @import-json-requested="onImportSchemeJSONClicked"
-                @export-json-requested="exportAsJSON"
-                @export-svg-requested="exportAsSVG"
-                @export-html-requested="exportHTMLModalShown = true"
-                @zoom-offset-changed="initOffsetSave"
-                @zoom-changed="onZoomChanged"
-                @zoomed-to-items="zoomToItems"
-                @new-scheme-requested="onNewSchemeRequested"
-                @mode-changed="toggleMode"
-                >
-                <ul class="button-group" v-if="mode === 'edit' && currentUser && (schemeModified || statusMessage.message)">
-                    <li v-if="schemeModified">
-                        <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                        <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
-                    </li>
-                    <li v-if="statusMessage.message">
-                        <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
-                            {{statusMessage.message}}
-                            <span class="msg-close" @click="clearStatusMessage"><i class="fas fa-times"/></span>
-                        </div>
-                    </li>
-                </ul>
-            </quick-helper-panel>
         </div>
+
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
         <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
@@ -519,7 +518,6 @@ export default {
         },
 
         openNewSchemePopup() {
-            console.log('sdfdsfsdafa');
             if (this.currentCategory && this.currentCategory.id) {
                 var categories = map(this.currentCategory.ancestors, ancestor => {
                     return {name: ancestor.name, id: ancestor.id};

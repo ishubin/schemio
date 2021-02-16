@@ -3,12 +3,8 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div id="svg-editor" class="svg-editor"
-            :width="width+'px'"
-            :height="height+'px'">
+    <div id="svg-editor" class="svg-editor">
         <svg id="svg_plot" ref="svgDomElement"
-            :width="width+'px'"
-            :height="height+'px'"
             :class="['mode-' + mode, 'state-' + state]"
             :style="{cursor: cursor, background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
