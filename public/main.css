@@ -424,9 +424,14 @@ ul.categories li a i {
     padding: 0 4px 2px 0;
 }
 
+.gallery-view ul.schemes {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
 .gallery-view ul.schemes li {
-    position: relative;
-    display: inline-block;
+    display: block;
     margin-right: 15px;
     margin-bottom: 15px;
 }
