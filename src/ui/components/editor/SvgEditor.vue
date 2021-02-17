@@ -426,6 +426,14 @@ export default {
             const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
             this.width = svgRect.width;
             this.height = svgRect.height;
+
+            this.schemeContainer.screenSettings.width = svgRect.width;
+            this.schemeContainer.screenSettings.height = svgRect.height;
+
+            if (this.interactiveSchemeContainer) {
+                this.interactiveSchemeContainer.screenSettings.width = svgRect.width;
+                this.interactiveSchemeContainer.screenSettings.height = svgRect.height;
+            }
         },
 
         mouseCoordsFromEvent(event) {
