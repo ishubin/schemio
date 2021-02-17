@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="scheme-editor-view" :style="{height: svgHeight + 'px'}">
+    <div class="scheme-editor-view">
         <header-component 
             :project-id="projectId"
             :project="project"
@@ -68,7 +68,7 @@
                     v-if="schemeContainer"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
                     :project-id="projectId"
-                    :schemeContainer="schemeContainer" :width="svgWidth" :height="svgHeight"
+                    :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -267,8 +267,6 @@ import Modal from '../components/Modal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
-import filter from 'lodash/filter';
-import find from 'lodash/find';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from '../components/editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
@@ -356,8 +354,6 @@ export default {
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
             schemeContainer: null,
-            svgWidth: window.innerWidth,
-            svgHeight: window.innerHeight,
             zoom: 100,
             mode: 'view',
 
@@ -469,9 +465,6 @@ export default {
         initScheme(scheme) {
             this.currentCategory = scheme.category;
             this.schemeContainer = new SchemeContainer(scheme, EventBus);
-
-            this.schemeContainer.screenSettings.width = this.svgWidth;
-            this.schemeContainer.screenSettings.height = this.svgHeight;
 
             this.isLoading = false;
 
@@ -733,8 +726,8 @@ export default {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
                     if (items) {
-                        const centerX = (this.svgWidth/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                        const centerY = (this.svgHeight/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                        const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                        const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
                         this.schemeContainer.pasteItems(items, centerX, centerY);
                     }
                 }

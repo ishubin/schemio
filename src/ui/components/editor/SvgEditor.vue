@@ -73,11 +73,11 @@
 
             <g v-if="mode === 'edit'">
                 <g class="grid" data-preview-ignore="true" :transform="gridTransform" data-void="true">
-                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height" 
+                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height + 2 * gridStep" 
                         :stroke="schemeContainer.scheme.style.gridColor"
                         data-void="true"
                     />
-                    <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width" :y2="index * gridStep"
+                    <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width + 2 * gridStep" :y2="index * gridStep"
                         :stroke="schemeContainer.scheme.style.gridColor"
                         data-void="true"
                     />
@@ -218,7 +218,7 @@ import EventBus from './EventBus.js';
 import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
-import {generateTextBox, generateTextStyle} from './text/ItemText';
+import generateTextStyle from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
@@ -227,7 +227,6 @@ import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
 import InPlaceTextEditBox from './InPlaceTextEditBox.vue';
 import Shape from './items/shapes/Shape';
-import htmlSanitize from '../../../htmlSanitize';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Modal from '../Modal.vue';
@@ -235,11 +234,8 @@ import Events from '../../userevents/Events';
 import StrokePattern from './items/StrokePattern';
 import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
-import { Logger } from '../../logger';
 import store from '../../store/Store';
 import apiClient from '../../apiClient';
-
-const log = new Logger('SvgEditor.vue');
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -265,7 +261,6 @@ const states = {
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store)
 };
-let currentState = states.interact;
 
 
 /**
@@ -285,8 +280,6 @@ export default {
         offline  : { type: Boolean, default: false},
         projectId: { type: String, default: null },
         mode     : { type: String, default: 'edit' },
-        width    : { type: Number },
-        height   : { type: Number },
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -331,6 +324,9 @@ export default {
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
     },
     mounted() {
+        this.updateSvgSize();
+        window.addEventListener("resize", this.updateSvgSize);
+
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
             if (svgElement) {
@@ -339,6 +335,7 @@ export default {
         }
     },
     beforeDestroy(){
+        window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
@@ -381,6 +378,10 @@ export default {
 
             cursor: 'default',
 
+            // the following two properties are going to be updated in mounted hook
+            width: window.innerWidth,
+            height: window.innerHeight,
+
             selectedItemLinks: [],
             lastHoveredItem: null,
 
@@ -421,6 +422,12 @@ export default {
         };
     },
     methods: {
+        updateSvgSize() {
+            const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
+            this.width = svgRect.width;
+            this.height = svgRect.height;
+        },
+
         mouseCoordsFromEvent(event) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
                 offsetX = event.clientX - rect.left,
@@ -1497,14 +1504,15 @@ export default {
                 };
             }
             return {
-                x: Math.ceil(this.width / screenStep),
-                y: Math.ceil(this.height / screenStep)
+                x: Math.ceil(this.width / screenStep) + 1,
+                y: Math.ceil(this.height / screenStep) + 1
             };
         },
         gridTransform() {
             const snapSize = myMath.getSnappingWidthForScale(this.schemeContainer.screenTransform.scale);
-            let x = Math.ceil(this.schemeContainer.screenTransform.x % (snapSize * this.schemeContainer.screenTransform.scale));
-            let y = Math.ceil(this.schemeContainer.screenTransform.y % (snapSize * this.schemeContainer.screenTransform.scale));
+            const zSnap = snapSize * this.schemeContainer.screenTransform.scale;
+            let x = Math.ceil(this.schemeContainer.screenTransform.x % zSnap) - zSnap;
+            let y = Math.ceil(this.schemeContainer.screenTransform.y % zSnap) - zSnap;
             return `translate(${x} ${y})`;
         },
         curveEditItem() {

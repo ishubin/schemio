@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="container">
+    <div class="app-container">
         <router-view></router-view>
 
         <debugger v-if="debuggerShown" @close="debuggerShown = false"/>
