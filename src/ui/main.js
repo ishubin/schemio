@@ -66,6 +66,56 @@ router.beforeEach((to, from, next) => {
     }
 });
 
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+
+Vue.filter('formatDateTime', timeText => {
+    const date = new Date(timeText);
+    if (isNaN(date.getMilliseconds())) {
+        return '';
+    }
+    const now = new Date();
+    const seconds = Math.ceil(Math.max(0, now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) {
+        if (seconds === 1) {
+            return `1 second ago`;
+        } else {
+            return `${seconds} seconds ago`;
+        }
+    }
+
+    const minutes = Math.ceil(seconds / 60);
+    if (minutes < 60) {
+        if (minutes === 1) {
+            return `1 minute ago`;
+        } else {
+            return `${minutes} minutes ago`;
+        }
+    }
+
+    const hours = Math.ceil(minutes / 60);
+    if (hours < 24) {
+        if (hours === 1) {
+            return `1 hour ago`;
+        } else {
+            return `${hours} hours ago`;
+        }
+    }
+
+    const days = Math.ceil(hours / 24);
+    if (days < 31) {
+        if (days === 1) {
+            return `1 day ago`;
+        } else {
+            return `${days} days ago`;
+        }
+    }
+
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
+});
+
+
 new Vue(Vue.util.extend({
     router,
     store,

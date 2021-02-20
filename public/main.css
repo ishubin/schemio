@@ -256,20 +256,66 @@ ul.projects {
     padding: 0;
 }
 ul.projects > li {
-    margin-bottom: 20px;
+    border-top: 1px solid var(--faint-weak);
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+ul.projects > li:first-child {
+    border-top: none;
 }
 ul.projects > li a.project {
     font-weight: bold;
     font-size: 18px;
     text-decoration: none;
 }
-ul.projects > li a.project.link:hover {
+
+ul.projects > li .project-header {
+    position: relative;
+}
+ul.projects > li .project-header a.project.link {
+    white-space: nowrap; 
+    max-width: 100%; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    min-width: 100px;
+    margin-right: 200px;
+}
+
+ul.projects > li .project-header .project-owner {
+    white-space: nowrap; 
+    max-width: 100%; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 2px;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+ul.projects > li .project-header .project-owner .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+}
+
+ul.projects > li .project-header a.project.link {
+    flex: 10;
+}
+
+ul.projects > li .project-header a.project.link:hover {
     text-decoration: underline;
 }
 ul.projects > li .project-description {
-    color: var(--faint-strong-down);
+    margin-top: 10px;
+    margin-bottom: 10px;
     font-size: 14px;
-    font-style: italic;
+}
+ul.projects > li .project-footer {
+    font-size: 14px;
+    color: var(--faint-strong-down);
 }
 
 .projects-list .search-controls input.textfield {
@@ -890,7 +936,7 @@ ul.pagination li a.current {
     width: 100%;
     height: 37px;
     top: 47px;
-    z-index: 100;
+    z-index: 20;
 }
 .quick-helper-panel {
     display: table-cell;

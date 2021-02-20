@@ -33,14 +33,23 @@
 
             <ul class="projects">
                 <li v-for="project in searchResult.results" :key="project.id">
-                    <router-link :to="{path: `/projects/${project.id}`}" class="project link">
-                        <i v-if="project.isPublic" class="fas fa-folder"></i> 
-                        <i v-else class="fas fa-lock"></i>
-
-                        {{project.name}}
-                    </router-link>
+                    <div class="project-header">
+                        <router-link class="project link" :to="{path: `/projects/${project.id}`}">
+                            <i v-if="!project.isPublic" class="fas fa-lock"></i> 
+                            {{project.name}}
+                        </router-link>
+                        <span class="project-owner">
+                            <img v-if="project.ownerGravatarId" class="avatar" :src="`https://www.gravatar.com/avatar/${project.ownerGravatarId}?s=30`" alt="Gravatar icon"/>
+                            <router-link class="link" v-if="project.ownerName && project.ownerId" :to="{path: `/users/${project.ownerId}`}">
+                                {{project.ownerName}}
+                            </router-link>
+                        </span>
+                    </div>
                     <div class="project-description">
                         {{project.description}}
+                    </div>
+                    <div class="project-footer">
+                        <span class="project-time"><i class="far fa-clock"></i> {{project.createdTime | formatDateTime }}</span>
                     </div>
                 </li>
             </ul>
