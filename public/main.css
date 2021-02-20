@@ -323,10 +323,6 @@ ul.projects > li .project-footer {
     color: var(--faint-strong-down);
 }
 
-.projects-list .search-controls input.textfield {
-    width: 600px;
-}
-
 
 /***************** Mocking elements ************************/
 .mock-container .mock-element {
@@ -2265,8 +2261,13 @@ ul.category-breadcrumb li i {
 .search-view .search-layout .search-results {
     flex: 4;
 }
-.search-view .search-controls input.textfield {
-    width: 600px;
+
+.search-controls {
+    display: flex;
+}
+.search-controls .textfield {
+    margin-right: 10px;
+    max-width: 600px;
 }
 
 .search-view h3 {

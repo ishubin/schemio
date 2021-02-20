@@ -77,7 +77,7 @@ export default {
             let start = currentPage - maxSideRange;
             let end = currentPage + maxSideRange;
 
-            // trying to keep contant number of pages shown in pagination
+            // trying to keep constant number of pages shown in pagination
             if (start < 1) {
                 end += 1 - start;
             } else if (end > totalPages) {
@@ -104,7 +104,7 @@ export default {
             for (let page = start; page <= end; page++) {
                 pages.push({
                     page: page,
-                    active: true
+                    active: page !== currentPage
                 });
             }
 
