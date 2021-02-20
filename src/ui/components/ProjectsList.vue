@@ -38,12 +38,10 @@
                             <i v-if="!project.isPublic" class="fas fa-lock"></i> 
                             {{project.name}}
                         </router-link>
-                        <span class="project-owner">
+                        <router-link class="project-owner link" v-if="project.ownerName && project.ownerId" :to="{path: `/users/${project.ownerId}`}">
                             <img v-if="project.ownerGravatarId" class="avatar" :src="`https://www.gravatar.com/avatar/${project.ownerGravatarId}?s=30`" alt="Gravatar icon"/>
-                            <router-link class="link" v-if="project.ownerName && project.ownerId" :to="{path: `/users/${project.ownerId}`}">
-                                {{project.ownerName}}
-                            </router-link>
-                        </span>
+                            <span>{{project.ownerName | maxSymbols(20)}}</span>
+                        </router-link>
                     </div>
                     <div class="project-description">
                         {{project.description}}
@@ -140,5 +138,14 @@ export default {
             this.$router.push({path: url});
         },
     },
+
+    filters: {
+        maxSymbols(text, maxLength) {
+            if (text.length > maxLength) {
+                text = text.substring(0, maxLength - 3) + '...';
+            }
+            return text;
+        }
+    }
 }
 </script>

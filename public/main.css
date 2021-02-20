@@ -287,18 +287,23 @@ ul.projects > li .project-header .project-owner {
     max-width: 100%; 
     overflow: hidden;
     text-overflow: ellipsis;
-    display: inline-block;
+    display: flex;
     position: absolute;
     right: 0;
     top: 2px;
     white-space: nowrap;
     max-width: 200px;
 }
-
 ul.projects > li .project-header .project-owner .avatar {
     width: 30px;
     height: 30px;
     border-radius: 4px;
+    order: 2;
+}
+ul.projects > li .project-header .project-owner span {
+    align-self: center;
+    margin-right: 5px;
+    order: 1;
 }
 
 ul.projects > li .project-header a.project.link {
