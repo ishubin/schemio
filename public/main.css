@@ -427,7 +427,7 @@ ul.categories li a i {
 .gallery-view ul.schemes {
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: left;
     flex-wrap: wrap;
 }
 .gallery-view ul.schemes li {
@@ -1721,9 +1721,10 @@ ul.button-group > li.disabled > .icon-button:hover,
 .item-menu {
     padding: 5px 5px 15px 5px;
     position: relative;
-}
-.item-menu .btn {
-    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    justify-content:left;
+    flex-wrap: wrap;
 }
 .item-menu .item-container {
     display: inline-block;
