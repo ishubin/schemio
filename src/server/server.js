@@ -160,7 +160,13 @@ if (!config.backendless) {
 // the following route should work in both modes
 $getJSON(   '/v1/art',                                          [],                                     apiArt.getGlobalArt);
 
+
 const cwd = process.cwd();
+
+app.get('/embed/:projectId/schemes/:schemeId', [metrics.routeMiddleware({ routeName: 'embed' })], (req, res) => {
+    res.sendFile(`${cwd}/public/embed.html`);
+});
+
 app.get('*', [metrics.routeMiddleware({ routeName: '*' })], (req, res) => {
     res.sendFile(`${cwd}/public/index.html`)
 });

@@ -21,8 +21,6 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         data() {
             return {
                 scheme,
-                width: parseInt(options.width) || 800,
-                height: parseInt(options.height) || 400,
                 offsetX: parseInt(options.offsetX) || 0,
                 offsetY: parseInt(options.offsetY) || 0,
                 zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
@@ -31,7 +29,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
                 useMouseWheel: objProperty(options, 'useMouseWheel', false)
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :width="width" :height="height" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
+        template: '<standalone-scheme-view :scheme="scheme" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
     }).$mount(elementOrSelector);
 }
 

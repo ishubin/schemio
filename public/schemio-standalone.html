@@ -13,16 +13,12 @@
         </style>
     </head>
     <body>
-        <div class="app-container">
-            <div id="app">loading</div>
-        </div>
+        <div id="app" style="height: 600px;">loading</div>
         <script>
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     schemioViewScheme('#app', JSON.parse(this.responseText), {
-                        width: 800,
-                        height: 600,
                         sidePanelWidth: 400
                     });
                 }

@@ -2251,15 +2251,20 @@ ul.category-breadcrumb li i {
 }
 
 
-/****************** search page ****************/
-.search-view .search-layout {
+/****************** Project Page ****************/
+.project-view .project-layout {
     display: flex;
 }
-.search-view .search-layout .search-attributes-panel {
-    flex: 1;
+.project-view .project-layout .project-categories {
+    flex: 2;
+    margin-left: 10px;
+    margin-right: 10px;
 }
-.search-view .search-layout .search-results {
-    flex: 4;
+.project-view .project-layout .project-body {
+    flex: 6;
+}
+.project-view .project-layout .empty-placeholder {
+    flex: 2;
 }
 
 .search-controls {
@@ -2270,12 +2275,12 @@ ul.category-breadcrumb li i {
     max-width: 600px;
 }
 
-.search-view h3 {
+.project-view h3 {
     position: relative;
     display: block;
     padding-right: 30px;
 }
-.search-view h3 .project-edit-button {
+.project-view h3 .project-edit-button {
     position: absolute;
     display: inline-block;
     text-decoration: none;
@@ -2287,7 +2292,7 @@ ul.category-breadcrumb li i {
     background-color: var(--accent-weak-down);
     border-radius: var(--control-border-radius);
 }
-.search-view h3 .project-edit-button:hover {
+.project-view h3 .project-edit-button:hover {
     color: var(--accent-faint);
     background: var(--accent-weak-up);
 }

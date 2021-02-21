@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Schemio</title>
+        <link rel="stylesheet" href="/assets/schemio-standalone.css">
+        <link rel="stylesheet" href="/assets/css/all.min.css">
+        <script src="/assets/standalone.js"></script>
+    </head>
+    <body>
+        <div id="app">loading</div>
+        <script>
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    schemioViewScheme('#app', JSON.parse(this.responseText), {
+                        sidePanelWidth: 400
+                    });
+                }
+            };
+
+            var url = new URL(window.location);
+
+            var regexMatcher = url.pathname.match(/\/embed\/(.*?)\/schemes\/(.*)/);
+            if (regexMatcher.length > 2) {
+                var projectId = regexMatcher[1].replace(/\//g, '');
+                var schemeId = regexMatcher[2].replace(/\//g, '');
+                
+                console.log('project', projectId, 'scheme', schemeId);
+            }
+            
+
+            var schemeUrl = '/v1/projects/' + projectId + '/schemes/' + schemeId;
+            xhttp.open('GET', schemeUrl, true);
+            xhttp.send();
+        </script>
+    </body>
+</html>

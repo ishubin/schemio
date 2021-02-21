@@ -3,31 +3,31 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="ssc-container" oncontextmenu="return false;" style="position: relative; display: inline-block;">
+    <div class="ssc-container" oncontextmenu="return false;" style="position: relative;">
         <div class="ssc-header" style="">
             <div style="padding: 4px;">
                 Zoom:
-                <input v-model="textZoom" style="display: inline-block; padding: 2px 4px; border: 1px solid #555; width: 60px;" @keydown.enter="onZoomSubmitted"/>
+                <input class="ssh-search" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
             <div class="ssc-schemio-logo" style="position: absolute;right: 5px;top: 6px;">
                 Built by <a href="https://github.com/ishubin/schemio">Schemio</a>
             </div>
         </div>
-        <svg-editor ref="svgEditor"
-            :scheme-container="schemeContainer"
-            :width="width"
-            :height="height"
-            :offset-x="offsetX"
-            :offset-y="offsetY"
-            :zoom="vZoom"
-            :use-mouse-wheel="useMouseWheel"
-            mode="view" />
+        <div class="ssc-body">
+            <svg-editor ref="svgEditor"
+                :scheme-container="schemeContainer"
+                :offset-x="offsetX"
+                :offset-y="offsetY"
+                :zoom="vZoom"
+                :use-mouse-wheel="useMouseWheel"
+                mode="view" />
 
-        <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
-        <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
-            <span class="ssc-button" @click="sidePanel.item = null">Close</span>
-            <item-details :item="sidePanel.item"/>
+            <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+            <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
+                <span class="ssc-button" @click="sidePanel.item = null">Close</span>
+                <item-details :item="sidePanel.item"/>
+            </div>
         </div>
     </div>
 </template>
@@ -41,7 +41,7 @@ import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
 
 export default {
-    props: ['scheme', 'width', 'height', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel'],
+    props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel'],
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
@@ -99,6 +99,7 @@ export default {
 
         onZoomSubmitted() {
             this.vZoom = parseFloat(this.textZoom);
+            this.schemeContainer.screenTransform.scale = this.vZoom / 100.0;
         },
 
         onVoidClicked() {

@@ -1,16 +1,31 @@
+html, body, .ssc-container, #svg-editor, .ssc-body {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
 .ssc-container {
     font-family: 'San Francisco', Roboto, 'Segoe UI', 'Helvetica Neue',sans-serif;
+    display: flex;
+    flex-direction: column;
 }
 .ssc-container .ssc-header {
-    position: absolute;
-    top: 0;
-    left: 0;
     background: #dddddd;
     border-bottom: 1px solid #cccccc;
     display: block;
     width: 100%;
     font-size: 14px;
 }
+
+
+.ssc-container .ssc-header .ssc-search {
+    display: inline-block;
+    padding: 2px 4px;
+    border: 1px solid #555;
+    width: 60px;
+}
+
 .ssc-container .ssc-header .ssc-schemio-logo {
     position: absolute;
     right: 5px;
@@ -33,7 +48,8 @@
 }
 
 .ssc-container svg {
-    margin-top: 30px;
+    width: 100%;
+    height: 100%;
 }
 
 

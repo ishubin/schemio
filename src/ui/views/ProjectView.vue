@@ -3,174 +3,172 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="search-view">
+    <div class="project-view">
         <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
-        <div class="middle-content">
-            <div class="search-layout">
-                <div v-if="categoriesConfig.enabled" class="search-attributes-panel">
-                    <h4>Categories</h4>
+        <div class="project-layout">
+            <div v-if="categoriesConfig.enabled" class="project-categories">
+                <h4>Categories</h4>
 
-                    <div v-if="project && project.permissions.write">
-                        <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
-                    </div>
-
-                    <category-tree
-                        :key="`category-tree-revision-${categoryTreeRevision}`"
-                        :categories="categories"
-                        :selected-category-id="currentCategoryId"
-                        :url-prefix="urlPrefix"
-                        :write-permissions="project && project.permissions.write"
-                        @add-category="onAddCategoryClicked"
-                        @edit-category="onEditCategoryClicked"
-                        @delete-category="onDeleteCategoryClicked"
-                        @moved-category="onCategoryMoveRequested"
-                        />
+                <div v-if="project && project.permissions.write">
+                    <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
                 </div>
 
-                <div class="search-results">
+                <category-tree
+                    :key="`category-tree-revision-${categoryTreeRevision}`"
+                    :categories="categories"
+                    :selected-category-id="currentCategoryId"
+                    :url-prefix="urlPrefix"
+                    :write-permissions="project && project.permissions.write"
+                    @add-category="onAddCategoryClicked"
+                    @edit-category="onEditCategoryClicked"
+                    @delete-category="onDeleteCategoryClicked"
+                    @moved-category="onCategoryMoveRequested"
+                    />
+            </div>
 
-                    <div v-if="isLoadingProject" class="mock-container mock-project">
-                        <span class="mock-element mock-project-name mock-animated"></span>
-                        <span class="mock-element mock-project-description mock-animated"></span>
+            <div class="project-body">
+                <div v-if="isLoadingProject" class="mock-container mock-project">
+                    <span class="mock-element mock-project-name mock-animated"></span>
+                    <span class="mock-element mock-project-description mock-animated"></span>
+                </div>
+
+                <div v-else-if="project">
+                    <h3>
+                        {{project.name}} 
+                        <a v-if="hasWritePermission" :href="`/projects/${projectId}/edit`" class="project-edit-button" title="Edit project..."><i class="fas fa-pencil-alt"/> Edit</a>
+                    </h3>
+
+                    <div class="section">
+                        {{project.description}}
                     </div>
 
-                    <div v-else-if="project">
-                        <h3>
-                            {{project.name}} 
-                            <a v-if="hasWritePermission" :href="`/projects/${projectId}/edit`" class="project-edit-button" title="Edit project..."><i class="fas fa-pencil-alt"/> Edit</a>
-                        </h3>
-
-                        <div class="section">
-                            {{project.description}}
+                    <div class="section">
+                        <div v-if="project.isPublic">
+                            This project is <i class="fas fa-unlock"></i> <b>public</b>
                         </div>
-
-                        <div class="section">
-                            <div v-if="project.isPublic">
-                                This project is <i class="fas fa-unlock"></i> <b>public</b>
-                            </div>
-                            <div v-else>
-                                This project is <i class="fas fa-lock"></i> <b>private</b>
-                            </div>
+                        <div v-else>
+                            This project is <i class="fas fa-lock"></i> <b>private</b>
                         </div>
                     </div>
+                </div>
 
-                    <div class="msg msg-error" v-if="projectErrorMessage">{{projectErrorMessage}}</div>
+                <div class="msg msg-error" v-if="projectErrorMessage">{{projectErrorMessage}}</div>
 
-                    <div class="section search-controls">
-                        <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
-                        <span v-if="isLoadingSchemes" @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-spinner fa-spin"></i> Searching...</span>
-                        <span v-else @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-search"></i> Search</span>
+                <div class="section search-controls">
+                    <input @keyup.enter="onSearchClicked()" class="textfield" type="text" v-model="query" placeholder="Search ..."/>
+                    <span v-if="isLoadingSchemes" @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-spinner fa-spin"></i> Searching...</span>
+                    <span v-else @click="onSearchClicked()" class="btn btn-primary search-button"><i class="fas fa-search"></i> Search</span>
 
+                </div>
+                <div class="msg msg-error section" v-if="schemeErrorMessage">{{schemeErrorMessage}}</div>
+
+                <div v-if="isLoadingSchemes && initialPageLoad" class="mock-container mock-project-schemes section">
+                    <div>
+                        <span class="mock-element mock-scheme-tag" v-for="i in [0, 1, 2, 3]"></span>
                     </div>
-                    <div class="msg msg-error section" v-if="schemeErrorMessage">{{schemeErrorMessage}}</div>
-
-                    <div v-if="isLoadingSchemes && initialPageLoad" class="mock-container mock-project-schemes section">
-                        <div>
-                            <span class="mock-element mock-scheme-tag" v-for="i in [0, 1, 2, 3]"></span>
+                    <div v-if="currentView === 'gallery'" class="section">
+                        <div class="mock-scheme-gallery-row" v-for="row in [0, 1]">
+                            <span class="mock-element mock-scheme" v-for="c in [0, 1, 2, 3,]"></span>
                         </div>
-                        <div v-if="currentView === 'gallery'" class="section">
-                            <div class="mock-scheme-gallery-row" v-for="row in [0, 1]">
-                                <span class="mock-element mock-scheme" v-for="c in [0, 1, 2, 3,]"></span>
+                    </div>
+                    <div v-else class="section">
+                        <div class="mock-scheme-list-row" v-for="row in [0, 1]">
+                            <div class="mock-element mock-scheme-preview">
                             </div>
-                        </div>
-                        <div v-else class="section">
-                            <div class="mock-scheme-list-row" v-for="row in [0, 1]">
-                                <div class="mock-element mock-scheme-preview">
+                            <div class="mock-scheme-info">
+                                <div class="mock-element mock-scheme-name mock-animated">
                                 </div>
-                                <div class="mock-scheme-info">
-                                    <div class="mock-element mock-scheme-name mock-animated">
-                                    </div>
-                                    <div class="mock-element mock-scheme-description mock-animated">
-                                    </div>
+                                <div class="mock-element mock-scheme-description mock-animated">
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div v-else-if="searchResult">
-                        <div>
-                            Total results <b>{{searchResult.total}}</b>
+                <div v-else-if="searchResult">
+                    <div>
+                        Total results <b>{{searchResult.total}}</b>
+                    </div>
+
+                    <pagination
+                        :current-page="currentPage"
+                        :total-pages="totalPages"
+                        :url-prefix="urlPrefix"
+                        :use-router="true"
+                    />
+
+                    <div class="tag-filter-container section">
+                        <ul class="tag-filter">
+                            <li v-if="filterTag"><span class="tag selected" @click="removeTagFilter()">{{filterTag}}</span></li>
+                            <li v-for="tag in tags" v-if="tag !== filterTag"><span class="tag" @click="toggleFilterByTag(tag)">{{tag}}</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <div class="toggle-group">
+                            <span v-for="view in knownViews" class="toggle-button"
+                                :class="{toggled: currentView === view.id}"
+                                @click="currentView = view.id"
+                                >{{view.name}}</span>
                         </div>
+                    </div>
 
-                        <pagination
-                            :current-page="currentPage"
-                            :total-pages="totalPages"
-                            :url-prefix="urlPrefix"
-                            :use-router="true"
-                        />
+                    <div v-if="hasWritePermission && !isEditingScheme && searchResult.results">
+                        <span class="link" @click="isEditingScheme = true">Edit Schemes</span>
+                    </div>
+                    <div class="section" v-if="isEditingScheme && searchResult && searchResult.results">
+                        <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
+                        <span class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
+                    </div>
 
-                        <div class="tag-filter-container section">
-                            <ul class="tag-filter">
-                                <li v-if="filterTag"><span class="tag selected" @click="removeTagFilter()">{{filterTag}}</span></li>
-                                <li v-for="tag in tags" v-if="tag !== filterTag"><span class="tag" @click="toggleFilterByTag(tag)">{{tag}}</span></li>
+                    <div class="section">
+                        <div class="gallery-view" v-if="currentView === 'gallery'">
+                            <ul class="schemes">
+                                <li v-for="scheme in searchResult.results">
+                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                        <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
+                                            <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
+                                        </span>
+
+
+                                        <div class="scheme-title">{{scheme.name}}</div>
+                                        <div class="scheme-preview">
+                                            <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                            <img v-else class="scheme-preview" src="/assets/images/missing-preview.svg"/>
+                                        </div>
+                                        <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
+                                        <div class="scheme-description">
+                                            {{scheme.description | shortDescription}}
+                                        </div>
+                                    </a>
+                                </li>
                             </ul>
                         </div>
 
-                        <div class="section">
-                            <div class="toggle-group">
-                                <span v-for="view in knownViews" class="toggle-button"
-                                    :class="{toggled: currentView === view.id}"
-                                    @click="currentView = view.id"
-                                    >{{view.name}}</span>
-                            </div>
-                        </div>
-
-                        <div v-if="hasWritePermission && !isEditingScheme && searchResult.results">
-                            <span class="link" @click="isEditingScheme = true">Edit Schemes</span>
-                        </div>
-                        <div class="section" v-if="isEditingScheme && searchResult && searchResult.results">
-                            <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
-                            <span class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
-                        </div>
-
-                        <div class="section">
-                            <div class="gallery-view" v-if="currentView === 'gallery'">
-                                <ul class="schemes">
-                                    <li v-for="scheme in searchResult.results">
-                                        <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
-                                            <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
-                                                <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
-                                            </span>
-
-
+                        <div v-else class="list-view">
+                            <ul class="schemes">
+                                <li v-for="scheme in searchResult.results">
+                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                        <input v-if="isEditingScheme && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
+                                        <div class="scheme-preview">
+                                            <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                            <img v-else src="/assets/images/missing-preview.svg"/>
+                                        </div>
+                                        <div class="scheme-info">
                                             <div class="scheme-title">{{scheme.name}}</div>
-                                            <div class="scheme-preview">
-                                                <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
-                                                <img v-else class="scheme-preview" src="/assets/images/missing-preview.svg"/>
-                                            </div>
                                             <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
                                             <div class="scheme-description">
                                                 {{scheme.description | shortDescription}}
                                             </div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div v-else class="list-view">
-                                <ul class="schemes">
-                                    <li v-for="scheme in searchResult.results">
-                                        <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
-                                            <input v-if="isEditingScheme && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
-                                            <div class="scheme-preview">
-                                                <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
-                                                <img v-else src="/assets/images/missing-preview.svg"/>
-                                            </div>
-                                            <div class="scheme-info">
-                                                <div class="scheme-title">{{scheme.name}}</div>
-                                                <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
-                                                <div class="scheme-description">
-                                                    {{scheme.description | shortDescription}}
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
+            <div class="empty-placeholder"></div>
         </div>
 
         <modal :title="createCategoryModalTitle" v-if="createCategoryModal.shown"
