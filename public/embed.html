@@ -10,15 +10,6 @@
     <body>
         <div id="app">loading</div>
         <script>
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (this.readyState == 4 && this.status == 200) {
-                    schemioViewScheme('#app', JSON.parse(this.responseText), {
-                        sidePanelWidth: 400
-                    });
-                }
-            };
-
             var url = new URL(window.location);
 
             var regexMatcher = url.pathname.match(/\/embed\/(.*?)\/schemes\/(.*)/);
@@ -28,9 +19,19 @@
                 
                 console.log('project', projectId, 'scheme', schemeId);
             }
-            
 
             var schemeUrl = '/v1/projects/' + projectId + '/schemes/' + schemeId;
+
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    schemioViewScheme('#app', JSON.parse(this.responseText), {
+                        sidePanelWidth: 400,
+                        homeLink: '/projects/' + projectId + '/schemes/' + schemeId
+                    });
+                }
+            };
+
             xhttp.open('GET', schemeUrl, true);
             xhttp.send();
         </script>

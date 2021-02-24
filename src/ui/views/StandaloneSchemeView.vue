@@ -7,12 +7,11 @@
         <div class="ssc-header" style="">
             <div style="padding: 4px;">
                 Zoom:
-                <input class="ssh-search" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
+                <input class="ssc-search" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
-            <div class="ssc-schemio-logo" style="position: absolute;right: 5px;top: 6px;">
-                Built by <a href="https://github.com/ishubin/schemio">Schemio</a>
-            </div>
+
+            <a class="ssc-schemio-logo" target="_top" :href="homeLink"><img src="/assets/images/schemio-logo-white.small.png" height="20"> <span>Schemio</span></a>
         </div>
         <div class="ssc-body">
             <svg-editor ref="svgEditor"
@@ -24,9 +23,12 @@
                 mode="view" />
 
             <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+
             <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
-                <span class="ssc-button" @click="sidePanel.item = null">Close</span>
-                <item-details :item="sidePanel.item"/>
+                <div class="ssc-side-panel-content">
+                    <span class="ssc-button" @click="sidePanel.item = null">Close</span>
+                    <item-details :item="sidePanel.item"/>
+                </div>
             </div>
         </div>
     </div>
@@ -41,7 +43,7 @@ import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
 
 export default {
-    props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel'],
+    props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 

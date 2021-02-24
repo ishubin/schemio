@@ -26,10 +26,11 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
                 zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
                 autoZoom: objProperty(options, 'autoZoom', true),
                 sidePanelWidth: parseInt(options.sidePanelWidth) || 400,
-                useMouseWheel: objProperty(options, 'useMouseWheel', false)
+                useMouseWheel: objProperty(options, 'useMouseWheel', false),
+                homeLink: options.homeLink || '/'
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
+        template: '<standalone-scheme-view :scheme="scheme" :offset-x="offsetX" :offset-y="offsetY" :zoom="zoom" :auto-zoom="autoZoom" :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
     }).$mount(elementOrSelector);
 }
 

@@ -115,12 +115,14 @@ h5 {
 .msg.msg-info {
     color: var(--accent-strong);
     background: var(--accent-weak-up);
+    border: 1px solid var(--accent-weak-down);
     border-radius: var(--control-border-radius);
     padding: 10px;
 }
 .msg.msg-error {
     color: var(--critic-strong);
     background: var(--critic-weak-up);
+    border: 1px solid var(--critic-weak-down);
     border-radius: var(--control-border-radius);
     padding: 10px;
 }
@@ -231,7 +233,7 @@ h5 {
 }
 .menu-dropdown > ul > li a, .menu-dropdown > ul > li span {
     display: block;
-    padding: 10px 10px;
+    padding: 10px 20px;
     text-decoration: none;
     color: var(--base-strong-up);
     font-weight: normal;

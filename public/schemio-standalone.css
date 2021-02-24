@@ -11,25 +11,32 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     flex-direction: column;
 }
 .ssc-container .ssc-header {
-    background: #dddddd;
+    background: #555;
+    color: #f0f0f0;
     border-bottom: 1px solid #cccccc;
     display: block;
     width: 100%;
     font-size: 14px;
 }
 
-
 .ssc-container .ssc-header .ssc-search {
     display: inline-block;
     padding: 2px 4px;
     border: 1px solid #555;
     width: 60px;
+    background: #777;
+    color: #f0f0f0;
+    border-radius: 3px;
 }
 
 .ssc-container .ssc-header .ssc-schemio-logo {
     position: absolute;
+    display: flex;
     right: 5px;
     top: 6px;
+}
+.ssc-container .ssc-header .ssc-schemio-logo span {
+    align-self: center;
 }
 
 .ssc-button {
@@ -40,6 +47,7 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     background: #f0f0f0;
     border: 1px solid #777;
     color: #222;
+    border-radius: 3px;
 }
 .ssc-button:hover {
     background: #80aed7;
@@ -97,7 +105,11 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     height: 100%;
     top: 0;
     right: 0;
-    padding: 5px;
+    padding: 0;
+    margin: 0;
     overflow: scroll;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+.ssc-side-panel-right .ssc-side-panel-content {
+    padding: 10px;
 }

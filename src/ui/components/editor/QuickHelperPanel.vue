@@ -11,6 +11,7 @@
                             @new-scheme-requested="$emit('new-scheme-requested')"
                             @import-json-requested="$emit('import-json-requested')"
                             @export-json-requested="$emit('export-json-requested')"
+                            @export-embedded-requested="$emit('export-embedded-requested')"
                             @export-svg-requested="$emit('export-svg-requested')"
                             @export-html-requested="$emit('export-html-requested')"
                             />
@@ -281,6 +282,7 @@ export default {
             menuDropdownOptions: [
                 {name: 'New scheme',     event: 'new-scheme-requested', disabled: newSchemeDisabled}, 
                 {name: 'Import scheme',  event: 'import-json-requested'},
+                {name: 'Export as embedded iframe', event: 'export-embedded-requested'},
                 {name: 'Export as JSON', event: 'export-json-requested'},
                 {name: 'Export as SVG',  event: 'export-svg-requested'},
                 {name: 'Export as HTML', event: 'export-html-requested'}

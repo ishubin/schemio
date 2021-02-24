@@ -11,7 +11,6 @@
 import Modal from '../Modal.vue';
 import JSZip from 'jszip';
 import utils from '../../utils';
-import {forEach} from 'lodash/forEach';
 import axios from 'axios';
 
 export default {
