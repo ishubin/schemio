@@ -136,6 +136,7 @@
                     style="stroke-linejoin: round;"
                     data-preview-ignore="true"
                     :data-item-id="editBox.items[0].id"
+                    stroke-dasharray="4 4"
                     fill="none"/>
 
                 <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"

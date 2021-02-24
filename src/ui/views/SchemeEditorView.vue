@@ -973,7 +973,7 @@ export default {
             EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
         },
 
-        // triggered from ItemProperties component
+        // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
@@ -988,6 +988,14 @@ export default {
                     }
                 }
             });
+
+            if (this.schemeContainer.selectedItems.length === 1) {
+                const item = this.schemeContainer.selectedItems[0];
+                if (item.shape === 'connector') {
+                    // updating selectec connector highlight path
+                    StoreUtils.setSelectedConnectorPath(this.$store, Shape.find(item.shape).computePath(item));
+                }
+            }
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shapeProps.${name}`);
         },
 

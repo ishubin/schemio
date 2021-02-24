@@ -21,8 +21,6 @@ import forEach from 'lodash/forEach';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
-import Shape from './Shape';
-import utils from '../../../../utils';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import '../../../../typedef';
@@ -345,7 +343,6 @@ export default {
 
 
         args: {
-            fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
