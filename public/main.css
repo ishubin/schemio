@@ -1727,6 +1727,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 
 /************* Links in Item Properties ***************/
+.scheme-details {
+    user-select: text;
+}
 .item-details {
     user-select: text;
 }

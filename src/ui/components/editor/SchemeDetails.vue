@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div>
+    <div class="scheme-details">
         <ul class="category-breadcrumb" v-if="schemeContainer.scheme.category">
             <li>
                 <router-link :to="{path: '/'}">
