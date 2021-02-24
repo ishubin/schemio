@@ -218,7 +218,7 @@ import EventBus from './EventBus.js';
 import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
-import generateTextStyle from './text/ItemText';
+import { generateTextStyle } from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
@@ -822,11 +822,14 @@ export default {
                     text  : '',
                     halign: 'left',
                     valign: 'top',
+                    paddingLeft: 0,
+                    paddingRight: 0,
+                    paddingTop: 0,
+                    paddingBottom: 0
                 }
             };
             textItem.shape = 'none';
-            // using tiny area so that in-place text editor renders it without bounds
-            textItem.area = {x, y, w: 10, h: 10};
+            textItem.area = {x, y, w: 40, h: 40};
             enrichItemWithDefaults(textItem);
             this.schemeContainer.addItem(textItem);
             this.$nextTick(() => {
@@ -1160,8 +1163,6 @@ export default {
             this.inPlaceTextEditor.item = item;
             this.inPlaceTextEditor.text = itemTextSlot.text;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
-            this.inPlaceTextEditor.width = area.w;
-            this.inPlaceTextEditor.height = area.h;
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
             this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
@@ -1211,8 +1212,6 @@ export default {
         updateInPlaceTextEditorStyle() {
             const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
             this.inPlaceTextEditor.style = generateTextStyle(textSlot);
-            this.inPlaceTextEditor.width = this.inPlaceTextEditor.area.w;
-            this.inPlaceTextEditor.height = this.inPlaceTextEditor.area.h;
         },
 
         onAnyItemChanged(itemId) {

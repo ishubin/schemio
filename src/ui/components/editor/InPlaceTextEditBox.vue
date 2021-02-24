@@ -56,10 +56,9 @@ export default {
             editorCssStyle.transform = `scale(${this.zoom})`;
             editorCssStyle['transform-origin'] = 'top left';
 
-            if (this.item.area.w > 20) {
+            // in case user clicks void - we don't want to limit the typing area
+            if (!this.creatingNewItem) {
                 editorCssStyle.width = `${this.area.w/scale}px`;
-            }
-            if (this.item.area.h > 20) {
                 editorCssStyle.height = `${this.area.h/scale}px`;
             }
             return editorCssStyle;
