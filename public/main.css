@@ -62,6 +62,7 @@ body {
     padding: 0;
     color: #222;
     background: var(--base-weak);
+    user-select: none;
 }
 
 * {
@@ -1088,9 +1089,8 @@ ul.pagination li a.current {
 }
 #svg_plot rect.multi-select-box {
     stroke-width: 2;
-    stroke: #faa;
-    stroke-dasharray: 4 4;
-    fill: none;
+    stroke: rgb(21, 155, 218);
+    fill: rgba(55, 175, 255, 0.219);
 }
 #svg_plot .item-control-point {
     opacity: 0.5;
@@ -1727,6 +1727,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 
 /************* Links in Item Properties ***************/
+.item-details {
+    user-select: text;
+}
 .item-properties ul.links, .item-details ul.links {
     list-style: none;
     padding: 0px;
@@ -2594,6 +2597,7 @@ ul.category-breadcrumb li i {
     position: fixed;
     box-shadow: rgba(0, 0, 0, 0.5) 2px 2px 10px;
     overflow: auto;
+    user-select: text;
 }
 .item-tooltip h3 {
     margin-top: 0;
