@@ -103,6 +103,10 @@ const store = new Vuex.Store({
 
         itemControlPoints: [],
 
+        // used when only single connector is selected
+        // in this case we need to render its path to make it highlighted
+        selectedConnectorPath: null,
+
         multiSelectBox: null,
 
         // used to render snapping lines when user drags item and it is snapped to other items
@@ -237,6 +241,10 @@ const store = new Vuex.Store({
         },
         SET_MULTI_SELECT_BOX(state, box) {
             state.multiSelectBox = box;
+        },
+
+        SET_SELECTED_CONNECTOR_PATH(state, path) {
+            state.selectedConnectorPath = path;
         },
 
         /************ Snappers ****************/
@@ -431,6 +439,10 @@ const store = new Vuex.Store({
             commit('SET_MULTI_SELECT_BOX', box);
         },
 
+        setSelectedConnectorPath({commit}, path) {
+            commit('SET_SELECTED_CONNECTOR_PATH', path);
+        },
+
         setItemSnapper({commit}, snapper) {
             commit('SET_ITEM_SNAPPER', snapper);
         },
@@ -493,6 +505,8 @@ const store = new Vuex.Store({
         connectorProposedDestination: state => state.connectorProposedDestination,
 
         statusMessage: state => state.statusMessage,
+
+        selectedConnectorPath: state => state.selectedConnectorPath,
     }
 });
 

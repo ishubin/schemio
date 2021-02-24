@@ -44,6 +44,10 @@ export default {
         store.dispatch('setMultiSelectBox', box);
     },
 
+    setSelectedConnectorPath(store, path) {
+        store.dispatch('setSelectedConnectorPath', path);
+    },
+
     /**
      * 
      * @param {*} store 

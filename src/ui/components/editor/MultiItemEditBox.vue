@@ -128,6 +128,16 @@
         <g v-if="editBox.items.length === 1"
             :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
             <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
+
+                <path v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
+                    :d="selectedConnectorPath" 
+                    stroke-width="3px"
+                    :stroke="boundaryBoxColor"
+                    style="stroke-linejoin: round;"
+                    data-preview-ignore="true"
+                    :data-item-id="editBox.items[0].id"
+                    fill="none"/>
+
                 <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
                     :key="`item-control-point-${controlPoint.id}`"
                     class="item-control-point"
@@ -151,8 +161,7 @@
 </template>
 
 <script>
-import utils from '../../utils';
-import forEach from 'lodash/forEach';
+import Shape from './items/shapes/Shape';
 import StoreUtils from '../../store/StoreUtils';
 
 
@@ -164,8 +173,17 @@ export default {
     props: ['editBox', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
 
     beforeMount() {
+        // reseting selected connector if it was set previously
+        StoreUtils.setSelectedConnectorPath(this.$store, null);
+
         if (this.editBox.items.length === 1) {
-            StoreUtils.setItemControlPoints(this.$store, this.editBox.items[0])
+            const item = this.editBox.items[0];
+            if (item.shape === 'connector') {
+                const shape = Shape.find(item.shape);
+                StoreUtils.setSelectedConnectorPath(this.$store, shape.computeOutline(item));
+            }
+
+            StoreUtils.setItemControlPoints(this.$store, item);
         } else {
             StoreUtils.clearItemControlPoints(this.$store);
         }
@@ -202,6 +220,10 @@ export default {
                 return true;
             }
             return false;
+        },
+
+        selectedConnectorPath() {
+            return this.$store.getters.selectedConnectorPath;
         }
     }
 }

@@ -409,6 +409,10 @@ export default class StateDragItem extends State {
 
         if (this.sourceItem) {
             StoreUtils.setItemControlPoints(this.store, this.sourceItem);
+
+            if (this.sourceItem.shape === 'connector') {
+                StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.sourceItem.shape).computePath(this.sourceItem));
+            }
         }
         this.reset();
     }
@@ -508,6 +512,7 @@ export default class StateDragItem extends State {
             this.eventBus.emitItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             StoreUtils.setItemControlPoints(this.store, item);
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
             this.eventBus.emitSchemeChangeCommited();
         }
     }
@@ -530,6 +535,7 @@ export default class StateDragItem extends State {
         this.eventBus.emitItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         StoreUtils.setItemControlPoints(this.store, item);
+        StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -748,6 +754,10 @@ export default class StateDragItem extends State {
             const localPoint = this.schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, item);
             point.x = localPoint.x;
             point.y = localPoint.y;
+
+            // since this function can only be called if the connector is selected
+            // we should update connector path so that it can be rendered in multi item edit box
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
         }
     }
 
@@ -823,6 +833,10 @@ export default class StateDragItem extends State {
         this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         this.reindexNeeded = true;
         this.lastDraggedItem = this.sourceItem;
+
+        // since this function can only be called if the connector is selected
+        // we should update connector path so that it can be rendered in multi item edit box
+        StoreUtils.setSelectedConnectorPath(this.store, shape.computePath(this.sourceItem));
     }
 
     initMulitSelectBox(x, y, mx, my) {
