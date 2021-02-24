@@ -150,7 +150,7 @@
             <panel name="Shape Properties" v-if="hasShapeArgs">
                 <table class="properties-table">
                     <tbody>
-                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName]">
+                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
                             <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
                                 {{arg.name}}
                                 <tooltip v-if="arg.description">{{arg.description}}</tooltip>
@@ -207,7 +207,6 @@ import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
-import utils from '../../../utils';
 import EventBus from '../EventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';
@@ -227,7 +226,6 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import CurveCapDropdown from '../CurveCapDropdown.vue';
-import myMath from '../../../myMath';
 
 
 const ALL_TABS = [
@@ -300,9 +298,7 @@ export default {
 
         updateShapePropsDependencies() {
             forEach(this.shapeComponent.args, (argConfig, argName) => {
-                if (argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true)) {
-                    this.shapePropsControlStates[argName].shown = false;
-                } else if (argConfig.depends) {
+                if (argConfig.depends) {
                     forEach(argConfig.depends, (depArgValue, depArgName) => {
                         const shown = this.item.shapeProps[depArgName] === depArgValue;
                         if (!this.shapePropsControlStates[argName]) {
@@ -313,6 +309,10 @@ export default {
                     });
                 }
             });
+        },
+
+        isArgumentHidden(argConfig) {
+            return argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true);
         },
 
         minForShapeProp(arg) {
