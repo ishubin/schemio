@@ -8,7 +8,7 @@
             <div class="category-selector" :class="{'selected': category.id === selectedCategoryId}" @dragend="onEndDragging(category)" @dragenter="onDragEnter(category)">
                 <router-link :to="{path: getCategoryFullUrl(category)}">{{category.name}}</router-link>
                 <div v-if="writePermissions" class="category-menu">
-                    <span class="btn btn-secondary btn-small" title="Add sub-category" @click="onAddCategoryClicked(category)"><i class="fas fa-folder-plus"></i></span>
+                    <span class="btn btn-secondary btn-small" title="Add sub-category" v-if="depth < maxDepth" @click="onAddCategoryClicked(category)"><i class="fas fa-folder-plus"></i></span>
                     <span class="btn btn-secondary btn-small" title="Edit category" @click="onEditCategoryClicked(category)"><i class="fas fa-pen-square"></i></span>
                     <span class="btn btn-secondary btn-small" title="Delete category" @click="onDeleteCategoryClicked(category)"><i class="fas fa-trash-alt"></i></span>
                     <span class="btn btn-secondary btn-small" style="cursor: grab;" title="Move category" draggable="true" @dragstart="onStartDragging(category)"> <i class="fas fa-arrows-alt"></i> </span>
@@ -24,6 +24,7 @@
                 </div>
                 <category-tree v-if="category.childCategories"
                     :is-root="false"
+                    :depth="depth + 1"
                     :categories="category.childCategories"
                     :selected-category-id="selectedCategoryId"
                     :url-prefix="urlPrefix"
@@ -52,25 +53,28 @@
 
 <script>
 import find from 'lodash/find';
+import config from '../../config';
 
 export default {
     props: {
-        isRoot:             {type: Boolean, default: true},
-        categories:         {type: Array},
-        selectedCategoryId: {type: String},
-        urlPrefix:          {type: String},
-        writePermissions:   {type: Boolean, default: false},
-        parentCategoryForDrop:    {type: Object, default: null},
-        parentCategoryDragged:    {type: Object, default: null},
+        isRoot               : {type: Boolean, default: true},
+        depth                : {type: Number, default: 1},
+        categories           : {type: Array},
+        selectedCategoryId   : {type: String},
+        urlPrefix            : {type: String},
+        writePermissions     : {type: Boolean, default: false},
+        parentCategoryForDrop: {type: Object, default: null},
+        parentCategoryDragged: {type: Object, default: null},
     },
     name: 'category-tree',
 
     data() {
         return {
-            collapsed: true,
-            categoryForDrop: null,
+            collapsed       : true,
+            categoryForDrop : null,
             shouldDropToRoot: false,
-            categoryDragged: null,
+            categoryDragged : null,
+            maxDepth        : config.project.categories.maxDepth
         };
     },
     methods: {
