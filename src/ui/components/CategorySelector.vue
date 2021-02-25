@@ -32,7 +32,8 @@
 
 <script>
 import apiClient from '../apiClient.js';
-
+import config from '../config';
+import StoreUtils from '../store/StoreUtils.js';
 
 
 function findCategoryInTree(categoryId, categories) {
@@ -99,6 +100,10 @@ export default {
         enterPressed() {
             var text = this.inputText.trim();
             if (text.length > 0) {
+                if (this.categories.length > config.project.categories.maxDepth) {
+                    StoreUtils.addErrorSystemMessage(this.$store, `Max category depth (${config.project.categories.maxDepth}) exceeded`, 'max-category-depth');
+                    return;
+                }
                 this.addCategory(text, null);
                 this.inputText = '';
             }
@@ -113,6 +118,10 @@ export default {
         },
 
         addCategory(name, id) {
+            if (this.categories.length > config.project.categories.maxDepth) {
+                return;
+            }
+
             this.childSuggestions = [];
             this.categories.push({
                 name: name,

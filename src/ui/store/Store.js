@@ -5,6 +5,8 @@ import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import utils from '../utils';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import shortid from 'shortid';
+import config from '../config';
 
 Vue.use(Vuex);
 
@@ -67,6 +69,8 @@ function enrichCurvePoint(point) {
         point.vy2 = vy2;
     }
 }
+
+
 
 const store = new Vuex.Store({
     state: {
@@ -131,7 +135,10 @@ const store = new Vuex.Store({
         statusMessage: {
             message: null,
             isError: false
-        }
+        },
+
+        // Contains global self descructing messages that can be written from any components
+        systemMessages: []
     },
     mutations: {
         SET_IS_LOADING_USER(state, isLoading) {
@@ -330,6 +337,46 @@ const store = new Vuex.Store({
         SET_STATUS_MESSAGE(state, { message, isError }) {
             state.statusMessage.message = message;
             state.statusMessage.isError = isError;
+        },
+
+        ADD_SYSTEM_MESSAGE(state, { message, status, id }) {
+            if (id) {
+                // checking if there are already messages with the same id
+                for (let i = 0; i < state.systemMessages.length; i++) {
+                    if (state.systemMessages[i].id === id) {
+                        return;
+                    }
+                }
+            } else {
+                id = shortid.generate();
+            }
+
+            state.systemMessages.push({
+                id,
+                message,
+                status,
+            });
+
+            const timeout = config.messages.ttlSeconds * 1000;
+            const selfDestruct = () => {
+                for (let i = 0; i < state.systemMessages.length; i++) {
+                    if (state.systemMessages[i].id === id) {
+                        state.systemMessages.splice(i, 1);
+                        return;
+                    }
+                }
+            };
+
+            setTimeout(selfDestruct, timeout);
+        },
+
+        REMOVE_SYSTEM_MESSAGE(state, id) {
+            for (let i = 0; i < state.systemMessages.length; i++) {
+                if (state.systemMessages[i].id === id) {
+                    state.systemMessages.splice(i, 1);
+                    return;
+                }
+            }
         }
     },
 
@@ -477,6 +524,13 @@ const store = new Vuex.Store({
 
         setErrorStatusMessage({commit}, message) {
             commit('SET_STATUS_MESSAGE', {message, isError: true});
+        },
+
+        addSystemMessage({commit}, { message, status, id }) {
+            commit('ADD_SYSTEM_MESSAGE', { message, status, id });
+        },
+        removeSystemMessage({commit}, id) {
+            commit('REMOVE_SYSTEM_MESSAGE', id);
         }
     },
 
@@ -507,6 +561,8 @@ const store = new Vuex.Store({
         statusMessage: state => state.statusMessage,
 
         selectedConnectorPath: state => state.selectedConnectorPath,
+
+        systemMessages: state => state.systemMessages
     }
 });
 

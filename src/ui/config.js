@@ -1,7 +1,8 @@
 export default {
     project: {
         categories: {
-            enabled: true
+            enabled: true,
+            maxDepth: 10
         }
     },
 
@@ -9,5 +10,9 @@ export default {
         alternative: {
             enabled: true
         }
+    },
+
+    messages: {
+        ttlSeconds: 5
     }
 };

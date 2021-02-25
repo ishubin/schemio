@@ -40,6 +40,7 @@ import RichTextEditor from './RichTextEditor.vue';
 import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
 import {enrichItemWithDefaults} from '../scheme/Item';
+import config from '../config.js';
 
 export default {
     components: {CategorySelector, Modal, RichTextEditor},
@@ -88,6 +89,12 @@ export default {
                     enrichItemWithDefaults(imageItem)
                     items.push(imageItem);
                 }
+
+                if (this.categories && this.categories.length > config.project.categories.maxDepth) {
+                    this.errorMessage = `Categories cannot have more than ${config.project.categories.maxDepth} depth`;
+                    return;
+                }
+
                 apiClient.ensureCategoryStructure(this.projectId, this.categories).then(category => {
                     let categoryId = null;
                     if (category && category.id) {
@@ -102,6 +109,8 @@ export default {
                     });
                 }).then(scheme => {
                     this.$emit('scheme-created', this.projectId, scheme);
+                }).catch(err => {
+                    this.errorMessage = 'Failed to create new scheme';
                 });
             } else {
                 this.mandatoryFields.name.highlight = true;

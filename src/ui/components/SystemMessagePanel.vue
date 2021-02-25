@@ -1,0 +1,32 @@
+<template>
+    <div class="system-message-panel">
+        <div class="messages">
+            <transition name="system-message" v-for="msg in systemMessages" :key="`system-message-${msg.id}`">
+                <div class="message" :class="[`message-${msg.status}`]">
+                    <span class="close-button" @click="closeMessage(msg.id)"><i class="fas fa-times"/></span>
+                    <span>{{msg.message}}</span>
+                </div>
+            </transition>
+        </div>
+
+    </div>
+</template>
+
+<script>
+import StoreUtils from '../store/StoreUtils';
+
+export default {
+
+    methods: {
+        closeMessage(id) {
+            StoreUtils.removeSystemMessage(this.$store, id);
+        }
+    },
+
+    computed: {
+        systemMessages() {
+            return this.$store.getters.systemMessages;
+        }
+    }
+}
+</script>

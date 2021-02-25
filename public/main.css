@@ -1226,7 +1226,7 @@ ul.pagination li a.current {
 /******************************* Modal ********************************/
 .modal-mask {
     position: fixed;
-    z-index: 9998;
+    z-index: 1000;
     top: 0;
     left: 0;
     width: 100%;
@@ -1238,10 +1238,10 @@ ul.pagination li a.current {
     background: none;
 }
 .modal-wrapper {
-    z-index: 9998;
+    z-index: 1000;
 }
 .modal-container {
-    z-index: 9998;
+    z-index: 1000;
     top: 0;
     left: 0;
     position: fixed;
@@ -2758,4 +2758,45 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style {
 }
 ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
     color: var(--critic-strong);
+}
+
+
+/*********************** System messages **************/
+.system-message-panel {
+    max-width: 500px;
+    position: fixed;
+    right: 0;
+    top: 40px;
+    padding: 10px;
+    z-index: 1005;
+}
+
+.system-message-panel .message {
+    margin: 20px;
+    position: relative;
+    display: block;
+    padding: 10px 25px 10px 10px;
+    color: var(--base-strong-up);
+    background: var(--faint-weak);
+    border: 1px solid var(--faint-strong);
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+    transition: opacity 0.3s ease;
+}
+.system-message-panel  .message.message-error {
+    background: var(--critic-weak-up);
+    border: 1px solid var(--critic-weak-down);
+    color: var(--critic-strong);
+}
+.system-message-panel  .message .close-button {
+    position: absolute;
+    top: 4px;
+    right: 7px;
+    cursor: pointer;
+}
+.system-message-enter {
+    opacity: 0;
+}
+.system-message-leave-active {
+    opacity: 0;
 }

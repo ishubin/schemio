@@ -7,18 +7,18 @@
         <router-view></router-view>
 
         <debugger v-if="debuggerShown" @close="debuggerShown = false"/>
+
+        <system-message-panel/>
     </div>
 </template>
-
-<style>
-</style>
 
 <script>
 import {registerDebuggerInitiation} from './logger';
 import Debugger from './components/Debugger.vue';
+import SystemMessagePanel from './components/SystemMessagePanel.vue';
 
 export default{
-    components: {Debugger},
+    components: {Debugger, SystemMessagePanel},
 
     mounted() {
         registerDebuggerInitiation(() => {
