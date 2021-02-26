@@ -662,6 +662,15 @@ export default {
 
                 this.categoriesMap.set(category.id, category);
             });
+
+            categories.sort((a, b) => {
+                if (a.name < b.name) {
+                    return -1;
+                } if (a.name > b.name) {
+                    return 1;
+                }
+                return 0;
+            })
             return categories;
         },
 
