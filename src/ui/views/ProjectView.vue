@@ -212,7 +212,7 @@
             <span v-else>
                 root
             </span>
-            <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
+            <div v-if="moveCategoryModal.errorMessage" class="msg msg-error">{{moveCategoryModal.errorMessage}}</div>
         </modal>
 
         <modal title="Delete schemes" v-if="schemeDeleteModal.shown" primary-button="Delete"
@@ -247,6 +247,7 @@ import Pagination from '../components/Pagination.vue';
 import Modal from '../components/Modal.vue';
 import config from '../config';
 import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import StoreUtils from '../store/StoreUtils';
 
 const settingsStorage = new LimitedSettingsStorage(window.localStorage, 'project-view', 10);
 
@@ -509,9 +510,32 @@ export default {
         },
 
         onCategoryMoveRequested(category, newParentCategory) {
+            if (newParentCategory !== null) {
+                const maxCategoryDepth = this.calculateMaxCategoryDepth(category, 1);
+                if (newParentCategory.ancestors.length + maxCategoryDepth + 1 > config.project.categories.maxDepth) {
+                    StoreUtils.addErrorSystemMessage(this.$store, `Cannot move category as maximum categories depth reached`, 'max-category-depth-reached');
+                    return;
+                }
+            }
+
             this.moveCategoryModal.category = category;
             this.moveCategoryModal.newParentCategory = newParentCategory;
+            this.moveCategoryModal.errorMessage = null;
             this.moveCategoryModal.shown = true;
+        },
+
+        calculateMaxCategoryDepth(category, currentDepth) {
+            let maxDepth = currentDepth;
+            if (category.childCategories) {
+                forEach(category.childCategories, childCategory => {
+                    let maxChildDepth = this.calculateMaxCategoryDepth(childCategory, currentDepth + 1);
+                    if (maxDepth < maxChildDepth) {
+                        maxDepth = maxChildDepth;
+                    }
+                })
+            }
+
+            return maxDepth;
         },
 
         onConfirmUpdateCategoryClicked() {
@@ -612,6 +636,12 @@ export default {
             forEach(categories, category => {
                 if (parentId) {
                     category.parentId = parentId;
+                }
+
+                if (parent) {
+                    category.depth = parent.depth + 1;
+                } else {
+                    category.depth = 1;
                 }
 
                 category.ancestors = [];
