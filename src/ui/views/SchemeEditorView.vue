@@ -30,6 +30,7 @@
             :scheme-container="schemeContainer"
             :mode="mode"
             :zoom="zoom"
+            :edit-allowed="editAllowed"
             @shape-prop-changed="onItemShapePropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
             @clicked-undo="historyUndo()"
@@ -343,6 +344,8 @@ export default {
             project: null,
             schemeId: null,
 
+            editAllowed: false,
+
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
             currentCategory: null,
@@ -423,21 +426,30 @@ export default {
 
             this.offlineMode = false;
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
-            if (pageParams.m && pageParams.m === 'edit') {
-                this.mode = 'edit';
-            } else {
-                this.mode = 'view';
-            }
 
             this.isLoading = true;
             this.schemeLoadErrorMessage = null;
 
             this.schemeId = this.$route.params.schemeId;
 
-            apiClient.getProject(this.projectId).then(project => {
+
+            Promise.all([
+                apiClient.getProject(this.projectId),
+                apiClient.loadScheme(this.projectId, this.schemeId)
+            ]).then(values => {
+                const project = values[0];
+                const scheme = values[1];
+
                 this.project = project;
-            });
-            apiClient.loadScheme(this.projectId, this.schemeId).then(scheme => {
+                const currentUser = this.$store.state.currentUser;
+                this.editAllowed = project && currentUser && project.owner && project.owner.id === currentUser.id;
+
+                if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
+                    this.mode = 'edit';
+                } else {
+                    this.mode = 'view';
+                }
+
                 this.initScheme(scheme);
             }).catch(err => {
                 this.isLoading = false;
@@ -1145,6 +1157,12 @@ export default {
         currentTab(newValue) {
             this.saveSchemeSettings();
         },
+
+        currentUser(user) {
+            if (this.project) {
+                this.editAllowed = user && this.project.owner && this.project.owner.id === user.id;
+            }
+        }
     },
 
     computed: {

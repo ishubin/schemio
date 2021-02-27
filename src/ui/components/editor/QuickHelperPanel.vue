@@ -37,7 +37,7 @@
                         <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                         <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
                     </li>
-                    <li>
+                    <li v-if="editAllowed">
                         <div class="toggle-group">
                             <span v-for="knownMode in knownModes" class="toggle-button"
                                 :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
@@ -213,6 +213,7 @@ export default {
         project        : { type: Object  },
         mode           : { type: String, required: true }, // "edit" or "view"
         zoom           : { type: Number, required: true },
+        editAllowed    : { type: Boolean, default: false }
     },
 
     components: {
@@ -493,6 +494,10 @@ export default {
     },
 
     computed: {
+        currentUser() {
+            return this.$store.getters.currentUser;
+        },
+
         historyRedoable() {
             return this.$store.state.history.redoable;
         },
