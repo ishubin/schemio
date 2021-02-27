@@ -102,9 +102,6 @@ export default {
             const user = this.$store.getters.currentUser;
             if (user) {
                 return [{
-                    name: 'My Projects',
-                    link: '/projects'
-                }, {
                     name: 'My Profile',
                     link: `/users/${user.id}`
                 }, {

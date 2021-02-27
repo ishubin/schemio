@@ -4,7 +4,11 @@
 
 <template>
     <div class="user-profile-view">
-        <header-component/>
+        <header-component>
+            <div slot="middle-section">
+                <router-link v-if="currentUser" :to="{path: '/create-project'}"><i class="far fa-folder"></i> Create Project</router-link>
+            </div>
+        </header-component>
         <div class="middle-content">
             <div v-if="isLoading" class="mock-container">
                 <span class="mock-element mock-long-field mock-animated"></span>

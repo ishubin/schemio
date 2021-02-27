@@ -6,8 +6,8 @@
             </div>
         </header-component>
 
-        <h3>Projects</h3>
         <div class="middle-content">
+            <h2>Projects</h2>
             <projects-list :key="`projects-list-${revision}`" route-prefix="/projects"/>
         </div>
     </div>
