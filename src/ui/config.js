@@ -14,5 +14,9 @@ export default {
 
     messages: {
         ttlSeconds: 5
+    },
+
+    cache: {
+        currentUserTTL: 30000
     }
 };

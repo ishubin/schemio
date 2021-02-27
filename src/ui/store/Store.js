@@ -24,10 +24,18 @@ function getVerifiedUserDataFromMyStorage() {
 
     // check that current session id is the same as the one it has recorded in local storage
     // when sx cookie expires it will force it to fetch user again
-    if (userData && userData.sessionId === sessionId) {
-        return userData;
+    if (!userData || userData.sessionId !== sessionId) {
+        return null;
     }
-    return null;
+
+    if (typeof userData.savedAt !== 'number') {
+        return null;
+    }
+
+    if (Date.now() - userData.savedAt > config.cache.currentUserTTL) {
+        return null;
+    }
+    return userData;
 }
 
 function getCookie(name) {
@@ -45,7 +53,8 @@ function getCookie(name) {
 function saveUserInMyStorage(user) {
     myStorage.save('user', {
         sessionId: getCookie('sx'),
-        user
+        user,
+        savedAt: Date.now()
     });
 }
 
@@ -382,7 +391,7 @@ const store = new Vuex.Store({
 
     actions: {
         loadCurrentUser({commit}) {
-            // here we are caching the user data so that it does not have to retrieved over and over again with each page load
+            // here we are caching the user data so that it does not have to be retrieved over and over again with each page load
             const userData = getVerifiedUserDataFromMyStorage();
             if (userData) {
                 commit('SET_CURRENT_USER', userData.user);

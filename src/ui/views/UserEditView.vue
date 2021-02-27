@@ -5,10 +5,10 @@
         <div class="middle-content">
             <h2>Edit User Profile</h2>
             
-            <div v-if="currentUser">
-                <div v-if="currentUser.editAllowed">
+            <div v-if="user">
+                <div v-if="user.editAllowed">
                     <div class="ctrl-label">Name</div>
-                    <input type="text" class="textfield" v-model="name"/>
+                    <input type="text" class="textfield" v-model="user.name"/>
 
                     <div class="section">
                         <div class="ctrl-label">Avatar</div>
@@ -40,25 +40,35 @@ import HeaderComponent from '../components/Header.vue';
 export default {
     components: { HeaderComponent },
 
-    data() {
-        let name = '';
+    beforeMount() {
+        this.isLoading = true;
+        apiClient.getCurrentUser().then(user => {
+            this.isLoading = false;
+            this.user = user;
+            this.name = user.name;
+            this.useGravatar = (this.user.settings && this.user.settings.avatarType === 'gravatar');
 
-        if (this.$store.state.currentUser) {
-            name = this.$store.state.currentUser.name;
-        }
+        }).catch(err => {
+            this.isLoading = false;
+            this.errorMessage = 'Failed to load user profile, try again later';
+        });
+    },
+
+    data() {
         return {
-            name,
             useGravatar: false,
             
             errorMessage: null,
 
-            isSaving: false
+            isSaving: false,
+            isLoading: false,
+            user: null
         };
     },
 
     methods: {
         saveUserProfile() {
-            const name = this.name.trim();
+            const name = this.user.name.trim();
             if (!name) {
                 this.errorMessage = 'Name cannot be empty';
                 return;
