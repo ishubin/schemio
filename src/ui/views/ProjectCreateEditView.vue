@@ -2,8 +2,8 @@
     <div>
         <header-component/>
         <div class="middle-content">
-            <h1 v-if="createMode">Create New Project</h1>
-            <h1 v-else>Edit Project</h1>
+            <h2 v-if="createMode">Create New Project</h2>
+            <h2 v-else>Edit Project</h2>
 
             <div v-if="isLoadingProject" class="mock-container mock-project">
                 <span class="mock-element mock-project-name mock-animated"></span>

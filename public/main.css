@@ -691,6 +691,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     color: var(--base-strong-up);
     border-radius: var(--control-border-radius);
     text-decoration: none;
+    transition: background-color 0.2s ease;
 }
 .btn:hover {
     background: var(--accent-faint);
@@ -2285,23 +2286,6 @@ ul.category-breadcrumb li i {
     max-width: 600px;
 }
 
-.project-view h3 {
-    position: relative;
-    display: block;
-    padding-right: 30px;
-}
-.project-view h3 .project-edit-button {
-    position: absolute;
-    display: inline-block;
-    text-decoration: none;
-    padding: 5px 10px;
-    right: 0;
-    top: 0;
-    cursor: pointer;
-    color: var(--accent-strong);
-    background-color: var(--accent-weak-down);
-    border-radius: var(--control-border-radius);
-}
 .project-view h3 .project-edit-button:hover {
     color: var(--accent-faint);
     background: var(--accent-weak-up);
@@ -2801,4 +2785,34 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
 }
 .system-message-leave-active {
     opacity: 0;
+}
+
+
+
+
+/*************** Title with edit button **********************/
+
+
+.title-with-edit {
+    display: flex;
+    width: 100%;
+}
+.title-with-edit h1, .title-with-edit h2, .title-with-edit h3 {
+    width: 100%;
+}
+.title-with-edit .edit-button {
+    align-self: center;
+    white-space: nowrap;
+    display: inline-block;
+    text-decoration: none;
+    padding: 5px 20px 5px 10px;
+    font-weight: bold;
+    cursor: pointer;
+    color: var(--accent-strong);
+    background-color: var(--accent-weak-down);
+    border-radius: var(--control-border-radius);
+    transition: background-color 0.2s ease;
+}
+.title-with-edit .edit-button:hover {
+    background-color: var(--accent-weak-up);
 }

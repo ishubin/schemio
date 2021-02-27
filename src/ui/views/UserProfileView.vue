@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div>
+    <div class="user-profile-view">
         <header-component/>
         <div class="middle-content">
             <div v-if="isLoading" class="mock-container">
@@ -12,13 +12,16 @@
                 <span class="mock-element mock-long-field mock-animated"></span>
             </div>
 
-            <div v-if="user">
-                <h1>{{user.name}}</h1>
+            <div class="title-with-edit" v-if="user">
+                <h2>{{user.name}}</h2>
+                <a v-if="currentUser && currentUser.id === user.id && currentUser.editAllowed" :href="`/user/edit`" class="edit-button" title="Edit profile...">
+                    <i class="fas fa-pencil-alt"/> Edit
+                </a>
             </div>
 
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 
-            <proejcts-list :key="`project-list-${revision}`" :user-id="userId" :route-prefix="`/users/${userId}`"/>
+            <projects-list :key="`project-list-${revision}`" :user-id="userId" :route-prefix="`/users/${userId}`"/>
         </div>
     </div>
 </template>
@@ -26,11 +29,11 @@
 
 <script>
 import HeaderComponent from '../components/Header.vue';
-import ProejctsList from '../components/ProjectsList.vue';
+import ProjectsList from '../components/ProjectsList.vue';
 import apiClient from '../apiClient';
 
 export default {
-    components: { HeaderComponent, ProejctsList },
+    components: { HeaderComponent, ProjectsList },
 
     beforeMount() {
         this.isLoading = true;
@@ -59,6 +62,12 @@ export default {
             // forcing it to refresh projects list
             this.revision += 1;
         }
+    },
+
+    computed: {
+        currentUser() {
+            return this.$store.getters.currentUser;
+        },
     }
 }
 </script>

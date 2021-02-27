@@ -38,9 +38,9 @@
                             <i v-if="!project.isPublic" class="fas fa-lock"></i> 
                             {{project.name}}
                         </router-link>
-                        <router-link class="project-owner link" v-if="project.ownerName && project.ownerId" :to="{path: `/users/${project.ownerId}`}">
-                            <img v-if="project.ownerGravatarId" class="avatar" :src="`https://www.gravatar.com/avatar/${project.ownerGravatarId}?s=30`" alt="Gravatar icon"/>
-                            <span>{{project.ownerName | maxSymbols(20)}}</span>
+                        <router-link class="project-owner link" v-if="project.owner && project.owner.id" :to="{path: `/users/${project.owner.id}`}">
+                            <img v-if="project.owner.avatarType === 'gravatar' && project.owner.gravatarId" class="avatar" :src="`https://www.gravatar.com/avatar/${project.owner.gravatarId}?s=30`" alt="Gravatar icon"/>
+                            <span>{{project.owner.name | maxSymbols(20)}}</span>
                         </router-link>
                     </div>
                     <div class="project-description">

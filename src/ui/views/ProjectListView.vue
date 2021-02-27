@@ -16,7 +16,6 @@
 <script>
 import HeaderComponent from '../components/Header.vue';
 import ProjectsList from '../components/ProjectsList.vue';
-import utils from '../utils.js';
 
 export default {
     components: { HeaderComponent, ProjectsList },

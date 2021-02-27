@@ -57,6 +57,10 @@ export default {
         return $axios().get('/v1/user').then(unwrapAxios);
     },
 
+    saveUserProfile(user) {
+        return $axios().put('/v1/user', user).then(unwrapAxios);
+    },
+
     createProject(project) {
         return $axios().post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
     },

@@ -33,10 +33,12 @@
                 </div>
 
                 <div v-else-if="project">
-                    <h3>
-                        {{project.name}} 
-                        <a v-if="hasWritePermission" :href="`/projects/${projectId}/edit`" class="project-edit-button" title="Edit project..."><i class="fas fa-pencil-alt"/> Edit</a>
-                    </h3>
+                    <div class="title-with-edit">
+                        <h2>
+                            {{project.name}} 
+                        </h2>
+                        <a v-if="hasWritePermission" :href="`/projects/${projectId}/edit`" class="edit-button" title="Edit project..."><i class="fas fa-pencil-alt"/> Edit</a>
+                    </div>
 
                     <div class="section">
                         {{project.description}}
