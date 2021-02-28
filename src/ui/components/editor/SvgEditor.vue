@@ -850,10 +850,9 @@ export default {
             if (this.mode === 'view') {
                 schemeContainer = this.interactiveSchemeContainer;
             }
-            const headerHeight = 50;
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
-                newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height - headerHeight)/area.h)) / 100.0;
+                newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
                 newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
@@ -862,7 +861,7 @@ export default {
             const oldZoom = schemeContainer.screenTransform.scale;
 
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
-            const destY = (this.height)/2 - (area.y - headerHeight + area.h/2) *newZoom;
+            const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
 
             AnimationRegistry.play(new ValueAnimation({
                 durationMillis: 400,

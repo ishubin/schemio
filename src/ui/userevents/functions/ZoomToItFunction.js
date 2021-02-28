@@ -144,7 +144,7 @@ export default {
         const width = schemeContainer.screenSettings.width;
         const height = schemeContainer.screenSettings.height;
         if (area.w > 0 && area.h > 0 && width > 0 && height > 0) {
-            newZoom = 100.0 * Math.min(width/area.w, height/area.h);
+            newZoom = Math.min(width/area.w, height/area.h);
             newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
         }
 
@@ -187,7 +187,7 @@ export default {
                 resultCallback();
             }
         } else {
-            schemeContainer.screenTransform.zoom = newZoom;;
+            schemeContainer.screenTransform.scale = newZoom;
             schemeContainer.screenTransform.x = destX;
             schemeContainer.screenTransform.y = destY;
             EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
