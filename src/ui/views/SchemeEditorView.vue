@@ -1037,7 +1037,8 @@ export default {
             forEach(this.schemeContainer.selectedItems, item => {
                 const shape = Shape.find(item.shape);
                 if (shape && (shape.shapeType === 'standard' || (shape.args.fill && shape.args.fill.type === 'advanced-color' 
-                    && shape.args.strokeColor && shape.args.strokeColor === 'color')) ) {
+                    && shape.args.strokeColor && shape.args.strokeColor.type === 'color')) 
+                    ) {
                     item.shapeProps.fill = utils.clone(style.fill);
                     item.shapeProps.strokeColor = utils.clone(style.strokeColor);
                     if (style.textColor) {
