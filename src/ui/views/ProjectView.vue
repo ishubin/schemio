@@ -135,7 +135,7 @@
 
                                         <div class="scheme-title">{{scheme.name}}</div>
                                         <div class="scheme-preview">
-                                            <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                            <img v-if="scheme.previewUrl" :src="`${scheme.previewUrl}?t=${scheme.modifiedTimeMillis}`"/>
                                             <img v-else class="scheme-preview" src="/assets/images/missing-preview.svg"/>
                                         </div>
                                         <span class="timestamp">{{scheme.modifiedTime | formatDateAndTime}}</span>
@@ -153,7 +153,7 @@
                                     <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
                                         <input v-if="isEditingScheme && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
                                         <div class="scheme-preview">
-                                            <img v-if="scheme.previewUrl" :src="scheme.previewUrl"/>
+                                            <img v-if="scheme.previewUrl" :src="`${scheme.previewUrl}?t=${scheme.modifiedTimeMillis}`"/>
                                             <img v-else src="/assets/images/missing-preview.svg"/>
                                         </div>
                                         <div class="scheme-info">
@@ -426,6 +426,8 @@ export default {
                 this.isLoadingSchemes = false;
                 this.schemeErrorMessage = null;
                 this.searchResult = searchResponse;
+                this.enrichSchemes(this.searchResult.results);
+
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
                 this.resultsPerPage = searchResponse.resultsPerPage;
                 this.updateSchemeStates();
@@ -439,6 +441,12 @@ export default {
                 if (err.response && err.response.status >= 500) {
                     this.schemeErrorMessage = 'Failed to get schemes from the server. Please try again';
                 }
+            });
+        },
+
+        enrichSchemes(schemes) {
+            forEach(schemes, scheme => {
+                scheme.modifiedTimeMillis = new Date(scheme.modifiedTime).getTime();
             });
         },
 
