@@ -1350,14 +1350,14 @@ class SchemeContainer {
                 if (widthSquare > 0) {
                     item.area.w = Math.sqrt(widthSquare);
                 } else {
-                    item.area.w = 0;
+                    item.area.w = multiItemEditBox.area.w;
                 }
 
                 const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
                 if (heightSquare > 0) {
                     item.area.h = Math.sqrt(heightSquare);
                 } else {
-                    item.area.h = 0;
+                    item.area.h = multiItemEditBox.area.h;
                 }
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);

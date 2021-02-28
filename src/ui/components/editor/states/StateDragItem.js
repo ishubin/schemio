@@ -582,12 +582,6 @@ export default class StateDragItem extends State {
     }
 
     rotateMultiItemEditBox(x, y, mx, my, event) {
-        if (Math.abs(this.multiItemEditBox.area.w) < 0.00001 || Math.abs(this.multiItemEditBox.area.h) < 0.00001) {
-            // There might be too many errors when calculating displacement of items after rotation of such a thin box
-            // so it is better to skip everything
-            return;
-        }
-
         const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
         const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
         const angle = angleDegrees * Math.PI / 180;
