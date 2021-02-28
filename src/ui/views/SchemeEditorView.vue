@@ -44,7 +44,6 @@
             @export-embedded-requested="exportEmbedded"
             @export-svg-requested="exportAsSVG"
             @export-html-requested="exportHTMLModalShown = true"
-            @zoom-offset-changed="initOffsetSave"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @new-scheme-requested="onNewSchemeRequested"
@@ -674,6 +673,7 @@ export default {
 
         onZoomChanged(newZoom) {
             this.zoom = newZoom;
+            this.initOffsetSave();
         },
 
         initOffsetSave() {

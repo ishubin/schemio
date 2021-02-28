@@ -47,10 +47,18 @@ class State {
     mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {}
 
 
+    /**
+     * 
+     * @param {*} x 
+     * @param {*} y 
+     * @param {*} mx 
+     * @param {*} my 
+     * @param {MouseEvent} event 
+     */
     mouseWheel(x, y, mx, my, event) {
         if (event) {
             if (event.deltaX !== 0 || event.deltaY !== 0) {
-                if (event.metaKey || event.ctrlKey) {
+                if (event.metaKey || event.ctrlKey || event.shiftKey) {
                     this.zoomByWheel(mx, my, event.deltaY);
                 } else {
                     this.dragScreenOffset(event.deltaX, event.deltaY);
@@ -96,12 +104,11 @@ class State {
         const scale = this.schemeContainer.screenTransform.scale;
 
         const padding = 10; // we use padding to so that small part of the scheme stays visible and user does not get lost
-        const paddingTop = 70; // we need to compensate for the header
 
         if (bbox) {
             const minScreenX = - (bbox.x + bbox.w) * scale + padding;
             const maxScreenX = this.schemeContainer.screenSettings.width - bbox.x * scale - padding;
-            const minScreenY = - (bbox.y + bbox.h) * scale + paddingTop;
+            const minScreenY = - (bbox.y + bbox.h) * scale + padding;
             const maxScreenY = this.schemeContainer.screenSettings.height - bbox.y * scale - padding;
 
             this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));

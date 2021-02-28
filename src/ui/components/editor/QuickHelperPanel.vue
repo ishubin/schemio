@@ -399,9 +399,7 @@ export default {
                     found = true;
                 }
             }
-            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
-            this.$emit('zoom-changed', selectedZoom);
-            this.initOffsetSave();
+            this.changeZoomTo(selectedZoom);
         },
 
         onZoomInClicked() {
@@ -419,15 +417,34 @@ export default {
                     found = true;
                 }
             }
-            this.$emit('zoom-changed', selectedZoom);
-            this.schemeContainer.screenTransform.scale = selectedZoom / 100.0;
-            this.initOffsetSave();
+            this.changeZoomTo(selectedZoom);
         },
 
         onZoomOptionSelected(option) {
-            this.$emit('zoom-changed', option.value);
-            this.schemeContainer.screenTransform.scale = option.value / 100.0;
-            this.initOffsetSave();
+            this.changeZoomTo(option.value);
+        },
+
+        changeZoomTo(newZoom) {
+            // calculating old center of the scheme
+
+            let schemeContainer = this.schemeContainer;
+            const xo = schemeContainer.screenTransform.x;
+            const yo = schemeContainer.screenTransform.y;
+
+            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const cx = svgRect.width / 2;
+            const cy = svgRect.height / 2;
+
+            const nz = newZoom / 100;
+
+            const sx = cx - nz * (cx - xo) / schemeContainer.screenTransform.scale;
+            const sy = cy - nz * (cy - yo) / schemeContainer.screenTransform.scale;
+            
+            schemeContainer.screenTransform.scale = nz;
+
+            schemeContainer.screenTransform.x = sx;
+            schemeContainer.screenTransform.y = sy; 
+            this.$emit('zoom-changed', newZoom);
         },
 
         onZoomSubmit(event) {
@@ -438,14 +455,8 @@ export default {
                 return;
             }
             if (zoom > 0) {
-                this.$emit('zoom-changed', zoom);
-                this.schemeContainer.screenTransform.scale = zoom / 100.0;
-                this.initOffsetSave();
+                this.changeZoomTo(zoom)
             }
-        },
-
-        initOffsetSave() {
-            this.$emit('zoom-offset-changed');
         },
 
         toggleSearchedItems() {
