@@ -543,10 +543,10 @@ export default {
                     event.actions[actionIndex].args[argName] = value;
                 }
             }
+            EventBus.emitSchemeChangeCommited(`items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
         },
 
         onActionDragStarted(eventIndex, actionIndex) {
-            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
             let name = 'Drop here';
             // TODO refactor to use $ref
             const domActionContainer = document.getElementById(`behavior-action-container-${this.item.id}-${eventIndex}-${actionIndex}`);
