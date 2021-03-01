@@ -1182,6 +1182,7 @@ export default {
                 this.switchToViewMode();
                 AnimationsRegistry.enableAnimations();
             } else {
+                this.interactiveSchemeContainer = null;
                 AnimationsRegistry.stopAllAnimations();
             }
         },
