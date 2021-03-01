@@ -17,9 +17,9 @@
             @drop="onDrop"
             data-void="true">
 
-            <g v-if="mode === 'view' && interactiveSchemeContainer">
-                <g data-type="scene-transform" :transform="transformSvgInteractiveMode">
-                    <g v-for="item in interactiveSchemeContainer.worldItems" class="item-container"
+            <g v-if="mode === 'view' && schemeContainer">
+                <g data-type="scene-transform" :transform="transformSvg">
+                    <g v-for="item in schemeContainer.worldItems" class="item-container"
                         v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
                         <item-svg 
@@ -54,7 +54,7 @@
                 </g>
 
                 <g>
-                    <g v-for="hud in interactiveSchemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
+                    <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
                         :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
                         >
                         <item-svg 
@@ -370,8 +370,6 @@ export default {
     },
     data() {
         return {
-            /** @type {SchemeContainer} */
-            interactiveSchemeContainer: null,
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: 'interact',
@@ -429,11 +427,6 @@ export default {
 
             this.schemeContainer.screenSettings.width = svgRect.width;
             this.schemeContainer.screenSettings.height = svgRect.height;
-
-            if (this.interactiveSchemeContainer) {
-                this.interactiveSchemeContainer.screenSettings.width = svgRect.width;
-                this.interactiveSchemeContainer.screenSettings.height = svgRect.height;
-            }
         },
 
         mouseCoordsFromEvent(event) {
@@ -595,19 +588,9 @@ export default {
         },
         switchStateInteract() {
             this.highlightItems([]);
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
-            this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
-            this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
-            this.interactiveSchemeContainer.screenTransform.scale = this.schemeContainer.screenTransform.scale;
 
-            states.interact.schemeContainer = this.interactiveSchemeContainer;
+            states.interact.schemeContainer = this.schemeContainer;
             this.state = 'interact';
-
-            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
-
-            this.interactiveSchemeContainer.screenSettings.width = this.width;
-            this.interactiveSchemeContainer.screenSettings.height = this.height;
-            this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
 
             this.reindexUserEvents();
             states[this.state].reset();
@@ -721,10 +704,10 @@ export default {
             // ids of items that have subscribed for Init event
             const itemsForInit = {};
 
-            forEach(this.interactiveSchemeContainer.getItems(), item => {
+            forEach(this.schemeContainer.getItems(), item => {
                 if (item.behavior && item.behavior.events) {
                     forEach(item.behavior.events, event => {
-                        const eventCallback = behaviorCompiler.compileActions(this.interactiveSchemeContainer, item, event.actions);
+                        const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
 
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
@@ -846,19 +829,15 @@ export default {
         },
 
         onBringToView(area) {
-            let schemeContainer = this.schemeContainer;
-            if (this.mode === 'view') {
-                schemeContainer = this.interactiveSchemeContainer;
-            }
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
                 newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
                 newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
             }
 
-            const oldX = schemeContainer.screenTransform.x;
-            const oldY = schemeContainer.screenTransform.y;
-            const oldZoom = schemeContainer.screenTransform.scale;
+            const oldX = this.schemeContainer.screenTransform.x;
+            const oldY = this.schemeContainer.screenTransform.y;
+            const oldZoom = this.schemeContainer.screenTransform.scale;
 
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
             const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
@@ -867,12 +846,12 @@ export default {
                 durationMillis: 400,
                 animationType: 'ease-out',
                 update: (t) => {
-                    schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
-                    schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
-                    schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
+                    this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
+                    this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
+                    this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
                 }, 
                 destroy: () => {
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
                 }
             }));
         },
@@ -892,9 +871,9 @@ export default {
 
         generateItemLinks(item) {
             if (item.links && item.links.length > 0) {
-                const worldPointCenter = this.interactiveSchemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
-                let cx = this._vx(worldPointCenter.x);
-                let cy = this._vy(worldPointCenter.y);
+                const worldPointCenter = this.schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+                let cx = this._x(worldPointCenter.x);
+                let cy = this._y(worldPointCenter.y);
                 let startX = cx;
                 let startY = cy;
 
@@ -904,13 +883,13 @@ export default {
 
                 let step = 40;
                 let y0 = cy - item.links.length * step / 2;
-                const worldPointRight = this.interactiveSchemeContainer.worldPointOnItem(item.area.w, 0, item);
-                let destinationX = this._vx(worldPointRight.x) + 10;
+                const worldPointRight = this.schemeContainer.worldPointOnItem(item.area.w, 0, item);
+                let destinationX = this._x(worldPointRight.x) + 10;
 
                 // taking side panel into account
                 if (destinationX > this.width - 500) {
                     let maxLinkLength = max(map(item.links, link => link.title ? link.title.length : link.url.length));
-                    const leftX = this._vx(this.interactiveSchemeContainer.worldPointOnItem(0, 0, item).x);
+                    const leftX = this._x(this.schemeContainer.worldPointOnItem(0, 0, item).x);
                     destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
                 }
 
@@ -1020,11 +999,7 @@ export default {
         },
 
         onExportSVGRequested() {
-            let schemeContainer = this.schemeContainer;
-            if (this.mode === 'view') {
-                schemeContainer = this.interactiveSchemeContainer;
-            }
-            this.openExportSVGModal(schemeContainer, schemeContainer.scheme.items);
+            this.openExportSVGModal(this.schemeContainer, this.schemeContainer.scheme.items);
         },
 
         exportSelectedItemsAsSVG() {
@@ -1458,11 +1433,6 @@ export default {
         y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
         z_(v) { return v * this.schemeContainer.screenTransform.scale; },
 
-        //calculates coords from world to screen in view mode
-        //TODO check why this formula is not aligned with myMath.js, how the hell is it working then?
-        _vx(x) { return x * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.x },
-        _vy(y) { return y * this.interactiveSchemeContainer.screenTransform.scale + this.interactiveSchemeContainer.screenTransform.y; },
-        _vz(v) { return v * this.interactiveSchemeContainer.screenTransform.scale; },
     },
     watch: {
         state(newState) {
@@ -1478,23 +1448,12 @@ export default {
                 this.switchStateInteract();
             }
         },
-        zoom(newZoom) {
-            if (this.interactiveSchemeContainer) {
-                this.interactiveSchemeContainer.screenTransform.scale = newZoom / 100.0;
-            }
-        }
     },
     computed: {
         transformSvg() {
             const x = Math.floor(this.schemeContainer.screenTransform.x || 0);
             const y = Math.floor(this.schemeContainer.screenTransform.y || 0);
             const scale = this.schemeContainer.screenTransform.scale || 1.0;
-            return `translate(${x} ${y}) scale(${scale} ${scale})`;
-        },
-        transformSvgInteractiveMode() {
-            const x = Math.floor(this.interactiveSchemeContainer.screenTransform.x || 0);
-            const y = Math.floor(this.interactiveSchemeContainer.screenTransform.y || 0);
-            const scale = this.interactiveSchemeContainer.screenTransform.scale || 1.0;
             return `translate(${x} ${y}) scale(${scale} ${scale})`;
         },
         gridStep() {

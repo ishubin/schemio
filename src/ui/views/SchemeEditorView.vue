@@ -66,7 +66,25 @@
         <div class="scheme-editor-middle-section">
             <div class="scheme-container" oncontextmenu="return false;">
                 <svg-editor
-                    v-if="schemeContainer"
+                    v-if="schemeContainer && mode === 'edit'"
+                    :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
+                    :project-id="projectId"
+                    :schemeContainer="schemeContainer"
+                    :mode="mode"
+                    :offline="offlineMode"
+                    :zoom="zoom"
+                    @switched-state="onSvgEditorSwitchedState"
+                    @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
+                    @clicked-add-item-link="onClickedAddItemLink"
+                    @clicked-start-connecting="onClickedStartConnecting"
+                    @clicked-bring-to-front="bringSelectedItemsToFront()"
+                    @clicked-bring-to-back="bringSelectedItemsToBack()"
+                    @clicked-copy-selected-items="copySelectedItems()"
+                    @clicked-items-paste="pasteItemsFromClipboard()"
+                    ></svg-editor>
+
+                <svg-editor
+                    v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
                     :project-id="projectId"
                     :schemeContainer="schemeContainer"
@@ -361,6 +379,7 @@ export default {
             sidePanelRightExpanded: true,
             sidePanelLeftExpanded: true,
             schemeContainer: null,
+            interactiveSchemeContainer: null,
             zoom: 100,
             mode: 'view',
 
@@ -1130,6 +1149,17 @@ export default {
 
         clearStatusMessage() {
             this.$store.dispatch('clearStatusMessage');
+        },
+
+        switchToViewMode() {
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
+            this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
+            this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
+            this.interactiveSchemeContainer.screenTransform.scale = this.schemeContainer.screenTransform.scale;
+
+            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
+
+            this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
         }
     },
 
@@ -1149,6 +1179,7 @@ export default {
                 m: value
             }));
             if (value === 'view') {
+                this.switchToViewMode();
                 AnimationsRegistry.enableAnimations();
             } else {
                 AnimationsRegistry.stopAllAnimations();
