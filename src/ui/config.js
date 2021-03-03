@@ -18,5 +18,9 @@ export default {
 
     cache: {
         currentUserTTL: 30000
+    },
+
+    styles: {
+        maxStyles: 5
     }
 };
