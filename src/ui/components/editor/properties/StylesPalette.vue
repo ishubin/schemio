@@ -15,7 +15,7 @@
             </div>
         </panel>
         <panel v-if="currentUser" uid="user-styles" name="User Styles">
-            <span class="btn" @click="saveStyleFromItem">Save to Styles</span>
+            <span class="btn" @click="saveStyleFromItem">Add to Styles</span>
             <span v-if="!isEdit" class="btn" @click="isEdit = true"><i class="fas fa-edit"></i> Edit</span>
             <span v-else class="btn" @click="isEdit = false"><i class="fas fa-edit"></i> Stop Edit</span>
 
