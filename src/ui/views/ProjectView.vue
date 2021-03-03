@@ -151,7 +151,10 @@
                             <ul class="schemes">
                                 <li v-for="scheme in searchResult.results">
                                     <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
-                                        <input v-if="isEditingScheme && schemeStates[scheme.id]" type="checkbox" :checked="schemeStates[scheme.id].checked" class="scheme-checkbox"/>
+                                        <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
+                                            <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
+                                        </span>
+
                                         <div class="scheme-preview">
                                             <img v-if="scheme.previewUrl" :src="`${scheme.previewUrl}?t=${scheme.modifiedTimeMillis}`"/>
                                             <img v-else src="/assets/images/missing-preview.svg"/>

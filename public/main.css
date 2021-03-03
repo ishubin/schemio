@@ -497,20 +497,6 @@ ul.categories li a i {
     height: 200px;
     text-decoration: none;
 }
-.gallery-view ul.schemes li a .scheme-checkbox {
-    position: absolute;
-    right: 5px;
-    top: 14px;
-    padding: 2px;
-    width: 24px;
-    height: 24px;
-    border-radius: var(--control-border-radius);
-    border: 1px solid var(--accent-strong);
-    background: var(--base-weak);
-}
-.gallery-view ul.schemes li a .scheme-checkbox .icon {
-    color: var(--accent-strong);
-}
 .gallery-view ul.schemes li a .scheme-title {
     margin: 14px 5px 1px 8px;
     font-weight: bold;
@@ -621,6 +607,20 @@ ul.categories li a i {
     font-size: 13px;
 }
 
+ul.schemes li a .scheme-checkbox {
+    position: absolute;
+    right: 5px;
+    top: 14px;
+    padding: 2px;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--control-border-radius);
+    border: 1px solid var(--accent-strong);
+    background: var(--base-weak);
+}
+ul.schemes li a .scheme-checkbox .icon {
+    color: var(--accent-strong);
+}
 
 /******************** Tabs *********************/
 ul.tabs {
