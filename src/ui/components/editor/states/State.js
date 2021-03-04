@@ -68,18 +68,19 @@ class State {
     }
 
     zoomByWheel(mx, my, delta) {
+        const zoomRatio = 1.1;
         var nz = 0;
         var xo = this.schemeContainer.screenTransform.x;
         var yo = this.schemeContainer.screenTransform.y;
         if (delta < 0) {
-            nz = this.schemeContainer.screenTransform.scale * 1.02;
+            nz = this.schemeContainer.screenTransform.scale * zoomRatio;
             const sx = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
             const sy = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
             this.schemeContainer.screenTransform.scale = nz;
             this.dragScreenTo(sx, sy);
 
         } else if (this.schemeContainer.screenTransform.scale > 0.05) {
-            nz = this.schemeContainer.screenTransform.scale / 1.02;
+            nz = this.schemeContainer.screenTransform.scale / zoomRatio;
             const sx = mx - nz * (mx - xo) / this.schemeContainer.screenTransform.scale;
             const sy = my - nz * (my - yo) / this.schemeContainer.screenTransform.scale;
             this.schemeContainer.screenTransform.scale = nz;

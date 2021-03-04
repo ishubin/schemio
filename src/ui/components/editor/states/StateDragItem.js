@@ -28,6 +28,10 @@ const ITEM_MODIFICATION_CONTEXT_MOVED = {
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = ITEM_MODIFICATION_CONTEXT_MOVED;
 
 
+function isEventMiddleClick(event) {
+    return event.button === 1;
+}
+
 function isEventRightClick(event) {
     return event.button === 2;
 }
@@ -97,6 +101,7 @@ export default class StateDragItem extends State {
         this.reindexNeeded = false;
         this.wasDraggedEnough = false;
         this.startedDragging = false;
+        this.shouldDragScreen = false;
         this.draggerEdges = null;
         this.isRotating = false;
         this.sourceItem = null;
@@ -191,6 +196,10 @@ export default class StateDragItem extends State {
     mouseDown(x, y, mx, my, object, event) {
         this.modificationContextId = shortid.generate();
         this.wasMouseMoved = false;
+        
+        if (isEventMiddleClick(event)) {
+            this.shouldDragScreen = true;
+        }
 
         if (this.shouldDragScreen) {
             this.updateCursor('grabbing');
