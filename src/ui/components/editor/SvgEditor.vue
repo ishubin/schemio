@@ -979,10 +979,12 @@ export default {
                     clicked: () => { EventBus.emitCurveEdited(item); }
                 });
             }
-            this.customContextMenu.show = true;
-            this.customContextMenu.mouseX = mouseX;
-            this.customContextMenu.mouseY = mouseY;
+
+            const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
+            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
             this.customContextMenu.id = shortid.generate();
+            this.customContextMenu.show = true;
         },
 
         onRightClickedVoid(x, y, mouseX, mouseY) {
@@ -991,10 +993,11 @@ export default {
                     name: 'Paste',
                     clicked: () => {this.$emit('clicked-items-paste')}
                 }];
-                this.customContextMenu.show = true;
-                this.customContextMenu.mouseX = mouseX;
-                this.customContextMenu.mouseY = mouseY;
+                const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
+                this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+                this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
                 this.customContextMenu.id = shortid.generate();
+                this.customContextMenu.show = true;
             }
         },
 
@@ -1219,10 +1222,12 @@ export default {
 
         onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.customContextMenu.menuOptions = menuOptions;
-            this.customContextMenu.show = true;
-            this.customContextMenu.mouseX = mouseX;
-            this.customContextMenu.mouseY = mouseY;
+
+            const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
+            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
             this.customContextMenu.id = shortid.generate();
+            this.customContextMenu.show = true;
         },
 
         onCustomMenuOptionSelected(optionIndex) {

@@ -25,6 +25,8 @@ export default {
                 this.y -= overlapY;
             }
         }
+
+        console.log(this.mouseX, this.mouseY, this.x , this.y);
     },
 
     beforeDestroy() {
