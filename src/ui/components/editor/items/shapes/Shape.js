@@ -19,6 +19,7 @@ import UMLObject from './uml/UMLObject.js';
 import UMLModule from './uml/UMLModule.js';
 import UMLPackage from './uml/UMLPackage.js';
 import UMLNode from './uml/UMLNode.js';
+import UMLActor from './uml/UMLActor.vue';
 import mapValues from 'lodash/mapValues';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
@@ -155,6 +156,7 @@ const shapeRegistry = mapValues({
     uml_module: UMLModule,
     uml_package: UMLPackage,
     uml_node: UMLNode,
+    uml_actor: UMLActor,
     code_block: CodeBlock
 }, enrichShape);
 

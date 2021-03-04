@@ -8,10 +8,6 @@ const calculateD = (item) => {
 };
 
 
-function calculateNameLineTop(item) {
-    return 30 + calculateD(item);
-}
-
 export default {
     shapeConfig: {
         shapeType: 'standard',

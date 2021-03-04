@@ -49,4 +49,11 @@ export default [{
         shape: 'uml_node',
         shapeProps: {}
     }, defaultItem)
+}, {
+    name: 'Actor',
+    iconUrl: '/assets/images/items/uml-actor.svg',
+    item: utils.extendObject({
+        shape: 'uml_actor',
+        shapeProps: {}
+    }, defaultItem)
 }]
