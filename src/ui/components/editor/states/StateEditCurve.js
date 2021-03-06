@@ -907,8 +907,12 @@ export default class StateEditCurve extends State {
         const Vy = worldPoint2.y - worldPoint1.y;
 
         const destinationItem = this.schemeContainer.addItem(item);
-        destinationItem.area.w = 100;
-        destinationItem.area.h = 50;
+
+        if (item.shape !== 'uml_actor') {
+            // uml_actor item looks ugly when stretched wide
+            destinationItem.area.w = 100;
+            destinationItem.area.h = 50;
+        }
 
         if (Math.abs(Vx) > Math.abs(Vy)) {
             destinationItem.area.y = worldPoint2.y - destinationItem.area.h / 2;
