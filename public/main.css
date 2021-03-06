@@ -1820,6 +1820,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     background: #eee;
     right: -160px;
     top: 100px;
+    box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.5);
 }
 .create-item-menu .preview-item h4 {
     margin: 5px 0 5px 0;

@@ -1,5 +1,39 @@
 <template>
     <g data-preview-ignore="true">
+        <!-- rendering item custom control points -->
+        <g v-if="editBox.items.length === 1"
+            :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
+            <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
+
+                <path v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
+                    :d="selectedConnectorPath" 
+                    stroke-width="3px"
+                    :stroke="boundaryBoxColor"
+                    style="stroke-linejoin: round;"
+                    data-preview-ignore="true"
+                    :data-item-id="editBox.items[0].id"
+                    stroke-dasharray="4 4"
+                    fill="none"/>
+
+                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
+                    :key="`item-control-point-${controlPoint.id}`"
+                    class="item-control-point"
+                    :data-control-point-item-id="editBox.items[0].id"
+                    :data-control-point-id="controlPoint.id"
+                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
+                    :fill="controlPointsColor"
+                    :r="6/safeZoom"
+                    />
+                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
+                    <foreignObject :x="0" :y="0" width="100" height="20">
+                        <div>
+                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
+                        </div>
+                    </foreignObject>
+                </g>
+            </g>
+        </g>
+
         <g v-if="!isItemConnector" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
@@ -124,39 +158,6 @@
             />
         </g>
 
-        <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1"
-            :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
-            <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
-
-                <path v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
-                    :d="selectedConnectorPath" 
-                    stroke-width="3px"
-                    :stroke="boundaryBoxColor"
-                    style="stroke-linejoin: round;"
-                    data-preview-ignore="true"
-                    :data-item-id="editBox.items[0].id"
-                    stroke-dasharray="4 4"
-                    fill="none"/>
-
-                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
-                    :key="`item-control-point-${controlPoint.id}`"
-                    class="item-control-point"
-                    :data-control-point-item-id="editBox.items[0].id"
-                    :data-control-point-id="controlPoint.id"
-                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
-                    :fill="controlPointsColor"
-                    :r="6/safeZoom"
-                    />
-                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
-                    <foreignObject :x="0" :y="0" width="100" height="20">
-                        <div>
-                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
-                        </div>
-                    </foreignObject>
-                </g>
-            </g>
-        </g>
 
     </g>
 </template>

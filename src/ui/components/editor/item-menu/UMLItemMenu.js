@@ -55,5 +55,6 @@ export default [{
     item: utils.extendObject({
         shape: 'uml_actor',
         shapeProps: {}
-    }, defaultItem)
+    }, defaultItem),
+    area: {x: 0, y: 0, w: 30, h: 90, r: 0},
 }]

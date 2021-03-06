@@ -145,17 +145,16 @@ export default {
          */
         prepareItemsForMenu(items) {
             return map(items, item => {
-                item.item.area = {x: 6, y: 6, w: 140, h: 90};
+                if (item.area) {
+                    // some items might override their area so that it can be shown nicely in a preview
+                    item.item.area = item.area;
+                } else {
+                    item.item.area = {x: 6, y: 6, w: 140, h: 90};
+                }
                 if (item.item.shape) {
                     const shape = Shape.make(item.item.shape);
-                    if (shape.component) {
+                    if (shape) {
                         this.enrichItemWithShapeProps(item.item, shape);
-                        item.shapeComponent = shape.component;
-
-                        if (item.previewItem) {
-                            item.previewItem.area = {x: 6, y: 6, w: 140, h: 90};
-                            this.enrichItemWithShapeProps(item.previewItem, shape);
-                        }
                     }
                 }
                 return item;

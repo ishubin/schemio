@@ -168,7 +168,7 @@ function make(encodedShape) {
     if (shapeRegistry[encodedShape]) {
         const shape = shapeRegistry[encodedShape];
 
-        if (!shape.component && !shape.vueComponentName) {
+        if (!shape.vueComponent && !shape.vueComponentName) {
             const componentName = `${encodedShape}-shape-svg-component`;
             Vue.component(componentName, {
                 props: ['item'],

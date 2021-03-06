@@ -35,7 +35,9 @@ export default [{
     item: utils.extendObject({
         shape: 'curve',
         shapeProps: {
-            connector: false
+            connector: false,
+            points:[{"t":"B","x":30.570165745856354,"x1":-8.006471981057615,"x2":8.006471981057615,"y":44.03495504174695,"y1":14.115847784200385,"y2":-14.115847784200385},{"t":"B","x":19.652249408050515,"x1":-19.652249408050515,"x2":19.652249408050515,"y":10.384071933204881,"y1":10.384071933204881,"y2":-10.384071933204881},{"t":"B","x":61.14033149171271,"x1":-17.468666140489344,"x2":17.468666140489344,"y":29.07540141297367,"y1":-2.5960179833012202,"y2":2.5960179833012202},{"t":"B","x":97.53338595106553,"x1":-16.740805051302292,"x2":16.740805051302292,"y":20.768143866409762,"y1":-11.941682723185616,"y2":11.941682723185616},{"t":"B","x":105.53985793212311,"x1":26.202999210734017,"x2":-26.202999210734017,"y":52.43956326268464,"y1":-10.903275529865125,"y2":10.903275529865125},{"t":"B","x":61.14033149171271,"x1":21.107971586424625,"x2":-21.107971586424625,"y":58.15080282594734,"y1":-10.384071933204881,"y2":10.384071933204881},{"t":"B","x":61.14033149171271,"x1":23.561681767608952,"x2":-23.561681767608952,"y":82.5533718689788,"y1":-7.268850353243417,"y2":7.268850353243417},{"t":"B","x":13.829360694554063,"x1":1.455722178374112,"x2":-1.455722178374112,"y":66.97726396917147,"y1":18.172125883108542,"y2":-18.172125883108542}],
+            closed: true,
         }
     }, defaultItem)
 }, {
@@ -47,7 +49,8 @@ export default [{
             fill: {type: 'none'},
             style: 'curly',
         }
-    }, defaultItem)
+    }, defaultItem),
+    area: {x: 5, y: 30, w: 130, h: 15, r: 0},
 }, {
     name: 'Square Bracket',
     iconUrl: '/assets/images/items/square-bracket.svg',
@@ -57,7 +60,8 @@ export default [{
             fill: {type: 'none'},
             style: 'square'
         }
-    }, defaultItem)
+    }, defaultItem),
+    area: {x: 5, y: 30, w: 130, h: 15, r: 0},
 }, {
     name: 'Round Bracket',
     iconUrl: '/assets/images/items/round-bracket.svg',
@@ -67,7 +71,8 @@ export default [{
             fill: {type: 'none'},
             style: 'round'
         }
-    }, defaultItem)
+    }, defaultItem),
+    area: {x: 5, y: 30, w: 130, h: 15, r: 0},
 }, {
     name: 'Overlay',
     iconUrl: '/assets/images/items/overlay.svg',
@@ -91,22 +96,26 @@ export default [{
     `,
     item: utils.extendObject({
         shape: 'image',
-        shapeProps: { }
+        shapeProps: {
+            image: '/assets/images/missing-scheme-preview.png'
+        }
     }, defaultItem)
 }, {
     name: 'Comment',
     iconUrl: '/assets/images/items/comment.svg',
-    shapeProps: {
-        fontSize: 8,
-        cornerRadius: 5,
-        tailLength: 7,
-        tailWidth: 4
-    },
     item: utils.extendObject({
         shape: 'comment',
         text: 'Text...',
-        shapeProps: { }
-    }, defaultItem)
+        shapeProps: {
+            fontSize: 8,
+            cornerRadius: 5,
+            tailLength: 20,
+            tailWidth: 20,
+            tailSide: 'bottom',
+            tailPosition: 10
+        },
+    }, defaultItem),
+    area: {x: 5, y: 5, w: 130, h: 60, r: 0},
 }, {
     name: 'Text',
     iconUrl: '/assets/images/items/text.svg',
@@ -130,16 +139,6 @@ export default [{
         },
         shapeProps: { }
     }, defaultItem),
-    previewItem: utils.extendObject({
-        shape: 'link',
-        shapeProps: {
-            url: 'http://example.com'
-        },
-        textSlots: { 
-            link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
-        },
-    }, defaultItem)
-
 }, {
     name: 'Frame Player',
     iconUrl: '/assets/images/items/frame-player.svg',
@@ -162,7 +161,7 @@ export default [{
         shapeProps: { },
         textSlots: {
             title: {
-                text: '<b>Code Block</b>',
+                text: '<b>Code</b>',
                 halign: 'center',
                 valign: 'middle',
                 padding: {
@@ -186,10 +185,6 @@ export default [{
                 }
             }
         }
-    }, defaultItem),
-    previewItem: utils.extendObject({
-        shape: 'code_block',
-        shapeProps: { },
     }, defaultItem)
 }, {
     name: 'Button',
@@ -203,18 +198,14 @@ export default [{
             hoverTextColor: '#fff'
         }
     }, defaultItem),
-    previewItem: utils.extendObject({
-        shape: 'button',
-        shapeProps: { },
-        textSlots: { body: {text: '<b>Button</b>'} },
-        shapeProps: {
-            strokeSize: 1,
-            hoverTextColor: '#fff'
-        }
-    }, defaultItem)
+    area: {x: 0, y: 0, w: 140, h: 60, r: 0},
 }, {
     name: 'Dummy',
     iconUrl: '/assets/images/items/dummy.svg',
+    description: `
+        Dummy item can be used in order to group mulitple items together.
+        It is only visible in the edit mode and completely transparent in view mode.
+    `,
     item: utils.extendObject({
         shape: 'dummy',
         shapeProps: {cornerRadius: 0}
