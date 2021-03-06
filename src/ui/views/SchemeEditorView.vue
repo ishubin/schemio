@@ -508,6 +508,10 @@ export default {
             history.commit(scheme);
             document._history = history;
 
+            if (this.mode === 'view') {
+                this.switchToViewMode();
+            }
+
             const schemeSettings = schemeSettingsStorage.get(this.schemeId);
             if (schemeSettings && schemeSettings.screenPosition) {
                 // Text tab is only rendered when in place text edit is triggered
@@ -1160,6 +1164,12 @@ export default {
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
+            AnimationsRegistry.enableAnimations();
+        },
+        
+        switchToEditMode() {
+            this.interactiveSchemeContainer = null;
+            AnimationsRegistry.stopAllAnimations();
         }
     },
 
@@ -1180,10 +1190,8 @@ export default {
             }));
             if (value === 'view') {
                 this.switchToViewMode();
-                AnimationsRegistry.enableAnimations();
             } else {
-                this.interactiveSchemeContainer = null;
-                AnimationsRegistry.stopAllAnimations();
+                this.switchToEditMode();
             }
         },
 
