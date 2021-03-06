@@ -565,7 +565,7 @@ export default {
 
         openNewSchemePopupSchemeCreated(projectId, scheme) {
             this.newSchemePopup.show = false;
-            window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
+            window.location.href = `/projects/${projectId}/docs/${scheme.id}#m:edit`;
         },
 
         saveScheme() {
@@ -659,13 +659,13 @@ export default {
             }
 
             this.newSchemePopup.name = item.name;
-            this.newSchemePopup.description = `Go back to <a href="/schemes/${this.schemeContainer.scheme.id}">${escapeHTML(this.schemeContainer.scheme.name)}</a>`;
+            this.newSchemePopup.description = `Go back to <a href="/projects/${this.projectId}/docs/${this.schemeContainer.scheme.id}">${escapeHTML(this.schemeContainer.scheme.name)}</a>`;
             this.newSchemePopup.parentSchemeItem = item;
             this.newSchemePopup.show = true;
         },
 
         openNewSchemePopupSchemeCreated(projectId, scheme) {
-            var url = `/projects/${projectId}/schemes/${scheme.id}`;
+            var url = `/projects/${projectId}/docs/${scheme.id}`;
             var item = this.newSchemePopup.parentSchemeItem;
             if (item) {
                 if (!item.links) {

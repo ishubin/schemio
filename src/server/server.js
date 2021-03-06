@@ -128,14 +128,14 @@ if (!config.backendless) {
     $patchJSON( '/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.patchProject);
     $deleteJSON('/v1/projects/:projectId',                          [middleware.auth, middleware.projectWritePermission],   apiProjects.deleteProject);
 
-    $getJSON(   '/v1/projects/:projectId/schemes',                  [middleware.projectReadPermission],    apiSchemes.findSchemes);
-    $postJSON(  '/v1/projects/:projectId/schemes',                  [middleware.projectWritePermission],   apiSchemes.createScheme);
-    $postJSON(  '/v1/projects/:projectId/delete-schemes',           [middleware.projectWritePermission],   apiSchemes.deleteMultipleSchemes);
-    $getJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
-    $deleteJSON('/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
-    $putJSON(   '/v1/projects/:projectId/schemes/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);
-    $postJSON(  '/v1/projects/:projectId/schemes/:schemeId/preview',[middleware.projectWritePermission],   apiSchemes.savePreview);
-    $getJSON(   '/projects/:projectId/schemes/:schemeId/preview',   [middleware.projectReadPermission],    apiSchemes.getPreview);
+    $getJSON(   '/v1/projects/:projectId/docs',                  [middleware.projectReadPermission],    apiSchemes.findSchemes);
+    $postJSON(  '/v1/projects/:projectId/docs',                  [middleware.projectWritePermission],   apiSchemes.createScheme);
+    $postJSON(  '/v1/projects/:projectId/delete-docs',           [middleware.projectWritePermission],   apiSchemes.deleteMultipleSchemes);
+    $getJSON(   '/v1/projects/:projectId/docs/:schemeId',        [middleware.projectReadPermission],    apiSchemes.getScheme);
+    $deleteJSON('/v1/projects/:projectId/docs/:schemeId',        [middleware.projectWritePermission],   apiSchemes.deleteScheme);
+    $putJSON(   '/v1/projects/:projectId/docs/:schemeId',        [middleware.projectWritePermission],   apiSchemes.saveScheme);
+    $postJSON(  '/v1/projects/:projectId/docs/:schemeId/preview',[middleware.projectWritePermission],   apiSchemes.savePreview);
+    $getJSON(   '/projects/:projectId/docs/:schemeId/preview',   [middleware.projectReadPermission],    apiSchemes.getPreview);
 
     $getJSON(   '/v1/projects/:projectId/tags',                     [middleware.projectReadPermission],    apiSchemes.getTags);
 
@@ -163,7 +163,7 @@ $getJSON(   '/v1/art',                                          [],             
 
 const cwd = process.cwd();
 
-app.get('/embed/:projectId/schemes/:schemeId', [metrics.routeMiddleware({ routeName: 'embed' })], (req, res) => {
+app.get('/embed/:projectId/docs/:schemeId', [metrics.routeMiddleware({ routeName: 'embed' })], (req, res) => {
     res.sendFile(`${cwd}/public/embed.html`);
 });
 

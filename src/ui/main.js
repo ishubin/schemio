@@ -38,7 +38,7 @@ const routes = [
     route('Login',              '/login', LoginView),
     route('CreateProject',      '/create-project',           ProjectCreateEditView, {createMode: true}),
     route('EditProject',        '/projects/:projectId/edit', ProjectCreateEditView, {createMode: false}),
-    route('SchemeEditorView',   '/projects/:projectId/schemes/:schemeId', SchemeEditorView),
+    route('SchemeEditorView',   '/projects/:projectId/docs/:schemeId', SchemeEditorView),
     route('SchemeEditorView',   '/offline-scheme-editor', SchemeEditorView),
     route('HomeView',           '/', HomeView),
     route('ProjectListView',    '/projects', ProjectListView),

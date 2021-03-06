@@ -19,7 +19,7 @@ export default {
     data() {
         const url = new URL(window.location);
         return {
-            iframeContent: `<iframe width="800" height="600" src="${url.protocol}//${url.host}/embed/${this.projectId}/schemes/${this.scheme.id}" frameborder="0" allowfullscreen></iframe>`,
+            iframeContent: `<iframe width="800" height="600" src="${url.protocol}//${url.host}/embed/${this.projectId}/docs/${this.scheme.id}" frameborder="0" allowfullscreen></iframe>`,
             message: '',
         };
     },

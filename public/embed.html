@@ -12,22 +12,21 @@
         <script>
             var url = new URL(window.location);
 
-            var regexMatcher = url.pathname.match(/\/embed\/(.*?)\/schemes\/(.*)/);
+            var regexMatcher = url.pathname.match(/\/embed\/(.*?)\/docs\/(.*)/);
             if (regexMatcher.length > 2) {
                 var projectId = regexMatcher[1].replace(/\//g, '');
                 var schemeId = regexMatcher[2].replace(/\//g, '');
                 
-                console.log('project', projectId, 'scheme', schemeId);
             }
 
-            var schemeUrl = '/v1/projects/' + projectId + '/schemes/' + schemeId;
+            var schemeUrl = '/v1/projects/' + projectId + '/docs/' + schemeId;
 
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     schemioViewScheme('#app', JSON.parse(this.responseText), {
                         sidePanelWidth: 400,
-                        homeLink: '/projects/' + projectId + '/schemes/' + schemeId
+                        homeLink: '/projects/' + projectId + '/docs/' + schemeId
                     });
                 }
             };

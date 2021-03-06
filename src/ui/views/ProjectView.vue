@@ -127,7 +127,7 @@
                         <div class="gallery-view" v-if="currentView === 'gallery'">
                             <ul class="schemes">
                                 <li v-for="scheme in searchResult.results">
-                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/docs/${scheme.id}`" class="scheme link">
                                         <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
                                             <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
                                         </span>
@@ -150,7 +150,7 @@
                         <div v-else class="list-view">
                             <ul class="schemes">
                                 <li v-for="scheme in searchResult.results">
-                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/schemes/${scheme.id}`" class="scheme link">
+                                    <a @click="onSchemeClick(arguments[0], scheme)" :href="`/projects/${projectId}/docs/${scheme.id}`" class="scheme link">
                                         <span v-if="isEditingScheme && schemeStates[scheme.id]" class="scheme-checkbox">
                                             <i v-if="schemeStates[scheme.id].checked" class="icon fas fa-check"></i>
                                         </span>

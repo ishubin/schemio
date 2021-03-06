@@ -122,11 +122,11 @@ export default {
     },
 
     loadScheme(projectId, schemeId) {
-        return $axios().get(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
+        return $axios().get(`/v1/projects/${projectId}/docs/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     createNewScheme(projectId, scheme) {
-        return $axios().post(`/v1/projects/${projectId}/schemes`, scheme).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/docs`, scheme).then(unwrapAxios);
     },
 
     saveScheme(projectId, schemeId, scheme) {
@@ -134,7 +134,7 @@ export default {
             const sanitizedScheme = utils.sanitizeScheme(scheme);
             const defScheme = defaultifyScheme(sanitizedScheme);
 
-            return $axios().put(`/v1/projects/${projectId}/schemes/${schemeId}`, defScheme).then(unwrapAxios).then(() => {
+            return $axios().put(`/v1/projects/${projectId}/docs/${schemeId}`, defScheme).then(unwrapAxios).then(() => {
                 return 'saved';
             });
         } else {
@@ -144,19 +144,19 @@ export default {
 
     deleteScheme(projectId, schemeId) {
         if (schemeId && schemeId.trim().length > 0) {
-            return $axios().delete(`/v1/projects/${projectId}/schemes/${schemeId}`).then(unwrapAxios);
+            return $axios().delete(`/v1/projects/${projectId}/docs/${schemeId}`).then(unwrapAxios);
         } else {
             return Promise.resolve(null);
         }
     },
 
     deleteMultipleSchemes(projectId, schemeIds) {
-        return $axios().post(`/v1/projects/${projectId}/delete-schemes`, schemeIds).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/delete-docs`, schemeIds).then(unwrapAxios);
     },
 
     findSchemes(projectId, filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
-        let url = `/v1/projects/${projectId}/schemes?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        let url = `/v1/projects/${projectId}/docs?offset=${filters.offset || 0}&q=${encodedQuery}`;
         if (filters.categoryId) {
             url = `${url}&category=${encodeURIComponent(filters.categoryId)}`;
         }
@@ -217,7 +217,7 @@ export default {
     },
 
     uploadSchemeSvgPreview(projectId, schemeId, svgCode) {
-        return $axios().post(`/v1/projects/${projectId}/schemes/${schemeId}/preview`, {svg: svgCode}).then(unwrapAxios);
+        return $axios().post(`/v1/projects/${projectId}/docs/${schemeId}/preview`, {svg: svgCode}).then(unwrapAxios);
     },
 
     uploadFile(projectId, file) {

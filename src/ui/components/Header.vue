@@ -82,7 +82,7 @@ export default {
 
         openNewSchemePopupSchemeCreated(projectId, scheme) {
             this.newSchemePopup.show = false;
-            window.location.href = `/projects/${projectId}/schemes/${scheme.id}#m:edit`;
+            window.location.href = `/projects/${projectId}/docs/${scheme.id}#m:edit`;
         },
     },
 

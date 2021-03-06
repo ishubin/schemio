@@ -185,7 +185,7 @@ const ApiSchemes = {
         if (svg && projectId && schemeId) {
             schemeStorage.saveSchemePreview(projectId, schemeId, svg)
             .then(() => {
-                return schemeStorage.updateSchemePreviewUrl(projectId, schemeId, `/projects/${projectId}/schemes/${schemeId}/preview`)
+                return schemeStorage.updateSchemePreviewUrl(projectId, schemeId, `/projects/${projectId}/docs/${schemeId}/preview`)
             })
             .then(() => res.json({status: 'ok'}))
             .catch(err => res.$apiError(err, 'Not able to save preview'));
