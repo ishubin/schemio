@@ -32,13 +32,11 @@
                 </div>
 
                 <div v-if="color.type === 'image'">
-                    <div class="image-property-container">
-                        <input class="textfield" :value="modal.image.path" @keydown.enter="onImagePathChange" @blur="onImagePathChange"/>
-                        <div class="upload-button-container">
-                            <div class="upload-button">
-                                <i class="fas fa-file-upload icon"></i>
-                                <input type="file" accept="image/*" @change="onImageUpload"/>
-                            </div>
+                    <div class="image-control">
+                        <input class="textfield" :value="modal.image.path" @keydown.enter="onImagePathChange" @blur="onImagePathChange" placeholder="Image URL..."/>
+                        <div class="file-upload-button" v-if="isUploadEnabled">
+                            <i class="fas fa-file-upload icon"></i>
+                            <input type="file" accept="image/*" @change="onImageUpload"/>
                         </div>
                     </div>
 
@@ -101,6 +99,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 import apiClient from '../../apiClient';
 import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
+import config from '../../config';
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
@@ -179,6 +178,8 @@ export default {
 
             isUploading: false,
             uploadErrorMessage: null,
+
+            isUploadEnabled: config.media.uploadEnabled
         };
     },
 

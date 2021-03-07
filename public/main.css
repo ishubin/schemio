@@ -1613,11 +1613,6 @@ ul.button-group > li.disabled > .icon-button:hover,
     max-height: 60px;
 }
 
-.advanced-color-editor .image-property-container {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
 /*************************** Advanced Color Picker Gradient Controls *********************/
 .gradient-slider-container {
     position: relative;
@@ -1663,38 +1658,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 .item-properties textarea {
     width: 100%;
     min-height: 150px;
-}
-
-.image-property-container {
-    position: relative;
-    padding-right: 22px;
-}
-.image-property-container .upload-button-container {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-}
-.image-property-container .upload-button {
-    position: relative;
-    overflow: hidden;
-    width: 19px;
-    height: 23px;
-    padding: 2px;
-    background: #bbb;
-    border: 1px solid #333;
-    cursor: pointer;
-}
-.image-property-container .upload-button input[type='file']{
-    position: absolute;
-    cursor: pointer;
-    width: 100px;
-    height: 100px;
-    opacity: 0;
-    left: -20px;
-    top: -20px;
-}
-.image-property-container .upload-button .icon{
-    font-size: 17px;
 }
 
 
@@ -1841,6 +1804,13 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 
 /*************** File upload **********************/
+.image-control {
+    display: flex;
+}
+.image-control input.textfield {
+    width: 100%;
+}
+
 .file-upload-button {
     position: relative;
     overflow: hidden;
@@ -1850,6 +1820,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     background: #bbb;
     border: 1px solid #333;
     cursor: pointer;
+    margin-left: 5px;
 }
 .file-upload-button input[type='file']{
     position: absolute;

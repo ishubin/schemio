@@ -22,5 +22,9 @@ export default {
 
     styles: {
         maxStyles: 5
+    },
+
+    media: {
+        uploadEnabled: false
     }
 };

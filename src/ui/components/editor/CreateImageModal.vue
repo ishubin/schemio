@@ -5,21 +5,15 @@
 <template lang="html">
     <modal title="Create Image" @close="$emit('close')" :primary-button="primaryButton" @primary-submit="submitCreateImage()">
         <h5>Image URL</h5>
-        <table width="100%">
-            <tbody>
-                <tr>
-                    <td>
-                        <input type="text" class="textfield" v-model="url"/>
-                    </td>
-                    <td width="34px">
-                        <div class="file-upload-button">
-                            <i class="fas fa-file-upload icon"></i>
-                            <input type="file" accept="image/*" @change="onFileSelect"/>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+
+        <div class="image-control">
+            <input type="text" class="textfield" v-model="url" placeholder="Image URL..."/>
+            <div class="file-upload-button" v-if="isUploadEnabled">
+                <i class="fas fa-file-upload icon"></i>
+                <input type="file" accept="image/*" @change="onFileSelect"/>
+            </div>
+        </div>
+
         <div class="msg msg-info" v-if="isUploading">
             <i class="fas fa-spinner fa-spin"></i> Uploading...
         </div>
@@ -36,6 +30,7 @@
 <script>
 import Modal from '../Modal.vue';
 import apiClient from '../../apiClient.js';
+import config from '../../config';
 
 export default {
     props: {
@@ -51,6 +46,7 @@ export default {
             selectedFile: null,
             errorUploading: false,
             isUploading: false,
+            isUploadingEnabled: config.media.uploadEnabled
         }
     },
     methods: {

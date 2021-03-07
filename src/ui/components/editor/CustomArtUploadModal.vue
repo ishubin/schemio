@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="Upload SVG Icon" @close="$emit('close')" primary-button="Upload" @primary-submit="submitIcon()">
+    <modal title="Create Art Icon" @close="$emit('close')" primary-button="Upload" @primary-submit="submitIcon()">
 
         <h5>Icon name</h5>
         <input class="textfield" type="text" v-model="iconName" placeholder="Name..."/>
@@ -13,21 +13,13 @@
         </p>
 
         <h5>Image URL</h5>
-        <table width="100%">
-            <tbody>
-                <tr>
-                    <td>
-                        <input type="text" class="textfield" v-model="url"/>
-                    </td>
-                    <td width="34px">
-                        <div class="file-upload-button">
-                            <i class="fas fa-file-upload icon"></i>
-                            <input type="file" accept="image/*" @change="onFileSelect"/>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="image-control">
+            <input type="text" class="textfield" v-model="url" placeholder="Image URL..."/>
+            <div class="file-upload-button" v-if="isUploadEnabled">
+                <i class="fas fa-file-upload icon"></i>
+                <input type="file" accept="image/*" @change="onFileSelect"/>
+            </div>
+        </div>
 
         <div v-if="isUploading" class="msg msg-info">
             <i class="fas fa-spinner fa-spin"></i> Uploading...
@@ -39,6 +31,7 @@
 <script>
 import Modal from '../Modal.vue';
 import apiClient from '../../apiClient.js';
+import config from '../../config';
 
 export default {
     props: ['projectId'],
@@ -51,6 +44,7 @@ export default {
             selectedFile: null,
             errorMessage: null,
             isUploading: false,
+            isUploadEnabled: config.media.uploadEnabled
         };
     },
     methods: {

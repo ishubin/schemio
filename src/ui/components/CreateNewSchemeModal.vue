@@ -14,21 +14,14 @@
         <category-selector :project-id="projectId" :categories="categories"/>
 
         <h5>Scheme Image URL</h5>
-        <table width="100%">
-            <tbody>
-                <tr>
-                    <td>
-                       <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL"/>
-                    </td>
-                    <td width="34px">
-                        <div class="file-upload-button">
-                            <i class="fas fa-file-upload icon"></i>
-                            <input type="file" accept="image/*" @change="uploadImage"/>
-                        </div>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+
+        <div class="image-control">
+            <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL..."/>
+            <div class="file-upload-button" v-if="isUploadEnabled">
+                <i class="fas fa-file-upload icon"></i>
+                <input type="file" accept="image/*" @change="uploadImage"/>
+            </div>
+        </div>
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
     </modal>
@@ -61,7 +54,8 @@ export default {
                     highlight: false
                 }
             },
-            errorMessage: null
+            errorMessage: null,
+            isUploadEnabled: config.media.uploadEnabled
         }
     },
     methods: {
