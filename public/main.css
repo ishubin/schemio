@@ -1086,6 +1086,9 @@ ul.pagination li a.current {
 #svg_plot foreignObject h6 {
     color: unset;
 }
+#svg_plot foreignObject ul {
+    margin: 0;
+}
 #svg_plot .grid line {
     stroke-width: 1;
 }
@@ -1204,6 +1207,10 @@ ul.pagination li a.current {
 
 .in-place-edit-editor-wrapper [contenteditable="true"] {
     outline: none;
+}
+
+.in-place-edit-editor-wrapper .ProseMirror ul {
+    margin: 0;
 }
 
 
