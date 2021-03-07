@@ -949,6 +949,7 @@ export default class StateEditCurve extends State {
         
         this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
         this.item.shapeProps.destinationItemPosition = closestPoint.distance;
+        this.item.name += destinationItem.name;
         this.cancel();
     }
 }

@@ -71,6 +71,7 @@ export default {
     methods: {
         onDestinationItemSelected(itemEntry) {
             const item = utils.clone(itemEntry.item);
+            item.name = itemEntry.name;
             enrichItemWithDefaults(item);
             this.$emit('item-selected', item);
             this.$emit('close');
