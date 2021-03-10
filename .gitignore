@@ -1,7 +1,5 @@
 node_modules/
-public/bundle.js
-public/standalone.js
-public/standalone-test.html
+public/
 local-storage/
 uploads/
 dist/

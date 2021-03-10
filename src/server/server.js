@@ -62,7 +62,7 @@ if (!config.backendless) {
 
 
 
-app.use('/assets', express.static('public'));
+app.use('/assets', express.static('dist/assets'));
 app.use('/assets', metrics.routeMiddleware({ routeName: '/assets' }));
 middleware.configureIpFilter(app);
 app.use(middleware.accessLogging);
@@ -72,7 +72,7 @@ app.use(function (err, req, res, next) {
     res.status(500).send('Internal Server Error');
 });
 
-app.get('/',   express.static('public/index.html'));
+app.get('/',   express.static('dist/assets/index.html'));
 
 
 function routeWithMetrics(method, routePath, middleware, handler) {
@@ -164,11 +164,11 @@ $getJSON(   '/v1/art',                                          [],             
 const cwd = process.cwd();
 
 app.get('/embed/:projectId/docs/:schemeId', [metrics.routeMiddleware({ routeName: 'embed' })], (req, res) => {
-    res.sendFile(`${cwd}/public/embed.html`);
+    res.sendFile(`${cwd}/dist/assets/embed.html`);
 });
 
 app.get('*', [metrics.routeMiddleware({ routeName: '*' })], (req, res) => {
-    res.sendFile(`${cwd}/public/index.html`)
+    res.sendFile(`${cwd}/dist/assets/index.html`)
 });
 
 

@@ -34,7 +34,7 @@ export default {
             Promise.all([
                 axios.get('/schemio-standalone.css'),
                 axios.get('/schemio-standalone.html'),
-                axios.get('/standalone.js'),
+                axios.get('/schemio-standalone.js'),
             ]).then(values => {
                 const css  = values[0].data;
                 const html = values[1].data;

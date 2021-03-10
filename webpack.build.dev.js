@@ -1,14 +1,13 @@
 const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
-
 module.exports = {
     // This is the "main" file which should include all other modules
     entry: './src/ui/main.js',
     // Where should the compiled file go?
     output: {
-        path: path.resolve(__dirname, 'public'),
-        publicPath: 'public/bundle.js',
-        filename: 'bundle.js'
+        path: path.resolve(__dirname, 'dist/assets'),
+        publicPath: 'dist/assets/schemio.js',
+        filename: 'schemio.js'
     },
     optimization: {
         minimize: false

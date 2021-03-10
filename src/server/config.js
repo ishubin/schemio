@@ -1,6 +1,4 @@
 const ip = require("ip");
-
-
 const PropertiesReader = require('properties-reader');
 
 const props = PropertiesReader('schemio.properties');

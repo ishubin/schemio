@@ -7,9 +7,9 @@ module.exports = {
     entry: './src/ui/standalone-viewer.js',
     // Where should the compiled file go?
     output: {
-        path: path.resolve(__dirname, 'public'),
-        publicPath: 'public/standalone.js',
-        filename: 'standalone.js'
+        path: path.resolve(__dirname, 'dist/assets'),
+        publicPath: 'dist/assets/schemio-standalone.js',
+        filename: 'schemio-standalone.js'
     },
     resolve: {
         alias: {
