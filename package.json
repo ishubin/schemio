@@ -5,7 +5,7 @@
   "scripts": {
     "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; babel-node src/server/server.js'",
     "build-clean-init": "mkdir -p dist; rm -rf dist/*; mkdir -p dist/server mkdir -p uploads",
-    "build-assets": "npm run build-clean-init; mkdir -p dist/assets; cp -r assets/* dist/assets/; cp src/ui/index.html dist/assets/; cp src/ui/embed.html dist/assets/",
+    "build-assets": "npm run build-clean-init; mkdir -p dist/assets; cp -r assets/* dist/assets/; node src/build/buildHTML.js",
     "build-dev": "npm run build-assets; webpack --config webpack.build.dev.js; npm run build-standalone; cp schemio.properties dist/",
     "build-prod": "npm run build-assets; webpack --config webpack.build.prod.js; npm run build-standalone-prod",
     "build-standalone": "webpack --config webpack.standalone.js",
