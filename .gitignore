@@ -1,3 +1,4 @@
+docker/
 node_modules/
 public/
 local-storage/
@@ -7,3 +8,4 @@ dist/
 *.swo
 *.swp
 public/public-images/
+build-docker.sh
