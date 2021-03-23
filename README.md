@@ -84,7 +84,7 @@ describe('item: "Browser"') {
 ```
 describe `~Browser` {
     on 'init' {
-        self.triggerEvent(event: 'custom event', args: [value: 23])   
+        self.triggerEvent(event: 'custom event', args: [value: 23])
     }
     on 'custom event' { 
         self.opacity = event.value * 100
@@ -102,41 +102,57 @@ describe `~Browser` {
 
     }
 }
-
-
-// example of structures
-x = [
-    number: 1,
-    age: 35,
-    name: 'John'
-]
-
-// array
-x = [0, 2, 3]
-
-// code block
-func = {
-    print(w)
-}
-
-// code block with arguments
-func = function (x, y, z) { 
-    print(x + y * z)
-}
-
-// if statement
-if (x > y) {
-    ....
-} else {
-    ....
-}
-
-// for loop
-for x, i in [0 to 10] {
-
-}
-
 ```
+
+##### v4
+```
+$("#browser").describe {
+    on("init") {
+        self.triggerEvent(event: "custom event", args: {value: 23})
+    }
+
+    on("custom event") {
+        $("@some-group").set("opacity", $args.value)
+    }
+}
+```
+
+##### v5
+```
+`#browser`.describe {
+    on("init") {
+        `self`.triggerEvent(event: "custom event", args: {value: 23})
+    }
+
+    on("custom event") {
+        `group: some-group`.set("opacity", $args.value)
+        // or 
+        `group: some-group`.opacity = $args.value
+    }
+}
+```
+
+##### v6
+```
+describe `#Browser` {
+    on "init" {
+        `self`.trigger(event: "Do fancy stuff")
+    }
+    on "clicked" {
+        `item: #rqwtqwt`.hide(
+            animated: true,
+            duration: 0.5,
+            inBackground: false
+        )
+    }
+    on "Do fancy stuff" {
+        `self`.set(name: "opacity", value: "0.1")
+        // or 
+        `self`.opacity = 0.1
+    }
+}
+```
+
 
 
 Frame Player structure
@@ -192,4 +208,5 @@ const item = {
 
 License
 ---------
+
 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
