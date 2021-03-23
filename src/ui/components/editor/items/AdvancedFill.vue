@@ -57,10 +57,10 @@ export default {
         },
 
         imagePreserveAspectRatio() {
-            if (!this.fill.stretch) {
-                return 'xMidYMid meet';
+            if (this.fill.stretch) {
+                return 'none';
             }
-            return 'none';
+            return 'xMidYMid meet';
         }
     }
 }

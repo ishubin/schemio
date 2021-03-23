@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="ctrl-group">
-                        <input type="checkbox" v-model="color.stretch" @input="emitChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
+                        <input type="checkbox" :checked="color.stretch" @input="onImageStretchChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
                     </div>
 
                     <div class="msg msg-info" v-if="isUploading">
@@ -209,6 +209,11 @@ export default {
                 this.modal.image.path = this.color.image;
             }
             this.image = { path: color.image || ''};
+        },
+
+        onImageStretchChange(event) {
+            this.color.stretch = event.target.checked;
+            this.emitChange();
         },
 
         emitChange() {
