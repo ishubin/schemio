@@ -1,7 +1,7 @@
 const fs = require('fs');
 const _ = require('lodash');
 
-const version = process.env['ASSETS_VERSION'] || '1';
+const version = process.env['ASSETS_VERSION'] || `${new Date().getTime()}${Math.round(Math.random()* 1000000)}`;
 
 const files = [
     'src/html/index.html',
