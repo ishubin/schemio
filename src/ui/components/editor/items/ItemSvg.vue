@@ -247,7 +247,7 @@ export default {
                 return false;
             }
 
-            if (this.mode === 'view' && this.shapeComponent.editorProps && this.shapeComponent.editorProps.onlyEditMode) {
+            if (this.mode === 'view' && this.shapeComponent.shapeConfig.editorProps && this.shapeComponent.shapeConfig.editorProps.onlyEditMode) {
                 return false;
             }
             return true;
