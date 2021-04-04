@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="panel">
-        <div class="panel-title"
+        <div class="panel-title text-nonselectable"
             :class="{'panel-expanded': isOpen, 'panel-collapsed': !isOpen}"
             @click="togglePanel">{{name}}</div>
         <div class="panel-body" v-if="isOpen">

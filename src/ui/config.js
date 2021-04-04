@@ -25,6 +25,6 @@ export default {
     },
 
     media: {
-        uploadEnabled: false
+        uploadEnabled: true
     }
 };

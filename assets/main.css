@@ -63,7 +63,6 @@ body {
     padding: 0;
     color: #222;
     background: var(--base-weak);
-    user-select: none;
 }
 
 * {
@@ -627,7 +626,7 @@ ul.schemes li a .scheme-checkbox .icon {
 ul.tabs {
     position: relative;
     list-style: none;
-    padding: 10px 0 0 0;
+    padding: 0;
     margin: 0;
     z-index: 20;
 }
@@ -1435,7 +1434,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     width: 0px;
     position: absolute;
-    padding-top: 90px;
+    padding-top: 80px;
     top: 0;
     background: #f4f4f4;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);

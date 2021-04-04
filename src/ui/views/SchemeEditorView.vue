@@ -138,7 +138,7 @@
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
                     </ul>
-                    <ul v-else class="tabs">
+                    <ul v-else class="tabs text-nonselectable">
                         <li><span class="tab active">Text</span></li>
                     </ul>
 

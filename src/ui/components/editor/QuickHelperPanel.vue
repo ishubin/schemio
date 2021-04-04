@@ -1,5 +1,5 @@
 <template>
-    <div class="quick-helper-panel-wrapper">
+    <div class="quick-helper-panel-wrapper text-nonselectable">
         <div class="quick-helper-panel">
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
