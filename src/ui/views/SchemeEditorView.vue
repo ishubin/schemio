@@ -64,7 +64,11 @@
             </quick-helper-panel>
 
         <div class="scheme-editor-middle-section">
-            <div class="scheme-container" oncontextmenu="return false;">
+            <div class="scheme-error-message" v-if="schemeLoadErrorMessage">
+                <h3>{{schemeLoadErrorMessage}}</h3>
+            </div>
+
+            <div class="scheme-container" oncontextmenu="return false;" v-if="!schemeLoadErrorMessage">
                 <svg-editor
                     v-if="schemeContainer && mode === 'edit'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
@@ -100,10 +104,6 @@
                     @clicked-copy-selected-items="copySelectedItems()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
                     ></svg-editor>
-            </div>
-
-            <div class="scheme-not-found-block" v-if="schemeLoadErrorMessage">
-                <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
 
             <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
@@ -475,6 +475,8 @@ export default {
                     this.schemeLoadErrorMessage = 'Sorry, but this document does not exist';
                 } else if (err.statusCode === 401) {
                     this.schemeLoadErrorMessage = 'Sorry, but you are not authorized to read this document';
+                } else if (err.data && err.data.message) {
+                    this.schemeLoadErrorMessage = err.data.message;
                 } else {
                     this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document. Please try again later';
                     console.error(err);

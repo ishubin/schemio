@@ -1007,8 +1007,8 @@ ul.pagination li a.current {
 }
 
 
-.scheme-not-found-block {
-    padding-top: 70px;
+.scheme-error-message {
+    padding-top: 20px;
     max-width: 600px;
     margin: 0 auto;
     text-align: center;

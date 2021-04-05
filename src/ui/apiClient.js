@@ -90,7 +90,7 @@ export default {
     },
 
     getProject(projectId) {
-        return $axios().get(`/v1/projects/${projectId}`).then(unwrapAxios);
+        return $axios().get(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     deleteProject(projectId) {

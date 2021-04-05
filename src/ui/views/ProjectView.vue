@@ -367,7 +367,9 @@ export default {
             })
             .catch(err => {
                 this.isLoadingProject = false;
-                if (err.response && err.response.status >= 500) {
+                if (err.data && err.data.message) {
+                    this.projectErrorMessage = err.data.message;
+                } else {
                     this.projectErrorMessage = 'Ops, something went wrong, please try again';
                 }
             });
