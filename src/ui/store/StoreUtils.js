@@ -73,6 +73,10 @@ export default {
         store.dispatch('disableProposeConnectorDestinationItems');
     },
 
+    addInfoSystemMessage(store, message, id) {
+        store.dispatch('addSystemMessage', { status: 'info', message, id })
+    },
+
     addErrorSystemMessage(store, message, id) {
         store.dispatch('addSystemMessage', { status: 'error', message, id })
     },

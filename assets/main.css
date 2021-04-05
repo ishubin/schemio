@@ -2270,6 +2270,22 @@ ul.category-breadcrumb li i {
     background: var(--accent-weak-up);
 }
 
+.radio-project-permission-option {
+    margin-bottom: 10px;
+    border-radius: 5px;
+    padding: 5px;
+    cursor: pointer;
+    opacity: 0.7;
+    border: 1px solid var(--faint-weak-up);
+}
+.radio-project-permission-option.selected {
+    opacity: 1.0;
+    border-radius: 5px;
+    padding: 5px;
+    border: 1px solid var(--faint-strong-up);
+}
+
+
 .category-tree .category-selector {
     position: relative;
 }

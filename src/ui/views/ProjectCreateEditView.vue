@@ -19,14 +19,21 @@
                 <textarea class="textfield" name="description" id="project-description" cols="30" rows="10" v-model="description"></textarea>
 
                 <h4>Access:</h4>
-
                 <div class="section">
-                    <div class="toggle-group">
-                        <span v-for="access in [{value: true, icon: 'fas fa-unlock', name: 'Public'}, {value: false, icon: 'fas fa-lock', name: 'Private'}]"
-                            class="toggle-button"
-                            :class="{toggled: isPublic === access.value}"
-                            @click="isPublic = access.value"
-                            ><i :class="access.icon"></i> {{access.name}}</span>
+                    <div class="radio-project-permission-option" :class="{selected: isPublic === true}"  @click="isPublic = true">
+                        <input type="radio" name="access-permissions" id="radio-public" v-model="isPublic" :value="true"/>
+                        <label for="radio-public"> <i class="fas fa-unlock"/> <b>Public</b></label>
+                        <div class="hint">
+                            Your probject will be visible on the home page and will be accessible to anyone in read-only mode. Other users will be able to view and copy your documents.
+                        </div>
+                    </div>
+
+                    <div class="radio-project-permission-option" :class="{selected: isPublic === false}"  @click="isPublic = false">
+                        <input type="radio" name="access-permissions" id="radio-private" v-model="isPublic" :value="false"/>
+                        <label for="radio-private"> <i class="fas fa-lock"/> <b>Private</b></label>
+                        <div class="hint">
+                            Your project will only be accessible to you and will not be listed on home page. Other users will not be able to view documents in your project even with direct link.
+                        </div>
                     </div>
                 </div>
 
@@ -40,9 +47,11 @@
                 <div v-else class="section">
                     <span v-if="isSavingProject" class="btn btn-primary" @click="saveProject()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
                     <span v-else class="btn btn-primary" @click="saveProject()">Save Changes</span>
-                    <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
                     <a class="btn btn-secondary" :href="`/projects/${projectId}`">Cancel</a>
                 </div>
+
+                <h4>Danger zone</h4>
+                <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
 
             </div>
 
@@ -54,6 +63,7 @@
 <script>
 import HeaderComponent from '../components/Header.vue';
 import apiClient from '../apiClient.js';
+import StoreUtils from '../store/StoreUtils';
 
 export default {
     components: {HeaderComponent},
@@ -127,6 +137,7 @@ export default {
                 this.errorMessage = null;
                 apiClient.patchProject(this.projectId, { name, description, isPublic }).then(() => {
                     this.isSavingProject = false;
+                    StoreUtils.addInfoSystemMessage(this.$store, 'Project was saved', 'saved-project');
                 }).catch(err => {
                     this.isSavingProject = false;
                     if (err.data && err.data.error) {
