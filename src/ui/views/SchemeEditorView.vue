@@ -11,7 +11,7 @@
             :allow-new-scheme="false"
             >
             <div slot="middle-section">
-                <div class="scheme-title" v-if="schemeContainer" @dblclick="triggerSchemeTitleEdit">
+                <div class="scheme-title" v-if="schemeContainer && !offlineMode" @dblclick="triggerSchemeTitleEdit">
                     <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
                     <span ref="schemeTitle"
                         :contenteditable="schemeTitleEdit.shown"
@@ -19,6 +19,10 @@
                         @keydown.esc="submitTitleEdit"
                         @blur="submitTitleEdit"
                         >{{schemeContainer.scheme.name}}</span>
+                </div>
+                <div class="scheme-title" v-if="offlineMode">
+                    <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
+                    <span>Offline Editor</span>
                 </div>
             </div>
         </header-component>
@@ -30,7 +34,7 @@
             :scheme-container="schemeContainer"
             :mode="mode"
             :zoom="zoom"
-            :edit-allowed="editAllowed"
+            :edit-allowed="offlineMode || editAllowed"
             @shape-prop-changed="onItemShapePropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
             @clicked-undo="historyUndo()"
@@ -49,7 +53,7 @@
             @new-scheme-requested="onNewSchemeRequested"
             @mode-changed="toggleMode"
             >
-            <ul class="button-group" v-if="mode === 'edit' && currentUser && (schemeModified || statusMessage.message)">
+            <ul class="button-group" v-if="mode === 'edit' && !offlineMode && currentUser && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
                     <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
                     <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
@@ -575,6 +579,9 @@ export default {
         },
 
         saveScheme() {
+            if (this.offlineMode) {
+                return;
+            }
 
             this.createSchemePreview();
 
