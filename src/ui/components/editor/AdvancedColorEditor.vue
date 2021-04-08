@@ -100,6 +100,7 @@ import apiClient from '../../apiClient';
 import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
 import config from '../../config';
+import StoreUtils from '../../store/StoreUtils';
 
 function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
@@ -269,6 +270,9 @@ export default {
                 }).catch(err => {
                     this.isUploading = false;
                     this.uploadErrorMessage = 'Failed to upload image';
+                    if (err.data && err.data.message) {
+                        StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
+                    }
                 });
             }
         },

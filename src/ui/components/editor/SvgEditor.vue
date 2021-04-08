@@ -236,6 +236,7 @@ import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import apiClient from '../../apiClient';
+import StoreUtils from '../../store/StoreUtils';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -1398,6 +1399,9 @@ export default {
                             })
                             .catch(err => {
                                 this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: false, uploadFailed: true });
+                                if (err.data && err.data.message) {
+                                    StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
+                                }
                             });
                     });
                 })

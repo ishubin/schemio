@@ -32,6 +32,7 @@
 import Modal from '../Modal.vue';
 import apiClient from '../../apiClient.js';
 import config from '../../config';
+import StoreUtils from '../../store/StoreUtils';
 
 export default {
     props: ['projectId'],
@@ -72,10 +73,14 @@ export default {
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
                     this.isUploading = false;
+                    this.errorMessage = null;
                     this.url = imageUrl;
                 }).catch(err => {
                     this.isUploading = false;
                     this.errorMessage = 'Unable to upload a file';
+                    if (err.data && err.data.message) {
+                        StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
+                    }
                 });
             }
         }

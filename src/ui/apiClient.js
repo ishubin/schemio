@@ -226,7 +226,7 @@ export default {
         this.errorUploading = false;
         return $axios().post(`/v1/projects/${projectId}/files`, form).then(unwrapAxios).then(data => {
             return data.url;
-        });
+        }).catch(unwrapAxiosError);
     },
 
     styles: {

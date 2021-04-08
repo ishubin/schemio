@@ -34,6 +34,7 @@ import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
 import {enrichItemWithDefaults} from '../scheme/Item';
 import config from '../config.js';
+import StoreUtils from '../store/StoreUtils.js';
 
 export default {
     components: {CategorySelector, Modal, RichTextEditor},
@@ -120,6 +121,10 @@ export default {
                 apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
                     this.imageUrl = imageUrl;
+                }).catch(err => {
+                    if (err.data && err.data.message) {
+                        StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
+                    }
                 });
             }
         }
