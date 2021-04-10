@@ -68,11 +68,11 @@
             </quick-helper-panel>
 
         <div class="scheme-editor-middle-section">
-            <div class="scheme-error-message" v-if="schemeLoadErrorMessage">
+            <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
                 <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
 
-            <div class="scheme-container" oncontextmenu="return false;" v-if="!schemeLoadErrorMessage">
+            <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <svg-editor
                     v-if="schemeContainer && mode === 'edit'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
@@ -245,9 +245,17 @@
             :scheme-container="schemeContainer"
         />
 
-        <modal v-if="isLoading" :width="140" :show-header="false" :show-footer="false" :use-mask="false">
+        <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
-                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <div v-if="loadingStep === 'load'">
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Loading scheme...</span>
+                </div>
+                <div v-if="loadingStep === 'img-preload'">
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Preloading all images...  </span>
+                    <span class="btn btn-secondary" @click="isLoading = false">Skip</span>
+                </div>
             </div>
         </modal>
     </div>
@@ -299,6 +307,35 @@ import StoreUtils from '../store/StoreUtils.js';
 
 let history = new History({size: 30});
 
+function imgPreload(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageUrl;
+    });
+}
+
+function findAllImages(items) {
+    const images = [];
+    forEach(items, item => {
+        const shape = Shape.find(item.shape);
+        if (shape) {
+            if (shape.argType('fill') === 'advanced-color') {
+                if (item.shapeProps.fill.type === 'image' && item.shapeProps.fill.image) {
+                    images.push(item.shapeProps.fill.image);
+                }
+            }
+        }
+    });
+    return images;
+}
+
+function timeoutPromise(timeInMillis) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, timeInMillis);
+    });
+}
 
 const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'scheme-settings', 40);
 
@@ -373,6 +410,7 @@ export default {
             originalUrlEncoded: encodeURIComponent(window.location),
 
             isLoading: false,
+            loadingStep: 'load', // can be "load", "img-preload"
             isSaving: false,
             schemeLoadErrorMessage: null,
 
@@ -449,6 +487,7 @@ export default {
             this.offlineMode = false;
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
 
+            this.loadingStep = 'load';
             this.isLoading = true;
             this.schemeLoadErrorMessage = null;
 
@@ -458,7 +497,8 @@ export default {
             Promise.all([
                 apiClient.getProject(this.projectId),
                 apiClient.loadScheme(this.projectId, this.schemeId)
-            ]).then(values => {
+            ])
+            .then(values => {
                 const project = values[0];
                 const scheme = values[1];
 
@@ -473,7 +513,19 @@ export default {
                 }
 
                 this.initScheme(scheme);
-            }).catch(err => {
+            })
+            .then(() => {
+                this.loadingStep = 'img-preload';
+                const images = findAllImages(this.schemeContainer.getItems());
+                return Promise.race([
+                    Promise.all(map(images, imgPreload)),
+                    timeoutPromise(10000)
+                ]);
+            })
+            .then(() => {
+                this.isLoading = false;
+            })
+            .catch(err => {
                 this.isLoading = false;
                 if (err.statusCode == 404) {
                     this.schemeLoadErrorMessage = 'Sorry, but this document does not exist';
@@ -507,8 +559,6 @@ export default {
         initScheme(scheme) {
             this.currentCategory = scheme.category;
             this.schemeContainer = new SchemeContainer(scheme, EventBus);
-
-            this.isLoading = false;
 
             history = new History({size: 30});
             history.commit(scheme);
