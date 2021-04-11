@@ -75,7 +75,7 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <svg-editor
                     v-if="schemeContainer && mode === 'edit'"
-                    :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
+                    :key="`${schemeContainer.scheme.id}-${schemeRevision}-edit`"
                     :project-id="projectId"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
@@ -93,9 +93,9 @@
 
                 <svg-editor
                     v-if="interactiveSchemeContainer && mode === 'view'"
-                    :key="`${schemeContainer.scheme.id}-${schemeRevision}`"
+                    :key="`${schemeContainer.scheme.id}-${schemeRevision}-view`"
                     :project-id="projectId"
-                    :schemeContainer="schemeContainer"
+                    :schemeContainer="interactiveSchemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -1216,9 +1216,7 @@ export default {
 
         switchToViewMode() {
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
-            this.interactiveSchemeContainer.screenTransform.x = this.schemeContainer.screenTransform.x;
-            this.interactiveSchemeContainer.screenTransform.y = this.schemeContainer.screenTransform.y;
-            this.interactiveSchemeContainer.screenTransform.scale = this.schemeContainer.screenTransform.scale;
+            this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform.x);
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
