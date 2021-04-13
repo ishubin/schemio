@@ -2121,6 +2121,8 @@ ul.category-breadcrumb li i {
     white-space: nowrap;
     padding: 4px 8px 4px 8px;
     cursor: pointer;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
 }
 .dropdown-container .dropdown-popup ul li:hover {
     background: var(--accent-strong);
@@ -2533,7 +2535,6 @@ ul.category-breadcrumb li i {
     font-weight: bold;
 }
 
-
 /**************** Context Menu *****************/
 .context-menu {
     position: fixed;
@@ -2659,6 +2660,9 @@ ul.category-breadcrumb li i {
     opacity: 0.5;
 }
 
+.item-selector .item-row .item .item-right-panel .icon {
+    background: var(--base-weak);
+}
 .item-selector .item-row .item .item-right-panel .icon .icon-unlocked {
     opacity: 0.3;
 }
@@ -2679,7 +2683,7 @@ ul.category-breadcrumb li i {
     margin: 0;
     padding: 1px;
     height: 20px;
-    width: 200px;
+    width: 250px;
     border: 1px solid var(--faint-strong);
 }
 

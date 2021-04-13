@@ -3,7 +3,7 @@
         <dropdown :options="allOptions" @selected="onElementSelected" :disabled="disabled">
             <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`, disabled?'disabled': '']">
                 <i :class="enrichedElement.iconClass"/>
-                <span class="element-name">{{enrichedElement.name}}</span>
+                <span class="element-name">{{enrichedElement.name | toShortName}}</span>
             </div>
         </dropdown>
     </div>
@@ -18,6 +18,7 @@ import forEach from 'lodash/forEach';
 import indexOf from 'lodash/indexOf';
 import shortid from 'shortid';
 
+const maxNameSymbols = 20;
 
 export default {
     props: {
@@ -170,6 +171,17 @@ export default {
                 type: 'error',
                 iconClass: 'fas fa-exclamation-triangle'
             };
+        }
+    },
+
+    filters: {
+        toShortName(name) {
+            // tried to use overflow: hidden but it din't work out
+            // I hate CSS so have to use this function :( 
+            if (name.length > maxNameSymbols) {
+                return name.substr(0, maxNameSymbols - 1) + '…';
+            }
+            return name;
         }
     }
     
