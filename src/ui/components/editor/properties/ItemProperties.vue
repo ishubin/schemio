@@ -156,9 +156,9 @@
                                 <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"/>
+                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)"/>
 
-                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"/>
+                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)"/>
 
                                 <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @changed="onShapePropChange(argName, arg.type, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
 
