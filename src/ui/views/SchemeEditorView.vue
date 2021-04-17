@@ -1216,7 +1216,7 @@ export default {
 
         switchToViewMode() {
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
-            this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform.x);
+            this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
