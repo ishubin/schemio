@@ -1,14 +1,44 @@
 <template>
     <dropdown :options="capOptions"
         @selected="$emit('selected', arguments[0].name)">
-        <span :style="{'background-image': `url(/assets/images/curves/curve-cap-${selectedOption}.svg)`, 'display': 'block', 'height': height, 'width': width, 'background-size': 'auto 100%', 'background-repeat': 'no-repeat', transform: cssTransform}"></span>
+        <div v-html="selectedCapHtml"></div>
     </dropdown>
 </template>
+
 <script>
 import Dropdown from '../Dropdown.vue';
 import map from 'lodash/map';
 import Path from '../../scheme/Path';
+import { createConnectorCap } from './items/shapes/ConnectorCaps';
 
+function generateCapHtml(w, h, y, cap) {
+    let html = `<svg width="${w}px" height="${h}px"><g transform="translate(5, 0)">`;
+
+    html += `<path d="M0 ${y} l 30 0" fill="none" stroke="#111111" stroke-width="2"/>`;
+
+    if (cap) {
+        let fill = 'none';
+        if (cap.fill) {
+            fill = cap.fill;
+        }
+        html += `<path d="${cap.path}" fill="${fill}" stroke="#111111" stroke-width="2"/>`;
+    }
+    html += '</g></svg>';
+    return html;
+}
+
+const rightCaps = map(Path.CapType.values(), capType => {
+    return {
+        name: capType,
+        cap: createConnectorCap(30, 15, -5, 0, capType, 5, '#111111')
+    };
+});
+const leftCaps = map(Path.CapType.values(), capType => {
+    return {
+        name: capType,
+        cap: createConnectorCap(0, 15, 5, 0, capType, 5, '#111111')
+    }
+});
 
 export default {
     props: {
@@ -19,37 +49,31 @@ export default {
     },
     components: {Dropdown},
 
+    data() {
+        let caps = rightCaps;
+        if (this.isSource) {
+            caps = leftCaps;
+        }
+        const capOptions = map(caps, cap => {
+            return {
+                name: cap.name,
+                html: generateCapHtml(100, 30, 15, cap.cap)
+            };
+        });
+        return {
+            capOptions
+        };
+    },
+
     computed: {
-        capOptions() {
-            let transform = null;
+        selectedCapHtml() {
+            let cap = null;
             if (this.isSource) {
-                transform = 'rotate(180deg)'
+                cap = createConnectorCap(0, 7, 5, 0, this.value, 5, '#111111');
+            } else {
+                cap = createConnectorCap(30, 7, -5, 0, this.value, 5, '#111111');
             }
-            return map(Path.CapType.values(), capType => {
-                return {
-                    name: capType,
-                    style: {
-                        'background-image' : `url(/assets/images/curves/curve-cap-${capType}.svg)`,
-                        'background-repeat': 'no-repeat',
-                        'width'            : '20px',
-                        'height'           : '20px',
-                        'font-size'        : '0',
-                        'display'          : 'block',
-                        'transform'        : transform
-                    }
-                }
-            });
-        },
-
-        selectedOption() {
-            return this.value || Path.CapType.EMPTY;
-        },
-
-        cssTransform() {
-            if (this.isSource) {
-                return 'rotate(180deg)';
-            }
-            return null;
+            return generateCapHtml(40, 20, 7, cap);
         }
     }
 }

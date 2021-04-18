@@ -112,8 +112,8 @@
                     <li>
                         <stroke-pattern-dropdown
                             :value="strokePattern"
-                            width="50px"
-                            height="16px"
+                            :width="60"
+                            height="16"
                             @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                     </li>
                     <li v-if="shouldShowCurveCaps">

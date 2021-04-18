@@ -23,6 +23,7 @@ import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
+import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 
 const log = new Logger('Connector');
@@ -409,14 +410,14 @@ export default {
             const p1 = shadowSvgPath.getPointAtLength(0);
             const p1d = shadowSvgPath.getPointAtLength(2);
 
-            let cap = this.createCap(p1.x, p1.y, p1d.x, p1d.y, sourceCap, this.item.shapeProps.sourceCapSize, this.item.shapeProps.sourceCapFill);
+            let cap = createConnectorCap(p1.x, p1.y, p1d.x - p1.x, p1d.y - p1.y, sourceCap, this.item.shapeProps.sourceCapSize, this.item.shapeProps.sourceCapFill);
             if (cap) {
                 caps.push(cap);
             }
 
             const p2 = shadowSvgPath.getPointAtLength(totalLength);
             const p2d = shadowSvgPath.getPointAtLength(totalLength - 2);
-            cap = this.createCap(p2.x, p2.y, p2d.x, p2d.y, destinationCap, this.item.shapeProps.destinationCapSize, this.item.shapeProps.destinationCapFill);
+            cap = createConnectorCap(p2.x, p2.y, p2d.x - p2.x, p2d.y - p2.y, destinationCap, this.item.shapeProps.destinationCapSize, this.item.shapeProps.destinationCapFill);
             if (cap) {
                 caps.push(cap);
             }
@@ -424,48 +425,6 @@ export default {
             return caps;
         },
 
-        createCap(x, y, px, py, capType, capSize, capFill) {
-            let r = 1;
-            if (capSize) {
-                r = capSize /2;
-            }
-
-            if (capType === Path.CapType.CIRCLE) {
-                return {
-                    path: `M ${x - r} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
-                    fill: capFill
-                };
-            } else if (capType === Path.CapType.ARROW) {
-                return this.createArrowCap(x, y, px, py, capSize, capFill, false);
-            } else if (capType === Path.CapType.TRIANGLE) {
-                return this.createArrowCap(x, y, px, py, capSize, capFill, true);
-            }
-            return null;
-        },
-
-        createArrowCap(x, y, px, py, capSize, capFill, close) {
-            var Vx = px - x, Vy = py - y;
-            var V = Vx * Vx + Vy * Vy;
-            if (V !== 0) {
-                V = Math.sqrt(V);
-                Vx = Vx/V;
-                Vy = Vy/V;
-
-                var Pax = x + (Vx * 2 - Vy) * capSize;
-                var Pay = y + (Vy * 2 + Vx) * capSize;
-                var Pbx = x + (Vx * 2 + Vy) * capSize;
-                var Pby = y + (Vy * 2 - Vx) * capSize;
-                var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
-                if (close) {
-                    path += ' z';
-                }
-                return {
-                    path: path,
-                    fill: close ? capFill : 'none'
-                }
-            }
-            return null;
-        },
     },
 
     computed: {

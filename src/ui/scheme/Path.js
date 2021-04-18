@@ -21,8 +21,8 @@ const Pattern = {
 };
 
 const CapType = {
-    ARROW:      'arrow',
     EMPTY:      'empty',
+    ARROW:      'arrow',
     TRIANGLE:   'triangle',
     CIRCLE:     'circle',
 
