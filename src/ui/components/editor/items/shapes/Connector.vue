@@ -407,23 +407,31 @@ export default {
                 return caps;
             }
 
-            const p1 = shadowSvgPath.getPointAtLength(0);
-            const p1d = shadowSvgPath.getPointAtLength(2);
-
-            let cap = createConnectorCap(p1.x, p1.y, p1d.x - p1.x, p1d.y - p1.y, sourceCap, this.item.shapeProps.sourceCapSize, this.item.shapeProps.sourceCapFill);
+            let cap = this.computeCapByPosition(shadowSvgPath, 0, this.item.shapeProps.sourceCapSize, sourceCap, this.item.shapeProps.sourceCapFill);
             if (cap) {
                 caps.push(cap);
             }
 
-            const p2 = shadowSvgPath.getPointAtLength(totalLength);
-            const p2d = shadowSvgPath.getPointAtLength(totalLength - 2);
-            cap = createConnectorCap(p2.x, p2.y, p2d.x - p2.x, p2d.y - p2.y, destinationCap, this.item.shapeProps.destinationCapSize, this.item.shapeProps.destinationCapFill);
+            cap = this.computeCapByPosition(shadowSvgPath, totalLength, totalLength - this.item.shapeProps.destinationCapSize, destinationCap, this.item.shapeProps.destinationCapFill);
             if (cap) {
                 caps.push(cap);
             }
 
             return caps;
         },
+
+        computeCapByPosition(shadowSvgPath, d1, d2, capType, capFill) {
+            if (capType !== Path.CapType.EMPTY) {
+                const p1 = shadowSvgPath.getPointAtLength(d1);
+                const p2 = shadowSvgPath.getPointAtLength(d2);
+
+                const squaredD = (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
+                if (squaredD > 0.01) {
+                    return createConnectorCap(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y, capType, capFill);
+                }
+            }
+            return null;
+        }
 
     },
 

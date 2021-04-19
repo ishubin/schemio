@@ -25,6 +25,7 @@ const CapType = {
     ARROW:      'arrow',
     TRIANGLE:   'triangle',
     CIRCLE:     'circle',
+    DIAMOND:    'diamond',
 
     values() {
         return utils.enumerateConstants(this);
