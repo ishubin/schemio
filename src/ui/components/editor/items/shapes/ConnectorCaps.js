@@ -7,8 +7,10 @@ capRenderFuncs[Path.CapType.CIRCLE] = (x, y, Vx, Vy, capFill) => {
     const squaredD = Vx * Vx + Vy * Vy;
     if (squaredD > 0.01) {
         let r = Math.sqrt(squaredD) / 2;
+        const cx = x + Vx/2;
+        const cy = y + Vy/2;
         return {
-            path: `M ${x} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
+            path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0`,
             fill: capFill
         };
     }
