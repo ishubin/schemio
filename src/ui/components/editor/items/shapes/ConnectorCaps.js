@@ -21,19 +21,17 @@ capRenderFuncs[Path.CapType.TRIANGLE] = (x, y, Vx, Vy, capFill) => createArrowCa
 
 capRenderFuncs[Path.CapType.DIAMOND] = (x, y, Vx, Vy, capFill) => {
     const ratio = 2;
-    const Ax = Vx;
-    const Ay = Vy;
-    const Bx = Vy;
+    const Bx = Vy / (2*ratio);
     const By = -Vx / (2*ratio);
 
-    const x1 = x + Ax / 2 - Bx;
-    const y1 = y + Ay / 2 - By;
+    const x1 = x + Vx / 2 - Bx;
+    const y1 = y + Vy / 2 - By;
 
-    const x2 = x + Ax;
-    const y2 = y + Ay;
+    const x2 = x + Vx;
+    const y2 = y + Vy;
 
-    const x3 = x + Ax / 2 + Bx;
-    const y3 = y + Ay / 2 + By;
+    const x3 = x + Vx / 2 + Bx;
+    const y3 = y + Vy / 2 + By;
 
     return {
         path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
@@ -50,11 +48,15 @@ export function createConnectorCap(x, y, Vx, Vy, capType, capFill) {
 }
 
 function createArrowCap(x, y, Vx, Vy, capFill, close) {
-    var Pax = x + (Vx * 2 - Vy);
-    var Pay = y + (Vy * 2 + Vx);
-    var Pbx = x + (Vx * 2 + Vy);
-    var Pby = y + (Vy * 2 - Vx);
-    var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
+    const ratio = 2;
+    const Bx = Vy / (2*ratio);
+    const By = -Vx / (2*ratio);
+    const x1 = x + Vx + Bx;
+    const y1 = y + Vy + By;
+    const x2 = x + Vx - Bx;
+    const y2 = y + Vy - By;
+
+    var path = `M ${x1} ${y1} L ${x} ${y} L ${x2} ${y2}`;
     if (close) {
         path += ' z';
     }

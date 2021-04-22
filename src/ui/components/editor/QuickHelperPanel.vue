@@ -317,7 +317,7 @@ export default {
                     this.strokePattern = item.shapeProps.strokePattern;
                 }
 
-                if (item.shape === 'curve') {
+                if (item.shape === 'connector') {
                     this.curveSourceCap = item.shapeProps.sourceCap;
                     this.curveDestinationCap = item.shapeProps.destinationCap;
                 }
