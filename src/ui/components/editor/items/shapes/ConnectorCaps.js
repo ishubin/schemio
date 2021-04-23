@@ -45,6 +45,13 @@ const capRenderFuncs = {
 
 const _capTypes = keys(capRenderFuncs);
 
+export function getCapDefaultFill(capType) {
+    if (capType === 'circle-cross') {
+        return '#ffffff';
+    }
+    return null;
+}
+
 export function getCapTypes() {
     return _capTypes;
 }

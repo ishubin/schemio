@@ -10,6 +10,7 @@
             :fill="fill"></path>
 
         <path v-for="cap in caps" :d="cap.path"
+            :data-item-id="item.id"
             :stroke="item.shapeProps.strokeColor"
             :stroke-width="item.shapeProps.strokeSize"
             :fill="cap.fill"

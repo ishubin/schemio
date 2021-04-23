@@ -8,7 +8,7 @@
 <script>
 import Dropdown from '../Dropdown.vue';
 import map from 'lodash/map';
-import { createConnectorCap, getCapTypes } from './items/shapes/ConnectorCaps';
+import { createConnectorCap, getCapTypes, getCapDefaultFill } from './items/shapes/ConnectorCaps';
 
 function generateCapHtml(w, h, y, cap) {
     let html = `<svg width="${w}px" height="${h}px"><g transform="translate(5, 0)">`;
@@ -27,15 +27,23 @@ function generateCapHtml(w, h, y, cap) {
 }
 
 const rightCaps = map(getCapTypes(), capType => {
+    let fill = getCapDefaultFill(capType);
+    if (!fill) {
+        fill = '#111111';
+    }
     return {
         name: capType,
-        cap: createConnectorCap(30, 15, -15, 0, capType, 5, '#111111')
+        cap: createConnectorCap(30, 15, -15, 0, capType, fill)
     };
 });
 const leftCaps = map(getCapTypes(), capType => {
+    let fill = getCapDefaultFill(capType);
+    if (!fill) {
+        fill = '#111111';
+    }
     return {
         name: capType,
-        cap: createConnectorCap(0, 15, 15, 0, capType, 5, '#111111')
+        cap: createConnectorCap(0, 15, 15, 0, capType, fill)
     }
 });
 
@@ -69,10 +77,14 @@ export default {
     methods: {
         generateSelectedCapHtml(capType) {
             let cap = null;
+            let fill = getCapDefaultFill(capType);
+            if (!fill) {
+                fill = '#111111';
+            }
             if (this.isSource) {
-                cap = createConnectorCap(0, 7, 12, 0, capType, 5, '#111111');
+                cap = createConnectorCap(0, 7, 12, 0, capType, fill);
             } else {
-                cap = createConnectorCap(30, 7, -12, 0, capType, 5, '#111111');
+                cap = createConnectorCap(30, 7, -12, 0, capType, fill);
             }
             return generateCapHtml(40, 20, 7, cap);
         }
