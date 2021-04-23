@@ -30,13 +30,13 @@ function generateCapHtml(w, h, y, cap) {
 const rightCaps = map(Path.CapType.values(), capType => {
     return {
         name: capType,
-        cap: createConnectorCap(30, 15, -12, 0, capType, 5, '#111111')
+        cap: createConnectorCap(30, 15, -15, 0, capType, 5, '#111111')
     };
 });
 const leftCaps = map(Path.CapType.values(), capType => {
     return {
         name: capType,
-        cap: createConnectorCap(0, 15, 12, 0, capType, 5, '#111111')
+        cap: createConnectorCap(0, 15, 15, 0, capType, 5, '#111111')
     }
 });
 
@@ -71,9 +71,9 @@ export default {
         generateSelectedCapHtml(capType) {
             let cap = null;
             if (this.isSource) {
-                cap = createConnectorCap(0, 7, 12, 0, capType, 5, '#111111');
+                cap = createConnectorCap(0, 7, 15, 0, capType, 5, '#111111');
             } else {
-                cap = createConnectorCap(30, 7, -12, 0, capType, 5, '#111111');
+                cap = createConnectorCap(30, 7, -15, 0, capType, 5, '#111111');
             }
             return generateCapHtml(40, 20, 7, cap);
         }

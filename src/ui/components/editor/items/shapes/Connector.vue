@@ -349,10 +349,10 @@ export default {
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
             sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
-            sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
+            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
             destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
-            destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
+            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},

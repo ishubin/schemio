@@ -26,6 +26,7 @@ import EventBus from '../../EventBus';
 import Path from '../../../../scheme/Path';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
+import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 
 const log = new Logger('Curve');
@@ -181,10 +182,10 @@ export default {
             closed            : {type: 'boolean',       value: false, name: 'Closed path'},
             points            : {type: 'curve-points',  value: [], name: 'Curve points'},
             sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
-            sourceCapSize     : {type: 'number',        value: 5, name: 'Source Cap Size'},
+            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
             destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
-            destinationCapSize: {type: 'number',        value: 5, name: 'Destination Cap Size'},
+            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         },
     },
@@ -232,17 +233,12 @@ export default {
                 return caps;
             }
 
-            const p1 = shadowSvgPath.getPointAtLength(0);
-            const p1d = shadowSvgPath.getPointAtLength(2);
-
-            let cap = this.createCap(p1.x, p1.y, p1d.x, p1d.y, sourceCap, this.item.shapeProps.sourceCapSize, this.item.shapeProps.sourceCapFill);
+            let cap = this.computeCapByPosition(shadowSvgPath, 0, this.item.shapeProps.sourceCapSize, sourceCap, this.item.shapeProps.sourceCapFill);
             if (cap) {
                 caps.push(cap);
             }
 
-            const p2 = shadowSvgPath.getPointAtLength(totalLength);
-            const p2d = shadowSvgPath.getPointAtLength(totalLength - 2);
-            cap = this.createCap(p2.x, p2.y, p2d.x, p2d.y, destinationCap, this.item.shapeProps.destinationCapSize, this.item.shapeProps.destinationCapFill);
+            cap = this.computeCapByPosition(shadowSvgPath, totalLength, totalLength - this.item.shapeProps.destinationCapSize, destinationCap, this.item.shapeProps.destinationCapFill);
             if (cap) {
                 caps.push(cap);
             }
@@ -250,48 +246,18 @@ export default {
             return caps;
         },
 
-        createCap(x, y, px, py, capType, capSize, capFill) {
-            let r = 1;
-            if (capSize) {
-                r = capSize /2;
-            }
+        computeCapByPosition(shadowSvgPath, d1, d2, capType, capFill) {
+            if (capType !== Path.CapType.EMPTY) {
+                const p1 = shadowSvgPath.getPointAtLength(d1);
+                const p2 = shadowSvgPath.getPointAtLength(d2);
 
-            if (capType === Path.CapType.CIRCLE) {
-                return {
-                    path: `M ${x - r} ${y}   a ${r},${r} 0 1,0 ${r * 2},0  a ${r},${r} 0 1,0 -${r*2},0`,
-                    fill: capFill
-                };
-            } else if (capType === Path.CapType.ARROW) {
-                return this.createArrowCap(x, y, px, py, capSize, capFill, false);
-            } else if (capType === Path.CapType.TRIANGLE) {
-                return this.createArrowCap(x, y, px, py, capSize, capFill, true);
-            }
-            return null;
-        },
-
-        createArrowCap(x, y, px, py, capSize, capFill, close) {
-            var Vx = px - x, Vy = py - y;
-            var V = Vx * Vx + Vy * Vy;
-            if (V !== 0) {
-                V = Math.sqrt(V);
-                Vx = Vx/V;
-                Vy = Vy/V;
-
-                var Pax = x + (Vx * 2 - Vy) * capSize;
-                var Pay = y + (Vy * 2 + Vx) * capSize;
-                var Pbx = x + (Vx * 2 + Vy) * capSize;
-                var Pby = y + (Vy * 2 - Vx) * capSize;
-                var path = `M ${Pax} ${Pay} L ${x} ${y} L ${Pbx} ${Pby}`;
-                if (close) {
-                    path += ' z';
-                }
-                return {
-                    path: path,
-                    fill: close ? capFill : 'none'
+                const squaredD = (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
+                if (squaredD > 0.01) {
+                    return createConnectorCap(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y, capType, capFill);
                 }
             }
             return null;
-        },
+        }
     },
 
     computed: {
