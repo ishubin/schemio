@@ -24,7 +24,6 @@ import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
-import Path from '../../../../scheme/Path';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';

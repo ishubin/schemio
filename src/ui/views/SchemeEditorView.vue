@@ -304,6 +304,7 @@ import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from '../components/editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
+import { getCapDefaultFill } from '../components/editor/items/shapes/ConnectorCaps.js';
 
 let history = new History({size: 30});
 
@@ -1076,6 +1077,17 @@ export default {
                     const propDescriptor = Shape.getShapePropDescriptor(shape, name);
                     if (propDescriptor && propDescriptor.type === type) {
                         item.shapeProps[name] = utils.clone(value);
+
+                        if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
+                            const fillPropName = name + 'Fill';
+                            if (shape.argType(fillPropName) === 'color') {
+                                const defaultFill = getCapDefaultFill(value);
+                                if (defaultFill) {
+                                    item.shapeProps[fillPropName] = defaultFill;
+                                }
+                            }
+                        }
+
                         EventBus.emitItemChanged(item.id);
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);

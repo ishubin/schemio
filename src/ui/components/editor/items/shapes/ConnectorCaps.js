@@ -49,7 +49,7 @@ export function getCapDefaultFill(capType) {
     if (capType === 'circle-cross') {
         return '#ffffff';
     }
-    return null;
+    return '#111111';
 }
 
 export function getCapTypes() {
