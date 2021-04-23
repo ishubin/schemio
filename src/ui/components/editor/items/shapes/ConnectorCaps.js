@@ -16,29 +16,30 @@ const capRenderFuncs = {
         }
         return null;
     },
+    'circle-cross': (x, y, Vx, Vy, capFill) => {
+        const squaredD = Vx * Vx + Vy * Vy;
+
+        if (squaredD > 0.01) {
+            let r = Math.sqrt(squaredD) / 2;
+            const cx = x + Vx/2;
+            const cy = y + Vy/2;
+
+            const d = Math.cos(Math.PI / 4) * r;
+
+            return {
+                path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0 z M ${cx - d} ${cy - d} L ${cx + d} ${cy + d}  M ${cx + d} ${cy - d} L ${cx - d} ${cy + d}`,
+                fill: capFill
+            };
+        }
+        return null;
+    },
 
     'arrow':    (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false),
     'triangle': (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true),
 
-    'diamond':  (x, y, Vx, Vy, capFill) => {
-        const ratio = 2;
-        const Bx = Vy / (2*ratio);
-        const By = -Vx / (2*ratio);
-
-        const x1 = x + Vx / 2 - Bx;
-        const y1 = y + Vy / 2 - By;
-
-        const x2 = x + Vx;
-        const y2 = y + Vy;
-
-        const x3 = x + Vx / 2 + Bx;
-        const y3 = y + Vy / 2 + By;
-
-        return {
-            path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
-            fill: capFill
-        };
-    }
+    'diamond':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5),
+    'diamond-1':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1),
+    'diamond-2':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5),
 };
 
 
@@ -72,5 +73,24 @@ function createArrowCap(x, y, Vx, Vy, capFill, close) {
     return {
         path: path,
         fill: close ? capFill : 'none'
+    };
+}
+
+function createDiamondCap(x, y, Vx, Vy, capFill, ratio) {
+    const Bx = ratio * Vy / 2;
+    const By = -ratio * Vx / 2;
+
+    const x1 = x + Vx / 2 - Bx;
+    const y1 = y + Vy / 2 - By;
+
+    const x2 = x + Vx;
+    const y2 = y + Vy;
+
+    const x3 = x + Vx / 2 + Bx;
+    const y3 = y + Vy / 2 + By;
+
+    return {
+        path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
+        fill: capFill
     };
 }
