@@ -8,8 +8,7 @@
 <script>
 import Dropdown from '../Dropdown.vue';
 import map from 'lodash/map';
-import Path from '../../scheme/Path';
-import { createConnectorCap } from './items/shapes/ConnectorCaps';
+import { createConnectorCap, getCapTypes } from './items/shapes/ConnectorCaps';
 
 function generateCapHtml(w, h, y, cap) {
     let html = `<svg width="${w}px" height="${h}px"><g transform="translate(5, 0)">`;
@@ -27,13 +26,13 @@ function generateCapHtml(w, h, y, cap) {
     return html;
 }
 
-const rightCaps = map(Path.CapType.values(), capType => {
+const rightCaps = map(getCapTypes(), capType => {
     return {
         name: capType,
         cap: createConnectorCap(30, 15, -15, 0, capType, 5, '#111111')
     };
 });
-const leftCaps = map(Path.CapType.values(), capType => {
+const leftCaps = map(getCapTypes(), capType => {
     return {
         name: capType,
         cap: createConnectorCap(0, 15, 15, 0, capType, 5, '#111111')
@@ -71,9 +70,9 @@ export default {
         generateSelectedCapHtml(capType) {
             let cap = null;
             if (this.isSource) {
-                cap = createConnectorCap(0, 7, 15, 0, capType, 5, '#111111');
+                cap = createConnectorCap(0, 7, 12, 0, capType, 5, '#111111');
             } else {
-                cap = createConnectorCap(30, 7, -15, 0, capType, 5, '#111111');
+                cap = createConnectorCap(30, 7, -12, 0, capType, 5, '#111111');
             }
             return generateCapHtml(40, 20, 7, cap);
         }

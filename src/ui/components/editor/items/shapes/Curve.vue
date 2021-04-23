@@ -181,10 +181,10 @@ export default {
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             closed            : {type: 'boolean',       value: false, name: 'Closed path'},
             points            : {type: 'curve-points',  value: [], name: 'Curve points'},
-            sourceCap         : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Source Cap'},
+            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-            destinationCap    : {type: 'curve-cap',     value: Path.CapType.EMPTY, name: 'Destination Cap'},
+            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         },
@@ -218,10 +218,10 @@ export default {
         computeCaps(svgPath) {
             const caps = [];
 
-            let sourceCap         = this.item.shapeProps.sourceCap || Path.CapType.EMPTY;
-            let destinationCap    = this.item.shapeProps.destinationCap || Path.CapType.EMPTY;
+            let sourceCap         = this.item.shapeProps.sourceCap || 'empty';
+            let destinationCap    = this.item.shapeProps.destinationCap || 'empty';
 
-            if (sourceCap === Path.CapType.EMPTY && destinationCap === Path.CapType.EMPTY) {
+            if (sourceCap === 'empty' && destinationCap === 'empty') {
                 return caps;
             }
 
@@ -247,7 +247,7 @@ export default {
         },
 
         computeCapByPosition(shadowSvgPath, d1, d2, capType, capFill) {
-            if (capType !== Path.CapType.EMPTY) {
+            if (capType !== 'empty') {
                 const p1 = shadowSvgPath.getPointAtLength(d1);
                 const p2 = shadowSvgPath.getPointAtLength(d2);
 

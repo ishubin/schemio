@@ -20,20 +20,7 @@ const Pattern = {
     }
 };
 
-const CapType = {
-    EMPTY:      'empty',
-    ARROW:      'arrow',
-    TRIANGLE:   'triangle',
-    CIRCLE:     'circle',
-    DIAMOND:    'diamond',
-
-    values() {
-        return utils.enumerateConstants(this);
-    }
-};
-
 
 export default {
     Pattern,
-    CapType
 };

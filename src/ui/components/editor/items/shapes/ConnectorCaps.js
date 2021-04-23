@@ -1,45 +1,52 @@
+import keys from 'lodash/keys';
 
-import Path from '../../../../scheme/Path';
+const capRenderFuncs = {
+    'empty': () => null,
 
-const capRenderFuncs = {};
+    'circle': (x, y, Vx, Vy, capFill) => {
+        const squaredD = Vx * Vx + Vy * Vy;
+        if (squaredD > 0.01) {
+            let r = Math.sqrt(squaredD) / 2;
+            const cx = x + Vx/2;
+            const cy = y + Vy/2;
+            return {
+                path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0`,
+                fill: capFill
+            };
+        }
+        return null;
+    },
 
-capRenderFuncs[Path.CapType.CIRCLE] = (x, y, Vx, Vy, capFill) => {
-    const squaredD = Vx * Vx + Vy * Vy;
-    if (squaredD > 0.01) {
-        let r = Math.sqrt(squaredD) / 2;
-        const cx = x + Vx/2;
-        const cy = y + Vy/2;
+    'arrow':    (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false),
+    'triangle': (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true),
+
+    'diamond':  (x, y, Vx, Vy, capFill) => {
+        const ratio = 2;
+        const Bx = Vy / (2*ratio);
+        const By = -Vx / (2*ratio);
+
+        const x1 = x + Vx / 2 - Bx;
+        const y1 = y + Vy / 2 - By;
+
+        const x2 = x + Vx;
+        const y2 = y + Vy;
+
+        const x3 = x + Vx / 2 + Bx;
+        const y3 = y + Vy / 2 + By;
+
         return {
-            path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0`,
+            path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
             fill: capFill
         };
     }
-    return null;
 };
 
-capRenderFuncs[Path.CapType.ARROW] = (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false);
 
-capRenderFuncs[Path.CapType.TRIANGLE] = (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true);
+const _capTypes = keys(capRenderFuncs);
 
-capRenderFuncs[Path.CapType.DIAMOND] = (x, y, Vx, Vy, capFill) => {
-    const ratio = 2;
-    const Bx = Vy / (2*ratio);
-    const By = -Vx / (2*ratio);
-
-    const x1 = x + Vx / 2 - Bx;
-    const y1 = y + Vy / 2 - By;
-
-    const x2 = x + Vx;
-    const y2 = y + Vy;
-
-    const x3 = x + Vx / 2 + Bx;
-    const y3 = y + Vy / 2 + By;
-
-    return {
-        path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
-        fill: capFill
-    };
-};
+export function getCapTypes() {
+    return _capTypes;
+}
 
 export function createConnectorCap(x, y, Vx, Vy, capType, capFill) {
     const renderFunc = capRenderFuncs[capType];
