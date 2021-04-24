@@ -47,8 +47,27 @@ const allCaps = {
         return null;
     }),
 
-    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false)),
-    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true)),
+    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, false)),
+    'arrow-1':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, false)),
+    'arrow-2':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, false)),
+    'double-arrow':  standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, false)),
+    'double-arrow-1':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, false)),
+    'double-arrow-2':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, false)),
+
+    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
+    'triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
+    'triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+
+    'triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
+    'triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
+    'triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+
+    'double-triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, true)),
+    'double-triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, true)),
+    'double-triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, true)),
+    'double-triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, true)),
+    'double-triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, true)),
+    'double-triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, true)),
 
     'diamond':      standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
     'diamond-1':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
@@ -56,6 +75,10 @@ const allCaps = {
     'diamond-l':    light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
     'diamond-l-1':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
     'diamond-l-2':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
+
+    'line':        standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 1)),
+    'double-line': standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 2)),
+    'tripple-line':standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 3)),
 };
 
 
@@ -86,18 +109,49 @@ export function createConnectorCap(x, y, Vx, Vy, capType, capFill) {
     return null;
 }
 
-function createArrowCap(x, y, Vx, Vy, capFill, close) {
-    const ratio = 2;
+function createLineCap(x, y, Vx, Vy, numberOfLines) {
+    let path = '';
+    const Bx = Vy / 2;
+    const By = -Vx / 2;
+
+    for (let i = 0; i < numberOfLines; i++) {
+        const x0 = x + Vx * (i + 1) / (numberOfLines + 1);
+        const y0 = y + Vy * (i + 1) / (numberOfLines + 1);
+
+        const x1 = x0 + Bx;
+        const y1 = y0 + By;
+        const x2 = x0 - Bx;
+        const y2 = y0 - By;
+
+        path += `M ${x1} ${y1} L ${x2} ${y2} `;
+    }
+
+    return {
+        path: path,
+        fill: 'none'
+    };
+}
+
+function createArrowCap(x, y, Vx, Vy, capFill, numberOfArrows, ratio, close) {
+    let path = '';
+
     const Bx = Vy / (2*ratio);
     const By = -Vx / (2*ratio);
-    const x1 = x + Vx + Bx;
-    const y1 = y + Vy + By;
-    const x2 = x + Vx - Bx;
-    const y2 = y + Vy - By;
+    
+    for (let i = 0; i < numberOfArrows; i++) {
+        const x0 = x + Vx * i / numberOfArrows;
+        const y0 = y + Vy * i / numberOfArrows;
 
-    var path = `M ${x1} ${y1} L ${x} ${y} L ${x2} ${y2}`;
-    if (close) {
-        path += ' z';
+        const x1 = x0 + Vx / numberOfArrows + Bx;
+        const y1 = y0 + Vy / numberOfArrows + By;
+        const x2 = x0 + Vx / numberOfArrows - Bx;
+        const y2 = y0 + Vy / numberOfArrows - By;
+
+        path += `M ${x1} ${y1} L ${x0} ${y0} L ${x2} ${y2} `;
+        if (close) {
+            path += ' z ';
+        }
+        
     }
     return {
         path: path,
