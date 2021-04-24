@@ -1,9 +1,22 @@
 import keys from 'lodash/keys';
 
-const capRenderFuncs = {
-    'empty': () => null,
+function standard(func) {
+    return {
+        lightFill: false,
+        renderFunc: func
+    };
+}
+function light(func) {
+    return {
+        lightFill: true,
+        renderFunc: func
+    };
+}
 
-    'circle': (x, y, Vx, Vy, capFill) => {
+const allCaps = {
+    'empty': null,
+
+    'circle': standard((x, y, Vx, Vy, capFill) => {
         const squaredD = Vx * Vx + Vy * Vy;
         if (squaredD > 0.01) {
             let r = Math.sqrt(squaredD) / 2;
@@ -15,8 +28,8 @@ const capRenderFuncs = {
             };
         }
         return null;
-    },
-    'circle-cross': (x, y, Vx, Vy, capFill) => {
+    }),
+    'circle-cross': light((x, y, Vx, Vy, capFill) => {
         const squaredD = Vx * Vx + Vy * Vy;
 
         if (squaredD > 0.01) {
@@ -32,22 +45,25 @@ const capRenderFuncs = {
             };
         }
         return null;
-    },
+    }),
 
-    'arrow':    (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false),
-    'triangle': (x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true),
+    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, false)),
+    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, true)),
 
-    'diamond':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5),
-    'diamond-1':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1),
-    'diamond-2':  (x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5),
+    'diamond':      standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
+    'diamond-1':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
+    'diamond-2':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
 };
 
 
-const _capTypes = keys(capRenderFuncs);
+const _capTypes = keys(allCaps);
 
-export function getCapDefaultFill(capType) {
+export function getCapDefaultFill(capType, strokeColor) {
     if (capType === 'circle-cross') {
         return '#ffffff';
+    }
+    if (strokeColor) {
+        return strokeColor;
     }
     return '#111111';
 }
@@ -57,9 +73,9 @@ export function getCapTypes() {
 }
 
 export function createConnectorCap(x, y, Vx, Vy, capType, capFill) {
-    const renderFunc = capRenderFuncs[capType];
-    if (renderFunc) {
-        return renderFunc(x, y, Vx, Vy, capFill);
+    const cap = allCaps[capType];
+    if (cap) {
+        return cap.renderFunc(x, y, Vx, Vy, capFill);
     }
     return null;
 }

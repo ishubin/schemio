@@ -1081,7 +1081,7 @@ export default {
                         if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
                             const fillPropName = name + 'Fill';
                             if (shape.argType(fillPropName) === 'color') {
-                                const defaultFill = getCapDefaultFill(value);
+                                const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
                                 if (defaultFill) {
                                     item.shapeProps[fillPropName] = defaultFill;
                                 }
