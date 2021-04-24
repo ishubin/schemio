@@ -53,14 +53,20 @@ const allCaps = {
     'diamond':      standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
     'diamond-1':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
     'diamond-2':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
+    'diamond-l':    light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
+    'diamond-l-1':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
+    'diamond-l-2':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
 };
 
 
 const _capTypes = keys(allCaps);
 
 export function getCapDefaultFill(capType, strokeColor) {
-    if (capType === 'circle-cross') {
-        return '#ffffff';
+    const cap = allCaps[capType];
+    if (cap) {
+        if (cap.lightFill) {
+            return '#ffffff';
+        }
     }
     if (strokeColor) {
         return strokeColor;
