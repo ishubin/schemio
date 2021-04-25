@@ -57,6 +57,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Input/Output',
+    iconUrl: '/assets/images/items/uml-input.svg',
+    item: utils.extendObject({
+        shape: 'uml_input',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Database',
     iconUrl: '/assets/images/items/uml-database.svg',
     item: utils.extendObject({

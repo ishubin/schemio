@@ -18,8 +18,6 @@ export default {
             return computePath(item);
         },
 
-        args: {
-            depth: {type: 'number', value: 20, name: 'Depth'},
-        },
+        args: { },
     }
 }

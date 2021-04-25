@@ -26,9 +26,6 @@ export default {
                  + `C ${0} ${d} ${k} 0 ${cx} 0  C ${w-k} 0 ${w} ${d} ${w} ${s}`
                  + `C ${w} ${s+d} ${w-k} ${2*s} ${cx} ${2*s} C ${k} ${2*s} ${0} ${s+d} ${0} ${s}`;
 
-            // return `M 0 ${s} L 0 ${h-s} C 0 ${h-d}  ${k} ${h} ${cx} ${h} C ${cx+k} ${h} ${w} ${h-d} ${w} ${h-s} L ${w} ${s}`
-            //      + `C ${w} ${d} ${w-k} 0 ${cx} 0  C ${k} 0 0 ${d} 0 ${s}`
-            //      + `C 0 ${s+d} ${k} ${2*s} ${cx} ${2*s} C ${cx + k} ${2*s} ${w} ${s+d} ${w} ${s}`;
         },
 
         computeOutline(item) {
