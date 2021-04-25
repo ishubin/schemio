@@ -101,10 +101,8 @@ import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
 import config from '../../config';
 import StoreUtils from '../../store/StoreUtils';
+import myMath from '../../myMath';
 
-function clamp(value, min, max) {
-    return Math.max(min, Math.min(value, max));
-}
 
 /**
  * @returns {String} encoded rgba() color
@@ -392,7 +390,7 @@ export default {
         invertGradient() {
             this.color.gradient.colors.reverse();
             for (let i = 0; i < this.color.gradient.colors.length; i++) {
-                this.color.gradient.colors[i].p = clamp(100 - this.color.gradient.colors[i].p, 0, 100);
+                this.color.gradient.colors[i].p = myMath.clamp(100 - this.color.gradient.colors[i].p, 0, 100);
             }
             this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             this.emitChange();
