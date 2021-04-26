@@ -128,6 +128,10 @@ export default class StateDragItem extends State {
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
             this.updateCursor('grabbing');
+        } else if (key === Keys.MINUS) {
+            this.zoomOutByKey();
+        } else if (key === Keys.EQUALS) {
+            this.zoomInByKey();
         }
     }
 

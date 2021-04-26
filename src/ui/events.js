@@ -16,7 +16,9 @@ export const Keys = {
     DOWN: 'down',
     LEFT: 'left',
     RIGHT: 'right',
-    SPACE: 'space'
+    SPACE: 'space',
+    MINUS: 'minus',
+    EQUALS: 'equals'
 };
 
 const keyMap = {};
@@ -32,6 +34,8 @@ keyMap[Keys.RIGHT] = event => event.key === 'ArrowRight';
 keyMap[Keys.UP] = event => event.key === 'ArrowUp';
 keyMap[Keys.DOWN] = event => event.key === 'ArrowDown';
 keyMap[Keys.SPACE] = event => event.key === ' ' || event.keyCode === 32;
+keyMap[Keys.MINUS] = event => event.key === '-' || event.keyCode === 189;
+keyMap[Keys.EQUALS] = event => event.key === '=' || event.keyCode === 187;
 
 /**
  * 

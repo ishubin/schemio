@@ -26,6 +26,8 @@ class State {
         this.schemeContainer = schemeContainer;
     }
 
+    // a hackish way of propagating events to SVGEditor component
+    // should find a better way
     setEditor(editor) {
         this.editor = editor;
     }
@@ -86,6 +88,36 @@ class State {
             this.schemeContainer.screenTransform.scale = nz;
             this.dragScreenTo(sx, sy);
         }
+    }
+
+    zoomOutByKey() {
+        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 0.9);
+    }
+
+    zoomInByKey() {
+        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 1.1);
+    }
+
+    changeZoomTo(newScale) {
+        // calculating old center of the scheme
+
+        let schemeContainer = this.schemeContainer;
+        const xo = schemeContainer.screenTransform.x;
+        const yo = schemeContainer.screenTransform.y;
+
+        const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+        const cx = svgRect.width / 2;
+        const cy = svgRect.height / 2;
+
+        const sx = cx - newScale * (cx - xo) / schemeContainer.screenTransform.scale;
+        const sy = cy - newScale * (cy - yo) / schemeContainer.screenTransform.scale;
+
+        schemeContainer.screenTransform.scale = newScale;
+
+        schemeContainer.screenTransform.x = sx;
+        schemeContainer.screenTransform.y = sy;
+
+        this.editor.informUpdateOfScreenTransform(schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {

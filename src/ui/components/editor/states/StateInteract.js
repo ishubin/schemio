@@ -7,6 +7,7 @@ import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import EventBus from '../EventBus.js';
 import {ItemInteractionMode} from '../../../scheme/Item.js';
+import { Keys } from '../../../events';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -49,7 +50,14 @@ class StateInteract extends State {
         this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
         this.originalZoom = this.schemeContainer.screenTransform.scale;
     }
-    
+
+    keyPressed(key, keyOptions) {
+        if (key === Keys.MINUS) {
+            this.zoomOutByKey();
+        } else if (key === Keys.EQUALS) {
+            this.zoomInByKey();
+        }
+    }
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {

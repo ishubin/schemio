@@ -186,7 +186,7 @@ EventBus.$emit = (...args) => {
 
 document.addEventListener('keyup', (event) => {
     event = event || window.event;
-    if (event.srcElement === document.body) {
+    if (event.target === document.body) {
         const key = identifyKeyPress(event);
         if (key) {
             event.preventDefault();
@@ -198,7 +198,7 @@ document.addEventListener('keyup', (event) => {
 });
 document.addEventListener('keydown', (event) => {
     event = event || window.event;
-    if (event.srcElement === document.body) {
+    if (event.target === document.body) {
         const key = identifyKeyPress(event);
         if (key) {
             event.preventDefault();

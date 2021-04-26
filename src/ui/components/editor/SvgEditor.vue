@@ -852,7 +852,7 @@ export default {
                     this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
                 }, 
                 destroy: () => {
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+                    this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
                 }
             }));
         },
@@ -912,6 +912,11 @@ export default {
                 });
             }
             return [];
+        },
+
+
+        informUpdateOfScreenTransform(screenTransform) {
+            EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, screenTransform);
         },
 
         calculateLinkBackgroundRectWidth(link) {
