@@ -24,6 +24,7 @@ import UMLDatabase from './uml/UMLDatabase.js';
 import UMLStart from './uml/UMLStart.js';
 import UMLInput from './uml/UMLInput.js';
 import UMLDecision from './uml/UMLDecision.js';
+import UMLDocument from './uml/UMLDocument.js';
 import mapValues from 'lodash/mapValues';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
@@ -164,6 +165,7 @@ const shapeRegistry = mapValues({
     uml_start: UMLStart,
     uml_input: UMLInput,
     uml_decision: UMLDecision,
+    uml_document: UMLDocument,
     uml_database: UMLDatabase,
     code_block: CodeBlock
 }, enrichShape);

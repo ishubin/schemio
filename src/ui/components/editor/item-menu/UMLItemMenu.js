@@ -71,6 +71,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Document',
+    iconUrl: '/assets/images/items/uml-document.svg',
+    item: utils.extendObject({
+        shape: 'uml_document',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Database',
     iconUrl: '/assets/images/items/uml-database.svg',
     item: utils.extendObject({
