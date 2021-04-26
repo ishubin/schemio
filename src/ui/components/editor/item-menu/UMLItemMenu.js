@@ -78,6 +78,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Data Flow',
+    iconUrl: '/assets/images/items/uml-dataflow.svg',
+    item: utils.extendObject({
+        shape: 'uml_dataflow',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Database',
     iconUrl: '/assets/images/items/uml-database.svg',
     item: utils.extendObject({
