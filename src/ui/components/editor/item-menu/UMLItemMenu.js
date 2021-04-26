@@ -64,6 +64,13 @@ export default [{
         shapeProps: {}
     }, defaultItem)
 }, {
+    name: 'Decision',
+    iconUrl: '/assets/images/items/uml-decision.svg',
+    item: utils.extendObject({
+        shape: 'uml_decision',
+        shapeProps: {}
+    }, defaultItem)
+}, {
     name: 'Database',
     iconUrl: '/assets/images/items/uml-database.svg',
     item: utils.extendObject({
