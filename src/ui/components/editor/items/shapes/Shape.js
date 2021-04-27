@@ -26,6 +26,7 @@ import UMLInput from './uml/UMLInput.js';
 import UMLDecision from './uml/UMLDecision.js';
 import UMLDocument from './uml/UMLDocument.js';
 import UMLDataflow from './uml/UMLDataflow';
+import UMLDelay from './uml/UMLDelay';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
@@ -182,6 +183,7 @@ forEach([
     UMLDataflow,
     UMLDatabase,
     UMLActor,
+    UMLDelay,
 ], registerShape);
 
 /**
