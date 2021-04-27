@@ -14,6 +14,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_database',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Database',
+            iconUrl: '/assets/images/items/uml-database.svg',
+        }],
+
         computePath(item) {
             const   w = item.area.w,
                     h = item.area.h,

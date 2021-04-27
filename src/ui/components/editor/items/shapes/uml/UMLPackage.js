@@ -3,6 +3,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_package',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Package',
+            iconUrl: '/assets/images/items/uml-package.svg',
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;

@@ -8,6 +8,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_decision',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Decision',
+            iconUrl: '/assets/images/items/uml-decision.svg',
+        }],
+
         computePath(item) {
             return computePath(item);
         },

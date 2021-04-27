@@ -9,6 +9,27 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        // id is used in order to register in Shape Registry
+        // this will be the identifier that is specified with "shape" field in items
+        id: 'rect',
+
+        // menuItems is used in order to display shape in the items menu (left panel)
+        menuItems: [{
+            group: 'General',
+            name: 'Rect',
+            iconUrl: '/assets/images/items/rect.svg',
+            item: {
+                shapeProps: {cornerRadius: 0}
+            }
+        }, {
+            group: 'General',
+            name: 'Rounded Rect',
+            iconUrl: '/assets/images/items/rounded-rect.svg',
+            item: {
+                shapeProps: {cornerRadius: 20}
+            }
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;

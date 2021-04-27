@@ -2,6 +2,20 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_object',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Object',
+            iconUrl: '/assets/images/items/uml-object.svg',
+            item: {
+                textSlots: {
+                    title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
+                    body: {text: '<ul><li>Property</li></ul>', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
+                },
+            },
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;

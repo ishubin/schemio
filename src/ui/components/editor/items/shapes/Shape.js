@@ -26,7 +26,7 @@ import UMLInput from './uml/UMLInput.js';
 import UMLDecision from './uml/UMLDecision.js';
 import UMLDocument from './uml/UMLDocument.js';
 import UMLDataflow from './uml/UMLDataflow';
-import mapValues from 'lodash/mapValues';
+import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
 
@@ -128,6 +128,8 @@ function enrichShape(shapeComponent, shapeName) {
         getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,
         vueComponent            : shapeConfig.shapeType === 'vue'? shapeComponent: null,
 
+        menuItems               : shapeConfig.menuItems || [],
+
         argType(argName) {
             if (this.args && this.args[argName]) {
                 return this.args[argName].type;
@@ -142,40 +144,51 @@ function enrichShape(shapeComponent, shapeName) {
     };
 }
 
-const shapeRegistry = mapValues({
-    none: NoneShape,
-    rect: Rect,
-    ellipse: Ellipse,
-    overlay: Overlay,
-    comment: Comment,
-    frame_player: FramePlayer,
-    image: ImageShape,
-    curve: Curve,
-    connector: Connector,
-    link: Link,
-    npoly: NPoly,
-    bracket: Bracket,
-    button: Button,
-    dummy: Dummy,
-    hud: HUD,
-    uml_object: UMLObject,
-    uml_module: UMLModule,
-    uml_package: UMLPackage,
-    uml_node: UMLNode,
-    uml_actor: UMLActor,
-    uml_start: UMLStart,
-    uml_input: UMLInput,
-    uml_decision: UMLDecision,
-    uml_document: UMLDocument,
-    uml_dataflow: UMLDataflow,
-    uml_database: UMLDatabase,
-    code_block: CodeBlock
-}, enrichShape);
+const shapeRegistry = {};
+function registerShape(shape) {
+    if (!shape.shapeConfig.id) {
+        return;
+    }
+
+    shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
+    make(shape.shapeConfig.id);
+}
+
+forEach([
+    Rect,
+    NoneShape,
+    Ellipse,
+    NPoly,
+    Curve,
+    Connector,
+    Bracket,
+    Overlay,
+    ImageShape,
+    Comment,
+    Link,
+    FramePlayer,
+    CodeBlock,
+    Button,
+    Dummy,
+    HUD,
+    UMLObject,
+    UMLModule,
+    UMLPackage,
+    UMLNode,
+    UMLStart,
+    UMLInput,
+    UMLDecision,
+    UMLDocument,
+    UMLDataflow,
+    UMLDatabase,
+    UMLActor,
+], registerShape);
 
 /**
  * Generates a component and returns it's name
- * @param {string} encodedShape - an encoded JSON that represents a shape or a name of a in-buit shape: e.g. 'rect', 'ellipse'
+ * @param {string} encodedShape - an encoded JSON that represents a shape or a name of a in-built shape: e.g. 'rect', 'ellipse'
  */
+//TODO remove this function and change all callers of it
 function make(encodedShape) {
     if (shapeRegistry[encodedShape]) {
         const shape = shapeRegistry[encodedShape];
@@ -207,6 +220,10 @@ function getShapePropDescriptor(shape, propName) {
     return null;
 }
 
+function getRegistry() {
+    return shapeRegistry;
+}
+
 export default {
     make,
     getShapeIds() {
@@ -216,5 +233,6 @@ export default {
         return shapeRegistry[id];
     },
     standardShapeProps,
-    getShapePropDescriptor
+    getShapePropDescriptor,
+    getRegistry
 };

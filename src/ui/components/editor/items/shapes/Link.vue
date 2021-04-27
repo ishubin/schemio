@@ -17,7 +17,6 @@
 <script>
 import map from 'lodash/map';
 import LinkTypes from '../../LinkTypes.js';
-import LinkEditPopupVue from '../../LinkEditPopup.vue';
 import htmlSanitize from '../../../../../htmlSanitize';
 import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
@@ -27,6 +26,19 @@ export default {
 
     shapeConfig: {
         shapeType: 'vue',
+
+        id: 'link',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Link',
+            iconUrl: '/assets/images/items/link.svg',
+            item: {
+                textSlots: { 
+                    link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
+                },
+            }
+        }],
 
         computePath(item) {
             const w = item.area.w;

@@ -30,6 +30,42 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'code_block',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Code Block',
+            iconUrl: '/assets/images/items/code-block.svg',
+            item: {
+                textSlots: {
+                    title: {
+                        text: '<b>Code</b>',
+                        halign: 'center',
+                        valign: 'middle',
+                        padding: {
+                            top: 4,
+                            left: 10,
+                            right: 10,
+                            bottom: 4
+                        }
+                    },
+                    body: {
+                        font: 'Courier New',
+                        text: '',
+                        halign: 'left',
+                        valign: 'top',
+                        whiteSpace: 'pre-wrap',
+                        padding: {
+                            top: 10,
+                            left: 10,
+                            right: 10,
+                            bottom: 10
+                        }
+                    }
+                }
+            },
+        }],
+
         computePath,
 
         getTextSlots(item) {

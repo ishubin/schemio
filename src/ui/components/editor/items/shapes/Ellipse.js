@@ -2,6 +2,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'ellipse',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Ellipse',
+            iconUrl: '/assets/images/items/ellipse.svg',
+        }],
+
         computePath(item) {
             const rx = item.area.w / 2;
             const ry = item.area.h / 2;

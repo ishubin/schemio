@@ -179,3 +179,20 @@ export function defaultifyItem(item) {
     }
     return resultedItem;
 }
+
+export function enrichItemWithDefaultShapeProps(item) {
+    const shape = Shape.find(item.shape);
+    if (!shape) {
+        return;
+    }
+    if (shape.args) {
+        if (!item.shapeProps) {
+            item.shapeProps = {};
+        }
+        forEach(shape.args, (shapeArg, shapeArgName) => {
+            if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
+                item.shapeProps[shapeArgName] = shapeArg.value;
+            }
+        });
+    }
+}

@@ -87,15 +87,12 @@ import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
-import map from 'lodash/map';
 import forEach from 'lodash/forEach';
 import utils from '../../../ui/utils.js';
-import generalItems from './item-menu/GeneralItemMenu.js';
-import umlItems from './item-menu/UMLItemMenu.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
-import {enrichItemWithDefaults} from '../../scheme/Item';
+import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps, defaultItem} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
 
 
@@ -118,13 +115,7 @@ export default {
 
             editArtModalShown           : false,
             
-            itemPanels: [{
-                name    : 'General',
-                items   : this.prepareItemsForMenu(generalItems)
-            }, {
-                name    : 'UML',
-                items   : this.prepareItemsForMenu(umlItems)
-            }],
+            itemPanels: this.generateItemPanels(),
             linkCreation: {
                 popupShown    : false,
                 item          : null
@@ -139,38 +130,52 @@ export default {
         }
     },
     methods: {
+        generateItemPanels() {
+            const panelsMap = {};
+            forEach(Shape.getRegistry(), (shape, shapeId) => {
+                if (shape.menuItems) {
+                    forEach(shape.menuItems, menuEntry => {
+                        let group = menuEntry.group || 'Ungrouped';
+                        if (!panelsMap[group]) {
+                            panelsMap[group] = {
+                                name: group,
+                                items: []
+                            };
+                        }
+
+                        panelsMap[group].items.push(this.prepareItemForMenu(utils.clone(menuEntry), shape, shapeId));
+                    });
+                }
+            });
+
+            const panels = [];
+            forEach(panelsMap, (panel, name) => {
+                panels.push(panel);
+            });
+
+            return panels;
+        },
 
         /**
          * Enriches item with defaults of its shape
          */
-        prepareItemsForMenu(items) {
-            return map(items, item => {
-                if (item.area) {
-                    // some items might override their area so that it can be shown nicely in a preview
-                    item.item.area = item.area;
-                } else {
-                    item.item.area = {x: 6, y: 6, w: 140, h: 90};
-                }
-                if (item.item.shape) {
-                    const shape = Shape.make(item.item.shape);
-                    if (shape) {
-                        this.enrichItemWithShapeProps(item.item, shape);
-                    }
-                }
-                return item;
-            })
-        },
-        enrichItemWithShapeProps(item, shape) {
-            if (shape.args) {
-                if (!item.shapeProps) {
-                    item.shapeProps = {};
-                }
-                forEach(shape.args, (shapeArg, shapeArgName) => {
-                    if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
-                        item.shapeProps[shapeArgName] = shapeArg.value;
-                    }
-                });
+        prepareItemForMenu(menuEntry, shape, shapeId) {
+            if (!menuEntry.item) {
+                menuEntry.item = {};
             }
+            menuEntry.item.shape = shapeId;
+            menuEntry.item = utils.extendObject(menuEntry.item, defaultItem);
+
+            if (menuEntry.previewArea) {
+                // some items might override their area so that it can be shown nicely in a preview
+                menuEntry.item.area = menuEntry.previewArea;
+            } else {
+                menuEntry.item.area = {x: 6, y: 6, w: 140, h: 90};
+            }
+            if (menuEntry.item.shape) {
+                enrichItemWithDefaultShapeProps(menuEntry.item);
+            }
+            return menuEntry;
         },
         reloadArt() {
             this.artPacks = [];
@@ -242,8 +247,7 @@ export default {
                     fill: {type: 'image', image: art.url}
                 }
             };
-            const shape = Shape.make(item.shape);
-            this.enrichItemWithShapeProps(item, shape);
+            enrichItemWithDefaultShapeProps(item);
             EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 

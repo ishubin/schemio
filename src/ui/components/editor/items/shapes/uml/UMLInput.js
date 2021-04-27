@@ -19,6 +19,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_input',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Input/Output',
+            iconUrl: '/assets/images/items/uml-input.svg',
+        }],
+
         computePath(item) {
             return computePath(item);
         },

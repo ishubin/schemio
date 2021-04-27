@@ -306,6 +306,8 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'connector',
+
         computePath,
         readjustItem,
         getSnappers,

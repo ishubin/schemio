@@ -61,6 +61,24 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'overlay',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Overlay',
+            iconUrl: '/assets/images/items/overlay.svg',
+            description: `
+                It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
+                E.g. you can select it, trigger events or connect it to other items on the page.
+            `,
+            item: {
+                cursor: 'pointer',
+                shapeProps: {
+                    showName: false
+                },
+            }
+        }],
+
         getTextSlots(item) {
             return [{
                 name: 'body',

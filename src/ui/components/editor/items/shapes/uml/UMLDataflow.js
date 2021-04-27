@@ -14,6 +14,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_dataflow',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Data Flow',
+            iconUrl: '/assets/images/items/uml-dataflow.svg',
+        }],
+
         computePath(item) {
             const   w = item.area.w,
                     h = item.area.h,

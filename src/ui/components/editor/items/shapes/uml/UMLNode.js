@@ -12,6 +12,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_node',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Node',
+            iconUrl: '/assets/images/items/uml-node.svg',
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;

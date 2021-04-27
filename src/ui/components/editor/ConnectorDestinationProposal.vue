@@ -10,12 +10,11 @@
 
 <script>
 import utils from '../../utils';
-import UMLItemMenu from './item-menu/UMLItemMenu';
-import GeneralItemMenu from './item-menu/GeneralItemMenu';
 import forEach from 'lodash/forEach';
+import Shape from './items/shapes/Shape';
 import ItemSvg from './items/ItemSvg.vue';
 
-import {enrichItemWithDefaults} from '../../scheme/Item';
+import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/Item';
 
 export default {
     props: {
@@ -50,14 +49,20 @@ export default {
     data() {
         const itemEntries = [];
 
-        const appendItem = (menuEntry) => {
-            if (!menuEntry.imageProperty) {
-                itemEntries.push(menuEntry);
+        forEach(Shape.getRegistry(), (shape, shapeId) => {
+            if (shape.menuItems) {
+                forEach(shape.menuItems, (menuEntry) => {
+                    if (!menuEntry.imageProperty) {
+                        const entry = utils.clone(menuEntry);
+                        if (!entry.item) {
+                            entry.item = {};
+                        }
+                        entry.item.shape = shapeId;
+                        itemEntries.push(utils.clone(entry));
+                    }
+                });
             }
-        }
-
-        forEach(GeneralItemMenu, appendItem);
-        forEach(UMLItemMenu, appendItem);
+        });
 
         return {
             itemEntries,
@@ -72,9 +77,14 @@ export default {
         onDestinationItemSelected(itemEntry) {
             const item = utils.clone(itemEntry.item);
             item.name = itemEntry.name;
-            enrichItemWithDefaults(item);
+            this.enrichItem(item);
             this.$emit('item-selected', item);
             this.$emit('close');
+        },
+
+        enrichItem(item) {
+            enrichItemWithDefaults(item);
+            enrichItemWithDefaultShapeProps(item);
         },
 
         onBodyClick(event) {

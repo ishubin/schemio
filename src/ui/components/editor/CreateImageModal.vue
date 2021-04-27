@@ -47,7 +47,7 @@ export default {
             selectedFile: null,
             errorUploading: false,
             isUploading: false,
-            isUploadingEnabled: config.media.uploadEnabled
+            isUploadEnabled: config.media.uploadEnabled
         }
     },
     methods: {

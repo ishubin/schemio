@@ -55,6 +55,23 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'button',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Button',
+            iconUrl: '/assets/images/items/button.svg',
+            item: {
+                cursor: 'pointer',
+                textSlots: { body: {text: '<b>Button</b>', color: '#fff'} },
+                shapeProps: {
+                    strokeSize: 1,
+                    hoverTextColor: '#fff'
+                }
+            },
+            previewArea: {x: 0, y: 0, w: 140, h: 60, r: 0},
+        }],
+
         getTextSlots(item) {
             return [{
                 name: 'body',

@@ -51,6 +51,21 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'image',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Image',
+            imageProperty: 'shapeProps.image',
+            iconUrl: '/assets/images/items/image.svg',
+            description: 'It lets you upload an image or specify a link to external image',
+            item: {
+                shapeProps: {
+                    image: '/assets/images/missing-scheme-preview.png'
+                }
+            },
+        }],
+
         computePath,
 
         getTextSlots(item) {

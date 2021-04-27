@@ -10,6 +10,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_start',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Start/End',
+            iconUrl: '/assets/images/items/uml-start.svg',
+        }],
+
         computePath(item) {
             return computePath(item);
         },

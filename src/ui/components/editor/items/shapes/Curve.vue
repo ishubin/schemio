@@ -157,6 +157,20 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'curve',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Curve',
+            iconUrl: '/assets/images/items/curve.svg',
+            item: {
+                shapeProps: {
+                    points:[{"t":"B","x":30,"x1":-8,"x2":8,"y":44,"y1":14,"y2":-14},{"t":"B","x":19,"x1":-19,"x2":19,"y":10,"y1":10,"y2":-10},{"t":"B","x":61,"x1":-17,"x2":17,"y":29,"y1":-2,"y2":2},{"t":"B","x":97,"x1":-16,"x2":16,"y":20,"y1":-11,"y2":11},{"t":"B","x":105,"x1":26,"x2":-26,"y":52,"y1":-10,"y2":10},{"t":"B","x":61,"x1":21,"x2":-21,"y":58,"y1":-10,"y2":10},{"t":"B","x":61,"x1":23,"x2":-23,"y":82,"y1":-7,"y2":7},{"t":"B","x":13,"x1":1,"x2":-1,"y":66,"y1":18,"y2":-18}],
+                    closed: true,
+                }
+            }
+        }],
+
         computePath,
         readjustItem,
         getSnappers,

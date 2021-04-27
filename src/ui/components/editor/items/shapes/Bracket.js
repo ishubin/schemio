@@ -54,6 +54,43 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'bracket',
+
+        menuItems: [{
+            name: 'Curly Bracket',
+            group: 'General',
+            iconUrl: '/assets/images/items/curly-bracket.svg',
+            item: {
+                shapeProps: {
+                    fill: {type: 'none'},
+                    style: 'curly',
+                }
+            },
+            previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
+        }, {
+            name: 'Square Bracket',
+            group: 'General',
+            iconUrl: '/assets/images/items/square-bracket.svg',
+            item: {
+                shapeProps: {
+                    fill: {type: 'none'},
+                    style: 'square'
+                }
+            },
+            previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
+        }, {
+            name: 'Round Bracket',
+            group: 'General',
+            iconUrl: '/assets/images/items/round-bracket.svg',
+            item: {
+                shapeProps: {
+                    fill: {type: 'none'},
+                    style: 'round'
+                }
+            },
+            previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
+        }],
+
         getTextSlots(item) {
             return [];
         },

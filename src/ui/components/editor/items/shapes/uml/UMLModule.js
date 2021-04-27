@@ -2,6 +2,20 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'uml_module',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Module',
+            iconUrl: '/assets/images/items/uml-module.svg',
+            item: {
+                textSlots: {
+                    title: {text: '<b>Module</b>', halign: 'center'},
+                    body: {text: '', halign: 'left'}
+                },
+            },
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;

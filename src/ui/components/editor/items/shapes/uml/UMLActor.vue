@@ -27,6 +27,15 @@ export default {
 
         components: {AdvancedFill},
 
+        id: 'uml_actor',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Actor',
+            iconUrl: '/assets/images/items/uml-actor.svg',
+            previewArea: {x: 0, y: 0, w: 30, h: 90, r: 0},
+        }],
+
         computePath(item) {
             return `M 0 0  l ${item.area.w} 0  l 0 ${item.area.h}  l ${-item.area.w} 0 z`;
         },

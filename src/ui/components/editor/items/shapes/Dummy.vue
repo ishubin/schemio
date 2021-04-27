@@ -38,6 +38,21 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'dummy',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Dummy',
+            iconUrl: '/assets/images/items/dummy.svg',
+            description: `
+                Dummy item can be used in order to group mulitple items together.
+                It is only visible in the edit mode and completely transparent in view mode.
+            `,
+            item: {
+                shapeProps: {cornerRadius: 0}
+            }
+        }],
+
         components: {AdvancedFill},
 
         // it doesn't support text slots

@@ -1,6 +1,22 @@
 export default {
     shapeConfig: {
         shapeType: 'empty',
+
+        id: 'none',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Text',
+            iconUrl: '/assets/images/items/text.svg',
+            item: {
+                textSlots: {
+                    body: {
+                        text: 'Text ...'
+                    }
+                },
+            }
+        }],
+
         computePath(item) {
             const w = item.area.w;
             const h = item.area.h;

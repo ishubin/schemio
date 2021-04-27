@@ -44,6 +44,23 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
+        id: 'frame_player',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Frame Player',
+            iconUrl: '/assets/images/items/frame-player.svg',
+            item: {
+                textSlots: {
+                    title: {
+                        text: '<b>Frame Player</b>',
+                        color: '#000000',
+                        fontSize: 14
+                    }
+                }
+            }
+        }],
+
         getTextSlots(item) {
             return [{
                 name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}

@@ -2,6 +2,14 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'npoly',
+
+        menuItems: [{
+            group: 'General',
+            name: 'N-Polygon',
+            iconUrl: '/assets/images/items/npolygon.svg',
+        }],
+
         computePath(item) {
             const cx = item.area.w/2;
             const cy = item.area.h/2;

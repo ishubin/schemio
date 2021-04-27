@@ -196,6 +196,26 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
+        id: 'comment',
+
+        menuItems: [{
+            group: 'General',
+            name: 'Comment',
+            iconUrl: '/assets/images/items/comment.svg',
+            item: {
+                text: 'Text...',
+                shapeProps: {
+                    fontSize: 8,
+                    cornerRadius: 5,
+                    tailLength: 20,
+                    tailWidth: 20,
+                    tailSide: 'bottom',
+                    tailPosition: 10
+                },
+            },
+            previewArea: {x: 5, y: 5, w: 130, h: 60, r: 0},
+        }],
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;
