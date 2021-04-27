@@ -1,36 +1,39 @@
 import Vue from 'vue';
-import NoneShape from './NoneShape.js';
-import Rect from './Rect.js';
-import Overlay from './Overlay.vue';
-import Ellipse from './Ellipse.js';
-import Link from './Link.vue';
-import ImageShape from './Image.vue';
-import Curve from './Curve.vue';
-import Connector from './Connector.vue';
-import Comment from './Comment.js';
-import FramePlayer from './FramePlayer.vue';
-import CodeBlock from './CodeBlock.vue';
-import Button from './Button.vue';
-import NPoly from './NPoly.js';
-import Bracket from './Bracket.js';
-import Dummy from './Dummy.vue';
-import HUD from './HUD.vue';
-import UMLObject from './uml/UMLObject.js';
-import UMLModule from './uml/UMLModule.js';
-import UMLPackage from './uml/UMLPackage.js';
-import UMLNode from './uml/UMLNode.js';
-import UMLActor from './uml/UMLActor.vue';
-import UMLDatabase from './uml/UMLDatabase.js';
-import UMLStart from './uml/UMLStart.js';
-import UMLInput from './uml/UMLInput.js';
-import UMLDecision from './uml/UMLDecision.js';
-import UMLDocument from './uml/UMLDocument.js';
-import UMLDataflow from './uml/UMLDataflow';
-import UMLDelay from './uml/UMLDelay';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
 
+const _shapes = [
+    require('./Rect.js').default,
+    require('./NoneShape.js').default,
+    require('./Ellipse.js').default,
+    require('./NPoly.js').default,
+    require('./Curve.vue').default,
+    require('./Connector.vue').default,
+    require('./Bracket.js').default,
+    require('./Overlay.vue').default,
+    require('./Image.vue').default,
+    require('./Comment.js').default,
+    require('./Link.vue').default,
+    require('./FramePlayer.vue').default,
+    require('./CodeBlock.vue').default,
+    require('./Button.vue').default,
+    require('./Dummy.vue').default,
+    require('./HUD.vue').default,
+    require('./uml/UMLObject.js').default,
+    require('./uml/UMLModule.js').default,
+    require('./uml/UMLPackage.js').default,
+    require('./uml/UMLNode.js').default,
+    require('./uml/UMLStart.js').default,
+    require('./uml/UMLInput.js').default,
+    require('./uml/UMLDecision.js').default,
+    require('./uml/UMLDocument.js').default,
+    require('./uml/UMLDataflow.js').default,
+    require('./uml/UMLDatabase.js').default,
+    require('./uml/UMLDelay.js').default,
+    require('./uml/UMLPreparation.js').default,
+    require('./uml/UMLActor.vue').default,
+];
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
 
@@ -155,38 +158,7 @@ function registerShape(shape) {
     make(shape.shapeConfig.id);
 }
 
-
-forEach([
-    Rect,
-    NoneShape,
-    Ellipse,
-    NPoly,
-    Curve,
-    Connector,
-    Bracket,
-    Overlay,
-    ImageShape,
-    Comment,
-    Link,
-    FramePlayer,
-    CodeBlock,
-    Button,
-    Dummy,
-    HUD,
-    UMLObject,
-    UMLModule,
-    UMLPackage,
-    UMLNode,
-    UMLStart,
-    UMLInput,
-    UMLDecision,
-    UMLDocument,
-    UMLDataflow,
-    UMLDatabase,
-    UMLActor,
-    UMLDelay,
-    require('./uml/UMLPreparation.js').default
-], registerShape);
+forEach(_shapes, registerShape);
 
 /**
  * Generates a component and returns it's name
