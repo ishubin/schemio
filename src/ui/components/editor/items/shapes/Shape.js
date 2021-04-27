@@ -155,6 +155,7 @@ function registerShape(shape) {
     make(shape.shapeConfig.id);
 }
 
+
 forEach([
     Rect,
     NoneShape,
@@ -184,6 +185,7 @@ forEach([
     UMLDatabase,
     UMLActor,
     UMLDelay,
+    require('./uml/UMLPreparation.js').default
 ], registerShape);
 
 /**
