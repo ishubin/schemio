@@ -25,7 +25,7 @@
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
                 :stroke="item.shapeProps.strokeColor"
                 :stroke-dasharray="strokeDashArray"
-                stroke-linejoin="bevel"
+                stroke-linejoin="round"
                 :fill="svgFill"></path>
         </g>
 
