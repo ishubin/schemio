@@ -34,6 +34,7 @@ const _shapes = [
     require('./uml/UMLPreparation.js').default,
     require('./uml/UMLLoopLimit.js').default,
     require('./uml/UMLNote.js').default,
+    require('./uml/UMLSendSignal.js').default,
     require('./uml/UMLActor.vue').default,
 ];
 
