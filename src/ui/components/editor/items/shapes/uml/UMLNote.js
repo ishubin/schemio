@@ -6,7 +6,7 @@ function computePath(item) {
     const w = item.area.w;
     const h = item.area.h;
     const s = myMath.clamp(item.shapeProps.skew, 0, Math.min(w/maxSkewRatio, h/maxSkewRatio));
-    return `M ${w} ${s} L ${w} ${h} L 0 ${h} L 0 0 L ${w-s} 0 Z  M ${w-s} 0 L ${w-s} ${s} L ${w} ${s}`;
+    return `M ${w} ${s} L ${w} ${h} L 0 ${h} L 0 0 L ${w-s} 0 L ${w} ${s} L ${w-s} ${s} L ${w-s} 0`;
 }
 
 function computeOutline(item) {
