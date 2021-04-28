@@ -25,6 +25,7 @@
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
                 :stroke="item.shapeProps.strokeColor"
                 :stroke-dasharray="strokeDashArray"
+                stroke-linejoin="bevel"
                 :fill="svgFill"></path>
         </g>
 
@@ -71,7 +72,6 @@ import AdvancedFill from './AdvancedFill.vue';
 import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
 import EventBus from '../EventBus.js';
-import myMath from '../../../myMath';
 import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
