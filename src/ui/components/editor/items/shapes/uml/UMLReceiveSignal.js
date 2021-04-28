@@ -5,19 +5,19 @@ function computePath(item) {
     const h = item.area.h;
     const s = myMath.clamp(h/2, 0, w);
 
-    return `M 0 0 L ${w-s} 0 L ${w} ${h/2} L ${w-s} ${h} L 0 ${h} Z`;
+    return `M 0 0 L ${w} 0 L ${w} ${h} L 0 ${h} L ${s} ${h/2} Z`;
 }
 
 export default {
     shapeConfig: {
         shapeType: 'standard',
 
-        id: 'uml_send_signal',
+        id: 'uml_receive_signal',
 
         menuItems: [{
             group: 'UML',
-            name: 'Send Signal',
-            iconUrl: '/assets/images/items/uml-send-signal.svg',
+            name: 'Receive Signal',
+            iconUrl: '/assets/images/items/uml-receive-signal.svg',
         }],
 
         computePath(item) {
@@ -31,4 +31,5 @@ export default {
         args: { },
     }
 }
+
 
