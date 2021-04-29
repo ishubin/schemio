@@ -1,3 +1,19 @@
+import myMath from "../../../../../myMath";
+
+function makeHeaderHeightControlPoint(item) {
+    return {
+        x: item.area.w / 2,
+        y: item.shapeProps.headerHeight
+    }
+}
+
+function makeCornerRadiusControlPoint(item) {
+    return {
+        x: item.area.w - item.shapeProps.cornerRadius,
+        y: 0
+    };
+}
+
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -49,6 +65,28 @@ export default {
                 name: 'body',
                 area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(10, item.area.h - item.shapeProps.headerHeight)}
             }];
+        },
+
+        controlPoints: {
+            make(item, pointId) {
+                if (!pointId) {
+                    return {
+                        headerHeight: makeHeaderHeightControlPoint(item),
+                        cornerRadius: makeCornerRadiusControlPoint(item),
+                    };
+                } else if (pointId === 'headerHeight') {
+                    return makeHeaderHeightControlPoint(item);
+                } else if (pointId === 'cornerRadius') {
+                    return makeCornerRadiusControlPoint(item);
+                }
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'headerHeight') {
+                    item.shapeProps.headerHeight = myMath.clamp(originalY + dy, 0, item.area.h);
+                } else if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = myMath.clamp(item.area.w - originalX - dx, 0, Math.min(item.area.w/4, item.area.h/4));
+                }
+            }
         },
 
         args: {
