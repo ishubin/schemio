@@ -27,7 +27,7 @@ export default {
             item: {
                 textSlots: {
                     title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
-                    body: {text: '<ul><li>Property</li></ul>', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
+                    body: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
                 },
             },
         }],

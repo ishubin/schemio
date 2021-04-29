@@ -25,6 +25,24 @@ export default {
         return Math.abs(a - b) < precision;
     },
 
+    /**
+     * Rounds floating value and converts it to another floating value leaving only the specified significant digits after point
+     * @param {*} value 
+     * @param {*} precision 
+     */
+    roundPrecise(value, precision) {
+        if (precision > 0) {
+            const base = Math.pow(10, precision);
+            return Math.round(value * base) / base;
+        } else {
+            return Math.round(value);
+        }
+    },
+
+    roundPrecise1(value) {
+        return this.roundPrecise(value, 1);
+    },
+
     clamp(value, min, max) {
         if (value < min) {
             return min;

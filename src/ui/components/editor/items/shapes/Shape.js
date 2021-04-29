@@ -21,6 +21,7 @@ const _shapes = [
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
     require('./uml/UMLObject.js').default,
+    require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,
     require('./uml/UMLPackage.js').default,
     require('./uml/UMLNode.js').default,
