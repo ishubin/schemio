@@ -94,8 +94,9 @@ const EventBus = new Vue({
          * emits an event when a single item is supposed to be highlighted
          * @param {Array} itemIds array of ids of items that should be highlighted. In case it is set as null or empty - then no items should be highlighted at all.
          */
-        emitItemsHighlighted(itemIds) {
-            this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds);
+        emitItemsHighlighted(itemIds, options) {
+            const highlightPins = options ? options.highlightPins: false;
+            this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds, {highlightPins});
         },
 
         /**

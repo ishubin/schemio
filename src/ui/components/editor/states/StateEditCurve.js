@@ -166,7 +166,7 @@ export default class StateEditCurve extends State {
                 // Users would prefer for it to be pin always, but in some shapes there is only a single pin that is the center of the item
                 // In such cases it is best to stick to the point on path
                 // This is quite hacky but I don't see another better way for now
-                // The idea is check the distance of pin to the center of the item. If it is very low, we will choose point on path instead
+                // The idea is to check the distance of pin to the center of the item. If it is very low, we will choose point on path instead
 
                 const centerPoint = this.schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
                 const distance = (closestPin.x - centerPoint.x)*(closestPin.x - centerPoint.x) + (closestPin.y - centerPoint.y)*(closestPin.y - centerPoint.y);
@@ -826,7 +826,7 @@ export default class StateEditCurve extends State {
             curvePoint.bx = normal.x;
             curvePoint.by = normal.y;
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
             if (isSource) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;

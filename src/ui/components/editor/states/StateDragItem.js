@@ -806,7 +806,7 @@ export default class StateDragItem extends State {
             curvePoint.x = localCurvePoint.x;
             curvePoint.y = localCurvePoint.y;
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId]);
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
             if (controlPoint.isEdgeStart) {
                 this.sourceItem.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.sourceItem.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;

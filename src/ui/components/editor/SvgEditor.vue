@@ -120,6 +120,7 @@
                             :data-item-id="item.id"
                             style="opacity: 0.5"
                             data-preview-ignore="true"/>
+                        <circle v-for="pin in item.pins" :cx="pin.x" :cy="pin.y" r="5" style="opacity:0.5" data-preview-ignore="true" :fill="item.stroke"/>
                     </g>
 
                 </g>
@@ -652,7 +653,9 @@ export default {
             }
         },
 
-        highlightItems(itemIds) {
+        highlightItems(itemIds, options) {
+            const highlightPins = options ? options.highlightPins : false;
+
             this.worldHighlightedItems = [];
 
             forEach(itemIds, itemId => {
@@ -686,15 +689,22 @@ export default {
                     }
                 }
 
-
                 const itemHighlight = {
                     id: itemId,
                     transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
                     path,
                     fill,
                     strokeSize,
-                    stroke: this.schemeContainer.scheme.style.boundaryBoxColor
+                    stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
+                    pins: []
                 };
+
+                if (highlightPins) {
+                    itemHighlight.pins = shape.getPins(item);
+                    // const pins = shape.getPins(item);
+                    // itemHighlight.pins = map(pins, pin => this.schemeContainer.worldPointOnItem(pin.x, pin.y, item));
+                }
+
                 this.worldHighlightedItems.push(itemHighlight);
             });
         },
