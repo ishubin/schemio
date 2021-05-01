@@ -16,6 +16,29 @@ export default {
             },
         }],
 
+        getPins(item) {
+            const bw = Math.min(item.shapeProps.brickWidth, item.area.w/2) / 2;
+            const w = item.area.w;
+            const h = item.area.h;
+            const W = item.area.w - bw;
+
+            return [{
+                x: bw + W /2, y: h/2
+            }, {
+                x: bw + W / 2, y: 0,
+                nx: 0, ny: -1
+            }, {
+                x: bw + W / 2, y: h,
+                nx: 0, ny: 1
+            }, {
+                x: bw, y: h/2,
+                nx: -1, ny: 0
+            }, {
+                x: w, y: h/2,
+                nx: 1, ny: 0
+            }];
+        },
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;
