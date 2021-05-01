@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults';
 
 const maxSkewRatio = 4;
 
@@ -33,6 +34,10 @@ export default {
             name: 'Process',
             iconUrl: '/assets/images/items/uml-process.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

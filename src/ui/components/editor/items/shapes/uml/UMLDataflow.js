@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 
 const maxSkewRatioToHeight = 3;
@@ -21,6 +22,10 @@ export default {
             name: 'Data Flow',
             iconUrl: '/assets/images/items/uml-dataflow.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const   w = item.area.w,

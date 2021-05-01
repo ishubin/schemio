@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 function computePath(item) {
     const w = item.area.w;
@@ -20,6 +21,10 @@ export default {
             name: 'Delay',
             iconUrl: '/assets/images/items/uml-delay.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

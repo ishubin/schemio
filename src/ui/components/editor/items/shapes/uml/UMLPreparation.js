@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 function computePath(item) {
     const w = item.area.w;
@@ -26,6 +27,10 @@ export default {
             name: 'Preparation',
             iconUrl: '/assets/images/items/uml-preparation.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

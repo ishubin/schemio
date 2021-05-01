@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults';
 
 const maxSkewRatio = 2;
 
@@ -34,6 +35,10 @@ export default {
             name: 'Note',
             iconUrl: '/assets/images/items/uml-note.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

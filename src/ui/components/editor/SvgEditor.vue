@@ -119,6 +119,7 @@
                             :stroke-width="item.strokeSize+'px'"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
+                            stroke-linejoin="round"
                             data-preview-ignore="true"/>
                         <circle v-for="pin in item.pins" :cx="pin.x" :cy="pin.y" r="5" style="opacity:0.5" data-preview-ignore="true" :fill="item.stroke"/>
                     </g>

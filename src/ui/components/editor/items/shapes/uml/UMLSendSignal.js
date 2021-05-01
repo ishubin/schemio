@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults';
 
 function computePath(item) {
     const w = item.area.w;
@@ -19,6 +20,10 @@ export default {
             name: 'Send Signal',
             iconUrl: '/assets/images/items/uml-send-signal.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

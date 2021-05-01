@@ -19,6 +19,7 @@
 
 <script>
 import forEach from 'lodash/forEach';
+import map from 'lodash/forEach';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import {Logger} from '../../../../logger';
@@ -345,6 +346,15 @@ export default {
          */ 
         getTextSlots() {
             return [];
+        },
+
+        getPins(item) {
+            return map(item.shapeProps.points, point => {
+                return {
+                    x: point.x,
+                    y: point.y
+                };
+            });
         },
 
         editorProps: {
