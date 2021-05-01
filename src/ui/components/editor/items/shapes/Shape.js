@@ -70,6 +70,13 @@ function defaultGetTextSlots(item) {
     }];
 }
 
+function defaultGetPins(item) {
+    return [{
+        x: item.area.w/2,
+        y: item.area.h/2
+    }];
+}
+
 function worldPointOnItem(x, y, item) {
     return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
 }
@@ -134,6 +141,7 @@ function enrichShape(shapeComponent, shapeName) {
         getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeConfig.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeConfig.controlPoints || null,
+        getPins                 : shapeConfig.getPins || defaultGetPins,
 
         // used for generating item snapers which are used for snapping dragged item to other items
         getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,

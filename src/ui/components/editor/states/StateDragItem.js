@@ -769,7 +769,7 @@ export default class StateDragItem extends State {
     }
 
     handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
-        // this function implement the same logic as in StateEditCurve.handleEdgeCurvePointDrag
+        // this function implements the same logic as in StateEditCurve.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
 

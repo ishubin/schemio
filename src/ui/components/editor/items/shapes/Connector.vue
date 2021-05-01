@@ -156,6 +156,34 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
 function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
+        if (attachmentItemPosition < 0) {
+            // this means that connector is attached to item pin
+
+            const pinIndex = Math.round(-attachmentItemPosition - 1);
+            const pinPoint = schemeContainer.getItemWorldPinPoint(attachmentItem, pinIndex);
+            const localPinPoint = schemeContainer.localPointOnItem(pinPoint.x, pinPoint.y, item)
+            if (pinPoint) {
+                const newPoint = {
+                    t: 'L',
+                    x: localPinPoint.x,
+                    y: localPinPoint.y,
+                };
+
+                // checking whether pin point has a normal
+                // in that case this point should be of Beizer type
+                // this will be used for smooth connectors
+                if (pinPoint.nx || pinPoint.ny) {
+                    newPoint.bx = pinPoint.nx;
+                    newPoint.by = pinPoint.ny;
+                }
+
+                callback(newPoint, attachmentItemPosition);
+                
+            }
+            return;
+        }
+
+
         const shadowSvgPath = schemeContainer.getSvgOutlineOfItem(attachmentItem);
         if (!shadowSvgPath) {
             return;
@@ -207,7 +235,7 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             bx: normal.x,
             by: normal.y
         };
-        callback(newPoint, distanceOnPath, shadowSvgPath);
+        callback(newPoint, distanceOnPath);
     }
 }
 

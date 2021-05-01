@@ -135,7 +135,8 @@ class SchemeContainer {
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
 
-        this.spatialIndex = new SpatialIndex();
+        this.spatialIndex = new SpatialIndex(); // used for indexing item path points
+        this.pinSpatialIndex = new SpatialIndex(); // used for indexing item pins
 
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
@@ -201,6 +202,7 @@ class SchemeContainer {
         this.relativeSnappers.horizontal = [];
         this.relativeSnappers.vertical = [];
         this.spatialIndex = new SpatialIndex();
+        this.pinSpatialIndex = new SpatialIndex();
 
         // stores element selectors with their dependants
         // this will be used once it has visited all items
@@ -230,8 +232,8 @@ class SchemeContainer {
                 item.meta.isInHUD = true;
             }
 
+            const shape = Shape.find(item.shape);
             if (item.text && item.text.length > 0) {
-                const shape = Shape.find(item.shape);
                 const textSlots = shape.getTextSlots(item);
                 if (textSlots && textSlots.length > 0) {
                     item.textSlots[textSlots[0].name].text = item.text;
@@ -279,9 +281,11 @@ class SchemeContainer {
                 });
             }
 
+            
+            this.indexItemPins(item, shape);
             this.indexItemOutlinePoints(item);
 
-            // storing revision in item as in future I am plannign to optimize reindeItems function to only reindex changed and affected items
+            // storing revision in item as in future I am planning to optimize reindexItems function to only reindex changed and affected items
             // this way not all items wold have the same revision
             // revision itself is going to be used in item path cache handling
             item.meta.revision = newRevision;
@@ -294,6 +298,42 @@ class SchemeContainer {
         this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision = newRevision;
         log.timeEnd('reindexItems');
+    }
+
+    getItemWorldPinPoint(item, pinIndex) {
+        const shape = Shape.find(item.shape);
+        if (!shape) {
+            return null;
+        }
+
+        const pins = shape.getPins(item);
+        if (pinIndex >= 0 && pinIndex < pins.length) {
+            const pinPoint = pins[pinIndex]
+            const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
+            // preserving pin point normals
+            // they are always relative so we don't need to recalculate them
+            if (pinPoint.nx || pinPoint.ny) {
+                worldPinPoint.nx = pinPoint.nx;
+                worldPinPoint.ny = pinPoint.ny;
+            }
+            return worldPinPoint;
+        }
+        return null;
+    }
+
+    indexItemPins(item, shape) {
+        if (!shape) {
+            return;
+        }
+
+        const points = shape.getPins(item);
+        forEach(points, (p, idx) => {
+            const worldPoint = this.worldPointOnItem(p.x, p.y, item);
+            this.pinSpatialIndex.addPoint(worldPoint.x, worldPoint.y, {
+                itemId: item.id,
+                pinIndex: idx
+            });
+        });
     }
 
     indexItemOutlinePoints(item) {
@@ -496,6 +536,27 @@ class SchemeContainer {
      * @returns {ItemClosestPoint}
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
+        let closestPin = null;
+        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex}, point) => {
+            const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
+            if (!closestPin || closestPin.distance > distance) {
+                closestPin = { itemId, pinIndex, point, distance };
+            }
+        });
+
+        if (closestPin) {
+            return {
+                x                 : closestPin.point.x,
+                y                 : closestPin.point.y,
+                distanceOnPath    : -closestPin.pinIndex - 1, // converting it to the negative space, yeah yeah, that's hacky, I know.
+                itemId            : closestPin.itemId
+            };
+        }
+
+        if (closestPin) {
+            console.log('found closest pin', closestPin);
+        }
+
         const items = new Map();
 
         this.spatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pathDistance}) => {
