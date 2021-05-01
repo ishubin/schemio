@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 
 const maxSkewRatioToHeight = 3;
@@ -34,6 +35,10 @@ export default {
                  + `C ${0} ${d} ${k} 0 ${cx} 0  C ${w-k} 0 ${w} ${d} ${w} ${s}`
                  + `C ${w} ${s+d} ${w-k} ${2*s} ${cx} ${2*s} C ${k} ${2*s} ${0} ${s+d} ${0} ${s}`;
 
+        },
+
+        getPins(item) {
+            return getStandardRectPins(item);
         },
 
         computeOutline(item) {

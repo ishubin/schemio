@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 function makeHeaderHeightControlPoint(item) {
     return {
@@ -31,6 +32,10 @@ export default {
                 },
             },
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const W = item.area.w;

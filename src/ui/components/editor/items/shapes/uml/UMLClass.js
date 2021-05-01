@@ -1,4 +1,5 @@
 import myMath from "../../../../../myMath";
+import {getStandardRectPins} from '../ShapeDefaults'
 
 function calculateNameLineTop(item) {
     return myMath.clamp(myMath.roundPrecise1(Math.max(item.shapeProps.headerHeight, item.shapeProps.cornerRadius)), 0, item.area.h);
@@ -47,6 +48,10 @@ export default {
                 },
             },
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const W = item.area.w;

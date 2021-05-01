@@ -1,3 +1,5 @@
+import {getStandardRectPins} from '../ShapeDefaults'
+
 
 function computePath(item) {
     const w = item.area.w;
@@ -17,6 +19,10 @@ export default {
             name: 'Start/End',
             iconUrl: '/assets/images/items/uml-start.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             return computePath(item);

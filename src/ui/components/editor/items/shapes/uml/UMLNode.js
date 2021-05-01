@@ -1,3 +1,6 @@
+import {getStandardRectPins} from '../ShapeDefaults'
+
+
 const calculateD = (item) => {
     let D = item.shapeProps.depth;
     const minD = Math.min(item.area.w, item.area.h) / 4;
@@ -19,6 +22,10 @@ export default {
             name: 'Node',
             iconUrl: '/assets/images/items/uml-node.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const W = item.area.w;
