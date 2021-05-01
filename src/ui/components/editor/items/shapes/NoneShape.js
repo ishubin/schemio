@@ -1,3 +1,5 @@
+import {getStandardRectPins} from './ShapeDefaults'
+
 export default {
     shapeConfig: {
         shapeType: 'empty',
@@ -16,6 +18,10 @@ export default {
                 },
             }
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const w = item.area.w;

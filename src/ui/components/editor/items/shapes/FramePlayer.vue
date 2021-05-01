@@ -61,6 +61,10 @@ export default {
             }
         }],
 
+        getPins(item) {
+            return [];
+        },
+
         getTextSlots(item) {
             return [{
                 name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}

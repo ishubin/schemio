@@ -175,6 +175,10 @@ export default {
         readjustItem,
         getSnappers,
 
+        getPins(item) {
+            return [];
+        },
+
         /**
          * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
          */ 

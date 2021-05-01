@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
 
 const computePath = (item) => {
@@ -65,6 +66,10 @@ export default {
                 }
             },
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath,
 

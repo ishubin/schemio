@@ -1,3 +1,5 @@
+import {getStandardRectPins} from './ShapeDefaults'
+
 function makeCornerRadiusControlPoint(item) {
     return {
         x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
@@ -29,6 +31,10 @@ export default {
                 shapeProps: {cornerRadius: 20}
             }
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         computePath(item) {
             const W = item.area.w;

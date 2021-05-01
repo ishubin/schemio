@@ -27,6 +27,7 @@
     
 </template>
 <script>
+import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import htmlSanitize from '../../../../../htmlSanitize';
 import EventBus from '../../EventBus';
@@ -71,6 +72,10 @@ export default {
             },
             previewArea: {x: 0, y: 0, w: 140, h: 60, r: 0},
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         getTextSlots(item) {
             return [{

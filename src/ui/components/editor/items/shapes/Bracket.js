@@ -91,6 +91,10 @@ export default {
             previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
         }],
 
+        getPins(item) {
+            return [];
+        },
+
         getTextSlots(item) {
             return [];
         },

@@ -1,3 +1,5 @@
+import {getStandardRectPins} from './ShapeDefaults'
+
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -9,6 +11,11 @@ export default {
             name: 'Ellipse',
             iconUrl: '/assets/images/items/ellipse.svg',
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
+
 
         computePath(item) {
             const rx = item.area.w / 2;

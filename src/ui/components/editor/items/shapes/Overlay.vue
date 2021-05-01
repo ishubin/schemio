@@ -26,6 +26,7 @@
 
 </template>
 <script>
+import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
 import AdvancedFill from '../AdvancedFill.vue';
@@ -78,6 +79,10 @@ export default {
                 },
             }
         }],
+
+        getPins(item) {
+            return getStandardRectPins(item);
+        },
 
         getTextSlots(item) {
             return [{
