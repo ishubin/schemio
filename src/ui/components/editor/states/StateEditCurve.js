@@ -158,6 +158,25 @@ export default class StateEditCurve extends State {
             withNormal: true
         });
 
+        const closestPin = this.findClosestItemPin(item, worldPoint);
+
+        if (closestPin) {
+            if (closestPoint) {
+                // should check which of these two is closer, but there is a catch
+                // Users would prefer for it to be pin always, but in some shapes there is only a single pin that is the center of the item
+                // In such cases it is best to stick to the point on path
+                // This is quite hacky but I don't see another better way for now
+                // The idea is check the distance of pin to the center of the item. If it is very low, we will choose point on path instead
+
+                const centerPoint = this.schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
+                const distance = (closestPin.x - centerPoint.x)*(closestPin.x - centerPoint.x) + (closestPin.y - centerPoint.y)*(closestPin.y - centerPoint.y);
+                if (distance < 0.5) {
+                    return closestPoint;
+                }
+            }
+            return closestPin;
+        }
+
         if (closestPoint) {
             return closestPoint;
         }
@@ -166,6 +185,38 @@ export default class StateEditCurve extends State {
             x: item.area.w / 2,
             y: item.area.h / 2
         };
+    }
+
+    findClosestItemPin(item, worldPoint) {
+        const shape = Shape.find(item.shape);
+        if (!shape) {
+            return null;
+        }
+
+        const pins = shape.getPins(item);
+
+        let foundPin = null;
+        let minDistance = 0;
+
+        forEach(pins, (pin, index) => {
+            const worldPinPoint = this.schemeContainer.worldPointOnItem(pin.x, pin.y, item);
+            const distance = (worldPinPoint.x - worldPoint.x)*(worldPinPoint.x - worldPoint.x) + (worldPinPoint.y - worldPoint.y)*(worldPinPoint.y - worldPoint.y);
+            if (!foundPin || minDistance > distance) {
+                minDistance = distance;
+                foundPin = {
+                    x: worldPinPoint.x,
+                    y: worldPinPoint.y,
+                    distanceOnPath: -index - 1 // converting it to netagive space on path field. hacky but it allows us to use only single field for this
+                };
+
+                if (pin.nx || pin.ny) {
+                    foundPin.nx = pin.nx;
+                    foundPin.ny = pin.ny;
+                }
+            }
+        });
+
+        return foundPin;
     }
 
     initFirstClick(x, y) {
