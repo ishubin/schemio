@@ -239,6 +239,7 @@ import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import apiClient from '../../apiClient';
 import StoreUtils from '../../store/StoreUtils';
+import {convertShapeToStandardCurves} from './items/shapes/ShapeExporter';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -990,6 +991,9 @@ export default {
             }, {
                 name: 'Export as SVG...',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
+            }, {
+                name: 'Export as a shape...',
+                clicked: () => { this.exportAsShape(); }
             }]);
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1021,6 +1025,22 @@ export default {
 
         onExportSVGRequested() {
             this.openExportSVGModal(this.schemeContainer, this.schemeContainer.scheme.items);
+        },
+
+        exportAsShape() {
+            if (!this.schemeContainer.multiItemEditBox) {
+                return;
+            }
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box.items.length === 0 || box.items.length > 1) {
+                return;
+            }
+            try {
+                const shapeJson = convertShapeToStandardCurves(box.items[0]);
+                console.log('Exported shape', shapeJson);
+            } catch (e) {
+                console.error(e);
+            }
         },
 
         exportSelectedItemsAsSVG() {

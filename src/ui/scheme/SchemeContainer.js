@@ -43,6 +43,15 @@ P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
 
+export function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
+export function localPointOnItem(x, y, item) {
+    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
+
 function visitItems(items, callback, transform, parentItem, ancestorIds) {
     if (!items) {
         return;
@@ -494,7 +503,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     worldPointOnItem(x, y, item) {
-        return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+        return worldPointOnItem(x, y, item);
     }
 
     /**
@@ -505,7 +514,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     localPointOnItem(x, y, item) {
-        return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+        return localPointOnItem(x, y, item);
     }
 
     /**
