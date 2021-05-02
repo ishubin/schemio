@@ -5,15 +5,24 @@
             :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
             <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
 
-                <path v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
-                    :d="selectedConnectorPath" 
-                    stroke-width="3px"
-                    :stroke="boundaryBoxColor"
-                    style="stroke-linejoin: round;"
-                    data-preview-ignore="true"
-                    :data-item-id="editBox.items[0].id"
-                    stroke-dasharray="4 4"
-                    fill="none"/>
+                <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath">
+                    <path :d="selectedConnectorPath" 
+                        :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
+                        :stroke="boundaryBoxColor"
+                        style="stroke-linejoin: round;opacity: 0.6;"
+                        data-preview-ignore="true"
+                        :data-item-id="editBox.items[0].id"
+                        fill="none"/>
+
+                    <path :d="selectedConnectorPath" 
+                        :stroke-width="`${editBox.items[0].shapeProps.strokeSize}px`"
+                        :stroke="editBox.items[0].shapeProps.strokeColor"
+                        style="stroke-linejoin: round;"
+                        data-preview-ignore="true"
+                        :data-item-id="editBox.items[0].id"
+                        :stroke-dasharray="createStrokeDashArray(editBox.items[0].shapeProps.strokePattern, editBox.items[0].shapeProps.strokeSize)"
+                        fill="none"/>
+                </g>
 
                 <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
                     :key="`item-control-point-${controlPoint.id}`"
@@ -165,6 +174,7 @@
 <script>
 import Shape from './items/shapes/Shape';
 import StoreUtils from '../../store/StoreUtils';
+import StrokePattern from './items/StrokePattern';
 
 
 function isItemConnector(items) {
@@ -195,6 +205,12 @@ export default {
         return {
             draggerSize: 5,
         };
+    },
+
+    methods: {
+        createStrokeDashArray(pattern, strokeSize) {
+            return StrokePattern.createDashArray(pattern, strokeSize);
+        }
     },
 
     computed: {

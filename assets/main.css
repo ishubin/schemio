@@ -1101,11 +1101,11 @@ ul.pagination li a.current {
     fill: rgba(55, 175, 255, 0.219);
 }
 #svg_plot .item-control-point {
-    opacity: 0.5;
+    opacity: 1.0;
     cursor: pointer;
 }
 #svg_plot .item-control-point:hover {
-    opacity: 1;
+    opacity: 0.7;
 }
 #svg_plot rect.boundary-box {
     stroke-width: 1;
