@@ -612,6 +612,7 @@ export default {
         onSwitchStateCreateItem(item) {
             this.highlightItems([]);
             if (item.shape === 'curve') {
+                item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 // making sure every new curve starts non-closed
                 item.shapeProps.closed = false;
