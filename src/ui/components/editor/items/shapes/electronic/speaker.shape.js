@@ -1,5 +1,6 @@
 export default {
   "shapeConfig": {
+    id: 'el_speaker',
     "shapeType": "standard-curves",
     "scale": 100,
 

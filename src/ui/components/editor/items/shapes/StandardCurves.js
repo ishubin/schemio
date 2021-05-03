@@ -74,9 +74,18 @@ function createComputeOutlineFunc(shapeConfig) {
     };
 }
 
-function createGenerateCurvesFunc(shapeConfig) {
+function convertCurveForRender(item, shapeConfig, curveDef) {
+    const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, curveDef.points);
+    return {
+        path: computeCurvePath(points, curveDef.closed)
+    };
+}
+
+function createComputeCurvesFunc(shapeConfig) {
     return (item) => {
-        // TODO finish this function
+        if (shapeConfig.curves) {
+            return map(shapeConfig.curves, curve => convertCurveForRender(item, shapeConfig, curve));
+        }
         return [];
     }
 }
@@ -90,11 +99,13 @@ export function convertStandardCurveShape(shapeDef) {
         shapeConfig: {
             shapeType: 'standard-curves',
 
+            menuItems: shapeDef.shapeConfig.menuItems,
+
             computeOutline: createComputeOutlineFunc(shapeDef.shapeConfig),
 
             // standard-curves do not use computePath function but instead they rely on generateCurves function
             // since each curve might have its own fill and stroke
-            generateCurves: createGenerateCurvesFunc(shapeDef.shapeConfig),
+            computeCurves: createComputeCurvesFunc(shapeDef.shapeConfig),
 
             args: {
                 fill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},

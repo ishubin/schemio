@@ -64,6 +64,9 @@ const standardShapeProps = {
     strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
 };
 
+function defaultComputeCurves(item) {
+    return []
+}
 
 function defaultGetTextSlots(item) {
     return [{
@@ -138,6 +141,7 @@ function enrichShape(shapeComponent, shapeName) {
         editorProps             : shapeConfig.editorProps || defaultEditorProps,
         args                    : shapeConfig.args,
         computePath             : shapeConfig.computePath,
+        computeCurves           : shapeConfig.computeCurves || defaultComputeCurves,
         computeOutline          : shapeConfig.computeOutline || shapeConfig.computePath,
         readjustItem            : shapeConfig.readjustItem,
         getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,

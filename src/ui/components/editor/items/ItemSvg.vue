@@ -16,12 +16,12 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <g v-if="!shapeComponent && item.visible && shapeType === 'standard' && itemSvgPath"
+        <g v-if="!shapeComponent && item.visible && shapeType === 'standard' && itemStandardCurves"
             :style="{'opacity': item.selfOpacity/100.0}">
 
             <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-            <path :d="itemSvgPath"
+            <path v-for="curve in itemStandardCurves" :d="curve.path"
                 :stroke-width="item.shapeProps.strokeSize + 'px'"
                 :stroke="item.shapeProps.strokeColor"
                 :stroke-dasharray="strokeDashArray"
@@ -103,7 +103,7 @@ export default {
             shapeType             : shape.shapeType,
             shapeComponent        : null,
             oldShape              : this.item.shape,
-            itemSvgPath           : null,
+            itemStandardCurves    : [],
             itemSvgOutlinePath    : null,
             shouldDrawEventLayer  : true,
             shouldRenderText      : true,
@@ -146,9 +146,13 @@ export default {
             if (shape.shapeType === 'standard') {
                 this.svgFill = AdvancedFill.computeStandardFill(this.item);
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = [{ path: shape.computePath(this.item) }];
+            } else if (shape.shapeType === 'standard-curves') {
+                this.svgFill = AdvancedFill.computeStandardFill(this.item);
+                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = shape.computeCurves(this.item);
             }
 
-            this.itemSvgPath = shape.computePath(this.item);
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
         },
 
@@ -158,7 +162,10 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape && shape.shapeType === 'standard') {
                 // re-computing item svg path for event layer
-                this.itemSvgPath = shape.computePath(this.item);
+                this.itemStandardCurves = [{path: shape.computePath(this.item)}];
+                this.itemSvgOutlinePath = shape.computeOutline(this.item);
+            } else if (shape && shape.shapeType === 'standard-curves') {
+                this.itemStandardCurves = shape.computeCurves(this.item);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
