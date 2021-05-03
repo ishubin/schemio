@@ -672,7 +672,7 @@ export default {
                     return;
                 }
 
-                const path = shape.computePath(item);
+                const path = shape.computeOutline(item);
                 if (!path) {
                     return;
                 }
@@ -1037,7 +1037,7 @@ export default {
             }
             try {
                 const shapeJson = convertShapeToStandardCurves(box.items[0]);
-                console.log('Exported shape', shapeJson);
+                utils.forceDownload(`${box.items[0].name}.shape.json`, 'application/json', JSON.stringify(shapeJson))
             } catch (e) {
                 console.error(e);
             }

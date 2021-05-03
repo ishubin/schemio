@@ -2,6 +2,7 @@ import Vue from 'vue';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
+import { convertStandardCurveShape } from './StandardCurves.js';
 
 const _shapes = [
     require('./Rect.js').default,
@@ -40,6 +41,7 @@ const _shapes = [
     require('./uml/UMLStorage.js').default,
     require('./uml/UMLProcess.js').default,
     require('./uml/UMLActor.vue').default,
+    require('./electronic/speaker.shape.js').default
 ];
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
@@ -167,6 +169,10 @@ const shapeRegistry = {};
 function registerShape(shape) {
     if (!shape.shapeConfig.id) {
         return;
+    }
+
+    if (shape.shapeConfig.shapeType === 'standard-curves') {
+        shape = convertStandardCurveShape(shape);
     }
 
     shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);

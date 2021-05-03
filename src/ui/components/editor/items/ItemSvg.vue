@@ -156,12 +156,10 @@ export default {
             const shape = Shape.make(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
-            } else {
+            } else if (shape && shape.shapeType === 'standard') {
                 // re-computing item svg path for event layer
-                if (shape) {
-                    this.itemSvgPath = shape.computePath(this.item);
-                    this.itemSvgOutlinePath = shape.computeOutline(this.item);
-                }
+                this.itemSvgPath = shape.computePath(this.item);
+                this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
             if (shape.shapeType === 'standard') {
