@@ -96,10 +96,15 @@ export function convertShapeToStandardCurves(rootItem) {
             }
         } else if (indexOf(item.tags, 'pin') >= 0) {
             const center = worldPointOnItem(item.area.w/2, item.area.h/2, item);
-            shapeConfig.pins.push({
+            const pin = {
                 x: myMath.roundPrecise2(100 * (center.x - p0.x) / w),
-                y: myMath.roundPrecise2(100 * (center.y - p0.y) / h)
-            });
+                y: myMath.roundPrecise2(100 * (center.y - p0.y) / h),
+            };
+            if (!indexOf(item.tags, 'pin-no-normal')) {
+                pin.nx = myMath.roundPrecise(Math.cos((item.area.r - 90) * Math.PI / 180), 4);
+                pin.ny = myMath.roundPrecise(Math.sin((item.area.r - 90) * Math.PI / 180), 4);
+            }
+            shapeConfig.pins.push(pin);
         } else if (item.shape === 'none' && indexOf(item.tags, 'text-slot') >= 0) {
             if (!textSlotNames.has(item.name)) {
                 textSlotNames.add(item.name);
