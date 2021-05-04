@@ -239,7 +239,6 @@ import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import apiClient from '../../apiClient';
 import StoreUtils from '../../store/StoreUtils';
-import {convertShapeToStandardCurves} from './items/shapes/ShapeExporter';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -1035,12 +1034,7 @@ export default {
             if (box.items.length === 0 || box.items.length > 1) {
                 return;
             }
-            try {
-                const shapeJson = convertShapeToStandardCurves(box.items[0]);
-                utils.forceDownload(`${box.items[0].name}.shape.json`, 'application/json', JSON.stringify(shapeJson))
-            } catch (e) {
-                console.error(e);
-            }
+            this.$emit('shape-export-requested', box.items[0]);
         },
 
         exportSelectedItemsAsSVG() {

@@ -89,6 +89,7 @@
                     @clicked-bring-to-back="bringSelectedItemsToBack()"
                     @clicked-copy-selected-items="copySelectedItems()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
+                    @shape-export-requested="openShapeExporterForItem"
                     ></svg-editor>
 
                 <svg-editor
@@ -245,6 +246,8 @@
             :scheme-container="schemeContainer"
         />
 
+        <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
+
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -296,6 +299,7 @@ import LimitedSettingsStorage from '../LimitedSettingsStorage';
 import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
 import ExportEmbeddedModal from '../components/editor/ExportEmbeddedModal.vue';
 import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
+import ShapeExporterModal from '../components/editor/ShapeExporterModal.vue';
 import ImportSchemeModal from '../components/editor/ImportSchemeModal.vue';
 import Modal from '../components/Modal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
@@ -354,7 +358,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
-        Modal,
+        Modal, ShapeExporterModal,
         'export-embedded-modal': ExportEmbeddedModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -462,6 +466,10 @@ export default {
             exportEmbeddedModalShown: false,
             exportHTMLModalShown: false,
             exportJSONModalShown: false,
+            exportShapeModal: {
+                shown: false,
+                item: null
+            },
             importSchemeFileShown: false,
             importSchemeModal: {
                 sheme: null,
@@ -833,6 +841,11 @@ export default {
                     }
                 }
             })
+        },
+
+        openShapeExporterForItem(item) {
+            this.exportShapeModal.item = item;
+            this.exportShapeModal.shown = true;
         },
 
         onBrowseClose() {

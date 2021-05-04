@@ -1,4 +1,5 @@
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
