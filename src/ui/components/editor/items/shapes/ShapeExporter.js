@@ -21,8 +21,11 @@ function traverseItems(rootItem, callback) {
  */
 function convertCurve(item, x0, y0, w, h) {
     const points = map(item.shapeProps.points, point => {
-        const x = myMath.roundPrecise2(100*(point.x - x0)/w);
-        const y = myMath.roundPrecise2(100*(point.y - y0)/h);
+
+        const worldPoint = worldPointOnItem(point.x, point.y, item);
+
+        const x = myMath.roundPrecise2(100*(worldPoint.x - x0)/w);
+        const y = myMath.roundPrecise2(100*(worldPoint.y - y0)/h);
         if (point.t === 'B') {
             return {
                 t: 'B',
@@ -82,6 +85,8 @@ export function convertShapeToStandardCurves(rootItem) {
     const textSlotNames = new Set();
     
     traverseItems(rootItem, item => {
+        const worldPoint = worldPointOnItem(0, 0, item);
+
         if (item.shape === 'curve') {
             // console.log(item.tags);
             if (item.tags && indexOf(item.tags, 'outline') >= 0) {
@@ -102,8 +107,8 @@ export function convertShapeToStandardCurves(rootItem) {
                 shapeConfig.textSlots.push({
                     name: item.name,
                     area: {
-                        x: myMath.roundPrecise2(100 * (item.area.x - p0.x) / w),
-                        y: myMath.roundPrecise2(100 * (item.area.y - p0.y) / h),
+                        x: myMath.roundPrecise2(100 * (worldPoint.x - p0.x) / w),
+                        y: myMath.roundPrecise2(100 * (worldPoint.y - p0.y) / h),
                         w: myMath.roundPrecise2(100 * item.area.w / w),
                         h: myMath.roundPrecise2(100 * item.area.h / h),
                     }

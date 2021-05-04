@@ -159,7 +159,7 @@ function enrichShape(shapeComponent, shapeName) {
             if (this.args && this.args[argName]) {
                 return this.args[argName].type;
             }
-            if (this.shapeType === 'standard') {
+            if (this.shapeType === 'standard' || this.shapeType === 'standard-curves') {
                 if (standardShapeProps[argName]) {
                     return standardShapeProps[argName].type;
                 }
@@ -209,7 +209,7 @@ function make(encodedShape) {
 }
 
 function getShapePropDescriptor(shape, propName) {
-    if (shape.shapeType === 'standard') {
+    if (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves') {
         if (standardShapeProps.hasOwnProperty(propName)) {
             return standardShapeProps[propName];
         }
