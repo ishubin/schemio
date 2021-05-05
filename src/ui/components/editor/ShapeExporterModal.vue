@@ -53,17 +53,18 @@ function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
 function buildSvgPreview(shapeDef) {
     const w = 42;
     const h = 32;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" enable-background="new 0 0 ${w} ${h}" xml:space="preserve" height="${w}px" width="${h}px">`;
-    svg += '<g transform="translate(2, 2)">';
+    const padding = 3;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" height="${w}px" width="${h}px">`;
+    svg += `<g transform="translate(${padding}, ${padding})">`;
 
     const fakeItem = {
-        area: {x: 0, y: 0, w: w, h: h},
+        area: {x: 0, y: 0, w: w-2*padding, h: h-2*padding},
         shapeProps: {}
     };
 
     forEach(shapeDef.shapeConfig.curves, curveDef => {
         const curve = convertCurveForRender(fakeItem, shapeDef.shapeConfig, curveDef);
-        svg += `<path d="${curve.path}" fill="white" stroke="#111111"/>`;
+        svg += `<path d="${curve.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
     });
 
     svg += '</g></svg>';
