@@ -54,7 +54,7 @@ function buildSvgPreview(shapeDef) {
     const w = 42;
     const h = 32;
     const padding = 3;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" height="${w}px" width="${h}px">`;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" width="${w}px" height="${h}px">`;
     svg += `<g transform="translate(${padding}, ${padding})">`;
 
     const fakeItem = {
