@@ -1,5 +1,7 @@
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
+import AdvancedFill from '../AdvancedFill.vue';
+import myMath from '../../../../myMath';
 
 function connectPoints(p1, p2) {
     if (p1.t === 'L' && p2.t === 'B') {
@@ -76,8 +78,24 @@ function createComputeOutlineFunc(shapeConfig) {
 
 export function convertCurveForRender(item, shapeConfig, curveDef) {
     const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, curveDef.points);
+    let fill = 'none';
+    if (curveDef.fillArg === 'fill') {
+        fill = AdvancedFill.computeStandardFill(item);
+    } else if (curveDef.fillArg === 'none') {
+        fill = 'none';
+    } else if (curveDef.fillArg) {
+        const otherFill = item.shapeProps[curveDef.fillArg];
+        // for now advanced-color is not supported
+        if (typeof otherFill === 'string') {
+            fill = otherFill;
+        }
+    }
+    
     return {
-        path: computeCurvePath(points, curveDef.closed)
+        path: computeCurvePath(points, curveDef.closed),
+        fill,
+        strokeColor: item.shapeProps.strokeColor,
+        strokeSize: myMath.roundPrecise2(item.shapeProps.strokeSize * curveDef.strokeSize)
     };
 }
 
@@ -123,6 +141,8 @@ function createGetPinsFunc(shapeConfig) {
 export function convertStandardCurveShape(shapeDef) {
     return {
         shapeConfig: {
+            id: shapeDef.shapeConfig.id,
+
             shapeType: 'standard-curves',
 
             menuItems: shapeDef.shapeConfig.menuItems,

@@ -22,11 +22,11 @@
             <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
             <path v-for="curve in itemStandardCurves" :d="curve.path"
-                :stroke-width="item.shapeProps.strokeSize + 'px'"
-                :stroke="item.shapeProps.strokeColor"
+                :stroke-width="curve.strokeSize + 'px'"
+                :stroke="curve.strokeColor"
                 :stroke-dasharray="strokeDashArray"
                 stroke-linejoin="round"
-                :fill="svgFill"></path>
+                :fill="curve.fill"></path>
         </g>
 
         <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
@@ -118,7 +118,6 @@ export default {
             hiddenTextSlotName    : null,
 
             strokeDashArray       : '',
-            svgFill               : null
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -144,11 +143,14 @@ export default {
             }
 
             if (shape.shapeType === 'standard') {
-                this.svgFill = AdvancedFill.computeStandardFill(this.item);
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = [{ path: shape.computePath(this.item) }];
+                this.itemStandardCurves = [{
+                    path: shape.computePath(this.item),
+                    fill: AdvancedFill.computeStandardFill(this.item),
+                    strokeColor: this.item.shapeProps.strokeColor,
+                    strokeSize: this.item.shapeProps.strokeSize
+                }];
             } else if (shape.shapeType === 'standard-curves') {
-                this.svgFill = AdvancedFill.computeStandardFill(this.item);
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                 this.itemStandardCurves = shape.computeCurves(this.item);
             }
@@ -162,16 +164,16 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape && shape.shapeType === 'standard') {
                 // re-computing item svg path for event layer
-                this.itemStandardCurves = [{path: shape.computePath(this.item)}];
+                this.itemStandardCurves = [{
+                    path: shape.computePath(this.item),
+                    fill: AdvancedFill.computeStandardFill(this.item),
+                    strokeColor: this.item.shapeProps.strokeColor,
+                    strokeSize: this.item.shapeProps.strokeSize
+                }];
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             } else if (shape && shape.shapeType === 'standard-curves') {
                 this.itemStandardCurves = shape.computeCurves(this.item);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
-            }
-
-            if (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves') {
-                this.svgFill = AdvancedFill.computeStandardFill(this.item);
-                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
             }
 
             this.revision += 1;

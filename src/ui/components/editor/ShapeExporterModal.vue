@@ -36,19 +36,10 @@
 
 <script>
 import Modal from '../Modal.vue';
-import find from 'lodash/find';
 import forEach from 'lodash/forEach';
-import {convertShapeToStandardCurves} from './items/shapes/ShapeExporter';
+import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
 import utils from '../../utils';
 import { convertCurveForRender } from './items/shapes/StandardCurves';
-
-function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
-    const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
-    if (tag) {
-        return tag.substr(keyPrefix.length);
-    }
-    return defaultValue;
-}
 
 function buildSvgPreview(shapeDef) {
     const w = 42;
@@ -93,8 +84,8 @@ export default {
         }
 
         return {
-            shapeId: getTagValueByPrefixKey(this.item.tags, 'shape-id-', `custom-${this.item.name.toLowerCase()}`),
-            shapeGroup: getTagValueByPrefixKey(this.item.tags, 'shape-group-', 'Ungrouped'),
+            shapeId: getTagValueByPrefixKey(this.item.tags, 'shape-id=', `custom-${this.item.name.toLowerCase()}`),
+            shapeGroup: getTagValueByPrefixKey(this.item.tags, 'shape-group=', 'Ungrouped'),
             shapeName: this.item.name,
             errorMessage,
             primaryButton,

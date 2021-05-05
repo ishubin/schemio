@@ -1,9 +1,18 @@
 import forEach from 'lodash/forEach';
-import find from 'lodash/find';
 import map from 'lodash/map';
+import find from 'lodash/find';
 import indexOf from 'lodash/indexOf';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
+
+export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
+    const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
+    if (tag) {
+        return tag.substr(keyPrefix.length);
+    }
+    return defaultValue;
+}
+
 
 function traverseItems(rootItem, callback) {
     callback(rootItem);
@@ -40,11 +49,25 @@ function convertCurve(item, x0, y0, w, h) {
             return { t: 'L', x, y };
         }
     });
+    
+    let fillArg = 'fill';
+    if (item.shapeProps.fill.type === 'none') {
+        fillArg = 'none';
+    }
+
+    if (indexOf(item.tags, 'fill-with-stroke') >= 0) {
+        fillArg = 'strokeColor';
+    } else {
+        fillArg = getTagValueByPrefixKey(item.tags, 'fill-arg=', fillArg);
+    }
+
 
     return {
         points,
-        closed: item.shapeProps.closed
-    }
+        closed: item.shapeProps.closed,
+        fillArg, // can be 'none', 'fill', 'strokeColor' or any other args name that is of type 'advanced-color' or 'color'
+        strokeSize: item.shapeProps.strokeSize, // this will be used as a multiplier for the user defined strokeSize argument. If set to 0 - that means there is no stroke
+    };
 }
 
 /**
@@ -67,9 +90,8 @@ export function convertShapeToStandardCurves(rootItem) {
         outlineCurve: {
             points: [],
             closed: true,
-            useFill: false,
-            useStroke: false,
-            strokeFill: false // specifies whether curve should be filled with stroke color
+            fillArg: 'none',
+            strokeSize: 1
         },
     };
 
@@ -89,7 +111,6 @@ export function convertShapeToStandardCurves(rootItem) {
         const worldPoint = worldPointOnItem(0, 0, item);
 
         if (item.shape === 'curve') {
-            // console.log(item.tags);
             if (item.tags && indexOf(item.tags, 'outline') >= 0) {
                 shapeConfig.outlineCurve = convertCurve(item, p0.x, p0.y, w, h);
             } else {
