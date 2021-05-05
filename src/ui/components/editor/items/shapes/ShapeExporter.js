@@ -101,7 +101,7 @@ export function convertShapeToStandardCurves(rootItem) {
                 x: myMath.roundPrecise2(100 * (center.x - p0.x) / w),
                 y: myMath.roundPrecise2(100 * (center.y - p0.y) / h),
             };
-            if (!indexOf(item.tags, 'pin-no-normal')) {
+            if (indexOf(item.tags, 'pin-no-normal') < 0) {
                 pin.nx = myMath.roundPrecise(Math.cos((item.area.r - 90) * Math.PI / 180), 4);
                 pin.ny = myMath.roundPrecise(Math.sin((item.area.r - 90) * Math.PI / 180), 4);
             }
