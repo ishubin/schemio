@@ -319,11 +319,14 @@ class SchemeContainer {
         if (pinIndex >= 0 && pinIndex < pins.length) {
             const pinPoint = pins[pinIndex]
             const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
-            // preserving pin point normals
-            // they are always relative so we don't need to recalculate them
+
+            // we need to recalculate pins as the item might be rotated
             if (pinPoint.nx || pinPoint.ny) {
-                worldPinPoint.nx = pinPoint.nx;
-                worldPinPoint.ny = pinPoint.ny;
+                const p0 = this.worldPointOnItem(0, 0, item);
+                const p1 = this.worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
+
+                worldPinPoint.nx = p1.x - p0.x;
+                worldPinPoint.ny = p1.y - p0.y;
             }
             return worldPinPoint;
         }
