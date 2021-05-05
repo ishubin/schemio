@@ -2819,3 +2819,16 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
 .title-with-edit .edit-button:hover {
     background-color: var(--accent-weak-up);
 }
+
+
+/******************** Shape Exporter Modal ********************/
+.shape-exporter-modal-body .shape-exporter-preview-container {
+    display: flex;
+    justify-content: space-evenly;
+}
+.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon {
+    text-align: center;
+}
+.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon h5 {
+    text-align: center;
+}

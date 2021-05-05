@@ -74,7 +74,7 @@ function createComputeOutlineFunc(shapeConfig) {
     };
 }
 
-function convertCurveForRender(item, shapeConfig, curveDef) {
+export function convertCurveForRender(item, shapeConfig, curveDef) {
     const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, curveDef.points);
     return {
         path: computeCurvePath(points, curveDef.closed)

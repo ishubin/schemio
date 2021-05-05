@@ -1,15 +1,35 @@
 <template>
     <modal title="Shape Exporter" :primary-button="primaryButton" @primary-submit="exportShape" @close="$emit('close')">
-        <div v-if="errorMessage" class="msg msg-error">
-            {{errorMessage}}
-        </div>
-        <div v-else>
-            <h4>Shape ID</h4>
-            <input class="textfield" type="text" v-model="shapeId"/>
-            <h4>Shape Name</h4>
-            <input class="textfield" type="text" v-model="shapeName"/>
-            <h4>Shape Group</h4>
-            <input class="textfield" type="text" v-model="shapeGroup"/>
+        <div class="shape-exporter-modal-body">
+            <div v-if="errorMessage" class="msg msg-error">
+                {{errorMessage}}
+            </div>
+            <div v-else>
+                <h4>Shape ID</h4>
+                <input class="textfield" type="text" v-model="shapeId"/>
+                <h4>Shape Name</h4>
+                <input class="textfield" type="text" v-model="shapeName"/>
+                <h4>Shape Group</h4>
+                <input class="textfield" type="text" v-model="shapeGroup"/>
+
+                <div v-if="svgPreview">
+                    <h4>Shape Icon Preview</h4>
+                    <div class="shape-exporter-preview-container">
+                        <div class="shape-exporter-preview-icon">
+                            <h5>1x</h5>
+                            <img width="42px" height="32px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
+                        </div>
+                        <div class="shape-exporter-preview-icon">
+                            <h5>2x</h5>
+                            <img width="84px" height="64px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
+                        </div>
+                        <div class="shape-exporter-preview-icon">
+                            <h5>3x</h5>
+                            <img width="126px" height="96px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </modal>
 </template>
@@ -17,8 +37,10 @@
 <script>
 import Modal from '../Modal.vue';
 import find from 'lodash/find';
+import forEach from 'lodash/forEach';
 import {convertShapeToStandardCurves} from './items/shapes/ShapeExporter';
 import utils from '../../utils';
+import { convertCurveForRender } from './items/shapes/StandardCurves';
 
 function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
     const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
@@ -26,6 +48,26 @@ function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
         return tag.substr(keyPrefix.length);
     }
     return defaultValue;
+}
+
+function buildSvgPreview(shapeDef) {
+    const w = 42;
+    const h = 32;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" enable-background="new 0 0 ${w} ${h}" xml:space="preserve" height="${w}px" width="${h}px">`;
+    svg += '<g transform="translate(2, 2)">';
+
+    const fakeItem = {
+        area: {x: 0, y: 0, w: w, h: h},
+        shapeProps: {}
+    };
+
+    forEach(shapeDef.shapeConfig.curves, curveDef => {
+        const curve = convertCurveForRender(fakeItem, shapeDef.shapeConfig, curveDef);
+        svg += `<path d="${curve.path}" fill="white" stroke="#111111"/>`;
+    });
+
+    svg += '</g></svg>';
+    return svg;
 }
 
 export default {
@@ -37,10 +79,15 @@ export default {
         let errorMessage = null;
         let primaryButton = null;
         let convertedShape = null;
+        let svgPreview = null;
+        let svgPreviewBase64 = '';
         try {
             convertedShape = convertShapeToStandardCurves(this.item);
+            svgPreview = buildSvgPreview(convertedShape);
+            svgPreviewBase64 = btoa(svgPreview);
             primaryButton = 'Export';
         } catch(e) {
+            console.error(e);
             errorMessage = 'Failed to generate shape: ' + e.message;
         }
 
@@ -50,7 +97,9 @@ export default {
             shapeName: this.item.name,
             errorMessage,
             primaryButton,
-            convertedShape
+            convertedShape,
+            svgPreview,
+            svgPreviewBase64
         };
     },
 
@@ -64,7 +113,7 @@ export default {
             shapeDef.shapeConfig.menuItems = [{
                 group: this.shapeGroup,
                 name: this.shapeName,
-                iconUrl: '/assets/images/items/uml-object.svg'
+                iconUrl: `data:image/svg+xml;base64,${this.svgPreviewBase64}`
             }];
 
             shapeDef.shapeConfig.id = this.shapeId;
