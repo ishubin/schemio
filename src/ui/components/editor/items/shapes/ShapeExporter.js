@@ -71,7 +71,7 @@ function convertCurve(item, x0, y0, w, h) {
 }
 
 /**
- * Exports specified item to a "standard-curves" shape
+ * Exports specified item to a "raw" shape
  * This is used when shapes are designed in Schemio itself.
  * They are then exported as json.
  * @param {Item} rootItem 
@@ -82,7 +82,7 @@ export function convertShapeToStandardCurves(rootItem) {
     }
     
     const shapeConfig = {
-        shapeType: 'standard-curves',
+        shapeType: 'raw',
         scale: 100, // specifies the scale of the points so that they are correctly converted
         pins: [],
         textSlots: [],

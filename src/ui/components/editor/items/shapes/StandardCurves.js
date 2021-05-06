@@ -149,7 +149,7 @@ export function convertStandardCurveShape(shapeDef) {
 
             computeOutline: createComputeOutlineFunc(shapeDef.shapeConfig),
 
-            // standard-curves do not use computePath function but instead they rely on generateCurves function
+            // raw do not use computePath function but instead they rely on computeCurves function
             // since each curve might have its own fill and stroke
             computeCurves: createComputeCurvesFunc(shapeDef.shapeConfig),
 

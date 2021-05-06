@@ -155,7 +155,7 @@ function enrichShape(shapeComponent, shapeName) {
             if (this.args && this.args[argName]) {
                 return this.args[argName].type;
             }
-            if (this.shapeType === 'standard' || this.shapeType === 'standard-curves') {
+            if (this.shapeType === 'standard') {
                 if (standardShapeProps[argName]) {
                     return standardShapeProps[argName].type;
                 }
@@ -171,7 +171,7 @@ function registerShape(shape) {
         return;
     }
 
-    if (shape.shapeConfig.shapeType === 'standard-curves') {
+    if (shape.shapeConfig.shapeType === 'raw') {
         shape = convertStandardCurveShape(shape);
     }
 
@@ -205,7 +205,7 @@ function make(encodedShape) {
 }
 
 function getShapePropDescriptor(shape, propName) {
-    if (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves') {
+    if (shape.shapeType === 'standard') {
         if (standardShapeProps.hasOwnProperty(propName)) {
             return standardShapeProps[propName];
         }
