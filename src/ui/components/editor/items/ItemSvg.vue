@@ -16,7 +16,7 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <g v-if="!shapeComponent && item.visible && (shapeType === 'standard' || shapeType === 'standard-curves') && itemStandardCurves"
+        <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
             :style="{'opacity': item.selfOpacity/100.0}">
 
             <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
@@ -154,7 +154,7 @@ export default {
                 this.shapeComponent = null;
             }
 
-            if (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves') {
+            if (shape.shapeType === 'standard') {
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                 this.itemStandardCurves = computeStandardCurves(this.item, shape);
             }
@@ -166,7 +166,7 @@ export default {
             const shape = Shape.find(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
-            } else if (shape && (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves')) {
+            } else if (shape && (shape.shapeType === 'standard')) {
                 // re-computing item svg path for event layer
                 this.itemStandardCurves = computeStandardCurves(this.item, shape);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);

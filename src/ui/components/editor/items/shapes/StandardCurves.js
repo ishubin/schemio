@@ -143,7 +143,7 @@ export function convertStandardCurveShape(shapeDef) {
         shapeConfig: {
             id: shapeDef.shapeConfig.id,
 
-            shapeType: 'standard-curves',
+            shapeType: 'standard',
 
             menuItems: shapeDef.shapeConfig.menuItems,
 
