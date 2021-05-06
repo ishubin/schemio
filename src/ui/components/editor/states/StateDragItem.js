@@ -562,7 +562,7 @@ export default class StateDragItem extends State {
 
     findItemTextSlotByPoint(item, x, y) {
         const localPoint = this.schemeContainer.localPointOnItem(x, y, item);
-        const shape = Shape.make(item.shape);
+        const shape = Shape.find(item.shape);
         const textSlots = shape.getTextSlots(item);
         let selectedTextSlot = null;
         for (let i = 0; i < textSlots.length && !selectedTextSlot; i++) {

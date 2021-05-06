@@ -257,12 +257,12 @@ export default {
 
     mounted() {
         this.oldShape = this.item.shape;
-        this.shapeComponent = Shape.make(this.item.shape);
+        this.shapeComponent = Shape.find(this.item.shape);
         this.updateShapePropsDependencies();
     },
 
     data() {
-        const shapeComponent = Shape.make(this.item.shape);
+        const shapeComponent = Shape.find(this.item.shape);
         const knownShapes = Shape.getShapeIds();
         knownShapes.sort();
         return {

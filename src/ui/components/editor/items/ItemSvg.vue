@@ -77,6 +77,18 @@ import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 
+function computeStandardCurves(item, shape) {
+    if (shape.computeCurves) {
+        return shape.computeCurves(item);
+    } else if (shape.computePath) {
+        return [{
+            path: shape.computePath(item),
+            fill: AdvancedFill.computeStandardFill(item),
+            strokeColor: item.shapeProps.strokeColor,
+            strokeSize: item.shapeProps.strokeSize
+        }];
+    }
+}
 
 export default {
     name: 'item-svg',
@@ -130,7 +142,7 @@ export default {
     methods: {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
-            const shape = Shape.make(shapeId);
+            const shape = Shape.find(shapeId);
             this.shapeType = shape.shapeType;
 
             if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
@@ -142,42 +154,25 @@ export default {
                 this.shapeComponent = null;
             }
 
-            if (shape.shapeType === 'standard') {
+            if (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves') {
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = [{
-                    path: shape.computePath(this.item),
-                    fill: AdvancedFill.computeStandardFill(this.item),
-                    strokeColor: this.item.shapeProps.strokeColor,
-                    strokeSize: this.item.shapeProps.strokeSize
-                }];
-            } else if (shape.shapeType === 'standard-curves') {
-                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = shape.computeCurves(this.item);
+                this.itemStandardCurves = computeStandardCurves(this.item, shape);
             }
 
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
         },
 
         onItemChanged() {
-            const shape = Shape.make(this.item.shape);
+            const shape = Shape.find(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
-            } else if (shape && shape.shapeType === 'standard') {
+            } else if (shape && (shape.shapeType === 'standard' || shape.shapeType === 'standard-curves')) {
                 // re-computing item svg path for event layer
-                this.itemStandardCurves = [{
-                    path: shape.computePath(this.item),
-                    fill: AdvancedFill.computeStandardFill(this.item),
-                    strokeColor: this.item.shapeProps.strokeColor,
-                    strokeSize: this.item.shapeProps.strokeSize
-                }];
-                this.itemSvgOutlinePath = shape.computeOutline(this.item);
-            } else if (shape && shape.shapeType === 'standard-curves') {
-                this.itemStandardCurves = shape.computeCurves(this.item);
+                this.itemStandardCurves = computeStandardCurves(this.item, shape);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
             this.revision += 1;
-
 
             if (!shape.editorProps || !shape.editorProps.customTextRendering) {
                 this.textSlots = this.generateTextSlots();
