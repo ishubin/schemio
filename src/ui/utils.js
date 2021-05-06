@@ -170,6 +170,23 @@ function domHasParentNode(domElement, callbackCheck) {
 }
 
 
+function forceDownload(fileName, contentType, content) {
+    const dataUrl = `data:${contentType};base64,${btoa(content)}`;
+
+    const link = document.createElement('a');
+    document.body.appendChild(link);
+
+    try {
+        link.href = dataUrl;
+        link.download = fileName;
+        link.click();
+    } catch(e) {
+        console.error(e);
+    }
+    setTimeout(() => document.body.removeChild(link), 100);
+}
+
+
 export default {
     formatDateAndTime,
     clone,
@@ -180,5 +197,6 @@ export default {
     rotateVector,
     rotatePointAroundCenter,
     enumerateConstants,
-    domHasParentNode
+    domHasParentNode,
+    forceDownload
 };

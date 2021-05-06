@@ -424,7 +424,7 @@ export default class StateDragItem extends State {
             StoreUtils.setItemControlPoints(this.store, this.sourceItem);
 
             if (this.sourceItem.shape === 'connector') {
-                StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.sourceItem.shape).computePath(this.sourceItem));
+                StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.sourceItem.shape).computeOutline(this.sourceItem));
             }
         }
         this.reset();
@@ -503,7 +503,7 @@ export default class StateDragItem extends State {
             return;
         }
         const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        const path = shape.computePath(item);
+        const path = shape.computeOutline(item);
         if (!path) {
             return;
         }
@@ -525,7 +525,7 @@ export default class StateDragItem extends State {
             this.eventBus.emitItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             StoreUtils.setItemControlPoints(this.store, item);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
             this.eventBus.emitSchemeChangeCommited();
         }
     }
@@ -548,7 +548,7 @@ export default class StateDragItem extends State {
         this.eventBus.emitItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
         StoreUtils.setItemControlPoints(this.store, item);
-        StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
+        StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -562,7 +562,7 @@ export default class StateDragItem extends State {
 
     findItemTextSlotByPoint(item, x, y) {
         const localPoint = this.schemeContainer.localPointOnItem(x, y, item);
-        const shape = Shape.make(item.shape);
+        const shape = Shape.find(item.shape);
         const textSlots = shape.getTextSlots(item);
         let selectedTextSlot = null;
         for (let i = 0; i < textSlots.length && !selectedTextSlot; i++) {
@@ -764,7 +764,7 @@ export default class StateDragItem extends State {
 
             // since this function can only be called if the connector is selected
             // we should update connector path so that it can be rendered in multi item edit box
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computePath(item));
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
         }
     }
 
@@ -843,7 +843,7 @@ export default class StateDragItem extends State {
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
-        StoreUtils.setSelectedConnectorPath(this.store, shape.computePath(this.sourceItem));
+        StoreUtils.setSelectedConnectorPath(this.store, shape.computeOutline(this.sourceItem));
     }
 
     initMulitSelectBox(x, y, mx, my) {

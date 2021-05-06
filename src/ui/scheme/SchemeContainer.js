@@ -43,6 +43,15 @@ P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
 
+export function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
+export function localPointOnItem(x, y, item) {
+    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+}
+
+
 function visitItems(items, callback, transform, parentItem, ancestorIds) {
     if (!items) {
         return;
@@ -310,11 +319,14 @@ class SchemeContainer {
         if (pinIndex >= 0 && pinIndex < pins.length) {
             const pinPoint = pins[pinIndex]
             const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
-            // preserving pin point normals
-            // they are always relative so we don't need to recalculate them
+
+            // we need to recalculate pins as the item might be rotated
             if (pinPoint.nx || pinPoint.ny) {
-                worldPinPoint.nx = pinPoint.nx;
-                worldPinPoint.ny = pinPoint.ny;
+                const p0 = this.worldPointOnItem(0, 0, item);
+                const p1 = this.worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
+
+                worldPinPoint.nx = p1.x - p0.x;
+                worldPinPoint.ny = p1.y - p0.y;
             }
             return worldPinPoint;
         }
@@ -494,7 +506,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     worldPointOnItem(x, y, item) {
-        return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+        return worldPointOnItem(x, y, item);
     }
 
     /**
@@ -505,7 +517,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     localPointOnItem(x, y, item) {
-        return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+        return localPointOnItem(x, y, item);
     }
 
     /**

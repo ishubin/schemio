@@ -28,46 +28,13 @@ import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
+import { computeCurvePath } from './StandardCurves';
 
 const log = new Logger('Curve');
 
 
-function connectPoints(p1, p2) {
-    if (p1.t === 'L' && p2.t === 'B') {
-        return `Q ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
-    } else if (p1.t === 'B' && p2.t === 'L') {
-        return `Q ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x} ${p2.y} `;
-    } else if (p1.t === 'B' && p2.t === 'B') {
-        return `C ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
-    }
-    return `L ${p2.x} ${p2.y} `;
-}
-
 function computePath(item) {
-    if (item.shapeProps.points.length < 2) {
-        return null;
-    }
-    let path = 'M 0 0';
-
-    let prevPoint = null;
-
-    forEach(item.shapeProps.points, point => {
-        if (!prevPoint) {
-            path = `M ${point.x} ${point.y} `;
-        } else if (!point.break) {
-            path += connectPoints(prevPoint, point);
-        } else {
-            path += `M ${point.x} ${point.y} `;
-        }
-        prevPoint = point;
-    });
-
-    if (item.shapeProps.closed && item.shapeProps.points.length) {
-        path += connectPoints(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[0]);
-        path += ' Z';
-    }
-
-    return path;
+    return computeCurvePath(item.shapeProps.points, item.shapeProps.closed);
 };
 
 

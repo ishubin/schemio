@@ -16,17 +16,17 @@
             @custom-event="onShapeCustomEvent">
         </component>
 
-        <g v-if="!shapeComponent && item.visible && shapeType === 'standard' && itemSvgPath"
+        <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
             :style="{'opacity': item.selfOpacity/100.0}">
 
             <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-            <path :d="itemSvgPath"
-                :stroke-width="item.shapeProps.strokeSize + 'px'"
-                :stroke="item.shapeProps.strokeColor"
+            <path v-for="curve in itemStandardCurves" :d="curve.path"
+                :stroke-width="curve.strokeSize + 'px'"
+                :stroke="curve.strokeColor"
                 :stroke-dasharray="strokeDashArray"
                 stroke-linejoin="round"
-                :fill="svgFill"></path>
+                :fill="curve.fill"></path>
         </g>
 
         <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
@@ -77,6 +77,18 @@ import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 
+function computeStandardCurves(item, shape) {
+    if (shape.computeCurves) {
+        return shape.computeCurves(item);
+    } else if (shape.computePath) {
+        return [{
+            path: shape.computePath(item),
+            fill: AdvancedFill.computeStandardFill(item),
+            strokeColor: item.shapeProps.strokeColor,
+            strokeSize: item.shapeProps.strokeSize
+        }];
+    }
+}
 
 export default {
     name: 'item-svg',
@@ -103,7 +115,7 @@ export default {
             shapeType             : shape.shapeType,
             shapeComponent        : null,
             oldShape              : this.item.shape,
-            itemSvgPath           : null,
+            itemStandardCurves    : [],
             itemSvgOutlinePath    : null,
             shouldDrawEventLayer  : true,
             shouldRenderText      : true,
@@ -118,7 +130,6 @@ export default {
             hiddenTextSlotName    : null,
 
             strokeDashArray       : '',
-            svgFill               : null
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -131,7 +142,7 @@ export default {
     methods: {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
-            const shape = Shape.make(shapeId);
+            const shape = Shape.find(shapeId);
             this.shapeType = shape.shapeType;
 
             if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
@@ -144,33 +155,24 @@ export default {
             }
 
             if (shape.shapeType === 'standard') {
-                this.svgFill = AdvancedFill.computeStandardFill(this.item);
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = computeStandardCurves(this.item, shape);
             }
 
-            this.itemSvgPath = shape.computePath(this.item);
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
         },
 
         onItemChanged() {
-            const shape = Shape.make(this.item.shape);
+            const shape = Shape.find(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
-            } else {
+            } else if (shape && (shape.shapeType === 'standard')) {
                 // re-computing item svg path for event layer
-                if (shape) {
-                    this.itemSvgPath = shape.computePath(this.item);
-                    this.itemSvgOutlinePath = shape.computeOutline(this.item);
-                }
-            }
-
-            if (shape.shapeType === 'standard') {
-                this.svgFill = AdvancedFill.computeStandardFill(this.item);
-                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = computeStandardCurves(this.item, shape);
+                this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
             this.revision += 1;
-
 
             if (!shape.editorProps || !shape.editorProps.customTextRendering) {
                 this.textSlots = this.generateTextSlots();

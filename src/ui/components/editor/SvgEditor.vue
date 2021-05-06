@@ -671,7 +671,7 @@ export default {
                     return;
                 }
 
-                const path = shape.computePath(item);
+                const path = shape.computeOutline(item);
                 if (!path) {
                     return;
                 }
@@ -990,6 +990,9 @@ export default {
             }, {
                 name: 'Export as SVG...',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
+            }, {
+                name: 'Export as a shape...',
+                clicked: () => { this.exportAsShape(); }
             }]);
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
@@ -1021,6 +1024,17 @@ export default {
 
         onExportSVGRequested() {
             this.openExportSVGModal(this.schemeContainer, this.schemeContainer.scheme.items);
+        },
+
+        exportAsShape() {
+            if (!this.schemeContainer.multiItemEditBox) {
+                return;
+            }
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box.items.length === 0 || box.items.length > 1) {
+                return;
+            }
+            this.$emit('shape-export-requested', box.items[0]);
         },
 
         exportSelectedItemsAsSVG() {

@@ -43,6 +43,10 @@ export default {
         return this.roundPrecise(value, 1);
     },
 
+    roundPrecise2(value) {
+        return this.roundPrecise(value, 2);
+    },
+
     clamp(value, min, max) {
         if (value < min) {
             return min;
