@@ -1442,7 +1442,7 @@ class SchemeContainer {
                 }
 
                 if (item.shape === 'curve') {
-                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
+                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
                 }
 
                 // changing item revision so that its shape will be recomputed
@@ -1455,7 +1455,7 @@ class SchemeContainer {
         forEach(itemsForReindex, item => this.updateChildTransforms(item));
     }
 
-    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox) {
+    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {
         const originalArea = multiItemEditBox.itemData[item.id].originalArea;
         const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
 
@@ -1465,19 +1465,19 @@ class SchemeContainer {
 
         forEach(originalCurvePoints, (point, index) => {
             if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
+                item.shapeProps.points[index].x = myMath.roundPrecise(point.x * item.area.w / originalArea.w, precision);
             }
             if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
+                item.shapeProps.points[index].y = myMath.roundPrecise(point.y * item.area.h / originalArea.h, precision);
             }
             if (point.t === 'B') {
                 if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
-                    item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
+                    item.shapeProps.points[index].x1 = myMath.roundPrecise(point.x1 * item.area.w / originalArea.w, precision);
+                    item.shapeProps.points[index].x2 = myMath.roundPrecise(point.x2 * item.area.w / originalArea.w, precision);
                 }
                 if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
-                    item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
+                    item.shapeProps.points[index].y1 = myMath.roundPrecise(point.y1 * item.area.h / originalArea.h, precision);
+                    item.shapeProps.points[index].y2 = myMath.roundPrecise(point.y2 * item.area.h / originalArea.h, precision);
                 }
             }
         });
