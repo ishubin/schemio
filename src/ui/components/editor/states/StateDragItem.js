@@ -590,7 +590,7 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
         this.reindexNeeded = true;
     }
 
@@ -609,7 +609,7 @@ export default class StateDragItem extends State {
             moved: false,
             rotated: true,
             resized: false
-        });
+        }, this.getUpdatePrecision());
         this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -707,7 +707,8 @@ export default class StateDragItem extends State {
             rotated: false,
             resized: true,
             id: this.modificationContextId
-        });
+        }, this.getUpdatePrecision());
+
         if (this.multiItemEditBox.items.length === 1) {
             // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points
             // But setting it from scratch is safer
@@ -861,7 +862,7 @@ export default class StateDragItem extends State {
             if (box && (box.items.length > 1 || !box.items[0].locked)) {
                 box.area.x += dx;
                 box.area.y += dy;
-                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
                 this.schemeContainer.updateMultiItemEditBox();
             }
         }

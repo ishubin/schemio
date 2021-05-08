@@ -1272,7 +1272,7 @@ class SchemeContainer {
 
     /**
      * 
-     * @param {*} items array of items that should be copied and pastes
+     * @param {*} items array of items that should be copied and pasted
      * @param {*} centerX x in relative transform for which items should put pasted to
      * @param {*} centerY y in relative transform for which items should put pasted to 
      */
@@ -1327,7 +1327,7 @@ class SchemeContainer {
 
         this.reindexItems();
 
-        // doing the selectiong afterwards so that item has all meta transform calculated after re-indexing
+        // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
         forEach(itemsToBeSelected, item => this.selectItem(item, true));
 
@@ -1369,7 +1369,10 @@ class SchemeContainer {
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context 
      */
-    updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context) {
+    updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
+        if (precision === undefined) {
+            precision = 10;
+        }
         if (!context) {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;
         }
@@ -1416,22 +1419,28 @@ class SchemeContainer {
                 const bottomLeftY = multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
 
                 const relativePosition = this.relativePointForItem(nx, ny, item);
-                item.area.x = relativePosition.x;
-                item.area.y = relativePosition.y;
+                item.area.x = myMath.roundPrecise(relativePosition.x, precision);
+                item.area.y = myMath.roundPrecise(relativePosition.y, precision);
 
-                const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
-                if (widthSquare > 0) {
-                    item.area.w = Math.sqrt(widthSquare);
-                } else {
-                    item.area.w = multiItemEditBox.area.w;
+
+                // recalculated width and height only in case multi item edit box was resized
+                // otherwise it doesn't make sense
+                if (context.resized) {
+                    const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
+                    if (widthSquare > 0) {
+                        item.area.w = myMath.roundPrecise(Math.sqrt(widthSquare), precision);
+                    } else {
+                        item.area.w = myMath.roundPrecise(multiItemEditBox.area.w, precision);
+                    }
+
+                    const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
+                    if (heightSquare > 0) {
+                        item.area.h = myMath.roundPrecise(Math.sqrt(heightSquare), precision);
+                    } else {
+                        item.area.h = myMath.roundPrecise(multiItemEditBox.area.h, precision);
+                    }
                 }
 
-                const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
-                if (heightSquare > 0) {
-                    item.area.h = Math.sqrt(heightSquare);
-                } else {
-                    item.area.h = multiItemEditBox.area.h;
-                }
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
                 }
