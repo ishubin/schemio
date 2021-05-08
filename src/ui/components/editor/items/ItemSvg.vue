@@ -6,9 +6,22 @@
     <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
         :data-svg-item-container-id="item.id" >
+
+        <g v-if="shouldBeDrawn && shapeComponent && item.visible" v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+            <component
+                :key="`item-component-${item.id}-${item.shape}-repeater-${repeater.id}-${revision}`"
+                v-if="shouldBeDrawn"
+                :is="shapeComponent"
+                :item="item"
+                :mode="mode"
+                :style="{'opacity': item.selfOpacity/100.0}"
+                @custom-event="onShapeCustomEvent">
+            </component>
+        </g>
+
         <component
             :key="`item-component-${item.id}-${item.shape}-${revision}`"
-            v-if="shouldBeDrawn"
+            v-if="shouldBeDrawn && shapeComponent && item.visible"
             :is="shapeComponent"
             :item="item"
             :mode="mode"
@@ -20,6 +33,15 @@
             :style="{'opacity': item.selfOpacity/100.0}">
 
             <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
+            <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+                <path v-for="curve in itemStandardCurves" :d="curve.path"
+                    :stroke-width="curve.strokeSize + 'px'"
+                    :stroke="curve.strokeColor"
+                    :stroke-dasharray="strokeDashArray"
+                    stroke-linejoin="round"
+                    :fill="curve.fill"></path>
+            </g>
 
             <path v-for="curve in itemStandardCurves" :d="curve.path"
                 :stroke-width="curve.strokeSize + 'px'"
@@ -43,6 +65,18 @@
 
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
+        <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+            <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
+                class="svg-event-layer"
+                data-preview-ignore="true"
+                :id="`item-svg-path-${item.id}-repeater-${repeater.id}`"
+                :d="itemSvgOutlinePath" 
+                :data-item-id="item.id"
+                :stroke-width="hoverPathStrokeWidth"
+                :style="{'cursor': item.cursor}"
+                stroke="rgba(255, 255, 255, 0)"
+                fill="rgba(255, 255, 255, 0)" />
+        </g>
         <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
             class="svg-event-layer"
             data-preview-ignore="true"
@@ -130,6 +164,8 @@ export default {
             hiddenTextSlotName    : null,
 
             strokeDashArray       : '',
+
+            repeatedLayers: []
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -160,6 +196,7 @@ export default {
             }
 
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
+            this.repeatedLayers = this.calculateRepeatedLayers();
         },
 
         onItemChanged() {
@@ -171,6 +208,8 @@ export default {
                 this.itemStandardCurves = computeStandardCurves(this.item, shape);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
+
+            this.repeatedLayers = this.calculateRepeatedLayers();
 
             this.revision += 1;
 
@@ -218,6 +257,21 @@ export default {
             if (item.id === this.item.id && this.hiddenTextSlotName === slotName) {
                 this.hiddenTextSlotName = null;
             }
+        },
+
+        calculateRepeatedLayers() {
+            if (this.item.repeat > 0) {
+                const repeaters = [];
+                for(let i = this.item.repeat; i > 0; i--) {
+                    repeaters.push({
+                        id: i,
+                        x: this.item.repeatOffsetX * i,
+                        y: this.item.repeatOffsetY * i,
+                    });
+                }
+                return repeaters;
+            }
+            return [];
         }
     },
 
@@ -253,7 +307,7 @@ export default {
                 return false;
             }
             return true;
-        }
+        },
     }
 }
 </script>

@@ -7,6 +7,7 @@ import Shape from '../items/shapes/Shape';
 import forEach from 'lodash/forEach';
 import EventBus from '../EventBus.js';
 import StoreUtils from '../../../store/StoreUtils';
+import myMath from '../../../myMath.js';
 
 export default class StateCreateItem extends State {
     constructor(eventBus, store) {
@@ -127,19 +128,19 @@ export default class StateCreateItem extends State {
 
     updateItemArea(x, y) {
         if (x > this.originalPoint.x) {
-            this.item.area.w = x - this.originalPoint.x;
-            this.item.area.x = this.originalPoint.x;
+            this.item.area.w = this.round(x - this.originalPoint.x);
+            this.item.area.x = this.round(this.originalPoint.x);
         } else {
-            this.item.area.w = this.originalPoint.x - x;
-            this.item.area.x = x;
+            this.item.area.w = this.round(this.originalPoint.x - x);
+            this.item.area.x = this.round(x);
         }
 
         if (y > this.originalPoint.y) {
-            this.item.area.h = y - this.originalPoint.y;
-            this.item.area.y = this.originalPoint.y;
+            this.item.area.h = this.round(y - this.originalPoint.y);
+            this.item.area.y = this.round(this.originalPoint.y);
         } else {
-            this.item.area.h = this.originalPoint.y - y;
-            this.item.area.y = y;
+            this.item.area.h = this.round(this.originalPoint.y - y);
+            this.item.area.y = this.round(y);
         }
         EventBus.emitItemChanged(this.item.id);
     }

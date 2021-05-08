@@ -1,3 +1,4 @@
+import myMath from '../../../../myMath';
 import {getStandardRectPins} from './ShapeDefaults'
 
 function makeCornerRadiusControlPoint(item) {
@@ -58,7 +59,7 @@ export default {
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'cornerRadius') {
-                    item.shapeProps.cornerRadius = Math.max(0, item.area.w - Math.max(item.area.w/2, originalX + dx));
+                    item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
                 }
             }
         },

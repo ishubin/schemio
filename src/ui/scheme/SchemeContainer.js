@@ -684,9 +684,10 @@ class SchemeContainer {
      * @param {*} itemId 
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItemAndDescendants(itemId, isSoft, context) {
-        this._readjustItemAndDescendants(itemId, {}, isSoft, context);
+    readjustItemAndDescendants(itemId, isSoft, context, precision) {
+        this._readjustItemAndDescendants(itemId, {}, isSoft, context, precision);
     }
 
     /**
@@ -695,15 +696,16 @@ class SchemeContainer {
      * @param {Object} visitedItems 
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    _readjustItemAndDescendants(itemId, visitedItems, isSoft, context) {
-        this._readjustItem(itemId, visitedItems, isSoft, context);
+    _readjustItemAndDescendants(itemId, visitedItems, isSoft, context, precision) {
+        this._readjustItem(itemId, visitedItems, isSoft, context, precision);
         const item = this.findItemById(itemId);
         if (!item) {
             return;
         }
         forEach(item.childItems, childItem => {
-            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft, context);
+            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft, context, precision);
         });
     }
 
@@ -712,18 +714,27 @@ class SchemeContainer {
      * @param {String} changedItemId
      * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItem(changedItemId, isSoft, context) {
-        this._readjustItem(changedItemId, {}, isSoft, context);
+    readjustItem(changedItemId, isSoft, context, precision) {
+        if (isNaN(precision)) {
+            precision = 4;
+        }
+        this._readjustItem(changedItemId, {}, isSoft, context, precision);
     }
 
     /**
      * 
      * @param {*} changedItem 
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
+     * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    _readjustItem(changedItemId, visitedItems, isSoft, context) {
+    _readjustItem(changedItemId, visitedItems, isSoft, context, precision) {
+        if (isNaN(precision)) {
+            precision = 4;
+        }
         if (visitedItems[changedItemId]) {
             return;
         }
@@ -737,20 +748,20 @@ class SchemeContainer {
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
-            shape.readjustItem(item, this, isSoft, context);
+            shape.readjustItem(item, this, isSoft, context, precision);
             this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
         if (this.dependencyItemMap[changedItemId]) {
             forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
-                this._readjustItem(dependantItemId, visitedItems, isSoft, context);
+                this._readjustItem(dependantItemId, visitedItems, isSoft, context, precision);
             });
         }
 
         // scanning through children of the item and readjusting them as well
         forEach(item.childItems, childItem => {
-            this._readjustItem(childItem.id, visitedItems, isSoft, context);
+            this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
         });
     }
 
@@ -951,8 +962,8 @@ class SchemeContainer {
             Vy = Vy / d;
         }
         return {
-            x: Vx,
-            y: Vy
+            x: myMath.roundPrecise(Vx, 4), // we don't need a high precision for normals
+            y: myMath.roundPrecise(Vy, 4)
         };
     }
 
@@ -1272,7 +1283,7 @@ class SchemeContainer {
 
     /**
      * 
-     * @param {*} items array of items that should be copied and pastes
+     * @param {*} items array of items that should be copied and pasted
      * @param {*} centerX x in relative transform for which items should put pasted to
      * @param {*} centerY y in relative transform for which items should put pasted to 
      */
@@ -1327,7 +1338,7 @@ class SchemeContainer {
 
         this.reindexItems();
 
-        // doing the selectiong afterwards so that item has all meta transform calculated after re-indexing
+        // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
         forEach(itemsToBeSelected, item => this.selectItem(item, true));
 
@@ -1369,7 +1380,10 @@ class SchemeContainer {
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context 
      */
-    updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context) {
+    updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
+        if (precision === undefined) {
+            precision = 10;
+        }
         if (!context) {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;
         }
@@ -1404,7 +1418,7 @@ class SchemeContainer {
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
 
                 if (!parentWasAlreadyUpdated) {
-                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
+                    item.area.r = myMath.roundPrecise(itemProjection.r + multiItemEditBox.area.r, precision);
                 }
 
                 // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
@@ -1416,37 +1430,43 @@ class SchemeContainer {
                 const bottomLeftY = multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
 
                 const relativePosition = this.relativePointForItem(nx, ny, item);
-                item.area.x = relativePosition.x;
-                item.area.y = relativePosition.y;
+                item.area.x = myMath.roundPrecise(relativePosition.x, precision);
+                item.area.y = myMath.roundPrecise(relativePosition.y, precision);
 
-                const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
-                if (widthSquare > 0) {
-                    item.area.w = Math.sqrt(widthSquare);
-                } else {
-                    item.area.w = multiItemEditBox.area.w;
+
+                // recalculated width and height only in case multi item edit box was resized
+                // otherwise it doesn't make sense
+                if (context.resized) {
+                    const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
+                    if (widthSquare > 0) {
+                        item.area.w = myMath.roundPrecise(Math.sqrt(widthSquare), precision);
+                    } else {
+                        item.area.w = myMath.roundPrecise(multiItemEditBox.area.w, precision);
+                    }
+
+                    const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
+                    if (heightSquare > 0) {
+                        item.area.h = myMath.roundPrecise(Math.sqrt(heightSquare), precision);
+                    } else {
+                        item.area.h = myMath.roundPrecise(multiItemEditBox.area.h, precision);
+                    }
                 }
 
-                const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
-                if (heightSquare > 0) {
-                    item.area.h = Math.sqrt(heightSquare);
-                } else {
-                    item.area.h = multiItemEditBox.area.h;
-                }
                 if (item.shape === 'curve') {
-                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox);
+                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
                 }
 
                 // changing item revision so that its shape will be recomputed
                 item.meta.revision += 1;
 
-                this.readjustItemAndDescendants(item.id, isSoft, context);
+                this.readjustItemAndDescendants(item.id, isSoft, context, precision);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
         forEach(itemsForReindex, item => this.updateChildTransforms(item));
     }
 
-    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox) {
+    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {
         const originalArea = multiItemEditBox.itemData[item.id].originalArea;
         const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
 
@@ -1456,19 +1476,19 @@ class SchemeContainer {
 
         forEach(originalCurvePoints, (point, index) => {
             if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].x = point.x * item.area.w / originalArea.w;
+                item.shapeProps.points[index].x = myMath.roundPrecise(point.x * item.area.w / originalArea.w, precision);
             }
             if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].y = point.y * item.area.h / originalArea.h;
+                item.shapeProps.points[index].y = myMath.roundPrecise(point.y * item.area.h / originalArea.h, precision);
             }
             if (point.t === 'B') {
                 if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].x1 = point.x1 * item.area.w / originalArea.w;
-                    item.shapeProps.points[index].x2 = point.x2 * item.area.w / originalArea.w;
+                    item.shapeProps.points[index].x1 = myMath.roundPrecise(point.x1 * item.area.w / originalArea.w, precision);
+                    item.shapeProps.points[index].x2 = myMath.roundPrecise(point.x2 * item.area.w / originalArea.w, precision);
                 }
                 if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].y1 = point.y1 * item.area.h / originalArea.h;
-                    item.shapeProps.points[index].y2 = point.y2 * item.area.h / originalArea.h;
+                    item.shapeProps.points[index].y1 = myMath.roundPrecise(point.y1 * item.area.h / originalArea.h, precision);
+                    item.shapeProps.points[index].y2 = myMath.roundPrecise(point.y2 * item.area.h / originalArea.h, precision);
                 }
             }
         });

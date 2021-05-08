@@ -44,18 +44,19 @@ function computePath(item) {
  * @property {Object} schemeContainer 
  * @property {Boolean} isSoft 
  * @property {ItemModificationContext} context 
+ * @property {Number} precision - number of digits after point which it should round to
  */
-function readjustItem(item, schemeContainer, isSoft, context) {
-    log.info('readjustItem', item.id, item.name, {item, isSoft, context});
+function readjustItem(item, schemeContainer, isSoft, context, precision) {
+    log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
     if (!isSoft) {
-        readjustItemArea(item);
+        readjustItemArea(item, precision);
     }
 
     return true;
 }
 
-function readjustItemArea(item) {
+function readjustItemArea(item, precision) {
     if (item.shapeProps.points.length < 1) {
         return;
     }
@@ -80,14 +81,15 @@ function readjustItemArea(item) {
 
     const dx = item.area.x - minX;
     const dy = item.area.y - minY;
-    item.area.x = minX;
-    item.area.y = minY;
-    item.area.w = maxX - minX;
-    item.area.h = maxY - minY;
+
+    item.area.x = myMath.roundPrecise(minX, precision);
+    item.area.y = myMath.roundPrecise(minY, precision);
+    item.area.w = myMath.roundPrecise(maxX - minX, precision);
+    item.area.h = myMath.roundPrecise(maxY - minY, precision);
 
     forEach(item.shapeProps.points, point => {
-        point.x += dx;
-        point.y += dy;
+        point.x = myMath.roundPrecise(point.x + dx, precision);
+        point.y = myMath.roundPrecise(point.y + dy, precision);
     });
 }
 

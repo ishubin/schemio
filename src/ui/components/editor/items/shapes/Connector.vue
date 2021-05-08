@@ -39,6 +39,10 @@ function getPointOnItemPath(item, shadowSvgPath, positionOnPath, schemeContainer
     return schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
 }
 
+function round(value) {
+    return myMath.roundPrecise2(value);
+}
+
 function computeSmoothPath(item) {
     const points = item.shapeProps.points;
 
@@ -48,10 +52,10 @@ function computeSmoothPath(item) {
 
         const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
 
-        return `M ${points[0].x} ${points[0].y} `
-            +`C ${points[0].x + k * points[0].bx} ${points[0].y + k * points[0].by}`
-            + ` ${points[1].x + k * points[1].bx}  ${points[1].y + k * points[1].by}`
-            + ` ${points[1].x} ${points[1].y}`;
+        return `M ${round(points[0].x)} ${round(points[0].y)} `
+            +`C ${round(points[0].x + k * points[0].bx)} ${round(points[0].y + k * points[0].by)}`
+            + ` ${round(points[1].x + k * points[1].bx)}  ${round(points[1].y + k * points[1].by)}`
+            + ` ${round(points[1].x)} ${round(points[1].y)}`;
     }
 
     let path = '';
@@ -83,7 +87,7 @@ function computeSmoothPath(item) {
 
     forEach(points, (point, i) => {
         if (i === 0) {
-            path = `M ${point.x} ${point.y} `;
+            path = `M ${round(point.x)} ${round(point.y)} `;
 
         } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.bx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
@@ -93,7 +97,7 @@ function computeSmoothPath(item) {
                 vx = vectors[i].x;
                 vy = vectors[i].y;
             }
-            path += ` C ${previousPoint.x + k * previousPoint.bx} ${previousPoint.y + k * previousPoint.by} ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
+            path += ` C ${round(previousPoint.x + k * previousPoint.bx)} ${round(previousPoint.y + k * previousPoint.by)} ${round(point.x - k * vx)} ${round(point.y - k * vy)} ${round(point.x)} ${round(point.y)}`;
 
         } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.bx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
@@ -103,7 +107,7 @@ function computeSmoothPath(item) {
                 vx = vectors[i-1].x;
                 vy = vectors[i-1].y;
             }
-            path += ` C ${previousPoint.x + k * vx} ${previousPoint.y + k *vy}  ${point.x + k*point.bx} ${point.y + k*point.by} ${point.x} ${point.y}`;
+            path += ` C ${round(previousPoint.x + k * vx)} ${round(previousPoint.y + k *vy)}  ${round(point.x + k*point.bx)} ${round(point.y + k*point.by)} ${round(point.x)} ${round(point.y)}`;
 
         } else {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
@@ -112,7 +116,7 @@ function computeSmoothPath(item) {
             let vx = vectors[i].x;
             let vy = vectors[i].y;
 
-            path += ` C ${previousPoint.x + k * pvx} ${previousPoint.y + k * pvy}  ${point.x - k * vx} ${point.y - k * vy} ${point.x} ${point.y}`;
+            path += ` C ${round(previousPoint.x + k * pvx)} ${round(previousPoint.y + k * pvy)}  ${round(point.x - k * vx)} ${round(point.y - k * vy)} ${round(point.x)} ${round(point.y)}`;
         }
         previousPoint = point;
     });
@@ -245,9 +249,10 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
  * @property {Object} schemeContainer 
  * @property {Boolean} isSoft 
  * @property {ItemModificationContext} context 
+ * @property {Number} precision - number of digits after point which it should round to
  */
-function readjustItem(item, schemeContainer, isSoft, context) {
-    log.info('readjustItem', item.id, item.name, {item, isSoft, context});
+function readjustItem(item, schemeContainer, isSoft, context, precision) {
+    log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
     if (item.shapeProps.sourceItem) {
         readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, true, (newPoint, newSourceItemPosition) => {
@@ -265,14 +270,14 @@ function readjustItem(item, schemeContainer, isSoft, context) {
     }
 
     if (!isSoft) {
-        readjustItemArea(item);
+        readjustItemArea(item, precision);
     }
 
     return true;
 }
 
-function readjustItemArea(item) {
-    log.info('readjustItemArea', item.id, item.name, {item});
+function readjustItemArea(item, precision) {
+    log.info('readjustItemArea', item.id, item.name, {item}, precision);
     if (item.shapeProps.points.length < 1) {
         return;
     }
@@ -291,14 +296,14 @@ function readjustItemArea(item) {
 
     const dx = item.area.x - minX;
     const dy = item.area.y - minY;
-    item.area.x = minX;
-    item.area.y = minY;
-    item.area.w = maxX - minX;
-    item.area.h = maxY - minY;
+    item.area.x = myMath.roundPrecise(minX, precision);
+    item.area.y = myMath.roundPrecise(minY, precision);
+    item.area.w = myMath.roundPrecise(maxX - minX, precision);
+    item.area.h = myMath.roundPrecise(maxY - minY, precision);
 
     forEach(item.shapeProps.points, point => {
-        point.x += dx;
-        point.y += dy;
+        point.x = myMath.roundPrecise(point.x + dx, precision);
+        point.y = myMath.roundPrecise(point.y + dy, precision);
     });
 }
 

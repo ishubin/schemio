@@ -79,6 +79,9 @@ export default class StateDragItem extends State {
         // array of edge names. used to resize multi item edit box using its edge draggers
         this.draggerEdges = null;
 
+        // used for tracking updates of control points (also when multi item edit box is not initialized, e.g. for connector)
+        this.lastModifiedItem = null;
+
         this.snapper = {
             /**
              * Checks snapping of item and returns new offset that should be applied to item
@@ -112,6 +115,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBoxOriginalArea = null;
         this.boxPointsForSnapping = null;
         this.modificationContextId = null;
+        this.lastModifiedItem = null;
     }
 
     keyPressed(key, keyOptions) {
@@ -151,7 +155,7 @@ export default class StateDragItem extends State {
         this.startedDragging = true;
         this.wasMouseMoved = false;
         this.reindexNeeded = false;
-        this.lastDraggedItem = null;
+        this.lastModifiedItem = null;
     }
 
     initDraggingMultiItemBox(multiItemEditBox, x, y, mx, my) {
@@ -409,13 +413,25 @@ export default class StateDragItem extends State {
             this.eventBus.emitSchemeChangeCommited();
         }
         if (this.reindexNeeded) {
-            if (this.lastDraggedItem) {
+            let items = [];
+            if (this.multiItemEditBox && this.multiItemEditBox.items) {
+                items = this.multiItemEditBox.items;
+            }
+            if (this.lastModifiedItem) {
+                items.push(this.lastModifiedItem);
+            }
+            
+            let shouldUpdateMultiItemEditBox = false;
+            forEach(items, item => {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
-                this.schemeContainer.readjustItem(this.lastDraggedItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+                this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-                if (this.lastDraggedItem.shape === 'curve' && this.controlPoint) {
-                    this.schemeContainer.updateMultiItemEditBox();
+                if (item.shape === 'curve' && this.controlPoint) {
+                    shouldUpdateMultiItemEditBox = true;
                 }
+            });
+            if (shouldUpdateMultiItemEditBox) {
+                this.schemeContainer.updateMultiItemEditBox();
             }
             this.schemeContainer.reindexItems();
         }
@@ -523,7 +539,7 @@ export default class StateDragItem extends State {
                 y: closestPoint.y,
             });
             this.eventBus.emitItemChanged(item.id);
-            this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setItemControlPoints(this.store, item);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
             this.eventBus.emitSchemeChangeCommited();
@@ -546,7 +562,7 @@ export default class StateDragItem extends State {
     handleDoubleClickOnConnectorControlPoint(item, pointId) {
         item.shapeProps.points.splice(pointId, 1);
         this.eventBus.emitItemChanged(item.id);
-        this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setItemControlPoints(this.store, item);
         StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
         this.eventBus.emitSchemeChangeCommited();
@@ -590,7 +606,7 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
         this.reindexNeeded = true;
     }
 
@@ -609,7 +625,7 @@ export default class StateDragItem extends State {
             moved: false,
             rotated: true,
             resized: false
-        });
+        }, this.getUpdatePrecision());
         this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -707,7 +723,8 @@ export default class StateDragItem extends State {
             rotated: false,
             resized: true,
             id: this.modificationContextId
-        });
+        }, this.getUpdatePrecision());
+
         if (this.multiItemEditBox.items.length === 1) {
             // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points
             // But setting it from scratch is safer
@@ -738,12 +755,12 @@ export default class StateDragItem extends State {
                 }
                 
                 this.eventBus.emitItemChanged(this.sourceItem.id);
-                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
                 // updating all control points as they might affect one another
                 StoreUtils.setItemControlPoints(this.store, this.sourceItem);
                 this.reindexNeeded = true;
-                this.lastDraggedItem = this.sourceItem;
+                this.lastModifiedItem = this.sourceItem;
             }
         }
     }
@@ -837,9 +854,9 @@ export default class StateDragItem extends State {
         StoreUtils.updateItemControlPoint(this.store, this.controlPoint.id, newPoint);
 
         this.eventBus.emitItemChanged(this.sourceItem.id);
-        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.reindexNeeded = true;
-        this.lastDraggedItem = this.sourceItem;
+        this.lastModifiedItem = this.sourceItem;
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
@@ -861,7 +878,7 @@ export default class StateDragItem extends State {
             if (box && (box.items.length > 1 || !box.items[0].locked)) {
                 box.area.x += dx;
                 box.area.y += dy;
-                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED);
+                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
                 this.schemeContainer.updateMultiItemEditBox();
             }
         }

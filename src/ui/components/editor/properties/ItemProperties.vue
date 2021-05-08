@@ -112,6 +112,24 @@
                                 </select>
                             </td>
                         </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeat" @changed="emitItemFieldChange('repeat', arguments[0])" :min="0" :max="20"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat Offset X</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeatOffsetX" @changed="emitItemFieldChange('repeatOffsetX', arguments[0])"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat Offset Y</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeatOffsetY" @changed="emitItemFieldChange('repeatOffsetY', arguments[0])"/>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </panel>

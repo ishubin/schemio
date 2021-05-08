@@ -267,6 +267,23 @@ class State {
         this.editor.cursor = cursor;
     }
 
+    /**
+     * Based on zoom it calculates a precision with which we should round the updated value
+     * This is needed to avoid issues with floating values calculation so that users don't get uggly values with many digits after point.
+     * 
+     * @returns precision for which we should round the value
+     */
+    getUpdatePrecision() {
+        const scale = this.schemeContainer.screenTransform.scale;
+        if (scale < 0.5) {
+            return 0;
+        }
+        return Math.max(0, Math.round(Math.log10(this.schemeContainer.screenTransform.scale * 100) - 1));
+    }
+
+    round(value) {
+        return myMath.roundPrecise(value, this.getUpdatePrecision());
+    }
 }
 
 export default State;
