@@ -78,6 +78,9 @@ const defaultItemDefinition = {
     blendMode: 'normal',
     cursor: 'default',
     shape: 'none',
+    repeat: 0,
+    repeatOffsetX: 10,
+    repeatOffsetY: -10,
     textSlots: {
         '*': defaultTextSlotProps
     },
@@ -136,6 +139,9 @@ export const defaultItem = {
     name: '',
     description: '',
     links: [],
+    repeat: 0,
+    repeatOffsetX: 10,
+    repeatOffsetY: -10,
     textSlots: {},
     behavior: {
         events: []
