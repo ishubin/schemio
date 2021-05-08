@@ -3,15 +3,19 @@ import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import myMath from '../../../../myMath';
 
+function round(value) {
+    return myMath.roundPrecise2(value);
+}
+
 function connectPoints(p1, p2) {
     if (p1.t === 'L' && p2.t === 'B') {
-        return `Q ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
+        return `Q ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
     } else if (p1.t === 'B' && p2.t === 'L') {
-        return `Q ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x} ${p2.y} `;
+        return `Q ${round(p1.x2+p1.x)} ${round(p1.y2+p1.y)} ${round(p2.x)} ${round(p2.y)} `;
     } else if (p1.t === 'B' && p2.t === 'B') {
-        return `C ${p1.x2+p1.x} ${p1.y2+p1.y} ${p2.x1+p2.x} ${p2.y1+p2.y} ${p2.x} ${p2.y} `;
+        return `C ${round(p1.x2+p1.x)} ${round(p1.y2+p1.y)} ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
     }
-    return `L ${p2.x} ${p2.y} `;
+    return `L ${round(p2.x)} ${round(p2.y)} `;
 }
 
 export function computeCurvePath(points, closed) {
@@ -24,11 +28,11 @@ export function computeCurvePath(points, closed) {
 
     forEach(points, point => {
         if (!prevPoint) {
-            path = `M ${point.x} ${point.y} `;
+            path = `M ${round(point.x)} ${round(point.y)} `;
         } else if (!point.break) {
             path += connectPoints(prevPoint, point);
         } else {
-            path += `M ${point.x} ${point.y} `;
+            path += `M ${round(point.x)} ${round(point.y)} `;
         }
         prevPoint = point;
     });
