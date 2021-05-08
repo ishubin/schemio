@@ -129,9 +129,9 @@ export default class StateEditCurve extends State {
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
         curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
         curveItem.shapeProps.points = [{
-            t: 'L', x: closestPoint.x, y: closestPoint.y
+            t: 'L', x: this.round(closestPoint.x), y: this.round(closestPoint.y)
         }, {
-            t: 'L', x: worldPoint.x, y: worldPoint.y
+            t: 'L', x: this.round(worldPoint.x), y: this.round(worldPoint.y)
         }];
 
         if (typeof closestPoint.bx != 'undefined') {
@@ -174,16 +174,20 @@ export default class StateEditCurve extends State {
                     return closestPoint;
                 }
             }
+            closestPin.x = this.round(closestPin.x);
+            closestPin.y = this.round(closestPin.y);
             return closestPin;
         }
 
         if (closestPoint) {
+            closestPoint.x = this.round(closestPoint.x);
+            closestPoint.y = this.round(closestPoint.y);
             return closestPoint;
         }
 
         return {
-            x: item.area.w / 2,
-            y: item.area.h / 2
+            x: this.round(item.area.w / 2),
+            y: this.round(item.area.h / 2)
         };
     }
 
@@ -382,16 +386,16 @@ export default class StateEditCurve extends State {
                 // convert last point to Beizer and drag its control points
                 // but only in case this is a regular curve and not a connector
                 point.t = 'B';
-                point.x2 = x - point.x;
-                point.y2 = y - point.y;
+                point.x2 = this.round(x - point.x);
+                point.y2 = this.round(y - point.y);
 
                 point.x1 = -point.x2;
                 point.y1 = -point.y2;
             } else {
                 // drag last point
                 const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, x, y);
-                point.x = snappedLocalCurvePoint.x;
-                point.y = snappedLocalCurvePoint.y;
+                point.x = this.round(snappedLocalCurvePoint.x);
+                point.y = this.round(snappedLocalCurvePoint.y);
 
                 this.shouldJoinClosedPoints = false;
 
@@ -456,8 +460,8 @@ export default class StateEditCurve extends State {
 
                 const snappedLocalCurvePoint = this.snapCurvePoint(-1, x, y);
                 this.item.shapeProps.points.push({
-                    x: snappedLocalCurvePoint.x,
-                    y: snappedLocalCurvePoint.y,
+                    x: this.round(snappedLocalCurvePoint.x),
+                    y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
                 });
                 this.eventBus.emitItemChanged(this.item.id);
@@ -790,7 +794,10 @@ export default class StateEditCurve extends State {
             localPoint.x = verticalSnapper.localValue;
             StoreUtils.setItemSnapper(this.store, verticalSnapper);
         }
-        return localPoint;
+        return {
+            x: this.round(localPoint.x),
+            y: this.round(localPoint.y),
+        };
     }
 
     /**

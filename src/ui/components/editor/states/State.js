@@ -281,6 +281,9 @@ class State {
         return Math.max(0, Math.round(Math.log10(this.schemeContainer.screenTransform.scale * 100) - 1));
     }
 
+    round(value) {
+        return myMath.roundPrecise(value, this.getUpdatePrecision());
+    }
 }
 
 export default State;

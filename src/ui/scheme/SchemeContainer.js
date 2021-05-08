@@ -951,8 +951,8 @@ class SchemeContainer {
             Vy = Vy / d;
         }
         return {
-            x: Vx,
-            y: Vy
+            x: myMath.roundPrecise(Vx, 4), // we don't need a high precision for normals
+            y: myMath.roundPrecise(Vy, 4)
         };
     }
 

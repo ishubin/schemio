@@ -144,8 +144,4 @@ export default class StateCreateItem extends State {
         }
         EventBus.emitItemChanged(this.item.id);
     }
-
-    round(value) {
-        return myMath.roundPrecise(value, this.getUpdatePrecision());
-    }
 }
