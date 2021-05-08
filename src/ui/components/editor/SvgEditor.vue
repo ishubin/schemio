@@ -611,11 +611,13 @@ export default {
         },
         onSwitchStateCreateItem(item) {
             this.highlightItems([]);
-            if (item.shape === 'curve') {
+            if (item.shape === 'curve' || item.shape === 'connector') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 // making sure every new curve starts non-closed
-                item.shapeProps.closed = false;
+                if (item.shape === 'curve') {
+                    item.shapeProps.closed = false;
+                }
                 this.state = 'editCurve';
                 EventBus.emitCurveEdited(item);
             } else {

@@ -378,7 +378,11 @@ export default class StateEditCurve extends State {
 
         StoreUtils.clearItemSnappers(this.store);
 
-        if (this.addedToScheme && this.creatingNewPoints) {
+        if (!this.addedToScheme && this.creatingNewPoints && this.item.shape === 'connector') {
+            // Will try to search for source attachment
+            this.handleConnectorSourceMouseMove(x, y);
+
+        } else if (this.addedToScheme && this.creatingNewPoints) {
             const pointIndex = this.item.shapeProps.points.length - 1;
             const point = this.item.shapeProps.points[pointIndex];
 
@@ -800,6 +804,30 @@ export default class StateEditCurve extends State {
         };
     }
 
+    handleConnectorSourceMouseMove(x, y) {
+        const closestPointToItem = this.findClosestAttachmentPoint(x, y);
+
+        if (closestPointToItem) {
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+            this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+        } else {
+            this.eventBus.emitItemsHighlighted([]);
+            this.item.shapeProps.sourceItem = null;
+            this.item.shapeProps.sourceItemPosition = 0;
+        }
+    }
+
+    findClosestAttachmentPoint(x, y) {
+        let distanceThreshold = 0;
+        if (this.schemeContainer.screenTransform.scale > 0) {
+            distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
+        }
+
+        const includeOnlyVisibleItems = true;
+        return this.schemeContainer.findClosestPointToItems(x, y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+    }
+
     /**
      * Handles dragging of edge point and checks whether it should stick to other item
      * This is the most time consuming function as it needs to look through all items in schemes
@@ -815,13 +843,7 @@ export default class StateEditCurve extends State {
 
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
 
-        let distanceThreshold = 0;
-        if (this.schemeContainer.screenTransform.scale > 0) {
-            distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
-        }
-
-        const includeOnlyVisibleItems = true;
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(worldCurvePoint.x, worldCurvePoint.y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+        const closestPointToItem = this.findClosestAttachmentPoint(worldCurvePoint.x, worldCurvePoint.y);
 
         if (closestPointToItem) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);

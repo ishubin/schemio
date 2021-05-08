@@ -346,6 +346,19 @@ export default {
         readjustItem,
         getSnappers,
 
+        menuItems: [{
+            group: 'Connections',
+            name: 'Arrow Connector',
+            iconUrl: '/assets/images/items/connector-arrow.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'empty',
+                    destinationCap: 'triangle',
+                    points: [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}]
+                }
+            }
+        }],
+
         /**
          * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
          */ 
