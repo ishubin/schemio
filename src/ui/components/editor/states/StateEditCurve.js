@@ -90,7 +90,7 @@ export default class StateEditCurve extends State {
                 this.submitItem();
             }
         } else {
-            this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.updateMultiItemEditBox();
         }
         super.cancel();
@@ -109,8 +109,8 @@ export default class StateEditCurve extends State {
     initConnectingFromSourceItem(sourceItem, localPoint) {
         if (!localPoint) {
             localPoint = {
-                x: sourceItem.area.w / 2,
-                y: sourceItem.area.h / 2
+                x: this.round(sourceItem.area.w / 2),
+                y: this.round(sourceItem.area.h / 2)
             };
         }
         
@@ -135,8 +135,8 @@ export default class StateEditCurve extends State {
         }];
 
         if (typeof closestPoint.bx != 'undefined') {
-            curveItem.shapeProps.points[0].bx = closestPoint.bx;
-            curveItem.shapeProps.points[0].by = closestPoint.by;
+            curveItem.shapeProps.points[0].bx = myMath.roundPrecise(closestPoint.bx, 4);
+            curveItem.shapeProps.points[0].by = myMath.roundPrecise(closestPoint.by, 4);
         }
 
         this.item = curveItem;
@@ -558,7 +558,7 @@ export default class StateEditCurve extends State {
     breakCurve(pointIndex) {
         this.item.shapeProps.points[pointIndex].break = true;
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -571,14 +571,14 @@ export default class StateEditCurve extends State {
             return;
         }
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitSchemeChangeCommited();
     }
 
     deletePoint(pointIndex) {
         this.item.shapeProps.points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
     }
@@ -598,7 +598,7 @@ export default class StateEditCurve extends State {
         });
 
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
     }
@@ -627,7 +627,7 @@ export default class StateEditCurve extends State {
                 this.convertPointToBeizer(index + 1);
             }
             this.eventBus.emitItemChanged(this.item.id);
-            this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.updateAllCurveEditPoints(this.store, this.item);
             this.eventBus.emitSchemeChangeCommited();
         }
@@ -660,7 +660,7 @@ export default class StateEditCurve extends State {
             delete point.y2;
         }
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
@@ -693,7 +693,7 @@ export default class StateEditCurve extends State {
         point.y2 = dy;
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
@@ -730,7 +730,7 @@ export default class StateEditCurve extends State {
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateCurveEditPoint(this.store, pointIndex, curvePoint);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
     snapCurvePoint(pointId, localX, localY) {
@@ -880,7 +880,7 @@ export default class StateEditCurve extends State {
         }
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateCurveEditPoint(this.store, this.draggedObject.pointIndex, curvePoint);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
     submitItem() {
@@ -891,7 +891,7 @@ export default class StateEditCurve extends State {
             return;
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();

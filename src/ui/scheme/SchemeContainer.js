@@ -684,9 +684,10 @@ class SchemeContainer {
      * @param {*} itemId 
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItemAndDescendants(itemId, isSoft, context) {
-        this._readjustItemAndDescendants(itemId, {}, isSoft, context);
+    readjustItemAndDescendants(itemId, isSoft, context, precision) {
+        this._readjustItemAndDescendants(itemId, {}, isSoft, context, precision);
     }
 
     /**
@@ -695,15 +696,16 @@ class SchemeContainer {
      * @param {Object} visitedItems 
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    _readjustItemAndDescendants(itemId, visitedItems, isSoft, context) {
-        this._readjustItem(itemId, visitedItems, isSoft, context);
+    _readjustItemAndDescendants(itemId, visitedItems, isSoft, context, precision) {
+        this._readjustItem(itemId, visitedItems, isSoft, context, precision);
         const item = this.findItemById(itemId);
         if (!item) {
             return;
         }
         forEach(item.childItems, childItem => {
-            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft, context);
+            this._readjustItemAndDescendants(childItem.id, visitedItems, isSoft, context, precision);
         });
     }
 
@@ -712,18 +714,27 @@ class SchemeContainer {
      * @param {String} changedItemId
      * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItem(changedItemId, isSoft, context) {
-        this._readjustItem(changedItemId, {}, isSoft, context);
+    readjustItem(changedItemId, isSoft, context, precision) {
+        if (isNaN(precision)) {
+            precision = 4;
+        }
+        this._readjustItem(changedItemId, {}, isSoft, context, precision);
     }
 
     /**
      * 
      * @param {*} changedItem 
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
+     * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      * @param {ItemModificationContext} context
+     * @param {Number} precision - number of digits after point which it should round to
      */
-    _readjustItem(changedItemId, visitedItems, isSoft, context) {
+    _readjustItem(changedItemId, visitedItems, isSoft, context, precision) {
+        if (isNaN(precision)) {
+            precision = 4;
+        }
         if (visitedItems[changedItemId]) {
             return;
         }
@@ -737,20 +748,20 @@ class SchemeContainer {
 
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
-            shape.readjustItem(item, this, isSoft, context);
+            shape.readjustItem(item, this, isSoft, context, precision);
             this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
         if (this.dependencyItemMap[changedItemId]) {
             forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
-                this._readjustItem(dependantItemId, visitedItems, isSoft, context);
+                this._readjustItem(dependantItemId, visitedItems, isSoft, context, precision);
             });
         }
 
         // scanning through children of the item and readjusting them as well
         forEach(item.childItems, childItem => {
-            this._readjustItem(childItem.id, visitedItems, isSoft, context);
+            this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
         });
     }
 
@@ -1448,7 +1459,7 @@ class SchemeContainer {
                 // changing item revision so that its shape will be recomputed
                 item.meta.revision += 1;
 
-                this.readjustItemAndDescendants(item.id, isSoft, context);
+                this.readjustItemAndDescendants(item.id, isSoft, context, precision);
                 this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
