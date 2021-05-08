@@ -1407,7 +1407,7 @@ class SchemeContainer {
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
 
                 if (!parentWasAlreadyUpdated) {
-                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
+                    item.area.r = myMath.roundPrecise(itemProjection.r + multiItemEditBox.area.r, precision);
                 }
 
                 // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
