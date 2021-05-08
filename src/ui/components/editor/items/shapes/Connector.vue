@@ -333,6 +333,9 @@ function worldPointOnItem(x, y, item) {
 }
 
 
+const menuItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
+const groupName = 'Connections';
+
 export default {
     props: ['item'],
     components: {},
@@ -347,14 +350,48 @@ export default {
         getSnappers,
 
         menuItems: [{
-            group: 'Connections',
+            group: groupName,
+            name: 'Empty Connector',
+            iconUrl: '/assets/images/items/connector-empty.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'empty',
+                    destinationCap: 'empty',
+                    points: menuItemPoints
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Triangle Connector',
+            iconUrl: '/assets/images/items/connector-triangle.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'empty',
+                    destinationCap: 'triangle',
+                    points: menuItemPoints
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Triangle Connector',
+            iconUrl: '/assets/images/items/connector-triangle-white.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'empty',
+                    destinationCap: 'triangle',
+                    points: menuItemPoints,
+                    destinationCapFill: 'rgba(255, 255, 255, 1.0)'
+                }
+            }
+        }, {
+            group: groupName,
             name: 'Arrow Connector',
             iconUrl: '/assets/images/items/connector-arrow.svg',
             item: {
                 shapeProps: {
                     sourceCap: 'empty',
-                    destinationCap: 'triangle',
-                    points: [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}]
+                    destinationCap: 'arrow',
+                    points: menuItemPoints
                 }
             }
         }],
