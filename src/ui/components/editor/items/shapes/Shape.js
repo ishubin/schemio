@@ -41,7 +41,6 @@ const _shapes = [
     require('./uml/UMLStorage.js').default,
     require('./uml/UMLProcess.js').default,
     require('./uml/UMLActor.vue').default,
-    require('./electronic/speaker.shape.js').default,
 ];
 
 const _zeroTransform = {x: 0, y: 0, r: 0};
