@@ -37,6 +37,32 @@ export default {
             }
         },
 
+        getPins(item) {
+            const s = item.area.w * item.shapeProps.skew / 100;
+            return [{
+                x: (s + item.area.w)/3,
+                y: item.area.h*2/3
+            }, {
+                x: s,
+                y: 0,
+            }, {
+                x: item.area.w,
+                y: item.area.h
+            }, {
+                x: 0,
+                y: item.area.h
+            }, {
+                x: s/2,
+                y: item.area.h/2
+            }, {
+                x: s + (item.area.w - s) / 2,
+                y: item.area.h/2
+            }, {
+                x: item.area.w/2,
+                y: item.area.h
+            }];
+        },
+
         menuItems: [{
             group: 'Basic Shapes',
             name: 'Triangle',
