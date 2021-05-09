@@ -69,12 +69,26 @@ export default {
 
     data() {
         const svgHtml = map(this.exportedItems, e => e.html).join('\n');
+        let paddingTop = 0;
+        let paddingLeft = 0;
+        let viewBoxWidth = this.width;
+        let viewBoxHeight = this.height;
+
+        if (this.exportedItems.length === 1) {
+            const strokeSize = this.exportedItems[0].item.shapeProps.strokeSize;
+            if (!isNaN(strokeSize)) {
+                paddingTop = strokeSize;
+                paddingLeft = strokeSize;
+                viewBoxWidth += 2*strokeSize;
+                viewBoxHeight += 2*strokeSize;
+            }
+        }
         return {
             shouldExportBackground: false,
-            paddingTop: 0,
-            paddingLeft: 0,
-            viewBoxWidth: this.width,
-            viewBoxHeight: this.height,
+            paddingTop,
+            paddingLeft,
+            viewBoxWidth,
+            viewBoxHeight,
             placement: 'centered', // can be top-left, centered, stretched
             svgHtml: svgHtml,
             previewPadding: 20

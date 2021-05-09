@@ -21,6 +21,7 @@ const _shapes = [
     require('./Button.vue').default,
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
+    require('./basic/Triangle.js').default,
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,
