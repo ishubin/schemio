@@ -27,6 +27,14 @@ export default {
             return getStandardRectPins(item);
         },
 
+        getTextSlots(item) {
+            const D = calculateD(item);
+            return [{
+                name: 'body',
+                area: {x: 0, y: D, w: item.area.w - D, h: item.area.h - D}
+            }];
+        },
+
         computePath(item) {
             const W = item.area.w;
             const H = item.area.h;
