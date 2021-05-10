@@ -83,6 +83,7 @@ export default class StateCreateItem extends State {
                 this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
             }
         }
+        this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
