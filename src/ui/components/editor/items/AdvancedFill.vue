@@ -21,6 +21,9 @@ export default {
     props: ['fillId', 'fill', 'area'],
 
     computeSvgFill(fill, fillId) {
+        if (!fill) {
+            return 'none';
+        }
         if (fill.type === 'solid') {
             return fill.color;
         } else if ((fill.type === 'image' && fill.image) || (fill.type === 'gradient' && fill.gradient)) {
