@@ -199,7 +199,7 @@ export default {
         id: 'comment',
 
         menuItems: [{
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'Comment',
             iconUrl: '/assets/images/items/comment.svg',
             item: {

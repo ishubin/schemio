@@ -129,7 +129,7 @@ export default {
         id: 'curve',
 
         menuItems: [{
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'Curve',
             iconUrl: '/assets/images/items/curve.svg',
             item: {

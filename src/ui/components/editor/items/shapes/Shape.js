@@ -21,7 +21,10 @@ const _shapes = [
     require('./Button.vue').default,
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
+
     require('./basic/Triangle.js').default,
+    require('./basic/Diamond.js').default,
+
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,
@@ -29,7 +32,6 @@ const _shapes = [
     require('./uml/UMLNode.js').default,
     require('./uml/UMLStart.js').default,
     require('./uml/UMLInput.js').default,
-    require('./uml/UMLDecision.js').default,
     require('./uml/UMLDocument.js').default,
     require('./uml/UMLDataflow.js').default,
     require('./uml/UMLDatabase.js').default,

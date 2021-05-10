@@ -5,7 +5,7 @@ export default {
         id: 'npoly',
 
         menuItems: [{
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'N-Polygon',
             iconUrl: '/assets/images/items/npolygon.svg',
         }],

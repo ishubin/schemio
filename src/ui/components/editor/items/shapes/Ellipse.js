@@ -7,7 +7,7 @@ export default {
         id: 'ellipse',
 
         menuItems: [{
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'Ellipse',
             iconUrl: '/assets/images/items/ellipse.svg',
         }],

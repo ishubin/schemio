@@ -10,12 +10,16 @@ export default {
     shapeConfig: {
         shapeType: 'standard',
 
-        id: 'uml_decision',
+        id: 'basic_diamond',
 
         menuItems: [{
+            group: 'Basic Shapes',
+            name: 'Diamond',
+            iconUrl: '/assets/images/items/basic-diamond.svg',
+        }, {
             group: 'UML',
             name: 'Decision',
-            iconUrl: '/assets/images/items/uml-decision.svg',
+            iconUrl: '/assets/images/items/basic-diamond.svg',
         }],
 
         computePath(item) {

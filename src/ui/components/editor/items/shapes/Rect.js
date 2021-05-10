@@ -18,14 +18,14 @@ export default {
 
         // menuItems is used in order to display shape in the items menu (left panel)
         menuItems: [{
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'Rect',
             iconUrl: '/assets/images/items/rect.svg',
             item: {
                 shapeProps: {cornerRadius: 0}
             }
         }, {
-            group: 'General',
+            group: 'Basic Shapes',
             name: 'Rounded Rect',
             iconUrl: '/assets/images/items/rounded-rect.svg',
             item: {
