@@ -203,7 +203,7 @@ export default {
             const shape = Shape.find(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
-            } else if (shape && (shape.shapeType === 'standard')) {
+            } else if (shape) {
                 // re-computing item svg path for event layer
                 this.itemStandardCurves = computeStandardCurves(this.item, shape);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
