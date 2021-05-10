@@ -816,8 +816,9 @@ export default class StateDragItem extends State {
         }, excludedIds, 0, 0);
 
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems);
-        
-        if (closestPointToItem) {
+
+        // Not letting connectors attach to themselves
+        if (closestPointToItem && closestPointToItem.itemId !== this.sourceItem.id) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
 
             curvePoint.x = localCurvePoint.x;
