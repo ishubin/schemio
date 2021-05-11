@@ -992,10 +992,15 @@ export default {
             }, {
                 name: 'Export as SVG...',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
-            }, {
-                name: 'Export as a shape...',
-                clicked: () => { this.exportAsShape(); }
             }]);
+
+            if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Export as a shape...',
+                    clicked: () => { this.exportAsShape(); }
+                });
+            }
+
             if (item.shape === 'curve') {
                 this.customContextMenu.menuOptions.push({
                     name: 'Edit Curve',
