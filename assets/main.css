@@ -1095,6 +1095,9 @@ ul.pagination li a.current {
 #svg_plot .grid line {
     stroke-width: 1;
 }
+#svg_plot .grid line.grid-line-zero {
+    stroke-width: 3;
+}
 #svg_plot rect.multi-select-box {
     stroke-width: 2;
     stroke: rgb(21, 155, 218);

@@ -75,10 +75,12 @@
                 <g class="grid" data-preview-ignore="true" :transform="gridTransform" data-void="true">
                     <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height + 2 * gridStep" 
                         :stroke="schemeContainer.scheme.style.gridColor"
+                        :class="{'grid-line-zero': index === gridCount.x0}"
                         data-void="true"
                     />
                     <line v-for="index in gridCount.y" x1="0" :y1="index * gridStep" :x2="width + 2 * gridStep" :y2="index * gridStep"
                         :stroke="schemeContainer.scheme.style.gridColor"
+                        :class="{'grid-line-zero': index === gridCount.y0}"
                         data-void="true"
                     />
                 </g>
@@ -1516,12 +1518,22 @@ export default {
             const screenStep = (snapSize * this.schemeContainer.screenTransform.scale);
             if (screenStep < 4) {
                 return {
-                    x: 0, y: 0
+                    x: 0, y: 0, x0: 0, y0: 0
                 };
             }
+
+            const x = Math.ceil(this.width / screenStep) + 1;
+            const y = Math.ceil(this.height / screenStep) + 1;
+
+
+            const zSnap = snapSize * this.schemeContainer.screenTransform.scale;
+            let dx = Math.ceil(this.schemeContainer.screenTransform.x % zSnap) - zSnap;
+            let dy = Math.ceil(this.schemeContainer.screenTransform.y % zSnap) - zSnap;
+
             return {
-                x: Math.ceil(this.width / screenStep) + 1,
-                y: Math.ceil(this.height / screenStep) + 1
+                x, y,
+                x0: Math.ceil((this._x(0) - dx) / screenStep),
+                y0: Math.ceil((this._y(0) - dy)/ screenStep),
             };
         },
         gridTransform() {
