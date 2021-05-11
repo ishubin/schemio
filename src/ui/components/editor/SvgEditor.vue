@@ -1069,6 +1069,10 @@ export default {
         },
 
         openExportSVGModal(schemeContainer, items) {
+            if (!items || items.length === 0) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
+                return;
+            }
             const exportedItems = [];
             let minP = null;
             let maxP = null;
