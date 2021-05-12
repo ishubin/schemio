@@ -13,14 +13,13 @@ export default {
         computePath(item) {
             const cx = item.area.w/2;
             const cy = item.area.h/2;
-            const R = Math.min(item.area.w/2, item.area.h/2);
 
             const corners = Math.max(3, item.shapeProps.corners);
             let path = '';
 
             for(let i = 0; i < corners; i++) {
-                const x = R * Math.cos(i * 2* Math.PI / corners - Math.PI / 2 + item.shapeProps.angle * Math.PI / 180) + cx;
-                const y = R * Math.sin(i * 2* Math.PI / corners - Math.PI / 2 + item.shapeProps.angle * Math.PI / 180) + cy;
+                const x = item.area.w / 2 * Math.cos(i * 2* Math.PI / corners - Math.PI / 2 + item.shapeProps.angle * Math.PI / 180) + cx;
+                const y = item.area.h / 2 * Math.sin(i * 2* Math.PI / corners - Math.PI / 2 + item.shapeProps.angle * Math.PI / 180) + cy;
 
                 if (i === 0) {
                     path = `M ${x} ${y} `;
