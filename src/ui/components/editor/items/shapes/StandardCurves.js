@@ -129,6 +129,14 @@ function convertCurvePointsToItemScale(area, scale, points) {
                 x2: area.w * point.x2 / scale,
                 y2: area.h * point.y2 / scale,
             }
+        } else if (point.t === 'A') {
+            return {
+                t: 'A',
+                x: area.w * point.x / scale,
+                y: area.h * point.y / scale,
+                x1: area.w * point.x1 / scale,
+                y1: area.h * point.y1 / scale,
+            }
         } else {
             return {
                 t: 'L',
