@@ -77,11 +77,6 @@ function enrichCurvePoint(point) {
         point.vx2 = vx2;
         point.vy2 = vy2;
     }
-
-    if (point.t === 'A') {
-        point.vx1 = 1;
-        point.vy1 = 0;
-    }
 }
 
 

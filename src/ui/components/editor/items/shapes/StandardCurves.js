@@ -46,8 +46,6 @@ function connectArc(x1, y1, x2, y2, x3, y3) {
     const cy = -f;
     const rSquared = cx * cx + cy * cy - c;
  
-    // r is the radius
-
     const xa = x2 - x1;
     const ya = y2 - y1;
     const xb = x3 - x1;
@@ -84,7 +82,7 @@ function connectPoints(p1, p2) {
     }
     else if (p1.t === 'L' && p2.t === 'B') {
         return `Q ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
-    } else if (p1.t === 'B' && p2.t === 'L') {
+    } else if (p1.t === 'B' && p2.t !== 'B') {
         return `Q ${round(p1.x2+p1.x)} ${round(p1.y2+p1.y)} ${round(p2.x)} ${round(p2.y)} `;
     } else if (p1.t === 'B' && p2.t === 'B') {
         return `C ${round(p1.x2+p1.x)} ${round(p1.y2+p1.y)} ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
