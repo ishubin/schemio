@@ -102,10 +102,15 @@ export function enrichItemWithDefaults(item) {
         item.shape = 'none';
     }
 
-    const shape = Shape.find(item.shape);
-
     enrichObjectWithDefaults(item, defaultItemDefinition);
 
+    let shape = Shape.find(item.shape);
+    if (!shape) {
+        // will replace item as rect shape, otherwise everything else will break
+        item.shape = 'rect';
+        shape = Shape.find('rect');
+    }
+   
     forEach(shape.args, (arg, argName) => {
         if (!item.shapeProps.hasOwnProperty(argName)) {
             item.shapeProps[argName] = utils.clone(arg.value);
