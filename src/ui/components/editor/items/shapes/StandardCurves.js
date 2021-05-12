@@ -30,26 +30,21 @@ function connectArc(x1, y1, x2, y2, x3, y3) {
     const x31 = x3 - x1;
     const x21 = x2 - x1;
  
-    // x1^2 - x3^2
-    const sx13 = Math.pow(x1, 2) - Math.pow(x3, 2);
+    const sx13 = x1*x1 - x3*x3;
  
-    // y1^2 - y3^2
-    const sy13 = Math.pow(y1, 2) - Math.pow(y3, 2);
+    const sy13 = y1*y1 - y3*y3;
  
-    const sx21 = Math.pow(x2, 2) - Math.pow(x1, 2);
-    const sy21 = Math.pow(y2, 2) - Math.pow(y1, 2);
+    const sx21 = x2*x2 - x1*x1;
+    const sy21 = y2*y2 - y1*y1;
  
     const f = ((sx13) * (x12) + (sy13) * (x12) + (sx21) * (x13) + (sy21) * (x13)) / (2 * ((y31) * (x12) - (y21) * (x13)));
     const g = ((sx13) * (y12) + (sy13) * (y12) + (sx21) * (y13) + (sy21) * (y13)) / (2 * ((x31) * (y12) - (x21) * (y13)));
  
-    const c = -Math.pow(x1, 2) - Math.pow(y1, 2) - 2 * g * x1 - 2 * f * y1;
+    const c = -x1*x1 - y1*y1 - 2 * g * x1 - 2 * f * y1;
  
-    // eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0
-    // where centre is (h = -g, k = -f) and radius r
-    // as r^2 = h^2 + k^2 - c
-    const h = -g;
-    const k = -f;
-    const rSquared = h * h + k * k - c;
+    const cx = -g;
+    const cy = -f;
+    const rSquared = cx * cx + cy * cy - c;
  
     // r is the radius
 
@@ -62,17 +57,21 @@ function connectArc(x1, y1, x2, y2, x3, y3) {
     if (d2 > 0.01 && d1 > 0.01 && rSquared > 0 && rSquared !== Infinity) {
         const r = Math.sqrt(rSquared);
 
-
         let sweepFlag = 1;
-        let largeArcFlag = 0;
         const sina = (xa*yb - ya*xb)/ (Math.sqrt(d1) * Math.sqrt(d2));
         if (sina < 0) {
             sweepFlag = 0;
         }
-        const xm = (x1 + x2 + x3) / 3;
-        const ym = (y1 + y2 + y3) / 3;
 
-        //TODO calculate largeArcFlag based on whether the center of circle is inside the triangle of given points
+        let largeArcFlag = 0;
+
+        const line = myMath.createLineEquation(x1, y1, x3, y3);
+        const side1 = myMath.identifyPointSideAgainstLine(cx, cy, line);
+        const side2 = myMath.identifyPointSideAgainstLine(x2, y2, line);
+        if (side1 === side2) {
+            largeArcFlag = 1;
+        }
+
         return `A ${round(r)} ${round(r)} 0 ${largeArcFlag} ${sweepFlag} ${round(x3)} ${round(y3)}`;
     }
 
