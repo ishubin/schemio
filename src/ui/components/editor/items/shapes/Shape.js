@@ -24,6 +24,7 @@ const _shapes = [
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,
+    require('./basic/cloud.js').default,
 
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
