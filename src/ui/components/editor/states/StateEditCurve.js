@@ -543,16 +543,23 @@ export default class StateEditCurve extends State {
                 });
             }
 
-            if (point.t === 'L') {
+            if (point.t !== 'L') {
+                menuOptions.push({
+                    name: 'Convert to simple point',
+                    clicked: () => this.convertPointToSimple(object.pointIndex)
+                });
+            }
+            if (point.t !== 'B') {
                 menuOptions.push({
                     name: 'Convert to beizer point',
                     clicked: () => this.convertPointToBeizer(object.pointIndex)
                 });
             }
-            else {
+
+            if (point.t !== 'A') {
                 menuOptions.push({
-                    name: 'Convert to simple point',
-                    clicked: () => this.convertPointToSimple(object.pointIndex)
+                    name: 'Convert to arc point',
+                    clicked: () => this.convertPointToArc(object.pointIndex)
                 });
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
@@ -696,6 +703,32 @@ export default class StateEditCurve extends State {
         point.x2 = dx;
         point.y2 = dy;
         point.t = 'B';
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
+    convertPointToArc(pointIndex) {
+        const point = this.item.shapeProps.points[pointIndex];
+        let x1 = 10;
+        let y1 = 10;
+        if (pointIndex <  this.item.shapeProps.points.length - 1) {
+            const nextPoint = this.item.shapeProps.points[pointIndex + 1];
+            const xm = (nextPoint.x + point.x) / 2;
+            const ym = (nextPoint.y + point.y) / 2;
+            const vx = xm - point.x;
+            const vy = ym - point.y;
+            const vpx = vy;
+            const vpy = -vx;
+
+            x1 = vpx + xm - point.x;
+            y1 = vpy + ym - point.y;
+        }
+
+        point.x1 = x1;
+        point.y1 = y1;
+        point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);

@@ -31,6 +31,16 @@
                         :d="`M ${5*(point.vx2 + point.vy2)/safeZoom} ${5*(point.vy2 - point.vx2)/safeZoom}  l ${-10*point.vx2/safeZoom} ${-10*point.vy2/safeZoom}  l ${-10*point.vy2/safeZoom} ${10*point.vx2/safeZoom} l ${10*point.vx2/safeZoom} ${10*point.vy2/safeZoom} z`"
                         :fill="boundaryBoxColor" stroke="none"/>
                 </g>
+
+                <g v-if="point.t === 'A'">
+                    <path 
+                        data-type="curve-control-point"
+                        :data-curve-point-index="point.id"
+                        data-curve-control-point-index="1"
+                        :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
+                        :d="`M ${5*(point.vx1 + point.vy1)/safeZoom} ${5*(point.vy1 - point.vx1)/safeZoom}  l ${-10*point.vx1/safeZoom} ${-10*point.vy1/safeZoom}  l ${-10*point.vy1/safeZoom} ${10*point.vx1/safeZoom} l ${10*point.vx1/safeZoom} ${10*point.vy1/safeZoom} z`"
+                        :fill="boundaryBoxColor" stroke="none"/>
+                </g>
             </g>
         </g>
     </g>

@@ -7,8 +7,83 @@ function round(value) {
     return myMath.roundPrecise2(value);
 }
 
+
+/**
+ * Generates SVG arc path based on 3 points of the circle
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} x2 
+ * @param {*} y2 
+ * @param {*} x3 
+ * @param {*} y3 
+ */
+function connectArc(x1, y1, x2, y2, x3, y3) {
+    const x12 = x1 - x2;
+    const x13 = x1 - x3;
+ 
+    const y12 = y1 - y2;
+    const y13 = y1 - y3;
+ 
+    const y31 = y3 - y1;
+    const y21 = y2 - y1;
+ 
+    const x31 = x3 - x1;
+    const x21 = x2 - x1;
+ 
+    // x1^2 - x3^2
+    const sx13 = Math.pow(x1, 2) - Math.pow(x3, 2);
+ 
+    // y1^2 - y3^2
+    const sy13 = Math.pow(y1, 2) - Math.pow(y3, 2);
+ 
+    const sx21 = Math.pow(x2, 2) - Math.pow(x1, 2);
+    const sy21 = Math.pow(y2, 2) - Math.pow(y1, 2);
+ 
+    const f = ((sx13) * (x12) + (sy13) * (x12) + (sx21) * (x13) + (sy21) * (x13)) / (2 * ((y31) * (x12) - (y21) * (x13)));
+    const g = ((sx13) * (y12) + (sy13) * (y12) + (sx21) * (y13) + (sy21) * (y13)) / (2 * ((x31) * (y12) - (x21) * (y13)));
+ 
+    const c = -Math.pow(x1, 2) - Math.pow(y1, 2) - 2 * g * x1 - 2 * f * y1;
+ 
+    // eqn of circle be x^2 + y^2 + 2*g*x + 2*f*y + c = 0
+    // where centre is (h = -g, k = -f) and radius r
+    // as r^2 = h^2 + k^2 - c
+    const h = -g;
+    const k = -f;
+    const rSquared = h * h + k * k - c;
+ 
+    // r is the radius
+
+    const xa = x2 - x1;
+    const ya = y2 - y1;
+    const xb = x3 - x1;
+    const yb = y3 - y1;
+    const d1 = xa * xa + ya * ya;
+    const d2 = xb * xb + yb * yb;
+    if (d2 > 0.01 && d1 > 0.01 && rSquared > 0 && rSquared !== Infinity) {
+        const r = Math.sqrt(rSquared);
+
+
+        let sweepFlag = 1;
+        let largeArcFlag = 0;
+        const sina = (xa*yb - ya*xb)/ (Math.sqrt(d1) * Math.sqrt(d2));
+        if (sina < 0) {
+            sweepFlag = 0;
+        }
+        const xm = (x1 + x2 + x3) / 3;
+        const ym = (y1 + y2 + y3) / 3;
+
+        //TODO calculate largeArcFlag based on whether the center of circle is inside the triangle of given points
+        return `A ${round(r)} ${round(r)} 0 ${largeArcFlag} ${sweepFlag} ${round(x3)} ${round(y3)}`;
+    }
+
+    return `L ${round(x3)} ${round(y3)} `;
+}
+
 function connectPoints(p1, p2) {
-    if (p1.t === 'L' && p2.t === 'B') {
+    if (p1.t === 'A') {
+        return connectArc(p1.x, p1.y, p1.x + p1.x1, p1.y + p1.y1, p2.x, p2.y);
+    }
+    else if (p1.t === 'L' && p2.t === 'B') {
         return `Q ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
     } else if (p1.t === 'B' && p2.t === 'L') {
         return `Q ${round(p1.x2+p1.x)} ${round(p1.y2+p1.y)} ${round(p2.x)} ${round(p2.y)} `;
