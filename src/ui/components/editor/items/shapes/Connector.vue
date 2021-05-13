@@ -183,12 +183,18 @@ function computeFatPath(item) {
 
     // ratios for triangle
     const M = 3;
-    const K = 1.6;
+    const K = 2;
 
-    // first creating let edge
+    let shouldDrawEndArrow = false;
+    let shouldDrawSourceArrow = false;
+
+    // first creating left edge
     forEach(item.shapeProps.points, (point, i) => {
         if (i === 0) {
-            if (item.shapeProps.sourceCap === 'triangle') {
+            const d = V[0].x * V[0].x + V[0].y * V[0].y;
+            const arrowLength = item.shapeProps.fatWidth * M;
+            if (item.shapeProps.sourceCap === 'triangle' && Math.sqrt(d) > arrowLength) {
+                shouldDrawSourceArrow = true;
                 const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
                 const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
                 path += ` M ${round(point.x)} ${round(point.y)}  L ${Sx + A[0].x * K} ${Sy + A[0].y * K} L ${Sx + A[0].x} ${Sy + A[0].y}`
@@ -219,9 +225,12 @@ function computeFatPath(item) {
 
         // last point
         if (i === item.shapeProps.points.length - 1 && i > 0) {
-            if (item.shapeProps.destinationCap === 'triangle') {
-                const Sx = point.x - W[i-1].x * item.shapeProps.fatWidth * M;
-                const Sy = point.y - W[i-1].y * item.shapeProps.fatWidth * M;
+            const d = V[i - 1].x * V[i - 1].x + V[i - 1].y * V[i - 1].y;
+            const arrowLength = item.shapeProps.fatWidth * M;
+            if (item.shapeProps.destinationCap === 'triangle' && Math.sqrt(d) > arrowLength) {
+                shouldDrawEndArrow = true;
+                const Sx = point.x - W[i-1].x * arrowLength;
+                const Sy = point.y - W[i-1].y * arrowLength;
                 path += ` L ${Sx + A[i-1].x} ${Sy + A[i-1].y} L ${Sx + A[i-1].x * K} ${Sy + A[i-1].y * K} L ${point.x} ${point.y}`
             } else {
                 path += ` L ${point.x + A[i-1].x} ${point.y + A[i-1].y}`;
@@ -232,7 +241,7 @@ function computeFatPath(item) {
     for (let i = item.shapeProps.points.length - 1; i >=0; i--) {
         const point = item.shapeProps.points[i];
         if (i === item.shapeProps.points.length - 1) {
-            if (item.shapeProps.destinationCap === 'triangle') {
+            if (shouldDrawEndArrow) {
                 const Sx = point.x - W[i-1].x * item.shapeProps.fatWidth * M;
                 const Sy = point.y - W[i-1].y * item.shapeProps.fatWidth * M;
                 path += ` L ${Sx + B[i-1].x * K} ${Sy + B[i-1].y * K} L ${Sx + B[i-1].x} ${Sy + B[i-1].y}`
@@ -256,7 +265,7 @@ function computeFatPath(item) {
                 path += ` L ${point.x + B[i].x} ${point.y + B[i].y} L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
             }
         } else if (i === 0) {
-            if (item.shapeProps.sourceCap === 'triangle') {
+            if (shouldDrawSourceArrow) {
                 const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
                 const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
                 path += ` L ${Sx + B[0].x} ${Sy + B[0].y} L ${Sx + B[0].x * K} ${Sy + B[0].y * K} Z`;
