@@ -212,7 +212,8 @@ function computeFatPath(item) {
                     myMath.createLineEquation(Pa[i-1].x, Pa[i-1].y, Pa[i-1].x + V[i-1].x, Pa[i-1].y + V[i-1].y),
                     myMath.createLineEquation(Pa[i].x, Pa[i].y, Pa[i].x + V[i].x, Pa[i].y + V[i].y),
                 );
-                if (intersection) {
+
+                if (intersection && alpha[i] < -0.1) {
                     path += ` L ${intersection.x} ${intersection.y}`;
                 } else {
                     path += ` L ${Pa[i].x} ${Pa[i].y}`;
@@ -255,7 +256,7 @@ function computeFatPath(item) {
                     myMath.createLineEquation(Pb[i-1].x, Pb[i-1].y, Pb[i-1].x + V[i-1].x, Pb[i-1].y + V[i-1].y),
                     myMath.createLineEquation(Pb[i].x, Pb[i].y, Pb[i].x + V[i].x, Pb[i].y + V[i].y),
                 );
-                if (intersection) {
+                if (intersection && alpha[i] > 0.1) {
                     path += ` L ${intersection.x} ${intersection.y}`;
                 } else {
                     path += ` L ${Pb[i].x} ${Pb[i].y}`;
