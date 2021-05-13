@@ -8,6 +8,7 @@
 <script>
 import Dropdown from '../Dropdown.vue';
 import map from 'lodash/map';
+import filter from 'lodash/filter';
 import { createConnectorCap, getCapTypes, getCapDefaultFill } from './items/shapes/ConnectorCaps';
 
 function generateCapHtml(w, h, y, cap) {
@@ -47,12 +48,23 @@ const leftCaps = map(getCapTypes(), capType => {
     }
 });
 
+function generateCapOptions(caps) {
+    return map(caps, cap => {
+        return {
+            name: cap.name,
+            html: generateCapHtml(100, 30, 15, cap.cap)
+        };
+    });
+
+}
+
 export default {
     props: {
         value: { type: String },
         isSource: { type: Boolean, default: false },
         width : {type: String, default: '30px'},
         height: {type: String, default: '20px'},
+        isFat: {type: Boolean, default: false},
     },
     components: {Dropdown},
 
@@ -61,12 +73,12 @@ export default {
         if (this.isSource) {
             caps = leftCaps;
         }
-        const capOptions = map(caps, cap => {
-            return {
-                name: cap.name,
-                html: generateCapHtml(100, 30, 15, cap.cap)
-            };
-        });
+        let capOptions = [];
+        if (this.isFat) {
+            capOptions = generateCapOptions(filter(caps, cap => cap.name === 'empty' || cap.name === 'triangle'));
+        } else {
+            capOptions = generateCapOptions(caps);
+        }
         return {
             capOptions,
 

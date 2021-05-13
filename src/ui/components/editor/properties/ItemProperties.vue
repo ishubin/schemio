@@ -193,8 +193,10 @@
                                 <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @selected="onShapePropChange(argName, arg.type, arguments[0])"/>
 
                                 <curve-cap-dropdown v-if="arg.type === 'curve-cap'"
+                                    :key="`ip-curve-cap-${item.id}-${argName}-${item.shapeProps.fat}`"
                                     :value="item.shapeProps[argName]"
                                     :is-source="argName === 'sourceCap'"
+                                    :is-fat="item.shape === 'connector' && item.shapeProps.fat"
                                     width="16px"
                                     height="16px"
                                     :disabled="!shapePropsControlStates[argName].shown"

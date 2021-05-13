@@ -118,16 +118,20 @@
                     </li>
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
+                            :key="`qhp-curve-cap-source-${firstSelectedItem.meta.revision}`"
                             :value="curveSourceCap"
                             :is-source="true"
+                            :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
                             height="16px"
                             @selected="emitShapePropChange('sourceCap', 'curve-cap', arguments[0])"/>
                     </li>
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
+                            :key="`qhp-curve-cap-destination-${firstSelectedItem.meta.revision}`"
                             :value="curveDestinationCap"
                             :is-source="false"
+                            :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
                             height="16px"
                             @selected="emitShapePropChange('destinationCap', 'curve-cap', arguments[0])"/>
