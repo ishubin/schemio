@@ -289,7 +289,7 @@ export default {
                     return 'none';
                 }
             }
-            if (this.item.shape === 'connector') {
+            if (this.item.shape === 'connector' && !this.item.shapeProps.fat) {
                 return 'none';
             }
             return 'rgba(255, 255, 255, 0)';

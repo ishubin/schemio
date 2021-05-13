@@ -9,6 +9,9 @@ const MAX_PATH_DIVISIONS = 20;
 const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 40;
 
+const EPSILON = 0.00001;
+
+
 export default {
     
     /**
@@ -23,6 +26,10 @@ export default {
             precision = 0.0001;
         }
         return Math.abs(a - b) < precision;
+    },
+
+    tooSmall(value) {
+        return Math.abs(value) < EPSILON;
     },
 
     /**
@@ -57,6 +64,19 @@ export default {
         return value;
     },
 
+    angleBetweenVectors(x1, y1, x2, y2) {
+        const ds1 = x1*x1 + y1*y1;
+        if (ds1 > 0.001) {
+            const ds2 = x2*x2 + y2*y2;
+            if (ds2 > 0.001) {
+                const d1 = Math.sqrt(ds1);
+                const d2 = Math.sqrt(ds2);
+                return Math.asin((x1*y2 - y1*x2) / (d1*d2));
+            }
+        }
+        return 0;
+    },
+
     distanceBetweenPoints(x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
@@ -75,6 +95,34 @@ export default {
             b: x2 - x1,
             c: x1*y2 - x2*y1
         };
+    },
+
+    /**
+     * Calculates instersection point of two lines
+     * @param {*} line1 line equation in form of {a, b, c}
+     * @param {*} line2 line equation in form of {a, b, c}
+     * @returns 
+     */
+    linesIntersection(line1, line2) {
+
+        const ly = line1.a * line2.b - line2.a * line1.b;
+        if (this.tooSmall(ly)) {
+            return null;
+        }
+
+        const y = (line2.a * line1.c - line1.a * line2.c) / ly;
+        let x = 0;
+        if (this.tooSmall(line1.a)) {
+            if (this.tooSmall(line2.a)) {
+                return null;
+            }
+
+            x = (-line2.b * y - line2.c) / line2.a;
+        } else {
+            x = (-line1.b * y - line1.c) / line1.a;
+        }
+
+        return {x, y};
     },
 
     /**

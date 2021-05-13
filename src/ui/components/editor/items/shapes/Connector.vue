@@ -1,11 +1,13 @@
 <template>
     <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             style="stroke-linejoin: round;"
-            fill="none"></path>
+            :fill="svgFill"></path>
 
         <path v-for="cap in caps" :d="cap.path"
             :data-item-id="item.id"
@@ -26,6 +28,7 @@ import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
+import AdvancedFill from '../AdvancedFill.vue';
 
 const log = new Logger('Connector');
 
@@ -123,9 +126,126 @@ function computeSmoothPath(item) {
     return path;
 }
 
+function computeFatPath(item) {
+    if (item.shapeProps.points.length < 2) {
+        return '';
+    }
+
+    let path = '';
+
+    const V = [];
+    const W = [];
+    const A = [];
+    const B = [];
+    const Pa = [];
+    const Pb = [];
+
+    forEach(item.shapeProps.points, (point, i) => {
+        if (i < item.shapeProps.points.length - 1) {
+            const nextPoint = item.shapeProps.points[i + 1];
+            V[i] = {
+                x: nextPoint.x - point.x,
+                y: nextPoint.y - point.y
+            };
+            const dSquared = V[i].x * V[i].x + V[i].y * V[i].y;
+            if (dSquared > 0.001) {
+                const d = Math.sqrt(dSquared);
+                W[i] = {
+                    x: V[i].x / d,
+                    y: V[i].y /d
+                };
+            } else {
+                W[i] = V[i];
+            }
+            // rotating W by 90 degrees
+            A[i] = {
+                x: W[i].y * item.shapeProps.fatWidth,
+                y: -W[i].x * item.shapeProps.fatWidth
+            };
+            B[i] = {
+                x: -A[i].x,
+                y: -A[i].y
+            }
+            Pa[i] = {
+                x: point.x + A[i].x,
+                y: point.y + A[i].y,
+            };
+            Pb[i] = {
+                x: point.x + B[i].x,
+                y: point.y + B[i].y,
+            };
+        }
+    });
+
+    const alpha = [];
+
+    // first creating let edge
+    forEach(item.shapeProps.points, (point, i) => {
+        if (i === 0) {
+            path = `M ${round(Pa[i].x)} ${round(Pa[i].y)}`;
+            return;
+        }
+
+        if (i > 0 && i < item.shapeProps.points.length - 1) {
+            alpha[i] = myMath.angleBetweenVectors(V[i].x, V[i].y, -V[i-1].x, -V[i-1].y);
+            if (alpha[i] < 0) {
+                // should merge left points
+                const intersection = myMath.linesIntersection(
+                    myMath.createLineEquation(Pa[i-1].x, Pa[i-1].y, Pa[i-1].x + V[i-1].x, Pa[i-1].y + V[i-1].y),
+                    myMath.createLineEquation(Pa[i].x, Pa[i].y, Pa[i].x + V[i].x, Pa[i].y + V[i].y),
+                );
+                if (intersection) {
+                    path += ` L ${intersection.x} ${intersection.y}`;
+                } else {
+                    path += ` L ${Pa[i].x} ${Pa[i].y}`;
+                }
+            } else {
+                // should not merge left points
+                path += ` L ${point.x + A[i-1].x} ${point.y + A[i-1].y}  L ${point.x + A[i].x} ${point.y + A[i].y}`;
+            }
+        }
+
+        // last point
+        if (i === item.shapeProps.points.length - 1 && i > 0) {
+            path += ` L ${point.x + A[i-1].x} ${point.y + A[i-1].y}`;
+        }
+    });
+
+    for (let i = item.shapeProps.points.length - 1; i >=0; i--) {
+        const point = item.shapeProps.points[i];
+        if (i === item.shapeProps.points.length - 1) {
+            path += ` L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
+        } else if (i > 0) {
+            if (alpha[i] > 0) {
+                // should merge right points
+                const intersection = myMath.linesIntersection(
+                    myMath.createLineEquation(Pb[i-1].x, Pb[i-1].y, Pb[i-1].x + V[i-1].x, Pb[i-1].y + V[i-1].y),
+                    myMath.createLineEquation(Pb[i].x, Pb[i].y, Pb[i].x + V[i].x, Pb[i].y + V[i].y),
+                );
+                if (intersection) {
+                    path += ` L ${intersection.x} ${intersection.y}`;
+                } else {
+                    path += ` L ${Pb[i].x} ${Pb[i].y}`;
+                }
+            } else {
+                // should not merge right points
+                path += ` L ${point.x + B[i].x} ${point.y + B[i].y} L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
+            }
+        } else if (i === 0) {
+            path += `L ${point.x + B[i].x} ${point.y + B[i].y} z`;
+        }
+    }
+
+    return path;
+}
+
 function computePath(item) {
     if (item.shapeProps.points.length < 2) {
         return null;
+    }
+
+    if (item.shapeProps.fat) {
+        return computeFatPath(item);
     }
 
     if (item.shapeProps.smoothing === 'smooth') {
@@ -338,7 +458,7 @@ const groupName = 'Connections';
 
 export default {
     props: ['item'],
-    components: {},
+    components: {AdvancedFill},
 
     shapeConfig: {
         shapeType: 'vue',
@@ -443,14 +563,18 @@ export default {
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
-            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
-            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
-            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
-            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
-            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
+            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap', depends: {fat: false}},
+            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size', depends: {fat: false}},
+            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill', depends: {fat: false}},
+            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap', depends: {fat: false}},
+            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size', depends: {fat: false}},
+            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
+
+            fat               : {type: 'boolean',       value: false, name: 'Fat'},
+            fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {fat: true}},
+            fatWidth          : {type: 'number',        value: 10, name: 'Fat Width', min: 1, max: 1000, depends: {fat: true}},
 
             sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
             destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
@@ -533,6 +657,12 @@ export default {
     computed: {
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+        },
+        svgFill() {
+            if (this.item.shapeProps.fat) {
+                return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            }
+            return 'none';
         }
     }
 }
