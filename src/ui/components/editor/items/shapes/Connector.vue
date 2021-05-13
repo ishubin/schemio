@@ -181,10 +181,20 @@ function computeFatPath(item) {
 
     const alpha = [];
 
+    // ratios for triangle
+    const M = 3;
+    const K = 1.6;
+
     // first creating let edge
     forEach(item.shapeProps.points, (point, i) => {
         if (i === 0) {
-            path = `M ${round(Pa[i].x)} ${round(Pa[i].y)}`;
+            if (item.shapeProps.sourceCap === 'triangle') {
+                const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
+                const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
+                path += ` M ${round(point.x)} ${round(point.y)}  L ${Sx + A[0].x * K} ${Sy + A[0].y * K} L ${Sx + A[0].x} ${Sy + A[0].y}`
+            } else {
+                path = `M ${round(Pa[i].x)} ${round(Pa[i].y)}`;
+            }
             return;
         }
 
@@ -209,14 +219,26 @@ function computeFatPath(item) {
 
         // last point
         if (i === item.shapeProps.points.length - 1 && i > 0) {
-            path += ` L ${point.x + A[i-1].x} ${point.y + A[i-1].y}`;
+            if (item.shapeProps.destinationCap === 'triangle') {
+                const Sx = point.x - W[i-1].x * item.shapeProps.fatWidth * M;
+                const Sy = point.y - W[i-1].y * item.shapeProps.fatWidth * M;
+                path += ` L ${Sx + A[i-1].x} ${Sy + A[i-1].y} L ${Sx + A[i-1].x * K} ${Sy + A[i-1].y * K} L ${point.x} ${point.y}`
+            } else {
+                path += ` L ${point.x + A[i-1].x} ${point.y + A[i-1].y}`;
+            }
         }
     });
 
     for (let i = item.shapeProps.points.length - 1; i >=0; i--) {
         const point = item.shapeProps.points[i];
         if (i === item.shapeProps.points.length - 1) {
-            path += ` L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
+            if (item.shapeProps.destinationCap === 'triangle') {
+                const Sx = point.x - W[i-1].x * item.shapeProps.fatWidth * M;
+                const Sy = point.y - W[i-1].y * item.shapeProps.fatWidth * M;
+                path += ` L ${Sx + B[i-1].x * K} ${Sy + B[i-1].y * K} L ${Sx + B[i-1].x} ${Sy + B[i-1].y}`
+            } else {
+                path += ` L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
+            }
         } else if (i > 0) {
             if (alpha[i] > 0) {
                 // should merge right points
@@ -234,7 +256,13 @@ function computeFatPath(item) {
                 path += ` L ${point.x + B[i].x} ${point.y + B[i].y} L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
             }
         } else if (i === 0) {
-            path += `L ${point.x + B[i].x} ${point.y + B[i].y} z`;
+            if (item.shapeProps.sourceCap === 'triangle') {
+                const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
+                const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
+                path += ` L ${Sx + B[0].x} ${Sy + B[0].y} L ${Sx + B[0].x * K} ${Sy + B[0].y * K} Z`;
+            } else {
+                path += `L ${point.x + B[i].x} ${point.y + B[i].y} z`;
+            }
         }
     }
 
@@ -559,14 +587,26 @@ export default {
                 }
             }
         }, {
-        }, {
             group: groupName,
             name: 'Fat Connector',
-            iconUrl: '/assets/images/items/connector-arrow.svg',
+            iconUrl: '/assets/images/items/connector-arrow-fat.svg',
             item: {
                 shapeProps: {
                     sourceCap: 'empty',
-                    destinationCap: 'empty',
+                    destinationCap: 'triangle',
+                    points: menuItemPoints,
+                    fat: true,
+                    fatWidth: 10
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Fat Connector (Both Arrows)',
+            iconUrl: '/assets/images/items/connector-arrow-fat-both.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'triangle',
+                    destinationCap: 'triangle',
                     points: menuItemPoints,
                     fat: true,
                     fatWidth: 10
@@ -621,11 +661,11 @@ export default {
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
-            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap', depends: {fat: false}},
-            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size', depends: {fat: false}},
+            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
+            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill', depends: {fat: false}},
-            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap', depends: {fat: false}},
-            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size', depends: {fat: false}},
+            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
+            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
