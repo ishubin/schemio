@@ -9,13 +9,15 @@
             style="stroke-linejoin: round;"
             :fill="svgFill"></path>
 
-        <path v-for="cap in caps" :d="cap.path"
-            :data-item-id="item.id"
-            :stroke="item.shapeProps.strokeColor"
-            :stroke-width="item.shapeProps.strokeSize"
-            :fill="cap.fill"
-            stroke-linejoin="round"
-        />
+        <g v-if="!item.shapeProps.fat">
+            <path v-for="cap in caps" :d="cap.path"
+                :data-item-id="item.id"
+                :stroke="item.shapeProps.strokeColor"
+                :stroke-width="item.shapeProps.strokeSize"
+                :fill="cap.fill"
+                stroke-linejoin="round"
+            />
+        </g>
     </g>
 </template>
 
@@ -475,9 +477,10 @@ export default {
             iconUrl: '/assets/images/items/connector-empty.svg',
             item: {
                 shapeProps: {
+                    fat: false,
                     sourceCap: 'empty',
                     destinationCap: 'empty',
-                    points: menuItemPoints
+                    points: menuItemPoints,
                 }
             }
         }, {
@@ -486,6 +489,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle.svg',
             item: {
                 shapeProps: {
+                    fat: false,
                     sourceCap: 'empty',
                     destinationCap: 'triangle',
                     points: menuItemPoints
@@ -497,6 +501,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle-white.svg',
             item: {
                 shapeProps: {
+                    fat: false,
                     sourceCap: 'empty',
                     destinationCap: 'triangle',
                     points: menuItemPoints,
@@ -509,9 +514,62 @@ export default {
             iconUrl: '/assets/images/items/connector-arrow.svg',
             item: {
                 shapeProps: {
+                    fat: false,
                     sourceCap: 'empty',
                     destinationCap: 'arrow',
                     points: menuItemPoints
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Triangle Connector (Both Sides)',
+            iconUrl: '/assets/images/items/connector-triangle-both.svg',
+            item: {
+                shapeProps: {
+                    fat: false,
+                    sourceCap: 'triangle',
+                    destinationCap: 'triangle',
+                    points: menuItemPoints
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Triangle Connector (Both Sides)',
+            iconUrl: '/assets/images/items/connector-triangle-white-both.svg',
+            item: {
+                shapeProps: {
+                    fat: false,
+                    sourceCap: 'triangle',
+                    destinationCap: 'triangle',
+                    points: menuItemPoints,
+                    sourceCapFill: 'rgba(255, 255, 255, 1.0)',
+                    destinationCapFill: 'rgba(255, 255, 255, 1.0)'
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Arrow Connector (Both Sides)',
+            iconUrl: '/assets/images/items/connector-arrow-both.svg',
+            item: {
+                shapeProps: {
+                    fat: false,
+                    sourceCap: 'arrow',
+                    destinationCap: 'arrow',
+                    points: menuItemPoints
+                }
+            }
+        }, {
+        }, {
+            group: groupName,
+            name: 'Fat Connector',
+            iconUrl: '/assets/images/items/connector-arrow.svg',
+            item: {
+                shapeProps: {
+                    sourceCap: 'empty',
+                    destinationCap: 'empty',
+                    points: menuItemPoints,
+                    fat: true,
+                    fatWidth: 10
                 }
             }
         }],
@@ -609,6 +667,10 @@ export default {
         },
 
         computeCaps(svgPath) {
+            if (this.item.shapeProps.fat) {
+                return [];
+            }
+
             const caps = [];
 
             let sourceCap         = this.item.shapeProps.sourceCap || 'empty';

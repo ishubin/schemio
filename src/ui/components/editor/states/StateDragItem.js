@@ -518,8 +518,22 @@ export default class StateDragItem extends State {
         if (!shape) {
             return;
         }
+
+        let minDistance = parseInt(item.shapeProps.strokeSize) + 1;
+
         const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        const path = shape.computeOutline(item);
+        let path = '';
+        if (item.shapeProps.fat && item.shapeProps.points.length > 1) {
+            const points = item.shapeProps.points;
+            path = `M ${points[0].x} ${points[0].y}`
+            for (let i = 1; i < points.length; i++) {
+                path += ` L ${points[i].x} ${points[i].y}`;
+            }
+            minDistance += item.shapeProps.fatWidth;
+        } else {
+            path = shape.computeOutline(item);
+        }
+
         if (!path) {
             return;
         }
@@ -532,7 +546,7 @@ export default class StateDragItem extends State {
         const dx = localPoint.x - closestPoint.x;
         const dy = localPoint.y - closestPoint.y;
         const d = Math.sqrt(dx*dx + dy*dy);
-        if (d <= parseInt(item.shapeProps.strokeSize) + 1) {
+        if (d <= minDistance) {
             const index = this.findClosestLineSegment(closestPoint.distance, item.shapeProps.points, shadowSvgPath);
             item.shapeProps.points.splice(index + 1, 0, {
                 x: closestPoint.x,
