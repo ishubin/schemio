@@ -6,7 +6,7 @@
     <div id="svg-editor" class="svg-editor">
         <svg id="svg_plot" ref="svgDomElement"
             :class="['mode-' + mode, 'state-' + state]"
-            :style="{cursor: cursor, background: schemeContainer.scheme.style.backgroundColor}"
+            :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
@@ -149,6 +149,8 @@
 
                 <line v-if="horizontalSnapper" :x1="0" :y1="_y(horizontalSnapper.value)" :x2="width" :y2="_y(horizontalSnapper.value)" style="stroke: red; opacity: 0.4; stroke-width: 1px;"/>
                 <line v-if="verticalSnapper" :x1="_x(verticalSnapper.value)" :y1="0" :x2="_x(verticalSnapper.value)" :y2="height" style="stroke: red; opacity:0.4; stroke-width: 1px;"/>
+
+                <rect class="state-hover-layer" v-if="shouldShowStateHoverLayer"  x="0" y="0" :width="width" :height="height" fill="rgba(255, 255, 255, 0.0)"/>
             </g>
         </svg>
 
@@ -216,6 +218,7 @@ import {ItemInteractionMode, defaultItem, enrichItemWithDefaults} from '../../sc
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateCreateItem from './states/StateCreateItem.js';
+import StateDraw from './states/StateDraw.js';
 import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
 import EventBus from './EventBus.js';
@@ -264,7 +267,8 @@ const states = {
     createItem: new StateCreateItem(EventBus, store),
     editCurve: new StateEditCurve(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
-    pickElement: new StatePickElement(EventBus, store)
+    pickElement: new StatePickElement(EventBus, store),
+    draw: new StateDraw(EventBus, store),
 };
 
 
@@ -305,6 +309,7 @@ export default {
         }
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
+        EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
@@ -343,6 +348,7 @@ export default {
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
+        EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
@@ -378,8 +384,6 @@ export default {
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
             state: 'interact',
-
-            cursor: 'default',
 
             // the following two properties are going to be updated in mounted hook
             width: window.innerWidth,
@@ -627,6 +631,13 @@ export default {
             }
             states[this.state].reset();
             states[this.state].setItem(item);
+        },
+
+        onSwitchStateDrawing() {
+            this.highlightItems([]);
+
+            this.state = 'draw';
+            states[this.state].reset();
         },
 
         setCurveEditItem(item) {
@@ -1554,6 +1565,9 @@ export default {
         },
         verticalSnapper() {
             return this.$store.getters.verticalSnapper;
+        },
+        shouldShowStateHoverLayer() {
+            return this.state === 'createItem' || this.state === 'draw';
         }
     },
     filters: {

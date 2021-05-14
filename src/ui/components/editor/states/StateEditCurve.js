@@ -229,7 +229,7 @@ export default class StateEditCurve extends State {
         this.schemeContainer.addItem(this.item);
 
         // snapping can only be performed once the item is added to the scheme
-        // that is why we have to re-adjust curve points afterwords so that they are snapped
+        // that is why we have to re-adjust curve points afterwards so that they are snapped
         const snappedCurvePoint = this.snapCurvePoint(-1, x, y);
 
         this.item.shapeProps.points.push({

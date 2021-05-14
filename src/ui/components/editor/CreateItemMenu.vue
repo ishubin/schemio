@@ -7,6 +7,8 @@
         <div>
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
+            <span @click="initiateDrawing()"><i class="fas fa-pencil-alt"></i></span>
+
             <panel v-for="panel in itemPanels" :name="panel.name">
                 <div class="item-menu">
                     <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemPicked(item)">
@@ -304,6 +306,10 @@ export default {
 
         makeUniqueName(name) {
             return this.schemeContainer.copyNameAndMakeUnique(name);
+        },
+
+        initiateDrawing(name) {
+            EventBus.$emit(EventBus.START_DRAWING);
         }
     }
 }

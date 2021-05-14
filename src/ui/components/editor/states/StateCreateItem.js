@@ -3,11 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import Shape from '../items/shapes/Shape';
-import forEach from 'lodash/forEach';
 import EventBus from '../EventBus.js';
 import StoreUtils from '../../../store/StoreUtils';
-import myMath from '../../../myMath.js';
 
 export default class StateCreateItem extends State {
     constructor(eventBus, store) {
