@@ -38,6 +38,45 @@ function computePath(item) {
 };
 
 
+/**
+ * Takes points of the curve and simplifies them (tries to deletes as much points as possible)
+ * @property {Array} points - points of the curve 
+ * @property {Number} epsilon - minimum distance of the points to keep (used in Ramer-Douglas-Peucker algorithm)
+ * @returns {Array} simplified curve points 
+ */
+export function simplifyCurvePoints(points, epsilon) {
+    if (!epsilon) {
+        epsilon = 20;
+    }
+
+    // first we need to break the curve into smaller curves based on the point breaks
+
+    const curves = [];
+
+    let currentCurvePoints = [];
+    curves.push(currentCurvePoints);
+
+    forEach(points, (point, i) => {
+        if (point.break) {
+            currentCurvePoints = [];
+            curves.push(currentCurvePoints);
+        }
+        currentCurvePoints.push(point);
+    });
+
+    let newPoints = [];
+
+    forEach(curves, (curvePoints, i) => {
+        const simplifiedPoints = myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon);
+
+        if (i > 0 && curvePoints.length > 0) {
+            curvePoints[0].break = true;
+        }
+        newPoints = newPoints.concat(simplifiedPoints);
+    });
+
+    return newPoints;
+}
 
 /**
  * @property {Item} item 

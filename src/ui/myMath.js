@@ -11,6 +11,78 @@ const PATH_DIVISION_LENGTH = 40;
 
 const EPSILON = 0.00001;
 
+function tooSmall(value) {
+    return Math.abs(value) < EPSILON;
+}
+
+
+/**
+ * Generates line equation in form of ax + by + c = 0 which intersects given two points
+ * returns an object with a, b, c parameters
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} x2 
+ * @param {*} y2 
+ */
+function createLineEquation(x1, y1, x2, y2) {
+    return {
+        a: y1 - y2,
+        b: x2 - x1,
+        c: x1*y2 - x2*y1
+    };
+}
+
+/**
+ * Calculates distance from given point to a line 
+ * @param {Number} x
+ * @param {Number} y
+ * @param {*} line line equation in form of {a, b, c}
+ * @returns {Number} distance from given point to a line
+ */
+function distanceFromPointToLine(x, y, {a, b, c}) {
+    if (tooSmall(a) && tooSmall(b)) {
+        return 0;
+    }
+
+    return Math.abs(a*x + b*y + c) / Math.sqrt(a*a + b*b);
+}
+
+function _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, idxEnd) {
+    if (idxEnd - idxStart < 2) {
+        return points;
+    }
+
+    const line = createLineEquation(points[idxStart].x, points[idxStart].y, points[idxEnd].x, points[idxEnd].y);
+    
+    let furtherstPointIdx = idxStart + 1;
+    let furtherstDistance = 0;
+
+    for (let i = idxStart + 1; i < idxEnd - 1; i++) {
+        const d = distanceFromPointToLine(points[i].x, points[i].y, line);
+
+        if (d > furtherstDistance) {
+            furtherstDistance = d;
+            furtherstPointIdx = i;
+        }
+    }
+
+    if (furtherstDistance > epsilon) {
+        // then we break it into smaller problems
+
+        const pointsA = _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, furtherstPointIdx);
+        const pointsB = _simplifyCurvePointsUsingRDP(points, epsilon, furtherstPointIdx, idxEnd);
+
+        // since both arrays will have point at furtherstPointIdx included, we need to remove it
+        pointsB.splice(0, 1);
+
+        return pointsA.concat(pointsB);
+
+    } else {
+        // we can skip all the points
+        return [points[idxStart], points[idxEnd]];
+    }
+}
+
 
 export default {
     
@@ -28,9 +100,7 @@ export default {
         return Math.abs(a - b) < precision;
     },
 
-    tooSmall(value) {
-        return Math.abs(value) < EPSILON;
-    },
+    tooSmall,
 
     /**
      * Rounds floating value and converts it to another floating value leaving only the specified significant digits after point
@@ -81,21 +151,8 @@ export default {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
 
-    /**
-     * Generates line equation in form of ax + by + c = 0 which intersects given two points
-     * returns an object with a, b, c parameters
-     * @param {*} x1 
-     * @param {*} y1 
-     * @param {*} x2 
-     * @param {*} y2 
-     */
-    createLineEquation(x1, y1, x2, y2) {
-        return {
-            a: y1 - y2,
-            b: x2 - x1,
-            c: x1*y2 - x2*y1
-        };
-    },
+    createLineEquation,
+    distanceFromPointToLine,
 
     /**
      * Calculates instersection point of two lines
@@ -370,5 +427,16 @@ export default {
             return this._snapScales[this._snapScales.length - 1];
         }
         return this._snapScales[0];
+    },
+    
+
+    /**
+     * Simplifies specified points using Ramer-Douglas-Peucker algorithm
+     * @param {Array} points array of points
+     * @param {Number} epsilon minimum distance to the line in the RDP algorithm
+     * @returns 
+     */
+    simplifyCurvePointsUsingRDP(points, epsilon) {
+        return _simplifyCurvePointsUsingRDP(points, epsilon, 0, points.length - 1);
     }
 }

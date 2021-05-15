@@ -5,6 +5,7 @@
 import myMath from '../../../myMath.js';
 import EventBus from '../EventBus.js';
 import State from './State.js';
+import {simplifyCurvePoints} from '../items/shapes/Curve.vue';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -105,6 +106,7 @@ export default class StateDraw extends State {
                 this.schemeContainer.deleteItem(this.item);
                 this.schemeContainer.reindexItems();
             } else {
+                this.item.shapeProps.points = simplifyCurvePoints(this.item.shapeProps.points);
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
                 this.schemeContainer.reindexItems();
                 this.schemeContainer.selectItem(this.item);
