@@ -7,7 +7,11 @@
         <div>
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
-            <span @click="initiateDrawing()"><i class="fas fa-pencil-alt"></i></span>
+            <div class="item-menu">
+                <div class="item-container" @click="initiateDrawing()">
+                    <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
+                </div>
+            </div>
 
             <panel v-for="panel in itemPanels" :name="panel.name">
                 <div class="item-menu">
