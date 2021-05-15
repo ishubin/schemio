@@ -46,7 +46,7 @@ function computePath(item) {
  */
 export function simplifyCurvePoints(points, epsilon) {
     if (!epsilon) {
-        epsilon = 20;
+        epsilon = 5;
     }
 
     // first we need to break the curve into smaller curves based on the point breaks
