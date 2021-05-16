@@ -67,8 +67,8 @@ function checkEllipse(points, curvesInfo) {
         });
 
         // checking that majority of angles are in the same direction
-        const min = Math.min(leftAngles);
-        const max = Math.min(rightAngles);
+        const min = Math.min(leftAngles, rightAngles);
+        const max = Math.max(leftAngles, rightAngles);
         if ((max - min) / (leftAngles + rightAngles) > 0.7) {
             score = (leftAngles + rightAngles - largeAngles) / (leftAngles + rightAngles);
         }
@@ -179,6 +179,7 @@ export function identifyShape(points) {
         const result = shapeClassifier(points, curvesInfo);
         if (result.score > maxScore) {
             bestResult = result;
+            maxScore = result.score;
         }
     });
     return bestResult;
