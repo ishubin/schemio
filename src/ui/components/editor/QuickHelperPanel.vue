@@ -152,7 +152,8 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="mode === 'edit' && shouldShownCurveHelpers" class="quick-helper-panel-section">
+
+            <div v-if="mode === 'edit' && shouldShowCurveHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li v-if="firstSelectedCurveEditPoint">
                         <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-curve-points-to-simple')">
@@ -169,6 +170,16 @@
                     </li>
                 </ul>
             </div>
+
+            <div v-if="mode === 'edit' && shouldShowDrawHelpers" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <span @click="stopDrawing" class="btn btn-small btn-primary">Stop Drawing</span>
+                    </li>
+                </ul>
+            </div>
+
+
             <div v-if="mode === 'edit' && currentState === 'createItem'" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
@@ -330,6 +341,10 @@ export default {
 
         stopEditCurve() {
             EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+        },
+
+        stopDrawing() {
+            EventBus.$emit(EventBus.STOP_DRAWING);
         },
         
         removeSelectedItems() {
@@ -533,8 +548,12 @@ export default {
             return this.$store.state.editorStateName;
         },
 
-        shouldShownCurveHelpers() {
+        shouldShowCurveHelpers() {
             return this.$store.state.editorStateName === 'editCurve';
+        },
+
+        shouldShowDrawHelpers() {
+            return this.$store.state.editorStateName === 'draw';
         },
 
         shouldShowCurveCaps() {

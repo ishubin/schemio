@@ -82,16 +82,18 @@ export default class StateEditCurve extends State {
 
     cancel() {
         this.eventBus.emitItemsHighlighted([]);
-        if (this.creatingNewPoints) {
-            // deleting last point
-            this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
+        if (this.item) {
+            if (this.creatingNewPoints) {
+                // deleting last point
+                this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
 
-            if (this.item.shapeProps.points.length > 0) {
-                this.submitItem();
+                if (this.item.shapeProps.points.length > 0) {
+                    this.submitItem();
+                }
+            } else {
+                this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+                this.schemeContainer.updateMultiItemEditBox();
             }
-        } else {
-            this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-            this.schemeContainer.updateMultiItemEditBox();
         }
         super.cancel();
     }

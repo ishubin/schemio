@@ -310,6 +310,7 @@ export default {
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
+        EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
@@ -349,6 +350,7 @@ export default {
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
+        EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
@@ -667,6 +669,12 @@ export default {
         onCurveEditStopped() {
             if (this.state === 'editCurve') {
                 states.editCurve.cancel();
+            }
+        },
+
+        onStopDrawing() {
+            if (this.state === 'draw') {
+                states.draw.cancel();
             }
         },
 

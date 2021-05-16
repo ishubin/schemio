@@ -15,6 +15,8 @@ const EventBus = new Vue({
             START_CREATING_COMPONENT: 'start-creating-component',
             START_CONNECTING_ITEM: 'start-connecting-item',
             START_DRAWING: 'start-drawing',
+            STOP_DRAWING: 'stop-drawing',
+
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
             KEY_PRESS: 'key-press',
@@ -74,6 +76,7 @@ const EventBus = new Vue({
 
             CURVE_EDITED: 'curve-edited',
             CURVE_EDIT_STOPPED: 'curve-edit-stopped',
+
 
             CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
 
