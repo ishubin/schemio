@@ -6,6 +6,7 @@ import myMath from '../../../myMath.js';
 import EventBus from '../EventBus.js';
 import State from './State.js';
 import {simplifyCurvePoints} from '../items/shapes/Curve.vue';
+import { identifyShape } from '../items/shapes/SmartShapeClassifier.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -107,6 +108,10 @@ export default class StateDraw extends State {
                 this.schemeContainer.reindexItems();
             } else {
                 this.item.shapeProps.points = simplifyCurvePoints(this.item.shapeProps.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+
+                const ishape = identifyShape(this.item.shapeProps.points);
+                console.log('Shape identified', ishape);
+
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
                 this.schemeContainer.reindexItems();
                 this.schemeContainer.selectItem(this.item);
