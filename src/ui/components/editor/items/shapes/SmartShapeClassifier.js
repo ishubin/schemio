@@ -49,8 +49,33 @@ function checkRect(points, curvesInfo) {
 
 
 function checkEllipse(points, curvesInfo) {
+    let score = 0;
+    if (curvesInfo.length === 1 && curvesInfo[0].angles.length > 6) {
+        let leftAngles = 0;
+        let rightAngles = 0;
+        let largeAngles = 0;
+        forEach(curvesInfo[0].angles, angle => {
+            if (angle < 0) {
+                leftAngles++;
+            } else {
+                rightAngles++;
+            }
+
+            if (Math.abs(angle) > 40) {
+                largeAngles++;
+            }
+        });
+
+        // checking that majority of angles are in the same direction
+        const min = Math.min(leftAngles);
+        const max = Math.min(rightAngles);
+        if ((max - min) / (leftAngles + rightAngles) > 0.7) {
+            score = (leftAngles + rightAngles - largeAngles) / (leftAngles + rightAngles);
+        }
+    }
+
     return {
-        score: 0,
+        score,
         shape: 'ellipse'
     };
 }
