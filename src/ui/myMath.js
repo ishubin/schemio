@@ -15,6 +15,19 @@ function tooSmall(value) {
     return Math.abs(value) < EPSILON;
 }
 
+function angleBetweenVectors(x1, y1, x2, y2) {
+    const ds1 = x1*x1 + y1*y1;
+    if (ds1 > 0.001) {
+        const ds2 = x2*x2 + y2*y2;
+        if (ds2 > 0.001) {
+            const d1 = Math.sqrt(ds1);
+            const d2 = Math.sqrt(ds2);
+            return Math.asin((x1*y2 - y1*x2) / (d1*d2));
+        }
+    }
+    return 0;
+}
+
 
 /**
  * Generates line equation in form of ax + by + c = 0 which intersects given two points
@@ -134,22 +147,11 @@ export default {
         return value;
     },
 
-    angleBetweenVectors(x1, y1, x2, y2) {
-        const ds1 = x1*x1 + y1*y1;
-        if (ds1 > 0.001) {
-            const ds2 = x2*x2 + y2*y2;
-            if (ds2 > 0.001) {
-                const d1 = Math.sqrt(ds1);
-                const d2 = Math.sqrt(ds2);
-                return Math.asin((x1*y2 - y1*x2) / (d1*d2));
-            }
-        }
-        return 0;
-    },
-
     distanceBetweenPoints(x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
+    
+    angleBetweenVectors,
 
     createLineEquation,
     distanceFromPointToLine,
@@ -438,5 +440,55 @@ export default {
      */
     simplifyCurvePointsUsingRDP(points, epsilon) {
         return _simplifyCurvePointsUsingRDP(points, epsilon, 0, points.length - 1);
+    },
+
+
+    smoothCurvePoints(points) {
+        const maxSmoothingLength = 100;
+        const maxSmoothingLengthSquared = maxSmoothingLength * maxSmoothingLength;
+        const maxSmoothingAngle = 0.1;
+        const smoothingFactor = 8;
+        if (points.length <= 2) {
+            return points;
+        }
+
+        const smoothPoints = [points[0]];
+        
+        for (let i = 1; i < points.length - 1; i++) {
+            let prevPoint = points[i - 1];
+            let point = points[i];
+            let nextPoint = points[i + 1];
+
+
+            const aSquared = (point.x - prevPoint.x) * (point.x - prevPoint.x) + (point.y - prevPoint.y) * (point.y - prevPoint.y);
+            const bSquared = (point.x - nextPoint.x) * (point.x - nextPoint.x) + (point.y - nextPoint.y) * (point.y - nextPoint.y);
+            
+            const angle = angleBetweenVectors(
+                prevPoint.x - point.x,
+                prevPoint.y - point.y,
+                nextPoint.x - point.x,
+                nextPoint.y - point.y
+            );
+
+            if (aSquared < maxSmoothingLengthSquared && bSquared < maxSmoothingLengthSquared || Math.abs(angle) < maxSmoothingAngle) {
+                const cx = nextPoint.x - prevPoint.x;
+                const cy = nextPoint.y - prevPoint.y;
+
+                smoothPoints.push({
+                    t: 'B',
+                    x: point.x,
+                    y: point.y,
+                    x1: -cx/smoothingFactor,
+                    y1: -cy/smoothingFactor,
+                    x2: cx/smoothingFactor,
+                    y2: cy/smoothingFactor,
+                });
+            } else {
+                smoothPoints.push(point);
+            }
+        }
+
+        smoothPoints.push(points[points.length - 1]);
+        return smoothPoints;
     }
 }

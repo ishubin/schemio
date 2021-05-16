@@ -67,7 +67,7 @@ export function simplifyCurvePoints(points, epsilon) {
     let newPoints = [];
 
     forEach(curves, (curvePoints, i) => {
-        const simplifiedPoints = myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon);
+        const simplifiedPoints = myMath.smoothCurvePoints(myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon));
 
         if (i > 0 && curvePoints.length > 0) {
             curvePoints[0].break = true;
