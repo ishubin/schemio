@@ -147,7 +147,11 @@ const store = new Vuex.Store({
         },
 
         // Contains global self descructing messages that can be written from any components
-        systemMessages: []
+        systemMessages: [],
+
+        draw: {
+            epsilon: 5
+        }
     },
     mutations: {
         SET_IS_LOADING_USER(state, isLoading) {
@@ -386,6 +390,12 @@ const store = new Vuex.Store({
                     return;
                 }
             }
+        },
+
+        UPDATE_DRAW_EPSILON(state, epsilon) {
+            if (!isNaN(epsilon)) {
+                state.draw.epsilon = epsilon;
+            }
         }
     },
 
@@ -540,6 +550,10 @@ const store = new Vuex.Store({
         },
         removeSystemMessage({commit}, id) {
             commit('REMOVE_SYSTEM_MESSAGE', id);
+        },
+
+        updateDrawEpsilon({commit}, epsilon) {
+            commit('UPDATE_DRAW_EPSILON', epsilon);
         }
     },
 
@@ -571,7 +585,9 @@ const store = new Vuex.Store({
 
         selectedConnectorPath: state => state.selectedConnectorPath,
 
-        systemMessages: state => state.systemMessages
+        systemMessages: state => state.systemMessages,
+
+        drawEpsilon: state => state.draw.epsilon,
     }
 });
 

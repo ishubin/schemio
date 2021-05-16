@@ -106,7 +106,7 @@ export default class StateDraw extends State {
                 this.schemeContainer.deleteItem(this.item);
                 this.schemeContainer.reindexItems();
             } else {
-                this.item.shapeProps.points = simplifyCurvePoints(this.item.shapeProps.points);
+                this.item.shapeProps.points = simplifyCurvePoints(this.item.shapeProps.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
                 this.schemeContainer.reindexItems();
                 this.schemeContainer.selectItem(this.item);

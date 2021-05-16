@@ -174,6 +174,9 @@
             <div v-if="mode === 'edit' && shouldShowDrawHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
+                        <number-textfield :value="drawEpsilon" name="Optimization" @changed="onDrawEpsilonChanged" :min="1" :max="1000"/>
+                    </li>
+                    <li>
                         <span @click="stopDrawing" class="btn btn-small btn-primary">Stop Drawing</span>
                     </li>
                 </ul>
@@ -481,6 +484,10 @@ export default {
         toggleSearchedItems() {
             this.$emit('zoomed-to-items', this.searchHighlights);
         },
+
+        onDrawEpsilonChanged(value) {
+            this.$store.dispatch('updateDrawEpsilon', value);
+        }
     },
 
     watch: {
@@ -584,6 +591,10 @@ export default {
         firstSelectedCurveEditPoint() {
             return this.$store.getters.firstSelectedCurveEditPoint;
         },
+
+        drawEpsilon() {
+            return this.$store.getters.drawEpsilon;
+        }
     }
 }
 </script>
