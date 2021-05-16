@@ -49,7 +49,7 @@ function distanceFromPointToLine(x, y, {a, b, c}) {
 
 function _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     if (idxEnd - idxStart < 2) {
-        return points;
+        return [points[idxStart], points[idxEnd]];
     }
 
     const line = createLineEquation(points[idxStart].x, points[idxStart].y, points[idxEnd].x, points[idxEnd].y);
@@ -57,7 +57,7 @@ function _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     let furtherstPointIdx = idxStart + 1;
     let furtherstDistance = 0;
 
-    for (let i = idxStart + 1; i < idxEnd - 1; i++) {
+    for (let i = idxStart + 1; i < idxEnd; i++) {
         const d = distanceFromPointToLine(points[i].x, points[i].y, line);
 
         if (d > furtherstDistance) {
