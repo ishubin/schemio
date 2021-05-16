@@ -8,8 +8,11 @@
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
             <div class="item-menu">
-                <div class="item-container" @click="initiateDrawing()">
+                <div class="item-container" @click="initiateDrawing()" title="Draw">
                     <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
+                </div>
+                <div class="item-container" @click="initiateSmartDrawing()" title="Smart Draw">
+                    <img src="/assets/images/icons/smart-draw.svg" width="35" height="30"/>
                 </div>
             </div>
 
@@ -314,6 +317,10 @@ export default {
 
         initiateDrawing(name) {
             EventBus.$emit(EventBus.START_DRAWING);
+        },
+
+        initiateSmartDrawing(name) {
+            EventBus.$emit(EventBus.START_SMART_DRAWING);
         }
     }
 }

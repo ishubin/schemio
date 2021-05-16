@@ -173,8 +173,6 @@ export function identifyShape(points) {
 
     const curvesInfo = analyzeCurve(points);
     
-    console.log('curvesInfo', JSON.stringify(curvesInfo));
-
     forEach(shapeClassifiers, shapeClassifier => {
         const result = shapeClassifier(points, curvesInfo);
         if (result.score > maxScore) {

@@ -310,6 +310,7 @@ export default {
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
+        EventBus.$on(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
         EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
@@ -350,6 +351,7 @@ export default {
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
+        EventBus.$off(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
         EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
@@ -639,7 +641,15 @@ export default {
             this.highlightItems([]);
 
             this.state = 'draw';
-            states[this.state].reset();
+            states.draw.reset();
+        },
+
+        onSwitchStateSmartDrawing() {
+            this.highlightItems([]);
+
+            this.state = 'draw';
+            states.draw.reset();
+            states.draw.initSmartDraw();
         },
 
         setCurveEditItem(item) {
