@@ -54,8 +54,9 @@ export default class StateDragItem extends State {
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.wasDraggedEnough = false;
         this.startedDragging = true;
-        // used for item control points dragging
-        this.sourceItem = null;
+        
+        //TODO either get rid of it or rename sourceItem to something more meaningful. This field is very confusing and it is used to often in this code
+        this.sourceItem = null; // used for item control points dragging
         this.controlPoint = null; // stores coords for item control point
 
         this.multiSelectBox = null;
@@ -436,13 +437,34 @@ export default class StateDragItem extends State {
             this.schemeContainer.reindexItems();
         }
 
-        if (this.sourceItem) {
-            StoreUtils.setItemControlPoints(this.store, this.sourceItem);
+        // the code below is messy because it handles two conditions:
+        // 1) when user dragged control point of an item
+        // 2) when user dragged connector by its body and not by a control point
+        // in both cases we need to do the same thing: update control points in store 
+        // but in case user dragged control point of a connector - we also need to update selected connector path in store
 
+        let itemForControlPointsUpdate = null;
+        let connectorForPathRebuild = null;
+        if (this.sourceItem) {
+            itemForControlPointsUpdate = this.sourceItem;
             if (this.sourceItem.shape === 'connector') {
-                StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.sourceItem.shape).computeOutline(this.sourceItem));
+                connectorForPathRebuild = this.sourceItem;
             }
         }
+
+        if (this.multiItemEditBox && this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
+            itemForControlPointsUpdate = this.multiItemEditBox.items[0];
+            connectorForPathRebuild = this.multiItemEditBox.items[0];
+        }
+
+        if (itemForControlPointsUpdate) {
+            StoreUtils.setItemControlPoints(this.store, itemForControlPointsUpdate);
+        }
+        if (connectorForPathRebuild) {
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(connectorForPathRebuild));
+        }
+
+
         this.reset();
     }
 
@@ -621,6 +643,13 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+
+        // Fixing bug #392 where connector outline is rendered stale while conenctor itself gets readjusted
+        if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
+            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
+        }
+
         this.reindexNeeded = true;
     }
 
