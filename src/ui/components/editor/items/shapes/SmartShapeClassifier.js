@@ -159,8 +159,7 @@ function getBbox(points) {
     }
 }
 
-function analyzeCurve(points) {
-    const bbox = getBbox(points);
+function analyzeCurve(points, bbox) {
     let currentCurvePoints = [];
     const curves = []
     curves.push(currentCurvePoints);
@@ -319,8 +318,8 @@ function checkEllipse(points, curvesInfo) {
         score: new WeightedScore()
             .add(2, angleScore)
             .add(1, curvesInfo[0].isJoined ? 1: -0.4)
-            .add(2, curvesInfo[0].horizontalFullLines == 0 ? 1: 0)
-            .add(2, curvesInfo[0].verticalFullLines == 0 ? 1: 0)
+            .add(1, curvesInfo[0].horizontalFullLines == 0 ? 0.5: -0.2)
+            .add(1, curvesInfo[0].verticalFullLines == 0 ? 0.5: -0.2)
             .getScore(),
         shape: 'ellipse'
     };
@@ -361,16 +360,58 @@ const shapeClassifiers = [
 ];
 
 
+/**
+ * Tries to bring curve to 200x200 area
+ * 
+ * @param {*} points 
+ * @param {*} bbox 
+ * @returns 
+ */
+function normalizePoints(points, bbox) {
+    const targetWidth = 200;
+    const targetHeight = 200;
+    if (bbox.w > 10 && bbox.h > 10) {
+        const Rw = targetWidth / bbox.w;
+        const Rh = targetHeight / bbox.h;
+
+        const newPoints = [];
+        forEach(points, point => {
+            newPoints.push({
+                x: (point.x - bbox.x) * Rw,
+                y: (point.y - bbox.y) * Rh,
+                break: point.break
+            });
+        });
+
+        return {
+            points: newPoints,
+            bbox: {
+                x: 0,
+                y: 0,
+                w: targetWidth,
+                h: targetHeight,
+            }
+        };
+    }
+
+    return {
+        points,
+        bbox
+    };
+}
+
 
 export function identifyShape(points) {
     let maxScore = 0;
     let bestResult = null;
 
-    const curvesInfo = analyzeCurve(points);
+    const normalized = normalizePoints(points, getBbox(points));
+
+    const curvesInfo = analyzeCurve(normalized.points, normalized.bbox);
     console.log(JSON.stringify(curvesInfo));
     
     forEach(shapeClassifiers, shapeClassifier => {
-        const result = shapeClassifier(points, curvesInfo);
+        const result = shapeClassifier(normalized.points, curvesInfo);
         console.log(JSON.stringify(result));
         if (result.score > maxScore) {
             bestResult = result;
