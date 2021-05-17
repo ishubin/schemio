@@ -198,41 +198,6 @@ function isSameOrientation(angles) {
     return sameOrientation;
 }
 
-/*
-rect classification:
-- has 4 90 degree angles in the same orientation
-- 5th largest angle should be less than 30 degrees
-- should have first and last point close to each other
-- has 2 vertical lines
-- has 2 horizontal lines
-*/
-
-/*
-ellipse classification:
-- majority of angles are of the same orientation
-- majority of angles are 5 < 35 degrees
-- majority of points are away from the center
-- has no simple lines
-*/
-
-/*
-triangle classification:
-- has 3 large angles of the same orientation
-- sum of 3 large angles should equal to 180
-- the 4th largest angle should be less than 30 degrees
-- should have first and last point close to each other
-*/
-
-/*
-diamond classification:
-- has 4 90 degree angles in the same orientation
-- 5th largest angle should be less than 30 degrees
-- should have first and last point close to each other
-- has 2 diagonal lines in one direction
-- has 2 diagonal lines in another direction
-*/
-
-
 class WeightedScore {
     constructor() {
         this.items = [];
@@ -261,18 +226,25 @@ class WeightedScore {
 }
 
 
+/*
+rect classification:
+- has 4 90 degree angles in the same orientation
+- 5th largest angle should be less than 30 degrees
+- should have first and last point close to each other
+- has 2 vertical lines
+- has 2 horizontal lines
+*/
+
 function checkRect(points, curvesInfo) {
     
     let angleScore = 0;
-    if (curvesInfo.length === 1) {
-        const bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
-        if (bigAngles.length < 5) {
-            if (isSameOrientation(bigAngles)) {
-                forEach(bigAngles, angle => {
-                    angleScore += Math.abs(angle) / 90;
-                });
-                angleScore = angleScore / 4;
-            }
+    const bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
+    if (bigAngles.length < 5) {
+        if (isSameOrientation(bigAngles)) {
+            forEach(bigAngles, angle => {
+                angleScore += Math.abs(angle) / 90;
+            });
+            angleScore = angleScore / 4;
         }
     }
 
@@ -287,6 +259,14 @@ function checkRect(points, curvesInfo) {
     };
 }
 
+
+/*
+ellipse classification:
+- majority of angles are of the same orientation
+- majority of angles are 5 < 35 degrees
+- majority of points are away from the center
+- has no simple lines
+*/
 
 function checkEllipse(points, curvesInfo) {
     let angleScore = 0;
@@ -325,10 +305,19 @@ function checkEllipse(points, curvesInfo) {
     };
 }
 
+/*
+triangle classification:
+- has 3 large angles of the same orientation
+- sum of 3 large angles should equal to 180
+- the 4th largest angle should be less than 30 degrees
+- should have first and last point close to each other
+*/
+
 function checkTriangle(points, curvesInfo) {
     let angleScore = 0;
-    if (curvesInfo.length === 1 && curvesInfo[0].angles.length > 2) {
-        const bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
+    let bigAngles = [];
+    if (curvesInfo[0].angles.length > 2) {
+        bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
         if (bigAngles.length < 4) {
             let angleSum = 0;
             if (isSameOrientation(bigAngles)) {
@@ -353,10 +342,46 @@ function checkTriangle(points, curvesInfo) {
     };
 }
 
+
+/*
+diamond classification:
+- has 4 90 degree angles in the same orientation
+- 5th largest angle should be less than 30 degrees
+- should have first and last point close to each other
+- has 2 diagonal lines in one direction
+- has 2 diagonal lines in another direction
+*/
+
+function checkDiamond(points, curvesInfo) {
+    
+    let angleScore = 0;
+    const bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
+    if (bigAngles.length < 5) {
+        if (isSameOrientation(bigAngles)) {
+            forEach(bigAngles, angle => {
+                angleScore += Math.abs(angle) / 90;
+            });
+            angleScore = angleScore / 4;
+        }
+    }
+
+    return {
+        score: new WeightedScore()
+            .add(2, angleScore)
+            .add(2, bigAngles.length === 4 ? 1: -0.5)
+            .add(2, curvesInfo[0].isJoined ? 1: 0)
+            .add(1, curvesInfo[0].horizontalFullLines == 0 ? 1: 0)
+            .add(1, curvesInfo[0].verticalFullLines == 0 ? 1: 0)
+            .getScore(),
+        shape: 'basic_diamond'
+    };
+}
+
 const shapeClassifiers = [
     checkRect,
     checkEllipse,
-    checkTriangle
+    checkTriangle,
+    checkDiamond,
 ];
 
 
