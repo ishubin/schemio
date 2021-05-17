@@ -2,7 +2,6 @@ import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import myMath from '../../../../myMath';
-import utils from '../../../../utils';
 
 function createLineAnalysis(p1, p2, bbox) {
     const dx = p2.x - p1.x;
@@ -281,7 +280,7 @@ function checkRect(points, curvesInfo) {
     return {
         score: new WeightedScore()
             .add(2, angleScore)
-            .add(2, curvesInfo[0].isJoined ? 1: 0)
+            .add(2, curvesInfo[0].isJoined ? 1: -0.4)
             .add(1, curvesInfo[0].horizontalFullLines == 2 ? 1: 0)
             .add(1, curvesInfo[0].verticalFullLines == 2 ? 1: 0)
             .getScore(),
@@ -319,7 +318,7 @@ function checkEllipse(points, curvesInfo) {
     return {
         score: new WeightedScore()
             .add(2, angleScore)
-            .add(1, curvesInfo[0].isJoined ? 1: 0)
+            .add(1, curvesInfo[0].isJoined ? 1: -0.4)
             .add(2, curvesInfo[0].horizontalFullLines == 0 ? 1: 0)
             .add(2, curvesInfo[0].verticalFullLines == 0 ? 1: 0)
             .getScore(),
@@ -346,10 +345,10 @@ function checkTriangle(points, curvesInfo) {
     return {
         score: new WeightedScore()
             .add(6, angleScore)
-            .add(3, curvesInfo[0].totalFullLines === 3 ? 1: 0)
-            .add(2, curvesInfo[0].isJoined ? 1: 0)
-            .add(1, curvesInfo[0].horizontalFullLines < 2 ? 1: 0)
-            .add(1, curvesInfo[0].verticalFullLines < 2 ? 1: 0)
+            .add(3, curvesInfo[0].totalFullLines === 3 ? 1: -1)
+            .add(2, curvesInfo[0].isJoined ? 1: -1)
+            .add(1, curvesInfo[0].horizontalFullLines < 2 ? 1: -0.5)
+            .add(1, curvesInfo[0].verticalFullLines < 2 ? 1: -0.5)
             .getScore(),
         shape: 'basic_triangle'
     };
