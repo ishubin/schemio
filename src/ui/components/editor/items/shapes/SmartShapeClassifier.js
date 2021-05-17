@@ -2,6 +2,9 @@ import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 import myMath from '../../../../myMath';
+import { Logger } from '../../../../logger';
+
+const logger = new Logger('SmartShapeClassifier');
 
 function createLineAnalysis(p1, p2, bbox) {
     const dx = p2.x - p1.x;
@@ -102,6 +105,7 @@ function analyzeSingleCurve(points, bbox) {
     let verticalFullLines = 0;
     let horizontalFullLines = 0;
     let totalFullLines = 0;
+    let isStraightLine = false;
     if (simpleLinePoints.length > 1) {
         for (let i = 1; i < simpleLinePoints.length; i++) {
             const line = createLineAnalysis(simpleLinePoints[i-1], simpleLinePoints[i], bbox);
@@ -118,10 +122,31 @@ function analyzeSingleCurve(points, bbox) {
             }
             simpleLines.push(line);
         }
+    } else {
+        // check if maybe this is actually just a straight line
+        // if we sum all small angles then the end result should not be too big
+        let angleSum = 0;
+        forEach(angles, angle => {
+            angleSum += angle;
+        });
+        if (Math.abs(angleSum)  < 50) {
+            isStraightLine = true;
+            const lineInfo = createLineAnalysis(points[0], points[points.length - 1], bbox);
+            if (lineInfo.isFull){
+                totalFullLines += 1;
+                if (lineInfo.isHorizontal) {
+                    horizontalFullLines += 1;
+                }
+                if (lineInfo.isVertical) {
+                    verticalFullLines += 1;
+                }
+            }
+        }
     }
 
     return {
         isJoined,
+        isStraightLine,
         angles,
         simpleLines,
         verticalFullLines,
@@ -377,11 +402,32 @@ function checkDiamond(points, curvesInfo) {
     };
 }
 
+function checkObject(points, curvesInfo) {
+    let score = 0;
+    if (curvesInfo.length === 2) {
+        // checking that the first curve is a rect
+        let rectScore = checkRect(points, [curvesInfo[0]]).score;
+
+        // checking that the second curve is a horizontal line
+
+        if (curvesInfo[1].isStraightLine && curvesInfo[1].horizontalFullLines === 1) {
+            // if the rect was perfectly drawn then we just need to increase its score to make sure the uml_object will be selected
+            score = rectScore * 1.1;
+        }
+    }
+
+    return {
+        score,
+        shape: 'uml_object'
+    }
+}
+
 const shapeClassifiers = [
     checkRect,
     checkEllipse,
     checkTriangle,
     checkDiamond,
+    checkObject,
 ];
 
 
@@ -433,11 +479,11 @@ export function identifyShape(points) {
     const normalized = normalizePoints(points, getBbox(points));
 
     const curvesInfo = analyzeCurve(normalized.points, normalized.bbox);
-    console.log(JSON.stringify(curvesInfo));
+    logger.info('Curve analysis', curvesInfo);
     
     forEach(shapeClassifiers, shapeClassifier => {
         const result = shapeClassifier(normalized.points, curvesInfo);
-        console.log(JSON.stringify(result));
+        logger.info('Shape Classification', result.shape, result.score);
         if (result.score > maxScore) {
             bestResult = result;
             maxScore = result.score;
