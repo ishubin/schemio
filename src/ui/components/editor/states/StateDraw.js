@@ -170,11 +170,9 @@ export default class StateDraw extends State {
 
             this.schemeContainer.addItem(item);
             this.schemeContainer.reindexItems();
-            this.schemeContainer.selectItem(item);
         } else {
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
-            this.schemeContainer.selectItem(this.item);
         }
     }
 

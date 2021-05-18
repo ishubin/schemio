@@ -23,7 +23,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
-            SWITCH_MODE_TO_EDIT: 'switch-mode-edit', //TODO rename it to MODE_CHANGED and pass the value of the mode
 
             SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
 

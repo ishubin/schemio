@@ -82,8 +82,8 @@ export default class StateCreateItem extends State {
         }
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
-        this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
+        this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
         this.eventBus.emitSchemeChangeCommited();
         this.reset();
     }

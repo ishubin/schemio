@@ -11,6 +11,7 @@ import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
+import EventBus from '../EventBus.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -318,6 +319,8 @@ export default class StateEditCurve extends State {
                         this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
                     }
                     this.submitItem();
+                    this.reset();
+                    this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
                     return;
                 }
 
@@ -333,6 +336,8 @@ export default class StateEditCurve extends State {
                         // deleting last point
                         this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
                         this.submitItem();
+                        this.reset();
+                        this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
                     }
                 }
                 StoreUtils.updateAllCurveEditPoints(this.store, this.item);
@@ -949,7 +954,6 @@ export default class StateEditCurve extends State {
         }
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.eventBus.$emit(this.eventBus.SWITCH_MODE_TO_EDIT);
         this.eventBus.emitItemChanged(this.item.id);
         this.eventBus.emitSchemeChangeCommited();
         this.schemeContainer.reindexItems();

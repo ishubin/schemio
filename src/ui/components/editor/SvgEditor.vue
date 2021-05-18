@@ -324,7 +324,6 @@ export default {
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$on(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
@@ -365,7 +364,6 @@ export default {
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$off(EventBus.SWITCH_MODE_TO_EDIT, this.switchStateDragItem);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
@@ -603,6 +601,7 @@ export default {
             this.highlightItems([]);
 
             states.interact.schemeContainer = this.schemeContainer;
+            states[this.state].cancel();
             this.state = 'interact';
 
             this.reindexUserEvents();
@@ -610,6 +609,7 @@ export default {
         },
         switchStateDragItem() {
             this.highlightItems([]);
+            states[this.state].cancel();
             this.state = 'dragItem';
             states.dragItem.reset();
         },
@@ -621,6 +621,7 @@ export default {
         },
         onSwitchStateCreateItem(item) {
             this.highlightItems([]);
+            states[this.state].cancel();
             if (item.shape === 'curve' || item.shape === 'connector') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
@@ -640,6 +641,7 @@ export default {
         onSwitchStateDrawing() {
             this.highlightItems([]);
 
+            states[this.state].cancel();
             this.state = 'draw';
             states.draw.reset();
         },
@@ -647,6 +649,7 @@ export default {
         onSwitchStateSmartDrawing() {
             this.highlightItems([]);
 
+            states[this.state].cancel();
             this.state = 'draw';
             states.draw.reset();
             states.draw.initSmartDraw();
@@ -658,6 +661,7 @@ export default {
 
         onStartConnecting(sourceItem, worldPoint) {
             this.highlightItems([]);
+            states[this.state].cancel();
             let localPoint = null;
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
@@ -670,6 +674,7 @@ export default {
 
         onCurveEditRequested(item) {
             this.highlightItems([]);
+            states[this.state].cancel();
             this.state = 'editCurve';
             states.editCurve.reset();
             states.editCurve.setItem(item);
