@@ -8,6 +8,12 @@
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
             <div class="item-menu">
+                <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
+                    <img src="/assets/images/icons/select.svg" width="35" height="30"/>
+                </div>
+                <div class="item-container" @click="initiateCurveCreation()" title="Create Curve">
+                    <img src="/assets/images/icons/create-curve.svg" width="35" height="30"/>
+                </div>
                 <div class="item-container" @click="initiateDrawing()" title="Draw">
                     <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
                 </div>
@@ -313,6 +319,22 @@ export default {
 
         makeUniqueName(name) {
             return this.schemeContainer.copyNameAndMakeUnique(name);
+        },
+
+        initiateSelectAndDrag() {
+            EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
+        },
+
+        initiateCurveCreation() {
+            const item = {
+                name: this.makeUniqueName('Curve'),
+                shape: 'curve',
+                shapeProps: {
+                    points: []
+                }
+            };
+            enrichItemWithDefaults(item);
+            EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
         },
 
         initiateDrawing(name) {

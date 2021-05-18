@@ -381,8 +381,9 @@ function checkDiamond(points, curvesInfo) {
     
     let angleScore = 0;
     const bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
+    const angleSameOrientation = isSameOrientation(bigAngles);
     if (bigAngles.length < 5) {
-        if (isSameOrientation(bigAngles)) {
+        if (angleSameOrientation) {
             forEach(bigAngles, angle => {
                 angleScore += Math.abs(angle) / 90;
             });
@@ -393,10 +394,11 @@ function checkDiamond(points, curvesInfo) {
     return {
         score: new WeightedScore()
             .add(2, angleScore)
+            .add(2, curvesInfo[0].isJoined ? 1: -0.5)
             .add(2, bigAngles.length === 4 ? 1: -0.5)
-            .add(2, curvesInfo[0].isJoined ? 1: 0)
-            .add(1, curvesInfo[0].horizontalFullLines == 0 ? 1: 0)
-            .add(1, curvesInfo[0].verticalFullLines == 0 ? 1: 0)
+            .add(1, angleSameOrientation? 1: -0.5)
+            .add(1, curvesInfo[0].horizontalFullLines == 0 ? 1: -1)
+            .add(1, curvesInfo[0].verticalFullLines == 0 ? 1: -1)
             .getScore(),
         shape: 'basic_diamond'
     };

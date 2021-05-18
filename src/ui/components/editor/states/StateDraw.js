@@ -115,7 +115,7 @@ export default class StateDraw extends State {
 
         if (this.smartDrawing && !this.smartCancelTimeoutId) {
             this.smartCancelTimeoutId = setTimeout(() => {
-                this.cancel();
+                this.submitDrawing();
                 this.smartCancelTimeoutId = null;
             }, this.smartCancelTimeout);
         }
@@ -123,6 +123,11 @@ export default class StateDraw extends State {
     
     cancel() {
         this.eventBus.emitItemsHighlighted([]);
+        this.submitDrawing();
+        super.cancel();
+    }
+
+    submitDrawing() {
         if (this.item) {
             if (this.item.shapeProps.points.length <= 1) {
                 this.schemeContainer.deleteItem(this.item);
@@ -136,9 +141,8 @@ export default class StateDraw extends State {
                 this.schemeContainer.reindexItems();
                 this.schemeContainer.selectItem(this.item);
             }
+            this.item = null;
         }
-        
-        super.cancel();
     }
 
     processSmartDrawing() {
