@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import myMath from '../../../myMath.js';
+import utils from '../../../utils.js';
 import EventBus from '../EventBus.js';
 import State from './State.js';
 import {simplifyCurvePoints} from '../items/shapes/Curve.vue';
@@ -168,7 +169,14 @@ export default class StateDraw extends State {
                 shapeProps: {}
             };
 
+            if (shapeMatch.shapeProps) {
+                item.shapeProps = utils.clone(shapeMatch.shapeProps);
+            }
+
             this.schemeContainer.addItem(item);
+            if (item.shape === 'connector') {
+                this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+            }
             this.schemeContainer.reindexItems();
         } else {
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());

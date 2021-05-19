@@ -81,6 +81,17 @@ function analyzeSingleCurve(points, bbox) {
 
     const dSquared = (firstPoint.x - lastPoint.x)*(firstPoint.x - lastPoint.x) + (firstPoint.y - lastPoint.y)*(firstPoint.y - lastPoint.y);
     let isJoined = dSquared < proximityMax*proximityMax && points.length > 2;
+
+    // checking whether the starting and end points are located too far away from each other
+    // we do it by checking whether the distance is at least greater than 50 % of bbox width or height
+    let endsFarAway = false;
+    if (dSquared > 0.1) {
+        const d = Math.sqrt(dSquared);
+        if ((bbox.w > 1 &&  d / bbox.w >= 0.5 )
+            || (bbox.h > 1 &&  d / bbox.h >= 0.5 )) {
+            endsFarAway = true;
+        }
+    }
     
     if (isJoined) {
         // treat it like it can merge its points and add another angle
@@ -145,6 +156,7 @@ function analyzeSingleCurve(points, bbox) {
     }
 
     return {
+        endsFarAway,
         isJoined,
         isStraightLine,
         angles,
@@ -474,23 +486,50 @@ function normalizePoints(points, bbox) {
     };
 }
 
+function convertPointsToConnectorPoints(points, bbox) {
+    const connectorPoints = [];
+    for(let i = 0; i < points.length; i++) {
+        if (points[i].break) {
+            return connectorPoints;
+        }
+
+        connectorPoints.push({
+            x: points[i].x - bbox.x,
+            y: points[i].y - bbox.y,
+        });
+    }
+    return connectorPoints;
+}
+
 
 export function identifyShape(points) {
     let maxScore = 0;
     let bestResult = null;
-
-    const normalized = normalizePoints(points, getBbox(points));
+    
+    const bbox = getBbox(points);
+    const normalized = normalizePoints(points, bbox);
 
     const curvesInfo = analyzeCurve(normalized.points, normalized.bbox);
     logger.info('Curve analysis', curvesInfo);
     
-    forEach(shapeClassifiers, shapeClassifier => {
-        const result = shapeClassifier(normalized.points, curvesInfo);
-        logger.info('Shape Classification', result.shape, result.score);
-        if (result.score > maxScore) {
-            bestResult = result;
-            maxScore = result.score;
-        }
-    });
+    if (curvesInfo[0].endsFarAway) {
+        logger.info('Ends are too far away, looks like we have a connector');
+        return {
+            shape: 'connector',
+            shapeProps: {
+                points: convertPointsToConnectorPoints(points, bbox),
+            },
+            score: 1.0
+        };
+    } else {
+        forEach(shapeClassifiers, shapeClassifier => {
+            const result = shapeClassifier(normalized.points, curvesInfo);
+            logger.info('Shape Classification', result.shape, result.score);
+            if (result.score > maxScore) {
+                bestResult = result;
+                maxScore = result.score;
+            }
+        });
+    }
     return bestResult;
 }
