@@ -1,4 +1,7 @@
 export default {
+    // should be disabled for production
+    debug: true,
+
     project: {
         categories: {
             enabled: true,

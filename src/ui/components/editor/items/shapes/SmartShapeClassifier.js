@@ -306,7 +306,7 @@ function checkEllipse(points, curvesInfo) {
                 rightAngles++;
             }
 
-            if (Math.abs(angle) > 40) {
+            if (Math.abs(angle) > 50) {
                 largeAngles++;
             }
         });
@@ -397,6 +397,7 @@ function checkDiamond(points, curvesInfo) {
             .add(2, curvesInfo[0].isJoined ? 1: -0.5)
             .add(2, bigAngles.length === 4 ? 1: -0.5)
             .add(1, angleSameOrientation? 1: -0.5)
+            .add(2, curvesInfo[0].totalFullLines == 4 ? 1: -0.5)
             .add(1, curvesInfo[0].horizontalFullLines == 0 ? 1: -1)
             .add(1, curvesInfo[0].verticalFullLines == 0 ? 1: -1)
             .getScore(),
