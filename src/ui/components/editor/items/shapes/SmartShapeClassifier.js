@@ -34,7 +34,7 @@ function createLineAnalysis(p1, p2, bbox) {
     if (!isVertical && !isHorizontal) {
         const lengthSquared = dx * dx + dy * dy;
         if (lengthSquared > 1) {
-            length = Math.sqrt(lengthSquared);
+            const length = Math.sqrt(lengthSquared);
             const averageSize = (bbox.w + bbox.h) / 2;
             if (averageSize > 1) {
                 isFull = length / averageSize > 0.7;

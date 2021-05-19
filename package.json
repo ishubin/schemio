@@ -10,7 +10,7 @@
     "build-prod": "npm run build-assets; webpack --config webpack.build.prod.js; npm run build-standalone-prod",
     "build-standalone": "webpack --config webpack.standalone.js",
     "build-standalone-prod": "webpack --config webpack.standalone.prod.js",
-    "test": "mocha-webpack --webpack-config webpack.build.dev.js -r test/setup.js test/**/*.spec.js test/*.spec.js"
+    "test": "mocha-webpack --webpack-config webpack.build.test.js -r test/setup.js test/**/*.spec.js test/*.spec.js"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
