@@ -550,9 +550,11 @@ class SchemeContainer {
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         let closestPin = null;
         this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex}, point) => {
-            const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
-            if (!closestPin || closestPin.distance > distance) {
-                closestPin = { itemId, pinIndex, point, distance };
+            if (itemId !== excludedId) {
+                const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
+                if (!closestPin || closestPin.distance > distance) {
+                    closestPin = { itemId, pinIndex, point, distance };
+                }
             }
         });
 

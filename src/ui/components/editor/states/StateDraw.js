@@ -175,6 +175,7 @@ export default class StateDraw extends State {
 
             this.schemeContainer.addItem(item);
             if (item.shape === 'connector') {
+                this.fitConnectorToItems(item);
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             }
             this.schemeContainer.reindexItems();
@@ -182,6 +183,35 @@ export default class StateDraw extends State {
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
         }
+    }
+
+    /**
+     * Checks whether it is possible to attach connector edges to some other items
+     * @param {*} connectorItem 
+     */
+    fitConnectorToItems(connectorItem) {
+        let distanceThreshold = 0;
+        if (this.schemeContainer.screenTransform.scale > 0) {
+            distanceThreshold = 50 / this.schemeContainer.screenTransform.scale;
+        }
+
+        const includeOnlyVisibleItems = true; 
+        const points = connectorItem.shapeProps.points;
+        const firstPoint = this.schemeContainer.worldPointOnItem(points[0].x, points[0].y, connectorItem);
+        const lastPoint = this.schemeContainer.worldPointOnItem(points[points.length-1].x, points[points.length-1].y, connectorItem);
+
+        const fitEdge = (edgePoint, isSource) => {
+            let edgeName = isSource ?  'source' : 'destination';
+
+            const closestPointToItem = this.schemeContainer.findClosestPointToItems(edgePoint.x, edgePoint.y, distanceThreshold, connectorItem.id, includeOnlyVisibleItems);
+            if (closestPointToItem && closestPointToItem.itemId !== connectorItem.id) {
+                connectorItem.shapeProps[`${edgeName}Item`] = '#' + closestPointToItem.itemId;
+                connectorItem.shapeProps[`${edgeName}ItemPosition`] = closestPointToItem.distanceOnPath;
+            }
+        };
+
+        fitEdge(firstPoint, true);
+        fitEdge(lastPoint, false);
     }
 
     getCurveBoundaryBox(curveItem) {
