@@ -486,11 +486,20 @@ function normalizePoints(points, bbox) {
     };
 }
 
-function convertPointsToConnectorPoints(points, bbox) {
+function convertPointsToConnector(points, bbox) {
     const connectorPoints = [];
+    let capPoints = null;
+    
     for(let i = 0; i < points.length; i++) {
         if (points[i].break) {
-            return connectorPoints;
+            capPoints = [];
+            for (let j = i; j < points.length; j++) {
+                capPoints.push({
+                    x: points[j].x - bbox.x,
+                    y: points[j].y - bbox.y
+                });
+            }
+            break;
         }
 
         connectorPoints.push({
@@ -498,7 +507,36 @@ function convertPointsToConnectorPoints(points, bbox) {
             y: points[i].y - bbox.y,
         });
     }
-    return connectorPoints;
+
+    let destinationCap = 'empty';
+
+    if (connectorPoints.length > 1 && capPoints && capPoints.length > 1) {
+        const lastPoint = connectorPoints[connectorPoints.length - 1];
+        const capBbox = getBbox(capPoints);
+
+        if (capBbox.w > 2 && capBbox.h > 2) {
+            if (myMath.isPointInArea(lastPoint.x, lastPoint.y, capBbox)) {
+                destinationCap = 'triangle';
+            } else {
+                for(let i = 0; i < capPoints.length; i++) {
+                    const d = myMath.distanceBetweenPoints(lastPoint.x, lastPoint.y, capPoints[i].x, capPoints[i].y);
+                    if (d < 30) {
+                        destinationCap = 'triangle';
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return {
+        shape: 'connector',
+        shapeProps: {
+            points: connectorPoints,
+            destinationCap
+        },
+        score: 1.0
+    };
 }
 
 
@@ -514,13 +552,8 @@ export function identifyShape(points) {
     
     if (curvesInfo[0].endsFarAway) {
         logger.info('Ends are too far away, looks like we have a connector');
-        return {
-            shape: 'connector',
-            shapeProps: {
-                points: convertPointsToConnectorPoints(points, bbox),
-            },
-            score: 1.0
-        };
+        return convertPointsToConnector(points, bbox);
+
     } else {
         forEach(shapeClassifiers, shapeClassifier => {
             const result = shapeClassifier(normalized.points, curvesInfo);
