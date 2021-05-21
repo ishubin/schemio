@@ -210,6 +210,59 @@ export default {
     },
 
     /**
+     * calculates overlapping area, returns null if there is no overlap
+     * @param {Area} area1 
+     * @param {Area} area2 
+     * @returns {Area} overlapping area of two given areas
+     */
+    overlappingArea(area1, area2) {
+        const a1x = area1.x;
+        const a1y = area1.y;
+        const b1x = area1.x + area1.w;
+        const b1y = area1.y + area1.h;
+
+        const a2x = area2.x;
+        const a2y = area2.y;
+        const b2x = area2.x + area2.w;
+        const b2y = area2.y + area2.h;
+
+        let y1 = 0, y2 = 0, x1 = 0, x2 = 0;
+        if (a2x >= a1x) {
+            x1 = a2x;
+        } else {
+            x1 = a1x;
+        }
+
+        if (b2x >= b1x) {
+            x2 = b1x;
+        } else {
+            x2 = b2x;
+        }
+
+        if (a2y >= a1y) {
+            y1 = a2y;
+        } else {
+            y1 = a1y;
+        }
+
+        if (b2y >= b1y) {
+            y2 = b1y;
+        } else {
+            y2 = b2y;
+        }
+
+        if (y2 >= y1 && x2 >= x1) {
+            return {
+                x: x1,
+                y: y1,
+                w: x2 - x1,
+                h: y2 - y1
+            };
+        }
+        return null;
+    },
+
+    /**
     Checks if the point within line segment. It doesn't really check if it is placed exacly on the line segment 
     */
     isPointWithinLineSegment(point, segmentPointA, segmentPointB) {
