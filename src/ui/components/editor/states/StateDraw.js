@@ -281,7 +281,7 @@ export default class StateDraw extends State {
     fitConnectorToItems(connectorItem) {
         let distanceThreshold = 0;
         if (this.schemeContainer.screenTransform.scale > 0) {
-            distanceThreshold = Math.min(100, Math.max(connectorItem.area.w, connectorItem.area.h)) / this.schemeContainer.screenTransform.scale;
+            distanceThreshold = Math.min(50, Math.max(connectorItem.area.w, connectorItem.area.h)) / this.schemeContainer.screenTransform.scale;
         }
 
         const includeOnlyVisibleItems = true; 

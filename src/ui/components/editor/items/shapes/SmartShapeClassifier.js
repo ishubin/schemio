@@ -633,10 +633,12 @@ function convertPointsToConnector(points, bbox) {
 
     if (!capPoints) {
         const capInfo = analyzeConnectorDestinationCap(connectorPoints);
-        destinationCap = capInfo.capType;
-        // removing all points
-        connectorPoints.splice(capInfo.capStartIndex, connectorPoints.length - capInfo.capStartIndex);
-        connectorPoints.push(capInfo.replacementPoint);
+        if (capInfo) {
+            destinationCap = capInfo.capType;
+            // removing all points
+            connectorPoints.splice(capInfo.capStartIndex, connectorPoints.length - capInfo.capStartIndex);
+            connectorPoints.push(capInfo.replacementPoint);
+        }
     }
 
 
@@ -645,13 +647,21 @@ function convertPointsToConnector(points, bbox) {
         const capBbox = getBbox(capPoints);
 
         if (capBbox.w > 2 && capBbox.h > 2) {
+            let capIsClosed = false;
+
+            if (capPoints.length > 2) {
+                if (myMath.distanceBetweenPoints(capPoints[0].x, capPoints[0].y, capPoints[capPoints.length - 1].x, capPoints[capPoints.length - 1].y) < 20) {
+                    capIsClosed = true;
+                }
+            }
+
             if (myMath.isPointInArea(lastPoint.x, lastPoint.y, capBbox)) {
-                destinationCap = 'triangle';
+                destinationCap = capIsClosed ? 'triangle' : 'arrow';
             } else {
                 for(let i = 0; i < capPoints.length; i++) {
                     const d = myMath.distanceBetweenPoints(lastPoint.x, lastPoint.y, capPoints[i].x, capPoints[i].y);
                     if (d < 30) {
-                        destinationCap = 'triangle';
+                        destinationCap = capIsClosed ? 'triangle' : 'arrow';
                         break;
                     }
                 }
