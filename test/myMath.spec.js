@@ -1,7 +1,6 @@
 import myMath from '../src/ui/myMath';
 import expect from 'expect';
 
-
 describe('myMath.overlappingArea', () => {
     it('should calculate overlapping area 1', () => {
         const result = myMath.overlappingArea({

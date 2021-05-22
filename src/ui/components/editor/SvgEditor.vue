@@ -1523,7 +1523,7 @@ export default {
         // this function is only used for debugging smart draw conversion
         convertCurveToSmartShape(item) {
             const shapeMatch = identifyShape(item.shapeProps.points);
-            console.log('Identified shape', shapeMatch.shape, shapeMatch.score);
+            console.log('Identified shape', shapeMatch);
         },
 
         //calculates from world to screen

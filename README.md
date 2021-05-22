@@ -204,6 +204,37 @@ const item = {
 ```
 
 
+```
+
+arrow angles: 15, [ 63, -7.6, -81 ]
+
+arrow angles: [ -43, 0.3, 55 ]
+
+arrow angles: [ 23, 1.1, -41 ]
+
+arrow angles (with not straight line): -58, -58, 51, [ -26, 0.3, 55 ]
+
+triangle angles: 16,[ 60, -6, -81, -15]
+
+triangle angles: [-43, 0.3, 60, 79]
+
+
+arrow pattern features:
+    - last 3 points are within small area,
+    - last 3 angles sequence should be one of the two:
+        -  Big, Small, -Big: (> 15, -15 to 15, < -15 )
+        - -Big, Small,  Big ( < -15, -15 to 15, > 15)
+
+
+triangle pattern features:
+    - last 4 points are within small area
+    - last 4 angles sequence should be one of the two:
+        -  Big, Small, -Big, -Big: (> 15, -15 to 15, < -15, < -15 )
+        - -Big, Small,  Big, Big ( < -15, -15 to 15, > 15, > 15)
+
+```
+
+
 
 
 License

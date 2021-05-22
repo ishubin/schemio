@@ -486,6 +486,127 @@ function normalizePoints(points, bbox) {
     };
 }
 
+
+const _triangleSequences = [
+    '1022', '2011', '222', '111', '011', '022'
+];
+const _arrowSequences = [
+    '102', '201', '001', '002'
+];
+
+function analyzeConnectorCap(points, idxStart, idxEnd) {
+    // first it walks over the points of the cap and encodes angles between the edges in those points
+    // arrow and triangle have a distinct angle sequence, so it checks the sequence of sharp angles with direction
+    const smallAngleThreshold = 14;
+    let angles = '';
+    for (let i = Math.max(1, idxStart); i < idxEnd ; i++) {
+        const prevPoint = points[i - 1];
+        const point = points[i];
+        const nextPoint = points[i + 1];
+        const Ax = prevPoint.x - point.x;
+        const Ay = prevPoint.y - point.y;
+        const Bx = nextPoint.x - point.x;
+        const By = nextPoint.y - point.y;
+        
+        const angle = myMath.angleBetweenVectors(Ax, Ay, Bx, By) * 180 / Math.PI;
+        if (angle <= -smallAngleThreshold) {
+            angles += '1'
+        } else if (angle >= smallAngleThreshold) {
+            angles += '2';
+        } else {
+            angles += '0';
+        }
+    }
+
+
+    for (let i = 0; i < _triangleSequences.length; i++) {
+        if (angles.indexOf(_triangleSequences[i]) >= 0) {
+            return 'triangle';
+        }
+    }
+    
+    for (let i = 0; i < _arrowSequences.length; i++) {
+        if (angles.indexOf(_arrowSequences[i]) >= 0) {
+            return 'arrow';
+        }
+    }
+    return 'empty';
+}
+
+/**
+ * This function analyzes points at the end of the connector and it tries to identify whether user has drawn an arrow or a triangle
+ * It does it by calculating moving bounding box from end to the beginning and checks whether it grows slow or fast
+ * @param {*} points 
+ * @returns 
+ */
+function analyzeConnectorDestinationCap(points) {
+    if (points.length < 3) {
+        return null;
+    }
+    
+    const movingBox = {
+        x: points[points.length - 1].x,
+        y: points[points.length - 1].y,
+        w: 0,
+        h: 0
+    };
+
+    let capStartIdx = -1;
+
+    const firstPoint = points[0];
+
+    let furthestPoint = null;
+    let furthestDistance = 0;
+
+    for (let i = points.length - 1; i > 0; i--) {
+        const point = points[i];
+        if (movingBox.x > point.x) {
+            const oldX = movingBox.x;
+            movingBox.x = point.x;
+            movingBox.w = oldX + movingBox.w - point.x;
+        } else if (movingBox.x + movingBox.w < point.x) {
+            movingBox.w = point.x - movingBox.x;
+        }
+        if (movingBox.y > point.y) {
+            const oldY = movingBox.y;
+            movingBox.y = point.y;
+            movingBox.h = oldY + movingBox.h - point.y;
+        } else if (movingBox.y + movingBox.h < point.y) {
+            movingBox.h = point.y - movingBox.y;
+        }
+        
+        //TODO use zoom scale here, users could draw this when zoom out or zoomed in
+        // also this is probably not going to work very well with small connectors
+        if (movingBox.w + movingBox.h > 200) {
+            break;
+        } else {
+            capStartIdx = i;
+            if (!furthestPoint) {
+                furthestPoint = point;
+                furthestDistance = (point.x - firstPoint.x) *(point.x - firstPoint.x) + (point.y - firstPoint.y) *(point.y - firstPoint.y);
+            } else {
+                const d = (point.x - firstPoint.x) *(point.x - firstPoint.x) + (point.y - firstPoint.y) *(point.y - firstPoint.y);
+                if (d > furthestDistance) {
+                    furthestDistance = d;
+                    furthestPoint = point;
+                }
+            }
+        }
+    }
+
+    if (capStartIdx > 0 && capStartIdx < points.length - 1) {
+        const connectorCap = analyzeConnectorCap(points, capStartIdx, points.length - 1);
+
+
+        return {
+            capStartIndex: capStartIdx,
+            replacementPoint: furthestPoint,
+            capType: connectorCap
+        }
+    }
+    return null;
+}
+
 function convertPointsToConnector(points, bbox) {
     const connectorPoints = [];
     let capPoints = null;
@@ -509,6 +630,15 @@ function convertPointsToConnector(points, bbox) {
     }
 
     let destinationCap = 'empty';
+
+    if (!capPoints) {
+        const capInfo = analyzeConnectorDestinationCap(connectorPoints);
+        destinationCap = capInfo.capType;
+        // removing all points
+        connectorPoints.splice(capInfo.capStartIndex, connectorPoints.length - capInfo.capStartIndex);
+        connectorPoints.push(capInfo.replacementPoint);
+    }
+
 
     if (connectorPoints.length > 1 && capPoints && capPoints.length > 1) {
         const lastPoint = connectorPoints[connectorPoints.length - 1];
