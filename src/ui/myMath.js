@@ -28,6 +28,18 @@ function angleBetweenVectors(x1, y1, x2, y2) {
     return 0;
 }
 
+function cosineAngleBetweenVectors(x1, y1, x2, y2) {
+    const ds1 = x1*x1 + y1*y1;
+    if (ds1 > 0.001) {
+        const ds2 = x2*x2 + y2*y2;
+        if (ds2 > 0.001) {
+            const d1 = Math.sqrt(ds1);
+            const d2 = Math.sqrt(ds2);
+            return Math.acos((x1*x2 + y1*y2) / (d1*d2));
+        }
+    }
+    return 0;
+}
 
 /**
  * Generates line equation in form of ax + by + c = 0 which intersects given two points
@@ -152,6 +164,7 @@ export default {
     },
     
     angleBetweenVectors,
+    cosineAngleBetweenVectors,
 
     createLineEquation,
     distanceFromPointToLine,

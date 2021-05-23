@@ -320,6 +320,20 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
  * @param {Function} callback - function which is used to pass changed attachment item position
  */
 function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
+    const realignNormal = (newPoint) => {
+        if (secondCurvePoint) {
+            const dx = secondCurvePoint.x - newPoint.x;
+            const dy = secondCurvePoint.y - newPoint.y;
+            const angle = myMath.cosineAngleBetweenVectors(newPoint.bx, newPoint.by, dx, dy) * 180 / Math.PI;
+
+            if (angle > 90) {
+                // inverting the normal
+                newPoint.bx = -newPoint.bx;
+                newPoint.by = -newPoint.by;
+            }
+        }
+    };
+
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
         if (attachmentItemPosition < 0) {
@@ -341,6 +355,8 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
                 if (pinPoint.nx || pinPoint.ny) {
                     newPoint.bx = pinPoint.nx;
                     newPoint.by = pinPoint.ny;
+
+                    realignNormal(newPoint);
                 }
 
                 callback(newPoint, attachmentItemPosition);
@@ -392,20 +408,17 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
             attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         }
 
+        const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
         const newPoint = {
             t: oldPoint.t,
             x: attachmentPoint.x,
             y: attachmentPoint.y,
+            bx: normal.x,
+            by: normal.y,
         };
 
-        if (secondCurvePoint) {
-            const d = myMath.distanceBetweenPoints(newPoint.x, newPoint.y, secondCurvePoint.x, secondCurvePoint.y);
-            if (d > 60) {
-                const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
-                newPoint.bx = normal.x;
-                newPoint.by = normal.y
-            }
-        }
+        realignNormal(newPoint);
+
 
         callback(newPoint, distanceOnPath);
     }
