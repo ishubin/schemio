@@ -208,7 +208,7 @@ export default class StateDraw extends State {
             // in this case we want it to be together with connector so that its shape can be identified properly
             const overlap = myMath.overlappingArea(curves[i - 1].area, curves[i].area);
             if (overlap) {
-                const overlapRatio = (overlap.w + overlap.h) / Math.max(1, overlap.w + overlap.h);
+                const overlapRatio = (overlap.w + overlap.h) / Math.max(1, curves[i].area.w + curves[i].area.h);
                 if (overlapRatio > 0.3) {
                     const lastPoints = curves[i].points;
                     // removing the last curve
