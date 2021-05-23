@@ -142,6 +142,7 @@ export default class StateDraw extends State {
                 this.schemeContainer.reindexItems();
                 this.schemeContainer.selectItem(this.item);
             }
+            this.eventBus.emitSchemeChangeCommited();
             this.item = null;
         }
     }
