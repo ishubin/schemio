@@ -312,13 +312,14 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
  * @param {SchemeContainer} schemeContainer
  * @param {Item} item
  * @param {CurvePoint} curvePoint
+ * @param {CurvePoint} secondCurvePoint - for source edge it would be second, for destination edge it would the the one before last
  * @param {String} attachmentItemSelector
  * @param {Number} attachmentItemPosition
  * @param {ItemModificationContext} context
  * @param {Boolean} isSource 
  * @param {Function} callback - function which is used to pass changed attachment item position
  */
-function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
+function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
         if (attachmentItemPosition < 0) {
@@ -391,15 +392,21 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, attachmentIt
             attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
         }
 
-        const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
-
         const newPoint = {
             t: oldPoint.t,
             x: attachmentPoint.x,
             y: attachmentPoint.y,
-            bx: normal.x,
-            by: normal.y
         };
+
+        if (secondCurvePoint) {
+            const d = myMath.distanceBetweenPoints(newPoint.x, newPoint.y, secondCurvePoint.x, secondCurvePoint.y);
+            if (d > 60) {
+                const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
+                newPoint.bx = normal.x;
+                newPoint.by = normal.y
+            }
+        }
+
         callback(newPoint, distanceOnPath);
     }
 }
@@ -415,18 +422,35 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
     if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[0], item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, context, true, (newPoint, newSourceItemPosition) => {
-            item.shapeProps.points[0] = newPoint;
-            item.shapeProps.sourceItemPosition = newSourceItemPosition;
-
-        });
+        readjustCurveAttachment(schemeContainer,
+            item,
+            item.shapeProps.points[0],
+            item.shapeProps.points[1],
+            item.shapeProps.sourceItem,
+            item.shapeProps.sourceItemPosition,
+            context,
+            true,
+            (newPoint, newSourceItemPosition) => {
+                item.shapeProps.points[0] = newPoint;
+                item.shapeProps.sourceItemPosition = newSourceItemPosition;
+            }
+        );
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer, item, item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, context, false, (newPoint, newDestinationItemPosition) => {
-            item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
-            item.shapeProps.destinationItemPosition = newDestinationItemPosition;
-        });
+        readjustCurveAttachment(schemeContainer,
+            item,
+            item.shapeProps.points[item.shapeProps.points.length - 1],
+            item.shapeProps.points[item.shapeProps.points.length - 2],
+            item.shapeProps.destinationItem,
+            item.shapeProps.destinationItemPosition,
+            context,
+            false,
+            (newPoint, newDestinationItemPosition) => {
+                item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
+                item.shapeProps.destinationItemPosition = newDestinationItemPosition;
+            }
+        );
     }
 
     if (!isSoft) {
