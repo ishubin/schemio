@@ -1,9 +1,10 @@
+import myMath from '../../../../../myMath';
 import {getStandardRectPins} from '../ShapeDefaults'
 
 
 const calculateD = (item) => {
     let D = item.shapeProps.depth;
-    const minD = Math.min(item.area.w, item.area.h) / 4;
+    const minD = Math.min(item.area.w, item.area.h) / 2;
     if (D > minD) {
         D =  minD;
     }
@@ -22,6 +23,23 @@ export default {
             name: 'Node',
             iconUrl: '/assets/images/items/uml-node.svg',
         }],
+
+        controlPoints: {
+            make(item) {
+                const D = calculateD(item);
+                return {
+                    depth: {
+                        x: myMath.clamp(item.area.w - D, 0, item.area.w),
+                        y: myMath.clamp(D, 0, item.area.h),
+                    }
+                };
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'depth') {
+                    item.shapeProps.depth = myMath.clamp(originalY + dy, 0, Math.min(item.area.w, item.area.h) / 2);
+                }
+            }
+        },
 
         getPins(item) {
             return getStandardRectPins(item);
