@@ -3,6 +3,7 @@ import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
 import { convertStandardCurveShape } from './StandardCurves.js';
+import utils from '../../../../utils.js';
 
 const _shapes = [
     require('./Rect.js').default,
@@ -136,10 +137,19 @@ function enrichShape(shapeComponent, shapeName) {
     if (!shapeConfig.shapeType) {
         console.error(`Missing shapeType for shape "${shapeName}"`);
     }
+
+    const args = utils.clone(shapeConfig.args || {});
+
+    if (shapeConfig.shapeType === 'standard') {
+        forEach(standardShapeProps, (argName, arg) => {
+            args[argName] = utils.clone(arg);
+        });
+    }
+
     return {
         shapeType               : shapeConfig.shapeType,
         editorProps             : shapeConfig.editorProps || defaultEditorProps,
-        args                    : shapeConfig.args,
+        args                    : args,
         computePath             : shapeConfig.computePath,
         computeCurves           : shapeConfig.computeCurves,
         computeOutline          : shapeConfig.computeOutline || shapeConfig.computePath,
