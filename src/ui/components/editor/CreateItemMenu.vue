@@ -22,9 +22,9 @@
                 </div>
             </div>
 
-            <panel v-for="panel in itemPanels" :name="panel.name">
+            <panel v-for="panel in filteredItemPanels" v-if="panel.items.length > 0" :name="panel.name">
                 <div class="item-menu">
-                    <div v-for="item in panel.items"  v-if="!searchKeyword || item.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemPicked(item)">
+                    <div v-for="item in panel.items" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemPicked(item)">
                         <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
                 </div>
             </panel>
 
-            <panel v-for="artPack in artPacks" :name="artPack.name">
+            <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name">
                 <div class="art-pack">
                     <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
                     <div class="item-menu">
@@ -103,6 +103,8 @@ import Modal from '../Modal.vue';
 import shortid from 'shortid';
 import apiClient from '../../apiClient.js';
 import forEach from 'lodash/forEach';
+import map from 'lodash/map';
+import filter from 'lodash/filter';
 import utils from '../../../ui/utils.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
@@ -116,6 +118,7 @@ export default {
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
     beforeMount() {
         this.reloadArt();
+        this.filterItemPanels();
     },
     data() {
         return {
@@ -124,6 +127,7 @@ export default {
             customArtUploadModalShown   : false,
             menu                        : 'main',
             artPacks                    : [],
+            filteredArtPacks            : [],
             artList                     : [],
             searchKeyword               : '',
             errorMessage                : null,
@@ -131,6 +135,8 @@ export default {
             editArtModalShown           : false,
             
             itemPanels: this.generateItemPanels(),
+            filteredItemPanels: [],
+
             linkCreation: {
                 popupShown    : false,
                 item          : null
@@ -169,6 +175,47 @@ export default {
             });
 
             return panels;
+        },
+
+        filterItemPanels() {
+            const searchKeyword = this.searchKeyword.toLowerCase();
+
+            this.filteredItemPanels = map(this.itemPanels, panel => {
+                const panelName = panel.name.toLowerCase();
+                let panelMatches = panelName.indexOf(searchKeyword) >= 0;
+
+                return {
+                    name: panel.name,
+                    items: filter(panel.items, item => {
+                        if (this.searchKeyword) {
+                            return panelMatches || item.name.toLowerCase().indexOf(searchKeyword) >= 0;
+                        }
+                        return true;
+                    })
+                };
+            });
+        },
+
+        filterArtPacks() {
+            const searchKeyword = this.searchKeyword.toLowerCase();
+
+            this.filteredArtPacks = map(this.artPacks, artPack => {
+                const artPackName = artPack.name.toLowerCase();
+                let packMatches = artPackName.indexOf(searchKeyword) >= 0;
+
+                return {
+                    name  : artPack.name,
+                    link  : artPack.link,
+                    author: artPack.author,
+                    icons : filter(artPack.icons, icon => {
+                        if (this.searchKeyword) {
+                            return packMatches || icon.name.toLowerCase().indexOf(searchKeyword) >= 0 || icon.description.toLowerCase().indexOf(searchKeyword) >= 0;
+                        }
+                        return true;
+                    })
+                };
+            });
+
         },
 
         /**
@@ -211,6 +258,7 @@ export default {
                     })
                 });
                 this.artPacks = globalArt;
+                this.filterArtPacks();
             });
         },
 
@@ -343,6 +391,13 @@ export default {
 
         initiateSmartDrawing(name) {
             EventBus.$emit(EventBus.START_SMART_DRAWING);
+        }
+    },
+
+    watch: {
+        searchKeyword() {
+            this.filterItemPanels();
+            this.filterArtPacks();
         }
     }
 }
