@@ -311,8 +311,20 @@ export default {
         },
 
         onShapePropChange(name, type, value) {
+            // handling onInput shape arg callback (used in swim lane item)
+            const shape = Shape.find(this.item.shape);
+            if (shape && shape.args[name]) {
+                const argConfig = shape.args[name];
+                if (argConfig.onInput) {
+                    const previousValue = this.item.shapeProps[name];
+                    argConfig.onInput(this.item, value, previousValue);
+                }
+            }
+
+            this.schemeContainer.updateMultiItemEditBox();
             this.$emit('shape-prop-changed', name, type, value);
             this.updateShapePropsDependencies();
+
             this.$forceUpdate();
         },
 

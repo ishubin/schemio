@@ -1,18 +1,20 @@
 import myMath from '../../../../../myMath';
 import AdvancedFill from '../../AdvancedFill.vue';
+import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/Item';
 
 function computeOutline(item) {
     return `M 0 0 L ${item.area.w} 0 L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`;
 }
 
 function computeCurves(item) {
+    const headerHeight = myMath.clamp(item.shapeProps.headerHeight, 0, item.area.h);
     const curves = [{
         path: computeOutline(item),
         fill: AdvancedFill.computeStandardFill(item),
         strokeColor: item.shapeProps.strokeColor,
         strokeSize: item.shapeProps.strokeSize,
     }, {
-        path: `M 0 ${item.shapeProps.headerHeight} L ${item.area.w} ${item.shapeProps.headerHeight}`,
+        path: `M 0 ${headerHeight} L ${item.area.w} ${headerHeight}`,
         fill: 'none',
         strokeColor: item.shapeProps.strokeColor,
         strokeSize: item.shapeProps.strokeSize,
@@ -62,12 +64,17 @@ function getTextSlots(item) {
         let columnRatio = myMath.clamp(previousColumnRatio + Math.abs(item.shapeProps[`colw${i}`]), 0, 100);
         const pos = columnRatio * item.area.w / 100.0;
 
+        let width = pos - previousPosition;
+        if (i === item.shapeProps.columns) {
+            width = item.area.w - previousPosition;
+        }
+
         textSlots.push({
             name: `col${i}`,
             area: {
                 x: previousPosition,
                 y: 0,
-                w: pos - previousPosition,
+                w: width,
                 h: item.shapeProps.headerHeight
             }
         });
@@ -75,6 +82,47 @@ function getTextSlots(item) {
         previousPosition = pos;
     }
     return textSlots;
+}
+
+
+function onColumnNumberInput(item, columns, previousColumns) {
+    const columnWidths = [];
+    let totalColumnSum = 0
+    for (let i = 1; i < previousColumns; i++) {
+        const width = item.shapeProps[`colw${i}`] * item.area.w / 100.0;
+        columnWidths.push(width);
+        totalColumnSum += width;
+    }
+
+    if (columns > previousColumns && columns > 1 && !myMath.tooSmall(item.area.w)) {
+        // adding a column
+        const columnWidth = item.area.w  / (columns - 1);
+
+        item.area.w += columnWidth;
+
+        item.shapeProps[`colw${columns-1}`] = 100 * columnWidth / item.area.w;
+
+        for (let i = 1; i < previousColumns; i++) {
+            item.shapeProps[`colw${i}`] = 100 * columnWidths[i-1] / item.area.w;
+        }
+
+        if (!item.textSlots[`col${columns}`]) {
+            item.textSlots[`col${columns}`] = {
+                text: `<b>Title ${columns}</b>`
+            };
+            enrichItemTextSlotWithDefaults(item.textSlots[`col${columns}`]);
+        }
+    }
+
+    if (columns < previousColumns && columns > 0 && !myMath.tooSmall(item.area.w)) {
+        item.area.w = totalColumnSum;
+        if (!myMath.tooSmall(item.area.w)) {
+            for (let i = 1; i < columns; i++) {
+                item.shapeProps[`colw${i}`] = 100 * columnWidths[i-1] / item.area.w;
+            }
+        }
+    }
+
 }
 
 export default {
@@ -86,13 +134,18 @@ export default {
         menuItems: [{
             group: 'UML',
             name: 'Swim Lane',
-            iconUrl: '/assets/images/items/uml-storage.svg',
+            iconUrl: '/assets/images/items/uml-swim-lane.svg',
             item: {
                 shapeProps: {
                     columns: 3,
                     colw1: 33.33333,
                     colw2: 33.33333,
                     colw3: 33.33333,
+                },
+                textSlots: {
+                    col1: { text: '<b>Todo</b>'},
+                    col2: { text: '<b>In Progress</b>'},
+                    col3: { text: '<b>Done</b>'},
                 }
             }
         }],
@@ -146,7 +199,7 @@ export default {
         },
         
         args: {
-            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: 6},
+            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: 12, onInput: onColumnNumberInput },
             headerHeight: {type: 'number', value: 60, name: 'Header Height', min: 0, hidden: true},
             colw1: {type: 'number', value: 20, name: 'Column Width 1', min: 0, max: 100.0, hidden: true},
             colw2: {type: 'number', value: 20, name: 'Column Width 2', min: 0, max: 100.0, hidden: true},
@@ -154,6 +207,12 @@ export default {
             colw4: {type: 'number', value: 20, name: 'Column Width 4', min: 0, max: 100.0, hidden: true},
             colw5: {type: 'number', value: 20, name: 'Column Width 5', min: 0, max: 100.0, hidden: true},
             colw6: {type: 'number', value: 20, name: 'Column Width 6', min: 0, max: 100.0, hidden: true},
+            colw7: {type: 'number', value: 20, name: 'Column Width 7', min: 0, max: 100.0, hidden: true},
+            colw8: {type: 'number', value: 20, name: 'Column Width 8', min: 0, max: 100.0, hidden: true},
+            colw9: {type: 'number', value: 20, name: 'Column Width 9', min: 0, max: 100.0, hidden: true},
+            colw10: {type: 'number', value: 20, name: 'Column Width 10', min: 0, max: 100.0, hidden: true},
+            colw11: {type: 'number', value: 20, name: 'Column Width 11', min: 0, max: 100.0, hidden: true},
+            colw12: {type: 'number', value: 20, name: 'Column Width 12', min: 0, max: 100.0, hidden: true},
         }
     }
 }

@@ -54,7 +54,7 @@ const defaultTextSlotProps = {
 };
 
 
-function enrichItemTextSlotWithDefaults(textSlot) {
+export function enrichItemTextSlotWithDefaults(textSlot) {
     return enrichObjectWithDefaults(textSlot, defaultTextSlotProps);
 }
 
