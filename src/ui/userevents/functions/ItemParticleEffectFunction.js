@@ -1,6 +1,7 @@
 import forEach from 'lodash/forEach';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
+import Shape from '../../components/editor/items/shapes/Shape';
 
 const PI_2 = Math.PI * 2.0;
 
@@ -41,7 +42,14 @@ class ItemParticleEffectAnimation extends Animation {
 
     init() {
         this.domContainer = document.getElementById(`animation-container-${this.item.id}`);
-        this.domItemPath = document.getElementById(`item-svg-path-${this.item.id}`);
+
+        const shape = Shape.find(this.item.shape);
+        if (!shape) {
+            return false;
+        }
+        const path = shape.computeOutline(this.item);
+        this.domItemPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        this.domItemPath.setAttribute('d', path);
 
         if (!this.domContainer || !this.domItemPath) {
             return false;

@@ -1,5 +1,6 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
+import Shape from '../../components/editor/items/shapes/Shape';
 
 
 class BlinkEffectAnimation extends Animation {
@@ -15,14 +16,14 @@ class BlinkEffectAnimation extends Animation {
 
     init() {
         this.domContainer = document.getElementById(`animation-container-${this.item.id}`);
-        const domItemPath = document.getElementById(`item-svg-path-${this.item.id}`);
 
-        if (!this.domContainer || !domItemPath) {
+        const shape = Shape.find(this.item.shape);
+        if (!shape) {
             return false;
         }
 
         this.domBlinker = this.svg('path', {
-            'd':            domItemPath.getAttribute('d'),
+            'd':            shape.computeOutline(this.item),
             'stroke-width': 3,
             'stroke':       this.args.color,
             'fill':         this.args.color,
@@ -46,7 +47,9 @@ class BlinkEffectAnimation extends Animation {
         if (!this.args.inBackground) {
             this.resultCallback();
         }
-        this.domContainer.removeChild(this.domBlinker);
+        if (this.domBlinker) {
+            this.domContainer.removeChild(this.domBlinker);
+        }
     }
 
 }

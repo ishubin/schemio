@@ -28,11 +28,13 @@ function loopCycle(timeMarker, deltaTime) {
                 }
             } catch(e) {
                 status = false;
+                console.error(e);
             }
             if (!status) {
                 try {
                     animation.destroy();
                 } catch(e) {
+                    console.error(e);
                 }
                 animations.splice(i, 1);
             } else {
