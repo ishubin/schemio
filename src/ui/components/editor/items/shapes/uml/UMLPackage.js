@@ -1,3 +1,4 @@
+import myMath from "../../../../../myMath";
 
 export default {
     shapeConfig: {
@@ -10,6 +11,25 @@ export default {
             name: 'Package',
             iconUrl: '/assets/images/items/uml-package.svg',
         }],
+
+        controlPoints: {
+            make(item) {
+                return {
+                    brick: {
+                        x: Math.min(item.shapeProps.brickWidth, item.area.w/2),
+                        y: myMath.clamp(item.shapeProps.brickHeight, 0, item.area.h/2)
+                    }
+                };
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'brick') {
+                    item.shapeProps.brickWidth = myMath.clamp(originalX + dx, 0, item.area.w / 2);
+
+                    item.shapeProps.brickHeight = myMath.clamp((originalY + dy), 0, item.area.h / 2);
+                }
+            }
+        },
+
 
         getPins(item) {
             const w = item.area.w;
