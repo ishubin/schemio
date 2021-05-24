@@ -9,27 +9,6 @@ function calculateSectionLineTop(item, nameLineTop) {
     return myMath.clamp(myMath.roundPrecise1((item.area.h - nameLineTop) * item.shapeProps.sectionRatio / 100 + nameLineTop), 0, item.area.h);
 }
 
-function makeHeaderHeightControlPoint(item) {
-    return {
-        x: item.area.w / 2,
-        y: item.shapeProps.headerHeight
-    }
-}
-
-function makeCornerRadiusControlPoint(item) {
-    return {
-        x: item.area.w - item.shapeProps.cornerRadius,
-        y: 0
-    };
-}
-
-function makeSectionRatioControlPoint(item) {
-    return {
-        x: item.area.w / 2,
-        y: calculateSectionLineTop(item, calculateNameLineTop(item))
-    };
-}
-
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -97,20 +76,21 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        headerHeight: makeHeaderHeightControlPoint(item),
-                        cornerRadius: makeCornerRadiusControlPoint(item),
-                        sectionRatio: makeSectionRatioControlPoint(item),
-                    };
-                } else if (pointId === 'headerHeight') {
-                    return makeHeaderHeightControlPoint(item);
-                } else if (pointId === 'cornerRadius') {
-                    return makeCornerRadiusControlPoint(item);
-                } else if (pointId === 'sectionRatio') {
-                    return makeSectionRatioControlPoint(item);
-                }
+            make(item) {
+                return {
+                    headerHeight: {
+                        x: item.area.w / 2,
+                        y: item.shapeProps.headerHeight
+                    },
+                    cornerRadius: {
+                        x: item.area.w - item.shapeProps.cornerRadius,
+                        y: 0
+                    },
+                    sectionRatio: {
+                        x: item.area.w / 2,
+                        y: calculateSectionLineTop(item, calculateNameLineTop(item))
+                    },
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'headerHeight') {

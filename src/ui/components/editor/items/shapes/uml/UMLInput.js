@@ -1,11 +1,5 @@
 import myMath from "../../../../../myMath";
 
-function makeSkewControlPoint(item) {
-    return {
-        x: myMath.clamp(item.shapeProps.skew, 0, item.area.w/2),
-        y: 0
-    };
-}
 
 function computePath(item) {
     const w = item.area.w;
@@ -57,14 +51,13 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        skew: makeSkewControlPoint(item),
-                    };
-                } else if (pointId === 'skew') {
-                    return makeSkewControlPoint(item);
-                }
+            make(item) {
+                return {
+                    skew: {
+                        x: myMath.clamp(item.shapeProps.skew, 0, item.area.w/2),
+                        y: 0
+                    }
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'skew') {

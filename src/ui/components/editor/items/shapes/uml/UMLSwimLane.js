@@ -251,30 +251,25 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    const cps = { };
+            make(item) {
+                const cps = { };
 
-                    if (item.shapeProps.vertical) {
-                        cps.headerHeight = {
-                            x: 0, y: myMath.clamp(item.shapeProps.headerHeight, 0, item.area.h)
-                        };
-                    } else {
-                        cps.headerHeight = {
-                            x: myMath.clamp(item.shapeProps.headerHeight, 0, item.area.w), y: 0
-                        };
-                    }
-
-
-                    // doing it in reverse order so that control point for first column would always be rendered on top of second control point
-                    for (let i = item.shapeProps.columns - 1; i > 0; i--) {
-                        cps[`colw${i}`] = makeColumnControlPoint(item, i);
-                    }
-                    return cps;
-                } else if (pointId.indexOf('colw') === 0) {
-                    const columnNumber = parseInt(pointId.substr(4));
-                    return makeColumnControlPoint(item, columnNumber);
+                if (item.shapeProps.vertical) {
+                    cps.headerHeight = {
+                        x: 0, y: myMath.clamp(item.shapeProps.headerHeight, 0, item.area.h)
+                    };
+                } else {
+                    cps.headerHeight = {
+                        x: myMath.clamp(item.shapeProps.headerHeight, 0, item.area.w), y: 0
+                    };
                 }
+
+
+                // doing it in reverse order so that control point for first column would always be rendered on top of second control point
+                for (let i = item.shapeProps.columns - 1; i > 0; i--) {
+                    cps[`colw${i}`] = makeColumnControlPoint(item, i);
+                }
+                return cps;
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName.indexOf('colw') === 0) {

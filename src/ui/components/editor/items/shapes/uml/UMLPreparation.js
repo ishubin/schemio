@@ -9,12 +9,6 @@ function computePath(item) {
     return `M ${s} 0 L ${w-s} 0 L ${w} ${cy} L ${w-s} ${h} L ${s} ${h} L 0 ${cy} Z`;
 }
 
-function makeSkewControlPoint(item) {
-    return {
-        x: item.area.w - myMath.clamp(item.shapeProps.skew, 0, item.area.w/3),
-        y: 0
-    };
-}
 
 export default {
     shapeConfig: {
@@ -37,14 +31,13 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        skew: makeSkewControlPoint(item),
-                    };
-                } else if (pointId === 'skew') {
-                    return makeSkewControlPoint(item);
-                }
+            make(item) {
+                return {
+                    skew: {
+                        x: item.area.w - myMath.clamp(item.shapeProps.skew, 0, item.area.w/3),
+                        y: 0
+                    },
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'skew') {

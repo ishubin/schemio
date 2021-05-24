@@ -4,13 +4,6 @@ import {getStandardRectPins} from '../ShapeDefaults'
 
 const maxSkewRatioToHeight = 3;
 
-function makeSkewControlPoint(item) {
-    return {
-        x: item.area.w/2,
-        y: myMath.clamp(item.shapeProps.skew, 0, item.area.h/maxSkewRatioToHeight) * 2
-    };
-}
-
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -54,14 +47,13 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        skew: makeSkewControlPoint(item),
-                    };
-                } else if (pointId === 'skew') {
-                    return makeSkewControlPoint(item);
-                }
+            make(item) {
+                return {
+                    skew: {
+                        x: item.area.w/2,
+                        y: myMath.clamp(item.shapeProps.skew, 0, item.area.h/maxSkewRatioToHeight) * 2
+                    }
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'skew') {

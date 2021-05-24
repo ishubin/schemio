@@ -3,12 +3,6 @@ import myMath from "../../../../../myMath";
 
 const maxSkewRatioToHeight = 3;
 
-function makeSkewControlPoint(item) {
-    return {
-        x: item.area.w - myMath.clamp(item.shapeProps.skew, 0, item.area.w/maxSkewRatioToHeight),
-        y: item.area.h/2
-    };
-}
 
 function computePath(item) {
     const   w = item.area.w,
@@ -64,14 +58,13 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        skew: makeSkewControlPoint(item),
-                    };
-                } else if (pointId === 'skew') {
-                    return makeSkewControlPoint(item);
-                }
+            make(item) {
+                return {
+                    skew: {
+                        x: item.area.w - myMath.clamp(item.shapeProps.skew, 0, item.area.w/maxSkewRatioToHeight),
+                        y: item.area.h/2
+                    },
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'skew') {

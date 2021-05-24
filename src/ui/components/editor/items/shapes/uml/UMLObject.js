@@ -1,20 +1,6 @@
 import myMath from "../../../../../myMath";
 import {getStandardRectPins} from '../ShapeDefaults'
 
-function makeHeaderHeightControlPoint(item) {
-    return {
-        x: item.area.w / 2,
-        y: item.shapeProps.headerHeight
-    }
-}
-
-function makeCornerRadiusControlPoint(item) {
-    return {
-        x: item.area.w - item.shapeProps.cornerRadius,
-        y: 0
-    };
-}
-
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -73,17 +59,17 @@ export default {
         },
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        headerHeight: makeHeaderHeightControlPoint(item),
-                        cornerRadius: makeCornerRadiusControlPoint(item),
-                    };
-                } else if (pointId === 'headerHeight') {
-                    return makeHeaderHeightControlPoint(item);
-                } else if (pointId === 'cornerRadius') {
-                    return makeCornerRadiusControlPoint(item);
-                }
+            make(item) {
+                return {
+                    headerHeight: {
+                        x: item.area.w / 2,
+                        y: item.shapeProps.headerHeight
+                    },
+                    cornerRadius: {
+                        x: item.area.w - item.shapeProps.cornerRadius,
+                        y: 0
+                    },
+                };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'headerHeight') {
