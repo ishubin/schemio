@@ -79,7 +79,7 @@
                     <h4>{{previewItem.item.name}}</h4>
                     
                     <svg v-if="previewItem.item.item" width="150px" height="120px">
-                        <item-svg :item="previewItem.item.item" mode="view"/>
+                        <item-svg :item="previewItem.item.item" mode="edit"/>
                     </svg>
                 </div>
                 <div v-if="previewItem.artIcon">
