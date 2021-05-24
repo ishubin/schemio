@@ -15,11 +15,6 @@ export default {
         store.dispatch('clearItemControlPoints');
     },
 
-    updateItemControlPoint(store, pointId, point) {
-        store.dispatch('updateItemControlPoint', { pointId, point });
-    },
-
-
     updateAllCurveEditPoints(store, item) {
         // the following action will reset all the curve eidt points in store
         store.dispatch('setCurveEditItem', item);

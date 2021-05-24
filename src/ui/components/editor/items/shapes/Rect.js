@@ -1,13 +1,6 @@
 import myMath from '../../../../myMath';
 import {getStandardRectPins} from './ShapeDefaults'
 
-function makeCornerRadiusControlPoint(item) {
-    return {
-        x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
-        y: 0
-    };
-}
-
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -48,13 +41,12 @@ export default {
         editorProps: {},
 
         controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    return {
-                        cornerRadius: makeCornerRadiusControlPoint(item),
-                    };
-                } else if (pointId === 'cornerRadius') {
-                    return makeCornerRadiusControlPoint(item);
+            make(item) {
+                return {
+                    cornerRadius: {
+                        x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
+                        y: 0
+                    }
                 }
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {

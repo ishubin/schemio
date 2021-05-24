@@ -1,3 +1,5 @@
+import myMath from "../../../../../myMath";
+
 export default {
     shapeConfig: {
         shapeType: 'standard',
@@ -15,6 +17,29 @@ export default {
                 },
             },
         }],
+
+        controlPoints: {
+            make(item) {
+                return {
+                    brickWidth: {
+                        x: Math.min(item.shapeProps.brickWidth, item.area.w/2),
+                        y: myMath.clamp(item.shapeProps.brickHeight, 0, item.area.h) * 1.5
+                    },
+                    brickHeight: {
+                        x: Math.min(item.shapeProps.brickWidth, item.area.w/2) / 2,
+                        y: myMath.clamp(item.shapeProps.brickHeight, 0, item.area.h) * 4
+                    }
+                };
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'brickWidth') {
+                    item.shapeProps.brickWidth = myMath.clamp(originalX + dx, 0, item.area.w / 2);
+
+                } else if (controlPointName === 'brickHeight') {
+                    item.shapeProps.brickHeight = myMath.clamp((originalY + dy) / 4, 0, item.area.h / 4);
+                }
+            }
+        },
 
         getPins(item) {
             const bw = Math.min(item.shapeProps.brickWidth, item.area.w/2) / 2;

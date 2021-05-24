@@ -893,10 +893,8 @@ export default class StateDragItem extends State {
         }
 
         const shape = Shape.find(this.sourceItem.shape);
-        const newPoint = shape.controlPoints.make(this.sourceItem, this.controlPoint.id);
+        StoreUtils.setItemControlPoints(this.store, this.sourceItem);
         
-        StoreUtils.updateItemControlPoint(this.store, this.controlPoint.id, newPoint);
-
         this.eventBus.emitItemChanged(this.sourceItem.id);
         this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.reindexNeeded = true;

@@ -248,17 +248,6 @@ const store = new Vuex.Store({
             state.itemControlPoints.length = 0;
         },
 
-        UPDATE_ITEM_CONTROL_POINT(state, { pointId, point }) {
-            // this is called when user drags control point of an item
-            for (let i = 0; i < state.itemControlPoints.length; i++) {
-                if (state.itemControlPoints[i].id === pointId) {
-                    forEach(point, (value, arg) => {
-                        state.itemControlPoints[i].point[arg] = value;
-                    })
-                    return;
-                }
-            }
-        },
         SET_MULTI_SELECT_BOX(state, box) {
             state.multiSelectBox = box;
         },
@@ -494,9 +483,6 @@ const store = new Vuex.Store({
             commit('SET_ITEM_CONTROL_POINTS', list);
         },
 
-        updateItemControlPoint({commit}, { pointId, point }) {
-            commit('UPDATE_ITEM_CONTROL_POINT', { pointId, point });
-        },
         clearItemControlPoints({commit}) {
             commit('CLEAR_ITEM_CONTROL_POINTS');
         },
