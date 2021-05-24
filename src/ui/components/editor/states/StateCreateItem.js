@@ -5,6 +5,7 @@
 import State from './State.js';
 import EventBus from '../EventBus.js';
 import StoreUtils from '../../../store/StoreUtils';
+import Shape from '../items/shapes/Shape.js';
 
 export default class StateCreateItem extends State {
     constructor(eventBus, store) {
@@ -23,6 +24,12 @@ export default class StateCreateItem extends State {
 
     setItem(item) {
         this.item = item;
+
+        const shape = Shape.find(item.shape);
+        if (shape && shape.shapeEvents && shape.shapeEvents.beforeCreate) {
+            shape.shapeEvents.beforeCreate(item);
+        }
+
         this.updateCursor('crosshair');
     }
 

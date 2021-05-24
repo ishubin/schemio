@@ -155,6 +155,16 @@ export default {
 
         getTextSlots,
 
+        // triggered when user initiates creation of this item
+        beforeCreate(item) {
+            const columns = myMath.clamp(item.shapeProps.columns, 1, 12);
+            const columnRatio = 100 / columns;
+
+            for(let i = 0; i < columns; i++) {
+                item.shapeProps[`colw${i}`] = columnRatio;
+            }
+        },
+
         controlPoints: {
             make(item, pointId) {
                 if (!pointId) {

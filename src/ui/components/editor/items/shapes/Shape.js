@@ -148,6 +148,9 @@ function enrichShape(shapeComponent, shapeName) {
         getEvents               : shapeConfig.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeConfig.controlPoints || null,
         getPins                 : shapeConfig.getPins || defaultGetPins,
+        shapeEvents             : {
+            beforeCreate        : shapeConfig.beforeCreate
+        },
 
         // used for generating item snapers which are used for snapping dragged item to other items
         getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,
