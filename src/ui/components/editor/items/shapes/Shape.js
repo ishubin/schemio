@@ -141,7 +141,7 @@ function enrichShape(shapeComponent, shapeName) {
     const args = utils.clone(shapeConfig.args || {});
 
     if (shapeConfig.shapeType === 'standard') {
-        forEach(standardShapeProps, (argName, arg) => {
+        forEach(standardShapeProps, (arg, argName) => {
             args[argName] = utils.clone(arg);
         });
     }
