@@ -1013,6 +1013,7 @@ class SchemeContainer {
     }
 
     addItem(item) {
+        enrichItemWithDefaults(item);
         if (!item.hasOwnProperty('meta')) {
             item.meta = {}
         }
