@@ -308,6 +308,22 @@ function computePath(item) {
 const DST_READJUST_CTX = Symbol('dstReadjustCtx');
 const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
 
+
+
+function realignNormal(point, secondPoint) {
+    if (point.hasOwnProperty('bx') && point.hasOwnProperty('by') && secondPoint) {
+        const dx = secondPoint.x - point.x;
+        const dy = secondPoint.y - point.y;
+        const angle = myMath.cosineAngleBetweenVectors(point.bx, point.by, dx, dy) * 180 / Math.PI;
+
+        if (angle > 90) {
+            // inverting the normal
+            point.bx = -point.bx;
+            point.by = -point.by;
+        }
+    }
+};
+
 /**
  * @param {SchemeContainer} schemeContainer
  * @param {Item} item
@@ -320,20 +336,6 @@ const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
  * @param {Function} callback - function which is used to pass changed attachment item position
  */
 function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
-    const realignNormal = (newPoint) => {
-        if (secondCurvePoint) {
-            const dx = secondCurvePoint.x - newPoint.x;
-            const dy = secondCurvePoint.y - newPoint.y;
-            const angle = myMath.cosineAngleBetweenVectors(newPoint.bx, newPoint.by, dx, dy) * 180 / Math.PI;
-
-            if (angle > 90) {
-                // inverting the normal
-                newPoint.bx = -newPoint.bx;
-                newPoint.by = -newPoint.by;
-            }
-        }
-    };
-
     const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
     if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
         if (attachmentItemPosition < 0) {
@@ -348,16 +350,6 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
                     x: localPinPoint.x,
                     y: localPinPoint.y,
                 };
-
-                // checking whether pin point has a normal
-                // in that case this point should be of Beizer type
-                // this will be used for smooth connectors
-                if (pinPoint.nx || pinPoint.ny) {
-                    newPoint.bx = pinPoint.nx;
-                    newPoint.by = pinPoint.ny;
-
-                    realignNormal(newPoint);
-                }
 
                 callback(newPoint, attachmentItemPosition);
                 
@@ -417,9 +409,6 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
             by: normal.y,
         };
 
-        realignNormal(newPoint);
-
-
         callback(newPoint, distanceOnPath);
     }
 }
@@ -450,7 +439,7 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
         );
     }
 
-    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+    if (item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
         readjustCurveAttachment(schemeContainer,
             item,
             item.shapeProps.points[item.shapeProps.points.length - 1],
@@ -468,6 +457,13 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
 
     if (!isSoft) {
         readjustItemArea(item, precision);
+    }
+    if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
+        realignNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
+    }
+
+    if (item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+        realignNormal(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[item.shapeProps.points.length - 2]);
     }
 
     return true;

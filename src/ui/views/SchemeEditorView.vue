@@ -832,6 +832,7 @@ export default {
                         const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
                         const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
                         this.schemeContainer.pasteItems(items, centerX, centerY);
+                        EventBus.emitSchemeChangeCommited();
                     }
                 }
             })

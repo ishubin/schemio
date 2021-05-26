@@ -17,7 +17,7 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import { Item, enrichItemWithDefaults } from './Item.js';
+import { Item, enrichItemWithDefaults, traverseItems } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
 
@@ -1296,17 +1296,8 @@ class SchemeContainer {
         }
         this.deselectAllItems();
 
-        let preserveParent = true;
-        let i = 1;
-        while(i < items.length && preserveParent) {
-            if (items[i].id !== items[0].id) {
-                preserveParent = false;
-            }
-            i += 1;
-        }
-
         const copiedItemIds = {};
-        const itemsToBeSelected = [];
+        const copiedItems = [];
         forEach(items, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
@@ -1322,30 +1313,47 @@ class SchemeContainer {
                     newItem.area.r += item.meta.transform.r;
                 }
 
-                let parentItems = this.scheme.items;
-                if (preserveParent) {
-                    if (item.meta && item.meta.parentId) {
-                        const parentItem = this.findItemById(item.meta.parentId);
-                        if (parentItem) {
-                            parentItems = parentItem.childItems;
-                            // modifying area back since we keep the same parent
-                            newItem.area = utils.clone(item.area);
-                        }
-                    }
-                }
-
-                parentItems.push(newItem);
-                itemsToBeSelected.push(newItem);
+                this.scheme.items.push(newItem);
+                copiedItems.push(newItem);
             }
+        });
+        
+        // collecting id conversions so that later it could be used for converting attached connectors
+        const idOldToNewConversions = new Map();
+        forEach(copiedItems, copiedItem => {
+            traverseItems(copiedItem, item => {
+                idOldToNewConversions.set(item.meta.oldId, item.id);
+            });
+        });
+
+        // recreates element selector in case the source or destination was also copied together with it
+        const rebuildConnectorAttachmentElement = (elementSelector) => {
+            if (elementSelector && elementSelector.indexOf('#') === 0) {
+                const oldId = elementSelector.substr(1);
+                if (idOldToNewConversions.has(oldId)) {
+                    return '#' + idOldToNewConversions.get(oldId);
+                }
+            }
+            return elementSelector;
+        };
+
+        forEach(copiedItems, copiedItem => {
+            traverseItems(copiedItem, item => {
+                if (item.shape === 'connector') {
+                    item.shapeProps.sourceItem = rebuildConnectorAttachmentElement(item.shapeProps.sourceItem);
+                    item.shapeProps.destinationItem = rebuildConnectorAttachmentElement(item.shapeProps.destinationItem);
+                    this.readjustItem(item, false, DEFAULT_ITEM_MODIFICATION_CONTEXT, 3);
+                }
+            });
         });
 
         this.reindexItems();
 
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
-        forEach(itemsToBeSelected, item => this.selectItem(item, true));
+        forEach(copiedItems, item => this.selectItem(item, true));
 
-        //since all items are already selected, the relative multi item edit box should centered on the specified center point
+        //since all items are already selected, the relative multi item edit box should be centered on the specified center point
         //this is not needed to viewport items
         if (this.multiItemEditBox) {
             const boxArea = this.multiItemEditBox.area;
@@ -1356,14 +1364,16 @@ class SchemeContainer {
 
             boxArea.x += dx;
             boxArea.y += dy;
+            this.updateMultiItemEditBoxItems(this.multiItemEditBox, true, DEFAULT_ITEM_MODIFICATION_CONTEXT);
             this.updateMultiItemEditBoxItems(this.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
     }
 
     copyItem(oldItem) {
+        const newId = shortid.generate();
         const newItem = {
-            id: shortid.generate(),
-            meta: { }
+            id: newId,
+            meta: { oldId: oldItem.id } // setting oldId as we need to be able to convert attached copied connectors
         };
 
         forEach(oldItem, (value, field) => {
@@ -1385,7 +1395,7 @@ class SchemeContainer {
      */
     updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
         if (precision === undefined) {
-            precision = 10;
+            precision = 4;
         }
         if (!context) {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;

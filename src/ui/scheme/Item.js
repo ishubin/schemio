@@ -207,3 +207,9 @@ export function enrichItemWithDefaultShapeProps(item) {
         });
     }
 }
+export function traverseItems(rootItem, callback) {
+    callback(rootItem);
+    forEach(rootItem.childItems, item => {
+        traverseItems(item, callback);
+    });
+}

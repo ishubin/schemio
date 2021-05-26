@@ -1,9 +1,9 @@
-import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import find from 'lodash/find';
 import indexOf from 'lodash/indexOf';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
+import { traverseItems } from '../../../../scheme/Item';
 
 export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
     const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
@@ -14,12 +14,6 @@ export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
 }
 
 
-function traverseItems(rootItem, callback) {
-    callback(rootItem);
-    forEach(rootItem.childItems, item => {
-        traverseItems(item, callback);
-    });
-}
 
 /**
  * Converts curve points to relative coords
