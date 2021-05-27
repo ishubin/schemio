@@ -139,6 +139,7 @@ class SchemeContainer {
         this.revision = 0;
         this.hudItems = []; //used for storing hud items that are supposed to be rendered in the viewport transform
         this.worldItems = []; // used for storing top-level items with default area
+        this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
@@ -208,6 +209,7 @@ class SchemeContainer {
         this._itemArray = [];
         this.worldItems = [];
         this._itemGroupsToIds = {};
+        this.worldItemAreas = new Map();
         this.relativeSnappers.horizontal = [];
         this.relativeSnappers.vertical = [];
         this.spatialIndex = new SpatialIndex();
@@ -294,6 +296,8 @@ class SchemeContainer {
             this.indexItemPins(item, shape);
             this.indexItemOutlinePoints(item);
 
+            this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
+
             // storing revision in item as in future I am planning to optimize reindexItems function to only reindex changed and affected items
             // this way not all items wold have the same revision
             // revision itself is going to be used in item path cache handling
@@ -307,6 +311,43 @@ class SchemeContainer {
         this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision = newRevision;
         log.timeEnd('reindexItems');
+    }
+
+    calculateItemWorldArea(item) {
+        const points = [
+            {x: 0, y: 0},
+            {x: item.area.w, y: 0},
+            {x: item.area.w, y: item.area.h},
+            {x: 0, y: item.area.h},
+        ];
+        const worldPoints = map(points, point => this.worldPointOnItem(point.x, point.y, item));
+
+        const area = {
+            x: worldPoints[0].x,
+            y: worldPoints[0].y,
+            w: 0,
+            h: 0
+        };
+
+        forEach(worldPoints, point => {
+            if (area.x > point.x) {
+                const oldX = area.x;
+                area.x = point.x;
+                area.w = oldX + area.w - point.x;
+            } else if (point.x > area.x + area.w) {
+                area.w = point.x - area.x;
+            }
+
+            if (area.y > point.y) {
+                const oldY = area.y;
+                area.y = point.y;
+                area.h = oldY + area.h - point.y;
+            } else if (point.y > area.y + area.h) {
+                area.h = point.y - area.y;
+            }
+        });
+        
+        return area;
     }
 
     getItemWorldPinPoint(item, pinIndex) {
@@ -768,7 +809,8 @@ class SchemeContainer {
     }
 
     remountItemToRoot(itemId) {
-        this.remountItemInsideOtherItem(itemId);
+        const position = this.scheme.items.length;
+        this.remountItemInsideOtherItem(itemId, null, position);
     }
 
     remountItemInsideOtherItem(itemId, otherItemId, position) {
@@ -1702,6 +1744,40 @@ class SchemeContainer {
         }
 
         return shape.getSnappers(item);
+    }
+
+    /**
+     * Searches for item that is able to fit item inside it and that has the min area out of all specified items
+     * @param {Area} area  - area that it needs to fit into another parent item (should be in world transform)
+     * @param {Function} itemConsiderCallback - callback function which should return true for specified item if it should be considered
+     * @returns {Item}
+     */
+    findItemSuitableForParent(area, itemConsiderCallback) {
+        const items = this.getItems();
+
+        // doing backwards search as getItems() returns a list of all items ordered by their layering position on screen
+        for (let i = items.length - 1; i >= 0; i--) {
+            const item = items[i];
+
+            // connectors should not be parent of any other items
+            if (item.visible && item.shape !== 'connector' && (!itemConsiderCallback || itemConsiderCallback(item))) {
+
+                const worldArea = this.worldItemAreas.get(item.id);
+
+                if (worldArea &&  area.w + area.h < worldArea.w + worldArea.h) {
+                    const overlap = myMath.overlappingArea(worldArea, area);
+                    
+                    const A = area.w * area.h;
+                    if (overlap && !myMath.tooSmall(A)) {
+                        if ((overlap.w * overlap.h) / A >= 0.5)  {
+                            return item;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
 

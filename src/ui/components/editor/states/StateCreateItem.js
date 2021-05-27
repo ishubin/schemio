@@ -81,7 +81,7 @@ export default class StateCreateItem extends State {
         this.schemeContainer.setActiveBoundaryBox(null);
         
         if (this.store.state.itemCreating.autoRemount && this.item.shape !== 'hud') {
-            const parentItem = this.findItemSuitableForParent(this.item.area);
+            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item.area, candidateItem => candidateItem.id !== this.item.id);
             this.schemeContainer.deselectAllItems();
             if (parentItem) {
                 this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
@@ -95,41 +95,6 @@ export default class StateCreateItem extends State {
         this.reset();
     }
 
-    /**
-     * Searches for item that is able to fit item inside it and that has the min area out of all specified items
-     * @param {*} area 
-     * @returns {Item}
-     */
-    findItemSuitableForParent(area) {
-        const points = [
-            { x: area.x,  y: area.y },
-            { x: area.x + area.w,  y: area.y },
-            { x: area.x + area.w,  y: area.y + area.h},
-            { x: area.x,  y: area.y + area.h},
-        ];
-
-        const items = this.schemeContainer.getItems();
-
-        // doing backwards search as getItems() returns a list of all items ordered by their layering position on screen
-        for (let i = items.length - 1; i >= 0; i--) {
-            const item = items[i];
-
-            // connectors should not be parent of any other items
-            if (item.visible && item.shape !== 'connector' && item.id !== this.item.id) {
-                let fitsInside = true;
-                for (let i = 0; i < points.length && fitsInside; i++) {
-                    const localPoint = this.schemeContainer.localPointOnItem(points[i].x, points[i].y, item);
-                    fitsInside = localPoint.x >= 0 && localPoint.y >= 0 && localPoint.x <= item.area.w && localPoint.y <= item.area.h;
-                }
-
-                if (fitsInside) {
-                    return item;
-                }
-            }
-        }
-
-        return null;
-    }
 
     updateItemArea(x, y) {
         if (x > this.originalPoint.x) {

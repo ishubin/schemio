@@ -7,6 +7,7 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
+import indexOf from 'lodash/indexOf';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
@@ -83,6 +84,12 @@ export default class StateDragItem extends State {
         // used for tracking updates of control points (also when multi item edit box is not initialized, e.g. for connector)
         this.lastModifiedItem = null;
 
+        // used in order to remount items in this item in case thier area fits
+        this.proposedItemForMounting = null;
+        
+        // flag that identifies whether items should be remounted to root. happens when they are dragged outside of their parent
+        this.proposedToRemountToRoot = false;
+
         this.snapper = {
             /**
              * Checks snapping of item and returns new offset that should be applied to item
@@ -117,6 +124,8 @@ export default class StateDragItem extends State {
         this.boxPointsForSnapping = null;
         this.modificationContextId = null;
         this.lastModifiedItem = null;
+        this.proposedItemForMounting = null;
+        this.proposedToRemountToRoot = false;
     }
 
     keyPressed(key, keyOptions) {
@@ -392,6 +401,13 @@ export default class StateDragItem extends State {
         // doing it just in case the highlighting was previously set
         this.eventBus.emitItemsHighlighted([]);
 
+        if (this.multiItemEditBox && this.proposedItemForMounting) {
+            // it should remount all items in multi item edit box into the new proposed parent
+            this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
+        } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
+            this.remountItems(this.multiItemEditBox.items);
+        }
+
         if (this.multiSelectBox) {
             if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
@@ -648,6 +664,17 @@ export default class StateDragItem extends State {
         if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
+        }
+
+        // checking if it can fit into another item
+        this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
+
+        if (this.proposedItemForMounting) {
+            this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});
+            this.proposedToRemountToRoot = false;
+        } else {
+            this.eventBus.emitItemsHighlighted([]);
+            this.proposedToRemountToRoot = true;
         }
 
         this.reindexNeeded = true;
@@ -1044,5 +1071,32 @@ export default class StateDragItem extends State {
                 {x: maxPoint.x, y: maxPoint.y}, //right edge
             ]
         };
+    }
+
+    remountItems(items, parentItem) {
+        const processedItemIds = new Set();
+        forEach(items, item => {
+            const parentWasAlreadyRemounted = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => processedItemIds.has(id)));
+            if (parentWasAlreadyRemounted) {
+                return;
+            }
+            processedItemIds.add(item.id);
+            if (parentItem) {
+                if (item.meta && item.meta.parentId !== parentItem.id) {
+                    this.schemeContainer.remountItemInsideOtherItem(item.id, parentItem.id);
+                }
+            } else {
+                // remount it to root only in case it has a parent
+                if (item.meta && item.meta.parentId && item.meta.ancestorIds) {
+                    const rootParent = this.schemeContainer.findItemById(item.meta.ancestorIds[0]);
+                    
+                    if (rootParent) {
+                        this.schemeContainer.remountItemAfterOtherItem(item.id, rootParent.id);
+                    } else {
+                        this.schemeContainer.remountItemToRoot(item.id);
+                    }
+                }
+            }
+        });
     }
 }
