@@ -175,15 +175,10 @@
             :key="customContextMenu.id"
             :mouse-x="customContextMenu.mouseX"
             :mouse-y="customContextMenu.mouseY"
+            :options="customContextMenu.menuOptions"
             @close="customContextMenu.show = false"
-        >
-            <ul>
-                <li v-for="(option, optionIndex) in customContextMenu.menuOptions" @click="onCustomMenuOptionSelected(optionIndex)">
-                    <i v-if="option.iconClass" :class="option.iconClass"/>
-                    {{option.name}}
-                </li>
-            </ul>
-        </context-menu>
+            @selected="onCustomContextMenuOptionSelected"
+        />
 
         <modal title="Rotate around center" v-if="rotateAroundCenterModal.shown"
             primary-button="Rotate"
@@ -208,6 +203,7 @@ import shortid from 'shortid';
 import map from 'lodash/map';
 import max from 'lodash/max';
 import forEach from 'lodash/forEach';
+import find from 'lodash/find';
 import filter from 'lodash/filter';
 
 import '../../typedef';
@@ -1032,6 +1028,26 @@ export default {
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
             }]);
 
+
+            if (!this.schemeContainer.multiItemEditBox || (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1)) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Events',
+                    subOptions: [{
+                        name: 'Init',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'init'); }
+                    }, {
+                        name: 'Clicked',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'clicked'); }
+                    }, {
+                        name: 'Mouse In',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'mousein'); }
+                    }, {
+                        name: 'Mouse Out',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'mouseout'); }
+                    }]
+                });
+            }
+
             if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Export as a shape...',
@@ -1073,6 +1089,19 @@ export default {
                 this.customContextMenu.id = shortid.generate();
                 this.customContextMenu.show = true;
             }
+        },
+
+        addItemBehaviorEvent(item, eventName) {
+            const existingEvent = find(item.behavior.events, e => e.event === eventName);
+
+            if (!existingEvent) {
+                item.behavior.events.push({
+                    id: shortid.generate(),
+                    event: eventName,
+                    actions: [ ]
+                });
+            }
+            EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
         },
 
         onExportSVGRequested() {
@@ -1319,9 +1348,8 @@ export default {
             this.customContextMenu.show = true;
         },
 
-        onCustomMenuOptionSelected(optionIndex) {
-            const option = this.customContextMenu.menuOptions[optionIndex];
-            if (option) {
+        onCustomContextMenuOptionSelected(option) {
+            if (!option.subOptions) {
                 option.clicked();
             }
             this.customContextMenu.show = false;

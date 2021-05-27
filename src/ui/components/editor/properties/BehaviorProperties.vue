@@ -14,7 +14,7 @@
             <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
                 <div class="behavior-menu">
                     <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
-                        <i class="fas" :class="[eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
+                        <i class="fas" :class="[eventMetas[eventIndex] && eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
                     </span>
                 </div>
                 
@@ -30,7 +30,7 @@
             </div>
 
 
-            <div v-if="!eventMetas[eventIndex].collapsed">
+            <div v-if="! (eventMetas[eventIndex] && eventMetas[eventIndex].collapsed)">
                 <div class="hint hint-small" v-if="event.actions.length === 0">This event has no actions yet...</div>
 
                 <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"

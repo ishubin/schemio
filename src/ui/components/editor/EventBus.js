@@ -86,7 +86,9 @@ const EventBus = new Vue({
 
             EXPORT_SVG_REQUESTED: 'export-svg-requested',
 
-            ITEM_SURROUND_CREATED: 'item-surround-created'
+            ITEM_SURROUND_CREATED: 'item-surround-created',
+
+            BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested'
         };
     },
     methods: {

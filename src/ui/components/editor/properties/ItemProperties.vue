@@ -19,7 +19,7 @@
         <div v-if="currentTab === 'behavior'">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
             <behavior-properties
-                :key="`behavior-panel-${item.id}`"
+                :key="`behavior-panel-${item.id}-${behaviorPanelRevision}`"
                 :project-id="projectId"
                 :item="item"
                 :scheme-container="schemeContainer"
@@ -273,6 +273,11 @@ export default {
             tab = ALL_TABS_NAMES[0];
         }
         this.currentTab = tab;
+        EventBus.$on(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
+    },
+
+    beforeDestroy() {
+        EventBus.$off(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
     },
 
     mounted() {
@@ -302,6 +307,8 @@ export default {
 
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
+
+            behaviorPanelRevision: 1
         };
     },
 
@@ -381,6 +388,11 @@ export default {
                 return;
             }
             this.schemeContainer.selectItem(item);
+        },
+
+        onBehaviorPanelRequested() {
+            this.behaviorPanelRevision += 1;
+            this.currentTab = 'behavior';
         }
     },
     computed: {
