@@ -47,6 +47,7 @@
 import Panel from '../Panel.vue';
 import EventBus from '../EventBus.js';
 import NumberTextfield from '../../NumberTextfield.vue';
+import forEach from 'lodash/forEach';
 
 export default {
     props: ['item', 'editBox'],
@@ -74,7 +75,10 @@ export default {
     methods: {
         toggleItemLock() {
             this.itemLocked = !this.itemLocked;
-            this.item.locked = this.itemLocked;
+
+            forEach(this.editBox.items, item => {
+                item.locked = this.itemLocked;
+            });
         },
 
         onEditBoxChange() {
