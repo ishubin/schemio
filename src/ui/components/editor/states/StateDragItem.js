@@ -340,21 +340,18 @@ export default class StateDragItem extends State {
             } else if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.reset();
-            } else if (this.multiItemEditBox) {
-                // in case only single item is selected and it is locked - we don't want to be able to do anything with edit box
-                if (this.multiItemEditBox.items.length > 1 || !this.multiItemEditBox.items[0].locked) {
-                    if (this.isRotating) {
-                        this.rotateMultiItemEditBox(x, y, mx, my, event);
-                    } else if (this.draggerEdges) {
-                        this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
-                    } else {
-                        // doing this check since it is really easy to trigger item drag just by few pixels
-                        if (!this.draggedEnough(mx, my)) {
-                            return;
-                        }
-
-                        this.dragMultiItemEditBox(x, y);
+            } else if (this.multiItemEditBox && !this.multiItemEditBox.locked) {
+                if (this.isRotating) {
+                    this.rotateMultiItemEditBox(x, y, mx, my, event);
+                } else if (this.draggerEdges) {
+                    this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
+                } else {
+                    // doing this check since it is really easy to trigger item drag just by few pixels
+                    if (!this.draggedEnough(mx, my)) {
+                        return;
                     }
+
+                    this.dragMultiItemEditBox(x, y);
                 }
             } else {
                 if (this.controlPoint) {
@@ -944,7 +941,7 @@ export default class StateDragItem extends State {
         // don't need to drag by keyboard if already started dragging by mouse
         if (!this.startedDragging) {
             const box = this.schemeContainer.multiItemEditBox;
-            if (box && (box.items.length > 1 || !box.items[0].locked)) {
+            if (box && !box.locked) {
                 box.area.x += dx;
                 box.area.y += dy;
                 this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());

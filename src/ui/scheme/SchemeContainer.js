@@ -1658,6 +1658,7 @@ class SchemeContainer {
      */
     generateMultiItemEditBox(items) {
         let area = null;
+        let locked = true;
         if (items.length === 1) {
             // we want the item edit box to align with item if only that item was selected
             area = this.createMultiItemEditBoxArea(items[0]);
@@ -1701,6 +1702,9 @@ class SchemeContainer {
                 originalArea: utils.clone(item.area)
             };
             itemIds.add(item.id);
+            if (!item.locked) {
+                locked = false;
+            }
 
             // caclulating projection of item world coords on the top and left edges of original edit box
             // since some items can be children of other items we need to project only their world location
@@ -1745,6 +1749,7 @@ class SchemeContainer {
 
         return {
             id: shortid.generate(),
+            locked,
             items,
             itemIds,
             itemData,

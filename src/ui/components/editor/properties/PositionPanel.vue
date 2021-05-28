@@ -7,9 +7,9 @@
         <ul class="button-group">
             <li>
                 <span class="toggle-button" @click="toggleItemLock()"
-                    :class="{'toggled': itemLocked}"
+                    :class="{'toggled': editBox.locked}"
                     >
-                    <i class="fas" :class="[itemLocked ? 'fa-lock' : 'fa-unlock']"></i>
+                    <i class="fas" :class="[editBox.locked ? 'fa-lock' : 'fa-unlock']"></i>
                 </span>
             </li>
         </ul>
@@ -68,16 +68,15 @@ export default {
             w: this.editBox.area.w,
             h: this.editBox.area.h,
             r: this.editBox.area.r,
-            itemLocked: this.item.locked || false,
         };
     },
 
     methods: {
         toggleItemLock() {
-            this.itemLocked = !this.itemLocked;
+            this.editBox.locked = !this.editBox.locked;
 
             forEach(this.editBox.items, item => {
-                item.locked = this.itemLocked;
+                item.locked = this.editBox.locked;
             });
         },
 
