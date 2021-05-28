@@ -34,9 +34,11 @@
 
         <div v-if="currentTab === 'shape'">
             <position-panel
-                :key="`position-panel-${item.id}`"
+                v-if="schemeContainer.multiItemEditBox"
+                :key="`position-panel-${item.id}-${schemeContainer.multiItemEditBox.id}`"
+                :edit-box="schemeContainer.multiItemEditBox"
                 :item="item"
-                @item-area-changed="onItemAreaChanged"
+                @area-changed="onPositionPanelAreaChanged"
                 />
 
             <panel name="General" uid="general-item-properties">
@@ -246,6 +248,8 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import CurveCapDropdown from '../CurveCapDropdown.vue';
+import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
+import StoreUtils from '../../../store/StoreUtils.js';
 
 
 const ALL_TABS = [
@@ -372,10 +376,21 @@ export default {
             this.$emit('item-style-applied', style);
         },
 
-        onItemAreaChanged(propertyPath) {
-            this.schemeContainer.updateMultiItemEditBox();
-            EventBus.emitItemChanged(this.item.id);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyPath}`);
+        onPositionPanelAreaChanged(areaProperty, value) {
+            if (this.schemeContainer.multiItemEditBox) {
+                this.schemeContainer.multiItemEditBox.area[areaProperty] = value;
+                if (areaProperty === 'w' || areaProperty === 'h') {
+                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, ITEM_MODIFICATION_CONTEXT_RESIZED);
+                    if (this.schemeContainer.multiItemEditBox.items.length === 1) {
+                        StoreUtils.setItemControlPoints(this.$store, this.schemeContainer.multiItemEditBox.items[0]);
+                    }
+                } else if (areaProperty === 'r') {
+                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, ITEM_MODIFICATION_CONTEXT_ROTATED);
+                } else {
+                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+                }
+                EventBus.emitSchemeChangeCommited(`editbox.area.${areaProperty}`);
+            }
         },
 
         toggleBehaviorEditorModal() {

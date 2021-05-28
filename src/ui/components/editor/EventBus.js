@@ -88,7 +88,9 @@ const EventBus = new Vue({
 
             ITEM_SURROUND_CREATED: 'item-surround-created',
 
-            BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested'
+            BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',
+
+            MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED: 'multi-item-edit-box-items-updated'
         };
     },
     methods: {

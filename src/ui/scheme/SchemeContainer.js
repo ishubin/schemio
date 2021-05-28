@@ -25,11 +25,25 @@ const log = new Logger('SchemeContainer');
 
 const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
 
-const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
+export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
     moved: true,
     rotated: false,
     resized: false
+};
+
+export const ITEM_MODIFICATION_CONTEXT_RESIZED = {
+    moved: false,
+    rotated: false,
+    resized: true,
+    id: ''
+};
+
+export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
+    moved: false,
+    rotated: true,
+    resized: false,
+    id: ''
 };
 
 /*
@@ -1519,6 +1533,8 @@ class SchemeContainer {
             }
         });
         forEach(itemsForReindex, item => this.updateChildTransforms(item));
+
+        this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
     }
 
     readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {

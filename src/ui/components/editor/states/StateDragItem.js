@@ -686,9 +686,9 @@ export default class StateDragItem extends State {
         const angle = angleDegrees * Math.PI / 180;
 
         const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
-        this.multiItemEditBox.area.r = this.multiItemEditBoxOriginalArea.r + angleDegrees;
-        this.multiItemEditBox.area.x = np.x;
-        this.multiItemEditBox.area.y = np.y;
+        this.multiItemEditBox.area.r = this.round(this.multiItemEditBoxOriginalArea.r + angleDegrees);
+        this.multiItemEditBox.area.x = this.round(np.x);
+        this.multiItemEditBox.area.y = this.round(np.y);
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             id: this.modificationContextId,

@@ -49,24 +49,24 @@ import EventBus from '../EventBus.js';
 import NumberTextfield from '../../NumberTextfield.vue';
 
 export default {
-    props: ['item'],
+    props: ['item', 'editBox'],
     components: {Panel, NumberTextfield},
 
     beforeMount() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
     },
 
     data() {
         return {
-            x: this.item.area.x,
-            y: this.item.area.y,
-            w: this.item.area.w,
-            h: this.item.area.h,
-            r: this.item.area.r,
+            x: this.editBox.area.x,
+            y: this.editBox.area.y,
+            w: this.editBox.area.w,
+            h: this.editBox.area.h,
+            r: this.editBox.area.r,
             itemLocked: this.item.locked || false,
         };
     },
@@ -77,17 +77,16 @@ export default {
             this.item.locked = this.itemLocked;
         },
 
-        onItemChanged() {
-            this.x = this.item.area.x;
-            this.y = this.item.area.y;
-            this.w = this.item.area.w;
-            this.h = this.item.area.h;
-            this.r = this.item.area.r;
+        onEditBoxChange() {
+            this.x = this.editBox.area.x;
+            this.y = this.editBox.area.y;
+            this.w = this.editBox.area.w;
+            this.h = this.editBox.area.h;
+            this.r = this.editBox.area.r;
         },
 
         updateAreaProperty(propertyName, value) {
-            this.item.area[propertyName] = value;
-            this.$emit('item-area-changed', `area.${propertyName}`);
+            this.$emit('area-changed', propertyName, value);
         }
     },
 }
