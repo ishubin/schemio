@@ -180,15 +180,6 @@
             @selected="onCustomContextMenuOptionSelected"
         />
 
-        <modal title="Rotate around center" v-if="rotateAroundCenterModal.shown"
-            primary-button="Rotate"
-            @primary-submit="onRotateAroundCenterModalSubmit"
-            @close="rotateAroundCenterModal.shown = false"
-            >
-            <h5>Angle</h5>
-            <input type="text" class="textfield" v-model="rotateAroundCenterModal.angle" v-on:keyup.enter="onRotateAroundCenterModalSubmit"/>
-        </modal>
-
         <export-svg-modal v-if="exportSVGModal.shown"
             :exported-items="exportSVGModal.exportedItems"
             :width="exportSVGModal.width"
@@ -408,12 +399,6 @@ export default {
                 text: '',
                 creatingNewItem: false,
                 style: {}
-            },
-
-            rotateAroundCenterModal: {
-                shown: false,
-                angle: 0,
-                originalItemAreas: {} // used to reset back to it, so that user can experiment with multiple angles
             },
 
             worldHighlightedItems: [ ],
@@ -1018,9 +1003,6 @@ export default {
                 name: 'Delete',
                 clicked: this.deleteSelectedItems
             }, {
-                name: 'Rotate around center...',
-                clicked: () => { this.triggerRotateAroundCenterModal(); }
-            }, {
                 name: 'Surround items',
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
@@ -1368,29 +1350,6 @@ export default {
                 forEach(shapeProps, (argValue, argName) => {
                     item.shapeProps[argName] = argValue;
                 });
-            }
-        },
-
-        triggerRotateAroundCenterModal() {
-            if (this.schemeContainer.selectedItems.length > 0) {
-                this.rotateAroundCenterModal.originalItemAreas = {};
-                forEach(this.schemeContainer.selectedItems, item => {
-                    this.rotateAroundCenterModal.originalItemAreas[item.id] = utils.clone(item.area);
-                });
-                this.rotateAroundCenterModal.angle = 0;
-                this.rotateAroundCenterModal.shown = true;
-            }
-        },
-
-        onRotateAroundCenterModalSubmit() {
-            this.rotateSelectedItemsAroundCenter(parseFloat(this.rotateAroundCenterModal.angle));
-        },
-
-        rotateSelectedItemsAroundCenter(angle) {
-            const box = this.schemeContainer.multiItemEditBox;
-            if (box !== null && box.items.length > 0) {
-                box.area.r = angle;
-                this.schemeContainer.updateMultiItemEditBoxItems(box, false);
             }
         },
 
