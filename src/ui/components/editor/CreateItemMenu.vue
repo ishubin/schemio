@@ -11,13 +11,23 @@
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
                     <img src="/assets/images/icons/select.svg" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateCurveCreation()" title="Create Curve">
+                <div class="item-container" @click="initiateCurveCreation()" title="Create Curve"
+                    @mouseover="showPreviewGif('create-curve')"
+                    @mouseleave="stopPreviewGif('create-curve')"
+                    >
                     <img src="/assets/images/icons/create-curve.svg" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateDrawing()" title="Draw">
+                <div class="item-container" @click="initiateDrawing()" title="Draw"
+                    @mouseover="showPreviewGif('draw')"
+                    @mouseleave="stopPreviewGif('draw')"
+                    >
                     <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateSmartDrawing()" title="Smart Draw">
+                <div class="item-container" @click="initiateSmartDrawing()" title="Smart Draw"
+                    @mouseover="showPreviewGif('smart-draw')"
+                    @mouseleave="stopPreviewGif('smart-draw')"
+                    >
+
                     <img src="/assets/images/icons/smart-draw.svg" width="35" height="30"/>
                 </div>
             </div>
@@ -87,6 +97,10 @@
                     <img class="preview-art" :src="previewItem.artIcon.url"/>
                 </div>
 
+                <div v-if="previewItem.gif">
+                    <img :src="`/assets/images/animations/${previewItem.gif}.gif`" style="max-width: 100%;"/>
+                </div>
+
                 <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>
             </div>
         </div>
@@ -112,6 +126,11 @@ import recentPropsChanges from '../../history/recentPropsChanges';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps, defaultItem} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
 
+const _gifDescriptions = {
+    'create-curve': 'Lets you design your own complex shapes',
+    'draw': 'Allows to draw complex shapes with mouse. Once the drawing is submited - it will optimize its points so that you can easily edit it later',
+    'smart-draw': 'Identifies objects by the drawings. At this moment this feature is still experimental and is limited in the amount of shapes it is able to recognize',
+}
 
 export default {
     props: ['projectId', 'schemeContainer'],
@@ -145,6 +164,7 @@ export default {
                 shown         : false,
                 item          : null,
                 artIcon       : null,
+                gif           : null,
                 y             : 50,
                 description   : null
             }
@@ -267,11 +287,12 @@ export default {
 
             this.previewItem.item = item;
             this.previewItem.artIcon = null;
+            this.previewItem.gif = null;
             this.previewItem.description = item.description;
             this.previewItem.shown = true;
         },
         stopPreviewItem(item) {
-            if (this.previewItem.item &&this.previewItem.item.name === item.name) {
+            if (this.previewItem.item && this.previewItem.item.name === item.name) {
                 this.previewItem.shown = false;
             }
         },
@@ -279,6 +300,7 @@ export default {
         showPreviewArt(artIcon) {
             this.previewItem.item = null;
             this.previewItem.artIcon = artIcon;
+            this.previewItem.gif = null;
             this.previewItem.description = artIcon.description;
             this.previewItem.shown = true;
         },
@@ -287,6 +309,25 @@ export default {
                 this.previewItem.shown = false;
             }
         },
+
+        showPreviewGif(gifName) {
+            this.previewItem.item = null;
+            this.previewItem.artIcon = null;
+            this.previewItem.gif = gifName;
+            if (_gifDescriptions[gifName]) {
+                this.previewItem.description = _gifDescriptions[gifName];
+            } else {
+                this.previewItem.description = null;
+            }
+            this.previewItem.shown = true;
+        },
+
+        stopPreviewGif(gifName) {
+            if (this.previewItem.gif === gifName) {
+                this.previewItem.shown = false;
+            }
+        },
+
 
         onArtCreated(art) {
             this.artList.push(art);
