@@ -818,7 +818,12 @@ input.textfield.missing-field-error {
     right: 1px;
     list-style: none;
     margin: 0;
-    padding: 0
+    padding: 0;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 .number-textfield-container > .step-controls li {
     margin: 0;

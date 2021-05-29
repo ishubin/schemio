@@ -20,12 +20,12 @@
                         <number-textfield :value="x" name="x" @changed="updateAreaProperty('x', arguments[0])"/>
                     </td>
                     <td>
-                        <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', arguments[0])"/>
+                        <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', arguments[0])"/>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', arguments[0])"/>
+                        <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', arguments[0])"/>
                     </td>
                     <td>
                         <number-textfield :value="h" name="h" @changed="updateAreaProperty('h', arguments[0])"/>

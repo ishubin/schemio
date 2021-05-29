@@ -6,10 +6,10 @@
 
         <ul class="step-controls">
             <li>
-                <span class="step step-up" @click="onStepClicked(1)"><i class="fas fa-caret-up"></i></span>
+                <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
             </li>
             <li>
-                <span class="step step-down" @click="onStepClicked(-1)"><i class="fas fa-caret-down"></i></span>
+                <span class="step step-down" @click="onStepClicked(-1)" @mousedown="onMouseDownDecrement"><i class="fas fa-caret-down"></i></span>
             </li>
         </ul>
         </div>
@@ -36,10 +36,25 @@ export default {
         }
     },
 
+    beforeDestroy() {
+        document.body.removeEventListener('mouseup', this.onMouseUp);
+    },
+
     data() {
         return {
             text: this.value,
-            paddingLeft: 4
+            number: this.value,
+
+            paddingLeft: 4,
+
+            autoIncrementDelayTimeoutId: -1,
+            autoIncrementDirection: 1,
+            autoIncrementInitDelay: 300,
+            autoIncrementDelay: 50,
+            autoIncrementIntervalId: -1,
+            autoIncrementSpeed: 1,
+            autoIncrementMaxSpeed: 50,
+            autoIncrementAcceleration: 0.15,
         }
     },
 
@@ -71,7 +86,8 @@ export default {
 
         onUserInput(event) {
             const text = event.target.value;
-            this.$emit('changed', this.enforceLimits(this.textToNumber(text)));
+            this.number = this.enforceLimits(this.textToNumber(text));
+            this.$emit('changed', this.number);
         },
 
         onStepClicked(factor) {
@@ -82,10 +98,10 @@ export default {
             let value = this.textToNumber(this.text);
             value = value + factor;
             
-            value = this.enforceLimits(value);
+            this.number = this.enforceLimits(value);
 
-            this.$emit('changed', value);
-            this.text = '' + value;
+            this.$emit('changed', this.number);
+            this.text = '' + this.number;
         },
 
         enforceLimits(value) {
@@ -100,6 +116,57 @@ export default {
                 }
             }
             return value;
+        },
+
+        onMouseDownIncrement(event) {
+            this.onMouseDown(event, 1);
+        },
+
+        onMouseDownDecrement(event) {
+            this.onMouseDown(event, -1);
+        },
+
+        onMouseDown(event, direction) {
+            this.autoIncrementDirection = direction;
+
+            if (this.autoIncrementDelayTimeoutId) {
+                clearTimeout(this.autoIncrementDelayTimeoutId);
+            }
+
+            this.autoIncrementDelayTimeoutId = setTimeout(() => {
+                this.initAutoIncrement();
+            }, this.autoIncrementInitDelay);
+
+            document.body.addEventListener('mouseup', this.onMouseUp);
+        },
+
+        onMouseUp() {
+            document.body.removeEventListener('mouseup', this.onMouseUp);
+
+            if (this.autoIncrementIntervalId) {
+                clearInterval(this.autoIncrementIntervalId);
+                this.autoIncrementIntervalId = -1;
+            }
+            
+            if (this.autoIncrementDelayTimeoutId) {
+                clearTimeout(this.autoIncrementDelayTimeoutId);
+                this.autoIncrementDelayTimeoutId = -1;
+            }
+        },
+
+        initAutoIncrement() {
+            this.autoIncrementSpeed = 1;
+            this.number = this.textToNumber(this.text);
+
+            this.autoIncrementIntervalId = setInterval(() => {
+                this.number = this.enforceLimits(this.number + this.autoIncrementDirection * Math.floor(this.autoIncrementSpeed));
+                this.text = '' + this.number;
+                this.$emit('changed', this.number);
+
+                if (this.autoIncrementSpeed < this.autoIncrementMaxSpeed) {
+                    this.autoIncrementSpeed += this.autoIncrementAcceleration;
+                }
+            }, this.autoIncrementDelay);
         }
     },
 
