@@ -96,7 +96,7 @@ export default {
                 }
 
                 if (item.meta && item.meta.transform) {
-                    destinationAngle = worldAngle - item.meta.transform.r;
+                    destinationAngle = worldAngle - item.meta.transform.r + args.rotationOffset;
                 }
             }
 
