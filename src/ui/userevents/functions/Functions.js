@@ -8,6 +8,7 @@ import StopAllAnimationsFunction from './StopAllAnimationsFunction';
 import ItemParticleEffectFunction from './ItemParticleEffectFunction';
 import BlinkEffectFunction from './BlinkEffectFunction';
 import MoveFunction from './MoveFunction';
+import MoveToItemFunction from './MoveToItemFunction';
 import MoveAlongPathFunction from './MoveAlongPathFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
@@ -24,6 +25,7 @@ export default {
         blinkEffect:        BlinkEffectFunction,
         move:               MoveFunction,
         moveAlongPath:      MoveAlongPathFunction,
+        moveToItem:         MoveToItemFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
         wait:               WaitFunction,

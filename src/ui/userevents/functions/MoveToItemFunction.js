@@ -3,8 +3,13 @@ import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 
 
-class MoveAnimation extends Animation {
-    constructor(item, args, schemeContainer, resultCallback) {
+function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer) {
+    const worldPoint = schemeContainer.worldPointOnItem(0, 0, destinationItem);
+    return schemeContainer.relativePointForItem(worldPoint.x, worldPoint.y, item);
+}
+
+class MoveToItemAnimation extends Animation {
+    constructor(item, args, destinationPosition, schemeContainer, resultCallback) {
         super();
         this.item = item;
         this.args = args;
@@ -15,10 +20,7 @@ class MoveAnimation extends Animation {
             x: this.item.area.x,
             y: this.item.area.y
         };
-        this.destinationPosition = {
-            x: parseFloat(args.x),
-            y: parseFloat(args.y),
-        }
+        this.destinationPosition = destinationPosition;
     }
 
     init() {
@@ -63,10 +65,9 @@ class MoveAnimation extends Animation {
 }
 
 export default {
-    name: 'Move',
+    name: 'Move to Item',
     args: {
-        x               : {name: 'X',                 type: 'number', value: 50},
-        y               : {name: 'Y',                 type: 'number', value: 50},
+        destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item to which this item should be move'},
         animate         : {name: 'Animate',           type: 'boolean',value: false},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
         movement        : {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
@@ -75,18 +76,28 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            if (args.animate) {
-                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id);
-                if (args.inBackground) {
-                    resultCallback();
+            const destinationItem = schemeContainer.findFirstElementBySelector(args.destinationItem, item);
+            let destinationPosition = null;
+            if (destinationItem && destinationItem.id !== item.id) {
+                destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer);
+            }
+            
+            if (destinationPosition) {
+                if (args.animate) {
+                    AnimationRegistry.play(new MoveToItemAnimation(item, args, destinationPosition, schemeContainer, resultCallback), item.id);
+                    if (args.inBackground) {
+                        resultCallback();
+                    }
+                    return;
+
+                } else {
+                    item.area.x = destinationPosition.x;
+                    item.area.y = destinationPosition.y;
+                    schemeContainer.reindexItemTransforms(item);
                 }
-                return;
-            } else {
-                item.area.x = args.x;
-                item.area.y = args.y;
-                schemeContainer.reindexItemTransforms(item);
             }
         }
         resultCallback();
     }
 };
+
