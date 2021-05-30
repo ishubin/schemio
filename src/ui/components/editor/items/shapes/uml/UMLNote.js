@@ -44,16 +44,20 @@ export default {
 
         controlPoints: {
             make(item) {
+                const s = myMath.clamp(item.shapeProps.skew, 0, Math.min(item.area.w / maxSkewRatio, item.area.h/maxSkewRatio));
                 return {
                     skew: {
-                        x: item.area.w - myMath.clamp(item.shapeProps.skew, 0, Math.min(item.area.w / maxSkewRatio, item.area.h/maxSkewRatio)),
-                        y: 0
+                        x: item.area.w - s,
+                        y: s
                     }
                 };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                const sx = item.area.w - originalX - dx;
+                const sy = originalY + dy;
+
                 if (controlPointName === 'skew') {
-                    item.shapeProps.skew = myMath.clamp(item.area.w - originalX - dx, 0, Math.min(item.area.w/maxSkewRatio, item.area.h/maxSkewRatio));
+                    item.shapeProps.skew = myMath.clamp(Math.max(sx, sy), 0, Math.min(item.area.w/maxSkewRatio, item.area.h/maxSkewRatio));
                 }
             }
         },

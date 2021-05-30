@@ -121,6 +121,7 @@ export default {
                 link.href = dataUrl;
                 link.download = `${this.exportedItems[0].item.name}.svg`;
                 link.click();
+                this.$emit('close');
             } catch(e) {
                 console.error(e);
             }

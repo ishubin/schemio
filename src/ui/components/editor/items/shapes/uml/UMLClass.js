@@ -6,7 +6,7 @@ function calculateNameLineTop(item) {
 }
 
 function calculateSectionLineTop(item, nameLineTop) {
-    return myMath.clamp(myMath.roundPrecise1((item.area.h - nameLineTop) * item.shapeProps.sectionRatio / 100 + nameLineTop), 0, item.area.h);
+    return myMath.clamp(myMath.roundPrecise1((item.area.h - nameLineTop) * Math.max(item.shapeProps.sectionRatio, 10) / 100 + nameLineTop), 0, item.area.h);
 }
 
 export default {
@@ -78,6 +78,10 @@ export default {
         controlPoints: {
             make(item) {
                 return {
+                    sectionRatio: {
+                        x: item.area.w / 2,
+                        y: calculateSectionLineTop(item, calculateNameLineTop(item))
+                    },
                     headerHeight: {
                         x: item.area.w / 2,
                         y: item.shapeProps.headerHeight
@@ -85,10 +89,6 @@ export default {
                     cornerRadius: {
                         x: item.area.w - item.shapeProps.cornerRadius,
                         y: 0
-                    },
-                    sectionRatio: {
-                        x: item.area.w / 2,
-                        y: calculateSectionLineTop(item, calculateNameLineTop(item))
                     },
                 };
             },
