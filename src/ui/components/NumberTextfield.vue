@@ -12,7 +12,6 @@
                 <span class="step step-down" @click="onStepClicked(-1)" @mousedown="onMouseDownDecrement"><i class="fas fa-caret-down"></i></span>
             </li>
         </ul>
-        </div>
     </div>
 </template>
 <script>

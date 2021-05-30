@@ -783,6 +783,7 @@ input.textfield.missing-field-error {
     display: inline-block;
     width: 100%;
     padding: 0;
+    overflow: hidden;
 }
 .number-textfield-container > input {
     margin: 0;
