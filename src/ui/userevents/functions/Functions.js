@@ -10,6 +10,7 @@ import BlinkEffectFunction from './BlinkEffectFunction';
 import MoveFunction from './MoveFunction';
 import MoveToItemFunction from './MoveToItemFunction';
 import ReplaceItemFunction from './ReplaceItemFunction';
+import RotateFunction from './RotateFunction';
 import MoveAlongPathFunction from './MoveAlongPathFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
@@ -27,6 +28,7 @@ export default {
         move:               MoveFunction,
         moveAlongPath:      MoveAlongPathFunction,
         moveToItem:         MoveToItemFunction,
+        rotate:             RotateFunction,
         replaceItem:        ReplaceItemFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
