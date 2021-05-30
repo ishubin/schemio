@@ -17,8 +17,8 @@ function createItemTransform(item, schemeContainer) {
                 let cosa = Math.cos(transform.r * Math.PI / 180);
                 let sina = Math.sin(transform.r * Math.PI / 180);
                 transform = {
-                    x:      transform.x + ancestorItem.area.x * cosa - ancestorItem.area.y * sina,
-                    y:      transform.y + ancestorItem.area.x * sina + ancestorItem.area.y * cosa,
+                    x:  transform.x + ancestorItem.area.x * cosa - ancestorItem.area.y * sina,
+                    y:  transform.y + ancestorItem.area.x * sina + ancestorItem.area.y * cosa,
                     r:  transform.r + ancestorItem.area.r
                 };
             }
@@ -127,7 +127,7 @@ export default {
     args: {
         closeEnough         : {name: 'Close Enough', type: 'boolean', value: false, description: 'If checked, then it will only zoom to item just enough for it to appear fully inside the screen. Otherwise it will bring it to the center of the screen'},
         animated            : {name: 'Animated', type: 'boolean', value: true},
-        animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
+        animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, min: 0, depends: {animated: true}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 

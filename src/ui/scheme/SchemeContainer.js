@@ -20,6 +20,7 @@ import Shape from '../components/editor/items/shapes/Shape.js';
 import { Item, enrichItemWithDefaults, traverseItems } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
+import Functions from '../userevents/functions/Functions';
 
 const log = new Logger('SchemeContainer');
 
@@ -1383,7 +1384,7 @@ class SchemeContainer {
         });
 
         // recreates element selector in case the source or destination was also copied together with it
-        const rebuildConnectorAttachmentElement = (elementSelector) => {
+        const rebuildElementSelector = (elementSelector) => {
             if (elementSelector && elementSelector.indexOf('#') === 0) {
                 const oldId = elementSelector.substr(1);
                 if (idOldToNewConversions.has(oldId)) {
@@ -1396,10 +1397,26 @@ class SchemeContainer {
         forEach(copiedItems, copiedItem => {
             traverseItems(copiedItem, item => {
                 if (item.shape === 'connector') {
-                    item.shapeProps.sourceItem = rebuildConnectorAttachmentElement(item.shapeProps.sourceItem);
-                    item.shapeProps.destinationItem = rebuildConnectorAttachmentElement(item.shapeProps.destinationItem);
+                    item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
+                    item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
                     this.readjustItem(item, false, DEFAULT_ITEM_MODIFICATION_CONTEXT, 3);
                 }
+
+                // converting behavior events as well
+                forEach(item.behavior.events, behaviorEvent => {
+                    forEach(behaviorEvent.actions, action => {
+                        action.element = rebuildElementSelector(action.element);
+
+                        // converting element args of the function calls (e.g. path in "move" function)
+                        if (Functions.main[action.method]) {
+                            forEach(Functions.main[action.method].args, (argConfig, argName) => {
+                                if (argConfig.type === 'element' && action.args[argName]) {
+                                    action.args[argName] = rebuildElementSelector(action.args[argName]);
+                                }
+                            });
+                        }
+                    });
+                });
             });
         });
 
@@ -1410,7 +1427,6 @@ class SchemeContainer {
         forEach(copiedItems, item => this.selectItem(item, true));
 
         //since all items are already selected, the relative multi item edit box should be centered on the specified center point
-        //this is not needed to viewport items
         if (this.multiItemEditBox) {
             const boxArea = this.multiItemEditBox.area;
             const boxCenterX = boxArea.x + boxArea.w / 2;
