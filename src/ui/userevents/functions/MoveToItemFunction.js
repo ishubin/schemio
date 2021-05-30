@@ -67,7 +67,7 @@ class MoveToItemAnimation extends Animation {
 export default {
     name: 'Move to Item',
     args: {
-        destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item to which this item should be move'},
+        destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item to which this item should be moved'},
         animate         : {name: 'Animate',           type: 'boolean',value: false},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
         movement        : {name: 'Movement',          type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
