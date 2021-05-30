@@ -2,6 +2,7 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
+import myMath from '../../myMath';
 
 
 class MoveAlongPathAnimation extends Animation {
@@ -78,6 +79,28 @@ class MoveAlongPathAnimation extends Animation {
         }
         this.item.area.x = localPoint.x - this.item.area.w / 2;
         this.item.area.y = localPoint.y - this.item.area.h / 2;
+
+        if (this.args.rotateItem) {
+            const nextPoint = this.domPath.getPointAtLength(length + 2);
+            const Vx = nextPoint.x - point.x;
+            const Vy = nextPoint.y - point.y;
+            const dSquared = Vx * Vx + Vy * Vy;
+            if (!myMath.tooSmall(dSquared)) {
+                const d = Math.sqrt(dSquared);
+
+                const vx = Vx / d;
+                const vy = Vy / d;
+                let angle = Math.acos(vx) * 180 / Math.PI;
+                if (vy < 0) {
+                    angle = 180 - angle;
+                }
+                this.item.area.r = angle;
+                
+                if (isFinite(this.args.rotationOffset)) {
+                    this.item.area.r += this.args.rotationOffset;
+                };
+            }
+        }
         this.schemeContainer.reindexItemTransforms(this.item);
     }
 
@@ -96,6 +119,8 @@ export default {
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, min: 0},
         startPosition   : {name: 'Start position (%)',type: 'number', value: 0, description: 'Initial position on the path in percentage to its total length'},
         endPosition     : {name: 'End position (%)',  type: 'number', value: 100, description: 'Final position on the path in percentage to its total length'},
+        rotateItem      : {name: 'Rotate item',       type: 'boolean',value: false, description: 'Adjust rotation of the item to path'},
+        rotationOffset  : {name: 'Rotation offset',   type: 'number', value: 0, description: 'Rotation angle offset', depends: {rotateItem: true}},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
