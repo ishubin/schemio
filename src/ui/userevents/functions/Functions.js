@@ -7,7 +7,8 @@ import CrawlEffectFunction from './CrawlEffectFunction';
 import StopAllAnimationsFunction from './StopAllAnimationsFunction';
 import ItemParticleEffectFunction from './ItemParticleEffectFunction';
 import BlinkEffectFunction from './BlinkEffectFunction';
-import ItemMoveFunction from './ItemMoveFunction';
+import MoveFunction from './MoveFunction';
+import MoveAlongPathFunction from './MoveAlongPathFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
 import UntoggleFunction from './UntoggleFunction';
@@ -21,7 +22,8 @@ export default {
         particleEffect:     ItemParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
         blinkEffect:        BlinkEffectFunction,
-        move:               ItemMoveFunction,
+        move:               MoveFunction,
+        moveAlongPath:      MoveAlongPathFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
         wait:               WaitFunction,

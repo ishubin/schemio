@@ -2,7 +2,12 @@ import Animation from './Animation';
 
 
 
-function convertTime(t, type) {
+/**
+ * This fuction converts t according to movement type. This is needed in order to get smooth animation or any other effect.
+ * @param {Float} t - time of animation in ratio to animation length (from 0.0 to 1.0)
+ * @param {String} type - type of animation (e.g. "linear", "ease-in" etc.)
+ */
+export function convertTime(t, type) {
     if (type === 'smooth') {
         return Math.sin(t*Math.PI/2.0);
     } else if (type === 'ease-in') {
