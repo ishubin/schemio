@@ -1,6 +1,7 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
+import EventBus from '../../components/editor/EventBus';
 
 
 function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer) {
@@ -9,7 +10,7 @@ function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeCo
 }
 
 class MoveToItemAnimation extends Animation {
-    constructor(item, args, destinationPosition, destinationAngle, schemeContainer, resultCallback) {
+    constructor(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback) {
         super();
         this.item = item;
         this.args = args;
@@ -23,6 +24,11 @@ class MoveToItemAnimation extends Animation {
         this.destinationPosition = destinationPosition;
         this.originalAngle = item.area.r;
         this.destinationAngle = destinationAngle;
+
+        this.originalWidth = item.area.w;
+        this.destinationWidth = destinationWidth;
+        this.originalHeight = item.area.h;
+        this.destinationHeight = destinationHeight;
     }
 
     init() {
@@ -50,6 +56,13 @@ class MoveToItemAnimation extends Animation {
             if (this.args.rotate) {
                 this.item.area.r = this.originalAngle * (1.0 - convertedT) + this.destinationAngle * convertedT;
             }
+            if (this.args.alignWidth) {
+                this.item.area.w = this.originalWidth * (1.0 - convertedT) + this.destinationWidth * convertedT;
+            }
+            if (this.args.alignHeight) {
+                this.item.area.h = this.originalHeight * (1.0 - convertedT) + this.destinationHeight * convertedT;
+            }
+            EventBus.emitItemChanged(this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
 
             return shouldProceedAnimating;
@@ -79,6 +92,8 @@ export default {
         movement        : {name: 'Movement',          type: 'choice', value: 'ease-in-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
         rotate          : {name: 'Rotate',            type: 'boolean',value: false, description: 'Align rotation of items'},
         rotationOffset  : {name: 'Rotation Offset',   type: 'number', value: 0.0, depends: {rotate: true}, description: 'Rotation angle offset'},
+        alignWidth      : {name: 'Align Width',       type: 'boolean',value: false, description: 'Adjust items width so that it fits to the width of its destination item'},
+        alignHeight     : {name: 'Align Height',      type: 'boolean',value: false, description: 'Adjust items height so that it fits to the height of its destination item'},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
     },
 
@@ -87,6 +102,9 @@ export default {
             const destinationItem = schemeContainer.findFirstElementBySelector(args.destinationItem, item);
             let destinationAngle = 0;
             let destinationPosition = null;
+            let destinationWidth = item.area.w;
+            let destinationHeight = item.area.h;
+
             if (destinationItem && destinationItem.id !== item.id) {
                 destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer);
 
@@ -98,12 +116,15 @@ export default {
                 if (item.meta && item.meta.transform) {
                     destinationAngle = worldAngle - item.meta.transform.r + args.rotationOffset;
                 }
+
+                destinationWidth = destinationItem.area.w;
+                destinationHeight = destinationItem.area.h;
             }
 
             
             if (destinationPosition) {
                 if (args.animate) {
-                    AnimationRegistry.play(new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, schemeContainer, resultCallback), item.id);
+                    AnimationRegistry.play(new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback), item.id);
                     if (args.inBackground) {
                         resultCallback();
                     }
@@ -113,8 +134,16 @@ export default {
                     item.area.x = destinationPosition.x;
                     item.area.y = destinationPosition.y;
                     if (args.rotate) {
-                        item.area.r = destinationAngle;
+                        item.area.r = destinationAngle + args.rotationOffset;
                     }
+
+                    if (args.alignWidth) {
+                        item.area.w = destinationWidth;
+                    }
+                    if (args.alignHeight) {
+                        item.area.h = destinationHeight;
+                    }
+                    EventBus.emitItemChanged(item.id);
                     schemeContainer.reindexItemTransforms(item);
                 }
             }
