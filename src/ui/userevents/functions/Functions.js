@@ -11,6 +11,7 @@ import MoveFunction from './MoveFunction';
 import MoveToItemFunction from './MoveToItemFunction';
 import ReplaceItemFunction from './ReplaceItemFunction';
 import RotateFunction from './RotateFunction';
+import ScaleFunction from './ScaleFunction';
 import MoveAlongPathFunction from './MoveAlongPathFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
@@ -29,6 +30,7 @@ export default {
         moveAlongPath:      MoveAlongPathFunction,
         moveToItem:         MoveToItemFunction,
         rotate:             RotateFunction,
+        scale:              ScaleFunction,
         replaceItem:        ReplaceItemFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
