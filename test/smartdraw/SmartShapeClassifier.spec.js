@@ -54,10 +54,6 @@ describe('SmartShapeClassifier', () => {
         verifyDrawnShapes('ellipse', [ 'test/smartdraw/samples/ellipse.samples.scheme.json' ]);
     });
 
-    it('should correctly identify triangle shapes', () => {
-        verifyDrawnShapes('basic_triangle', [ 'test/smartdraw/samples/triangle.samples.scheme.json' ]);
-    });
-
     it('should correctly identify uml_object shapes', () => {
         verifyDrawnShapes('uml_object', [ 'test/smartdraw/samples/uml_object.samples.scheme.json' ]);
     });

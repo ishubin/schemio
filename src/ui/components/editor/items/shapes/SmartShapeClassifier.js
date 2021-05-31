@@ -343,44 +343,6 @@ function checkEllipse(points, curvesInfo) {
 }
 
 /*
-triangle classification:
-- has 3 large angles of the same orientation
-- sum of 3 large angles should equal to 180
-- the 4th largest angle should be less than 30 degrees
-- should have first and last point close to each other
-*/
-
-function checkTriangle(points, curvesInfo) {
-    let angleScore = 0;
-    let bigAngles = [];
-    if (curvesInfo[0].angles.length > 2) {
-        bigAngles = filter(curvesInfo[0].angles, angle => Math.abs(angle) > 40);
-        if (bigAngles.length < 4) {
-            let angleSum = 0;
-            if (isSameOrientation(bigAngles)) {
-                forEach(bigAngles, angle => {
-                    angleSum += Math.abs(angle);
-                });
-
-                angleScore = myMath.clamp(1 - (angleSum - 180) / 180, 0, 1);
-            }
-        }
-    }
-
-    return {
-        score: new WeightedScore()
-            .add(6, angleScore)
-            .add(3, curvesInfo[0].totalFullLines === 3 ? 1: -1)
-            .add(2, curvesInfo[0].isJoined ? 1: -1)
-            .add(1, curvesInfo[0].horizontalFullLines < 2 ? 1: -0.5)
-            .add(1, curvesInfo[0].verticalFullLines < 2 ? 1: -0.5)
-            .getScore(),
-        shape: 'basic_triangle'
-    };
-}
-
-
-/*
 diamond classification:
 - has 4 90 degree angles in the same orientation
 - 5th largest angle should be less than 30 degrees
@@ -440,7 +402,6 @@ function checkObject(points, curvesInfo) {
 const shapeClassifiers = [
     checkRect,
     checkEllipse,
-    checkTriangle,
     checkDiamond,
     checkObject,
 ];
