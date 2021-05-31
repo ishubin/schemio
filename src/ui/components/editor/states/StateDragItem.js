@@ -359,22 +359,30 @@ export default class StateDragItem extends State {
                 }
             }
         } else if (this.multiSelectBox) {
-            this.wasMouseMoved = true;
-            if (x > this.originalPoint.x) {
-                this.multiSelectBox.x = this.originalPoint.x;
-                this.multiSelectBox.w = x - this.originalPoint.x;
+            // checking user moved multi select box outside of svg editor and released the button there
+            if (event.buttons === 0) {
+                // in such case when user moves mouse back - it should finalize the multi select
+                // therefore we need to trigger mouseUp artificially
+                this.mouseUp(x, y, mx, my, object, event);
             } else {
-                this.multiSelectBox.x = x;
-                this.multiSelectBox.w = this.originalPoint.x - x;
+                // otherwise keep moving multi select box
+                this.wasMouseMoved = true;
+                if (x > this.originalPoint.x) {
+                    this.multiSelectBox.x = this.originalPoint.x;
+                    this.multiSelectBox.w = x - this.originalPoint.x;
+                } else {
+                    this.multiSelectBox.x = x;
+                    this.multiSelectBox.w = this.originalPoint.x - x;
+                }
+                if (y > this.originalPoint.y) {
+                    this.multiSelectBox.y = this.originalPoint.y;
+                    this.multiSelectBox.h = y - this.originalPoint.y;
+                } else {
+                    this.multiSelectBox.y = y;
+                    this.multiSelectBox.h = this.originalPoint.y - y;
+                }
+                StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
             }
-            if (y > this.originalPoint.y) {
-                this.multiSelectBox.y = this.originalPoint.y;
-                this.multiSelectBox.h = y - this.originalPoint.y;
-            } else {
-                this.multiSelectBox.y = y;
-                this.multiSelectBox.h = this.originalPoint.y - y;
-            }
-            StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
         }
     }
 
