@@ -26,7 +26,7 @@ export default {
     props: {
         color   : {type: String, default: 'rgba(0,0,0,1.0)'},
         width   : {type: String, default: '100%'},
-        height  : {type: String, default: '16px'},
+        height  : {type: String, default: '26px'},
         hollow  : {type: Boolean, default: false},
         disabled: {type: Boolean, default: false},
     },

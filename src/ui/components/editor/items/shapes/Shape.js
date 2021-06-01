@@ -138,10 +138,16 @@ function enrichShape(shapeComponent, shapeName) {
         console.error(`Missing shapeType for shape "${shapeName}"`);
     }
 
-    const args = utils.clone(shapeConfig.args || {});
+    const args = {};
 
     if (shapeConfig.shapeType === 'standard') {
         forEach(standardShapeProps, (arg, argName) => {
+            args[argName] = utils.clone(arg);
+        });
+    }
+
+    if (shapeConfig.args) {
+        forEach(shapeConfig.args, (arg, argName) => {
             args[argName] = utils.clone(arg);
         });
     }

@@ -130,7 +130,7 @@ export default {
     props: {
         value    : {type: Object, required: true},
         width    : {type: String, default: '100%'},
-        height   : {type: String, default: '16px'},
+        height   : {type: String, default: '26px'},
         projectId: {type: String, default: null },
         disabled : {type: Boolean, default : false},
     },

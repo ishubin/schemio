@@ -7,6 +7,7 @@
         <ul class="button-group">
             <li>
                 <span class="toggle-button" @click="toggleItemLock()"
+                    :title="editBox.locked ? 'Unlock item' : 'Lock item'"
                     :class="{'toggled': editBox.locked}"
                     >
                     <i class="fas" :class="[editBox.locked ? 'fa-lock' : 'fa-unlock']"></i>

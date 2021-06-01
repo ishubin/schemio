@@ -33,14 +33,6 @@
         </div>
 
         <div v-if="currentTab === 'shape'">
-            <position-panel
-                v-if="schemeContainer.multiItemEditBox"
-                :key="`position-panel-${item.id}-${schemeContainer.multiItemEditBox.id}`"
-                :edit-box="schemeContainer.multiItemEditBox"
-                :item="item"
-                @area-changed="onPositionPanelAreaChanged"
-                />
-
             <panel name="General" uid="general-item-properties">
                 <table class="properties-table">
                     <tbody>
@@ -57,110 +49,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="label" width="50%">Blend mode</td>
-                            <td class="value" width="50%">
-                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', arguments[0].target.value)">
-                                    <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">
-                                Interaction Mode
-                                <tooltip>
-                                    Specifies item default behavior on click. 
-                                    "side-panel" or "tooltip" modes are only used in case item has a non-empty description
-                                </tooltip>
-                            </td>
-                            <td class="value" width="50%">
-                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', arguments[0].target.value)">
-                                    <option v-for="interactionMode in knownInteractionModes"
-                                        :value="interactionMode"
-                                        :key="interactionMode">{{interactionMode}}</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr v-if="item.interactionMode === 'tooltip'">
-                            <td class="label" width="50%">Tooltip Background</td>
-                            <td class="value" width="50%">
-                                <color-picker :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
-                            </td>
-                        </tr>
-                        <tr v-if="item.interactionMode === 'tooltip'">
-                            <td class="label" width="50%">Tooltip Color</td>
-                            <td class="value" width="50%">
-                                <color-picker :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
-                            </td>
-                        </tr>
-                        <tr>
                             <td class="label" width="50%">Cursor</td>
                             <td class="value" width="50%">
                                 <select :value="item.cursor" @input="emitItemFieldChange('cursor', arguments[0].target.value)">
                                     <option v-for="cursor in knownCursors">{{cursor}}</option>
                                 </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Visible</td>
-                            <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', arguments[0].target.checked)"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Shape</td>
-                            <td class="value" width="50%">
-                                <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">
-                                    <option v-for="shape in knownShapes">{{shape}}</option>
-                                </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Repeat</td>
-                            <td class="value" width="50%">
-                                <number-textfield :value="item.repeat" @changed="emitItemFieldChange('repeat', arguments[0])" :min="0" :max="20"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Repeat Offset X</td>
-                            <td class="value" width="50%">
-                                <number-textfield :value="item.repeatOffsetX" @changed="emitItemFieldChange('repeatOffsetX', arguments[0])"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Repeat Offset Y</td>
-                            <td class="value" width="50%">
-                                <number-textfield :value="item.repeatOffsetY" @changed="emitItemFieldChange('repeatOffsetY', arguments[0])"/>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </panel>
-
-            <panel name="Fill &amp; Stroke" v-if="shapeComponent.shapeType === 'standard'">
-                <table class="properties-table">
-                    <tbody>
-                        <tr>
-                            <td class="label" width="50%">Fill</td>
-                            <td class="value" width="50%">
-                                <advanced-color-editor :project-id="projectId" :value="item.shapeProps.fill" width="100%" @changed="onShapePropChange('fill', 'advanced-color', arguments[0])" />
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Stroke</td>
-                            <td class="value" width="50%">
-                                <color-picker :color="item.shapeProps.strokeColor" @input="onShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Stroke Size</td>
-                            <td class="value" width="50%">
-                                <number-textfield :value="item.shapeProps.strokeSize" @changed="onShapePropChange('strokeSize', 'number', arguments[0])" :min="0"/>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" width="50%">Stroke Pattern</td>
-                            <td class="value" width="50%">
-                                <stroke-pattern-dropdown :value="item.shapeProps.strokePattern" @selected="onShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
                             </td>
                         </tr>
                     </tbody>
@@ -214,6 +107,89 @@
                                     @selected="onShapePropChange(argName, arg.type, arguments[0])"
                                     />
 
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
+
+            <position-panel
+                v-if="schemeContainer.multiItemEditBox"
+                :key="`position-panel-${item.id}-${schemeContainer.multiItemEditBox.id}`"
+                :edit-box="schemeContainer.multiItemEditBox"
+                :item="item"
+                @area-changed="onPositionPanelAreaChanged"
+                />
+
+            <panel name="Advanced">
+                <table class="properties-table">
+                    <tbody>
+                        <tr>
+                            <td class="label" width="50%">Blend mode</td>
+                            <td class="value" width="50%">
+                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', arguments[0].target.value)">
+                                    <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Visible</td>
+                            <td class="value" width="50%">
+                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', arguments[0].target.checked)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Shape</td>
+                            <td class="value" width="50%">
+                                <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">
+                                    <option v-for="shape in knownShapes">{{shape}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeat" @changed="emitItemFieldChange('repeat', arguments[0])" :min="0" :max="20"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat Offset X</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeatOffsetX" @changed="emitItemFieldChange('repeatOffsetX', arguments[0])"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Repeat Offset Y</td>
+                            <td class="value" width="50%">
+                                <number-textfield :value="item.repeatOffsetY" @changed="emitItemFieldChange('repeatOffsetY', arguments[0])"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">
+                                Interaction Mode
+                                <tooltip>
+                                    Specifies item default behavior on click. 
+                                    "side-panel" or "tooltip" modes are only used in case item has a non-empty description
+                                </tooltip>
+                            </td>
+                            <td class="value" width="50%">
+                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', arguments[0].target.value)">
+                                    <option v-for="interactionMode in knownInteractionModes"
+                                        :value="interactionMode"
+                                        :key="interactionMode">{{interactionMode}}</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr v-if="item.interactionMode === 'tooltip'">
+                            <td class="label" width="50%">Tooltip Background</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
+                            </td>
+                        </tr>
+                        <tr v-if="item.interactionMode === 'tooltip'">
+                            <td class="label" width="50%">Tooltip Color</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                     </tbody>
