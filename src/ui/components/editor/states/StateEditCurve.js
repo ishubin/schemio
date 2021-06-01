@@ -532,6 +532,13 @@ export default class StateEditCurve extends State {
         }
 
         if (object && object.type === 'curve-point') {
+            const allPoints = StoreUtils.getCurveEditPoints(this.store);
+            if (allPoints.length > object.pointIndex && allPoints[object.pointIndex].selected) {
+                // if user right clicked on selected point, then that's enough since earlier we already triggered context menu for multi-point selection
+                return;
+            }
+            // otherwise user might have clicked the deselected point. In this case we need to reset everything and treat it as a single point context menu
+
             StoreUtils.selectCurveEditPoint(this.store, object.pointIndex, false);
 
             const point = this.item.shapeProps.points[object.pointIndex];
