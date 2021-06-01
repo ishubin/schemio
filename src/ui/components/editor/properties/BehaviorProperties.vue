@@ -268,14 +268,15 @@ export default {
         },
 
         createMethodSuggestionsForElement(element) {
-            const options = [];
+            const methods = [];
 
             forEach(Functions.main, (func, funcId) => {
                 if (funcId !== 'set' && funcId !== 'sendEvent') {
-                    options.push({
+                    methods.push({
                         method: funcId,
                         name: func.name,
-                        iconClass: 'fas fa-running'
+                        iconClass: 'fas fa-running',
+                        description: func.description
                     });
                 }
             });
@@ -286,7 +287,7 @@ export default {
             }
 
             forEach(this.collectAllItemCustomEvents(item), customEvent => {
-                options.push({
+                methods.push({
                     method: 'custom-event',
                     name: customEvent,
                     event: customEvent,
@@ -294,21 +295,30 @@ export default {
                 });
             });
 
+            methods.sort((a,b) => {
+                if (a.name < b.name) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
+
+            const properties= [{
+                method: 'set',
+                name: 'Opacity',
+                fieldPath: 'opacity',
+                iconClass: 'fas fa-cog'
+            },{
+                method: 'set',
+                name: 'Self opacity',
+                fieldPath: 'selfOpacity',
+                iconClass: 'fas fa-cog'
+            }];
+
             const shape = Shape.find(item.shape);
             if (shape) {
-                if (shape.shapeType === 'standard') {
-                    forEach(Shape.standardShapeProps, (arg, argName) => {
-                        options.push({
-                            method: 'set',
-                            name: arg.name,
-                            fieldPath: `shapeProps.${argName}`,
-                            iconClass: 'fas fa-cog'
-                        });
-                    });
-                }
-
                 forEach(shape.args, (arg, argName) => {
-                    options.push({
+                    properties.push({
                         method: 'set',
                         name: arg.name,
                         fieldPath: `shapeProps.${argName}`,
@@ -319,7 +329,7 @@ export default {
 
             forEach(shape.getTextSlots(item), textSlot => {
                 forEach(textSlotProperties, textSlotProperty => {
-                    options.push({
+                    properties.push({
                         method: 'set',
                         name: `Text / ${textSlot.name} / ${textSlotProperty.name}`,
                         fieldPath: `textSlots.${textSlot.name}.${textSlotProperty.field}`,
@@ -328,20 +338,15 @@ export default {
                 });
             });
 
-            options.push({
-                method: 'set',
-                name: 'Opacity',
-                fieldPath: 'opacity',
-                iconClass: 'fas fa-cog'
-            });
-            options.push({
-                method: 'set',
-                name: 'Self opacity',
-                fieldPath: 'selfOpacity',
-                iconClass: 'fas fa-cog'
+            properties.sort((a,b) => {
+                if (a.name < b.name) {
+                    return -1;
+                } else {
+                    return 1;
+                }
             });
 
-            return options;
+            return methods.concat(properties);
         },
 
         collectAllItemCustomEvents(item) {

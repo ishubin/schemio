@@ -113,6 +113,9 @@ class MoveAlongPathAnimation extends Animation {
 
 export default {
     name: 'Move Along Path',
+
+    description: 'Moves item along the outline of the other item. It is best to use this effect when moving item along the custom curve',
+
     args: {
         path            : {name: 'Path',              type: 'element',value: null},
         movement        : {name: 'Movement',          type: 'choice', value: 'ease-in-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce']},

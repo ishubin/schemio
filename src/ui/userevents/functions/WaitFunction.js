@@ -2,8 +2,8 @@
 export default {
     name: 'Wait',
 
-    // Set function does not need to specify arguments as it is an special function 
-    // and its arguments are handled seprately
+    description: 'Waits for specified amount of time until the next function',
+
     args: {
         time: {type: 'number', value: 0.1, name: 'Time (s)', description: 'Number of seconds for which it should wait until executing next action in the list'}
     },

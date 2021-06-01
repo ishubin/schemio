@@ -55,6 +55,9 @@ class RotateAnimation extends Animation {
 
 export default {
     name: 'Rotate',
+
+    description: 'Rotates item by specified angle',
+
     args: {
         angle           : {name: 'Angle',             type: 'number', value: 0},
         animate         : {name: 'Animate',           type: 'boolean',value: false},

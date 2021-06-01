@@ -56,6 +56,9 @@ class BlinkEffectAnimation extends Animation {
 
 export default {
     name: 'Blink Effect',
+
+    description: 'Generates a pulsating effect in which item glows with specified color',
+
     args: {
         color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
         speed           : {name: 'Speed',             type: 'number', value: 50},

@@ -26,15 +26,28 @@
                 @keydown.enter="pickFirstOption(filteredOptions)"
                 data-input-type="dropdown-search"/>
 
-            <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
+            <div :style="{'max-width': `${maxWidth}px`,'height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
-                    <li v-for="option in filteredOptions" @click="onOptionClicked(option)">
+                    <li v-for="option in filteredOptions" 
+                        @click="onOptionClicked(option)" @mouseover="onOptionMouseOver(option)" @mouseleave="onOptionMouseLeave()"
+                        >
                         <i v-if="option.iconClass" :class="option.iconClass"/>
                         <div v-if="option.html" v-html="option.html"/>
                         <span v-else :style="option.style || {}"> {{option.name}} </span>
                     </li>
                 </ul>
             </div>
+        </div>
+
+        <div v-if="shown && hoveredOption.shown"
+            class="dropdown-option-tooltip" 
+            :style="{'top': `${hoveredOption.y}px`, 'left': `${hoveredOption.x}px`, 'width': `${hoveredOption.w}px`, 'height': `${hoveredOption.h}px`}"
+            >
+            <h3> 
+                <i v-if="hoveredOption.iconClass" :class="hoveredOption.iconClass"/>
+                {{hoveredOption.title}}
+            </h3>
+            {{hoveredOption.text}}
         </div>
     </div>
 </template>
@@ -76,9 +89,16 @@ export default {
             x: 0, y: 0,
             maxHeight: 300,
             searchTextfieldHeight: 30,
-            maxWidth: 350,
+            maxWidth: 400,
             elementRect: null,
-            selectedOption
+            selectedOption,
+            hoveredOption: {
+                shown: false,
+                title: '',
+                text: '',
+                x: 0, y: 0,
+                w: 200, h: 200
+            }
         };
     },
     methods: {
@@ -159,6 +179,43 @@ export default {
                 this.onOptionClicked(options[0]);
             }
             this.cancelPopup();
+        },
+
+        onOptionMouseOver(option) {
+            if (option.description) {
+                if (this.hoveredOption.title !== option.name || !this.hoveredOption.shown) {
+                    this.hoveredOption.shown = true;
+                    this.hoveredOption.title = option.name;
+                    this.hoveredOption.iconClass = option.iconClass;
+                    this.hoveredOption.text = option.description;
+
+                    const dropdownElement = this.$refs.dropdownPopup;
+                    if (dropdownElement) {
+                        const rect = dropdownElement.getBoundingClientRect();
+
+                        let x = rect.left - this.hoveredOption.w;
+                        let y = rect.top;
+
+                        if (x < 0) {
+                            x = rect.right;
+                        }
+
+                        let overlap = y + this.hoveredOption.h - window.innerHeight;
+                        if (overlap > 0) {
+                            y = y - overlap;
+                        }
+
+                        this.hoveredOption.x = x;
+                        this.hoveredOption.y = y;
+                    }
+                }
+            } else {
+                this.hoveredOption.shown = false;
+            }
+        },
+
+        onOptionMouseLeave() {
+            this.hoveredOption.shown = false;
         }
     },
     computed: {

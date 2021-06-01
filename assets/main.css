@@ -2154,6 +2154,20 @@ ul.category-breadcrumb li i {
     border-left: none;
     border-right: none;
 }
+.dropdown-container .dropdown-option-tooltip {
+    position: fixed;
+    padding: 5px;
+    font-size: 12px;
+    z-index: 999;
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong);
+    color: var(--base-strong-up-up);
+    box-shadow: 2px 2px 4px var(--shadow-color);
+}
+.dropdown-container .dropdown-option-tooltip h3 {
+    margin-top: 5px;
+    font-size: 16px;
+}
 
 /******************************* Item List Popup ****************************/
 .item-list-container {

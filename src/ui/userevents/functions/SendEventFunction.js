@@ -1,6 +1,6 @@
 
 export default {
-    name: 'Show',
+    name: 'Send event',
     args: {
         event: {name: 'Event', type: 'string', value: 'Unknown event...'},
     },

@@ -64,6 +64,9 @@ class MoveAnimation extends Animation {
 
 export default {
     name: 'Move',
+
+    description: 'Moves item to specified location in local coords',
+
     args: {
         x               : {name: 'X',                 type: 'number', value: 50},
         y               : {name: 'Y',                 type: 'number', value: 50},

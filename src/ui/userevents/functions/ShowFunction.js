@@ -1,11 +1,15 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
-import ValueAnimation from '../../animations/ValueAnimation';
+import ValueAnimation, { convertTime } from '../../animations/ValueAnimation';
 
 export default {
     name: 'Show',
+
+    description: 'Makes your item visible on scene. You can also make it with a slow transition.',
+
     args: {
         animated            : {name: 'Animated', type: 'boolean', value: true},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
+        transition          : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
@@ -16,6 +20,7 @@ export default {
         if (args.animated) {
             AnimationRegistry.play(new ValueAnimation({
                 durationMillis: args.animationDuration * 1000.0,
+                animationType: args.transition,
                 init() {
                     item.opacity = 0.0;
                     item.visible = true;

@@ -8,7 +8,7 @@ import { popPreviousVisibilites } from './ToggleFunction';
 export default {
     name: 'Untoggle',
 
-    description: 'Restores previous state of items before toggling',
+    description: 'Restores previous state of items before using "Toggle" function',
 
     args: { },
 

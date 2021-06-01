@@ -78,6 +78,9 @@ class CrawlEffectAnimation extends Animation {
 
 export default {
     name: 'Crawl Effect',
+
+    description: 'Animates outline of the item with a dashed stroke',
+
     args: {
         length        : {name: 'Length',            type: 'number', value: 10},
         color         : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},

@@ -124,6 +124,9 @@ function isInsideHUD(item, schemeContainer) {
 
 export default {
     name: 'Zoom To It',
+
+    description: 'Moves scene to bring item into view so that it is centered on the screen',
+
     args: {
         closeEnough         : {name: 'Close Enough', type: 'boolean', value: false, description: 'If checked, then it will only zoom to item just enough for it to appear fully inside the screen. Otherwise it will bring it to the center of the screen'},
         animated            : {name: 'Animated', type: 'boolean', value: true},

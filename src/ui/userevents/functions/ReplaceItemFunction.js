@@ -7,6 +7,9 @@ function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeCo
 
 export default {
     name: 'Replace Item',
+
+    description: 'Hides destination item and moves your item to it. This is usefull in case you want to design mocked interface',
+
     args: {
         destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item which this item should replace'},
     },

@@ -70,6 +70,9 @@ class ScaleAnimation extends Animation {
 
 export default {
     name: 'Scale',
+
+    description: 'Changes width and height of the item',
+
     args: {
         width           : {name: 'Width',             type: 'number', value: 100},
         height          : {name: 'Height',            type: 'number', value: 100},

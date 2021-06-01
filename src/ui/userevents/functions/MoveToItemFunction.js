@@ -85,6 +85,9 @@ class MoveToItemAnimation extends Animation {
 
 export default {
     name: 'Move to Item',
+
+    description: 'Moves item into another item. It also lets rotation and scale align to the destination item with a smooth transition',
+
     args: {
         destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item to which this item should be moved'},
         animate         : {name: 'Animate',           type: 'boolean',value: false},

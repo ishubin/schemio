@@ -244,6 +244,9 @@ class ItemParticleEffectAnimation extends Animation {
 
 export default {
     name: 'Particle Effect',
+
+    description: 'Generates particles on the outline of the item',
+
     args: {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
             'spot', 'circle', 'rect', 'message'
