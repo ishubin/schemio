@@ -143,7 +143,9 @@ export default class StateDraw extends State {
             if (this.item.shapeProps.points.length === 0) {
             } else {
                 this.submitDrawing();
+                const smartDrawing = this.smartDrawing;
                 this.reset();
+                this.smartDrawing = smartDrawing;
             }
         } else if (this.item) {
             this.item.shapeProps.strokeColor = color;
@@ -171,6 +173,7 @@ export default class StateDraw extends State {
 
     processSmartDrawing() {
         const points = simplifyCurvePoints(this.item.shapeProps.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+        const strokeColor = this.item.shapeProps.strokeColor;
         this.schemeContainer.deleteItem(this.item);
         this.item = null;
         this.schemeContainer.reindexItems();
@@ -178,7 +181,7 @@ export default class StateDraw extends State {
         const smallerCurves = this.breakCurveIntoSmallerCurves(points);
 
         forEach(smallerCurves, curve => {
-            this.processSmartShape(curve.points, curve.area);
+            this.processSmartShape(curve.points, curve.area, strokeColor);
         });
     }
 
@@ -253,7 +256,7 @@ export default class StateDraw extends State {
         return curves;
     }
 
-    processSmartShape(points, area) {
+    processSmartShape(points, area, strokeColor) {
         const shapeMatch = identifyShape(points);
         if (shapeMatch && shapeMatch.score > 0.2) {
 
@@ -269,11 +272,19 @@ export default class StateDraw extends State {
                 name: this.schemeContainer.generateUniqueName(shapeMatch.shape),
                 shape: shapeMatch.shape,
                 area,
-                shapeProps: {}
+                shapeProps: { }
             };
-
+ 
             if (shapeMatch.shapeProps) {
                 item.shapeProps = utils.clone(shapeMatch.shapeProps);
+            }
+
+            if (strokeColor) {
+                item.shapeProps.strokeColor = strokeColor;
+                if (item.shape === 'connector') {
+                    item.shapeProps.destinationCapFill = strokeColor;
+                    item.shapeProps.sourceCapFill = strokeColor;
+                }
             }
 
             this.schemeContainer.addItem(item);
@@ -291,6 +302,10 @@ export default class StateDraw extends State {
                     points
                 }
             };
+
+            if (strokeColor) {
+                item.shapeProps.strokeColor = strokeColor;
+            }
             this.schemeContainer.addItem(item);
             this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
