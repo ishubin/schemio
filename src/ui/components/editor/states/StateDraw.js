@@ -30,6 +30,7 @@ export default class StateDraw extends State {
         this.smartDrawing = false;
         this.smartCancelTimeout = 1000;
         this.smartCancelTimeoutId = null;
+        this.strokeColor = null;
     }
 
     reset() {
@@ -69,6 +70,10 @@ export default class StateDraw extends State {
                 fill: {type: 'none'}
             }
         };
+
+        if (this.strokeColor) {
+            item.shapeProps.strokeColor = this.strokeColor;
+        }
 
         this.schemeContainer.addItem(item);
 
@@ -124,8 +129,25 @@ export default class StateDraw extends State {
     
     cancel() {
         this.eventBus.emitItemsHighlighted([]);
-        this.submitDrawing();
+        const item = this.submitDrawing();
+        if (item) {
+            this.schemeContainer.selectItem(item);
+        }
         super.cancel();
+    }
+
+    pickColor(color) {
+        this.strokeColor = color;
+
+        if (this.item && this.item.shapeProps.points.length > 0) {
+            if (this.item.shapeProps.points.length === 0) {
+            } else {
+                this.submitDrawing();
+                this.reset();
+            }
+        } else if (this.item) {
+            this.item.shapeProps.strokeColor = color;
+        }
     }
 
     submitDrawing() {
@@ -140,7 +162,7 @@ export default class StateDraw extends State {
 
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
                 this.schemeContainer.reindexItems();
-                this.schemeContainer.selectItem(this.item);
+                return this.item;
             }
             this.eventBus.emitSchemeChangeCommited();
             this.item = null;

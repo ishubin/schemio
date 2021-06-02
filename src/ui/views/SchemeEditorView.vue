@@ -129,7 +129,13 @@
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelRightExpanded">
-                    <ul v-if="!textSlotEditted.item" class="tabs">
+                    <ul v-if="textSlotEditted.item" class="tabs text-nonselectable">
+                        <li><span class="tab active">Text</span></li>
+                    </ul>
+                    <ul v-else-if="editorStateName === 'draw'" class="tabs text-nonselectable">
+                        <li><span class="tab active">Draw</span></li>
+                    </ul>
+                    <ul v-else class="tabs">
                         <li v-for="tab in tabs">
                             <span class="tab"
                                 :class="{active: currentTab === tab}"
@@ -143,11 +149,11 @@
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
                     </ul>
-                    <ul v-else class="tabs text-nonselectable">
-                        <li><span class="tab active">Text</span></li>
-                    </ul>
 
-                    <div class="tabs-body">
+                    <div class="tabs-body" v-if="editorStateName === 'draw'">
+                        <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
+                    </div>
+                    <div v-else class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :project-id="projectId"
@@ -351,6 +357,10 @@ function escapeHTML(html) {
 
 let currentState = null;
 
+const drawColorPallete = [
+    '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#ffff00', '#00ffff'
+];
+
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -480,7 +490,9 @@ export default {
 
             schemeTitleEdit: {
                 shown: false,
-            }
+            },
+
+            drawColorPallete,
         }
     },
     methods: {
@@ -1248,6 +1260,10 @@ export default {
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
             AnimationsRegistry.stopAllAnimations();
+        },
+
+        onDrawColorPicked(color) {
+            EventBus.emitDrawColorPicked(color);
         }
     },
 
@@ -1299,6 +1315,10 @@ export default {
 
         statusMessage() {
             return this.$store.getters.statusMessage;
+        },
+
+        editorStateName() {
+            return this.$store.getters.editorStateName;
         }
     }
 }

@@ -1505,6 +1505,18 @@ ul.button-group > li.disabled > .icon-button:hover,
     margin-left: 1px;
 }
 
+/******************** Draw Side Panel Properties *********/
+.draw-color-pallete-option {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 15px;
+}
+.draw-color-pallete-option:hover {
+    opacity: 0.8;
+}
 
 
 /******************* Panel *********************/

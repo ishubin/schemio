@@ -322,6 +322,7 @@ export default {
         EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
+        EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
     },
     mounted() {
         this.updateSvgSize();
@@ -362,6 +363,7 @@ export default {
         EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
+        EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -629,6 +631,18 @@ export default {
             states.draw.reset();
         },
 
+        onStopDrawing() {
+            if (this.state === 'draw') {
+                states.draw.cancel();
+            }
+        },
+
+        onDrawColorPicked(color) {
+            if (this.state === 'draw') {
+                states.draw.pickColor(color);
+            }
+        },
+
         onSwitchStateSmartDrawing() {
             this.highlightItems([]);
 
@@ -667,12 +681,6 @@ export default {
         onCurveEditStopped() {
             if (this.state === 'editCurve') {
                 states.editCurve.cancel();
-            }
-        },
-
-        onStopDrawing() {
-            if (this.state === 'draw') {
-                states.draw.cancel();
             }
         },
 

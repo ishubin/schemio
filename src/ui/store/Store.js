@@ -574,6 +574,8 @@ const store = new Vuex.Store({
         systemMessages: state => state.systemMessages,
 
         drawEpsilon: state => state.draw.epsilon,
+
+        editorStateName: state => state.editorStateName,
     }
 });
 
