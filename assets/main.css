@@ -25,6 +25,7 @@
     --faint-strong-up: #c0c0c0;
     --faint-strong-up-up: #d1d1d1;
 
+    --accent-strong-down: #135eb4;
     --accent-strong: #2373ce;
     --accent-faint: #5291da;
     --accent-faint-up: #83addd;
@@ -37,7 +38,8 @@
     --complement-faint: #bbe288;
     --complement-weak: #fafdec;
 
-    --critic-strong: #d34f46;
+    --critic-strong: #d13c31;
+    --critic-faint: #e46960;
     --critic-weak-down: #f3dedb;
     --critic-weak: #f5e7e5;
     --critic-weak-up: #f3e8e7;
@@ -690,21 +692,20 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     padding: 5px 10px 5px 10px;
     font-size: 16px;
     cursor: pointer;
-    background: var(--faint-weak-up);
-    border: 1px solid var(--faint-strong-down);
+    background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
     color: var(--base-strong-up);
+    border: 1px solid var(--faint-strong-down);
     border-radius: var(--control-border-radius);
     text-decoration: none;
-    transition: background-color 0.2s ease;
 }
 .btn:hover {
-    background: var(--accent-faint);
-    color: var(--base-weak);
-    border: 1px solid var(--accent-strong);
+    background: var(--faint-weak);
+    color: var(--base-strong-up);
+    border: 1px solid var(--faint-strong-down);
     text-decoration: none;
 }
 .btn.btn-primary, .btn.btn-primary.disabled:hover {
-    background: var(--accent-strong);
+    background: linear-gradient( 0deg , var(--accent-strong-down) 0%, var(--accent-faint) 100%);
     color: var(--base-weak);
     border: 1px solid var(--accent-strong);
 }
@@ -714,23 +715,23 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: var(--base-weak);
-    color: var(--accent-strong);
-    border: 1px solid var(--accent-strong);
+    background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
+    color: var(--base-strong-up);
+    border: 1px solid var(--faint-strong-down);
 }
 .btn.btn-secondary:hover {
-    background: var(--accent-weak);
-    color: var(--accent-strong);
-    border: 1px solid var(--accent-strong);
+    background: var(--faint-weak);
+    color: var(--base-strong-up);
+    border: 1px solid var(--faint-strong-down);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {
-    background: var(--critic-strong);
+    background: linear-gradient( 0deg , var(--critic-strong) 0%, var(--critic-faint) 100%);
     color: var(--base-weak);
     border: 1px solid var(--critic-strong);
 }
 .btn.btn-danger:hover {
-    background: var(--critic-weak);
-    color: var(--critic-strong);
+    background: var(--critic-faint);
+    color: var(--base-weak);
     border: 1px solid var(--critic-strong);
 }
 
