@@ -406,6 +406,11 @@ export default class StateDragItem extends State {
         // doing it just in case the highlighting was previously set
         this.eventBus.emitItemsHighlighted([]);
 
+        if (this.shouldDragScreen) {
+            // user probably finished dragging screen
+            this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
+        }
+
         if (this.multiItemEditBox && this.proposedItemForMounting) {
             // it should remount all items in multi item edit box into the new proposed parent
             this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);

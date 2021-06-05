@@ -999,6 +999,7 @@ export default {
             if (screenTransform) {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
             }
+            this.initOffsetSave();
         },
 
         importScheme(scheme) {
