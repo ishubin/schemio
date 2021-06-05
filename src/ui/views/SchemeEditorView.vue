@@ -53,10 +53,11 @@
             @new-scheme-requested="onNewSchemeRequested"
             @mode-changed="toggleMode"
             >
-            <ul class="button-group" v-if="mode === 'edit' && !offlineMode && currentUser && (schemeModified || statusMessage.message)">
+            <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
                     <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else class="btn btn-secondary" @click="saveScheme()">Save</span>
+                    <span v-else-if="!offlineMode && currentUser" class="btn btn-secondary" @click="saveScheme()">Save</span>
+                    <span v-else class="btn btn-secondary" @click="exportAsJSON()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -842,7 +843,11 @@ export default {
                 } else if (key === Keys.CTRL_V) {
                     this.pasteItemsFromClipboard();
                 } else if (Keys.CTRL_S === key) {
-                    this.saveScheme();
+                    if (this.offlineMode || !this.$store.state.currentUser) {
+                        this.exportAsJSON();
+                    } else {
+                        this.saveScheme();
+                    }
                 } else if (Keys.CTRL_Z === key) {
                     this.historyUndo();
                 } else if (Keys.CTRL_SHIFT_Z === key) {
