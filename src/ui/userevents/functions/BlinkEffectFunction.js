@@ -12,6 +12,10 @@ class BlinkEffectAnimation extends Animation {
         this.elapsedTime = 0.0;
         this.domContainer = null;
         this.domBlinker = null;
+
+        this.opacity = 0;
+        this.phase = 0; // 0 - fade in, 1 - pulsate, 2 - fade out
+        this.pulsatingTime = 0;
     }
 
     init() {
@@ -37,9 +41,29 @@ class BlinkEffectAnimation extends Animation {
     play(dt) {
         this.elapsedTime += dt;
 
-        const opacity = ((Math.sin(this.elapsedTime * this.args.speed / 10000.0) / 2 + 0.5) * (this.args.maxOpacity - this.args.minOpacity) + this.args.minOpacity) / 100.0;
-        
-        this.domBlinker.setAttribute('style', `opacity: ${opacity}`);
+
+        if (this.phase === 0) {
+            if (this.opacity < this.args.minOpacity / 100) {
+                this.opacity += this.args.speed * dt / 10000;
+            } else {
+                this.opacity = this.args.minOpacity / 100;
+                this.phase = 1;
+            }
+        } else if (this.phase === 1) {
+            this.pulsatingTime += dt;
+            this.opacity = ((Math.sin(this.pulsatingTime * this.args.speed / 10000.0) / 2 + 0.5) * (this.args.maxOpacity - this.args.minOpacity) + this.args.minOpacity) / 100.0;
+
+            if (this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
+                this.phase = 2;
+            }
+        } else {
+            this.opacity -= this.args.speed * dt / 10000;
+            if (this.opacity < 0) {
+                return false;
+            }
+        }
+
+        this.domBlinker.setAttribute('style', `opacity: ${this.opacity}`);
         return this.elapsedTime < this.args.duration * 1000.0;
     }
 
