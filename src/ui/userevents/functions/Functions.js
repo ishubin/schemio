@@ -13,6 +13,7 @@ import ReplaceItemFunction from './ReplaceItemFunction';
 import RotateFunction from './RotateFunction';
 import ScaleFunction from './ScaleFunction';
 import MoveAlongPathFunction from './MoveAlongPathFunction';
+import MoveRandomlyFunction from './MoveRandomlyFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
 import UntoggleFunction from './UntoggleFunction';
@@ -29,6 +30,7 @@ export default {
         move:               MoveFunction,
         moveAlongPath:      MoveAlongPathFunction,
         moveToItem:         MoveToItemFunction,
+        moveRandomly:       MoveRandomlyFunction,
         rotate:             RotateFunction,
         scale:              ScaleFunction,
         replaceItem:        ReplaceItemFunction,
