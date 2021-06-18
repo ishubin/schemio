@@ -218,7 +218,7 @@ import BehaviorProperties from './BehaviorProperties.vue';
 import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
 import StrokePattern from '../items/StrokePattern.js';
 import {ItemInteractionMode} from '../../../scheme/Item.js';
-import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
@@ -237,7 +237,7 @@ const ALL_TABS = [
 
 const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 
-const tabsSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'tabs-state', 100);
+const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 100);
 
 export default {
     props: ['projectId', 'item', 'schemeContainer'],

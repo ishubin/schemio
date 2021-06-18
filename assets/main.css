@@ -10,6 +10,7 @@
     --header-text-color: #eee;
 
     --shadow-color: rgba(0, 0, 0, 0.5);
+    --shadow-color-light: rgba(0, 0, 0, 0.3);
 
     --base-strong: #111;
     --base-strong-up: #3b3b3b;
@@ -67,7 +68,7 @@ html, body, .app-container {
 }
 
 body {
-    font-family: 'San Francisco', Roboto, 'Segoe UI', 'Helvetica Neue',sans-serif;
+    font-family: Roboto, 'Segoe UI', 'Helvetica Neue', Helvetica, sans-serif;
     margin: 0;
     padding: 0;
     color: var(--base-strong);
@@ -2892,4 +2893,47 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
 }
 .shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon h5 {
     text-align: center;
+}
+
+/************************** Consent banner ********************/
+.consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: var(--faint-weak);
+    box-shadow: 0 -2px 12px var(--shadow-color-light);
+}
+.consent-banner .consent-banner-wrapper {
+    text-align: center;
+    width: 100%;
+}
+.consent-banner .consent-banner-container {
+    display: inline-block;
+}
+
+.consent-section {
+    position: relative;
+
+}
+.consent-section .consent-allow {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+}
+
+
+
+.tos-page {
+    padding: 20px;
+    padding-bottom: 80px;
+}
+.tos-page .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px;
+    border: 1px solid var(--faint-weak);
+    box-shadow: 1px 1px 10px var(--shadow-color-light);
 }

@@ -1,4 +1,5 @@
 import forEach from 'lodash/forEach';
+import { hasUISettingsConsent } from './privacy';
 
 export default class LimitedSettingsStorage {
 
@@ -79,12 +80,7 @@ export default class LimitedSettingsStorage {
         item.r = this.getNewRevision();
     }
 
-    evict() {
-        // since this operation is only triggered once per scheme, it's not a big deal to iterate through all the objects
-        // otherwise it would have to use the proper LRU cache,
-        // but even then there is an efficiency problem due to serialization to local storage on each update, so meh...
-        let oldestKey = null;
-        let oldestRevision = 0;
+    evict() {LimitedSett
         forEach(this.items, (item, key) => {
             if (!oldestKey || oldestRevision > item.r) {
                 oldestKey = key;
@@ -109,3 +105,21 @@ export default class LimitedSettingsStorage {
 }
 
 
+const schemioLocalStorage = {
+    getItem(key) {
+        if (hasUISettingsConsent()) {
+            return window.localStorage.getItem(key);
+        }
+        return null;
+    },
+
+    setItem(key, value) {
+        if (hasUISettingsConsent()) {
+            window.localStorage.setItem(key, value);
+        }
+    }
+}
+
+export function createSettingStorageFromLocalStorage(name, limit) {
+    return new LimitedSettingsStorage(schemioLocalStorage, name, limit);
+}

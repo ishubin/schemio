@@ -8,15 +8,19 @@
         <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
             <div class="modal-header" v-if="showHeader" @mousedown="initModalDrag" :class="{dragging: dragging}">
                 <h3>{{title}}</h3>
-                <span class="modal-close" @click="$emit('close')"><i class="fas fa-times"/></span>
+                <span class="modal-close" v-if="closable" @click="$emit('close')"><i class="fas fa-times"/></span>
             </div>
             <div class="modal-body">
-                <slot></slot>
+                <div :style="modalBodyStyles">
+                    <slot></slot>
+                </div>
             </div>
             <div class="modal-footer" v-if="showFooter">
                 <div class="modal-controls">
+                    <span :class="`btn ${secondaryButtonStyle}`" v-if="secondaryButton" v-on:click="$emit('secondary-submit')">{{secondaryButton}}</span>
+                    <span class="btn btn-secondary" v-else-if="closable" v-on:click="$emit('close')">Close</span>
+
                     <span class="btn btn-primary" v-if="primaryButton" v-on:click="$emit('primary-submit')">{{primaryButton}}</span>
-                    <span class="btn btn-secondary" v-on:click="$emit('close')">Close</span>
                 </div>
             </div>
         </div>
@@ -49,12 +53,16 @@ export default {
         width        : { type: Number, default: 600 },
 
         // used only if stretchWidth is enabled
-        maxWidth     : { type: Number, default: 0 },
-        stretchWidth : { type: Boolean, default: false},
-        primaryButton: { type: String, default: null },
-        useMask      : { type: Boolean, default: true },
-        showHeader   : { type: Boolean, default: true },
-        showFooter   : { type: Boolean, default: true },
+        maxWidth       : { type: Number, default: 0 },
+        maxHeight      : { type: Number, default: 0 },
+        stretchWidth   : { type: Boolean, default: false},
+        primaryButton  : { type: String, default: null },
+        secondaryButton: { type: String, default: null },
+        secondaryButtonStyle: { type: String, default: 'btn-secondary' },
+        useMask        : { type: Boolean, default: true },
+        showHeader     : { type: Boolean, default: true },
+        showFooter     : { type: Boolean, default: true },
+        closable       : { type: Boolean, default: true},
     },
 
     beforeMount() {
@@ -139,6 +147,15 @@ export default {
 
                 recordedModalPositions[this.title] = {x: this.x, y: this.y};
             }
+        }
+    },
+    computed: {
+        modalBodyStyles() {
+            const styles = {};
+            if (this.maxHeight > 0) {
+                styles['max-height'] = this.maxHeight + 'px';
+            }
+            return styles;
         }
     }
 }

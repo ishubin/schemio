@@ -137,13 +137,13 @@ import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
-import LimitedSettingsStorage from '../../../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties} from '../../../scheme/Item';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
 
-const behaviorCollapseStateStorage = new LimitedSettingsStorage(window.localStorage, 'behavior-collapse', 400);
+const behaviorCollapseStateStorage = createSettingStorageFromLocalStorage('behavior-collapse', 400);
 
 
 

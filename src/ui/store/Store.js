@@ -4,13 +4,13 @@ import apiClient from '../apiClient';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import utils from '../utils';
-import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 import config from '../config';
 
 Vue.use(Vuex);
 
-const myStorage = new LimitedSettingsStorage(window.localStorage, 'store', 100);
+const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 /**
  * This function retrieves user data from local storage and verifies that it matches current session ID

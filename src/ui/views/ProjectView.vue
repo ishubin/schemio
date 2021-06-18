@@ -251,10 +251,10 @@ import utils from '../utils.js';
 import Pagination from '../components/Pagination.vue';
 import Modal from '../components/Modal.vue';
 import config from '../config';
-import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import StoreUtils from '../store/StoreUtils';
 
-const settingsStorage = new LimitedSettingsStorage(window.localStorage, 'project-view', 10);
+const settingsStorage = createSettingStorageFromLocalStorage('project-view', 10);
 
 export default {
     components: {HeaderComponent, CategoryTree, Pagination, Modal},

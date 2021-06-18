@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import LimitedSettingsStorage from '../../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../../LimitedSettingsStorage';
 
-const panelSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'panel-state', 100);
+const panelSettingsStorage = new createSettingStorageFromLocalStorage('panel-state', 100);
 
 export default {
     props: {

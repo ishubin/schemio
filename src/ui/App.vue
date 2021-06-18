@@ -9,6 +9,8 @@
         <debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
         <system-message-panel/>
+
+        <consent-banner v-if="showConsent" @close="showConsent = false"/>
     </div>
 </template>
 
@@ -16,9 +18,12 @@
 import {registerDebuggerInitiation} from './logger';
 import Debugger from './components/Debugger.vue';
 import SystemMessagePanel from './components/SystemMessagePanel.vue';
+import ConsentBanner from './components/ConsentBanner.vue';
+import config from './config';
+import { hasGivenConsent } from './privacy';
 
 export default{
-    components: {Debugger, SystemMessagePanel},
+    components: {Debugger, SystemMessagePanel, ConsentBanner},
 
     mounted() {
         registerDebuggerInitiation(() => {
@@ -28,7 +33,8 @@ export default{
 
     data() {
         return {
-            debuggerShown: false
+            debuggerShown: false,
+            showConsent: config.consent.enabled && !hasGivenConsent()
         };
     }
 }

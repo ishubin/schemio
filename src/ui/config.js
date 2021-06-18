@@ -29,5 +29,9 @@ export default {
 
     media: {
         uploadEnabled: true
+    },
+
+    consent: {
+        enabled: true
     }
 };

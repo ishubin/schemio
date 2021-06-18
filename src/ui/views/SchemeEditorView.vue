@@ -302,7 +302,7 @@ import Shape from '../components/editor/items/shapes/Shape.js';
 import AnimationsRegistry from '../animations/AnimationRegistry';
 import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
-import LimitedSettingsStorage from '../LimitedSettingsStorage';
+import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
 import ExportEmbeddedModal from '../components/editor/ExportEmbeddedModal.vue';
 import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
@@ -349,7 +349,7 @@ function timeoutPromise(timeInMillis) {
     });
 }
 
-const schemeSettingsStorage = new LimitedSettingsStorage(window.localStorage, 'scheme-settings', 40);
+const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
 function escapeHTML(html) {
     return new Option(html).innerHTML;
