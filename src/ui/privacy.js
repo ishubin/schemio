@@ -81,9 +81,11 @@ function hasConsent(consentId) {
         return true;
     }
 
-    const consentMask = findCookie(CONSENT_COOKIE);
-    if (consentMask) {
-        return consentMask & (1 << consentId) > 0;
+    const consentMaskText = findCookie(CONSENT_COOKIE);
+    if (consentMaskText) {
+        const consentMask = parseInt(consentMaskText);
+        const result = consentMask & (1 << consentId);
+        return result > 0;
     }
     return false;
 }
