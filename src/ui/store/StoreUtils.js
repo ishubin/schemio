@@ -78,5 +78,9 @@ export default {
 
     removeSystemMessage(store, id) {
         store.dispatch('removeSystemMessage', id);
+    },
+
+    giveConsent(store) {
+        store.dispatch('giveConsent');
     }
 }

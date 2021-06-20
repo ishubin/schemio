@@ -9,25 +9,7 @@
             </div>
         </div>
 
-        <modal title="Privacy Preference" v-if="showPreferenceModal" @close="showPreferenceModal = false"
-            :maxHeight="300"
-            secondaryButton="Confirm Choice"
-            secondaryButtonStyle="btn-primary"
-            primaryButton="Agree All &amp; Save"
-            @secondary-submit="confirmChoice"
-            @primary-submit="agreeAllAndSave"
-            >
-            <h2>Our use of cookies</h2>
-
-            We use cookies, unique identifiers and other device data to make Schemio work. 
-
-            <div class="consent-section" v-for="(pc, pcId) in privacyConsent">
-                <h3>{{pc.name}}</h3>
-                <input class="consent-allow" type="checkbox" :checked="pc.allowed" @input="onConsentChange(pcId, arguments[0].target.checked)" :disabled="pc.mandatory"/>
-
-                <p v-html="pc.description"></p>
-            </div>
-        </modal>
+        <consent-modal v-if="showPreferenceModal" @close="showPreferenceModal = false"/>
     </div>
 </template>
 
@@ -36,17 +18,16 @@ import utils from '../utils';
 import forEach from 'lodash/forEach';
 
 import {privacyConsent, saveConsent} from '../privacy';
-import Modal from './Modal.vue';
-
+import ConsentModal from './ConsentModal.vue';
+import StoreUtils from '../store/StoreUtils';
 
 
 export default {
-    components: {Modal},
+    components: {ConsentModal},
 
     data() {
         return {
             showPreferenceModal: false,
-            privacyConsent: utils.clone(privacyConsent)
         };
     },
 
@@ -55,22 +36,15 @@ export default {
             this.showPreferenceModal = true;
         },
         
-        onConsentChange(consentId, isAllowed) {
-            this.privacyConsent[consentId].allowed = isAllowed;
-        },
-
         agreeAllAndSave() {
-            forEach(this.privacyConsent, pc => {
+            const pcs = utils.clone(privacyConsent);
+            forEach(pcs, pc => {
                 pc.allowed = true;
             });
-            saveConsent(this.privacyConsent);
-            this.$emit('close');
+            saveConsent(pcs);
+            StoreUtils.giveConsent(this.$store);
         },
 
-        confirmChoice() {
-            saveConsent(this.privacyConsent);
-            this.$emit('close');
-        }
     }
 }
 </script>

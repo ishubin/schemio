@@ -65,6 +65,7 @@ html, body, .app-container {
     margin: 0;
     padding: 0;
     overscroll-behavior-x: none;
+    min-height: 100vh;
 }
 
 body {
@@ -73,6 +74,11 @@ body {
     padding: 0;
     color: var(--base-strong);
     background: var(--base-weak);
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
 }
 
 * {
@@ -147,6 +153,23 @@ h5 {
 }
 .hint.hint-small {
     font-size: 12px;
+}
+
+
+.footer {
+    background: var(--base-strong-up);
+    color: var(--base-weak);
+    margin-top: auto;
+    padding: 20px;
+    padding-bottom: 50px;
+}
+.footer a, .footer .link {
+    color: var(--base-weak);
+    text-decoration: none;
+}
+.footer a:hover, .footer .link:hover {
+    color: var(--base-weak);
+    text-decoration: underline;
 }
 
 

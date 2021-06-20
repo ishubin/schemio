@@ -7,6 +7,7 @@ import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 import config from '../config';
+import { hasGivenConsent } from '../privacy';
 
 Vue.use(Vuex);
 
@@ -88,6 +89,10 @@ const store = new Vuex.Store({
         schemeModified: false,
 
         editorStateName: 'interact',
+
+        consent: {
+            hasConsent: !config.consent.enabled || hasGivenConsent()
+        },
 
         curveEditing: {
             // item whose curve is currently edited
@@ -385,6 +390,10 @@ const store = new Vuex.Store({
             if (!isNaN(epsilon)) {
                 state.draw.epsilon = epsilon;
             }
+        },
+
+        GIVE_CONSENT(state) {
+            state.consent.hasConsent = true;
         }
     },
 
@@ -540,6 +549,10 @@ const store = new Vuex.Store({
 
         updateDrawEpsilon({commit}, epsilon) {
             commit('UPDATE_DRAW_EPSILON', epsilon);
+        },
+
+        giveConsent({commit}) {
+            commit('GIVE_CONSENT');
         }
     },
 
@@ -576,6 +589,8 @@ const store = new Vuex.Store({
         drawEpsilon: state => state.draw.epsilon,
 
         editorStateName: state => state.editorStateName,
+
+        hasConsent: state => state.consent.hasConsent
     }
 });
 

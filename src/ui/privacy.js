@@ -76,7 +76,7 @@ function findCookie(cookieName) {
 }
 
 
-function hasConsent(consentId) {
+export function hasConsent(consentId) {
     if (!config.consent.enabled) {
         return true;
     }
@@ -100,6 +100,6 @@ export function hasGivenConsent() {
 }
 
 
-export function hasUISettingsConsent() {
+export function hasUISettingsConsent () {
     return hasConsent(CONSENT.UI_SETTINGS);
 }

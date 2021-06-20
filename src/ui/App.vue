@@ -10,7 +10,17 @@
 
         <system-message-panel/>
 
-        <consent-banner v-if="showConsent" @close="showConsent = false"/>
+        <consent-banner v-if="consentShown"/>
+
+        <div class="footer" v-if="routerName !== 'SchemeEditorView'">
+            <div class="middle-content">
+                <a href="/">Home</a>
+                <a href="/terms-of-service">Terms of Service</a>
+                <span class="link" @click="showConsentModal()">Manage Cookie Options</span>
+            </div>
+
+        </div>
+        <consent-modal v-if="consentModalShown" @close="consentModalShown = false"/>
     </div>
 </template>
 
@@ -19,11 +29,10 @@ import {registerDebuggerInitiation} from './logger';
 import Debugger from './components/Debugger.vue';
 import SystemMessagePanel from './components/SystemMessagePanel.vue';
 import ConsentBanner from './components/ConsentBanner.vue';
-import config from './config';
-import { hasGivenConsent } from './privacy';
+import ConsentModal from './components/ConsentModal.vue';
 
 export default{
-    components: {Debugger, SystemMessagePanel, ConsentBanner},
+    components: {Debugger, SystemMessagePanel, ConsentBanner, ConsentModal},
 
     mounted() {
         registerDebuggerInitiation(() => {
@@ -34,8 +43,23 @@ export default{
     data() {
         return {
             debuggerShown: false,
-            showConsent: config.consent.enabled && !hasGivenConsent()
+            consentModalShown: false
         };
+    },
+
+    methods: {
+        showConsentModal() {
+            this.consentModalShown = true;
+        }
+    },
+
+    computed: {
+        routerName() {
+            return this.$route.name
+        },
+        consentShown() {
+            return !this.$store.getters.hasConsent;
+        },
     }
 }
 </script>
