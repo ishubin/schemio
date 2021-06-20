@@ -163,6 +163,14 @@ h5 {
     padding: 20px;
     padding-bottom: 50px;
 }
+.footer ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.footer ul li {
+    padding: 5px;
+}
 .footer a, .footer .link {
     color: var(--base-weak);
     text-decoration: none;

@@ -14,9 +14,17 @@
 
         <div class="footer" v-if="routerName !== 'SchemeEditorView'">
             <div class="middle-content">
-                <a href="/">Home</a>
-                <a href="/terms-of-service">Terms of Service</a>
-                <span class="link" @click="showConsentModal()">Manage Cookie Options</span>
+                <ul>
+                    <li>
+                        <a href="/">Home</a>
+                    </li>
+                    <li>
+                        <a href="/terms-of-service">Terms of Service</a>
+                    </li>
+                    <li>
+                        <span class="link" @click="showConsentModal()">Manage Cookie Options</span>
+                    </li>
+                </ul>
             </div>
 
         </div>
