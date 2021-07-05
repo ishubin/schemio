@@ -20,19 +20,19 @@
 
                 <h4>Access:</h4>
                 <div class="section">
-                    <div class="radio-project-permission-option" :class="{selected: isPublic === true}"  @click="isPublic = true">
-                        <input type="radio" name="access-permissions" id="radio-public" v-model="isPublic" :value="true"/>
-                        <label for="radio-public"> <i class="fas fa-unlock"/> <b>Public</b></label>
-                        <div class="hint">
-                            Your probject will be visible on the home page and will be accessible to anyone in read-only mode. Other users will be able to view and copy your documents.
-                        </div>
-                    </div>
-
                     <div class="radio-project-permission-option" :class="{selected: isPublic === false}"  @click="isPublic = false">
                         <input type="radio" name="access-permissions" id="radio-private" v-model="isPublic" :value="false"/>
                         <label for="radio-private"> <i class="fas fa-lock"/> <b>Private</b></label>
                         <div class="hint">
                             Your project will only be accessible to you and will not be listed on home page. Other users will not be able to view documents in your project even with direct link.
+                        </div>
+                    </div>
+
+                    <div class="radio-project-permission-option" :class="{selected: isPublic === true}"  @click="isPublic = true">
+                        <input type="radio" name="access-permissions" id="radio-public" v-model="isPublic" :value="true"/>
+                        <label for="radio-public"> <i class="fas fa-eye"/> <b>Public</b></label>
+                        <div class="hint">
+                            Your probject will be visible on the home page and will be accessible to anyone in read-only mode. Other users will be able to view and copy your documents.
                         </div>
                     </div>
                 </div>
@@ -50,8 +50,10 @@
                     <a class="btn btn-secondary" :href="`/projects/${projectId}`">Cancel</a>
                 </div>
 
-                <h4>Danger zone</h4>
-                <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
+                <div v-if="!createMode" class="section">
+                    <h4>Danger zone</h4>
+                    <span class="btn btn-danger" @click="onDeleteProjectClicked()">Delete Project</span>
+                </div>
 
             </div>
 
@@ -85,7 +87,7 @@ export default {
             nameFailed: null,
 
             description: '',
-            isPublic: true,
+            isPublic: false,
 
             isLoadingProject: false,
             isSavingProject: false,

@@ -19,6 +19,7 @@ import ErrorView from './views/ErrorView.vue';
 import UserProfileView from './views/UserProfileView.vue';
 import UserEditView from './views/UserEditView.vue';
 import TosView from './views/TosView.vue';
+import AboutView from './views/AboutView.vue';
 
 
 Vue.use(VueRouter);
@@ -47,6 +48,7 @@ const routes = [
     route('UserProfileView',    '/users/:userId', UserProfileView),
     route('UserEditView',       '/user/edit', UserEditView),
     route('TosView',            '/terms-of-service', TosView),
+    route('AboutView',          '/about', AboutView),
     route('NotFoundView',       '/not-found', NotFoundView),
     route('ErrorView',          '/error', ErrorView),
     { path: '*', redirect: '/not-found' },
