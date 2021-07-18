@@ -15,6 +15,7 @@ module.exports = {
     getCurrentUser(req, res) {
         if (req.session.userLogin) {
             res.json({
+                id: req.session.userLogin,
                 login: req.session.userLogin,
                 email: req.session.userEmail,
                 name: req.session.userName

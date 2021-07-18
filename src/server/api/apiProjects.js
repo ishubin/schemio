@@ -138,7 +138,12 @@ const ApiProjects = {
             return Promise.reject('Not authorized to update project');
         })
         .then(() => {
-            return projectStorage.updateProject(projectId, fields);
+            return projectStorage.updateProject(projectId, fields, {
+                owner: {
+                    id: req.session.userLogin,
+                    name: req.session.userName
+                }
+            });
         })
         .then(() => res.json({status: 'ok'}))
         .catch(err => res.$apiError(err));

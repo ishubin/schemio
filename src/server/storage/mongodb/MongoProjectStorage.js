@@ -51,8 +51,9 @@ class MongoProjectStorage {
      * 
      * @param {*} projectId 
      * @param {*} projectFields 
+     * @param {*} extras
      */
-    updateProject(projectId, projectFields) {
+    updateProject(projectId, projectFields, extras) {
         const fields = {};
         let isNotEmpty = false;
         if (projectFields.name) {
@@ -66,6 +67,10 @@ class MongoProjectStorage {
         if (projectFields.hasOwnProperty('isPublic')) {
             fields.isPublic = projectFields.isPublic;
             isNotEmpty = true;
+        }
+
+        if (extras && extras.owner) {
+            fields.owner = extras.owner;
         }
         
         if (isNotEmpty) {
