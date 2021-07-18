@@ -20,7 +20,8 @@ class MongoProjectStorage {
             createdTime: new Date().toISOString(),
             read: project.read,
             write: project.write,
-            isPublic: project.isPublic ? true: false
+            isPublic: project.isPublic ? true: false,
+            owner: project.owner
         };
 
         return this._projects().insertOne(newProject)
@@ -145,6 +146,7 @@ class MongoProjectStorage {
                         description: project.description,
                         createdTime: project.createdTime,
                         isPublic:       project.isPublic,
+                        owner: project.owner
                     };
                 }),
                 total: count,

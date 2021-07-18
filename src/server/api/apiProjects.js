@@ -10,6 +10,10 @@ const ApiProjects = {
             // sepcifying access rights
             project.write = [req.session.userLogin];
             project.read = [req.session.userLogin];
+            project.owner = {
+                id: req.session.userLogin,
+                name: req.session.userName
+            };
             projectStorage.createProject(project)
             .then(project => res.json(project))
             .catch(err => {
@@ -53,6 +57,15 @@ const ApiProjects = {
             const tags = args[0];
             const project = args[1];
 
+            let ownerId = null;
+            let ownerName = 'unknown';
+
+            if (project.owner) {
+                ownerId = project.owner.id;
+                ownerName = project.owner.name;
+            }
+
+
             if (project) {
                 const projectResponse = {
                     id:             project.id,
@@ -64,7 +77,11 @@ const ApiProjects = {
                         read:   true,
                         write:  false,
                     },
-                    tags
+                    tags,
+                    owner: {
+                        id: ownerId,
+                        name: ownerName
+                    }
                 };
                 if (userLogin && _.indexOf(project.write, userLogin) >= 0) {
                     projectResponse.permissions.write = true;
