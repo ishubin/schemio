@@ -1,3 +1,7 @@
+// This file should be replaced with a different one depending on the build env or a distribution version
+
+console.log('--------------------- LOCAL --------------------------');
+
 export default {
     // should be disabled for production
     debug: true,
@@ -33,5 +37,12 @@ export default {
 
     consent: {
         enabled: true
+    },
+
+    analytics: {
+        enabled: false,
+        ga: {
+            id: 'blahblah'
+        }
     }
 };

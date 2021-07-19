@@ -20,10 +20,19 @@ import UserProfileView from './views/UserProfileView.vue';
 import UserEditView from './views/UserEditView.vue';
 import TosView from './views/TosView.vue';
 import AboutView from './views/AboutView.vue';
+import VueGtag from "vue-gtag";
+import config from './config.js';
+
 
 
 Vue.use(VueRouter);
 Vue.use(VueAxios, axios);
+
+if (config.analytics.enabled) {
+    Vue.use(VueGtag, {
+        config: { id: config.analytics.ga.id }
+    });
+}
 
 
 function route(name, path, component, props) {
