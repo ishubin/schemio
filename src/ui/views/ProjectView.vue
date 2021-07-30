@@ -6,24 +6,26 @@
     <div class="project-view">
         <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
         <div class="project-layout">
-            <div v-if="categoriesConfig.enabled" class="project-categories">
-                <h4>Categories</h4>
+            <div class="project-categories">
+                <div v-if="categoriesConfig.enabled">
+                    <h4>Categories</h4>
 
-                <div v-if="project && project.permissions.write">
-                    <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
+                    <div v-if="project && project.permissions.write">
+                        <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
+                    </div>
+
+                    <category-tree
+                        :key="`category-tree-revision-${categoryTreeRevision}`"
+                        :categories="categories"
+                        :selected-category-id="currentCategoryId"
+                        :url-prefix="urlPrefix"
+                        :write-permissions="project && project.permissions.write"
+                        @add-category="onAddCategoryClicked"
+                        @edit-category="onEditCategoryClicked"
+                        @delete-category="onDeleteCategoryClicked"
+                        @moved-category="onCategoryMoveRequested"
+                        />
                 </div>
-
-                <category-tree
-                    :key="`category-tree-revision-${categoryTreeRevision}`"
-                    :categories="categories"
-                    :selected-category-id="currentCategoryId"
-                    :url-prefix="urlPrefix"
-                    :write-permissions="project && project.permissions.write"
-                    @add-category="onAddCategoryClicked"
-                    @edit-category="onEditCategoryClicked"
-                    @delete-category="onDeleteCategoryClicked"
-                    @moved-category="onCategoryMoveRequested"
-                    />
             </div>
 
             <div class="project-body">

@@ -1,6 +1,6 @@
-// This file should be replaced with a different one depending on the build env or a distribution version
+// This config is used to build UI for FS based Schemio distribution
 
-console.log('--------------------- LOCAL --------------------------');
+console.log('--------------------- FS --------------------------');
 
 export default {
     // should be disabled for production
@@ -8,15 +8,15 @@ export default {
 
     project: {
         categories: {
-            enabled: true,
+            enabled: false,
             maxDepth: 10
         }
     },
 
     auth: {
-        enabled: true,
+        enabled: false,
         alternative: {
-            enabled: true
+            enabled: false
         }
     },
 
@@ -37,7 +37,7 @@ export default {
     },
 
     consent: {
-        enabled: true
+        enabled: false
     },
 
     analytics: {

@@ -15,7 +15,7 @@
             <slot name="middle-section"></slot>
         </div>
 
-        <div class="top-right-panel">
+        <div v-if="authEnabled" class="top-right-panel">
             <div v-if="currentUser">
                 <menu-dropdown 
                     :name="currentUserName"
@@ -41,6 +41,7 @@
 import MenuDropdown from './MenuDropdown.vue';
 import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import map from 'lodash/map';
+import config from '../config';
 
 export default {
     props: {
@@ -87,9 +88,14 @@ export default {
     },
 
     computed: {
+        authEnabled() {
+            return config.auth.enabled;
+        },
+
         currentUser() {
             return this.$store.getters.currentUser;
         },
+        
         currentUserName() {
             const user = this.$store.getters.currentUser;
             if (user) {

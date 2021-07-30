@@ -8,6 +8,7 @@
     "build-assets": "npm run build-clean-init; mkdir -p dist/assets; cp -r assets/* dist/assets/; node src/build/buildHTML.js",
     "build-dev": "npm run build-assets; webpack --config webpack.build.dev.js; npm run build-standalone; cp schemio.properties dist/",
     "build-prod": "npm run build-assets; webpack --config webpack.build.prod.js; npm run build-standalone-prod",
+    "build-fs-dev": "npm run build-assets; webpack --config webpack.fs.dev.js; npm run build-standalone",
     "build-standalone": "webpack --config webpack.standalone.js",
     "build-standalone-prod": "webpack --config webpack.standalone.prod.js",
     "test": "mocha-webpack --webpack-config webpack.build.test.js -r test/setup.js test/*.spec.js test/**/*.spec.js"

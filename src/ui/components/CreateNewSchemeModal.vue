@@ -10,8 +10,10 @@
         <h5>Description</h5>
         <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
 
-        <h5>Category</h5>
-        <category-selector :project-id="projectId" :categories="categories"/>
+        <div v-if="categoriesConfig.enabled">
+            <h5>Category</h5>
+            <category-selector :project-id="projectId" :categories="categories"/>
+        </div>
 
         <h5>Scheme Image URL</h5>
 
@@ -55,6 +57,11 @@ export default {
                     highlight: false
                 }
             },
+
+            categoriesConfig: {
+                enabled: config.project.categories.enabled
+            },
+
             errorMessage: null,
             isUploadEnabled: config.media.uploadEnabled
         }
@@ -90,7 +97,15 @@ export default {
                     return;
                 }
 
-                apiClient.ensureCategoryStructure(this.projectId, this.categories).then(category => {
+                let chain = Promise.resolve(null);
+
+                if (this.categoriesConfig.enabled) {
+                    chain = chain.then(() => {
+                        return apiClient.ensureCategoryStructure(this.projectId, this.categories)
+                    })
+                }
+
+                chain.then(category => {
                     let categoryId = null;
                     if (category && category.id) {
                         categoryId = category.id;
