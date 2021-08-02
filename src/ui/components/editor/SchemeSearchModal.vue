@@ -10,6 +10,7 @@
 
         <div v-if="searchResult" style="height: 300px; overflow: scroll;">
             <pagination
+                :key="`${currentPage}-${totalPages}`"
                 :current-page="currentPage"
                 :total-pages="totalPages"
                 @page-clicked="selectSearchPage"

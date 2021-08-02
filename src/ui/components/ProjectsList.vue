@@ -25,6 +25,7 @@
             </div>
 
             <pagination
+                :key="`${currentPage}-${totalPages}-${urlPrefix}`"
                 :current-page="currentPage"
                 :total-pages="totalPages"
                 :url-prefix="urlPrefix"
