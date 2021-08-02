@@ -425,6 +425,7 @@ export default {
                 query: this.query,
                 categoryId: this.currentCategoryId,
                 offset: offset,
+                limit: this.resultsPerPage,
                 includeSubcategories: true,
                 tag: this.filterTag
             })
@@ -769,6 +770,7 @@ export default {
                 }
 
                 if (this.$router.currentRoute.fullPath !== this.lastSearchPath) {
+                    this.updateAllParametersFromQuery();
                     this.searchSchemes();
                 }
             }

@@ -80,9 +80,9 @@ export default {
         return $axios().patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    findProjects({userId, query, offset}) {
+    findProjects({userId, query, offset, limit}) {
         let encodedQuery = encodeURIComponent(query || '');
-        let url = `/v1/projects?offset=${offset || 0}&q=${encodedQuery}`;
+        let url = `/v1/projects?offset=${offset || 0}&limit=${limit || 20}&q=${encodedQuery}`;
         if (userId) {
             url += `&userId=${userId}`;
         }
@@ -156,7 +156,7 @@ export default {
 
     findSchemes(projectId, filters) {
         let encodedQuery = encodeURIComponent(filters.query || '');
-        let url = `/v1/projects/${projectId}/docs?offset=${filters.offset || 0}&q=${encodedQuery}`;
+        let url = `/v1/projects/${projectId}/docs?offset=${filters.offset || 0}&limit=${filters.limit || 20}&q=${encodedQuery}`;
         if (filters.categoryId) {
             url = `${url}&category=${encodeURIComponent(filters.categoryId)}`;
         }

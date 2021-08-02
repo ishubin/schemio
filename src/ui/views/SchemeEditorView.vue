@@ -544,7 +544,8 @@ export default {
 
                 this.project = project;
                 const currentUser = this.$store.state.currentUser;
-                this.editAllowed = project && currentUser && project.owner && project.owner.id === currentUser.id;
+                this.editAllowed = project && (currentUser && project.owner && project.owner.id === currentUser.id
+                    || project.permissions && project.permissions.write);
 
                 if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
                     this.mode = 'edit';
@@ -1321,7 +1322,8 @@ export default {
 
         currentUser(user) {
             if (this.project) {
-                this.editAllowed = user && this.project.owner && this.project.owner.id === user.id;
+                this.editAllowed = (user && this.project.owner && this.project.owner.id === user.id)
+                    || (this.project.permissions && this.project.permissions.write);
             }
         }
     },

@@ -115,7 +115,8 @@ export default {
             apiClient.findProjects({
                 userId: this.userId,
                 query: this.query,
-                offset: offset
+                offset: offset,
+                limit: this.resultsPerPage
             }).then(searchResponse => {
                 this.loadingProjects = false;
                 this.searchResult = searchResponse;

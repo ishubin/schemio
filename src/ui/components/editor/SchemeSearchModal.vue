@@ -40,7 +40,8 @@ export default {
             currentPage: 1,
             totalPages: 0,
             searchResult: null,
-            searchTimerId: null
+            searchTimerId: null,
+            resultsPerPage: 20
         };
     },
     methods: {
@@ -62,7 +63,8 @@ export default {
             }
             apiClient.findSchemes(this.projectId, {
                 query: this.query,
-                offset: offset
+                offset: offset,
+                limit: this.resultsPerPage
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
                 this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
