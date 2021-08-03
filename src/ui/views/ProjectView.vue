@@ -118,12 +118,12 @@
                         </div>
                     </div>
 
-                    <div v-if="hasWritePermission && !isEditingScheme && searchResult.results">
-                        <span class="link" @click="isEditingScheme = true">Edit Schemes</span>
-                    </div>
-                    <div class="section" v-if="isEditingScheme && searchResult && searchResult.results">
-                        <span class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
-                        <span class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
+                    
+                    <div v-if="hasWritePermission">
+                        <span class="btn btn-primary" @click="openNewSchemePopup">Create Scheme</span>
+                        <span v-if="!isEditingScheme && searchResult.results" class="btn btn-secondary" @click="isEditingScheme = true">Edit Schemes</span>
+                        <span v-if="isEditingScheme && searchResult.results" class="btn btn-danger" :class="{disabled: !hasSelectedAnyScheme}" @click="deleteSectedSchemes">Delete Selected Schemes</span>
+                        <span v-if="isEditingScheme && searchResult.results" class="btn btn-secondayr" @click="isEditingScheme = false">Cancel</span>
                     </div>
 
                     <div class="section">
@@ -241,13 +241,22 @@
             <div v-if="schemeDeleteModal.errorMessage" class="msg msg-error">{{schemeDeleteModal.errorMessage}}</div>
         </modal>
 
+        <create-new-scheme-modal v-if="newSchemePopup.show"
+            :categories="newSchemePopup.categories"
+            :project-id="projectId"
+            @close="newSchemePopup.show = false"
+            @scheme-created="openNewSchemePopupSchemeCreated"
+            ></create-new-scheme-modal>
+
     </div>
 </template>
 
 <script>
 import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import find from 'lodash/find';
 import HeaderComponent from '../components/Header.vue';
+import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
 import CategoryTree from '../components/search/CategoryTree.vue';
 import apiClient from '../apiClient.js';
 import utils from '../utils.js';
@@ -260,7 +269,7 @@ import StoreUtils from '../store/StoreUtils';
 const settingsStorage = createSettingStorageFromLocalStorage('project-view', 10);
 
 export default {
-    components: {HeaderComponent, CategoryTree, Pagination, Modal},
+    components: {HeaderComponent, CategoryTree, Pagination, Modal, CreateNewSchemeModal},
 
     beforeMount() {
         this.init();
@@ -354,7 +363,12 @@ export default {
                 schemes: [],
                 shown: false,
                 errorMessage: null
-            }
+            },
+
+            newSchemePopup: {
+                categories: [],
+                show: false
+            },
         };
     },
 
@@ -741,7 +755,29 @@ export default {
             }).catch(err => {
                 this.schemeDeleteModal.errorMessage = 'Failed to delete schemes';
             });
-        }
+        },
+
+        openNewSchemePopup() {
+            if (this.currentCategory && this.currentCategory.id) {
+                var categories = map(this.currentCategory.ancestors, ancestor => {
+                    return {name: ancestor.name, id: ancestor.id};
+                });
+
+                categories.push({
+                    name: this.currentCategory.name,
+                    id: this.currentCategory.id
+                });
+                this.newSchemePopup.categories = categories;
+            } else {
+                this.newSchemePopup.categories = [];
+            }
+            this.newSchemePopup.show = true;
+        },
+
+        openNewSchemePopupSchemeCreated(projectId, scheme) {
+            this.newSchemePopup.show = false;
+            window.location.href = `/projects/${projectId}/docs/${scheme.id}#m:edit`;
+        },
     },
 
     filters: {
