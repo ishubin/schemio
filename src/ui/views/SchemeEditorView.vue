@@ -1160,6 +1160,10 @@ export default {
                 EventBus.emitItemChanged(item.id);
                 itemIds += item.id;
             });
+
+            if (name === 'groups') {
+                this.schemeContainer.reindexGroups();
+            }
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
         },
 

@@ -411,7 +411,7 @@ export default {
         },
 
         initiateSelectAndDrag() {
-            EventBus.$emit(EventBus.SWITCH_MODE_TO_EDIT);
+            EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
         },
 
         initiateCurveCreation() {

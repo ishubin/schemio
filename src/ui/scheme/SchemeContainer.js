@@ -328,6 +328,20 @@ class SchemeContainer {
         log.timeEnd('reindexItems');
     }
 
+
+    // Iterates recursively through all items and reindexes item groups.
+    // These groups are going to be used in the element picker
+    reindexGroups() {
+        this._itemGroupsToIds = {};
+        visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
+            if (item.groups) {
+                this.indexItemGroups(item.id, item.groups);
+            }
+        });
+        this.itemGroups = keys(this._itemGroupsToIds);
+        this.itemGroups.sort();
+    }
+
     calculateItemWorldArea(item) {
         const points = [
             {x: 0, y: 0},
