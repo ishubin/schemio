@@ -56,6 +56,7 @@
     --icon-button-hover-background: #d4d4d6;
 
     --control-border-radius: 3px;
+    --modal-border-radius: 10px;
 }
 
 
@@ -1309,18 +1310,21 @@ ul.pagination li a.current {
     padding: 0;
     background-color: var(--faint-weak-up);
     box-shadow: 0 2px 30px var(--shadow-color);
+    border-radius: var(--modal-border-radius);
 }
 .modal-header {
     position: relative;
-    padding: 5px;
+    padding: 7px 10px;
     background: var(--faint-weak-down);
     cursor: grab;
+    border-radius: var(--modal-border-radius) var(--modal-border-radius) 0 0;
 }
 .modal-header.dragging {
     cursor: grabbing;
 }
 .modal-header h3 {
     margin: 0;
+    font-size: 16px;
     color: var(--base-strong-up);
 }
 .modal-header .modal-close {
