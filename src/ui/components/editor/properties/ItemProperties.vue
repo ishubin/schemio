@@ -139,6 +139,15 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="label" width="50%">
+                                Clip children
+                                <tooltip>Only renders parts of the child items that are located inside the visible shape of the parent item</tooltip>
+                            </td>
+                            <td class="value" width="50%">
+                                <input class="checkbox" type="checkbox" :checked="item.clip" @input="emitItemFieldChange('clip', arguments[0].target.checked)"/>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="label" width="50%">Shape</td>
                             <td class="value" width="50%">
                                 <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">

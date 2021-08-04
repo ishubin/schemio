@@ -88,7 +88,19 @@
             stroke="rgba(255, 255, 255, 0)"
             :fill="hoverPathFill" />
 
-        <g v-if="item.childItems && item.visible">
+        <defs v-if="item.clip">
+            <clipPath :id="`item-clip-path-${item.id}`">
+                <path v-if="itemSvgOutlinePath"
+                    class="svg-event-layer"
+                    :d="itemSvgOutlinePath" 
+                    :data-item-id="item.id"
+                    stroke-width="0px"
+                    stroke="rgba(255, 255, 255, 0)"
+                    fill="rgba(255, 255, 255, 0)" />
+                    </clipPath>
+        </defs>
+
+        <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
             <item-svg v-for="childItem in item.childItems"
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}`"
@@ -308,6 +320,15 @@ export default {
             }
             return true;
         },
+
+        childrenLayerStyle() {
+            if (this.item.clip) {
+                return {
+                    'clip-path': `url(#item-clip-path-${this.item.id})`
+                };
+            }
+            return {};
+        }
     }
 }
 </script>

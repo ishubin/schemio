@@ -78,6 +78,7 @@ const defaultItemDefinition = {
     blendMode: 'normal',
     cursor: 'default',
     shape: 'none',
+    clip: false,
     repeat: 0,
     repeatOffsetX: 10,
     repeatOffsetY: -10,
