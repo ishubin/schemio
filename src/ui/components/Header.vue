@@ -9,7 +9,7 @@
         </router-link>
 
         <router-link v-if="project" :to="{path: `/projects/${project.id}`}"><i class="fas fa-home"></i> {{project.name}}</router-link>
-        <span v-if="currentUser && projectId && allowNewScheme" class="link" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
+        <span v-if="currentUser && projectId && allowNewScheme && hasWritePermission" class="link" @click="openNewSchemePopup"><i class="far fa-file-alt"></i> New Scheme</span>
 
         <div class="header-middle-section">
             <slot name="middle-section"></slot>
@@ -45,10 +45,11 @@ import config from '../config';
 
 export default {
     props: {
-        projectId     : { type: String, default: null},
-        project       : { type: Object, default: null},
-        category      : {type: Object, default: null},
-        allowNewScheme: { type: Boolean, default: true }
+        projectId         : { type: String, default: null},
+        project           : { type: Object, default: null},
+        category          : { type: Object, default: null},
+        allowNewScheme    : { type: Boolean, default: true },
+        hasWritePermission: { type: Boolean, default: false}
     },
 
     components: { MenuDropdown, CreateNewSchemeModal },

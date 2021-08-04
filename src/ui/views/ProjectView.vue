@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="project-view">
-        <header-component :project-id="projectId" :project="project" :category="currentCategory"/>
+        <header-component :project-id="projectId" :project="project" :category="currentCategory" :hasWritePermission="hasWritePermission"/>
         <div class="project-layout">
             <div class="project-categories">
                 <div v-if="categoriesConfig.enabled">
