@@ -141,9 +141,10 @@ export default {
             return;
         }
 
-        const area = calculateBoundingBox(item, schemeContainer, 50);
+        const area = calculateBoundingBox(item, schemeContainer, 10);
 
         let newZoom = 1.0;
+        console.log("screen settings", schemeContainer.screenSettings);
         const width = schemeContainer.screenSettings.width;
         const height = schemeContainer.screenSettings.height;
         if (area.w > 0 && area.h > 0 && width > 0 && height > 0) {

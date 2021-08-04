@@ -291,11 +291,6 @@ export default {
             state.setSchemeContainer(this.schemeContainer);
             state.setEditor(this);
         })
-        if (this.mode === 'edit') {
-            this.switchStateDragItem();
-        } else {
-            this.switchStateInteract();
-        }
 
         EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
@@ -333,6 +328,12 @@ export default {
             if (svgElement) {
                 svgElement.addEventListener('mousewheel', this.mouseWheel);
             }
+        }
+
+        if (this.mode === 'edit') {
+            this.switchStateDragItem();
+        } else {
+            this.switchStateInteract();
         }
     },
     beforeDestroy(){
@@ -423,6 +424,10 @@ export default {
 
             this.schemeContainer.screenSettings.width = svgRect.width;
             this.schemeContainer.screenSettings.height = svgRect.height;
+            this.$emit('svg-size-updated', {
+                width: this.width,
+                height: this.height
+            });
         },
 
         mouseCoordsFromEvent(event) {
@@ -870,7 +875,7 @@ export default {
             }
         },
 
-        onBringToView(area) {
+        onBringToView(area, animated) {
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
                 newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
@@ -884,18 +889,25 @@ export default {
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
             const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
 
-            AnimationRegistry.play(new ValueAnimation({
-                durationMillis: 400,
-                animationType: 'ease-out',
-                update: (t) => {
-                    this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
-                    this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
-                    this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
-                }, 
-                destroy: () => {
-                    this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
-                }
-            }));
+            if (animated) {
+                AnimationRegistry.play(new ValueAnimation({
+                    durationMillis: 400,
+                    animationType: 'ease-out',
+                    update: (t) => {
+                        this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
+                        this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
+                        this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
+                    }, 
+                    destroy: () => {
+                        this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
+                    }
+                }));
+            } else {
+                this.schemeContainer.screenTransform.scale = newZoom;
+                this.schemeContainer.screenTransform.x = destX;
+                this.schemeContainer.screenTransform.y = destY;
+                this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
+            }
         },
 
         startLinksAnimation() {
@@ -1536,15 +1548,6 @@ export default {
         state(newState) {
             this.$store.dispatch('setEditorStateName', newState);
             this.$emit('switched-state', states[newState]);
-        },
-        mode(newMode) {
-            if (newMode === 'edit') {
-                userEventBus.clear();
-                this.removeDrawnLinks();
-                this.switchStateDragItem();
-            } else if (newMode === 'view') {
-                this.switchStateInteract();
-            }
         },
     },
     computed: {

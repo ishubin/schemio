@@ -116,7 +116,7 @@ export default {
             if (items && items.length > 0) {
                 const area = this.getBoundingBoxOfItems(items);
                 if (area) {
-                    EventBus.$emit(EventBus.BRING_TO_VIEW, area);
+                    EventBus.emitBringToViewInstantly(area);
                 }
             }
         },

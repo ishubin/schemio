@@ -91,6 +91,7 @@
                     @clicked-copy-selected-items="copySelectedItems()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
                     @shape-export-requested="openShapeExporterForItem"
+                    @svg-size-updated="onSvgSizeUpdated"
                     ></svg-editor>
 
                 <svg-editor
@@ -109,6 +110,7 @@
                     @clicked-bring-to-back="bringSelectedItemsToBack()"
                     @clicked-copy-selected-items="copySelectedItems()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
+                    @svg-size-updated="onSvgSizeUpdated"
                     ></svg-editor>
             </div>
 
@@ -299,7 +301,7 @@ import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import AnimationsRegistry from '../animations/AnimationRegistry';
+import AnimationRegistry from '../animations/AnimationRegistry';
 import Panel from '../components/editor/Panel.vue';
 import ItemSelector from '../components/editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
@@ -399,7 +401,6 @@ export default {
     beforeMount() {
         window.onbeforeunload = this.onBrowseClose;
         this.markSchemeAsUnmodified();
-        this.init();
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
@@ -427,6 +428,10 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+    },
+
+    mounted() {
+        this.init();
     },
 
     data() {
@@ -621,10 +626,12 @@ export default {
                 this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
                 this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
             } else {
-                // Should automatically bring to view the entire scheme
-                setTimeout(() => {
-                    this.zoomToSelection();
-                }, 100);
+                if (this.schemeContainer.selectedItems.length > 0) {
+                    const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
+                    if (area) {
+                        EventBus.emitBringToViewInstantly(area);
+                    }
+                }
             }
         },
 
@@ -711,6 +718,13 @@ export default {
         },
 
         zoomToItems(items) {
+            const area = this.calculateZoomingAreaForItems(items);
+            if (area) {
+                EventBus.emitBringToViewAnimated(area);
+            }
+        },
+
+        calculateZoomingAreaForItems(items) {
             if (this.mode === 'view') {
                 //filtering HUD items out as they are always shown in the viewport  in view mode
                 items = this.schemeContainer.filterNonHUDItems(items);
@@ -720,10 +734,7 @@ export default {
                 return;
             }
 
-            let area = this.schemeContainer.getBoundingBoxOfItems(items);
-            if (area) {
-                EventBus.$emit(EventBus.BRING_TO_VIEW, area);
-            }
+            return this.schemeContainer.getBoundingBoxOfItems(items);
         },
 
         onClickedAddItemLink(item) {
@@ -1285,16 +1296,23 @@ export default {
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
-            AnimationsRegistry.enableAnimations();
+            AnimationRegistry.enableAnimations();
         },
         
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
-            AnimationsRegistry.stopAllAnimations();
+            AnimationRegistry.stopAllAnimations();
         },
 
         onDrawColorPicked(color) {
             EventBus.emitDrawColorPicked(color);
+        },
+
+        onSvgSizeUpdated({width, height}) {
+            if (this.interactiveSchemeContainer) {
+                this.interactiveSchemeContainer.screenSettings.width = width;
+                this.interactiveSchemeContainer.screenSettings.height = height;
+            }
         }
     },
 

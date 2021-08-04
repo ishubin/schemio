@@ -188,6 +188,14 @@ const EventBus = new Vue({
 
         emitDrawColorPicked(color) {
             this.$emit(EventBus.DRAW_COLOR_PICKED, color);
+        },
+
+        emitBringToViewAnimated(area) {
+            this.$emit(EventBus.BRING_TO_VIEW, area, true);
+        },
+
+        emitBringToViewInstantly(area) {
+            this.$emit(EventBus.BRING_TO_VIEW, area, false);
         }
     }
 });
