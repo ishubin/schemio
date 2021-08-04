@@ -7,6 +7,10 @@
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
         :data-svg-item-container-id="item.id" >
 
+         <defs>
+            <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html"></filter>
+        </defs>
+
         <g v-if="shouldBeDrawn && shapeComponent && item.visible" v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
             <component
                 :key="`item-component-${item.id}-${item.shape}-repeater-${repeater.id}-${revision}`"
@@ -19,22 +23,31 @@
             </component>
         </g>
 
-        <component
-            :key="`item-component-${item.id}-${item.shape}-${revision}`"
-            v-if="shouldBeDrawn && shapeComponent && item.visible"
-            :is="shapeComponent"
-            :item="item"
-            :mode="mode"
-            :style="{'opacity': item.selfOpacity/100.0}"
-            @custom-event="onShapeCustomEvent">
-        </component>
+        <g :filter="filterUrl">
+            <component
+                :key="`item-component-${item.id}-${item.shape}-${revision}`"
+                v-if="shouldBeDrawn && shapeComponent && item.visible"
+                :is="shapeComponent"
+                :item="item"
+                :mode="mode"
+                :style="{'opacity': item.selfOpacity/100.0}"
+                @custom-event="onShapeCustomEvent">
+            </component>
 
-        <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
-            :style="{'opacity': item.selfOpacity/100.0}">
+            <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
+                :style="{'opacity': item.selfOpacity/100.0}">
 
-            <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+                <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-            <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+                <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+                    <path v-for="curve in itemStandardCurves" :d="curve.path"
+                        :stroke-width="curve.strokeSize + 'px'"
+                        :stroke="curve.strokeColor"
+                        :stroke-dasharray="strokeDashArray"
+                        stroke-linejoin="round"
+                        :fill="curve.fill"></path>
+                </g>
+
                 <path v-for="curve in itemStandardCurves" :d="curve.path"
                     :stroke-width="curve.strokeSize + 'px'"
                     :stroke="curve.strokeColor"
@@ -43,23 +56,16 @@
                     :fill="curve.fill"></path>
             </g>
 
-            <path v-for="curve in itemStandardCurves" :d="curve.path"
-                :stroke-width="curve.strokeSize + 'px'"
-                :stroke="curve.strokeColor"
-                :stroke-dasharray="strokeDashArray"
-                stroke-linejoin="round"
-                :fill="curve.fill"></path>
-        </g>
-
-        <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
-            <foreignObject
-                :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
-                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
-                    :style="slot.style"
-                    >
-                    <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
-                </div>
-            </foreignObject>
+            <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
+                <foreignObject
+                    :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
+                    <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+                        :style="slot.style"
+                        >
+                        <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
+                    </div>
+                </foreignObject>
+            </g>
         </g>
 
 
@@ -108,8 +114,7 @@
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
                 />
-        </g>    
-
+        </g>
     </g>
 </template>
 
@@ -122,6 +127,7 @@ import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
+import { getEffectById } from '../../effects/Effects';
 
 function computeStandardCurves(item, shape) {
     if (shape.computeCurves) {
@@ -184,6 +190,26 @@ export default {
         } else {
             data.shouldRenderText = false;
         }
+
+        // generating effect svg filters
+
+        const svgFilters = [];
+        let filterUrl = '';
+        forEach(this.item.effects, (itemEffect, idx) => {
+            const effect = getEffectById(itemEffect.id);
+            if (effect && effect.applySVGFilterEffect) {
+                const filterId = `item-svg-filter-effect-${this.item.id}-${effect.id}-${idx}`;
+                svgFilters.push({
+                    id: filterId,
+                    html: effect.applySVGFilterEffect(this.item, itemEffect.args)
+                });
+
+                filterUrl += `url(#${filterId}) `;
+            }
+        });
+
+        data.svgFilters = svgFilters;
+        data.filterUrl = filterUrl;
         return data;
     },
 

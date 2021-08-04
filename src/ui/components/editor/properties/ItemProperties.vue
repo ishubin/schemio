@@ -121,6 +121,14 @@
                 @area-changed="onPositionPanelAreaChanged"
                 />
 
+            <panel name="Effects">
+                <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
+                <ul v-else>
+                    <li v-for="effect in item.effects">{{effect.name}}</li>
+                </ul>
+                <span class="btn btn-secondary" @click="addEffectModal.shown = true">Add Effect</span>
+            </panel>
+
             <panel name="Advanced">
                 <table class="properties-table">
                     <tbody>
@@ -206,6 +214,7 @@
             </panel>
         </div>
 
+        <AddEffectModal v-if="addEffectModal.shown" @close="addEffectModal.shown = false" @effect-selected="addEffectToItem"/>
     </div>
 </template>
 
@@ -233,6 +242,7 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import CurveCapDropdown from '../CurveCapDropdown.vue';
+import AddEffectModal from '../../effects/AddEffectModal.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 
@@ -254,6 +264,7 @@ export default {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
         ElementPicker, StrokePatternDropdown, AdvancedColorEditor, CurveCapDropdown,
+        AddEffectModal
     },
 
     beforeMount() {
@@ -297,7 +308,11 @@ export default {
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
 
-            behaviorPanelRevision: 1
+            behaviorPanelRevision: 1,
+
+            addEffectModal: {
+                shown: false
+            }
         };
     },
 
@@ -393,7 +408,13 @@ export default {
         onBehaviorPanelRequested() {
             this.behaviorPanelRevision += 1;
             this.currentTab = 'behavior';
-        }
+        },
+
+
+        addEffectToItem(effect) {
+            this.addEffectModal.shown = false;
+            this.item.effects.push(effect);
+        },
     },
     computed: {
         hasShapeArgs() {

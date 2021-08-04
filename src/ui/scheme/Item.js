@@ -82,6 +82,7 @@ const defaultItemDefinition = {
     repeat: 0,
     repeatOffsetX: 10,
     repeatOffsetY: -10,
+    effects: [],
     textSlots: {
         '*': defaultTextSlotProps
     },
