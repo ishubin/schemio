@@ -22,7 +22,22 @@ const effects = {
 
             return el.outerHTML;
         }
-    }
+    },
+
+    'blur': {
+        name: 'Blur',
+        args: {
+            size: {type: 'number', value: 5, name: 'Size'},
+        },
+        applySVGFilterEffect(item, effectArgs) {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+            el.setAttribute('in', 'SourceGraphic');
+            el.setAttribute('stdDeviation', effectArgs.size);
+
+            return el.outerHTML;
+        }
+    },
+
 }
 
 /**

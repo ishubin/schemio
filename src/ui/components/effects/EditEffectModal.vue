@@ -2,7 +2,7 @@
     <Modal :title="title" :primaryButton="isAdding ? 'Add Effect': null" @primary-submit="addEffect" @close="$emit('close')" closeName="Cancel" :useMask="false">
 
         Effect
-        <select v-model="effectId">
+        <select :value="effectId" @input="onEffectIdChanged(arguments[0].target.value)">
             <option v-for="knownEffect in knownEffects" :value="knownEffect.id">{{knownEffect.name}}</option>
         </select>
 
@@ -18,11 +18,16 @@
 <script>
 import Modal from '../Modal.vue';
 import EffectEditor from './EffectEditor.vue';
-import { getEffectById } from './Effects';
+import { getEffectById, getEffects } from './Effects';
+import forEach from 'lodash/forEach';
 
-const knownEffects = [
-    { id: 'drop-shadow', name: 'Drop Shadow' }
-];
+function getKnownEffects() {
+    const effects = [];
+    forEach(getEffects(), (effect, effectId) => {
+        effects.push({ id: effectId, name: effect.name});
+    });
+    return effects;
+}
 
 export default {
     components: { Modal, EffectEditor },
@@ -30,16 +35,15 @@ export default {
     props: {
         title     : { type: String, default: 'Add effect' },
         isAdding  : { type: Boolean, default: true },
+        effectId  : { type: String, required: true },
         effectArgs: { type: Object, required: true },
     },
 
     data() {
-        const effectId = 'drop-shadow';
-        const effect = getEffectById(effectId);
+        const effect = getEffectById(this.effectId);
 
         return {
-            knownEffects,
-            effectId,
+            knownEffects: getKnownEffects(),
             effectName: effect.name,
         };
     },
@@ -54,8 +58,11 @@ export default {
         },
 
         onEffectArgEdited(argName, value) {
-            // this.effectArgs[argName] = value;
             this.$emit('effect-arg-changed', argName, value);
+        },
+
+        onEffectIdChanged(newEffectId) {
+            this.$emit('effect-id-changed', newEffectId);
         }
     },
 

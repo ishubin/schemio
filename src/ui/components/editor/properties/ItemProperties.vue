@@ -226,13 +226,16 @@
         </div>
 
         <EditEffectModal v-if="editEffectModal.shown"
+            :key="`edit-effect-modal-${item.id}-${editEffectModal.currentEffectIndex}-${editEffectModal.effectId}`"
             :title="editEffectModal.isAdding ? 'Add effect': 'Edit Effect'"
             :isAdding="editEffectModal.isAdding"
+            :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
             @close="effectModalClosed"
             @effect-submited="onEffectSubmited"
             @effect-arg-changed="onEffectArgChanged"
             @effect-name-changed="onEffectNameChanged"
+            @effect-id-changed="onEffectIdChanged"
             />
     </div>
 </template>
@@ -331,6 +334,7 @@ export default {
             behaviorPanelRevision: 1,
 
             editEffectModal: {
+                effectId: 'drop-shadow',
                 isAdding: true,
                 shown: false,
                 currentEffectIndex: -1,
@@ -443,6 +447,7 @@ export default {
                 args: this.editEffectModal.effectArgs
             });
             this.editEffectModal.isAdding = true;
+            this.editEffectModal.effectId = effectId;
             this.editEffectModal.shown = true;
             this.editEffectModal.currentEffectIndex = this.item.effects.length - 1;
             EventBus.emitItemChanged(this.item.id, 'effects');
@@ -485,6 +490,7 @@ export default {
 
         openEditEffectModal(idx) {
             this.editEffectModal.currentEffectIndex = idx;
+            this.editEffectModal.effectId = this.item.effects[idx].id;
             this.editEffectModal.isAdding = false;
             this.editEffectModal.shown = true;
             this.editEffectModal.effectArgs = this.item.effects[idx].args;
@@ -498,6 +504,22 @@ export default {
             this.item.effects.splice(idx, 1);
             EventBus.emitItemChanged(this.item.id, 'effects');
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
+        },
+
+        onEffectIdChanged(newEffectId) {
+            if (this.editEffectModal.currentEffectIndex < 0 || this.editEffectModal.currentEffectIndex >= this.item.effects.length) {
+                return;
+            }
+
+            const effect = getEffectById(newEffectId);
+            this.editEffectModal.effectArgs = generateEffectArgs(effect);
+            this.editEffectModal.effectId = newEffectId;
+            this.item.effects[this.editEffectModal.currentEffectIndex] = {
+                id: newEffectId,
+                name: effect.name,
+                args: this.editEffectModal.effectArgs
+            };
+            EventBus.emitItemChanged(this.item.id, 'effects');
         }
     },
     computed: {
