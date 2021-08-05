@@ -1,9 +1,26 @@
 import utils from '../../utils';
 import forEach from 'lodash/forEach';
+import Shape from '../editor/items/shapes/Shape';
+
+
+function svgElement(name, attrs, childElements) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+    forEach(attrs, (value, attrName) => {
+        el.setAttribute(attrName, value);
+    });
+
+    if (childElements) {
+        forEach(childElements, child => {
+            el.appendChild(child)
+        });
+    }
+    return el;
+}
 
 const effects = {
     'drop-shadow': {
         name: 'Drop Shadow',
+        type: 'back',
         args: {
             color  : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Color'},
             dx     : {type: 'number', value: 10, name: 'Offset X'},
@@ -12,29 +29,59 @@ const effects = {
             opacity: {type: 'number', value: 50, name: 'Opacity (%)', min: 0, max: 100},
         },
 
-        applySVGFilterEffect(item, effectArgs) {
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
-            el.setAttribute('dx', effectArgs.dx);
-            el.setAttribute('dy', effectArgs.dy);
-            el.setAttribute('stdDeviation', effectArgs.blur);
-            el.setAttribute('flood-color', effectArgs.color);
-            el.setAttribute('flood-opacity', effectArgs.opacity / 100.0);
+        applyEffect(item, effectIdx, effectArgs) {
+            // const el = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+            // el.setAttribute('dx', effectArgs.dx);
+            // el.setAttribute('dy', effectArgs.dy);
+            // el.setAttribute('stdDeviation', effectArgs.blur);
+            // el.setAttribute('flood-color', effectArgs.color);
+            // el.setAttribute('flood-opacity', effectArgs.opacity / 100.0);
 
-            return el.outerHTML;
+            const shape = Shape.find(item.shape);
+            if (!shape) {
+                return null;
+            }
+
+            const path = shape.computeOutline(item);
+            if (!path) {
+                return null;
+            }
+
+            const filterId =  `item-effect-drop-shadow-${item.id}-${effectIdx}`;
+
+            return svgElement('g', {}, [
+                svgElement('defs', {}, [
+                    svgElement('filter', {id: filterId}, [
+                        svgElement('feGaussianBlur', {
+                            in: 'SourceGraphic',
+                            stdDeviation: effectArgs.blur
+                        })
+                    ])
+                ]),
+
+                svgElement('path', {
+                    d: path,
+                    stroke: 'none',
+                    fill: effectArgs.color,
+                    transform: `translate(${effectArgs.dx} ${effectArgs.dy})`,
+                    style: `opacity: ${effectArgs.opacity / 100.0}`,
+                    filter: `url(#${filterId})`
+                })
+            ]).innerHTML;
         }
     },
 
     'blur': {
         name: 'Blur',
+        type: 'svg-filter',
         args: {
             size: {type: 'number', value: 5, name: 'Size'},
         },
-        applySVGFilterEffect(item, effectArgs) {
-            const el = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
-            el.setAttribute('in', 'SourceGraphic');
-            el.setAttribute('stdDeviation', effectArgs.size);
-
-            return el.outerHTML;
+        applyEffect(item, effectIdx, effectArgs) {
+            return svgElement('feGaussianBlur', {
+                in: 'SourceGraphic',
+                stdDeviation: effectArgs.size
+            }).outerHTML;
         }
     },
 

@@ -7,7 +7,9 @@
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
         :data-svg-item-container-id="item.id" >
 
-         <defs>
+        <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
+
+        <defs>
             <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html"></filter>
         </defs>
 
@@ -142,24 +144,31 @@ function computeStandardCurves(item, shape) {
     }
 }
 
-function generateSVGFilters(item) {
+function generateFilters(item) {
     const svgFilters = [];
     let filterUrl = '';
+    const backgroundEffects = [];
+
     forEach(item.effects, (itemEffect, idx) => {
         const effect = getEffectById(itemEffect.id);
-        if (effect && effect.applySVGFilterEffect) {
-            const filterId = `item-svg-filter-effect-${item.id}-${effect.id}-${idx}`;
-            svgFilters.push({
-                id: filterId,
-                html: effect.applySVGFilterEffect(item, itemEffect.args)
-            });
+        if (effect) {
+            if (effect.type === 'svg-filter') {
+                const filterId = `item-svg-filter-effect-${item.id}-${effect.id}-${idx}`;
+                svgFilters.push({
+                    id: filterId,
+                    html: effect.applyEffect(item, idx, itemEffect.args)
+                });
 
-            filterUrl += `url(#${filterId}) `;
+                filterUrl += `url(#${filterId}) `;
+            } else if (effect.type === 'back') {
+                backgroundEffects.push(effect.applyEffect(item, idx, itemEffect.args));
+            }
         }
     });
     return {
         svgFilters,
-        filterUrl
+        filterUrl,
+        backgroundEffects
     };
 }
 
@@ -207,7 +216,8 @@ export default {
 
             repeatedLayers        : [],
             svgFilters            : [],
-            filterUrl             : ''
+            filterUrl             : '',
+            backgroundEffects     : []
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -215,9 +225,10 @@ export default {
             data.shouldRenderText = false;
         }
 
-        const {svgFilters, filterUrl} = generateSVGFilters(this.item);
+        const {svgFilters, filterUrl, backgroundEffects} = generateFilters(this.item);
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
+        data.backgroundEffects = backgroundEffects;
 
         return data;
     },
@@ -265,9 +276,10 @@ export default {
             }
 
             //updating filters
-            const {svgFilters, filterUrl} = generateSVGFilters(this.item);
+            const {svgFilters, filterUrl, backgroundEffects} = generateFilters(this.item);
             this.svgFilters = svgFilters;
             this.filterUrl = filterUrl;
+            this.backgroundEffects = backgroundEffects;
 
             this.$forceUpdate();
         },
