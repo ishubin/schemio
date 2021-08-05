@@ -225,11 +225,14 @@
             </panel>
         </div>
 
-        <AddEffectModal v-if="addEffectModal.shown"
-            @close="cancelAddingEffect"
-            @effect-selected="addEffectToItem"
-            @effect-arg-changed="addedEffectArgChanged"
-            @effect-name-changed="addedEffectNameChanged"
+        <EditEffectModal v-if="editEffectModal.shown"
+            :title="editEffectModal.isAdding ? 'Add effect': 'Edit Effect'"
+            :isAdding="editEffectModal.isAdding"
+            :effectArgs="editEffectModal.effectArgs"
+            @close="effectModalClosed"
+            @effect-submited="onEffectSubmited"
+            @effect-arg-changed="onEffectArgChanged"
+            @effect-name-changed="onEffectNameChanged"
             />
     </div>
 </template>
@@ -258,7 +261,7 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ElementPicker from '../ElementPicker.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import CurveCapDropdown from '../CurveCapDropdown.vue';
-import AddEffectModal from '../../effects/AddEffectModal.vue';
+import EditEffectModal from '../../effects/EditEffectModal.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
@@ -281,7 +284,7 @@ export default {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
         ElementPicker, StrokePatternDropdown, AdvancedColorEditor, CurveCapDropdown,
-        AddEffectModal
+        EditEffectModal
     },
 
     beforeMount() {
@@ -327,9 +330,11 @@ export default {
 
             behaviorPanelRevision: 1,
 
-            addEffectModal: {
+            editEffectModal: {
+                isAdding: true,
                 shown: false,
-                currentEffectIndex: -1
+                currentEffectIndex: -1,
+                effectArgs: {}
             }
         };
     },
@@ -431,45 +436,58 @@ export default {
         startAddingEffect() {
             const effectId = getDefaultEffectId();
             const effect = getEffectById(effectId);
+            this.editEffectModal.effectArgs = generateEffectArgs(effect);
             this.item.effects.push({
                 id: effectId,
                 name: effect.name,
-                args: generateEffectArgs(effect)
+                args: this.editEffectModal.effectArgs
             });
-            this.addEffectModal.shown = true;
-            this.addEffectModal.currentEffectIndex = this.item.effects.length - 1;
+            this.editEffectModal.isAdding = true;
+            this.editEffectModal.shown = true;
+            this.editEffectModal.currentEffectIndex = this.item.effects.length - 1;
             EventBus.emitItemChanged(this.item.id, 'effects');
         },
 
-        cancelAddingEffect() {
-            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects.splice(this.addEffectModal.currentEffectIndex, 1);
+        effectModalClosed() {
+            if (this.editEffectModal.isAdding) {
+                if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
+                    this.item.effects.splice(this.editEffectModal.currentEffectIndex, 1);
+                }
+                EventBus.emitItemChanged(this.item.id, 'effects');
             }
-            this.addEffectModal.shown = false;
-            this.addEffectModal.currentEffectIndex = -1;
+            this.editEffectModal.shown = false;
+            this.editEffectModal.currentEffectIndex = -1;
+        },
+
+        onEffectArgChanged(argName, value) {
+            if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects[this.editEffectModal.currentEffectIndex].args[argName] = value;
+            }
             EventBus.emitItemChanged(this.item.id, 'effects');
         },
 
-        addedEffectArgChanged(argName, value) {
-            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects[this.addEffectModal.currentEffectIndex].args[argName] = value;
-            }
-            EventBus.emitItemChanged(this.item.id, 'effects');
-        },
-
-        addedEffectNameChanged(name) {
-            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects[this.addEffectModal.currentEffectIndex].name = name;
+        onEffectNameChanged(name) {
+            if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects[this.editEffectModal.currentEffectIndex].name = name;
             }
         },
 
-        addEffectToItem(effect) {
-            this.addEffectModal.shown = false;
-            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects[this.addEffectModal.currentEffectIndex] = effect;
+        onEffectSubmited(effect) {
+            this.editEffectModal.shown = false;
+            if (this.editEffectModal.isAdding) {
+                if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
+                    this.item.effects[this.editEffectModal.currentEffectIndex] = effect;
+                }
+                EventBus.emitItemChanged(this.item.id, 'effects');
+                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
             }
-            EventBus.emitItemChanged(this.item.id, 'effects');
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
+        },
+
+        openEditEffectModal(idx) {
+            this.editEffectModal.currentEffectIndex = idx;
+            this.editEffectModal.isAdding = false;
+            this.editEffectModal.shown = true;
+            this.editEffectModal.effectArgs = this.item.effects[idx].args;
         },
 
         deleteEffect(idx) {

@@ -1,5 +1,5 @@
 <template>
-    <Modal title="Add effect" primaryButton="Add Effect" @primary-submit="addEffect" @close="$emit('close')" closeName="Cancel" :useMask="false">
+    <Modal :title="title" :primaryButton="isAdding ? 'Add Effect': null" @primary-submit="addEffect" @close="$emit('close')" closeName="Cancel" :useMask="false">
 
         Effect
         <select v-model="effectId">
@@ -18,7 +18,7 @@
 <script>
 import Modal from '../Modal.vue';
 import EffectEditor from './EffectEditor.vue';
-import { getEffectById, generateEffectArgs } from './Effects';
+import { getEffectById } from './Effects';
 
 const knownEffects = [
     { id: 'drop-shadow', name: 'Drop Shadow' }
@@ -26,6 +26,12 @@ const knownEffects = [
 
 export default {
     components: { Modal, EffectEditor },
+
+    props: {
+        title     : { type: String, default: 'Add effect' },
+        isAdding  : { type: Boolean, default: true },
+        effectArgs: { type: Object, required: true },
+    },
 
     data() {
         const effectId = 'drop-shadow';
@@ -35,13 +41,12 @@ export default {
             knownEffects,
             effectId,
             effectName: effect.name,
-            effectArgs: generateEffectArgs(effect)
         };
     },
 
     methods: {
         addEffect() {
-            this.$emit('effect-selected', {
+            this.$emit('effect-submited', {
                 id: this.effectId,
                 name: this.effectName,
                 args: this.effectArgs
@@ -49,7 +54,7 @@ export default {
         },
 
         onEffectArgEdited(argName, value) {
-            this.effectArgs[argName] = value;
+            // this.effectArgs[argName] = value;
             this.$emit('effect-arg-changed', argName, value);
         }
     },
