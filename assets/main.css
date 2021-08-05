@@ -2972,3 +2972,42 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
     border: 1px solid var(--faint-weak);
     box-shadow: 1px 1px 10px var(--shadow-color-light);
 }
+
+
+/*********************** Effects Editor ***************************/
+ul.effects-list {
+    list-style: none;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    padding: 0;
+    background: var(--base-weak);
+}
+ul.effects-list > li {
+    position: relative;
+    border-bottom: 1px solid var(--faint-weak-up);
+}
+ul.effects-list > li .effect-name {
+    padding: 5px;
+    font-size: 14px;
+}
+ul.effects-list > li .effect-right-panel {
+    position: absolute;
+    right: 5px;
+    top: 4px;
+    display: none;
+}
+ul.effects-list > li:hover .effect-right-panel {
+    display: block;
+}
+ul.effects-list > li .effect-right-panel .icon {
+    cursor: pointer;
+    opacity: 0.6;
+    color: var(--base-strong-up-up);
+}
+ul.effects-list > li .effect-right-panel .icon:hover {
+    cursor: pointer;
+    opacity: 1.0;
+}
+ul.effects-list > li .effect-right-panel .icon-effect-delete {
+    color: var(--critic-faint);
+}

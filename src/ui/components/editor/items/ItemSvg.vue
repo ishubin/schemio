@@ -142,6 +142,28 @@ function computeStandardCurves(item, shape) {
     }
 }
 
+function generateSVGFilters(item) {
+    const svgFilters = [];
+    let filterUrl = '';
+    forEach(item.effects, (itemEffect, idx) => {
+        const effect = getEffectById(itemEffect.id);
+        if (effect && effect.applySVGFilterEffect) {
+            const filterId = `item-svg-filter-effect-${item.id}-${effect.id}-${idx}`;
+            svgFilters.push({
+                id: filterId,
+                html: effect.applySVGFilterEffect(item, itemEffect.args)
+            });
+
+            filterUrl += `url(#${filterId}) `;
+        }
+    });
+    return {
+        svgFilters,
+        filterUrl
+    };
+}
+
+
 export default {
     name: 'item-svg',
     props: ['item', 'mode'],
@@ -183,7 +205,9 @@ export default {
 
             strokeDashArray       : '',
 
-            repeatedLayers: []
+            repeatedLayers        : [],
+            svgFilters            : [],
+            filterUrl             : ''
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -191,25 +215,10 @@ export default {
             data.shouldRenderText = false;
         }
 
-        // generating effect svg filters
-
-        const svgFilters = [];
-        let filterUrl = '';
-        forEach(this.item.effects, (itemEffect, idx) => {
-            const effect = getEffectById(itemEffect.id);
-            if (effect && effect.applySVGFilterEffect) {
-                const filterId = `item-svg-filter-effect-${this.item.id}-${effect.id}-${idx}`;
-                svgFilters.push({
-                    id: filterId,
-                    html: effect.applySVGFilterEffect(this.item, itemEffect.args)
-                });
-
-                filterUrl += `url(#${filterId}) `;
-            }
-        });
-
+        const {svgFilters, filterUrl} = generateSVGFilters(this.item);
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
+
         return data;
     },
 
@@ -254,6 +263,12 @@ export default {
             if (!shape.editorProps || !shape.editorProps.customTextRendering) {
                 this.textSlots = this.generateTextSlots();
             }
+
+            //updating filters
+            const {svgFilters, filterUrl} = generateSVGFilters(this.item);
+            this.svgFilters = svgFilters;
+            this.filterUrl = filterUrl;
+
             this.$forceUpdate();
         },
 

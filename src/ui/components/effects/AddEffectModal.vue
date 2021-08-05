@@ -1,5 +1,5 @@
 <template>
-    <Modal title="Add effect" @close="$emit('close')">
+    <Modal title="Add effect" primaryButton="Add Effect" @primary-submit="addEffect" @close="$emit('close')" closeName="Cancel" :useMask="false">
 
         Effect
         <select v-model="effectId">
@@ -10,37 +10,19 @@
 
         <input class="textfield" v-model="effectName"/>
 
-        <EffectEditor :key="`effect-editor-${effectId}`" :effectId="effectId" :effectArgs="effectArgs" @effect-prop-changed="onEffectPropEdited"/>
-
-        <div>
-            <span class="btn btn-primary" @click="addEffect">Add Effect</span>
-        </div>
+        <EffectEditor :key="`effect-editor-${effectId}`" :effectId="effectId" :effectArgs="effectArgs" @effect-arg-changed="onEffectArgEdited"/>
 
     </Modal>
 </template>
 
 <script>
-import utils from '../../utils';
-import forEach from 'lodash/forEach';
 import Modal from '../Modal.vue';
 import EffectEditor from './EffectEditor.vue';
-import {getEffectById} from './Effects';
+import { getEffectById, generateEffectArgs } from './Effects';
 
 const knownEffects = [
     { id: 'drop-shadow', name: 'Drop Shadow' }
 ];
-
-function generateEffectArgs(effect) {
-    if (!effect) {
-        return {};
-    }
-
-    const props = {};
-    forEach(effect.args, (arg, argName) => {
-        props[argName] = utils.clone(arg.value);
-    })
-    return props;
-}
 
 export default {
     components: { Modal, EffectEditor },
@@ -66,8 +48,15 @@ export default {
             });
         },
 
-        onEffectPropEdited(argName, argType, value) {
+        onEffectArgEdited(argName, value) {
             this.effectArgs[argName] = value;
+            this.$emit('effect-arg-changed', argName, value);
+        }
+    },
+
+    watch: {
+        effectName(value) {
+            this.$emit('effect-name-changed', value);
         }
     }
 }

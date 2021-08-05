@@ -8,9 +8,9 @@
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                     </td>
                     <td class="value" width="50%">
-                        <number-textfield v-if="arg.type === 'number'" :value="effectArgs[argName]" @changed="onPropChange(argName, arg.type, arguments[0])" :min="arg.min" :max="arg.max"/>
+                        <number-textfield v-if="arg.type === 'number'" :value="effectArgs[argName]" @changed="onPropChange(argName, arguments[0])" :min="arg.min" :max="arg.max"/>
 
-                        <color-picker v-if="arg.type === 'color'" :color="effectArgs[argName]"  @input="onPropChange(argName, arg.type, arguments[0])"></color-picker>
+                        <color-picker v-if="arg.type === 'color'" :color="effectArgs[argName]"  @input="onPropChange(argName, arguments[0])"></color-picker>
                     </td>
                 </tr>
             </tbody>
@@ -41,8 +41,8 @@ export default {
     },
 
     methods: {
-        onPropChange(argName, argType, value) {
-            this.$emit('effect-prop-changed', argName, argType, value);
+        onPropChange(argName, value) {
+            this.$emit('effect-arg-changed', argName, value);
         }
     }
 }

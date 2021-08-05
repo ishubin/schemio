@@ -123,10 +123,21 @@
 
             <panel name="Effects">
                 <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
-                <ul v-else>
-                    <li v-for="effect in item.effects">{{effect.name}}</li>
+                <ul class="effects-list" v-else>
+                    <li v-for="(effect, effectIndex) in item.effects">
+                        <div class="effect-name">{{effect.name}}</div>
+                        <div class="effect-right-panel">
+                            <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
+                                <i class="fas fa-edit"></i>
+                            </span>
+                            <span class="icon icon-effect-delete" @click="deleteEffect(effectIndex)">
+                                <i class="fas fa-times"></i>
+                            </span>
+
+                        </div>
+                    </li>
                 </ul>
-                <span class="btn btn-secondary" @click="addEffectModal.shown = true">Add Effect</span>
+                <span class="btn btn-secondary" @click="startAddingEffect">Add Effect</span>
             </panel>
 
             <panel name="Advanced">
@@ -214,7 +225,12 @@
             </panel>
         </div>
 
-        <AddEffectModal v-if="addEffectModal.shown" @close="addEffectModal.shown = false" @effect-selected="addEffectToItem"/>
+        <AddEffectModal v-if="addEffectModal.shown"
+            @close="cancelAddingEffect"
+            @effect-selected="addEffectToItem"
+            @effect-arg-changed="addedEffectArgChanged"
+            @effect-name-changed="addedEffectNameChanged"
+            />
     </div>
 </template>
 
@@ -245,6 +261,7 @@ import CurveCapDropdown from '../CurveCapDropdown.vue';
 import AddEffectModal from '../../effects/AddEffectModal.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 import StoreUtils from '../../../store/StoreUtils.js';
+import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
 
 
 const ALL_TABS = [
@@ -311,7 +328,8 @@ export default {
             behaviorPanelRevision: 1,
 
             addEffectModal: {
-                shown: false
+                shown: false,
+                currentEffectIndex: -1
             }
         };
     },
@@ -410,11 +428,59 @@ export default {
             this.currentTab = 'behavior';
         },
 
+        startAddingEffect() {
+            const effectId = getDefaultEffectId();
+            const effect = getEffectById(effectId);
+            this.item.effects.push({
+                id: effectId,
+                name: effect.name,
+                args: generateEffectArgs(effect)
+            });
+            this.addEffectModal.shown = true;
+            this.addEffectModal.currentEffectIndex = this.item.effects.length - 1;
+            EventBus.emitItemChanged(this.item.id, 'effects');
+        },
+
+        cancelAddingEffect() {
+            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects.splice(this.addEffectModal.currentEffectIndex, 1);
+            }
+            this.addEffectModal.shown = false;
+            this.addEffectModal.currentEffectIndex = -1;
+            EventBus.emitItemChanged(this.item.id, 'effects');
+        },
+
+        addedEffectArgChanged(argName, value) {
+            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects[this.addEffectModal.currentEffectIndex].args[argName] = value;
+            }
+            EventBus.emitItemChanged(this.item.id, 'effects');
+        },
+
+        addedEffectNameChanged(name) {
+            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects[this.addEffectModal.currentEffectIndex].name = name;
+            }
+        },
 
         addEffectToItem(effect) {
             this.addEffectModal.shown = false;
-            this.item.effects.push(effect);
+            if (this.addEffectModal.currentEffectIndex >= 0 && this.addEffectModal.currentEffectIndex < this.item.effects.length) {
+                this.item.effects[this.addEffectModal.currentEffectIndex] = effect;
+            }
+            EventBus.emitItemChanged(this.item.id, 'effects');
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
         },
+
+        deleteEffect(idx) {
+            if (idx < 0 || idx >= this.item.effects.length) {
+                return;
+            }
+
+            this.item.effects.splice(idx, 1);
+            EventBus.emitItemChanged(this.item.id, 'effects');
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
+        }
     },
     computed: {
         hasShapeArgs() {

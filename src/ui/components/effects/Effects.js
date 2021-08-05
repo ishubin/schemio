@@ -1,3 +1,5 @@
+import utils from '../../utils';
+import forEach from 'lodash/forEach';
 
 const effects = {
     'drop-shadow': {
@@ -6,7 +8,7 @@ const effects = {
             color  : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Color'},
             dx     : {type: 'number', value: 10, name: 'Offset X'},
             dy     : {type: 'number', value: 10, name: 'Offset Y'},
-            blur   : {type: 'number', value: 0.2, name: 'Blur', min: 0, max: 100},
+            blur   : {type: 'number', value: 5, name: 'Blur', min: 0, max: 100},
             opacity: {type: 'number', value: 50, name: 'Opacity (%)', min: 0, max: 100},
         },
 
@@ -23,6 +25,23 @@ const effects = {
     }
 }
 
+/**
+ * Generates args with default values for specified effect
+ * @param {Effect} effect 
+ * @returns 
+ */
+export function generateEffectArgs(effect) {
+    if (!effect) {
+        return {};
+    }
+
+    const props = {};
+    forEach(effect.args, (arg, argName) => {
+        props[argName] = utils.clone(arg.value);
+    })
+    return props;
+}
+
 
 export function getEffects() {
     return effects;
@@ -30,4 +49,8 @@ export function getEffects() {
 
 export function getEffectById(effectId) {
     return effects[effectId];
+}
+
+export function getDefaultEffectId() {
+    return 'drop-shadow';
 }

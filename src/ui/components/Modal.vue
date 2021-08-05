@@ -18,7 +18,7 @@
             <div class="modal-footer" v-if="showFooter">
                 <div class="modal-controls">
                     <span :class="`btn ${secondaryButtonStyle}`" v-if="secondaryButton" v-on:click="$emit('secondary-submit')">{{secondaryButton}}</span>
-                    <span class="btn btn-secondary" v-else-if="closable" v-on:click="$emit('close')">Close</span>
+                    <span class="btn btn-secondary" v-else-if="closable" v-on:click="$emit('close')">{{closeName}}</span>
 
                     <span class="btn btn-primary" v-if="primaryButton" v-on:click="$emit('primary-submit')">{{primaryButton}}</span>
                 </div>
@@ -63,6 +63,7 @@ export default {
         showHeader     : { type: Boolean, default: true },
         showFooter     : { type: Boolean, default: true },
         closable       : { type: Boolean, default: true},
+        closeName      : { type: String, default: 'Close'},
     },
 
     beforeMount() {
