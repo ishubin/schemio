@@ -1,5 +1,11 @@
 <template>
-    <Modal :title="title" :primaryButton="isAdding ? 'Add Effect': null" @primary-submit="addEffect" @close="$emit('close')" closeName="Cancel" :useMask="false">
+    <Modal
+        :title="isAdding ? 'Add effect': 'Edit Effect'" 
+        :primaryButton="isAdding ? 'Add Effect': null"
+        @primary-submit="addEffect"
+        @close="$emit('close')"
+        :closeName="isAdding ? 'Cancel' : 'Close'"
+        :useMask="false">
 
         Effect
         <select :value="effectId" @input="onEffectIdChanged(arguments[0].target.value)">

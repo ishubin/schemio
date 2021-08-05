@@ -227,7 +227,6 @@
 
         <EditEffectModal v-if="editEffectModal.shown"
             :key="`edit-effect-modal-${item.id}-${editEffectModal.currentEffectIndex}-${editEffectModal.effectId}`"
-            :title="editEffectModal.isAdding ? 'Add effect': 'Edit Effect'"
             :isAdding="editEffectModal.isAdding"
             :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
