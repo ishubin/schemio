@@ -13,7 +13,7 @@
             <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html"></filter>
         </defs>
 
-        <g v-if="shouldBeDrawn && shapeComponent && item.visible" v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+        <g v-if="shouldBeDrawn && shapeComponent && item.visible" v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
             <component
                 :key="`item-component-${item.id}-${item.shape}-repeater-${repeater.id}-${revision}`"
                 v-if="shouldBeDrawn"
@@ -41,7 +41,7 @@
 
                 <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-                <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+                <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
                     <path v-for="curve in itemStandardCurves" :d="curve.path"
                         :stroke-width="curve.strokeSize + 'px'"
                         :stroke="curve.strokeColor"
@@ -75,7 +75,7 @@
 
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
-        <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`" data-qwe="repeated-layer">
+        <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
             <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
                 class="svg-event-layer"
                 data-preview-ignore="true"
