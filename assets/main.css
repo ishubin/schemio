@@ -56,6 +56,7 @@
     --icon-button-hover-background: #d4d4d6;
 
     --control-border-radius: 3px;
+    --middle-border-radius: 5px;
     --modal-border-radius: 10px;
 }
 
@@ -2981,19 +2982,24 @@ ul.effects-list {
     margin-bottom: 20px;
     padding: 0;
     background: var(--base-weak);
+    border-radius: var(--middle-border-radius);
 }
 ul.effects-list > li {
     position: relative;
-    border-bottom: 1px solid var(--faint-weak-up);
+    border-bottom: 1px solid var(--faint-weak);
+}
+ul.effects-list > li:last-child {
+    border-bottom: none;
 }
 ul.effects-list > li .effect-name {
-    padding: 5px;
-    font-size: 14px;
+    padding: 8px;
+    font-size: 13px;
+    font-style: italic;
 }
 ul.effects-list > li .effect-right-panel {
     position: absolute;
     right: 5px;
-    top: 4px;
+    top: 7px;
     display: none;
 }
 ul.effects-list > li:hover .effect-right-panel {

@@ -5,15 +5,17 @@
         @primary-submit="addEffect"
         @close="$emit('close')"
         :closeName="isAdding ? 'Cancel' : 'Close'"
+        :width="400"
         :useMask="false">
 
-        Effect
-        <select :value="effectId" @input="onEffectIdChanged(arguments[0].target.value)">
-            <option v-for="knownEffect in knownEffects" :value="knownEffect.id">{{knownEffect.name}}</option>
-        </select>
+        <div class="section">
+            <div class="ctrl-label">Effect</div>
+            <select :value="effectId" @input="onEffectIdChanged(arguments[0].target.value)">
+                <option v-for="knownEffect in knownEffects" :value="knownEffect.id">{{knownEffect.name}}</option>
+            </select>
+        </div>
 
-        <br/>
-
+        <div class="ctrl-label">Name</div>
         <input class="textfield" v-model="effectName"/>
 
         <EffectEditor :key="`effect-editor-${effectId}`" :effectId="effectId" :effectArgs="effectArgs" @effect-arg-changed="onEffectArgEdited"/>

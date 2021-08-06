@@ -7,7 +7,8 @@
         <ul class="button-group">
             <li v-for="tab in tabs">
                 <span class="toggle-button" @click="currentTab = tab.name"
-                    :class="{'toggled': tab.name === currentTab}">
+                    :class="{'toggled': tab.name === currentTab}"
+                    :title="tab.displayName">
                     <i :class="[tab.icon]"></i>
                 </span>
             </li>
@@ -31,6 +32,28 @@
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
         </div>
+
+        <div v-if="currentTab === 'effects'">
+            <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
+            <ul class="effects-list" v-else>
+                <li v-for="(effect, effectIndex) in item.effects">
+
+                    <div class="effect-name">{{effect.name | prettyEffectName}}</div>
+
+                    <div class="effect-right-panel">
+                        <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
+                            <i class="fas fa-edit"></i>
+                        </span>
+                        <span class="icon icon-effect-delete" @click="deleteEffect(effectIndex)">
+                            <i class="fas fa-times"></i>
+                        </span>
+
+                    </div>
+                </li>
+            </ul>
+            <span class="btn btn-secondary" @click="startAddingEffect">Add Effect</span>
+        </div>
+
 
         <div v-if="currentTab === 'shape'">
             <panel name="General" uid="general-item-properties">
@@ -120,25 +143,6 @@
                 :item="item"
                 @area-changed="onPositionPanelAreaChanged"
                 />
-
-            <panel name="Effects">
-                <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
-                <ul class="effects-list" v-else>
-                    <li v-for="(effect, effectIndex) in item.effects">
-                        <div class="effect-name">{{effect.name}}</div>
-                        <div class="effect-right-panel">
-                            <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
-                                <i class="fas fa-edit"></i>
-                            </span>
-                            <span class="icon icon-effect-delete" @click="deleteEffect(effectIndex)">
-                                <i class="fas fa-times"></i>
-                            </span>
-
-                        </div>
-                    </li>
-                </ul>
-                <span class="btn btn-secondary" @click="startAddingEffect">Add Effect</span>
-            </panel>
 
             <panel name="Advanced">
                 <table class="properties-table">
@@ -270,10 +274,11 @@ import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../eff
 
 
 const ALL_TABS = [
-    {name: 'description',   icon: 'fas fa-paragraph'},
-    {name: 'shape',         icon: 'fas fa-vector-square'},
-    {name: 'behavior',      icon: 'fas fa-running'},
-    {name: 'styles',        icon: 'fas fa-palette'}
+    {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
+    {name: 'shape',       displayName: 'Shape Properties',  icon: 'fas fa-vector-square'},
+    {name: 'behavior',    displayName: 'Behavior (Script)', icon: 'fas fa-running'},
+    {name: 'effects',     displayName: 'Effects',           icon: 'fas fa-magic'},
+    {name: 'styles',      displayName: 'Style Palette',     icon: 'fas fa-palette'}
 ];
 
 const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
@@ -534,6 +539,14 @@ export default {
     watch: {
         currentTab(value) {
             tabsSettingsStorage.save(this.schemeContainer.scheme.id, value);
+        }
+    },
+    filters: {
+        prettyEffectName(name) {
+            if (!name) {
+                return 'Unnamed Effect';
+            }
+            return name;
         }
     }
 }
