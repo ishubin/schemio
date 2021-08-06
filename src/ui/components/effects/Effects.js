@@ -1,13 +1,16 @@
 import utils from '../../utils';
 import forEach from 'lodash/forEach';
 import Shape from '../editor/items/shapes/Shape';
+import StrokePattern from '../editor/items/StrokePattern';
 
 
 function svgElement(name, attrs, childElements) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', name);
-    forEach(attrs, (value, attrName) => {
-        el.setAttribute(attrName, value);
-    });
+    if (attrs) {
+        forEach(attrs, (value, attrName) => {
+            el.setAttribute(attrName, value);
+        });
+    }
 
     if (childElements) {
         forEach(childElements, child => {
@@ -129,6 +132,65 @@ const effects = {
         }
     },
 
+    'repeat': {
+        name: 'Repeat',
+        type: 'back',
+        args: {
+            repeat: {type: 'number', value: 3, name: 'Repeat', min: 1, max: 20},
+            dx    : {type: 'number', value: 10, name: 'Offset X'},
+            dy    : {type: 'number', value: -10, name: 'Offset Y'},
+            fade  : {type: 'number', value: 0, name: 'Fade (%)', min: 0, max: 100},
+        },
+
+
+        applyEffect(item, effectIdx, effectArgs) {
+            const shape = Shape.find(item.shape);
+            if (!shape) {
+                return null;
+            }
+
+            const itemStandardCurves = Shape.computeStandardCurves(item, shape);
+            if (!itemStandardCurves) {
+                return null;
+            }
+            const root = svgElement('g', {});
+            for (let i = 0; i < effectArgs.repeat; i++) {
+                const x = (effectArgs.repeat - i) * effectArgs.dx;
+                const y = (effectArgs.repeat - i) * effectArgs.dy;
+
+                let start = 100;
+                let end = 100 - effectArgs.fade;
+                let t = (i + 1) / effectArgs.repeat
+
+                let opacity = (start * t + end * (1 - t)) / 100;
+
+                const g = svgElement('g', {
+                    transform: `translate(${x}, ${y})`,
+                    style: `opacity: ${opacity}`
+                });
+
+                let strokeDashArray = '';
+                if (shape.shapeType === 'standard') {
+                    strokeDashArray = StrokePattern.createDashArray(item.shapeProps.strokePattern, item.shapeProps.strokeSize);
+                }
+
+
+
+                forEach(itemStandardCurves, curve => {
+                    g.appendChild(svgElement('path', {
+                        d: curve.path,
+                        fill: curve.fill,
+                        stroke: curve.strokeColor,
+                        'stroke-width': `${curve.strokeSize}px`,
+                        'stroke-dasharray': strokeDashArray,
+                        'stroke-linejoin': 'round',
+                    }));
+                });
+                root.appendChild(g);
+            }
+            return root.innerHTML;
+        }
+    },
 }
 
 /**

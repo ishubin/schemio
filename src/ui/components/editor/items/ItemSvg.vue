@@ -13,18 +13,6 @@
             <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html"></filter>
         </defs>
 
-        <g v-if="shouldBeDrawn && shapeComponent && item.visible" v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
-            <component
-                :key="`item-component-${item.id}-${item.shape}-repeater-${repeater.id}-${revision}`"
-                v-if="shouldBeDrawn"
-                :is="shapeComponent"
-                :item="item"
-                :mode="mode"
-                :style="{'opacity': item.selfOpacity/100.0}"
-                @custom-event="onShapeCustomEvent">
-            </component>
-        </g>
-
         <g :filter="filterUrl">
             <component
                 :key="`item-component-${item.id}-${item.shape}-${revision}`"
@@ -40,15 +28,6 @@
                 :style="{'opacity': item.selfOpacity/100.0}">
 
                 <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
-                <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
-                    <path v-for="curve in itemStandardCurves" :d="curve.path"
-                        :stroke-width="curve.strokeSize + 'px'"
-                        :stroke="curve.strokeColor"
-                        :stroke-dasharray="strokeDashArray"
-                        stroke-linejoin="round"
-                        :fill="curve.fill"></path>
-                </g>
 
                 <path v-for="curve in itemStandardCurves" :d="curve.path"
                     :stroke-width="curve.strokeSize + 'px'"
@@ -75,18 +54,6 @@
 
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
-        <g v-for="repeater in repeatedLayers"  :transform="`translate(${repeater.x},${repeater.y})`">
-            <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
-                class="svg-event-layer"
-                data-preview-ignore="true"
-                :id="`item-svg-path-${item.id}-repeater-${repeater.id}`"
-                :d="itemSvgOutlinePath" 
-                :data-item-id="item.id"
-                :stroke-width="hoverPathStrokeWidth"
-                :style="{'cursor': item.cursor}"
-                stroke="rgba(255, 255, 255, 0)"
-                fill="rgba(255, 255, 255, 0)" />
-        </g>
         <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
             class="svg-event-layer"
             data-preview-ignore="true"
@@ -132,19 +99,6 @@ import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 import { getEffectById } from '../../effects/Effects';
-
-function computeStandardCurves(item, shape) {
-    if (shape.computeCurves) {
-        return shape.computeCurves(item);
-    } else if (shape.computePath) {
-        return [{
-            path: shape.computePath(item),
-            fill: AdvancedFill.computeStandardFill(item),
-            strokeColor: item.shapeProps.strokeColor,
-            strokeSize: item.shapeProps.strokeSize
-        }];
-    }
-}
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -220,7 +174,6 @@ export default {
 
             strokeDashArray       : '',
 
-            repeatedLayers        : [],
             svgFilters            : [],
             filterUrl             : '',
             backgroundEffects     : [],
@@ -258,11 +211,10 @@ export default {
 
             if (shape.shapeType === 'standard') {
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = computeStandardCurves(this.item, shape);
+                this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
             }
 
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
-            this.repeatedLayers = this.calculateRepeatedLayers();
         },
 
         onItemChanged() {
@@ -271,11 +223,10 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape) {
                 // re-computing item svg path for event layer
-                this.itemStandardCurves = computeStandardCurves(this.item, shape);
+                this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
-            this.repeatedLayers = this.calculateRepeatedLayers();
 
             this.revision += 1;
 
@@ -332,21 +283,6 @@ export default {
                 this.hiddenTextSlotName = null;
             }
         },
-
-        calculateRepeatedLayers() {
-            if (this.item.repeat > 0) {
-                const repeaters = [];
-                for(let i = this.item.repeat; i > 0; i--) {
-                    repeaters.push({
-                        id: i,
-                        x: this.item.repeatOffsetX * i,
-                        y: this.item.repeatOffsetY * i,
-                    });
-                }
-                return repeaters;
-            }
-            return [];
-        }
     },
 
     computed: {

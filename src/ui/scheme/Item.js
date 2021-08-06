@@ -79,9 +79,6 @@ const defaultItemDefinition = {
     cursor: 'default',
     shape: 'none',
     clip: false,
-    repeat: 0,
-    repeatOffsetX: 10,
-    repeatOffsetY: -10,
     effects: [],
     textSlots: {
         '*': defaultTextSlotProps
@@ -146,9 +143,6 @@ export const defaultItem = {
     name: '',
     description: '',
     links: [],
-    repeat: 0,
-    repeatOffsetX: 10,
-    repeatOffsetY: -10,
     textSlots: {},
     behavior: {
         events: []

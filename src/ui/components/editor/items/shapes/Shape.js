@@ -4,6 +4,7 @@ import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
 import { convertStandardCurveShape } from './StandardCurves.js';
 import utils from '../../../../utils.js';
+import AdvancedFill from '../AdvancedFill.vue';
 
 const _shapes = [
     require('./Rect.js').default,
@@ -244,6 +245,20 @@ function getRegistry() {
     return shapeRegistry;
 }
 
+function computeStandardCurves(item, shape) {
+    if (shape.computeCurves) {
+        return shape.computeCurves(item);
+    } else if (shape.computePath) {
+        return [{
+            path: shape.computePath(item),
+            fill: AdvancedFill.computeStandardFill(item),
+            strokeColor: item.shapeProps.strokeColor,
+            strokeSize: item.shapeProps.strokeSize
+        }];
+    }
+}
+
+
 export default {
     make,
     getShapeIds() {
@@ -254,5 +269,6 @@ export default {
     },
     standardShapeProps,
     getShapePropDescriptor,
-    getRegistry
+    getRegistry,
+    computeStandardCurves
 };
