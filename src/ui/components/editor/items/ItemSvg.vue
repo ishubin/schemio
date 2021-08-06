@@ -70,6 +70,8 @@
             </g>
         </g>
 
+        <g v-for="foregroundEffectHTML in foregroundEffects" v-html="foregroundEffectHTML"></g>
+
 
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
@@ -148,6 +150,7 @@ function generateFilters(item) {
     const svgFilters = [];
     let filterUrl = '';
     const backgroundEffects = [];
+    const foregroundEffects = [];
 
     forEach(item.effects, (itemEffect, idx) => {
         const effect = getEffectById(itemEffect.id);
@@ -162,13 +165,16 @@ function generateFilters(item) {
                 filterUrl += `url(#${filterId}) `;
             } else if (effect.type === 'back') {
                 backgroundEffects.push(effect.applyEffect(item, idx, itemEffect.args));
+            } else if (effect.type === 'front') {
+                foregroundEffects.push(effect.applyEffect(item, idx, itemEffect.args));
             }
         }
     });
     return {
         svgFilters,
         filterUrl,
-        backgroundEffects
+        backgroundEffects,
+        foregroundEffects
     };
 }
 
@@ -217,7 +223,8 @@ export default {
             repeatedLayers        : [],
             svgFilters            : [],
             filterUrl             : '',
-            backgroundEffects     : []
+            backgroundEffects     : [],
+            foregroundEffects     : [],
         };
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();
@@ -225,10 +232,11 @@ export default {
             data.shouldRenderText = false;
         }
 
-        const {svgFilters, filterUrl, backgroundEffects} = generateFilters(this.item);
+        const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
         data.backgroundEffects = backgroundEffects;
+        data.foregroundEffects = foregroundEffects;
 
         return data;
     },
@@ -276,10 +284,11 @@ export default {
             }
 
             //updating filters
-            const {svgFilters, filterUrl, backgroundEffects} = generateFilters(this.item);
+            const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
             this.svgFilters = svgFilters;
             this.filterUrl = filterUrl;
             this.backgroundEffects = backgroundEffects;
+            this.foregroundEffects = foregroundEffects;
 
             this.$forceUpdate();
         },

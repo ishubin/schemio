@@ -30,13 +30,6 @@ const effects = {
         },
 
         applyEffect(item, effectIdx, effectArgs) {
-            // const el = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
-            // el.setAttribute('dx', effectArgs.dx);
-            // el.setAttribute('dy', effectArgs.dy);
-            // el.setAttribute('stdDeviation', effectArgs.blur);
-            // el.setAttribute('flood-color', effectArgs.color);
-            // el.setAttribute('flood-opacity', effectArgs.opacity / 100.0);
-
             const shape = Shape.find(item.shape);
             if (!shape) {
                 return null;
@@ -82,6 +75,56 @@ const effects = {
                 in: 'SourceGraphic',
                 stdDeviation: effectArgs.size
             }).outerHTML;
+        }
+    },
+
+    'glow': {
+        name: 'Glow',
+        type: 'front',
+        args: {
+            color  : {type: 'color', value: 'rgba(126,237,255,1.0)', name: 'Color'},
+            size   : {type: 'number', value: 3, name: 'Blur', min: 0, max: 100},
+            blur   : {type: 'number', value: 5, name: 'Blur', min: 0, max: 100},
+            opacity: {type: 'number', value: 50, name: 'Opacity (%)', min: 0, max: 100},
+        },
+
+        applyEffect(item, effectIdx, effectArgs) {
+            const shape = Shape.find(item.shape);
+            if (!shape) {
+                return null;
+            }
+
+            const path = shape.computeOutline(item);
+            if (!path) {
+                return null;
+            }
+
+            const filterId =  `item-effect-glow-${item.id}-${effectIdx}`;
+            let strokeSize = effectArgs.size;
+            const strokeSizeArgDef = Shape.getShapePropDescriptor(shape, 'strokeSize');
+            if (strokeSizeArgDef && strokeSizeArgDef.type === 'number') {
+                strokeSize = effectArgs.size + item.shapeProps['strokeSize'];
+            }
+
+            return svgElement('g', {}, [
+                svgElement('defs', {}, [
+                    svgElement('filter', {id: filterId}, [
+                        svgElement('feGaussianBlur', {
+                            in: 'SourceGraphic',
+                            stdDeviation: effectArgs.blur
+                        })
+                    ])
+                ]),
+
+                svgElement('path', {
+                    d: path,
+                    stroke: effectArgs.color,
+                    'stroke-width': `${strokeSize}px`,
+                    fill: 'none',
+                    style: `opacity: ${effectArgs.opacity / 100.0}`,
+                    filter: `url(#${filterId})`
+                })
+            ]).innerHTML;
         }
     },
 
