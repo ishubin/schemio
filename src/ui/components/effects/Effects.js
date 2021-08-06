@@ -118,6 +118,7 @@ const effects = {
 
                 svgElement('path', {
                     d: path,
+                    'data-item-id': item.id,
                     stroke: effectArgs.color,
                     'stroke-width': `${strokeSize}px`,
                     fill: 'none',
