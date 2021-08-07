@@ -86,7 +86,7 @@ const effects = {
         type: 'front',
         args: {
             color  : {type: 'color', value: 'rgba(126,237,255,1.0)', name: 'Color'},
-            size   : {type: 'number', value: 3, name: 'Blur', min: 0, max: 100},
+            size   : {type: 'number', value: 3, name: 'Size', min: 0, max: 100},
             blur   : {type: 'number', value: 5, name: 'Blur', min: 0, max: 100},
             opacity: {type: 'number', value: 50, name: 'Opacity (%)', min: 0, max: 100},
         },
