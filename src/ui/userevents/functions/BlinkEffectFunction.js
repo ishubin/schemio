@@ -14,8 +14,10 @@ class BlinkEffectAnimation extends Animation {
         this.domBlinker = null;
 
         this.opacity = 0;
+        this.itemOriginalOpacity = 100;
         this.phase = 0; // 0 - fade in, 1 - pulsate, 2 - fade out
         this.pulsatingTime = 0;
+        this.phaseOffset = 0;
     }
 
     init() {
@@ -26,22 +28,66 @@ class BlinkEffectAnimation extends Animation {
             return false;
         }
 
-        this.domBlinker = this.svg('path', {
-            'd':            shape.computeOutline(this.item),
-            'stroke-width': 3,
-            'stroke':       this.args.color,
-            'fill':         this.args.color,
-            'style':        `opacity: ${this.args.minOpacity}`
-        });
+        if (this.args.fade) {
+            const delta = this.args.maxOpacity - this.args.minOpacity;
+            this.phase = 1;
+            if (delta > 0.001) {
+                this.phaseOffset = Math.asin(2 * (this.item.opacity - this.args.minOpacity) / delta - 2);
+            }
 
-        this.domContainer.appendChild(this.domBlinker);
+        } else {
+            this.domBlinker = this.svg('path', {
+                'd':            shape.computeOutline(this.item),
+                'stroke-width': 3,
+                'stroke':       this.args.color,
+                'fill':         this.args.color,
+                'style':        `opacity: ${this.args.minOpacity}`
+            });
+
+            this.domContainer.appendChild(this.domBlinker);
+        }
+
         return true;
     }
 
     play(dt) {
         this.elapsedTime += dt;
 
+        this.t += this.args.speed * dt / 10000;
 
+
+        if (this.args.fade) {
+            return this.playFade(dt);
+        } else {
+            return this.playBlinker(dt);
+        }
+    }
+
+    playFade(dt) {
+        const speedRatio = 100;
+
+        if (this.phase === 1) {
+            this.pulsatingTime += dt;
+            const t = Math.sin(this.pulsatingTime * this.args.speed / (speedRatio *100.0) + this.phaseOffset) / 2 + 0.5;
+            this.item.opacity = this.args.minOpacity * (1 - t) + this.args.maxOpacity * t;
+
+            if (this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
+                this.phase = 2;
+            }
+        }
+
+        if (this.phase === 2) {
+            this.item.opacity += this.args.speed * dt / speedRatio;
+            if (this.item.opacity >= this.itemOriginalOpacity) {
+                this.item.opacity = this.itemOriginalOpacity;
+                return false;
+            }
+        }
+
+        return this.elapsedTime < this.args.duration * 1000.0;
+    }
+
+    playBlinker(dt) {
         if (this.phase === 0) {
             if (this.opacity < this.args.minOpacity / 100) {
                 this.opacity += this.args.speed * dt / 10000;
@@ -64,10 +110,13 @@ class BlinkEffectAnimation extends Animation {
         }
 
         this.domBlinker.setAttribute('style', `opacity: ${this.opacity}`);
+
         return this.elapsedTime < this.args.duration * 1000.0;
     }
 
     destroy() {
+        this.item.opacity = this.itemOriginalOpacity;
+
         if (!this.args.inBackground) {
             this.resultCallback();
         }
@@ -81,10 +130,11 @@ class BlinkEffectAnimation extends Animation {
 export default {
     name: 'Blink Effect',
 
-    description: 'Generates a pulsating effect in which item glows with specified color',
+    description: 'Generates a pulsating effect in which item fades in and out or glows with specified color',
 
     args: {
-        color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
+        fade            : {name: 'Fade in/out',       type: 'boolean', value: true },
+        color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)', depends: {fade: false}},
         speed           : {name: 'Speed',             type: 'number', value: 50},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 5.0},
         minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
