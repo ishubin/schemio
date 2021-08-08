@@ -80,7 +80,36 @@ describe('jsonDiff', () => {
     });
 
 
-    // it('should only check specified root fields', () => {
+    it('should only check specified root fields', () => {
+        const changedObject = {
+            company: {
+                name: 'Abracadabra',
+                size: 51, // changed field
+                tags: ['tech', 'it', 'machinery']
+            },
+            people: [{
+                name: 'Johny', // changed field
+                age: 40
+            }, {
+                name: 'Lucy',
+                age: 30
+            }],
+        };
 
-    // });
+        const diff = jsonDiff(originObject, changedObject, {
+            whitelist: [
+                'company',
+            ]
+        });
+        console.log('JSONDIFF:', JSON.stringify(diff, null, '    '));
+
+        expect(diff).toStrictEqual({
+            changes: [{
+                path: ['company', 'size'],
+                oldValue:50,
+                value: 51
+            }]
+        });
+
+    });
 });

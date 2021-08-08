@@ -15,7 +15,10 @@ function isObject(value) {
  * @param {*} originObject
  * @param {*} modifiedObject
  */
-export function jsonDiff(originObject, modifiedObject) {
+export function jsonDiff(originObject, modifiedObject, settings) {
+    if (settings && settings.whitelist && isObject(originObject)) {
+        return _jsonWhitelistedObject(originObject, modifiedObject, settings.whitelist);
+    }
     return _jsonDiff(originObject, modifiedObject, []);
 }
 
@@ -46,6 +49,37 @@ function _jsonDiff(originObject, modifiedObject, currentPath) {
         changes
     };
 
+}
+
+function _jsonWhitelistedObject(originObject, modifiedObject, whitelist) {
+    if (!isObject(modifiedObject)) {
+        return {
+            changes: [],
+            oldValue: originObject,
+            value: modifiedObject
+        };
+    }
+    
+    let changes = [];
+    
+    forEach(whitelist, (name) => {
+        const path = [name];
+        if (originObject.hasOwnProperty(name)) {
+            if (modifiedObject.hasOwnProperty(name)) {
+                const childChanges = _jsonDiff(originObject[name], modifiedObject[name], path);
+                if (childChanges.changes.length > 0) {
+                    changes = changes.concat(childChanges.changes);
+                }
+            } else {
+                // we do not track deletions nor additions for now, only modifications
+            }
+        }
+
+    });
+
+    return {
+        changes
+    };
 }
 
 function _jsonDiffObject(originObject, modifiedObject, currentPath) {
