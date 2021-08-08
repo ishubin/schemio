@@ -80,7 +80,13 @@ export default class LimitedSettingsStorage {
         item.r = this.getNewRevision();
     }
 
-    evict() {LimitedSett
+    evict() {
+        // since this operation is only triggered once per scheme, it's not a big deal to iterate through all the objects
+        // otherwise it would have to use the proper LRU cache,
+        // but even then there is an efficiency problem due to serialization to local storage on each update, so meh...
+        let oldestKey = null;
+        let oldestRevision = 0;
+
         forEach(this.items, (item, key) => {
             if (!oldestKey || oldestRevision > item.r) {
                 oldestKey = key;

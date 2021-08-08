@@ -24,135 +24,6 @@ Item selectors:
 
 
 
-#### Some ideas for redesigning of item behavior using custom language
-##### v1
-```
-describe `item: "Browser"` {
-    on "init" {
-        `self` -> trigger(event: "Do fancy stuff")
-    }
-    on "clicked" {
-        `item: #rqwtqwt` -> hide(
-            animated: true,
-            duration: 0.5,
-            inBackground: false
-        )
-    }
-    on "Do fancy stuff" {
-        `self` -> opacity = 0.1
-        `item: #wqqqwe`
-    }
-}
-
-# Describes all items that were marked with "reset" tag
-describe `tag: "reset"` {
-    on "init" {
-        `self` -> hide()
-    }
-}
-```
-
-##### v2
-```
-describe('item: "Browser"') {
-    init() {
-        `self`.triggerEvent(event: 'Do fancy stuff')
-    }
-
-    /// or in another form
-    on('init') {
-
-    }
-
-    clicked() {
-        // ....
-    }
-
-    on('some custom event') {
-        // ....
-    }
-
-    // example of using event arguments
-    on('metrics-update') {
-        `self`.opacity = $.value * 100
-        `self`.fieldTransition(field: 'color', value1: '#000000', value2: '#ff00ff', value: $.value, min: 0, max: 100)
-    }
-}
-```
-
-##### v3
-```
-describe `~Browser` {
-    on 'init' {
-        self.triggerEvent(event: 'custom event', args: [value: 23])
-    }
-    on 'custom event' { 
-        self.opacity = event.value * 100
-        self.fieldTransition(field: 'color', value1: '#000000', value2: '#ff00ff', value: $.value, min: 0, max: 100)
-    }
-    on 'click' {
-        `~Button`.show(animated: true)
-        `#qwqwr`.triggerEvent(event: 'some other event')
-    }
-
-    on 'frame' [number: 1] {
-
-    }
-    on 'frame' [number: 2] {
-
-    }
-}
-```
-
-##### v4
-```
-$("#browser").describe {
-    on("init") {
-        self.triggerEvent(event: "custom event", args: {value: 23})
-    }
-
-    on("custom event") {
-        $("@some-group").set("opacity", $args.value)
-    }
-}
-```
-
-##### v5
-```
-`#browser`.describe {
-    on("init") {
-        `self`.triggerEvent(event: "custom event", args: {value: 23})
-    }
-
-    on("custom event") {
-        `group: some-group`.set("opacity", $args.value)
-        // or 
-        `group: some-group`.opacity = $args.value
-    }
-}
-```
-
-##### v6
-```
-describe `#Browser` {
-    on "init" {
-        `self`.trigger(event: "Do fancy stuff")
-    }
-    on "clicked" {
-        `item: #rqwtqwt`.hide(
-            animated: true,
-            duration: 0.5,
-            inBackground: false
-        )
-    }
-    on "Do fancy stuff" {
-        `self`.set(name: "opacity", value: "0.1")
-        // or 
-        `self`.opacity = 0.1
-    }
-}
-```
-
 
 
 Frame Player structure
@@ -204,38 +75,38 @@ const item = {
 ```
 
 
+```javascript
+// Ideas for frame player
+const framePlayer = {
+    shape: 'frame_player',
+    shapeProps: {
+        elementFrames: [{
+            element: '#some-item-id',
+            property: 'area.x',
+            frames: [{
+                frame: 0,
+                value: 0,
+                kind: 'beizer', // can be 'linear', 'beizer', 'step'
+                a: { v: 0, f: -30 },
+                b: { v: 5, f: 10 },
+            }, {
+                frame: 30,
+                value: 10,
+                kind: 'linear',
+            }]
+        }, {
+            element: '#another-item-id',
+            property: 'shapeProps.strokeSize',
+            frames: [{
+                
+            }]
+        }]
+    }
+};
 ```
 
-arrow angles: 15, [ 63, -7.6, -81 ]
-
-arrow angles: [ -43, 0.3, 55 ]
-
-arrow angles: [ 23, 1.1, -41 ]
-
-arrow angles (with not straight line): -58, -58, 51, [ -26, 0.3, 55 ]
-
-triangle angles: 16,[ 60, -6, -81, -15]
-
-triangle angles: [-43, 0.3, 60, 79]
-
-
-arrow pattern features:
-    - last 3 points are within small area,
-    - last 3 angles sequence should be one of the two:
-        -  Big, Small, -Big: (> 15, -15 to 15, < -15 )
-        - -Big, Small,  Big ( < -15, -15 to 15, > 15)
-
-
-triangle pattern features:
-    - last 4 points are within small area
-    - last 4 angles sequence should be one of the two:
-        -  Big, Small, -Big, -Big: (> 15, -15 to 15, < -15, < -15 )
-        - -Big, Small,  Big, Big ( < -15, -15 to 15, > 15, > 15)
-
-```
-
-
-
+When clicking on frame player in edit mode - it will bring a thin frame `animation panel` on the bottom. The panel should have `Toggle Animation Editor` button.
+When user clicks that button - `animation panel` stays constantly on and frame player can now be deselected. When user selects a frame and clicks record in `animation panel` - it goes into `recording mode`. In `recording mode` if user changes any `recognized property` of any item - it will make a record of that in the `selected frame`.
 
 License
 ---------
