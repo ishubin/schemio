@@ -40,7 +40,7 @@
                                 <span v-if="row.itemName">{{row.itemName}}</span>
                                 {{row.propertyShort}}
                             </td>
-                            <td v-for="frame in row.frames" class="frame" :class="{active: !frame.blank, current: frame.frame === currentFrame}" :title="`${row.propertyShort} : frame ${frame.frame}`">
+                            <td v-for="frame in row.frames" class="frame" :class="{active: !frame.blank, current: frame.frame === currentFrame}" :title="`${row.propertyShort}, frame: ${frame.frame}, value: ${frame.value}`">
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
                         </tr>
@@ -58,6 +58,7 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
+import { compileAnimations } from '../../../animations/FrameAnimation';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps']);
@@ -116,12 +117,17 @@ export default {
         light          : {type: Boolean, default: true},
     },
 
+    beforeMount() {
+        this.compileAnimations();
+    },
+
     data() {
         const originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
         return {
             originSchemeContainer,
             currentFrame: 1,
-            framesMatrix: this.buildFramesMatrix()
+            framesMatrix: this.buildFramesMatrix(),
+            compiledAnimations: []
         };
     },
 
@@ -132,6 +138,9 @@ export default {
 
         selectFrame(frame) {
             this.currentFrame = frame;
+            forEach(this.compiledAnimations, compiledAnimation => {
+                compiledAnimation.toggleFrame(frame);
+            });
         },
 
         buildFramesMatrix() {
@@ -159,6 +168,7 @@ export default {
                         // should fill with empty cells first and then add the frame
                         addBlankFrames(f.frame - 1 - frames.length);
                     }
+                    //TODO protect from duplicate frames
                     frames.push(f);
                 });
                 if (frames.length < this.framePlayer.shapeProps.totalFrames) {
@@ -250,12 +260,16 @@ export default {
                 }
             });
             this.updateFramesMatrix();
+            this.compileAnimations();
         },
 
         updateFramesMatrix() {
             this.framesMatrix = this.buildFramesMatrix();
         },
 
+        compileAnimations() {
+            this.compiledAnimations = compileAnimations(this.framePlayer, this.schemeContainer);
+        }
     },
 
     computed: {
