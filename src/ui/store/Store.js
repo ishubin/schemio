@@ -156,6 +156,10 @@ const store = new Vuex.Store({
 
         draw: {
             epsilon: 5
+        },
+
+        animatiorEditor: {
+            currentFramePlayer: null
         }
     },
     mutations: {
@@ -394,6 +398,10 @@ const store = new Vuex.Store({
 
         GIVE_CONSENT(state) {
             state.consent.hasConsent = true;
+        },
+
+        START_ANIMATION_EDITOR(state, framePlayer) {
+            state.animatiorEditor.currentFramePlayer = framePlayer;
         }
     },
 
@@ -553,6 +561,10 @@ const store = new Vuex.Store({
 
         giveConsent({commit}) {
             commit('GIVE_CONSENT');
+        },
+
+        startAnimationEditor({commit}, framePlayer) {
+            commit('START_ANIMATION_EDITOR', framePlayer);
         }
     },
 
@@ -590,7 +602,9 @@ const store = new Vuex.Store({
 
         editorStateName: state => state.editorStateName,
 
-        hasConsent: state => state.consent.hasConsent
+        hasConsent: state => state.consent.hasConsent,
+
+        animationEditorCurrentFramePlayer: state => state.animatiorEditor.currentFramePlayer
     }
 });
 

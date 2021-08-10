@@ -137,9 +137,6 @@ class SchemeContainer {
     constructor(scheme, eventBus) {
         Debugger.register('SchemioContainer', this);
 
-        if (!eventBus) {
-            throw new Error('Missing eventBus');
-        }
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
@@ -821,7 +818,7 @@ class SchemeContainer {
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
-            this.eventBus.emitItemChanged(item.id);
+            if (this.eventBus) this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
@@ -909,7 +906,7 @@ class SchemeContainer {
         item.area.y = newLocalPoint.y;
         item.area.r += angleCorrection;
 
-        this.eventBus.emitSchemeChangeCommited();
+        if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
         this.reindexItems();
     }
 
@@ -1079,7 +1076,7 @@ class SchemeContainer {
             this.multiItemEditBox = null;
             this.reindexItems();
             // This event is needed to inform some components that they need to update their state because selection has dissapeared
-            this.eventBus.emitAnyItemDeselected();
+            if (this.eventBus) this.eventBus.emitAnyItemDeselected();
         }
     }
 
@@ -1130,7 +1127,7 @@ class SchemeContainer {
         if (inclusive) {
             this.selectItemInclusive(item);
             this.selectedItemsMap[item.id] = true;
-            this.eventBus.emitItemSelected(item.id);
+            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
         } else {
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
@@ -1141,11 +1138,11 @@ class SchemeContainer {
             this.selectedItems = [];
             forEach(deselectedItemIds, itemId => {
                 this.selectedItemsMap[itemId] = false;
-                this.eventBus.emitItemDeselected(itemId);
+                if (this.eventBus) this.eventBus.emitItemDeselected(itemId);
             });
 
             this.selectItemInclusive(item);
-            this.eventBus.emitItemSelected(item.id);
+            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
         }
         this.updateMultiItemEditBox();
     }
@@ -1205,7 +1202,9 @@ class SchemeContainer {
 
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
-        forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+        if (this.eventBus) {
+            forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+        }
 
         this.updateMultiItemEditBox();
     }
@@ -1559,12 +1558,12 @@ class SchemeContainer {
                 item.meta.revision += 1;
 
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
-                this.eventBus.emitItemChanged(item.id, 'area');
+                if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
         forEach(itemsForReindex, item => this.updateChildTransforms(item));
 
-        this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
+        if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
     }
 
     readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {

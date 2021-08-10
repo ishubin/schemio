@@ -82,5 +82,9 @@ export default {
 
     giveConsent(store) {
         store.dispatch('giveConsent');
+    },
+
+    startAnimationEditor(store, framePlayer) {
+        store.dispatch('startAnimationEditor', framePlayer);
     }
 }

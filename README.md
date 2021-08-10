@@ -80,8 +80,9 @@ const item = {
 const framePlayer = {
     shape: 'frame_player',
     shapeProps: {
-        elementFrames: [{
-            element: '#some-item-id',
+        animationFrames: [{
+            kind: 'item',
+            id: 'some-item-id',
             property: 'area.x',
             frames: [{
                 frame: 0,
@@ -95,7 +96,8 @@ const framePlayer = {
                 kind: 'linear',
             }]
         }, {
-            element: '#another-item-id',
+            kind: 'item',
+            id: 'another-item-id',
             property: 'shapeProps.strokeSize',
             frames: [{
                 

@@ -74,10 +74,10 @@
             </div>
 
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
-                <svg-editor
+                <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}-edit`"
-                    :project-id="projectId"
+                    :projectId="projectId"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -92,12 +92,12 @@
                     @clicked-items-paste="pasteItemsFromClipboard()"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
-                    ></svg-editor>
+                    />
 
-                <svg-editor
+                <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}-view`"
-                    :project-id="projectId"
+                    :projectId="projectId"
                     :schemeContainer="interactiveSchemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -111,7 +111,32 @@
                     @clicked-copy-selected-items="copySelectedItems()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
                     @svg-size-updated="onSvgSizeUpdated"
-                    ></svg-editor>
+                    />
+            </div>
+
+            
+            <div v-if="animatorPanel.framePlayer || animationEditorCurrentFramePlayer" class="bottom-panel">
+                <div class="side-panel-filler-left"></div>
+                <div class="bottom-panel-content">
+                    <FrameAnimatorPanel
+                        v-if="animationEditorCurrentFramePlayer"
+                        :key="animationEditorCurrentFramePlayer.id"
+                        :schemeContainer="schemeContainer"
+                        :framePlayer="animationEditorCurrentFramePlayer"
+                        :light="false"
+                        @close="closeAnimatorEditor"
+                        />
+
+                    <FrameAnimatorPanel
+                        v-else-if="animatorPanel.framePlayer"
+                        :key="animatorPanel.framePlayer.id"
+                        :schemeContainer="schemeContainer"
+                        :framePlayer="animatorPanel.framePlayer"
+                        :light="true"
+                        @animation-editor-opened="onAnimatiorEditorOpened"
+                        />
+                </div>
+                <div class="side-panel-filler-right"></div>
             </div>
 
             <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
@@ -311,6 +336,7 @@ import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
 import ShapeExporterModal from '../components/editor/ShapeExporterModal.vue';
 import ImportSchemeModal from '../components/editor/ImportSchemeModal.vue';
 import Modal from '../components/Modal.vue';
+import FrameAnimatorPanel from '../components/editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
@@ -391,7 +417,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
-        Modal, ShapeExporterModal,
+        Modal, ShapeExporterModal, FrameAnimatorPanel,
         'export-embedded-modal': ExportEmbeddedModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -519,6 +545,10 @@ export default {
             },
 
             drawColorPallete,
+
+            animatorPanel: {
+                framePlayer: null,
+            }
         }
     },
     methods: {
@@ -1094,6 +1124,13 @@ export default {
                 }
                 const textSlots = shape.getTextSlots(item);
 
+                if (this.schemeContainer.selectedItems.length === 1 && this.schemeContainer.selectedItems[0].shape === 'frame_player') {
+                    const item = this.schemeContainer.selectedItems[0];
+                    this.animatorPanel.framePlayer = item;
+                } else {
+                    this.animatorPanel.framePlayer = null;
+                }
+
                 if (textSlots && textSlots.length > 0) {
                     this.itemTextSlotsAvailable = map(textSlots, textSlot => {
                         return {
@@ -1102,14 +1139,19 @@ export default {
                             item
                         };
                     });
-                    return;
+                } else {
+                    this.itemTextSlotsAvailable.length = 0;
                 }
+            } else {
+                this.animatorPanel.framePlayer = null;
+
+                // in case nothing was selected - we need to make sure the tab is not set to a text slot anymore
+                if (this.currentTab !== 'Item' && this.currentTab !== 'Scheme') {
+                    this.currentTab = 'Item';
+                }
+                this.itemTextSlotsAvailable.length = 0;
             }
-            // in case nothing was selected - it should not display any tabs
-            if (this.currentTab !== 'Item' && this.currentTab !== 'Scheme') {
-                this.currentTab = 'Item';
-            }
-            this.itemTextSlotsAvailable.length = 0;
+
         },
 
         onTextSlotMoved(item, slotName, anotherSlotName) {
@@ -1313,6 +1355,14 @@ export default {
                 this.interactiveSchemeContainer.screenSettings.width = width;
                 this.interactiveSchemeContainer.screenSettings.height = height;
             }
+        },
+
+        onAnimatiorEditorOpened(framePlayer) {
+            StoreUtils.startAnimationEditor(this.$store, framePlayer);
+        },
+
+        closeAnimatorEditor() {
+            StoreUtils.startAnimationEditor(this.$store, null);
         }
     },
 
@@ -1369,7 +1419,11 @@ export default {
 
         editorStateName() {
             return this.$store.getters.editorStateName;
-        }
+        },
+
+        animationEditorCurrentFramePlayer() {
+            return this.$store.getters.animationEditorCurrentFramePlayer;
+        },
     }
 }
 </script>

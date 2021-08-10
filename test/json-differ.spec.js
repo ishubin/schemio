@@ -68,7 +68,6 @@ describe('jsonDiff', () => {
         };
 
         const diff = jsonDiff(originObject, changedObject);
-        console.log('JSONDIFF:', JSON.stringify(diff, null, '    '));
 
         expect(diff).toStrictEqual({
             changes: [{
@@ -80,7 +79,7 @@ describe('jsonDiff', () => {
     });
 
 
-    it('should only check specified root fields', () => {
+    it('should be able to control which fields to scan', () => {
         const changedObject = {
             company: {
                 name: 'Abracadabra',
@@ -97,11 +96,10 @@ describe('jsonDiff', () => {
         };
 
         const diff = jsonDiff(originObject, changedObject, {
-            whitelist: [
-                'company',
-            ]
+            fieldCheck(path) {
+                return path.length > 0 && path[0] === 'company';
+            }
         });
-        console.log('JSONDIFF:', JSON.stringify(diff, null, '    '));
 
         expect(diff).toStrictEqual({
             changes: [{

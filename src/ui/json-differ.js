@@ -16,10 +16,9 @@ function isObject(value) {
  * @param {*} modifiedObject
  */
 export function jsonDiff(originObject, modifiedObject, settings) {
-    if (settings && settings.whitelist && isObject(originObject)) {
-        return _jsonWhitelistedObject(originObject, modifiedObject, settings.whitelist);
-    }
-    return _jsonDiff(originObject, modifiedObject, []);
+    const fieldCheckCallback = settings ? settings.fieldCheck: null;
+
+    return _jsonDiff(originObject, modifiedObject, [], fieldCheckCallback);
 }
 
 
@@ -28,10 +27,15 @@ export function jsonDiff(originObject, modifiedObject, settings) {
  * @param {Object} originObject 
  * @param {Object} modifiedObject 
  * @param {Array} currentPath 
+ * @param {Function} fieldCheckCallback
  * @returns 
  */
-function _jsonDiff(originObject, modifiedObject, currentPath) {
+function _jsonDiff(originObject, modifiedObject, currentPath, fieldCheckCallback) {
     let changes = [];
+
+    if (fieldCheckCallback && currentPath.length > 0 && !fieldCheckCallback(currentPath)) {
+        return {changes: []};
+    }
 
     if (isPrimitive(originObject) && originObject !== modifiedObject) {
         changes.push({
@@ -40,9 +44,9 @@ function _jsonDiff(originObject, modifiedObject, currentPath) {
             value: modifiedObject
         });
     } else if (isObject(originObject)) {
-        changes = changes.concat(_jsonDiffObject(originObject, modifiedObject, currentPath).changes);
+        changes = changes.concat(_jsonDiffObject(originObject, modifiedObject, currentPath, fieldCheckCallback).changes);
     } else if (Array.isArray(originObject)) {
-        changes = changes.concat(_jsonDiffArray(originObject, modifiedObject, currentPath).changes);
+        changes = changes.concat(_jsonDiffArray(originObject, modifiedObject, currentPath, fieldCheckCallback).changes);
     }
 
     return {
@@ -51,38 +55,16 @@ function _jsonDiff(originObject, modifiedObject, currentPath) {
 
 }
 
-function _jsonWhitelistedObject(originObject, modifiedObject, whitelist) {
-    if (!isObject(modifiedObject)) {
-        return {
-            changes: [],
-            oldValue: originObject,
-            value: modifiedObject
-        };
-    }
-    
-    let changes = [];
-    
-    forEach(whitelist, (name) => {
-        const path = [name];
-        if (originObject.hasOwnProperty(name)) {
-            if (modifiedObject.hasOwnProperty(name)) {
-                const childChanges = _jsonDiff(originObject[name], modifiedObject[name], path);
-                if (childChanges.changes.length > 0) {
-                    changes = changes.concat(childChanges.changes);
-                }
-            } else {
-                // we do not track deletions nor additions for now, only modifications
-            }
-        }
+/**
+ * 
+ * @param {Object} originObject 
+ * @param {Object} modifiedObject 
+ * @param {Array} currentPath 
+ * @param {Function} fieldCheckCallback
+ * @returns 
+ */
+function _jsonDiffObject(originObject, modifiedObject, currentPath, fieldCheckCallback) {
 
-    });
-
-    return {
-        changes
-    };
-}
-
-function _jsonDiffObject(originObject, modifiedObject, currentPath) {
     if (!isObject(modifiedObject)) {
         return {
             changes: currentPath,
@@ -97,7 +79,7 @@ function _jsonDiffObject(originObject, modifiedObject, currentPath) {
         const path = currentPath.concat([name]);
 
         if (modifiedObject.hasOwnProperty(name)) {
-            const childChanges = _jsonDiff(value, modifiedObject[name], path);
+            const childChanges = _jsonDiff(value, modifiedObject[name], path, fieldCheckCallback);
             if (childChanges.changes.length > 0) {
                 changes = changes.concat(childChanges.changes);
             }
@@ -116,9 +98,10 @@ function _jsonDiffObject(originObject, modifiedObject, currentPath) {
  * @param {Array} origin 
  * @param {Array} modified 
  * @param {Array} currentPath 
+ * @param {Function} fieldCheckCallback
  * @returns 
  */
-function _jsonDiffArray(origin, modified, currentPath) {
+function _jsonDiffArray(origin, modified, currentPath, fieldCheckCallback) {
     if (!isArray(modifiedObject)) {
         return {
             changes: currentPath,
@@ -133,7 +116,7 @@ function _jsonDiffArray(origin, modified, currentPath) {
         const path = currentPath.concat([i]);
 
         if (modified.length > i) {
-            const childChanges = _jsonDiff(value, modifiedObject[i], path);
+            const childChanges = _jsonDiff(value, modifiedObject[i], path, fieldCheckCallback);
             if (childChanges.changes.length > 0) {
                 changes = changes.concat(childChanges.changes);
             }
