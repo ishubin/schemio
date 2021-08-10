@@ -40,7 +40,7 @@
                                 <span v-if="row.itemName">{{row.itemName}}</span>
                                 {{row.propertyShort}}
                             </td>
-                            <td v-for="frame in row.frames" class="frame" :class="{active: !frame.blank, current: frame.frame === currentFrame}" :title="`${row.propertyShort} - ${frame.frame}`">
+                            <td v-for="frame in row.frames" class="frame" :class="{active: !frame.blank, current: frame.frame === currentFrame}" :title="`${row.propertyShort} : frame ${frame.frame}`">
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
                         </tr>
