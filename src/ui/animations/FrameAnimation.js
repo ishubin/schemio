@@ -100,42 +100,35 @@ function buildFrameLookup(frames, maxFrames) {
 }
 
 
-class ItemFrameAnimation {
-    constructor(item, propertyPath, frames, maxFrames) {
-        this.frames = frames;
-        this.propertyPath = propertyPath.split('.');
+function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
+    const fields = propertyPath.split('.');
 
-        this.propertyType = findItemPropertyType(item, propertyPath);
-        this.frameLookup = buildFrameLookup(frames, maxFrames);
-
-        this.getItem = () => {
-            return item;
-        };
+    const propertyType = findItemPropertyType(item, propertyPath);
+    if (!propertyType) {
+        return null;
     }
+    const frameLookup = buildFrameLookup(frames, maxFrames);
 
-    toggleFrame(frame) {
-        if (!this.propertyType || frame < 1) {
-            return;
-        }
-        const item = this.getItem();
-        if (!item) {
-            return null;
-        }
+    return {
+        toggleFrame(frame) {
+            if (frame < 1) {
+                return;
+            }
 
-        let indexFrame = null;
-        if (frame <= this.frameLookup.length) {
-            indexFrame = this.frameLookup[frame - 1];
-        } else {
-            indexFrame = this.frameLookup[this.frameLookup.length - 1];
-        }
+            let indexFrame = null;
+            if (frame <= frameLookup.length) {
+                indexFrame = frameLookup[frame - 1];
+            } else {
+                indexFrame = frameLookup[frameLookup.length - 1];
+            }
 
-        if (indexFrame.frame) {
-            utils.setObjectProperty(item, this.propertyPath, indexFrame.frame.value);
-            EventBus.emitItemChanged(item.id);
+            if (indexFrame.frame) {
+                utils.setObjectProperty(item, fields, indexFrame.frame.value);
+                EventBus.emitItemChanged(item.id);
+            }
         }
     }
 }
-
 
 export function compileAnimations(framePlayer, schemeContainer) {
     const animations = [];
@@ -143,7 +136,10 @@ export function compileAnimations(framePlayer, schemeContainer) {
         if (animation.kind === 'item') {
             const item = schemeContainer.findItemById(animation.id);
             if (item) {
-                animations.push(new ItemFrameAnimation(item, animation.property, animation.frames, framePlayer.shapeProps.totalFrames));
+                const itemAnimation = creatItemFrameAnimation(item, animation.property, animation.frames, framePlayer.shapeProps.totalFrames);
+                if (itemAnimation) {
+                    animations.push(itemAnimation);
+                }
             }
         }
     });
