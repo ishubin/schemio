@@ -109,21 +109,51 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
     }
     const frameLookup = buildFrameLookup(frames, maxFrames);
 
+    const interpolate = (frame, prevFrame, nextFrame) => {
+        let d = nextFrame.frame - prevFrame.frame;
+        if (d > 0 && frame >= prevFrame.frame && frame <= nextFrame.frame) {
+            const k = (frame - prevFrame.frame) / d;
+            return prevFrame.value * (1 - k) + k * nextFrame.value;
+        }
+        return prevFrame.value;
+    }
+
     return {
         toggleFrame(frame) {
             if (frame < 1) {
                 return;
             }
 
+            const frameNum = Math.floor(frame);
+
             let indexFrame = null;
-            if (frame <= frameLookup.length) {
-                indexFrame = frameLookup[frame - 1];
+            if (frameNum <= frameLookup.length) {
+                indexFrame = frameLookup[frameNum - 1];
             } else {
                 indexFrame = frameLookup[frameLookup.length - 1];
             }
 
             if (indexFrame.frame) {
                 utils.setObjectProperty(item, fields, indexFrame.frame.value);
+                EventBus.emitItemChanged(item.id);
+            } else {
+                if (indexFrame.prevIdx < 0) {
+                    return;
+                }
+                const left = frameLookup[indexFrame.prevIdx];
+                let right = null;
+                if (indexFrame.nextIdx >= 0) {
+                    right = frameLookup[indexFrame.nextIdx];
+                }
+
+                let value = left.frame.value;
+
+                if (right) {
+                    // calculate middle value between frames
+                    value = interpolate(frame, left.frame, right.frame);
+                }
+
+                utils.setObjectProperty(item, fields, value);
                 EventBus.emitItemChanged(item.id);
             }
         }
