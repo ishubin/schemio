@@ -9,6 +9,9 @@ const NUMBER = 'number';
 const knownPropertyTypes = new Map([
     ['area.x', NUMBER],
     ['area.y', NUMBER],
+    ['area.w', NUMBER],
+    ['area.h', NUMBER],
+    ['area.r', NUMBER],
     ['opacity', NUMBER],
     ['selfOpacity', NUMBER],
 ]);
