@@ -12,7 +12,7 @@
                 <span class="frame-animator-close" @click="$emit('close')"><i class="fas fa-times"/></span>
             </div>
 
-            <div class="frame-animator-canvas" :style="{height: canvasHeight}">
+            <div class="frame-animator-canvas">
                 <table class="frame-animator-matrix">
                     <thead>
                         <tr>
@@ -35,12 +35,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="row in framesMatrix">
+                        <tr v-for="(track, trackIdx) in framesMatrix">
                             <td class="frame-animator-property">
-                                <span v-if="row.itemName">{{row.itemName}}</span>
-                                {{row.propertyShort}}
+                                <span v-if="track.itemName">{{track.itemName}}</span>
+                                {{track.propertyShort}}
+
+                                <div class="frame-property-operations">
+                                    <span class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
+                                </div>
                             </td>
-                            <td v-for="frame in row.frames" class="frame" :class="{active: !frame.blank, current: frame.frame === currentFrame}" :title="`${row.propertyShort}, frame: ${frame.frame}, value: ${frame.value}`">
+                            <td v-for="(frame, frameIdx) in track.frames"
+                                class="frame"
+                                :class="{active: !frame.blank, current: frame.frame === currentFrame, 'drop-candidate': frameDrag.source.trackIdx === trackIdx && frameDrag.destination.frameIdx === frameIdx}"
+                                :title="`${track.propertyShort}, frame: ${frame.frame}, value: ${frame.value}`"
+                                draggable="true"
+                                @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
+                                @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
+                                @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
+                                >
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
                         </tr>
@@ -127,7 +139,17 @@ export default {
             originSchemeContainer,
             currentFrame: 1,
             framesMatrix: this.buildFramesMatrix(),
-            compiledAnimations: []
+            compiledAnimations: [],
+
+            frameDrag: {
+                source: {
+                    trackIdx: -1,
+                    frameIdx: -1
+                },
+                destination: {
+                    frameIdx: -1
+                }
+            }
         };
     },
 
@@ -189,7 +211,7 @@ export default {
                     }
                 }
 
-                const row = {
+                const track = {
                     kind    : animation.kind,
                     id      : animation.id,
                     property: animation.property,
@@ -197,7 +219,7 @@ export default {
                     itemName,
                     frames,
                 }
-                matrix.push(row);
+                matrix.push(track);
             });
             return matrix;
         },
@@ -269,16 +291,114 @@ export default {
 
         compileAnimations() {
             this.compiledAnimations = compileAnimations(this.framePlayer, this.schemeContainer);
-        }
+        },
+
+        removeAnimationTrack(track) {
+            const idx = this.findAnimationIndexForTrack(track);
+            if (idx < 0) {
+                return null;
+            }
+            this.framePlayer.shapeProps.animations.splice(idx, 1);
+            this.updateFramesMatrix();
+            this.compileAnimations();
+        },
+
+        findAnimationIndexForTrack(track) {
+            for (let i = 0; i < this.framePlayer.shapeProps.animations.length; i++) {
+                const animation = this.framePlayer.shapeProps.animations[i];
+                if (animation.kind === track.kind && animation.id === track.id && animation.property === track.property) {
+                    return i;
+                }
+            }
+            return -1;
+        },
+
+        onMatrixDragStart(trackIdx, frameIdx) {
+            this.frameDrag.source.trackIdx = trackIdx;
+            this.frameDrag.source.frameIdx = frameIdx;
+            this.frameDrag.destination.frameIdx = -1;
+        },
+
+        onMatrixDragEnd(trackIdx, frameIdx) {
+            const srcTrackIdx = this.frameDrag.source.trackIdx;
+            const srcFrameIdx = this.frameDrag.source.frameIdx;
+            const dstFrameIdx = this.frameDrag.destination.frameIdx;
+
+            this.frameDrag.destination.frameIdx = -1;
+            this.frameDrag.source.trackIdx = -1;
+            this.frameDrag.source.frameIdx = -1;
+
+            if (dstFrameIdx === srcFrameIdx || dstFrameIdx < 0) {
+                return;
+            }
+
+            const sourceFrame = this.framesMatrix[srcTrackIdx].frames[srcFrameIdx];
+            const destinationFrame = this.framesMatrix[srcTrackIdx].frames[dstFrameIdx];
+
+            const animationIdx = this.findAnimationIndexForTrack(this.framesMatrix[srcTrackIdx]);
+            if (animationIdx < 0) {
+                return;
+            }
+
+            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+
+            const findFrameIdx = (frame) => {
+                for (let i = 0; i < animation.frames.length; i++) {
+                    if (animation.frames[i].frame === frame) {
+                        return i;
+                    }
+                }
+                return -1;
+            };
+
+            if (sourceFrame.blank && !destinationFrame.blank) {
+                // deleting frame
+                const frameIdx = findFrameIdx(destinationFrame.frame);
+                if (frameIdx < 0) {
+                    return;
+                }
+                animation.frames.splice(frameIdx, 1);
+            } else if (!sourceFrame.blank) {
+                if (destinationFrame.blank) {
+                    // changing the frame number
+                    const frameIdx = findFrameIdx(sourceFrame.frame);
+                    if (frameIdx < 0) {
+                        return;
+                    }
+                    animation.frames[frameIdx].frame = dstFrameIdx + 1;
+                } else {
+                    // deleting destination frame and changing the frame number on the source
+                    const srcFrameIdx = findFrameIdx(sourceFrame.frame);
+                    if (srcFrameIdx < 0) {
+                        return;
+                    }
+                    const dstFrameIdx = findFrameIdx(destinationFrame.frame);
+                    if (dstFrameIdx < 0) {
+                        return;
+                    }
+                    animation.frames[srcFrameIdx].frame = dstFrameIdx + 1;
+                    animation.frames.splice(dstFrameIdx, 1);
+                }
+                animation.frames.sort((a, b) => a.frame - b.frame);
+            }
+            this.updateFramesMatrix();
+            this.compileAnimations();
+        },
+
+        onMatrixDragEnter(trackIdx, frameIdx) {
+            if (trackIdx === this.frameDrag.source.trackIdx) {
+                this.frameDrag.destination.frameIdx = frameIdx;
+            } else {
+                this.frameDrag.destination.frameIdx = -1;
+            }
+        },
+
     },
 
     computed: {
         totalFrames() {
             return this.framePlayer.shapeProps.totalFrames;
         },
-        canvasHeight() {
-            return Math.max(60, Math.min(11, this.framesMatrix.length + 1) * 30) + 'px';
-        }
     }
 }
 </script>

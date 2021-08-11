@@ -3061,7 +3061,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 .frame-animator-panel .frame-animator-canvas {
     position: relative;
     overflow: scroll;
-    max-height: 400px;
+    height: 150px;
     min-height: 50px;
 }
 
@@ -3076,9 +3076,15 @@ table.frame-animator-matrix th:first-child, table.frame-animator-matrix td:first
     min-width: 200px;
     max-width: 200px;
 }
+table.frame-animator-matrix th:first-child {
+    text-align: right;
+}
+table.frame-animator-matrix th:first-child .btn {
+    min-width: 25px;
+}
 table.frame-animator-matrix th, table.frame-animator-matrix td.frame-animator-property {
-    background: var(--base-strong-up-up);
-    color: var(--base-weak);
+    background: var(--faint-weak);
+    color: var(--base-strong-up);
 }
 table.frame-animator-matrix th {
     cursor: pointer;
@@ -3088,11 +3094,22 @@ table.frame-animator-matrix th {
     font-size: 12px;
 }
 table.frame-animator-matrix td.frame-animator-property {
+    position: relative;
     font-size: 12px;
     overflow: hidden;
     max-height: 30px;
-    padding: 4px;
+    padding: 4px 4px 4px 20px;
     text-align: left;
+}
+table.frame-animator-matrix td.frame-animator-property .frame-property-operations {
+    position: absolute;
+    display: none;
+    top: 2px;
+    right: 2px;
+    text-align: right;
+}
+table.frame-animator-matrix td.frame-animator-property:hover .frame-property-operations {
+    display: block;
 }
 table.frame-animator-matrix th.current {
     background: var(--accent-strong);
@@ -3108,4 +3125,7 @@ table.frame-animator-matrix td.frame {
 table.frame-animator-matrix td.frame .active-frame {
     font-size: 12px;
     opacity: 0.5;
+}
+table.frame-animator-matrix td.frame.drop-candidate {
+    background: var(--critic-weak-down);
 }
