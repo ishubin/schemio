@@ -113,6 +113,7 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
     const frameLookup = buildFrameLookup(frames, maxFrames);
 
     const interpolate = (frame, prevFrame, nextFrame) => {
+        //TODO implement support for different types of interpolations (step, beizer, linear, ease-in, ease-out, ease-in-out, etc.)
         let d = nextFrame.frame - prevFrame.frame;
         if (d > 0 && frame >= prevFrame.frame && frame <= nextFrame.frame) {
             const k = (frame - prevFrame.frame) / d;
@@ -136,29 +137,25 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
                 indexFrame = frameLookup[frameLookup.length - 1];
             }
 
-            if (indexFrame.frame) {
-                utils.setObjectProperty(item, fields, indexFrame.frame.value);
-                EventBus.emitItemChanged(item.id);
-            } else {
+            let left = indexFrame;
+
+            if (!indexFrame.frame) {
                 if (indexFrame.prevIdx < 0) {
                     return;
                 }
-                const left = frameLookup[indexFrame.prevIdx];
-                let right = null;
-                if (indexFrame.nextIdx >= 0) {
-                    right = frameLookup[indexFrame.nextIdx];
-                }
-
-                let value = left.frame.value;
-
-                if (right) {
-                    // calculate middle value between frames
-                    value = interpolate(frame, left.frame, right.frame);
-                }
-
-                utils.setObjectProperty(item, fields, value);
-                EventBus.emitItemChanged(item.id);
+                left = frameLookup[indexFrame.prevIdx];
             }
+            let right = null;
+            if (indexFrame.nextIdx >= 0) {
+                right = frameLookup[indexFrame.nextIdx];
+            }
+            let value = left.frame.value;
+            if (right) {
+                value = interpolate(frame, left.frame, right.frame);
+            }
+
+            utils.setObjectProperty(item, fields, value);
+            EventBus.emitItemChanged(item.id);
         }
     }
 }

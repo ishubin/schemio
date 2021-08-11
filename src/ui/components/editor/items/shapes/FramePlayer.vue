@@ -84,7 +84,7 @@ export default {
 
         args: {
             totalFrames    : {type: 'number', value: 5, name: 'Total frames'},
-            frameDelay     : {type: 'number', value: 1, name: 'Frame delay (sec)'},
+            fps            : {type: 'number', value: 1, name: 'Frames per second'},
             fillColor      : {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
             strokeColor    : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             animations     : {type: 'animations', value: [], name: 'Animations'}
@@ -172,32 +172,9 @@ export default {
         },
 
         onClickedTogglePlay() {
-            if (this.intervalId) {
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-            }
-
-            if (!this.isPlaying) {
-                if (this.currentFrame === this.item.shapeProps.totalFrames) {
-                    this.currentFrame = 1;
-                }
-                this.isPlaying = true;
-                this.emitCurrentFrameEvent();
-                this.intervalId = setInterval(this.onPlayInterval, this.item.shapeProps.frameDelay * 1000);
-            } else {
-                this.isPlaying = false;
-            }
         },
 
         onPlayInterval() {
-            if (this.currentFrame < this.item.shapeProps.totalFrames) {
-                this.currentFrame += 1;   
-                this.emitCurrentFrameEvent();
-            } else {
-                this.isPlaying = false;
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-            }
         },
 
         emitCurrentFrameEvent() {

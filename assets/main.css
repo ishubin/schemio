@@ -3080,6 +3080,9 @@ table.frame-animator-matrix th:first-child {
     text-align: right;
 }
 table.frame-animator-matrix th:first-child .btn {
+    text-align: center;
+}
+table.frame-animator-matrix th:first-child .btn {
     min-width: 25px;
 }
 table.frame-animator-matrix th, table.frame-animator-matrix td.frame-animator-property {

@@ -23,7 +23,8 @@
                                     >
                                     <i class="far fa-dot-circle"></i> 
                                 </span>
-                                <span class="btn btn-secondary btn-small" title="Play"><i class="fas fa-play"></i></span>
+                                <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
+                                <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
                             </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
@@ -121,6 +122,55 @@ function detectChanges(schemeContainer, originSchemeContainer) {
 
     return changes;
 }
+
+const MIN_FPS = 0.05;
+
+let _isPlayingAnimation = false;
+
+function stopAnimations() {
+    _isPlayingAnimation = false;
+}
+
+function playAnimations(animations, fps, maxFrames, frameCallback) {
+    if (_isPlayingAnimation) {
+        return;
+    }
+
+    _isPlayingAnimation = true;
+
+    let totalTimePassed = 0;
+    let currentFrame = 1;
+
+    frameCallback(currentFrame);
+
+    const loopCycle = (timeMarker, dt) => {
+
+        totalTimePassed += dt;
+        let frame = 1 + totalTimePassed * Math.max(fps, MIN_FPS) / 1000;
+        let nextFrame = Math.floor(frame);
+
+        if (nextFrame > currentFrame) {
+            currentFrame = nextFrame;
+            frameCallback(currentFrame);
+        }
+
+        forEach(animations, animation => {
+            animation.toggleFrame(frame);
+        });
+
+        if (nextFrame < maxFrames && _isPlayingAnimation) {
+            window.requestAnimationFrame(() => {
+                const nextTimeMarker = performance.now();
+                loopCycle(nextTimeMarker, nextTimeMarker - timeMarker);
+            });
+        } else {
+            _isPlayingAnimation = false;
+        }
+    };
+
+    loopCycle(performance.now(), 0);
+}
+
 
 export default {
     props: {
@@ -393,6 +443,15 @@ export default {
             }
         },
 
+        playAnimations() {
+            playAnimations(this.compiledAnimations, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, (currentFrame) => {
+                this.currentFrame = currentFrame;
+            });
+        },
+
+        stopAnimations() {
+            stopAnimations();
+        }
     },
 
     computed: {
