@@ -53,6 +53,7 @@
                                 @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
                                 @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
                                 @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
+                                @contextmenu="onFrameRightClick($event, track, frame)"
                                 >
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
@@ -62,11 +63,20 @@
 
             </div>
         </div>
+
+        <ContextMenu v-if="frameContextMenu.shown"
+            :mouseX="frameContextMenu.mouseX"
+            :mouseY="frameContextMenu.mouseY"
+            :options="frameContextMenu.options"
+            @selected="onContextMenuOptionClick"
+            @close="frameContextMenu.shown = false"
+            />
     </div>
 </template>
 
 <script>
 import SchemeContainer from '../../../scheme/SchemeContainer';
+import ContextMenu from '../ContextMenu.vue';
 import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
@@ -131,7 +141,7 @@ function stopAnimations() {
     _isPlayingAnimation = false;
 }
 
-function playAnimations(animations, fps, maxFrames, frameCallback) {
+function playAnimations(animations, startFrame, fps, maxFrames, frameCallback) {
     if (_isPlayingAnimation) {
         return;
     }
@@ -139,14 +149,14 @@ function playAnimations(animations, fps, maxFrames, frameCallback) {
     _isPlayingAnimation = true;
 
     let totalTimePassed = 0;
-    let currentFrame = 1;
+    let currentFrame = startFrame;
 
     frameCallback(currentFrame);
 
     const loopCycle = (timeMarker, dt) => {
 
         totalTimePassed += dt;
-        let frame = 1 + totalTimePassed * Math.max(fps, MIN_FPS) / 1000;
+        let frame = startFrame + totalTimePassed * Math.max(fps, MIN_FPS) / 1000;
         let nextFrame = Math.floor(frame);
 
         if (nextFrame > currentFrame) {
@@ -172,12 +182,25 @@ function playAnimations(animations, fps, maxFrames, frameCallback) {
 }
 
 
+function findFrameIdx(animation, frame) {
+    for (let i = 0; i < animation.frames.length; i++) {
+        if (animation.frames[i].frame === frame) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+
+
 export default {
     props: {
         schemeContainer: {type: Object, required: true},
         framePlayer    : {type: Object, required: true},
         light          : {type: Boolean, default: true},
     },
+
+    components: { ContextMenu },
 
     beforeMount() {
         this.compileAnimations();
@@ -199,6 +222,13 @@ export default {
                 destination: {
                     frameIdx: -1
                 }
+            },
+
+            frameContextMenu: {
+                shown: false,
+                mouseX: 0,
+                mouseY: 0,
+                options: []
             }
         };
     },
@@ -221,9 +251,7 @@ export default {
             forEach(this.framePlayer.shapeProps.animations, animation => {
                 const frames = [];
 
-                animation.frames.sort((a, b) => {
-                    return a.frame - b.frame;
-                });
+                animation.frames.sort((a, b) => a.frame - b.frame);
 
                 const addBlankFrames = (num) => {
                     const length = frames.length;
@@ -392,18 +420,9 @@ export default {
 
             const animation = this.framePlayer.shapeProps.animations[animationIdx];
 
-            const findFrameIdx = (frame) => {
-                for (let i = 0; i < animation.frames.length; i++) {
-                    if (animation.frames[i].frame === frame) {
-                        return i;
-                    }
-                }
-                return -1;
-            };
-
             if (sourceFrame.blank && !destinationFrame.blank) {
                 // deleting frame
-                const frameIdx = findFrameIdx(destinationFrame.frame);
+                const frameIdx = findFrameIdx(animation, destinationFrame.frame);
                 if (frameIdx < 0) {
                     return;
                 }
@@ -411,18 +430,18 @@ export default {
             } else if (!sourceFrame.blank) {
                 if (destinationFrame.blank) {
                     // changing the frame number
-                    const frameIdx = findFrameIdx(sourceFrame.frame);
+                    const frameIdx = findFrameIdx(animation, sourceFrame.frame);
                     if (frameIdx < 0) {
                         return;
                     }
                     animation.frames[frameIdx].frame = dstFrameIdx + 1;
                 } else {
                     // deleting destination frame and changing the frame number on the source
-                    const srcFrameIdx = findFrameIdx(sourceFrame.frame);
+                    const srcFrameIdx = findFrameIdx(animation, sourceFrame.frame);
                     if (srcFrameIdx < 0) {
                         return;
                     }
-                    const dstFrameIdx = findFrameIdx(destinationFrame.frame);
+                    const dstFrameIdx = findFrameIdx(animation, destinationFrame.frame);
                     if (dstFrameIdx < 0) {
                         return;
                     }
@@ -444,13 +463,98 @@ export default {
         },
 
         playAnimations() {
-            playAnimations(this.compiledAnimations, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, (currentFrame) => {
+            playAnimations(this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, (currentFrame) => {
                 this.currentFrame = currentFrame;
             });
         },
 
         stopAnimations() {
             stopAnimations();
+        },
+
+        onFrameRightClick(event, track, frame) {
+            event.preventDefault();
+            const options = [{
+                name: 'Record current value',
+                iconClass: 'far fa-dot-circle',
+                clicked: () => {
+                    this.recordCurrentValueForTrack(track, frame);
+                }
+            }];
+            if (!frame.blank) {
+                options.push({
+                    name: 'Delete Frame',
+                    iconClass: 'fas fa-trash',
+                    clicked: () => {
+                        const animationIdx = this.findAnimationIndexForTrack(track);
+                        if (animationIdx < 0) {
+                            return;
+                        }
+                        const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
+                        if (frameIdx < 0) {
+                            return;
+                        }
+
+                        this.framePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
+                        this.updateFramesMatrix();
+                        this.compileAnimations();
+                    }
+                })
+            }
+
+            this.frameContextMenu.options = options;
+            this.frameContextMenu.mouseX = event.pageX;
+            this.frameContextMenu.mouseY = event.pageY;
+            this.frameContextMenu.shown = true;
+        },
+
+        onContextMenuOptionClick(option) {
+            if (option.clicked) {
+                option.clicked();
+            }
+        },
+
+        recordCurrentValueForTrack(track, frame) {
+            const animationIdx = this.findAnimationIndexForTrack(track);
+            if (animationIdx < 0) {
+                return;
+            }
+            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+
+            let value = 0;
+            if (track.kind === 'item') {
+                const item = this.schemeContainer.findItemById(track.id);
+                if (!item) {
+                    return;
+                }
+                value = utils.getObjectProperty(item, track.property);
+            } else {
+                // anything else is not supported yet
+                return;
+            }
+
+            const frameIdx = findFrameIdx(animation, frame.frame);
+            if (frameIdx >= 0) {
+                animation.frames[frameIdx].value = value;
+            } else {
+                // searching for frame that is bigger than current
+                let idx = 0;
+                for (let i = 0; i < animation.frames.length; i++) {
+                    if (animation.frames[i].frame > frame.frame) {
+                        idx = i;
+                        break;
+                    }
+                }
+
+                animation.frames.splice(idx, 0, {
+                    frame: frame.frame,
+                    kind: 'linear',
+                    value: value
+                });
+            }
+
+            this.updateFramesMatrix();
+            this.compileAnimations();
         }
     },
 
