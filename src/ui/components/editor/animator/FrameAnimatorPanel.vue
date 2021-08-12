@@ -85,7 +85,7 @@ import { compileAnimations} from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 
 
-const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps']);
+const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
 
 
 function jsonDiffItemWhitelistCallback(item) {

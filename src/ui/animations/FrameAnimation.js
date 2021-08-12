@@ -8,16 +8,25 @@ import { encodeColor, parseColor } from '../colors';
 
 const NUMBER = 'number';
 const COLOR_STRING = 'color-string';
+const BOOLEAN = 'boolean';
+const STRING = 'string';
+const CHOICE = 'choice';
+
+const knownPropertyTypes = new Set([
+    NUMBER, COLOR_STRING, STRING, BOOLEAN, CHOICE
+]);
 
 
-const knownPropertyTypes = new Map([
-    ['area.x', NUMBER],
-    ['area.y', NUMBER],
-    ['area.w', NUMBER],
-    ['area.h', NUMBER],
-    ['area.r', NUMBER],
-    ['opacity', NUMBER],
+const knownProperties = new Map([
+    ['area.x',      NUMBER],
+    ['area.y',      NUMBER],
+    ['area.w',      NUMBER],
+    ['area.h',      NUMBER],
+    ['area.r',      NUMBER],
+    ['opacity',     NUMBER],
     ['selfOpacity', NUMBER],
+    ['visible',     BOOLEAN],
+    ['blendMode',   STRING],
 ]);
 
 
@@ -29,7 +38,7 @@ const knownPropertyTypes = new Map([
  * @returns 
  */
 export function findItemPropertyType(item, propertyPath) {
-    const type = knownPropertyTypes.get(propertyPath);
+    const type = knownProperties.get(propertyPath);
     if (type) {
         return type;
     }
@@ -49,14 +58,12 @@ export function findItemPropertyType(item, propertyPath) {
             return null;
         }
 
-        if (arg.type === NUMBER) {
-            return NUMBER;
-        }
-
         if (arg.type === 'color' || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
             return COLOR_STRING;
         } else {
-            return COLOR_STRING
+            if (knownPropertyTypes.has(arg.type)) {
+                return arg.type;
+            }
         }
     }
     return null;
@@ -136,11 +143,13 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
         return prevFrame.value;
     }
 
-    let d = nextFrame.frame - prevFrame.frame;
-    if (d > 0 && frameNum >= prevFrame.frame && frameNum <= nextFrame.frame) {
-        const t = convertTime((frameNum - prevFrame.frame) / d, prevFrame.kind);
-        
-        return interpolateValue(propertyType, prevFrame.value, nextFrame.value, t);
+    if (propertyType === NUMBER || propertyType === COLOR_STRING) {
+        let d = nextFrame.frame - prevFrame.frame;
+        if (d > 0 && frameNum >= prevFrame.frame && frameNum <= nextFrame.frame) {
+            const t = convertTime((frameNum - prevFrame.frame) / d, prevFrame.kind);
+            
+            return interpolateValue(propertyType, prevFrame.value, nextFrame.value, t);
+        }
     }
     return prevFrame.value;
 }
