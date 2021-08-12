@@ -7,9 +7,25 @@
 
         <div v-else class="frame-animator-container">
             <div class="frame-animator-header">
-                <i class="fas fa-film"></i>
-                <span class="frame-animator-title">{{framePlayer.name}}</span>
-                <span class="frame-animator-close" @click="$emit('close')"><i class="fas fa-times"/></span>
+                <div class="frame-animator-title">
+                    <i class="fas fa-film"></i>
+                    <h3>{{framePlayer.name}}</h3>
+                </div>
+                <div class="frame-animator-controls">
+                    <span class="btn btn-danger btn-small"
+                        @click="recordCurrentFrame"
+                        title="Record items for currently selected frame"
+                        >
+                        <i class="far fa-dot-circle"></i> 
+                    </span>
+                    <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
+                    <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
+                    <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
+                    <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
+                </div>
+                <div class="frame-animator-right-panel">
+                    <span class="icon" @click="$emit('close')"><i class="fas fa-times"/></span>
+                </div>
             </div>
 
             <div class="frame-animator-canvas">
@@ -17,14 +33,6 @@
                     <thead>
                         <tr>
                             <th>
-                                <span class="btn btn-danger btn-small"
-                                    @click="recordCurrentFrame"
-                                    title="Record items for currently selected frame"
-                                    >
-                                    <i class="far fa-dot-circle"></i> 
-                                </span>
-                                <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
-                                <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
                             </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
@@ -142,7 +150,7 @@ function stopAnimations() {
     _isPlayingAnimation = false;
 }
 
-function playAnimations(animations, startFrame, fps, maxFrames, frameCallback) {
+function playAnimations(animations, startFrame, fps, maxFrames, {onFrame, onFinish}) {
     if (_isPlayingAnimation) {
         return;
     }
@@ -152,7 +160,7 @@ function playAnimations(animations, startFrame, fps, maxFrames, frameCallback) {
     let totalTimePassed = 0;
     let currentFrame = startFrame;
 
-    frameCallback(currentFrame);
+    onFrame(currentFrame);
 
     const loopCycle = (timeMarker, dt) => {
 
@@ -162,7 +170,7 @@ function playAnimations(animations, startFrame, fps, maxFrames, frameCallback) {
 
         if (nextFrame > currentFrame) {
             currentFrame = nextFrame;
-            frameCallback(currentFrame);
+            onFrame(currentFrame);
         }
 
         forEach(animations, animation => {
@@ -176,6 +184,7 @@ function playAnimations(animations, startFrame, fps, maxFrames, frameCallback) {
             });
         } else {
             _isPlayingAnimation = false;
+            onFinish();
         }
     };
 
@@ -214,6 +223,7 @@ export default {
             currentFrame: 1,
             framesMatrix: this.buildFramesMatrix(),
             compiledAnimations: [],
+            isPlaying: false,
 
             frameDrag: {
                 source: {
@@ -464,13 +474,35 @@ export default {
         },
 
         playAnimations() {
-            playAnimations(this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, (currentFrame) => {
-                this.currentFrame = currentFrame;
+            this.isPlaying = true;
+            playAnimations(this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, {
+                onFrame: (frame) => {
+                    this.currentFrame = frame;
+                },
+                onFinish: () => {
+                    this.isPlaying = false;
+                }
             });
         },
 
         stopAnimations() {
             stopAnimations();
+        },
+
+        moveFrameLeft() {
+            if (!this.isPlaying) {
+                if (this.currentFrame > 1) {
+                    this.selectFrame(this.currentFrame - 1);
+                }
+            }
+        },
+
+        moveFrameRight() {
+            if (!this.isPlaying) {
+                if (this.currentFrame < this.framePlayer.shapeProps.totalFrames) {
+                    this.selectFrame(this.currentFrame + 1);
+                }
+            }
         },
 
         onFrameRightClick(event, track, frame) {

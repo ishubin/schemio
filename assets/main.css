@@ -3044,30 +3044,48 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 /************************ Frame Animator *************************/
 .frame-animator-panel .frame-animator-header {
     position: relative;
+    display: flex;
     padding: 4px;
     font-size: 14px;
     background: var(--faint-weak-down);
     border-bottom: 1px solid var(--faint-strong-up-up);
 }
 .frame-animator-panel .frame-animator-title {
-    font-weight: bold;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
 }
-.frame-animator-panel .frame-animator-close {
-    position: absolute;
-    top: 3px;
-    right: 8px;
+.frame-animator-panel .frame-animator-title h3 {
+    display: inline;
+    font-weight: bold;
+    font-size: 14px;
+}
+.frame-animator-panel .frame-animator-controls {
+    flex: 1;
+    user-select: none;
+}
+.frame-animator-panel .frame-animator-controls .btn {
+    min-width: 22px;
+    text-align: center;
+}
+.frame-animator-panel .frame-animator-right-panel {
+    width: 60px;
+    text-align: right;
+}
+.frame-animator-panel .frame-animator-right-panel .icon {
     cursor: pointer;
 }
 .frame-animator-panel .frame-animator-canvas {
     position: relative;
     overflow: scroll;
-    height: 150px;
+    height: 200px;
     min-height: 50px;
 }
 
 table.frame-animator-matrix {
     border-collapse: collapse;
     position: absolute;
+    user-select: none;
 }
 table.frame-animator-matrix th, table.frame-animator-matrix td {
     border: 1px solid var(--faint-weak-down);
