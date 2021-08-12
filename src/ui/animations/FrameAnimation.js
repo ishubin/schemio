@@ -3,9 +3,11 @@ import Shape from '../components/editor/items/shapes/Shape';
 import utils from '../utils';
 import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
+import { encodeColor, parseColor } from '../colors';
 
 
 const NUMBER = 'number';
+const COLOR_STRING = 'color-string';
 
 
 const knownPropertyTypes = new Map([
@@ -49,6 +51,12 @@ export function findItemPropertyType(item, propertyPath) {
 
         if (arg.type === NUMBER) {
             return NUMBER;
+        }
+
+        if (arg.type === 'color' || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
+            return COLOR_STRING;
+        } else {
+            return COLOR_STRING
         }
     }
     return null;
@@ -105,6 +113,38 @@ function buildFrameLookup(frames, maxFrames) {
     return frameLookup;
 }
 
+function interpolateValue(propertyType, value1, value2, t) {
+    if (propertyType === NUMBER) {
+        return value1 * (1 - t) + t * value2;
+    } else if (propertyType === COLOR_STRING) {
+        const c1 = parseColor(value1)
+        const c2 = parseColor(value2);
+        const color = {
+            r: c1.r * (1 - t) + t * c2.r,
+            g: c1.g * (1 - t) + t * c2.g,
+            b: c1.b * (1 - t) + t * c2.b,
+            a: c1.a * (1 - t) + t * c2.a,
+        };
+        return encodeColor(color);
+    }
+
+    return value1;
+}
+
+function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
+    if (prevFrame.kind === Interpolations.STEP) {
+        return prevFrame.value;
+    }
+
+    let d = nextFrame.frame - prevFrame.frame;
+    if (d > 0 && frameNum >= prevFrame.frame && frameNum <= nextFrame.frame) {
+        const t = convertTime((frameNum - prevFrame.frame) / d, prevFrame.kind);
+        
+        return interpolateValue(propertyType, prevFrame.value, nextFrame.value, t);
+    }
+    return prevFrame.value;
+}
+
 
 function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
     const fields = propertyPath.split('.');
@@ -114,19 +154,6 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
         return null;
     }
     const frameLookup = buildFrameLookup(frames, maxFrames);
-
-    const interpolate = (frame, prevFrame, nextFrame) => {
-        if (prevFrame.kind === Interpolations.STEP) {
-            return prevFrame.value;
-        }
-
-        let d = nextFrame.frame - prevFrame.frame;
-        if (d > 0 && frame >= prevFrame.frame && frame <= nextFrame.frame) {
-            const t = convertTime((frame - prevFrame.frame) / d, prevFrame.kind);
-            return prevFrame.value * (1 - t) + t * nextFrame.value;
-        }
-        return prevFrame.value;
-    }
 
     return {
         toggleFrame(frame) {
@@ -157,7 +184,7 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
             }
             let value = left.frame.value;
             if (right) {
-                value = interpolate(frame, left.frame, right.frame);
+                value = interpolateFrameValues(frame, left.frame, right.frame, propertyType);
             }
 
             utils.setObjectProperty(item, fields, value);
