@@ -48,7 +48,7 @@
                             <td v-for="(frame, frameIdx) in track.frames"
                                 class="frame"
                                 :class="{active: !frame.blank, current: frame.frame === currentFrame, 'drop-candidate': frameDrag.source.trackIdx === trackIdx && frameDrag.destination.frameIdx === frameIdx}"
-                                :title="`${track.propertyShort}, frame: ${frame.frame}, value: ${frame.value}`"
+                                :title="`${track.propertyShort}, frame: ${frame.frame}, interpolation: ${frame.kind}, value: ${frame.value}`"
                                 draggable="true"
                                 @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
                                 @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
@@ -81,7 +81,8 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations } from '../../../animations/FrameAnimation';
+import { compileAnimations} from '../../../animations/FrameAnimation';
+import { Interpolations } from '../../../animations/ValueAnimation';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps']);
@@ -499,7 +500,30 @@ export default {
                         this.updateFramesMatrix();
                         this.compileAnimations();
                     }
-                })
+                });
+            
+                forEach(Interpolations.values(), interpolation => {
+                    if (frame.kind !== interpolation) {
+                        options.push({
+                            name: 'Convert to ' + interpolation,
+                            interpolation,
+                            clicked: (option) => {
+                                const animationIdx = this.findAnimationIndexForTrack(track);
+                                if (animationIdx < 0) {
+                                    return;
+                                }
+                                const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
+                                if (frameIdx < 0) {
+                                    return;
+                                }
+
+                                this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].kind = option.interpolation
+                                this.updateFramesMatrix();
+                                this.compileAnimations();
+                            }
+                        });
+                    }
+                });
             }
 
             this.frameContextMenu.options = options;
@@ -510,7 +534,7 @@ export default {
 
         onContextMenuOptionClick(option) {
             if (option.clicked) {
-                option.clicked();
+                option.clicked(option);
             }
         },
 
@@ -539,7 +563,10 @@ export default {
             } else {
                 // searching for frame that is bigger than current
                 let idx = 0;
+                let interpolation = 'linear';
+
                 for (let i = 0; i < animation.frames.length; i++) {
+                    interpolation = animation.frames[i].kind;
                     if (animation.frames[i].frame > frame.frame) {
                         idx = i;
                         break;
@@ -548,7 +575,7 @@ export default {
 
                 animation.frames.splice(idx, 0, {
                     frame: frame.frame,
-                    kind: 'linear',
+                    kind : interpolation,
                     value: value
                 });
             }

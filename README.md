@@ -80,7 +80,7 @@ const item = {
 const framePlayer = {
     shape: 'frame_player',
     shapeProps: {
-        animationFrames: [{
+        animations: [{
             kind: 'item',
             id: 'some-item-id',
             property: 'area.x',
@@ -102,6 +102,14 @@ const framePlayer = {
             frames: [{
                 
             }]
+        }, {
+            kind: 'path', // moving item along path
+            id: 'some-item-id', // id of item that should be moving along path
+            property: 'some-path-id', // id of path
+            args: {
+                rotate: true // adjust item rotation to the path,
+                rotationOffset: 80
+            }
         }]
     }
 };

@@ -2,9 +2,11 @@ import forEach from 'lodash/forEach';
 import Shape from '../components/editor/items/shapes/Shape';
 import utils from '../utils';
 import EventBus from '../components/editor/EventBus';
+import { convertTime, Interpolations } from './ValueAnimation';
 
 
 const NUMBER = 'number';
+
 
 const knownPropertyTypes = new Map([
     ['area.x', NUMBER],
@@ -15,6 +17,7 @@ const knownPropertyTypes = new Map([
     ['opacity', NUMBER],
     ['selfOpacity', NUMBER],
 ]);
+
 
 
 /**
@@ -113,11 +116,14 @@ function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
     const frameLookup = buildFrameLookup(frames, maxFrames);
 
     const interpolate = (frame, prevFrame, nextFrame) => {
-        //TODO implement support for different types of interpolations (step, beizer, linear, ease-in, ease-out, ease-in-out, etc.)
+        if (prevFrame.kind === Interpolations.STEP) {
+            return prevFrame.value;
+        }
+
         let d = nextFrame.frame - prevFrame.frame;
         if (d > 0 && frame >= prevFrame.frame && frame <= nextFrame.frame) {
-            const k = (frame - prevFrame.frame) / d;
-            return prevFrame.value * (1 - k) + k * nextFrame.value;
+            const t = convertTime((frame - prevFrame.frame) / d, prevFrame.kind);
+            return prevFrame.value * (1 - t) + t * nextFrame.value;
         }
         return prevFrame.value;
     }
