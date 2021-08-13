@@ -13,16 +13,26 @@
                 </div>
                 <div class="frame-animator-controls">
                     <div class="frame-animator-player-buttons">
-                        <span class="btn btn-danger btn-small"
-                            @click="recordCurrentFrame"
-                            title="Record items for currently selected frame"
-                            >
-                            <i class="far fa-dot-circle"></i> 
-                        </span>
-                        <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
-                        <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
-                        <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
-                        <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
+                        <div v-if="!isRecording">
+                            <span class="btn btn-danger btn-small"
+                                @click="startRecording"
+                                title="Record items for currently selected frame"
+                                >
+                                <i class="far fa-dot-circle"></i> 
+                            </span>
+                            <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
+                            <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
+                            <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
+                            <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
+                        </div>
+                        <div v-else>
+                            <span class="btn btn-danger btn-small"
+                                @click="stopRecording"
+                                title="Record items for currently selected frame"
+                                >
+                                <i class="fas fa-stop"></i> Stop recording
+                            </span>
+                        </div>
                     </div>
                     <div class="frame-animator-frame-input" v-if="selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frame >= 0">
                         <span v-if="selectedFrameControl.blank" class="btn btn-small btn-danger"><i class="far fa-dot-circle"></i> Record only this frame</span>
@@ -123,7 +133,7 @@ function jsonDiffItemWhitelistCallback(item) {
             return false;
         }
 
-        if (item.shape === 'frame_player' && path.length > 1 && path[0] === 'shapeProps' && path[1] === 'animations') {
+        if (item.shape === 'frame_player' && path.length > 1 && path[0] === 'shapeProps') {
             return false;
         }
         return true;
@@ -236,16 +246,23 @@ export default {
 
     beforeMount() {
         this.compileAnimations();
+        EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+    },
+
+    beforeDestroy() {
+        EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
     },
 
     data() {
-        const originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
         return {
-            originSchemeContainer,
+            originSchemeContainer: null,
             currentFrame: 1,
             framesMatrix: this.buildFramesMatrix(),
             compiledAnimations: [],
             isPlaying: false,
+            isRecording: false,
+            recordingPushbackTimer: null,
+            recordingPushbackInterval: 100,
 
             selectedTrackIdx: -1,
 
@@ -274,7 +291,8 @@ export default {
                 propertyDescriptor: null
             },
 
-            shouldRecompileAnimations: false
+            shouldRecompileAnimations: false,
+
         };
     },
 
@@ -284,6 +302,10 @@ export default {
         },
 
         selectFrame(frame) {
+            if (this.isRecording) {
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+            }
+
             this.currentFrame = frame;
             if (this.shouldRecompileAnimations) {
                 this.compileAnimations();
@@ -393,6 +415,26 @@ export default {
                 matrix.push(track);
             });
             return matrix;
+        },
+
+        startRecording() {
+            this.isRecording = true;
+            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+        },
+
+        stopRecording() {
+            this.isRecording = false;
+        },
+
+        onSchemeChange() {
+            if (this.recordingPushbackTimer) {
+                clearTimeout(this.recordingPushbackTimer);
+            }
+
+            this.recordingPushbackTimer = setTimeout(() => {
+                this.recordCurrentFrame();
+                this.recordingPushbackTimer = null;
+            }, this.recordingPushbackInterval);
         },
 
         recordCurrentFrame() {
