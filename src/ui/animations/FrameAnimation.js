@@ -5,6 +5,7 @@ import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
 import Animation from './Animation';
+import { knownBlendModes } from '../scheme/Item';
 
 
 const NUMBER = 'number';
@@ -17,31 +18,30 @@ const knownPropertyTypes = new Set([
     NUMBER, COLOR, STRING, BOOLEAN, CHOICE
 ]);
 
-
 const knownProperties = new Map([
-    ['area.x',      NUMBER],
-    ['area.y',      NUMBER],
-    ['area.w',      NUMBER],
-    ['area.h',      NUMBER],
-    ['area.r',      NUMBER],
-    ['opacity',     NUMBER],
-    ['selfOpacity', NUMBER],
-    ['visible',     BOOLEAN],
-    ['blendMode',   STRING],
+    ['area.x',      {type: NUMBER}],
+    ['area.y',      {type: NUMBER}],
+    ['area.w',      {type: NUMBER}],
+    ['area.h',      {type: NUMBER}],
+    ['area.r',      {type: NUMBER}],
+    ['opacity',     {type: NUMBER}],
+    ['selfOpacity', {type: NUMBER}],
+    ['visible',     {type: BOOLEAN}],
+    ['blendMode',   {type: STRING, options: knownBlendModes}],
 ]);
 
 
 
 /**
- * Find a property type for specified property path. In case the type is not supported for animations it returns null
+ * Find a property descriptor for specified property path. In case the type is not supported for animations it returns null
  * @param {Item} item 
  * @param {String} propertyPath 
  * @returns 
  */
-export function findItemPropertyType(item, propertyPath) {
-    const type = knownProperties.get(propertyPath);
-    if (type) {
-        return type;
+export function findItemPropertyDescriptor(item, propertyPath) {
+    const descriptor = knownProperties.get(propertyPath);
+    if (descriptor) {
+        return descriptor;
     }
 
     if (propertyPath.startsWith('shapeProps.')) {
@@ -59,11 +59,11 @@ export function findItemPropertyType(item, propertyPath) {
             return null;
         }
 
-        if (arg.type === 'color' || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
-            return COLOR;
+        if (arg.type === COLOR || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
+            return {type: COLOR};
         } else {
             if (knownPropertyTypes.has(arg.type)) {
-                return arg.type;
+                return arg;
             }
         }
     }
@@ -159,8 +159,8 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
 function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
     const fields = propertyPath.split('.');
 
-    const propertyType = findItemPropertyType(item, propertyPath);
-    if (!propertyType) {
+    const propertyDescriptor = findItemPropertyDescriptor(item, propertyPath);
+    if (!propertyDescriptor) {
         return null;
     }
     const frameLookup = buildFrameLookup(frames, totalFrames);
@@ -194,7 +194,7 @@ function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
             }
             let value = left.frame.value;
             if (right) {
-                value = interpolateFrameValues(frame, left.frame, right.frame, propertyType);
+                value = interpolateFrameValues(frame, left.frame, right.frame, propertyDescriptor.type);
             }
 
             utils.setObjectProperty(item, fields, value);

@@ -214,7 +214,7 @@ import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {ItemInteractionMode, knownBlendModes} from '../../../scheme/Item.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
@@ -223,6 +223,7 @@ import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, I
 import StoreUtils from '../../../store/StoreUtils.js';
 import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
 import PropertyInput from './PropertyInput.vue';
+import utils from '../../../utils.js';
 
 
 const ALL_TABS = [
@@ -276,10 +277,7 @@ export default {
             currentTab: 'description',
             shapeComponent: shapeComponent,
             oldShape: this.item.shape,
-            knownBlendModes: [  'normal', 'multiply', 'screen', 'overlay', 'darken', 
-                                'lighten', 'color-dodge', 'color-burn', 'difference',
-                                'exclusion', 'hue', 'saturation', 'color', 'luminosity'
-            ],
+            knownBlendModes: utils.clone(knownBlendModes),
 
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),

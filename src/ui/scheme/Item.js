@@ -25,6 +25,11 @@ export const textWhiteSpaceOptions = [{
     name: 'Preserved + Wrap', value: 'pre-wrap'
 }];
 
+export const knownBlendModes = ['normal', 'multiply', 'screen', 'overlay', 'darken', 
+                    'lighten', 'color-dodge', 'color-burn', 'difference',
+                    'exclusion', 'hue', 'saturation', 'color', 'luminosity'
+];
+
 export const textSlotProperties = [
     {field: 'color', name: 'Color', type: 'color'},
     {field: 'halign', name: 'Horizontal Align', type: 'choice', options: ['left', 'center', 'right']},

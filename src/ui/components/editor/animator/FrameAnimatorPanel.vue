@@ -24,10 +24,19 @@
                         <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
                         <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
                     </div>
-                    <div class="frame-animator-frame-input" v-if="selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frameIdx >= 0">
+                    <div class="frame-animator-frame-input" v-if="selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frame >= 0">
                         <span v-if="selectedFrameControl.blank" class="btn btn-small btn-danger"><i class="far fa-dot-circle"></i> Record only this frame</span>
-                        <div v-else>
-                            {{selectedFrameControl.propertyType}}
+                        <div v-else-if="selectedFrameControl.propertyDescriptor">
+                            <PropertyInput
+                                    :key="`frame-prop-input-${selectedFrameControl.trackIdx}-${selectedFrameControl.frame}`"
+                                    :projectId="projectId"
+                                    :descriptor="selectedFrameControl.propertyDescriptor"
+                                    :value="selectedFrameControl.value"
+                                    :shapeProps="{}"
+                                    :schemeContainer="schemeContainer"
+                                    :itemId="null"
+                                    @input="onFramePropertyInput" />
+
                         </div>
                     </div>
 
@@ -99,8 +108,9 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations, findItemPropertyType} from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyDescriptor } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
+import PropertyInput from '../properties/PropertyInput.vue';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -215,12 +225,13 @@ function findFrameIdx(animation, frame) {
 
 export default {
     props: {
+        projectId      : {type: String, required: true},
         schemeContainer: {type: Object, required: true},
         framePlayer    : {type: Object, required: true},
         light          : {type: Boolean, default: true},
     },
 
-    components: { ContextMenu },
+    components: { ContextMenu, PropertyInput },
 
     beforeMount() {
         this.compileAnimations();
@@ -257,10 +268,12 @@ export default {
             selectedFrameControl: {
                 value: null,
                 trackIdx: -1,
-                frameIdx: -1,
+                frame: -1,
                 blank: true,
-                propertyType: 'number'
-            }
+                propertyDescriptor: null
+            },
+
+            shouldRecompileAnimations: false
         };
     },
 
@@ -269,12 +282,19 @@ export default {
             this.$emit('animation-editor-opened', this.framePlayer);
         },
 
-            selectFrame(frame) {
-                this.currentFrame = frame;
-                forEach(this.compiledAnimations, compiledAnimation => {
-                    compiledAnimation.toggleFrame(frame);
-                });
-            },
+        selectFrame(frame) {
+            this.currentFrame = frame;
+            if (this.shouldRecompileAnimations) {
+                this.compileAnimations();
+            }
+            forEach(this.compiledAnimations, compiledAnimation => {
+                compiledAnimation.toggleFrame(frame);
+            });
+
+            if (this.selectedFrameControl.trackIdx >= 0 ) {
+                this.selectFrameControl(this.selectedFrameControl.trackIdx, frame - 1);
+            }
+        },
 
         selectTrackAndFrame(trackIdx, frameIdx) {
             this.selectedTrackIdx = trackIdx;
@@ -287,12 +307,12 @@ export default {
             const track = this.framesMatrix[trackIdx];
             const frame = track.frames[frameIdx];
 
-            this.selectedFrameControl.propertyType = null;
+            this.selectedFrameControl.propertyDescriptor = null;
 
             if (track.kind === 'item') {
                 const item = this.schemeContainer.findItemById(track.id);
                 if (item) {
-                    this.selectedFrameControl.propertyType = findItemPropertyType(item, track.property);
+                    this.selectedFrameControl.propertyDescriptor = findItemPropertyDescriptor(item, track.property);
                 }
             }
 
@@ -304,7 +324,7 @@ export default {
             }
 
             this.selectedFrameControl.trackIdx = trackIdx;
-            this.selectedFrameControl.frameIdx = frameIdx;
+            this.selectedFrameControl.frame = frame.frame;
         },
 
         buildFramesMatrix() {
@@ -397,10 +417,7 @@ export default {
                         if (f.frame === this.currentFrame) {
                             idx = i;
                             found = true;
-                            foundFrame = f;
-                        } else if (f.frame < this.currentFrame) {
-                            idx = i;
-                            foundFrame = f;
+                            foundFrame = f;            this.shouldRecompileAnimations = true;;
                         } else {
                             found = true;
                         }
@@ -426,15 +443,16 @@ export default {
                 }
             });
             this.updateFramesMatrix();
-            this.compileAnimations();
         },
 
         updateFramesMatrix() {
             this.framesMatrix = this.buildFramesMatrix();
+            this.shouldRecompileAnimations = true;
         },
 
         compileAnimations() {
             this.compiledAnimations = compileAnimations(this.framePlayer, this.schemeContainer);
+            this.shouldRecompileAnimations = false;
         },
 
         removeAnimationTrack(track) {
@@ -444,7 +462,6 @@ export default {
             }
             this.framePlayer.shapeProps.animations.splice(idx, 1);
             this.updateFramesMatrix();
-            this.compileAnimations();
         },
 
         findAnimationIndexForTrack(track) {
@@ -517,7 +534,6 @@ export default {
                 animation.frames.sort((a, b) => a.frame - b.frame);
             }
             this.updateFramesMatrix();
-            this.compileAnimations();
         },
 
         onMatrixDragEnter(trackIdx, frameIdx) {
@@ -529,6 +545,9 @@ export default {
         },
 
         playAnimations() {
+            if (this.shouldRecompileAnimations) {
+                this.compileAnimations();
+            }
             this.isPlaying = true;
             playAnimations(this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, {
                 onFrame: (frame) => {
@@ -585,7 +604,6 @@ export default {
 
                         this.framePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
                         this.updateFramesMatrix();
-                        this.compileAnimations();
                     }
                 });
             
@@ -606,7 +624,6 @@ export default {
 
                                 this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].kind = option.interpolation
                                 this.updateFramesMatrix();
-                                this.compileAnimations();
                             }
                         });
                     }
@@ -668,7 +685,29 @@ export default {
             }
 
             this.updateFramesMatrix();
-            this.compileAnimations();
+        },
+
+        onFramePropertyInput(value) {
+            const trackIdx = this.selectedFrameControl.trackIdx;
+            const frame = this.selectedFrameControl.frame;
+            if (trackIdx < 0 || frame < 0) {
+                return;
+            }
+
+            this.selectedFrameControl.value = value;
+
+            const animationIdx = this.findAnimationIndexForTrack(this.framesMatrix[trackIdx]);
+            if (animationIdx < 0) {
+                return;
+            }
+            const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame);
+            if (frameIdx < 0) {
+                return;
+            }
+
+            this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
+            this.framesMatrix[trackIdx].frames[frame - 1].value = value;
+            this.shouldRecompileAnimations = true;
         }
     },
 

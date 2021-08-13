@@ -3069,6 +3069,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-frame-input {
     display: inline-block;
+    min-width: 100px;
 }
 .frame-animator-panel .frame-animator-controls .btn {
     min-width: 22px;

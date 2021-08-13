@@ -58,7 +58,7 @@ export default {
         value          : [Number, String, Object, Boolean],
         disabled       : {type: Boolean, default: false},
         leftOriented   : {type: Boolean, default: false},
-        itemId         : {type: String, defalut: null},
+        itemId         : {type: String, defalut: null, required: false},
         shapeProps     : {type: Object, required: false} // this is an ugly way of propagating fat connectors into the CurveCapDropdown
     },
 

@@ -115,12 +115,13 @@
             </div>
 
             
-            <div v-if="animatorPanel.framePlayer || animationEditorCurrentFramePlayer" class="bottom-panel">
+            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)" class="bottom-panel">
                 <div class="side-panel-filler-left"></div>
                 <div class="bottom-panel-content">
                     <FrameAnimatorPanel
                         v-if="animationEditorCurrentFramePlayer"
                         :key="animationEditorCurrentFramePlayer.id"
+                        :projectId="projectId"
                         :schemeContainer="schemeContainer"
                         :framePlayer="animationEditorCurrentFramePlayer"
                         :light="false"
@@ -130,6 +131,7 @@
                     <FrameAnimatorPanel
                         v-else-if="animatorPanel.framePlayer"
                         :key="animatorPanel.framePlayer.id"
+                        :projectId="projectId"
                         :schemeContainer="schemeContainer"
                         :framePlayer="animatorPanel.framePlayer"
                         :light="true"
