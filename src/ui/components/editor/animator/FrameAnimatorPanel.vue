@@ -274,13 +274,17 @@ export default {
                     }
                 };
 
+                let prevFrame = null;
                 forEach(animation.frames, f => {
                     if (f.frame - 1 > frames.length) {
                         // should fill with empty cells first and then add the frame
                         addBlankFrames(f.frame - 1 - frames.length);
                     }
-                    //TODO protect from duplicate frames
-                    frames.push(f);
+                    if (!prevFrame || prevFrame.frame !== f.frame) {
+                        // protect from duplicate frames
+                        frames.push(f);
+                    }
+                    prevFrame = f;
                 });
                 if (frames.length < this.framePlayer.shapeProps.totalFrames) {
                     addBlankFrames(this.framePlayer.shapeProps.totalFrames - frames.length);
