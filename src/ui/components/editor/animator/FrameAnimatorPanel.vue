@@ -34,9 +34,8 @@
                             </span>
                         </div>
                     </div>
-                    <div class="frame-animator-frame-input" v-if="selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frame >= 0">
-                        <span v-if="selectedFrameControl.blank" class="btn btn-small btn-danger"><i class="far fa-dot-circle"></i> Record only this frame</span>
-                        <div v-else-if="selectedFrameControl.propertyDescriptor">
+                    <div class="frame-animator-frame-input" v-if="!isRecording && selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frame >= 0">
+                        <div v-if="!selectedFrameControl.blank && selectedFrameControl.propertyDescriptor">
                             <PropertyInput
                                     :key="`frame-prop-input-${selectedFrameControl.trackIdx}-${selectedFrameControl.frame}`"
                                     :projectId="projectId"
@@ -75,7 +74,7 @@
                         <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
                             <td class="frame-animator-property">
                                 <span v-if="track.itemName">{{track.itemName}}</span>
-                                {{track.propertyShort}}
+                                {{track.property}}
 
                                 <div class="frame-property-operations">
                                     <span class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
@@ -84,9 +83,10 @@
                             <td v-for="(frame, frameIdx) in track.frames"
                                 class="frame"
                                 :class="{active: !frame.blank, current: frame.frame === currentFrame, 'drop-candidate': frameDrag.source.trackIdx === trackIdx && frameDrag.destination.frameIdx === frameIdx}"
-                                :title="`${track.propertyShort}, frame: ${frame.frame}, interpolation: ${frame.kind}, value: ${frame.value}`"
+                                :title="`${track.property}, frame: ${frame.frame}, interpolation: ${frame.kind}, value: ${frame.value}`"
                                 draggable="true"
                                 @click="selectTrackAndFrame(trackIdx, frameIdx)"
+                                @dblclick="onFrameDoubleClick(trackIdx, frameIdx)"
                                 @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
                                 @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
                                 @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
@@ -118,7 +118,7 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations, findItemPropertyDescriptor } from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
 import EventBus from '../EventBus';
@@ -330,14 +330,7 @@ export default {
             const track = this.framesMatrix[trackIdx];
             const frame = track.frames[frameIdx];
 
-            this.selectedFrameControl.propertyDescriptor = null;
-
-            if (track.kind === 'item') {
-                const item = this.schemeContainer.findItemById(track.id);
-                if (item) {
-                    this.selectedFrameControl.propertyDescriptor = findItemPropertyDescriptor(item, track.property);
-                }
-            }
+            this.selectedFrameControl.propertyDescriptor = track.propertyDescriptor;
 
             if (frame.blank) {
                 this.selectedFrameControl.blank = true;
@@ -354,6 +347,14 @@ export default {
             this.selectedFrameControl.trackIdx = -1;
             this.selectedFrameControl.frame = -1;
             this.selectedFrameControl.propertyDescriptor = null;
+        },
+
+        onFrameDoubleClick(trackIdx, frameIdx) {
+            const track = this.framesMatrix[trackIdx];
+            const frame = track.frames[frameIdx];
+            if (frame.blank) {
+                this.recordCurrentValueForTrack(track, frame);
+            }
         },
 
         buildFramesMatrix() {
@@ -391,16 +392,12 @@ export default {
                 }
 
                 let itemName = null;
-                let propertyShort = animation.property;
+                let propertyDescriptor = null;
                 if (animation.kind === 'item') {
                     const item = this.schemeContainer.findItemById(animation.id);
                     if (item) {
                         itemName = item.name;
-                        if (animation.property === 'area.x') {
-                            propertyShort = 'X';
-                        } else if (animation.property === 'area.y') {
-                            propertyShort = 'Y';
-                        }
+                        propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
                     }
                 }
 
@@ -408,7 +405,7 @@ export default {
                     kind    : animation.kind,
                     id      : animation.id,
                     property: animation.property,
-                    propertyShort,
+                    propertyDescriptor,
                     itemName,
                     frames,
                 }
@@ -427,6 +424,10 @@ export default {
         },
 
         onSchemeChange() {
+            if (!this.isRecording) {
+                return;
+            }
+
             if (this.recordingPushbackTimer) {
                 clearTimeout(this.recordingPushbackTimer);
             }

@@ -121,7 +121,7 @@ function buildFrameLookup(frames, totalFrames) {
     return frameLookup;
 }
 
-function interpolateValue(propertyType, value1, value2, t) {
+export function interpolateValue(propertyType, value1, value2, t) {
     if (propertyType === NUMBER) {
         return value1 * (1 - t) + t * value2;
     } else if (propertyType === COLOR) {
