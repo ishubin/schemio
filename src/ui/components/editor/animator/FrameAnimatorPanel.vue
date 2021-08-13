@@ -142,7 +142,7 @@ function detectChanges(schemeContainer, originSchemeContainer) {
     return changes;
 }
 
-const MIN_FPS = 0.05;
+const MIN_FPS = 0.01;
 
 let _isPlayingAnimation = false;
 

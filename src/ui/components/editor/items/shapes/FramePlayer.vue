@@ -97,13 +97,6 @@ export default {
          */
         getEvents(item) {
             const events = [];
-            if (item.shapeProps.totalFrames > 0) {
-                for (let i = 1; i <= item.shapeProps.totalFrames; i++) {
-                    events.push({
-                        name: `Frame-${i}`
-                    });
-                }
-            }
             return events;
         },
     },
@@ -172,13 +165,35 @@ export default {
         },
 
         onClickedTogglePlay() {
-        },
-
-        onPlayInterval() {
+            if (!this.isPlaying) {
+                this.isPlaying = true;
+                this.$emit('frame-animator', {
+                    operation: 'play', 
+                    item: this.item,
+                    frame: this.currentFrame,
+                    callbacks: {
+                        onFrame: (frame) => {
+                            this.currentFrame = frame;
+                        },
+                        onFinish: () => {
+                            this.isPlaying = false;
+                        }
+                    }
+                });
+            } else {
+                this.$emit('frame-animator', {
+                    operation: 'stop', 
+                    item: this.item,
+                });
+            }
         },
 
         emitCurrentFrameEvent() {
-            this.$emit('custom-event', `Frame-${this.currentFrame}`);
+            this.$emit('frame-animator', {
+                operation: 'setFrame',
+                item: this.item,
+                frame: this.currentFrame
+            });
         }
     },
 

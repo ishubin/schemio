@@ -4,6 +4,7 @@ import utils from '../utils';
 import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
+import Animation from './Animation';
 
 
 const NUMBER = 'number';
@@ -69,7 +70,7 @@ export function findItemPropertyType(item, propertyPath) {
     return null;
 }
 
-function buildFrameLookup(frames, maxFrames) {
+function buildFrameLookup(frames, totalFrames) {
     frames.sort((a, b) => {
         return a.frame - b.frame;
     })
@@ -114,8 +115,8 @@ function buildFrameLookup(frames, maxFrames) {
         }
         previosActiveFrameIdx = f.frame - 1;
     });
-    if (frameLookup.length < maxFrames) {
-        addBlankFrames(maxFrames - frameLookup.length, previosActiveFrameIdx, -1);
+    if (frameLookup.length < totalFrames) {
+        addBlankFrames(totalFrames - frameLookup.length, previosActiveFrameIdx, -1);
     }
     return frameLookup;
 }
@@ -155,14 +156,14 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
 }
 
 
-function creatItemFrameAnimation(item, propertyPath, frames, maxFrames) {
+function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
     const fields = propertyPath.split('.');
 
     const propertyType = findItemPropertyType(item, propertyPath);
     if (!propertyType) {
         return null;
     }
-    const frameLookup = buildFrameLookup(frames, maxFrames);
+    const frameLookup = buildFrameLookup(frames, totalFrames);
 
     return {
         toggleFrame(frame) {
@@ -218,4 +219,67 @@ export function compileAnimations(framePlayer, schemeContainer) {
     return animations;
 }
 
+const MIN_FPS = 0.01;
 
+export class FrameAnimation extends Animation {
+    constructor(fps, totalFrames, compiledAnimations) {
+        super();
+        this.shouldStop = false;
+        this.totalTimePassed = 0;
+        this.currentFrame = 0;
+        this.startFrame = 1;
+        this.fps = fps;
+        this.totalFrames = totalFrames;
+        this.compiledAnimations = compiledAnimations;
+        this.onFrame = null;
+        this.onFinish = null;
+    }
+
+    setFrame(frame) {
+        this.startFrame = frame;
+        this.currentFrame = Math.floor(frame) - 1;
+    }
+
+    init() {
+        this.totalTimePassed = 0;
+        this.shouldStop = false;
+        return true;
+    }
+
+    setCallbacks({onFrame, onFinish}) {
+        this.onFrame = onFrame;
+        this.onFinish = onFinish;
+    }
+
+    play(dt) {
+        this.totalTimePassed += dt;
+        let frame = this.startFrame + this.totalTimePassed * Math.max(this.fps, MIN_FPS) / 1000;
+        let nextFrame = Math.floor(frame);
+
+        if (nextFrame > this.currentFrame) {
+            this.currentFrame = nextFrame;
+            this.onFrame(this.currentFrame);
+        }
+        
+        this.toggleFrame(frame);
+
+        if (nextFrame < this.totalFrames && !this.shouldStop) {
+            return true;
+        }
+        return false;
+    }
+
+    toggleFrame(frame) {
+        forEach(this.compiledAnimations, animation => {
+            animation.toggleFrame(frame);
+        });
+    }
+
+    destroy() {
+        this.onFinish();
+    }
+
+    stop() {
+        this.shouldStop = true;
+    }
+}

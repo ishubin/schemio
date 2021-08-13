@@ -21,7 +21,8 @@
                 :item="item"
                 :mode="mode"
                 :style="{'opacity': item.selfOpacity/100.0}"
-                @custom-event="onShapeCustomEvent">
+                @custom-event="onShapeCustomEvent"
+                @frame-animator="onFrameAnimatorEvent">
             </component>
 
             <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
@@ -78,12 +79,13 @@
         </defs>
 
         <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
-            <item-svg v-for="childItem in item.childItems"
+            <ItemSvg v-for="childItem in item.childItems"
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
+                @frame-animator="onFrameAnimatorEvent"
                 />
         </g>
     </g>
@@ -134,7 +136,7 @@ function generateFilters(item) {
 
 
 export default {
-    name: 'item-svg',
+    name: 'ItemSvg',
     props: ['item', 'mode'],
     components: {AdvancedFill},
 
@@ -250,6 +252,10 @@ export default {
                 eventName: eventName,
                 args: arguments
             });
+        },
+
+        onFrameAnimatorEvent(args) {
+            this.$emit('frame-animator', args);
         },
 
         generateTextSlots() {
