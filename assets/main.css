@@ -3064,6 +3064,12 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
     flex: 1;
     user-select: none;
 }
+.frame-animator-panel .frame-animator-controls .frame-animator-player-buttons {
+    display: inline-block;
+}
+.frame-animator-panel .frame-animator-controls .frame-animator-frame-input {
+    display: inline-block;
+}
 .frame-animator-panel .frame-animator-controls .btn {
     min-width: 22px;
     text-align: center;
@@ -3137,7 +3143,10 @@ table.frame-animator-matrix th.current {
     color: var(--base-weak);
 }
 table.frame-animator-matrix td.current {
-    background: var(--accent-faint-up);
+    background: var(--accent-weak);
+}
+table.frame-animator-matrix tbody tr.selected-track td.current {
+    background: var(--accent-weak-down);
 }
 
 table.frame-animator-matrix td.frame {

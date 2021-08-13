@@ -12,16 +12,25 @@
                     <h3>{{framePlayer.name}}</h3>
                 </div>
                 <div class="frame-animator-controls">
-                    <span class="btn btn-danger btn-small"
-                        @click="recordCurrentFrame"
-                        title="Record items for currently selected frame"
-                        >
-                        <i class="far fa-dot-circle"></i> 
-                    </span>
-                    <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
-                    <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
-                    <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
-                    <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
+                    <div class="frame-animator-player-buttons">
+                        <span class="btn btn-danger btn-small"
+                            @click="recordCurrentFrame"
+                            title="Record items for currently selected frame"
+                            >
+                            <i class="far fa-dot-circle"></i> 
+                        </span>
+                        <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
+                        <span class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
+                        <span class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
+                        <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
+                    </div>
+                    <div class="frame-animator-frame-input" v-if="selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frameIdx >= 0">
+                        <span v-if="selectedFrameControl.blank" class="btn btn-small btn-danger"><i class="far fa-dot-circle"></i> Record only this frame</span>
+                        <div v-else>
+                            {{selectedFrameControl.propertyType}}
+                        </div>
+                    </div>
+
                 </div>
                 <div class="frame-animator-right-panel">
                     <span class="icon" @click="$emit('close')"><i class="fas fa-times"/></span>
@@ -44,7 +53,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(track, trackIdx) in framesMatrix">
+                        <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
                             <td class="frame-animator-property">
                                 <span v-if="track.itemName">{{track.itemName}}</span>
                                 {{track.propertyShort}}
@@ -58,6 +67,7 @@
                                 :class="{active: !frame.blank, current: frame.frame === currentFrame, 'drop-candidate': frameDrag.source.trackIdx === trackIdx && frameDrag.destination.frameIdx === frameIdx}"
                                 :title="`${track.propertyShort}, frame: ${frame.frame}, interpolation: ${frame.kind}, value: ${frame.value}`"
                                 draggable="true"
+                                @click="selectTrackAndFrame(trackIdx, frameIdx)"
                                 @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
                                 @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
                                 @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
@@ -89,7 +99,7 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations} from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyType} from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 
 
@@ -225,6 +235,8 @@ export default {
             compiledAnimations: [],
             isPlaying: false,
 
+            selectedTrackIdx: -1,
+
             frameDrag: {
                 source: {
                     trackIdx: -1,
@@ -240,6 +252,14 @@ export default {
                 mouseX: 0,
                 mouseY: 0,
                 options: []
+            },
+
+            selectedFrameControl: {
+                value: null,
+                trackIdx: -1,
+                frameIdx: -1,
+                blank: true,
+                propertyType: 'number'
             }
         };
     },
@@ -249,11 +269,42 @@ export default {
             this.$emit('animation-editor-opened', this.framePlayer);
         },
 
-        selectFrame(frame) {
-            this.currentFrame = frame;
-            forEach(this.compiledAnimations, compiledAnimation => {
-                compiledAnimation.toggleFrame(frame);
-            });
+            selectFrame(frame) {
+                this.currentFrame = frame;
+                forEach(this.compiledAnimations, compiledAnimation => {
+                    compiledAnimation.toggleFrame(frame);
+                });
+            },
+
+        selectTrackAndFrame(trackIdx, frameIdx) {
+            this.selectedTrackIdx = trackIdx;
+            const track = this.framesMatrix[trackIdx];
+            this.selectFrame(track.frames[frameIdx].frame)
+            this.selectFrameControl(trackIdx, frameIdx);
+        },
+
+        selectFrameControl(trackIdx, frameIdx) {
+            const track = this.framesMatrix[trackIdx];
+            const frame = track.frames[frameIdx];
+
+            this.selectedFrameControl.propertyType = null;
+
+            if (track.kind === 'item') {
+                const item = this.schemeContainer.findItemById(track.id);
+                if (item) {
+                    this.selectedFrameControl.propertyType = findItemPropertyType(item, track.property);
+                }
+            }
+
+            if (frame.blank) {
+                this.selectedFrameControl.blank = true;
+            } else {
+                this.selectedFrameControl.blank = false;
+                this.selectedFrameControl.value = frame.value;
+            }
+
+            this.selectedFrameControl.trackIdx = trackIdx;
+            this.selectedFrameControl.frameIdx = frameIdx;
         },
 
         buildFramesMatrix() {

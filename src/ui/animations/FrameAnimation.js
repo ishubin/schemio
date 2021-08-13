@@ -8,13 +8,13 @@ import Animation from './Animation';
 
 
 const NUMBER = 'number';
-const COLOR_STRING = 'color-string';
+const COLOR = 'color';
 const BOOLEAN = 'boolean';
 const STRING = 'string';
 const CHOICE = 'choice';
 
 const knownPropertyTypes = new Set([
-    NUMBER, COLOR_STRING, STRING, BOOLEAN, CHOICE
+    NUMBER, COLOR, STRING, BOOLEAN, CHOICE
 ]);
 
 
@@ -60,7 +60,7 @@ export function findItemPropertyType(item, propertyPath) {
         }
 
         if (arg.type === 'color' || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
-            return COLOR_STRING;
+            return COLOR;
         } else {
             if (knownPropertyTypes.has(arg.type)) {
                 return arg.type;
@@ -124,7 +124,7 @@ function buildFrameLookup(frames, totalFrames) {
 function interpolateValue(propertyType, value1, value2, t) {
     if (propertyType === NUMBER) {
         return value1 * (1 - t) + t * value2;
-    } else if (propertyType === COLOR_STRING) {
+    } else if (propertyType === COLOR) {
         const c1 = parseColor(value1)
         const c2 = parseColor(value2);
         const color = {
@@ -144,7 +144,7 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
         return prevFrame.value;
     }
 
-    if (propertyType === NUMBER || propertyType === COLOR_STRING) {
+    if (propertyType === NUMBER || propertyType === COLOR) {
         let d = nextFrame.frame - prevFrame.frame;
         if (d > 0 && frameNum >= prevFrame.frame && frameNum <= nextFrame.frame) {
             const t = convertTime((frameNum - prevFrame.frame) / d, prevFrame.kind);
