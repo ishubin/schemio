@@ -111,6 +111,7 @@ import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
+import EventBus from '../EventBus';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -325,6 +326,12 @@ export default {
 
             this.selectedFrameControl.trackIdx = trackIdx;
             this.selectedFrameControl.frame = frame.frame;
+        },
+
+        resetFrameControl() {
+            this.selectedFrameControl.trackIdx = -1;
+            this.selectedFrameControl.frame = -1;
+            this.selectedFrameControl.propertyDescriptor = null;
         },
 
         buildFramesMatrix() {
@@ -545,6 +552,7 @@ export default {
         },
 
         playAnimations() {
+            this.resetFrameControl();
             if (this.shouldRecompileAnimations) {
                 this.compileAnimations();
             }
@@ -700,13 +708,23 @@ export default {
             if (animationIdx < 0) {
                 return;
             }
-            const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame);
+            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+            const frameIdx = findFrameIdx(animation, frame);
             if (frameIdx < 0) {
                 return;
             }
 
             this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
             this.framesMatrix[trackIdx].frames[frame - 1].value = value;
+
+            if (animation.kind === 'item') {
+                const item = this.schemeContainer.findItemById(animation.id);
+                if (item) {
+                    utils.setObjectProperty(item, animation.property, value);
+                    EventBus.emitItemChanged(item.id, animation.property);
+                }
+            }
+            EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
             this.shouldRecompileAnimations = true;
         }
     },
