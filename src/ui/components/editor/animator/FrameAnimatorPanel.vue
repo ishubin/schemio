@@ -598,47 +598,85 @@ export default {
             if (dstFrameIdx === srcFrameIdx || dstFrameIdx < 0) {
                 return;
             }
+            const track = this.framesMatrix[srcTrackIdx];
 
-            const sourceFrame = this.framesMatrix[srcTrackIdx].frames[srcFrameIdx];
-            const destinationFrame = this.framesMatrix[srcTrackIdx].frames[dstFrameIdx];
+            const sourceFrame = track.frames[srcFrameIdx];
+            const destinationFrame = track.frames[dstFrameIdx];
 
-            const animationIdx = this.findAnimationIndexForTrack(this.framesMatrix[srcTrackIdx]);
-            if (animationIdx < 0) {
-                return;
-            }
-
-            const animation = this.framePlayer.shapeProps.animations[animationIdx];
-
-            if (sourceFrame.blank && !destinationFrame.blank) {
-                // deleting frame
-                const frameIdx = findFrameIdx(animation, destinationFrame.frame);
-                if (frameIdx < 0) {
+            if (track.kind === 'sections') {
+                const sections = this.framePlayer.shapeProps.sections;
+                if (sourceFrame.blank) {
+                    // deleting
+                    let matchingIdx = -1;
+                    for (let i = 0; i < sections.length && matchingIdx < 0; i++) {
+                        if (sections[i].frame === destinationFrame.frame) {
+                            matchingIdx = i;
+                        }
+                    }
+                    if (matchingIdx >= 0) {
+                        sections.splice(matchingIdx, 1);
+                    }
+                } else {
+                    // replacing or inserting
+                    const frame = {
+                        frame: destinationFrame.frame,
+                        value: sourceFrame.value
+                    }
+                    let matchingIdx = -1;
+                    for (let i = 0; i < sections.length && matchingIdx < 0; i++) {
+                        if (sections[i].frame === sourceFrame.frame) {
+                            matchingIdx = i;
+                        }
+                    }
+                    if (matchingIdx >= 0) {
+                        sections[matchingIdx] = frame;
+                    } else {
+                        sections.push(frame);
+                    }
+                    sections.sort((a, b) => a.frame - b.frame);
+                }
+            } else {
+                //TODO simplify all this code and implement in the same way as we handle it for sections
+                const animationIdx = this.findAnimationIndexForTrack(track);
+                if (animationIdx < 0) {
                     return;
                 }
-                animation.frames.splice(frameIdx, 1);
-            } else if (!sourceFrame.blank) {
-                if (destinationFrame.blank) {
-                    // changing the frame number
-                    const frameIdx = findFrameIdx(animation, sourceFrame.frame);
+
+                const animation = this.framePlayer.shapeProps.animations[animationIdx];
+
+                if (sourceFrame.blank && !destinationFrame.blank) {
+                    // deleting frame
+                    const frameIdx = findFrameIdx(animation, destinationFrame.frame);
                     if (frameIdx < 0) {
                         return;
                     }
-                    animation.frames[frameIdx].frame = dstFrameIdx + 1;
-                } else {
-                    // deleting destination frame and changing the frame number on the source
-                    const srcFrameIdx = findFrameIdx(animation, sourceFrame.frame);
-                    if (srcFrameIdx < 0) {
-                        return;
+                    animation.frames.splice(frameIdx, 1);
+                } else if (!sourceFrame.blank) {
+                    if (destinationFrame.blank) {
+                        // changing the frame number
+                        const frameIdx = findFrameIdx(animation, sourceFrame.frame);
+                        if (frameIdx < 0) {
+                            return;
+                        }
+                        animation.frames[frameIdx].frame = dstFrameIdx + 1;
+                    } else {
+                        // deleting destination frame and changing the frame number on the source
+                        const srcFrameIdx = findFrameIdx(animation, sourceFrame.frame);
+                        if (srcFrameIdx < 0) {
+                            return;
+                        }
+                        const dstFrameIdx = findFrameIdx(animation, destinationFrame.frame);
+                        if (dstFrameIdx < 0) {
+                            return;
+                        }
+                        animation.frames[srcFrameIdx].frame = dstFrameIdx + 1;
+                        animation.frames.splice(dstFrameIdx, 1);
                     }
-                    const dstFrameIdx = findFrameIdx(animation, destinationFrame.frame);
-                    if (dstFrameIdx < 0) {
-                        return;
-                    }
-                    animation.frames[srcFrameIdx].frame = dstFrameIdx + 1;
-                    animation.frames.splice(dstFrameIdx, 1);
+                    animation.frames.sort((a, b) => a.frame - b.frame);
                 }
-                animation.frames.sort((a, b) => a.frame - b.frame);
+
             }
+
             this.updateFramesMatrix();
         },
 
