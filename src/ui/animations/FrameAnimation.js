@@ -258,7 +258,9 @@ export class FrameAnimation extends Animation {
 
         if (nextFrame > this.currentFrame) {
             this.currentFrame = nextFrame;
-            this.onFrame(this.currentFrame);
+            if (this.onFrame) {
+                this.onFrame(this.currentFrame);
+            }
         }
         
         this.toggleFrame(frame);
@@ -270,13 +272,18 @@ export class FrameAnimation extends Animation {
     }
 
     toggleFrame(frame) {
+        this.startFrame = frame;
+        this.totalTimePassed = 0;
+        this.currentFrame = frame;
         forEach(this.compiledAnimations, animation => {
             animation.toggleFrame(frame);
         });
     }
 
     destroy() {
-        this.onFinish();
+        if (this.onFinish) {
+            this.onFinish();
+        }
     }
 
     stop() {

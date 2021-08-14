@@ -181,13 +181,21 @@ export default {
         },
 
         onClickedToBegin() {
-            this.currentFrame = 1;
-            this.emitCurrentFrameEvent();
+            const firstSection = this.sectionsByNumber.get(1);
+            if (firstSection) {
+                this.currentFrame = 1;
+                this.currentSection = firstSection;
+                this.emitCurrentFrameEvent();
+            }
         },
 
         onClickedToEnd() {
-            this.currentFrame = this.item.shapeProps.totalFrames;
-            this.emitCurrentFrameEvent();
+            const lastSection = this.sectionsByNumber.get(this.totalSections);
+            if (lastSection) {
+                this.currentFrame = lastSection.frame;
+                this.currentSection = lastSection;
+                this.emitCurrentFrameEvent();
+            }
         },
 
         onClickedLeft() {

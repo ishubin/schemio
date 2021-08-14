@@ -17,6 +17,7 @@ import MoveRandomlyFunction from './MoveRandomlyFunction';
 import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
 import UntoggleFunction from './UntoggleFunction';
+import PlayFramesFunction from './PlayFramesFunction';
 
 export default {
     main: {
@@ -31,6 +32,7 @@ export default {
         moveAlongPath:      MoveAlongPathFunction,
         moveToItem:         MoveToItemFunction,
         moveRandomly:       MoveRandomlyFunction,
+        playFrames:         PlayFramesFunction,
         rotate:             RotateFunction,
         scale:              ScaleFunction,
         replaceItem:        ReplaceItemFunction,

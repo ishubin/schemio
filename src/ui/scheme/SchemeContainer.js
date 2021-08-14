@@ -21,6 +21,7 @@ import { Item, enrichItemWithDefaults, traverseItems } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
 import Functions from '../userevents/functions/Functions';
+import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
 
 const log = new Logger('SchemeContainer');
 
@@ -159,6 +160,9 @@ class SchemeContainer {
 
         this.spatialIndex = new SpatialIndex(); // used for indexing item path points
         this.pinSpatialIndex = new SpatialIndex(); // used for indexing item pins
+
+        // contains mapping of frame player id to its compiled animations
+        this.framesAnimations = {};
 
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
@@ -1828,6 +1832,25 @@ class SchemeContainer {
         }
 
         return null;
+    }
+
+    prepareFrameAnimations() {
+        // This function is needed because animations for frame player can be triggered from two places:
+        // a) by clicking play button
+        // b) by calling "Play Frames" function in behavior actions
+
+        this.frameAnimations = {};
+        forEach(this.getItems(), item => {
+            if (item.shape !== 'frame_player') {
+                return;
+            }
+            const compiledAnimations = compileAnimations(item, this);
+            this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
+        });
+    }
+
+    getFrameAnimation(itemId) {
+        return this.frameAnimations[itemId];
     }
 }
 

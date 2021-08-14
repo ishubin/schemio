@@ -235,7 +235,6 @@ import apiClient from '../../apiClient';
 import StoreUtils from '../../store/StoreUtils';
 import {identifyShape} from './items/shapes/SmartShapeClassifier';
 import config from '../../config';
-import { compileAnimations, FrameAnimation } from '../../animations/FrameAnimation';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -417,8 +416,6 @@ export default {
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
-            // contains mapping of frame player id to its compiled animations
-            frameAnimations: {}
         };
     },
     methods: {
@@ -779,14 +776,7 @@ export default {
          * Compiles animations for all frame players in the scheme so that they could be played in view mode
          */
         prepareFrameAnimations() {
-            this.frameAnimations = {};
-            forEach(this.schemeContainer.getItems(), item => {
-                if (item.shape !== 'frame_player') {
-                    return;
-                }
-                const compiledAnimations = compileAnimations(item, this.schemeContainer);
-                this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
-            });
+            this.schemeContainer.prepareFrameAnimations();
         },
 
         onFrameAnimatorEvent(args) {
@@ -794,7 +784,7 @@ export default {
                 return;
             }
             const itemId = args.item.id;
-            const frameAnimation = this.frameAnimations[itemId];
+            const frameAnimation = this.schemeContainer.getFrameAnimation(itemId);
             if (!frameAnimation) {
                 return;
             }
