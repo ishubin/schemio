@@ -30,14 +30,19 @@
                 style="cursor: pointer"/>
         </g>
 
-        <foreignObject x="0" :y="buttonSize + 6 + topOffset" 
-            :width="item.area.w" height="30" xmlns="http://www.w3.org/1999/xhtml">
-            <div :style="framesTextStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+        <foreignObject v-if="currentSection" x="0" :y="buttonSize + 6 + topOffset" 
+            :width="item.area.w" height="60" xmlns="http://www.w3.org/1999/xhtml">
+            <div :style="framesTextStyle">
+                <div>{{currentSection.number}} / {{totalSections}}</div>
+                <div>{{currentSection.name}}</div>
+            </div>
         </foreignObject>
     </g>
 </template>
 
 <script>
+import forEach from 'lodash/forEach';
+
 export default {
     props: ['item'],
 
@@ -103,6 +108,36 @@ export default {
     },
     
     data() {
+        const sectionsMapping = [];
+        const map = new Map();
+        const sectionsByNumber = new Map();
+
+        this.item.shapeProps.sections.sort((a, b) => a.frame - b.frame);
+
+        forEach(this.item.shapeProps.sections, (section, idx) => {
+            const sectionInfo = {
+                number: idx + 1,
+                name: section.value,
+                frame: section.frame
+            };
+            map.set(section.frame, sectionInfo);
+            sectionsByNumber.set(sectionInfo.number, sectionInfo);
+        });
+
+        let firstSection = null;
+        let currentSection = null;
+        for (let i = 0; i < this.item.shapeProps.totalFrames; i++) {
+            const frame = i + 1;
+            if (map.has(frame)) {
+                currentSection = map.get(frame);
+                if (!firstSection) {
+                    firstSection = currentSection;
+                }
+            }
+            sectionsMapping[i] = currentSection;
+        }
+
+
         return {
             currentFrame: 1,
             isPlaying: false,
@@ -111,6 +146,10 @@ export default {
             buttonSize: 20,
             buttonSpaceSize: 4,
             buttonFontSize: '10px',
+            sectionsMapping,
+            sectionsByNumber,
+            currentSection: firstSection,
+            totalSections: this.item.shapeProps.sections.length,
 
             buttons: [{
                 icon: 'fas fa-fast-backward',
@@ -152,16 +191,30 @@ export default {
         },
 
         onClickedLeft() {
-            if (this.currentFrame > 1) {
-                this.currentFrame -= 1;
-                this.emitCurrentFrameEvent();
+            if (this.currentSection) {
+                const prevSection = this.sectionsByNumber.get(this.currentSection.number - 1);
+                if (prevSection) {
+                    const prevFrame = prevSection.frame;
+                    if (prevFrame >= 0) {
+                        this.currentFrame = prevFrame;
+                        this.currentSection = prevSection;
+                        this.emitCurrentFrameEvent();
+                    }
+                }
             }
         },
 
         onClickedRight() {
-            if (this.currentFrame < this.item.shapeProps.totalFrames) {
-                this.currentFrame += 1;
-                this.emitCurrentFrameEvent();
+            if (this.currentSection) {
+                const nextSection = this.sectionsByNumber.get(this.currentSection.number + 1);
+                if (nextSection) {
+                    const nextFrame = nextSection.frame;
+                    if (nextFrame < this.item.shapeProps.totalFrames) {
+                        this.currentFrame = nextFrame;
+                        this.currentSection = nextSection;
+                        this.emitCurrentFrameEvent();
+                    }
+                }
             }
         },
 
@@ -175,6 +228,9 @@ export default {
                     callbacks: {
                         onFrame: (frame) => {
                             this.currentFrame = frame;
+                            if (frame <= this.sectionsMapping.length && frame > 0) {
+                                this.currentSection = this.sectionsMapping[frame - 1];
+                            }
                         },
                         onFinish: () => {
                             this.isPlaying = false;
