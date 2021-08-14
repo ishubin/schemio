@@ -73,11 +73,16 @@
                     <tbody>
                         <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
                             <td class="frame-animator-property">
-                                <span v-if="track.itemName">{{track.itemName}}</span>
-                                {{track.property}}
+                                <div v-if="track.kind === 'item'">
+                                    <span v-if="track.itemName">{{track.itemName}}</span>
+                                    {{track.property}}
+                                </div>
+                                <div v-else-if="track.kind === 'sections'">
+                                    <i class="fas fa-paragraph"></i> Sections
+                                </div>
 
                                 <div class="frame-property-operations">
-                                    <span class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
+                                    <span v-if="track.kind !== 'sections'" class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
                                 </div>
                             </td>
                             <td v-for="(frame, frameIdx) in track.frames"
@@ -90,7 +95,7 @@
                                 @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
                                 @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
                                 @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
-                                @contextmenu="onFrameRightClick($event, track, frame)"
+                                @contextmenu="onFrameRightClick($event, trackIdx, frameIdx)"
                                 >
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
@@ -351,9 +356,14 @@ export default {
 
         onFrameDoubleClick(trackIdx, frameIdx) {
             const track = this.framesMatrix[trackIdx];
-            const frame = track.frames[frameIdx];
-            if (frame.blank) {
-                this.recordCurrentValueForTrack(track, frame);
+            if (track.kind === 'sections') {
+                this.addSectionFrame(trackIdx, frameIdx);
+                this.selectTrackAndFrame(trackIdx, frameIdx);
+            } else {
+                const frame = track.frames[frameIdx];
+                if (frame.blank) {
+                    this.recordCurrentValueForTrack(track, frame);
+                }
             }
         },
 
@@ -411,7 +421,53 @@ export default {
                 }
                 matrix.push(track);
             });
+
+            matrix.push(this.buildSectionsTrack());
             return matrix;
+        },
+
+        buildSectionsTrack() {
+            let sections = this.framePlayer.shapeProps.sections;
+            if (!sections) {
+                sections = [];
+            }
+
+            sections.sort((a, b) => a.frame - b.frame);
+
+            const frames = [];
+
+            const addBlankFrames = (num) => {
+                const length = frames.length;
+                for (let i = 0; i < num; i++) {
+                    frames.push({
+                        frame: i + length + 1,
+                        blank: true
+                    });
+                }
+            };
+
+
+            let prevFrame = null;
+            forEach(sections, section => {
+                if (section.frame - 1 > frames.length) {
+                    // should fill with empty cells first and then add the frame
+                    addBlankFrames(section.frame - 1 - frames.length);
+                }
+                if (!prevFrame || prevFrame.frame !== section.frame) {
+                    // protect from duplicate frames
+                    frames.push(section);
+                }
+                prevFrame = section;
+            });
+            if (frames.length < this.framePlayer.shapeProps.totalFrames) {
+                addBlankFrames(this.framePlayer.shapeProps.totalFrames - frames.length);
+            }
+
+            return {
+                kind: 'sections',
+                propertyDescriptor: {type: 'string', name: 'Section Name'},
+                frames
+            };
         },
 
         startRecording() {
@@ -630,8 +686,10 @@ export default {
             }
         },
 
-        onFrameRightClick(event, track, frame) {
+        onFrameRightClick(event, trackIdx, frameIdx) {
             event.preventDefault();
+            const track = this.framesMatrix[trackIdx];
+            const frame = track.frames[frameIdx];
             const options = [{
                 name: 'Record current value',
                 iconClass: 'far fa-dot-circle',
@@ -644,17 +702,34 @@ export default {
                     name: 'Delete Frame',
                     iconClass: 'fas fa-trash',
                     clicked: () => {
-                        const animationIdx = this.findAnimationIndexForTrack(track);
-                        if (animationIdx < 0) {
-                            return;
-                        }
-                        const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
-                        if (frameIdx < 0) {
-                            return;
-                        }
+                        if (track.kind === 'sections') {
+                            const sections = this.framePlayer.shapeProps.sections;
+                            for (let i = 0; i < sections.length; i++) {
+                                if (sections[i].frame === frame.frame) {
+                                    sections.splice(i, 1);
+                                    track.frames[frameIdx] = {
+                                        frame: frame.frame,
+                                        blank: true
+                                    };
+                                    break;
+                                }
+                            }
+                        } else {
+                            const animationIdx = this.findAnimationIndexForTrack(track);
+                            if (animationIdx < 0) {
+                                return;
+                            }
+                            const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
+                            if (frameIdx < 0) {
+                                return;
+                            }
 
-                        this.framePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
-                        this.updateFramesMatrix();
+                            this.framePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
+                            this.updateFramesMatrix();
+                        }
+                        if (this.selectedTrackIdx === trackIdx && this.selectedFrameControl.frame === frame.frame) {
+                            this.selectTrackAndFrame(trackIdx, frameIdx);
+                        }
                     }
                 });
             
@@ -744,31 +819,62 @@ export default {
             if (trackIdx < 0 || frame < 0) {
                 return;
             }
+            const track = this.framesMatrix[trackIdx];
 
             this.selectedFrameControl.value = value;
+            if (track.kind === 'item') {
+                const animationIdx = this.findAnimationIndexForTrack(track);
+                if (animationIdx < 0) {
+                    return;
+                }
+                const animation = this.framePlayer.shapeProps.animations[animationIdx];
+                const frameIdx = findFrameIdx(animation, frame);
+                if (frameIdx < 0) {
+                    return;
+                }
 
-            const animationIdx = this.findAnimationIndexForTrack(this.framesMatrix[trackIdx]);
-            if (animationIdx < 0) {
-                return;
-            }
-            const animation = this.framePlayer.shapeProps.animations[animationIdx];
-            const frameIdx = findFrameIdx(animation, frame);
-            if (frameIdx < 0) {
-                return;
-            }
+                this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
+                this.framesMatrix[trackIdx].frames[frame - 1].value = value;
 
-            this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
-            this.framesMatrix[trackIdx].frames[frame - 1].value = value;
-
-            if (animation.kind === 'item') {
                 const item = this.schemeContainer.findItemById(animation.id);
                 if (item) {
                     utils.setObjectProperty(item, animation.property, value);
                     EventBus.emitItemChanged(item.id, animation.property);
                 }
+                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
+                this.shouldRecompileAnimations = true;
+            } else if (track.kind === 'sections') {
+                const sections = this.framePlayer.shapeProps.sections;
+                for (let i = 0; i < sections.length; i++) {
+                    if (sections[i].frame === frame) {
+                        sections[i].value = value;
+                        track.frames[frame - 1].value = value;
+                        break;
+                    }
+                }
+                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
             }
-            EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
-            this.shouldRecompileAnimations = true;
+        },
+
+        addSectionFrame(trackIdx, frameIdx) {
+            const frameNum = frameIdx + 1;
+            const frame = {
+                frame: frameNum,
+                value: `${frameNum}`,
+                kind: 'step',
+            };
+            this.framesMatrix[trackIdx].frames[frameIdx] = frame;
+
+            let idx = 0;
+            const sections = this.framePlayer.shapeProps.sections;
+            for (let i = 0; i < sections.length; i++) {
+                if (sections[i].frame > frameNum) {
+                    idx = i;
+                    break;
+                }
+            }
+            sections.splice(idx, 0, frame);
+            EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
         }
     },
 

@@ -87,9 +87,7 @@ const framePlayer = {
             frames: [{
                 frame: 0,
                 value: 0,
-                kind: 'beizer', // can be 'linear', 'beizer', 'step'
-                a: { v: 0, f: -30 },
-                b: { v: 5, f: 10 },
+                kind: 'ease-out',
             }, {
                 frame: 30,
                 value: 10,
@@ -100,17 +98,34 @@ const framePlayer = {
             id: 'another-item-id',
             property: 'shapeProps.strokeSize',
             frames: [{
-                
+                // ...
             }]
         }, {
-            kind: 'path', // moving item along path
-            id: 'some-item-id', // id of item that should be moving along path
-            property: 'some-path-id', // id of path
+            kind: 'function', // 
+            id: 'qwe1', // id of the function that is defined in the "functions" section
+            property: 'time', // property of the function that is going to be animated
+            frames: [{
+                frame: 0,
+                value: 0,
+                kind: 'linear'
+            }]
+        }],
+
+        sections: [ {
+            frame: 0,
+            name: 'Init'
+        } ],
+
+        functions: {
+            id: 'qwe1',
+            functionId: 'move_along_path',
             args: {
-                rotate: true // adjust item rotation to the path,
+                itemId: 'some-item-id',
+                pathId: 'some-other-item-id',
+                rotate: true,
                 rotationOffset: 80
             }
-        }]
+        }
     }
 };
 ```
