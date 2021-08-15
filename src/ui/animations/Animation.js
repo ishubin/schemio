@@ -58,4 +58,8 @@ export default class Animation {
             })
         }
     }
+
+    stop() {
+        this.enabled = false;
+    }
 }

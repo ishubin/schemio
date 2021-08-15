@@ -1,16 +1,9 @@
-import AnimationRegistry from "../../animations/AnimationRegistry";
-
-
 export default {
-    name: 'Play Frames',
+    name: 'Stop Frame Player',
     
-    description: 'Triggers animations in specified frame player',
+    description: 'Stops currently running animation in specified frame player',
 
     supportedShapes: ['frame_player'],
-
-    args: {
-        startFrame: {type: 'number', value: 1, min: 1, name: 'Starting Frame'}
-    },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (!item) {
@@ -23,8 +16,7 @@ export default {
             return;
         }
 
-        frameAnimation.setFrame(args.startFrame);
-        AnimationRegistry.play(frameAnimation);
+        frameAnimation.enabled = false;
         resultCallback();
     }
 }

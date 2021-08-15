@@ -224,7 +224,6 @@ const MIN_FPS = 0.01;
 export class FrameAnimation extends Animation {
     constructor(fps, totalFrames, compiledAnimations) {
         super();
-        this.shouldStop = false;
         this.totalTimePassed = 0;
         this.currentFrame = 0;
         this.startFrame = 1;
@@ -242,7 +241,6 @@ export class FrameAnimation extends Animation {
 
     init() {
         this.totalTimePassed = 0;
-        this.shouldStop = false;
         return true;
     }
 
@@ -265,7 +263,7 @@ export class FrameAnimation extends Animation {
         
         this.toggleFrame(frame);
 
-        if (nextFrame < this.totalFrames && !this.shouldStop) {
+        if (nextFrame < this.totalFrames) {
             return true;
         }
         return false;
@@ -284,9 +282,5 @@ export class FrameAnimation extends Animation {
         if (this.onFinish) {
             this.onFinish();
         }
-    }
-
-    stop() {
-        this.shouldStop = true;
     }
 }

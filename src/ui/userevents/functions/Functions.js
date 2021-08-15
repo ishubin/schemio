@@ -18,6 +18,7 @@ import WaitFunction from './WaitFunction';
 import ToggleFunction from './ToggleFunction';
 import UntoggleFunction from './UntoggleFunction';
 import PlayFramesFunction from './PlayFramesFunction';
+import StopFramePlayerFunction from './StopFramePlayerFunction';
 
 export default {
     main: {
@@ -36,6 +37,7 @@ export default {
         rotate:             RotateFunction,
         scale:              ScaleFunction,
         replaceItem:        ReplaceItemFunction,
+        stopFramePlayer:    StopFramePlayerFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
         wait:               WaitFunction,
