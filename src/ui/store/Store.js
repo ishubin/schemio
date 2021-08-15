@@ -100,9 +100,7 @@ const store = new Vuex.Store({
             points: []
         },
 
-        itemCreating: {
-            autoRemount: true
-        },
+        autoRemount: true,
 
         // stores the state of the history in scheme editing
         history: {
@@ -174,8 +172,8 @@ const store = new Vuex.Store({
             state.schemeModified = isModified;
         },
 
-        SET_ITEM_CREATING_AUTO_REMOUNT(state, autoRemount) {
-            state.itemCreating.autoRemount = autoRemount;
+        SET_AUTO_REMOUNT(state, autoRemount) {
+            state.autoRemount = autoRemount;
         },
 
         /* Curve Editing */ 
@@ -519,8 +517,8 @@ const store = new Vuex.Store({
             commit('CLEAR_ITEM_SNAPPERS');
         },
 
-        setItemCreatingAutoRemount({commit}, autoRemount) {
-            commit('SET_ITEM_CREATING_AUTO_REMOUNT', autoRemount);
+        setAutoRemount({commit}, autoRemount) {
+            commit('SET_AUTO_REMOUNT', autoRemount);
         },
 
         proposeConnectorDestinationItems({commit}, payload) {
@@ -588,7 +586,7 @@ const store = new Vuex.Store({
         shouldSnapToGrid: state => state.snap.grid,
         shouldSnapToItems: state => state.snap.items,
 
-        itemCreatingAutoRemount: state => state.itemCreating.autoRemount,
+        autoRemount: state => state.autoRemount,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
 

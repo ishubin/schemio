@@ -56,8 +56,8 @@ export default {
         store.dispatch('clearItemSnappers');
     },
 
-    setItemCreatingAutoRemount(store, shouldAutoRemount) {
-        store.dispatch('setItemCreatingAutoRemount', shouldAutoRemount);
+    setAutoRemount(store, shouldAutoRemount) {
+        store.dispatch('setAutoRemount', shouldAutoRemount);
     },
 
     proposeConnectorDestinationItems(store, connectorItemId, mx, my) {
