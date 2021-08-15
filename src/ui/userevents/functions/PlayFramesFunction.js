@@ -24,7 +24,7 @@ export default {
         }
 
         frameAnimation.setFrame(args.startFrame);
-        AnimationRegistry.play(frameAnimation);
+        AnimationRegistry.play(frameAnimation, item.id);
         resultCallback();
     }
 }

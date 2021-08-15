@@ -792,7 +792,7 @@ export default {
             if (args.operation === 'play') {
                 frameAnimation.setCallbacks(args.callbacks);
                 frameAnimation.setFrame(args.frame);
-                AnimationRegistry.play(frameAnimation);
+                AnimationRegistry.play(frameAnimation, itemId);
 
             } else if (args.operation === 'setFrame') {
                 frameAnimation.toggleFrame(args.frame);
