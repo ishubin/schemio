@@ -86,5 +86,9 @@ export default {
 
     startAnimationEditor(store, framePlayer) {
         store.dispatch('startAnimationEditor', framePlayer);
+    },
+
+    setAnimationEditorRecording(store, isRecording) {
+        store.dispatch('setAnimationEditorRecording', isRecording);
     }
 }

@@ -127,6 +127,7 @@ import { compileAnimations, findItemPropertyDescriptor, interpolateValue } from 
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
 import EventBus from '../EventBus';
+import StoreUtils from '../../../store/StoreUtils';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -256,6 +257,7 @@ export default {
 
     beforeDestroy() {
         EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+        StoreUtils.setAnimationEditorRecording(this.$store, false);
     },
 
     data() {
@@ -472,11 +474,13 @@ export default {
 
         startRecording() {
             this.isRecording = true;
+            StoreUtils.setAnimationEditorRecording(this.$store, true);
             this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
         },
 
         stopRecording() {
             this.isRecording = false;
+            StoreUtils.setAnimationEditorRecording(this.$store, false);
         },
 
         onSchemeChange() {

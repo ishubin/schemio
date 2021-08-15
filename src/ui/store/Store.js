@@ -156,8 +156,9 @@ const store = new Vuex.Store({
             epsilon: 5
         },
 
-        animatiorEditor: {
-            currentFramePlayer: null
+        animationEditor: {
+            currentFramePlayer: null,
+            isRecording: false
         }
     },
     mutations: {
@@ -399,7 +400,11 @@ const store = new Vuex.Store({
         },
 
         START_ANIMATION_EDITOR(state, framePlayer) {
-            state.animatiorEditor.currentFramePlayer = framePlayer;
+            state.animationEditor.currentFramePlayer = framePlayer;
+        },
+
+        SET_ANIMATION_EDITOR_RECORDING(state, isRecording) {
+            state.animationEditor.isRecording = isRecording;
         }
     },
 
@@ -563,6 +568,10 @@ const store = new Vuex.Store({
 
         startAnimationEditor({commit}, framePlayer) {
             commit('START_ANIMATION_EDITOR', framePlayer);
+        },
+
+        setAnimationEditorRecording({commit}, isRecording) {
+            commit('SET_ANIMATION_EDITOR_RECORDING', isRecording);
         }
     },
 
@@ -602,7 +611,9 @@ const store = new Vuex.Store({
 
         hasConsent: state => state.consent.hasConsent,
 
-        animationEditorCurrentFramePlayer: state => state.animatiorEditor.currentFramePlayer
+        animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
+
+        animationEditorIsRecording: state => state.animationEditor.isRecording,
     }
 });
 

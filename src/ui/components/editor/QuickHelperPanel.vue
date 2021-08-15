@@ -189,6 +189,7 @@
                         <input type="checkbox" title="Automatically mount items into other items"
                             id="chk-auto-remount"
                             :checked="autoRemount"
+                            :disabled="animationEditorIsRecording"
                             @change="onAutoRemountChange"/>
                         <label for="chk-auto-remount">Auto mount</label>
                     </li>
@@ -594,6 +595,10 @@ export default {
 
         drawEpsilon() {
             return this.$store.getters.drawEpsilon;
+        },
+
+        animationEditorIsRecording() {
+            return this.$store.getters.animationEditorIsRecording;
         }
     }
 }

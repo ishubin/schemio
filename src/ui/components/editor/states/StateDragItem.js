@@ -411,7 +411,7 @@ export default class StateDragItem extends State {
             this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
         }
 
-        if (this.store.state.autoRemount) {
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
             if (this.multiItemEditBox && this.proposedItemForMounting) {
                 // it should remount all items in multi item edit box into the new proposed parent
                 this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
@@ -679,7 +679,7 @@ export default class StateDragItem extends State {
         }
 
         // checking if it can fit into another item
-        if (this.store.state.autoRemount) {
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
             this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
         } else {
             this.proposedItemForMounting = [];
