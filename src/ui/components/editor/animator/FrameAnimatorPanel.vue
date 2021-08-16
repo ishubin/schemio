@@ -89,7 +89,7 @@
                                 </div>
 
                                 <div class="frame-property-operations">
-                                    <span v-if="track.kind !== 'sections'" class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
+                                    <span v-if="track.kind !== 'sections' && track.kind !== 'function'" class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
                                 </div>
                             </td>
                             <td v-for="(frame, frameIdx) in track.frames"
@@ -628,12 +628,29 @@ export default {
         },
 
         removeAnimationTrack(track) {
-            const idx = this.findAnimationIndexForTrack(track);
-            if (idx < 0) {
-                return null;
+            if (track.kind === 'function-header') {
+                // should remove function and all its assosiated property tracks
+                if (this.framePlayer.shapeProps.functions.hasOwnProperty(track.id)) {
+                    delete this.framePlayer.shapeProps.functions[track.id];
+                }
+
+                const animations = this.framePlayer.shapeProps.animations;
+                for (let i = 0; i < animations.length; i++) {
+                    if (animations[i].kind === 'function' && animations[i].id === track.id) {
+                        animations.splice(i, 1);
+                        i = i - 1;
+                    }
+                }
+
+                this.updateFramesMatrix();
+            } else if (track.kind === 'item') {
+                const idx = this.findAnimationIndexForTrack(track);
+                if (idx < 0) {
+                    return null;
+                }
+                this.framePlayer.shapeProps.animations.splice(idx, 1);
+                this.updateFramesMatrix();
             }
-            this.framePlayer.shapeProps.animations.splice(idx, 1);
-            this.updateFramesMatrix();
         },
 
         findAnimationIndexForTrack(track) {
