@@ -142,7 +142,7 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations, findItemPropertyDescriptor } from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
 import EventBus from '../EventBus';
@@ -390,6 +390,9 @@ export default {
             const track = this.framesMatrix[trackIdx];
             if (track.kind === 'sections') {
                 this.addSectionFrame(trackIdx, frameIdx);
+                this.selectTrackAndFrame(trackIdx, frameIdx);
+            } else if (track.kind === 'function') {
+                this.addFunctionFrame(trackIdx, frameIdx);
                 this.selectTrackAndFrame(trackIdx, frameIdx);
             } else {
                 const frame = track.frames[frameIdx];
@@ -812,13 +815,17 @@ export default {
             event.preventDefault();
             const track = this.framesMatrix[trackIdx];
             const frame = track.frames[frameIdx];
-            const options = [{
-                name: 'Record current value',
-                iconClass: 'far fa-dot-circle',
-                clicked: () => {
-                    this.recordCurrentValueForTrack(track, frame);
-                }
-            }];
+            const options = [];
+
+            if (track.kind !== 'function') {
+                options.push({
+                    name: 'Record current value',
+                    iconClass: 'far fa-dot-circle',
+                    clicked: () => {
+                        this.recordCurrentValueForTrack(track, frame);
+                    }
+                });
+            }
             if (!frame.blank) {
                 options.push({
                     name: 'Delete Frame',
@@ -876,6 +883,10 @@ export default {
                         });
                     }
                 });
+            }
+
+            if (options.length === 0) {
+                return;
             }
 
             this.frameContextMenu.options = options;
@@ -997,6 +1008,68 @@ export default {
             }
             sections.splice(idx, 0, frame);
             EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+        },
+
+        addFunctionFrame(trackIdx, frameIdx) {
+            const track = this.framesMatrix[trackIdx];
+            const funcDef = this.framePlayer.shapeProps.functions[track.id];
+            if (!funcDef) {
+                return;
+            }
+            const animationIdx = this.findAnimationIndexForTrack(track);
+            if (animationIdx < 0) {
+                return;
+            }
+
+            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+
+            let idx = 0;
+            let prevFrame = null;
+            let nextFrame = null;
+            const frameNum = frameIdx + 1;
+
+            for (let i = 0; i < animation.frames.length; i++) {
+                if (animation.frames[i].frame === frameNum) {
+                    // such frame already exists so avoiding duplicates
+                    return;
+                }
+                else if (animation.frames[i].frame > frameNum) {
+                    idx = i;
+                    nextFrame = animation.frames[i];
+                    break;
+                } else {
+                    prevFrame = animation.frames[i];
+                }
+            }
+
+            const frame = {
+                frame: frameNum,
+                kind: 'linear',
+                value: 0
+            };
+
+            const functionDescriptor = AnimationFunctions[funcDef.functionId];
+            if (!functionDescriptor) {
+                return;
+            }
+
+            const inputDescriptor = functionDescriptor.inputs[animation.property];
+            if (!inputDescriptor) {
+                return;
+            }
+
+            if (prevFrame && nextFrame) {
+                const t = (frameNum - prevFrame.frame ) / Math.max(1, nextFrame.frame - prevFrame.frame);
+                frame.value = interpolateValue(inputDescriptor.type, prevFrame.value, nextFrame.value, t);
+            } else if (prevFrame) {
+                frame.value = prevFrame.value;
+            } else if (nextFrame) {
+                frame.value = prevFrame.value;
+            } else {
+                frame.value = inputDescriptor.value;
+            }
+            animation.frames.splice(idx, 0, frame);
+            this.updateFramesMatrix();
         },
 
         toggleFunctionAddModal() {
