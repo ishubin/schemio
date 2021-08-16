@@ -337,10 +337,6 @@ export default {
         },
 
         selectFrame(frame) {
-            if (this.isRecording) {
-                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
-            }
-
             this.currentFrame = frame;
             if (this.shouldRecompileAnimations) {
                 this.compileAnimations();
@@ -351,6 +347,10 @@ export default {
 
             if (this.selectedFrameControl.trackIdx >= 0 ) {
                 this.selectFrameControl(this.selectedFrameControl.trackIdx, frame - 1);
+            }
+
+            if (this.isRecording) {
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
             }
         },
 
@@ -499,7 +499,6 @@ export default {
 
         buildFunctionTracks() {
             const tracks = [];
-            const functionsById = {};
             forEach(this.framePlayer.shapeProps.functions, (func, id) => {
                 const functionDescription = AnimationFunctions[func.functionId];
                 if (!functionDescription) {
