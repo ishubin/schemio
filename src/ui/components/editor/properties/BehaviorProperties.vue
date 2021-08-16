@@ -135,7 +135,7 @@ import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
-import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
+import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties} from '../../../scheme/Item';

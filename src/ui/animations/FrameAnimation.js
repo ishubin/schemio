@@ -6,6 +6,7 @@ import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
 import Animation from './Animation';
 import { knownBlendModes } from '../scheme/Item';
+import AnimationFunctions from './functions/AnimationFunctions';
 
 
 const NUMBER = 'number';
@@ -200,11 +201,103 @@ function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
             utils.setObjectProperty(item, fields, value);
             EventBus.emitItemChanged(item.id);
         }
-    }
+    };
+}
+
+function createFunctionFrameAnimation(functionDescriptor, instance, inputTracks, totalFrames) {
+    const frameLookupForInput = {};
+
+    forEach(inputTracks, (inputTrack, inputName) => {
+        frameLookupForInput[inputName] = buildFrameLookup(inputTrack.frames, totalFrames);
+
+    });
+    return {
+        toggleFrame(frame) {
+            if (frame < 1) {
+                return;
+            }
+
+            const frameNum = Math.floor(frame);
+
+            const inputValues = {};
+            forEach(frameLookupForInput, (frameLookup, inputName) => {
+                let indexFrame = null;
+                if (frameNum <= frameLookup.length) {
+                    indexFrame = frameLookup[frameNum - 1];
+                } else {
+                    indexFrame = frameLookup[frameLookup.length - 1];
+                }
+
+                let left = indexFrame;
+
+                if (!indexFrame.frame) {
+                    if (indexFrame.prevIdx < 0) {
+                        return;
+                    }
+                    left = frameLookup[indexFrame.prevIdx];
+                }
+                let right = null;
+                if (indexFrame.nextIdx >= 0) {
+                    right = frameLookup[indexFrame.nextIdx];
+                }
+                let value = left.frame.value;
+                if (right) {
+                    value = interpolateFrameValues(frame, left.frame, right.frame, functionDescriptor.inputs[inputName].type);
+                }
+
+                inputValues[inputName] = value;
+            });
+            functionDescriptor.execute(instance, inputValues);
+        }
+    };
+}
+
+function compileAnimationFunctions(framePlayer, functionAnimationTracks, schemeContainer) {
+    const animations = [];
+    forEach(framePlayer.shapeProps.functions, (framePlayerFunction, playerFunctionId) => {
+        if (!functionAnimationTracks[playerFunctionId]) {
+            return;
+        }
+
+        const functionDescriptor = AnimationFunctions[framePlayerFunction.functionId];
+        if (!functionDescriptor) {
+            return;
+        }
+        const preparedInstance = functionDescriptor.create(framePlayerFunction.args, schemeContainer);
+        const inputTracks = {};
+
+        // making sure that all inputs have at least one frame
+        forEach(functionDescriptor.inputs, (inputDescriptor, inputName) => {
+            if (functionAnimationTracks[playerFunctionId][inputName]) {
+                inputTracks[inputName] = functionAnimationTracks[playerFunctionId][inputName];
+            } else {
+                inputTracks[inputName] = {
+                    kind      : 'function',
+                    functionId: playerFunctionId,
+                    property  : inputName,
+                    frames    : [{
+                        frame: 0,
+                        kind : 'linear',
+                        value: inputDescriptor.value  // using default value
+                    }]
+                };
+            }
+        });
+
+        const animation = createFunctionFrameAnimation(functionDescriptor, preparedInstance, inputTracks, framePlayer.shapeProps.totalFrames);
+        if (animation) {
+            animations.push(animation);
+        }
+    });
+    
+    return animations;
 }
 
 export function compileAnimations(framePlayer, schemeContainer) {
     const animations = [];
+    
+    const functionAnimationTracks = {};
+
     forEach(framePlayer.shapeProps.animations, animation => {
         if (animation.kind === 'item') {
             const item = schemeContainer.findItemById(animation.id);
@@ -214,9 +307,15 @@ export function compileAnimations(framePlayer, schemeContainer) {
                     animations.push(itemAnimation);
                 }
             }
+        } else if (animation.kind === 'function') {
+            if (!functionAnimationTracks.hasOwnProperty(animation.id)) {
+                functionAnimationTracks[animation.id] = {};
+            }
+            functionAnimationTracks[animation.id][animation.property] = animation;
         }
     });
-    return animations;
+
+    return animations.concat(compileAnimationFunctions(framePlayer, functionAnimationTracks, schemeContainer));
 }
 
 const MIN_FPS = 0.01;

@@ -117,21 +117,20 @@ const framePlayer = {
         } ],
 
         functions: {
-            id: 'qwe1',
-            functionId: 'move_along_path',
-            args: {
-                itemId: 'some-item-id',
-                pathId: 'some-other-item-id',
-                rotate: true,
-                rotationOffset: 80
-            }
+            // shortid
+            qwe1: {
+                functionId: 'move_along_path',
+                args: {
+                    itemId: 'some-item-id',
+                    pathId: 'some-other-item-id',
+                    rotate: true,
+                    rotationOffset: 80
+                }
+            },
         }
     }
 };
 ```
-
-When clicking on frame player in edit mode - it will bring a thin frame `animation panel` on the bottom. The panel should have `Toggle Animation Editor` button.
-When user clicks that button - `animation panel` stays constantly on and frame player can now be deselected. When user selects a frame and clicks record in `animation panel` - it goes into `recording mode`. In `recording mode` if user changes any `recognized property` of any item - it will make a record of that in the `selected frame`.
 
 License
 ---------

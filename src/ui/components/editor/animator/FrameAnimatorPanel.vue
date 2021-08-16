@@ -60,6 +60,7 @@
                     <thead>
                         <tr>
                             <th>
+                                <span class="btn btn-small" @click="toggleFunctionAddModal()">Add Function</span>
                             </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
@@ -72,13 +73,19 @@
                     </thead>
                     <tbody>
                         <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
-                            <td class="frame-animator-property">
+                            <td class="frame-animator-property" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
                                 <div v-if="track.kind === 'item'">
                                     <span v-if="track.itemName">{{track.itemName}}</span>
                                     {{track.property}}
                                 </div>
                                 <div v-else-if="track.kind === 'sections'">
                                     <i class="fas fa-paragraph"></i> Sections
+                                </div>
+                                <div v-else-if="track.kind === 'function-header'">
+                                    {{track.name}}
+                                </div>
+                                <div v-else-if="track.kind === 'function'">
+                                    {{track.property}}
                                 </div>
 
                                 <div class="frame-property-operations">
@@ -113,6 +120,16 @@
             @selected="onContextMenuOptionClick"
             @close="frameContextMenu.shown = false"
             />
+
+        <FunctionArgumentsEditor v-if="functionEditorModal.shown"
+            :functionDescription="functionEditorModal.functionDescription"
+            :args="functionEditorModal.args"
+            :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
+            :schemeContainer="schemeContainer"
+            :projectId="projectId"
+            @close="functionEditorModal.shown = false"
+            @argument-changed="onFunctionModalArgumentChanged"
+            @submit="onFunctionModalSubmit()"/>
     </div>
 </template>
 
@@ -123,11 +140,14 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations, findItemPropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyDescriptor } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
 import EventBus from '../EventBus';
 import StoreUtils from '../../../store/StoreUtils';
+import AnimationFunctions from '../../../animations/functions/AnimationFunctions';
+import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
+import shortid from 'shortid';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -248,7 +268,7 @@ export default {
         light          : {type: Boolean, default: true},
     },
 
-    components: { ContextMenu, PropertyInput },
+    components: { ContextMenu, PropertyInput, FunctionArgumentsEditor },
 
     beforeMount() {
         this.compileAnimations();
@@ -300,6 +320,14 @@ export default {
 
             shouldRecompileAnimations: false,
 
+            functionEditorModal: {
+                shown: false,
+                funcId: null,
+                funcIdx: -1,
+                args: null,
+                isAdding: true,
+                functionDescription: null
+            }
         };
     },
 
@@ -369,39 +397,50 @@ export default {
             }
         },
 
+        fillMatrixFrames(originFrames) {
+            const matrixFrames = [];
+
+            originFrames.sort((a, b) => a.frame - b.frame);
+
+            const addBlankFrames = (num) => {
+                const length = matrixFrames.length;
+                for (let i = 0; i < num; i++) {
+                    matrixFrames.push({
+                        frame: i + length + 1,
+                        blank: true
+                    });
+                }
+            };
+
+            let prevFrame = null;
+            forEach(originFrames, f => {
+                if (f.frame - 1 > matrixFrames.length) {
+                    // should fill with empty cells first and then add the frame
+                    addBlankFrames(f.frame - 1 - matrixFrames.length);
+                }
+                if (!prevFrame || prevFrame.frame !== f.frame) {
+                    // protect from duplicate frames
+                    matrixFrames.push(f);
+                }
+                prevFrame = f;
+            });
+            if (matrixFrames.length < this.framePlayer.shapeProps.totalFrames) {
+                addBlankFrames(this.framePlayer.shapeProps.totalFrames - matrixFrames.length);
+            }
+            return matrixFrames;
+        },
+
         buildFramesMatrix() {
             const matrix = [];
 
+            this.fixAllAnimationFrames();
+
             forEach(this.framePlayer.shapeProps.animations, animation => {
-                const frames = [];
-
-                animation.frames.sort((a, b) => a.frame - b.frame);
-
-                const addBlankFrames = (num) => {
-                    const length = frames.length;
-                    for (let i = 0; i < num; i++) {
-                        frames.push({
-                            frame: i + length + 1,
-                            blank: true
-                        });
-                    }
-                };
-
-                let prevFrame = null;
-                forEach(animation.frames, f => {
-                    if (f.frame - 1 > frames.length) {
-                        // should fill with empty cells first and then add the frame
-                        addBlankFrames(f.frame - 1 - frames.length);
-                    }
-                    if (!prevFrame || prevFrame.frame !== f.frame) {
-                        // protect from duplicate frames
-                        frames.push(f);
-                    }
-                    prevFrame = f;
-                });
-                if (frames.length < this.framePlayer.shapeProps.totalFrames) {
-                    addBlankFrames(this.framePlayer.shapeProps.totalFrames - frames.length);
+                if (animation.kind === 'function') {
+                    // skipping animation tracks as they are going to be built in another function
+                    return;
                 }
+                const frames = this.fillMatrixFrames(animation.frames);
 
                 let itemName = null;
                 let propertyDescriptor = null;
@@ -425,7 +464,23 @@ export default {
             });
 
             matrix.push(this.buildSectionsTrack());
-            return matrix;
+            return matrix.concat(this.buildFunctionTracks());
+        },
+
+        // sorts frames, removes duplicate frames
+        fixAllAnimationFrames() {
+            forEach(this.framePlayer.shapeProps.animations, animation => {
+                animation.frames.sort((a, b) => a.frame - b.frame);
+                if (animation.frames.length < 2) {
+                    return;
+                }
+                for (let i = 1; i < animation.frames.length; i++) {
+                    if (animation.frames[i].frame === animation.frames[i - 1].frame) {
+                        animation.frames.splice(i, 1);
+                        i = i - 1;
+                    }
+                }
+            });
         },
 
         buildSectionsTrack() {
@@ -433,43 +488,50 @@ export default {
             if (!sections) {
                 sections = [];
             }
-
-            sections.sort((a, b) => a.frame - b.frame);
-
-            const frames = [];
-
-            const addBlankFrames = (num) => {
-                const length = frames.length;
-                for (let i = 0; i < num; i++) {
-                    frames.push({
-                        frame: i + length + 1,
-                        blank: true
-                    });
-                }
-            };
-
-
-            let prevFrame = null;
-            forEach(sections, section => {
-                if (section.frame - 1 > frames.length) {
-                    // should fill with empty cells first and then add the frame
-                    addBlankFrames(section.frame - 1 - frames.length);
-                }
-                if (!prevFrame || prevFrame.frame !== section.frame) {
-                    // protect from duplicate frames
-                    frames.push(section);
-                }
-                prevFrame = section;
-            });
-            if (frames.length < this.framePlayer.shapeProps.totalFrames) {
-                addBlankFrames(this.framePlayer.shapeProps.totalFrames - frames.length);
-            }
+            const frames = this.fillMatrixFrames(sections);
 
             return {
                 kind: 'sections',
                 propertyDescriptor: {type: 'string', name: 'Section Name'},
                 frames
             };
+        },
+
+        buildFunctionTracks() {
+            const tracks = [];
+            const functionsById = {};
+            forEach(this.framePlayer.shapeProps.functions, (func, id) => {
+                const functionDescription = AnimationFunctions[func.functionId];
+                if (!functionDescription) {
+                    return;
+                }
+
+                tracks.push({
+                    kind: 'function-header',
+                    id  : id,
+                    name: functionDescription.getFullName(func.args, this.schemeContainer),
+                });
+
+                // OPTIMIZE frame player function track search
+                // not the most efficient code, every time we search the entire list all over again
+                // but it's fine since there is not going to be that many functions and animation tracks in a single frame player
+                forEach(this.framePlayer.shapeProps.animations, animation => {
+                    if (animation.kind === 'function' && animation.id === id) {
+                        const propertyDescriptor = functionDescription.inputs[animation.property];
+                        if (!propertyDescriptor) {
+                            return;
+                        }
+                        tracks.push({
+                            kind    : 'function',
+                            id      : id,
+                            property: animation.property,
+                            frames  : this.fillMatrixFrames(animation.frames),
+                            propertyDescriptor,
+                        });
+                    }
+                });
+            });
+            return tracks;
         },
 
         startRecording() {
@@ -917,6 +979,60 @@ export default {
             }
             sections.splice(idx, 0, frame);
             EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+        },
+
+        toggleFunctionAddModal() {
+            this.functionEditorModal.funcId = 'moveAlongPath';
+            this.functionEditorModal.funcIdx = -1;
+            const func = AnimationFunctions[this.functionEditorModal.funcId];
+            this.functionEditorModal.functionDescription = func;
+
+            const args = {};
+            forEach(func, (argDef, argName) => {
+                args[argName] = argDef.value;
+            });
+            this.functionEditorModal.args = args;
+            this.functionEditorModal.isAdding = true;
+            this.functionEditorModal.shown = true;
+        },
+
+        onFunctionModalArgumentChanged(name, value) {
+            this.functionEditorModal.args[name] = value;
+        },
+
+        onFunctionModalSubmit() {
+            this.functionEditorModal.shown = false;
+            if (this.functionEditorModal.isAdding) {
+                const id = shortid.generate();
+                const func = AnimationFunctions[this.functionEditorModal.funcId];
+                if (!func) {
+                    return;
+                }
+
+                this.framePlayer.shapeProps.functions[id] = {
+                    functionId: this.functionEditorModal.funcId,
+                    args: utils.clone(this.functionEditorModal.args)
+                };
+
+                forEach (func.inputs, (input, inputName) => {
+                    this.framePlayer.shapeProps.animations.push({
+                        kind: 'function',
+                        id: id,
+                        property: inputName,
+                        frames: [{
+                            frame: 1,
+                            kind: 'linear',
+                            value: input.value
+                        }, {
+                            frame: this.framePlayer.shapeProps.totalFrames,
+                            kind: 'linear',
+                            value: input.endValue
+                        }]
+                    });
+                });
+            }
+
+            this.updateFramesMatrix();
         }
     },
 

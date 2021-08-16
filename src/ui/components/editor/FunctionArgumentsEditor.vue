@@ -1,5 +1,11 @@
 <template>
-    <modal :title="`${functionDescription.name} arguments`" @close="$emit('close')" :width="400" :use-mask="false">
+    <modal :title="`${functionDescription.name} arguments`"
+        :primaryButton="primaryButton"
+        :width="400"
+        :use-mask="false"
+        @close="$emit('close')"
+        @primary-submit="$emit('submit')"
+        >
         <div v-if="functionDescription.description">
             <p>{{functionDescription.description}}</p>
         </div>
@@ -53,16 +59,22 @@
 <script>
 import forEach from 'lodash/forEach';
 import mapValues from 'lodash/mapValues';
-import Dropdown from '../../../Dropdown.vue';
-import ColorPicker from '../../../editor/ColorPicker.vue';
-import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
-import Modal from '../../../Modal.vue';
-import ElementPicker from '../../ElementPicker.vue';
-import Tooltip from '../../../Tooltip.vue';
-import NumberTextfield from '../../../NumberTextfield.vue';
+import ColorPicker from './ColorPicker.vue';
+import AdvancedColorEditor from './AdvancedColorEditor.vue';
+import Modal from '../Modal.vue';
+import ElementPicker from './ElementPicker.vue';
+import Tooltip from '../Tooltip.vue';
+import NumberTextfield from '../NumberTextfield.vue';
 
 export default {
-    props: ['functionDescription', 'args', 'schemeContainer', 'projectId'],
+    props: {
+        functionDescription: {type: Object, required: true},
+        args               : {type: Object, required: true},
+        schemeContainer    : {type: Object, required: true},
+        projectId          : {type: String, required: true},
+        primaryButton      : {type: String, default: null},
+    },
+
     components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor},
 
     beforeMount() {

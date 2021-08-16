@@ -93,6 +93,7 @@ export default {
             fillColor      : {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
             strokeColor    : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             animations     : {type: 'animations', value: [], name: 'Animations', hidden: true},
+            functions      : {type: 'animation-functions', value: {}, name: 'Animation Functions', hidden: true},
             sections       : {type: 'animation-sections', value: [], name: 'Sections', hidden: true},
         },
 
