@@ -1,8 +1,9 @@
 <template>
-    <modal :title="`${functionDescription.name} arguments`"
+    <modal :title="`${functionDescription.name} function`"
         :primaryButton="primaryButton"
         :width="400"
         :use-mask="false"
+        :closeName="closeName"
         @close="$emit('close')"
         @primary-submit="$emit('submit')"
         >
@@ -73,6 +74,7 @@ export default {
         schemeContainer    : {type: Object, required: true},
         projectId          : {type: String, required: true},
         primaryButton      : {type: String, default: null},
+        closeName          : {type: String, default: 'Close'},
     },
 
     components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor},

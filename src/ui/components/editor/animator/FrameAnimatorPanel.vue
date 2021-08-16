@@ -60,7 +60,7 @@
                     <thead>
                         <tr>
                             <th>
-                                <span class="btn btn-small" @click="toggleFunctionAddModal()">Add Function</span>
+                                <span class="btn btn-small" @click="toggleFunctionAddModal()">Add path function</span>
                             </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
@@ -73,7 +73,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
-                            <td class="frame-animator-property" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
+                            <td class="frame-animator-property" :class="['frame-animator-property-'+track.kind]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
                                 <div v-if="track.kind === 'item'">
                                     <span v-if="track.itemName">{{track.itemName}}</span>
                                     {{track.property}}
@@ -81,7 +81,7 @@
                                 <div v-else-if="track.kind === 'sections'">
                                     <i class="fas fa-paragraph"></i> Sections
                                 </div>
-                                <div v-else-if="track.kind === 'function-header'">
+                                <div class="function-animator-track-header" v-else-if="track.kind === 'function-header'">
                                     {{track.name}}
                                 </div>
                                 <div v-else-if="track.kind === 'function'">
@@ -89,6 +89,7 @@
                                 </div>
 
                                 <div class="frame-property-operations">
+                                    <span v-if="track.kind === 'function-header'" class="icon-button" title="Edit function" @click="toggleEditFunctionArgumentsForTrack(track)"><i class="fas fa-cog"></i></span>
                                     <span v-if="track.kind !== 'sections' && track.kind !== 'function'" class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
                                 </div>
                             </td>
@@ -127,6 +128,7 @@
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
             :schemeContainer="schemeContainer"
             :projectId="projectId"
+            closeName="Cancel"
             @close="functionEditorModal.shown = false"
             @argument-changed="onFunctionModalArgumentChanged"
             @submit="onFunctionModalSubmit()"/>
@@ -322,8 +324,8 @@ export default {
 
             functionEditorModal: {
                 shown: false,
-                funcId: null,
-                funcIdx: -1,
+                funcName: null,
+                functionId: null,
                 args: null,
                 isAdding: true,
                 functionDescription: null
@@ -998,9 +1000,9 @@ export default {
         },
 
         toggleFunctionAddModal() {
-            this.functionEditorModal.funcId = 'moveAlongPath';
-            this.functionEditorModal.funcIdx = -1;
-            const func = AnimationFunctions[this.functionEditorModal.funcId];
+            this.functionEditorModal.funcName = 'moveAlongPath';
+            this.functionEditorModal.functionId = null;
+            const func = AnimationFunctions[this.functionEditorModal.funcName];
             this.functionEditorModal.functionDescription = func;
 
             const args = {};
@@ -1012,6 +1014,23 @@ export default {
             this.functionEditorModal.shown = true;
         },
 
+        toggleEditFunctionArgumentsForTrack(track) {
+            const func = this.framePlayer.shapeProps.functions[track.id];
+            if (!func) {
+                return null;
+            }
+
+            this.functionEditorModal.funcName = track.functionId;
+            this.functionEditorModal.functionDescription = AnimationFunctions[func.functionId];
+            this.functionEditorModal.functionId = track.id;
+            this.functionEditorModal.args = func.args;
+            this.functionEditorModal.isAdding = false;
+
+            if (this.functionEditorModal.functionDescription) {
+                this.functionEditorModal.shown = true;
+            }
+        },
+
         onFunctionModalArgumentChanged(name, value) {
             this.functionEditorModal.args[name] = value;
         },
@@ -1020,13 +1039,13 @@ export default {
             this.functionEditorModal.shown = false;
             if (this.functionEditorModal.isAdding) {
                 const id = shortid.generate();
-                const func = AnimationFunctions[this.functionEditorModal.funcId];
+                const func = AnimationFunctions[this.functionEditorModal.funcName];
                 if (!func) {
                     return;
                 }
 
                 this.framePlayer.shapeProps.functions[id] = {
-                    functionId: this.functionEditorModal.funcId,
+                    functionId: this.functionEditorModal.funcName,
                     args: utils.clone(this.functionEditorModal.args)
                 };
 
@@ -1045,6 +1064,10 @@ export default {
                             value: input.endValue
                         }]
                     });
+                });
+            } else if (this.functionEditorModal.functionId) {
+                forEach(this.functionEditorModal.args, (value, argName) => {
+                    this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[argName] = value;
                 });
             }
 

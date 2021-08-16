@@ -3138,6 +3138,20 @@ table.frame-animator-matrix td.frame-animator-property .frame-property-operation
 table.frame-animator-matrix td.frame-animator-property:hover .frame-property-operations {
     display: block;
 }
+table.frame-animator-matrix td.frame-animator-property-function-header {
+    border: none;
+    background: none;
+    padding: 0;
+}
+table.frame-animator-matrix td.frame-animator-property-function-header .function-animator-track-header {
+    margin-top: 20px;
+    padding: 4px 4px 4px 20px;
+    background: var(--faint-weak-down);
+}
+table.frame-animator-matrix td.frame-animator-property.frame-animator-property-function-header .frame-property-operations {
+    top: unset;
+    bottom: 2px;
+}
 table.frame-animator-matrix th.current {
     background: var(--accent-strong);
     color: var(--base-weak);
