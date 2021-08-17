@@ -398,6 +398,7 @@ export default {
                 const frame = track.frames[frameIdx];
                 if (frame.blank) {
                     this.recordCurrentValueForTrack(track, frame);
+                    this.selectTrackAndFrame(trackIdx, frameIdx);
                 }
             }
         },
