@@ -14,7 +14,6 @@ export default {
     // the following fields are going to be used in animation tracks
     inputs: {
         distance: {name: 'Distance (%)', type: 'number', value: 0, endValue: 100},
-        rotation: {name: 'Rotation',     type: 'number', value: 0, endValue: 0}
     },
 
     // this function is supposed to prepare object that would be passed into execute function
@@ -66,7 +65,7 @@ export default {
 
     // the first argument is the object returned by the "create" function
     // the second argument is an object containing the inputs
-    execute({path, item, pathItem, schemeContainer, totalLength, rotateItem, rotationOffset}, {distance, rotation}) {
+    execute({path, item, pathItem, schemeContainer, totalLength, rotateItem, rotationOffset}, {distance}) {
         const length = distance * totalLength / 100;
         const point = path.getPointAtLength(length);
         let worldPoint = schemeContainer.worldPointOnItem(point.x, point.y, pathItem);

@@ -220,6 +220,7 @@ function createFunctionFrameAnimation(functionDescriptor, instance, inputTracks,
             const frameNum = Math.floor(frame);
 
             const inputValues = {};
+            let missingInputValues = false;
             forEach(frameLookupForInput, (frameLookup, inputName) => {
                 let indexFrame = null;
                 if (frameNum <= frameLookup.length) {
@@ -232,6 +233,7 @@ function createFunctionFrameAnimation(functionDescriptor, instance, inputTracks,
 
                 if (!indexFrame.frame) {
                     if (indexFrame.prevIdx < 0) {
+                        missingInputValues = true;
                         return;
                     }
                     left = frameLookup[indexFrame.prevIdx];
@@ -247,7 +249,9 @@ function createFunctionFrameAnimation(functionDescriptor, instance, inputTracks,
 
                 inputValues[inputName] = value;
             });
-            functionDescriptor.execute(instance, inputValues);
+            if (!missingInputValues) {
+                functionDescriptor.execute(instance, inputValues);
+            }
         }
     };
 }

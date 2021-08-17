@@ -108,9 +108,13 @@
                                 <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
                             </td>
                         </tr>
+                        <tr>
+                            <td :colspan="totalFrames + 1">
+                                <span class="btn btn-small" @click="toggleFunctionAddModal()">Add path function</span>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
-
             </div>
         </div>
 
