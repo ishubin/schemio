@@ -412,9 +412,19 @@ class SchemeContainer {
         const points = shape.getPins(item);
         forEach(points, (p, idx) => {
             const worldPoint = this.worldPointOnItem(p.x, p.y, item);
+
+            // checking if pin point has normals and converting normal to world transform
+            if (p.hasOwnProperty('nx')) {
+                const w0 = this.worldPointOnItem(0, 0, item);
+                const worldNormal = this.worldPointOnItem(p.nx, p.ny, item);
+                worldPoint.nx = worldNormal.x - w0.x;
+                worldPoint.ny = worldNormal.y - w0.y;
+            }
+
             this.pinSpatialIndex.addPoint(worldPoint.x, worldPoint.y, {
                 itemId: item.id,
-                pinIndex: idx
+                pinIndex: idx,
+                worldPinPoint: worldPoint
             });
         });
     }
@@ -620,26 +630,27 @@ class SchemeContainer {
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         let closestPin = null;
-        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex}, point) => {
+        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex, worldPinPoint}, point) => {
             if (itemId !== excludedId) {
                 const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
                 if (!closestPin || closestPin.distance > distance) {
-                    closestPin = { itemId, pinIndex, point, distance };
+                    closestPin = { itemId, pinIndex, point: worldPinPoint, distance };
                 }
             }
         });
 
         if (closestPin) {
-            return {
+            const result = {
                 x                 : closestPin.point.x,
                 y                 : closestPin.point.y,
                 distanceOnPath    : -closestPin.pinIndex - 1, // converting it to the negative space, yeah yeah, that's hacky, I know.
                 itemId            : closestPin.itemId
             };
-        }
-
-        if (closestPin) {
-            console.log('found closest pin', closestPin);
+            if (closestPin.point.hasOwnProperty('nx')) {
+                result.nx = closestPin.point.nx;
+                result.ny = closestPin.point.ny;
+            }
+            return result;
         }
 
         const items = new Map();

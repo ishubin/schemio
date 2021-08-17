@@ -350,6 +350,10 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
                     x: localPinPoint.x,
                     y: localPinPoint.y,
                 };
+                if (pinPoint.hasOwnProperty('nx')) {
+                    newPoint.bx = pinPoint.nx;
+                    newPoint.by = pinPoint.ny;
+                }
 
                 callback(newPoint, attachmentItemPosition);
                 
