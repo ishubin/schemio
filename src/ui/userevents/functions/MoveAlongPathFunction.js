@@ -90,10 +90,8 @@ class MoveAlongPathAnimation extends Animation {
 
                 const vx = Vx / d;
                 const vy = Vy / d;
-                let angle = Math.acos(vx) * 180 / Math.PI;
-                if (vy < 0) {
-                    angle = 180 - angle;
-                }
+                const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
+
                 this.item.area.r = angle;
                 
                 if (isFinite(this.args.rotationOffset)) {

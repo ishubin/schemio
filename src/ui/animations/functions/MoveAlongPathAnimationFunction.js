@@ -1,5 +1,6 @@
 import EventBus from "../../components/editor/EventBus";
 import Shape from "../../components/editor/items/shapes/Shape";
+import myMath from "../../myMath";
 
 export default {
     name: 'Move along path',
@@ -43,7 +44,9 @@ export default {
             item,
             pathItem,
             schemeContainer,
-            totalLength: path.getTotalLength()
+            totalLength: path.getTotalLength(),
+            rotateItem: args.rotateItem,
+            rotationOffset: args.rotationOffset
         };
     },
 
@@ -63,8 +66,9 @@ export default {
 
     // the first argument is the object returned by the "create" function
     // the second argument is an object containing the inputs
-    execute({path, item, pathItem, schemeContainer, totalLength}, {distance, rotation}) {
-        const point = path.getPointAtLength(distance * totalLength / 100);
+    execute({path, item, pathItem, schemeContainer, totalLength, rotateItem, rotationOffset}, {distance, rotation}) {
+        const length = distance * totalLength / 100;
+        const point = path.getPointAtLength(length);
         let worldPoint = schemeContainer.worldPointOnItem(point.x, point.y, pathItem);
 
         // bringing transform back from world to local so that also works correctly for sub-items
@@ -72,11 +76,33 @@ export default {
         if (item.meta && item.meta.parentId) {
             const parentItem = schemeContainer.findItemById(item.meta.parentId);
             if (parentItem) {
-                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+                localPoint = schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
             }
         }
         item.area.x = localPoint.x - item.area.w / 2;
         item.area.y = localPoint.y - item.area.h / 2;
+
+        if (rotateItem) {
+            const nextPoint = path.getPointAtLength(length + 2);
+            const Vx = nextPoint.x - point.x;
+            const Vy = nextPoint.y - point.y;
+            const dSquared = Vx * Vx + Vy * Vy;
+            if (!myMath.tooSmall(dSquared)) {
+                const d = Math.sqrt(dSquared);
+
+                const vx = Vx / d;
+                const vy = Vy / d;
+                const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
+
+                item.area.r = angle;
+                
+                if (isFinite(rotationOffset)) {
+                    item.area.r += rotationOffset;
+                };
+            }
+        }
+
+        schemeContainer.reindexItemTransforms(item);
         EventBus.emitItemChanged(item.id);
     }
 }
