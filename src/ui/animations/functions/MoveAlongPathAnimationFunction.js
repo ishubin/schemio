@@ -71,21 +71,11 @@ export default {
         const point = path.getPointAtLength(length);
         let worldPoint = schemeContainer.worldPointOnItem(point.x, point.y, pathItem);
 
-        // bringing transform back from world to local so that also works correctly for sub-items
-        let localPoint = worldPoint;
-        if (item.meta && item.meta.parentId) {
-            const parentItem = schemeContainer.findItemById(item.meta.parentId);
-            if (parentItem) {
-                localPoint = schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
-            }
-        }
-        item.area.x = localPoint.x - item.area.w / 2;
-        item.area.y = localPoint.y - item.area.h / 2;
-
         if (rotateItem) {
             const nextPoint = path.getPointAtLength(length + 2);
-            const Vx = nextPoint.x - point.x;
-            const Vy = nextPoint.y - point.y;
+            const worldNextPoint = schemeContainer.worldPointOnItem(nextPoint.x, nextPoint.y, pathItem);
+            const Vx = worldNextPoint.x - worldPoint.x;
+            const Vy = worldNextPoint.y - worldPoint.y;
             const dSquared = Vx * Vx + Vy * Vy;
             if (!myMath.tooSmall(dSquared)) {
                 const d = Math.sqrt(dSquared);
@@ -101,6 +91,23 @@ export default {
                 };
             }
         }
+
+        // bringing transform back from world to local so that also works correctly for sub-items
+        let localPoint = worldPoint;
+        if (item.meta && item.meta.parentId) {
+            const parentItem = schemeContainer.findItemById(item.meta.parentId);
+            if (parentItem) {
+                localPoint = schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+            }
+        }
+        const p0 = schemeContainer.worldPointOnItem(0, 0, item);
+        const pc = schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
+        const dx = pc.x - p0.x;
+        const dy = pc.y - p0.y;
+
+        item.area.x = localPoint.x - dx;
+        item.area.y = localPoint.y - dy;
+
 
         schemeContainer.reindexItemTransforms(item);
         EventBus.emitItemChanged(item.id);
