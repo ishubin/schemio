@@ -225,7 +225,10 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape) {
                 // re-computing item svg path for event layer
-                this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
+                if (shape.shapeType === 'standard') {
+                    this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                    this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
+                }
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
