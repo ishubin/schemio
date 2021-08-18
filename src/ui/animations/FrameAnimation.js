@@ -31,6 +31,19 @@ const knownProperties = new Map([
     ['blendMode',   {type: STRING, options: knownBlendModes}],
 ]);
 
+const knownSchemeProperties = new Map([
+    ['style.backgroundColor', {type: COLOR}]
+]);
+
+
+/**
+ * Finds supported scheme property descriptor for specified path
+ * @param {String} propertyPath 
+ * @returns 
+ */
+export function findSchemePropertyDescriptor(propertyPath) {
+    return knownSchemeProperties.get(propertyPath);
+}
 
 
 /**
@@ -157,13 +170,13 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
 }
 
 
-function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
-    const fields = propertyPath.split('.');
-
-    const propertyDescriptor = findItemPropertyDescriptor(item, propertyPath);
+function creatObjectFrameAnimation(obj, propertyPath, propertyDescriptor, frames, totalFrames, isItem) {
     if (!propertyDescriptor) {
         return null;
     }
+
+    const fields = propertyPath.split('.');
+
     const frameLookup = buildFrameLookup(frames, totalFrames);
 
     return {
@@ -198,8 +211,10 @@ function creatItemFrameAnimation(item, propertyPath, frames, totalFrames) {
                 value = interpolateFrameValues(frame, left.frame, right.frame, propertyDescriptor.type);
             }
 
-            utils.setObjectProperty(item, fields, value);
-            EventBus.emitItemChanged(item.id);
+            utils.setObjectProperty(obj, fields, value);
+            if (isItem) {
+                EventBus.emitItemChanged(item.id);
+            }
         }
     };
 }
@@ -306,7 +321,8 @@ export function compileAnimations(framePlayer, schemeContainer) {
         if (animation.kind === 'item') {
             const item = schemeContainer.findItemById(animation.id);
             if (item) {
-                const itemAnimation = creatItemFrameAnimation(item, animation.property, animation.frames, framePlayer.shapeProps.totalFrames);
+                const propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
+                const itemAnimation = creatObjectFrameAnimation(item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
                 if (itemAnimation) {
                     animations.push(itemAnimation);
                 }
@@ -316,6 +332,12 @@ export function compileAnimations(framePlayer, schemeContainer) {
                 functionAnimationTracks[animation.id] = {};
             }
             functionAnimationTracks[animation.id][animation.property] = animation;
+        } else if (animation.kind === 'scheme') {
+            const propertyDescriptor = findSchemePropertyDescriptor(animation.property);
+            const schemeAnimation = creatObjectFrameAnimation(schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);
+            if (schemeAnimation) {
+                animations.push(schemeAnimation);
+            }
         }
     });
 

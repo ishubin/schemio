@@ -87,6 +87,9 @@
                                 <div v-else-if="track.kind === 'function'">
                                     {{track.property}}
                                 </div>
+                                <div v-else-if="track.kind === 'scheme'">
+                                    {{track.property}}
+                                </div>
 
                                 <div class="frame-property-operations">
                                     <span v-if="track.kind === 'function-header'" class="icon-button" title="Edit function" @click="toggleEditFunctionArgumentsForTrack(track)"><i class="fas fa-cog"></i></span>
@@ -146,7 +149,7 @@ import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
-import { compileAnimations, findItemPropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
+import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
 import EventBus from '../EventBus';
@@ -202,6 +205,15 @@ function detectChanges(schemeContainer, originSchemeContainer) {
         }
     });
 
+
+    if (schemeContainer.scheme.style.backgroundColor !== originSchemeContainer.scheme.style.backgroundColor) {
+        changes.push({
+            kind: 'scheme',
+            id: null,
+            property: 'style.backgroundColor',
+            value: schemeContainer.scheme.style.backgroundColor
+        });
+    }
     return changes;
 }
 
@@ -460,6 +472,8 @@ export default {
                         itemName = item.name;
                         propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
                     }
+                } else if (animation.kind === 'scheme') {
+                    propertyDescriptor = findSchemePropertyDescriptor(animation.property);
                 }
 
                 const track = {
@@ -920,6 +934,8 @@ export default {
                     return;
                 }
                 value = utils.getObjectProperty(item, track.property);
+            } else if (track.kind === 'scheme' ) {
+                value = utils.getObjectProperty(this.schemeContainer.scheme, track.property);
             } else {
                 // anything else is not supported yet
                 return;
@@ -960,7 +976,7 @@ export default {
             const track = this.framesMatrix[trackIdx];
 
             this.selectedFrameControl.value = value;
-            if (track.kind === 'item') {
+            if (track.kind === 'item' || track.kind === 'scheme') {
                 const animationIdx = this.findAnimationIndexForTrack(track);
                 if (animationIdx < 0) {
                     return;
@@ -974,11 +990,16 @@ export default {
                 this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
                 this.framesMatrix[trackIdx].frames[frame - 1].value = value;
 
-                const item = this.schemeContainer.findItemById(animation.id);
-                if (item) {
-                    utils.setObjectProperty(item, animation.property, value);
-                    EventBus.emitItemChanged(item.id, animation.property);
+                if (animation.kind === 'item') {
+                    const item = this.schemeContainer.findItemById(animation.id);
+                    if (item) {
+                        utils.setObjectProperty(item, animation.property, value);
+                        EventBus.emitItemChanged(item.id, animation.property);
+                    }
+                } else if (animation.kind === 'scheme') {
+                    utils.setObjectProperty(this.schemeContainer.scheme, animation.property, value);
                 }
+
                 EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
                 this.shouldRecompileAnimations = true;
             } else if (track.kind === 'sections') {
