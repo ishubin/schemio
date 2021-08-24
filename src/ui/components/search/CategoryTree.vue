@@ -1,152 +1,309 @@
-<!-- This Source Code Form is subject to the terms of the Mozilla Public
-     License, v. 2.0. If a copy of the MPL was not distributed with this
-     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<template>
+    <div class="project-categories">
+        <h4>Categories</h4>
 
-<template lang="html">
-    <div class="category-tree">
-        <div v-for="category in categories">
-            <div class="category-selector" :class="{'selected': category.id === selectedCategoryId}" @dragend="onEndDragging(category)" @dragenter="onDragEnter(category)">
-                <a :href="getCategoryFullUrl(category)">{{category.name}}</a>
-                <div v-if="editAllowed" class="category-menu">
-                    <span class="btn btn-secondary btn-small" title="Add sub-category" v-if="depth < maxDepth" @click="onAddCategoryClicked(category)"><i class="fas fa-folder-plus"></i></span>
-                    <span class="btn btn-secondary btn-small" title="Edit category" @click="onEditCategoryClicked(category)"><i class="fas fa-pen-square"></i></span>
-                    <span class="btn btn-secondary btn-small" title="Delete category" @click="onDeleteCategoryClicked(category)"><i class="fas fa-trash-alt"></i></span>
-                    <span class="btn btn-secondary btn-small" style="cursor: grab;" title="Move category" draggable="true" @dragstart="onStartDragging(category)"> <i class="fas fa-arrows-alt"></i> </span>
-                </div>
-            </div>
+        <div v-if="editAllowed">
+            <span class="btn btn-secondary btn-small" title="Add new category" @click="onAddCategoryClicked(null)"><i class="fas fa-folder-plus"></i></span>
+        </div>
 
-            <div class="category-children">
-                <div class="category-selector" v-if="isRoot && categoryForDrop && categoryForDrop.id === category.id">
-                    <span>{{categoryDragged.name}}</span>
-                </div>
-                <div class="category-selector" v-if="(!isRoot) && parentCategoryForDrop && parentCategoryForDrop.id === category.id">
-                    <span>{{parentCategoryDragged.name}}</span>
-                </div>
-                <category-tree v-if="category.childCategories"
-                    :is-root="false"
-                    :depth="depth + 1"
-                    :categories="category.childCategories"
-                    :selected-category-id="selectedCategoryId"
-                    :url-prefix="urlPrefix"
-                    :write-permissions="editAllowed"
-                    :parent-category-for-drop="isRoot ? categoryForDrop : parentCategoryForDrop"
-                    :parent-category-dragged="isRoot ? categoryDragged : parentCategoryDragged"
-                    @add-category="onAddCategoryClicked"
-                    @edit-category="onEditCategoryClicked"
-                    @delete-category="onDeleteCategoryClicked"
-                    @child-drag-end="onEndDragging"
-                    @child-drag-start="onStartDragging"
-                    @child-drag-enter="onDragEnter"
-                    />
-            </div>
-        </div>
-        <div v-if="isRoot && categoryDragged" style="height: 60px; margin-top:10px; border: 1px dotted #bbb;" @dragenter="onDragEnter(null)">
-            <div v-if="shouldDropToRoot && categoryDragged">
-                <span>{{categoryDragged.name}}</span>
-            </div>
-            <div v-else>
-                Drop to root...
-            </div>
-        </div>
+        <category-tree-leaf
+            :categories="categories" 
+            :selectedCategoryId="selectedCategoryId"
+            :urlPrefix="urlPrefix"
+            :editAllowed="editAllowed"
+            :maxDepth="maxDepth"
+            @add-category="onAddCategoryClicked"
+            @edit-category="onEditCategoryClicked"
+            @delete-category="onDeleteCategoryClicked"
+            @moved-category="onCategoryMoveRequested"
+            />
+        
+        <modal :title="createCategoryModalTitle" v-if="createCategoryModal.shown"
+            @close="createCategoryModal.shown = false" primary-button="Create"
+            @primary-submit="onCreateCategorySubmited"
+            >
+            <h5>Name</h5>
+            <input ref="createCategoryNameTextfield" class="textfield" v-model="createCategoryModal.categoryName" :class="{'missing-field-error' : createCategoryModal.mandatoryFields.name.highlight}"/>
+
+            <div v-if="createCategoryModal.errorMessage" class="msg msg-error">{{createCategoryModal.errorMessage}}</div>
+        </modal>
+
+        <modal :title="`Delete category ${deleteCategoryModal.categoryName}`" v-if="deleteCategoryModal.shown" primary-button="Delete" 
+            @primary-submit="onConfirmDeleteCategoryClicked"
+            @close="deleteCategoryModal.shown = false"
+            >
+            <p>
+                Are you sure you want to delete <b><i>"{{deleteCategoryModal.categoryName}}"</i></b> category?
+                This will delete all of it's sub-categories and schemes.
+            </p>
+            <div v-if="deleteCategoryModal.errorMessage" class="msg msg-error">{{deleteCategoryModal.errorMessage}}</div>
+        </modal>
+
+        <modal title="Edit category" v-if="editCategoryModal.shown" primary-button="Update"
+            @primary-submit="onConfirmUpdateCategoryClicked"
+            @close="editCategoryModal.shown = false"
+            >
+            <h5>Name</h5>
+            <input class="textfield" v-model="editCategoryModal.categoryName" :class="{'missing-field-error' : editCategoryModal.mandatoryFields.name.highlight}"/>
+            <div v-if="editCategoryModal.errorMessage" class="msg msg-error">{{editCategoryModal.errorMessage}}</div>
+        </modal>
+
+        <modal title="Move category" v-if="moveCategoryModal.shown" primary-button="Move"
+            @primary-submit="onConfirmMoveCategoryClicked"
+            @close="moveCategoryModal.shown = false"
+            >
+            Are you sure you want to move <b><i>"{{moveCategoryModal.category.name}}"</i></b> category to 
+            <span v-if="moveCategoryModal.newParentCategory">
+                <b><i>"{{moveCategoryModal.newParentCategory.name}}"</i></b>
+            </span>
+            <span v-else>
+                root
+            </span>
+            <div v-if="moveCategoryModal.errorMessage" class="msg msg-error">{{moveCategoryModal.errorMessage}}</div>
+        </modal>
     </div>
 </template>
-
 <script>
-import find from 'lodash/find';
+import CategoryTreeLeaf from './CategoryTreeLeaf.vue';
+import Modal from '../Modal.vue';
+import forEach from 'lodash/forEach';
 
 export default {
+    components: {CategoryTreeLeaf, Modal},
+
     props: {
+        projectId            : {type: String, required: true},
         categories           : {type: Array, required: true},
-        isRoot               : {type: Boolean, default: true},
-        depth                : {type: Number, default: 1},
         selectedCategoryId   : {type: String, default: null},
         urlPrefix            : {type: String, default: '/'},
         editAllowed          : {type: Boolean, default: false},
-        parentCategoryForDrop: {type: Object, default: null},
-        parentCategoryDragged: {type: Object, default: null},
         maxDepth             : {type: Number, default: 10},
     },
-    name: 'category-tree',
+
+    beforeMount() {
+        this.enrichAndIndexCategories(this.categories);
+    },
 
     data() {
         return {
-            collapsed       : true,
-            categoryForDrop : null,
-            shouldDropToRoot: false,
-            categoryDragged : null,
-        };
-    },
-    methods: {
-        onAddCategoryClicked(category) {
-            this.$emit('add-category', category);
-        },
-
-        onEditCategoryClicked(category) {
-            this.$emit('edit-category', category);
-        },
-
-        onDeleteCategoryClicked(category) {
-            this.$emit('delete-category', category);
-        },
-
-        onStartDragging(category) {
-            if (this.isRoot) {
-                this.categoryForDrop = null;
-                this.categoryDragged = category;
-            } else {
-                this.$emit('child-drag-start', category);
-            }
-        },
-
-        onEndDragging(category) {
-            if (this.isRoot) {
-                if (this.shouldDropToRoot) {
-                    this.$emit('moved-category', this.categoryDragged, null);
-                } else if (this.categoryDragged && this.categoryForDrop && this.categoryDragged.parentId !== this.categoryForDrop.id) {
-                    this.$emit('moved-category', this.categoryDragged, this.categoryForDrop);
-                    this.categoryForDrop = null;
-                    this.categoryDragged = null;
-                }
-            } else {
-                this.$emit('child-drag-end', category);
-            }
-        },
-
-        onDragEnter(category) {
-            if (this.isRoot) {
-                if (this.categoryDragged) {
-                    if (category) {
-                        if (this.categoryDragged.id !== category.id
-                            && this.categoryDragged.parentId !== category.id
-                            && !find(category.ancestors, a => a.id === this.categoryDragged.id)) {
-                            this.categoryForDrop = category;
-                            this.shouldDropToRoot = false;
-                        } else {
-                            this.categoryForDrop = null;
-                            this.shouldDropToRoot = false;
-                        }
-                    } else {
-                        this.shouldDropToRoot = true;
+            categoriesMap: new Map(),
+            createCategoryModal: {
+                shown: false,
+                categoryName: '',
+                parentCategory: null,
+                errorMessage: null,
+                mandatoryFields: {
+                    name: {
+                        highlight: false
                     }
                 }
-            } else {
-                this.$emit('child-drag-enter', category);
-            }
-        },
-
-        getCategoryFullUrl(category) {
-            let link = this.urlPrefix;
-            if (category.id !== this.selectedCategoryId) {
-                let parameterSplit = '?';
-                if (link.indexOf('?') >= 0) {
-                    parameterSplit = '&';
+            },
+            deleteCategoryModal: {
+                shown: false,
+                categoryName: '',
+                category: null,
+                errorMessage: null
+            },
+            editCategoryModal: {
+                shown: false,
+                categoryName: '',
+                category: null,
+                errorMessage: null,
+                mandatoryFields: {
+                    name: {
+                        highlight: false
+                    }
                 }
-                link += `${parameterSplit}category=${encodeURIComponent(category.id)}`;
-            }
-            return link;
+            },
+            moveCategoryModal: {
+                shown: false,
+                category: null,
+                newParentCategory: null,
+                errorMessage: null
+            },
         }
     },
+
+    methods: {
+        onAddCategoryClicked(parentCategory) {
+            this.createCategoryModal.categoryName = '';
+            this.createCategoryModal.parentCategory = parentCategory;
+            this.createCategoryModal.errorMessage = null;
+            this.createCategoryModal.shown = true;
+            this.createCategoryModal.mandatoryFields.name.highlight = false;
+            this.$nextTick(() => {
+                this.$refs.createCategoryNameTextfield.focus();
+            });
+        },
+        onEditCategoryClicked(category) {
+            this.editCategoryModal.categoryName = category.name;
+            this.editCategoryModal.category = category;
+            this.editCategoryModal.errorMessage = null;
+            this.editCategoryModal.shown = true;
+            this.editCategoryModal.mandatoryFields.name.highlight = false;
+        },
+        onDeleteCategoryClicked(category) {
+            this.deleteCategoryModal.category = category;
+            this.deleteCategoryModal.errorMessage = null;
+            this.deleteCategoryModal.categoryName = category.name;
+            this.deleteCategoryModal.shown = true;
+        },
+        onCategoryMoveRequested(category, newParentCategory) {
+            if (newParentCategory !== null) {
+                const maxCategoryDepth = this.calculateMaxCategoryDepth(category, 1);
+                if (newParentCategory.ancestors.length + maxCategoryDepth + 1 > config.project.categories.maxDepth) {
+                    StoreUtils.addErrorSystemMessage(this.$store, `Cannot move category as maximum categories depth reached`, 'max-category-depth-reached');
+                    return;
+                }
+            }
+            this.moveCategoryModal.category = category;
+            this.moveCategoryModal.newParentCategory = newParentCategory;
+            this.moveCategoryModal.errorMessage = null;
+            this.moveCategoryModal.shown = true;
+        },
+        calculateMaxCategoryDepth(category, currentDepth) {
+            let maxDepth = currentDepth;
+            if (category.childCategories) {
+                forEach(category.childCategories, childCategory => {
+                    let maxChildDepth = this.calculateMaxCategoryDepth(childCategory, currentDepth + 1);
+                    if (maxDepth < maxChildDepth) {
+                        maxDepth = maxChildDepth;
+                    }
+                })
+            }
+            return maxDepth;
+        },
+        onConfirmUpdateCategoryClicked() {
+            if (this.editCategoryModal.category) {
+                const newName = this.editCategoryModal.categoryName.trim();
+                if (newName) {
+                    apiClient.updateCategory(this.projectId, this.editCategoryModal.category.id, {
+                        name: newName
+                    }).then(() => {
+                        this.editCategoryModal.shown = false;
+                        return this.reloadCategoryTree()
+                    }).catch(err => {
+                        this.editCategoryModal.errorMessage = 'Internal Server Error. Could not update category';
+                    });
+                } else {
+                    this.editCategoryModal.errorMessage = 'Name should not be empty';
+                    this.editCategoryModal.mandatoryFields.name.highlight = true;
+                }
+            }
+        },
+        onConfirmMoveCategoryClicked() {
+            if (this.moveCategoryModal.category) {
+                let destinationCategoryId = null;
+                if (this.moveCategoryModal.newParentCategory) {
+                    destinationCategoryId = this.moveCategoryModal.newParentCategory.id;
+                }
+                apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, destinationCategoryId)
+                .then(() => this.reloadCategoryTree())
+                .then(() => {
+                    this.moveCategoryModal.shown = false;
+                    this.categoryTreeRevision += 1;
+                }).catch(err => {
+                    this.moveCategoryModal.errorMessage = 'Internal Server Error. Could not move category';
+                });
+            }
+        },
+        onConfirmDeleteCategoryClicked() {
+            if (this.deleteCategoryModal.category) {
+                const isCurrentCategoryInDeletedTree = this.currentCategoryId && this.isInCategoryTree(this.currentCategoryId, this.deleteCategoryModal.category);
+                apiClient.deleteCategory(this.projectId, this.deleteCategoryModal.category.id).then(() => {
+                    this.deleteCategoryModal.shown = false;
+                }).then(() => {
+                    if (isCurrentCategoryInDeletedTree) {
+                        this.currentCategoryId = null;
+                        this.$router.push({path: this.$route.path, query: {}});
+                    }
+                    return this.reloadCategoryTree();
+                })
+                .catch(err => {
+                    this.deleteCategoryModal.errorMessage = 'Internal Server Error. Could not delete category';
+                });
+            }
+        },
+        onCreateCategorySubmited() {
+            const name = this.createCategoryModal.categoryName.trim();
+            if (name) {
+                let parentCategoryId = null;
+                if (this.createCategoryModal.parentCategory) {
+                    parentCategoryId = this.createCategoryModal.parentCategory.id;
+                }
+                apiClient.createCategory(this.projectId, name, parentCategoryId)
+                .then(() => this.reloadCategoryTree())
+                .then(() => {
+                    this.createCategoryModal.shown = false;
+                })
+                .catch(err => {
+                    this.createCategoryModal.errorMessage = 'Could not add a category';
+                });
+            } else {
+                this.createCategoryModal.errorMessage = 'Category should not be empty';
+                this.createCategoryModal.mandatoryFields.name.highlight = true;
+            }
+        },
+        isInCategoryTree(categoryId, category) {
+            if (category) {
+                if (categoryId === category.id) {
+                    return true;
+                }
+                if (category.childCategories.length > 0) {
+                    for (let i = 0; i < category.childCategories.length; i++) {
+                        if (this.isInCategoryTree(categoryId, category.childCategories[i])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        },
+        enrichAndIndexCategories(categories, parentId, parentCategory) {
+            forEach(categories, category => {
+                if (parentId) {
+                    category.parentId = parentId;
+                }
+                if (parent) {
+                    category.depth = parent.depth + 1;
+                } else {
+                    category.depth = 1;
+                }
+                category.ancestors = [];
+                if (parentCategory) {
+                    category.ancestors = parentCategory.ancestors.concat([{
+                        id: parentCategory.id,
+                        name: parentCategory.name
+                    }]);
+                }
+                if (this.currentCategoryId === category.id) {
+                    this.currentCategory = category;
+                }
+                if (category.childCategories) {
+                    this.enrichAndIndexCategories(category.childCategories, category.id, category);
+                }
+                this.categoriesMap.set(category.id, category);
+            });
+            categories.sort((a, b) => {
+                if (a.name < b.name) {
+                    return -1;
+                } if (a.name > b.name) {
+                    return 1;
+                }
+                return 0;
+            })
+            return categories;
+        },
+
+    },
+
     computed: {
+        createCategoryModalTitle() {
+            if (this.createCategoryModal.parentCategory) {
+                return `Create sub-category for "${this.createCategoryModal.parentCategory.name}"`;
+            }
+            return 'Create category';
+        },
     }
 }
 </script>
