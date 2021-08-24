@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import apiClient from '../apiClient';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import utils from '../utils';
@@ -13,51 +12,7 @@ Vue.use(Vuex);
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
-/**
- * This function retrieves user data from local storage and verifies that it matches current session ID
- */
-function getVerifiedUserDataFromMyStorage() {
-    const sessionId = getCookie('sx');
-    if (!sessionId) {
-        return null;
-    }
-    const userData = myStorage.get('user');
 
-    // check that current session id is the same as the one it has recorded in local storage
-    // when sx cookie expires it will force it to fetch user again
-    if (!userData || userData.sessionId !== sessionId) {
-        return null;
-    }
-
-    if (typeof userData.savedAt !== 'number') {
-        return null;
-    }
-
-    if (Date.now() - userData.savedAt > config.cache.currentUserTTL) {
-        return null;
-    }
-    return userData;
-}
-
-function getCookie(name) {
-    const encodedCookies = document.cookie.split(";");
-    
-    for(var i = 0; i < encodedCookies.length; i++) {
-        const cookieData = encodedCookies[i].split("=");
-        if(cookieData[0].trim() === name) {
-            return decodeURIComponent(cookieData[1]);
-        }
-    }
-    return null;
-}
-
-function saveUserInMyStorage(user) {
-    myStorage.save('user', {
-        sessionId: getCookie('sx'),
-        user,
-        savedAt: Date.now()
-    });
-}
 
 function enrichCurvePoint(point) {
     if (point.t === 'B') {
@@ -84,15 +39,9 @@ function enrichCurvePoint(point) {
 
 const store = new Vuex.Store({
     state: {
-        isLoadingUser: false,
-        currentUser: null,
         schemeModified: false,
 
         editorStateName: 'interact',
-
-        consent: {
-            hasConsent: !config.consent.enabled || hasGivenConsent()
-        },
 
         curveEditing: {
             // item whose curve is currently edited
@@ -163,9 +112,6 @@ const store = new Vuex.Store({
             state.isLoadingUser = isLoading;
         },
 
-        SET_CURRENT_USER(state, user) {
-            state.currentUser = user;
-        },
         SET_SCHEME_MODIFIED(state, isModified) {
             state.schemeModified = isModified;
         },
@@ -391,39 +337,9 @@ const store = new Vuex.Store({
                 state.draw.epsilon = epsilon;
             }
         },
-
-        GIVE_CONSENT(state) {
-            state.consent.hasConsent = true;
-        }
     },
 
     actions: {
-        loadCurrentUser({commit}) {
-            // here we are caching the user data so that it does not have to be retrieved over and over again with each page load
-            const userData = getVerifiedUserDataFromMyStorage();
-            if (userData) {
-                commit('SET_CURRENT_USER', userData.user);
-            } else {
-                commit('SET_IS_LOADING_USER', true);
-                apiClient.getCurrentUser().then(user => {
-                    commit('SET_IS_LOADING_USER', false);
-                    saveUserInMyStorage(user);
-                    commit('SET_CURRENT_USER', user);
-                })
-                .catch(err => {
-                    if (err.response) {
-                        if (err.response.status >= 400 && err.response.status < 500) {
-                            commit('SET_IS_LOADING_USER', false);
-                        }
-                    }
-                });
-            }
-        },
-        setCurrentUser({commit}, user) {
-            saveUserInMyStorage(user);
-            commit('SET_CURRENT_USER', user);
-        },
-
         markSchemeAsModified({commit}) {
             commit('SET_SCHEME_MODIFIED', true);
         },
@@ -550,16 +466,9 @@ const store = new Vuex.Store({
         updateDrawEpsilon({commit}, epsilon) {
             commit('UPDATE_DRAW_EPSILON', epsilon);
         },
-
-        giveConsent({commit}) {
-            commit('GIVE_CONSENT');
-        }
     },
 
     getters: {
-        isLoadingUser: state => state.isLoadingUser,
-        currentUser: state => state.currentUser,
-
         schemeModified: state => state.schemeModified,
         
         itemControlPointsList: state => state.itemControlPoints,
@@ -590,7 +499,6 @@ const store = new Vuex.Store({
 
         editorStateName: state => state.editorStateName,
 
-        hasConsent: state => state.consent.hasConsent
     }
 });
 

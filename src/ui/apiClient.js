@@ -53,52 +53,8 @@ export default {
         return $axios().get(`/v1/users/${userId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
-    getCurrentUser() {
-        return $axios().get('/v1/user').then(unwrapAxios);
-    },
-
-    saveUserProfile(user) {
-        return $axios().put('/v1/user', user).then(unwrapAxios);
-    },
-
     createProject(project) {
         return $axios().post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
-    patchProject(projectId, {name, description, isPublic}) {
-        const payload = [];
-        if (name) {
-            payload.push({ op: 'update', field: 'name', value: name });
-        }
-        if (description) {
-            payload.push({ op: 'update', field: 'description', value: description });
-        }
-        if (typeof isPublic !== 'undefined') {
-            payload.push({ op: 'update', field: 'isPublic', value: isPublic });
-        }
-
-        return $axios().patch(`/v1/projects/${projectId}`, payload).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
-    findProjects({userId, query, offset, limit}) {
-        let encodedQuery = encodeURIComponent(query || '');
-        let url = `/v1/projects?offset=${offset || 0}&limit=${limit || 20}&q=${encodedQuery}`;
-        if (userId) {
-            url += `&userId=${userId}`;
-        }
-        return $axios().get(url).then(unwrapAxios);
-    },
-
-    getProject(projectId) {
-        return $axios().get(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
-    deleteProject(projectId) {
-        return $axios().delete(`/v1/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
-    login(login, password) {
-        return $axios().post('/v1/login', {login, password}).then(unwrapAxios);
     },
 
     createArt(projectId, art) {
@@ -119,10 +75,6 @@ export default {
 
     deleteArt(projectId, artId) {
         return $axios().delete(`/v1/projects/${projectId}/art/${artId}`).then(unwrapAxios);
-    },
-
-    loadScheme(projectId, schemeId) {
-        return $axios().get(`/v1/projects/${projectId}/docs/${schemeId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     createNewScheme(projectId, scheme) {
@@ -148,10 +100,6 @@ export default {
         } else {
             return Promise.resolve(null);
         }
-    },
-
-    deleteMultipleSchemes(projectId, schemeIds) {
-        return $axios().post(`/v1/projects/${projectId}/delete-docs`, schemeIds).then(unwrapAxios);
     },
 
     findSchemes(projectId, filters) {

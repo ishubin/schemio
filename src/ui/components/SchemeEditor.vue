@@ -4,29 +4,6 @@
 
 <template lang="html">
     <div class="scheme-editor-view">
-        <header-component 
-            :project-id="projectId"
-            :project="project"
-            :category="currentCategory"
-            :allow-new-scheme="false"
-            >
-            <div slot="middle-section">
-                <div class="scheme-title" v-if="schemeContainer && !offlineMode" @dblclick="triggerSchemeTitleEdit">
-                    <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
-                    <span ref="schemeTitle"
-                        :contenteditable="schemeTitleEdit.shown"
-                        @keydown.enter="submitTitleEdit"
-                        @keydown.esc="submitTitleEdit"
-                        @blur="submitTitleEdit"
-                        >{{schemeContainer.scheme.name}}</span>
-                </div>
-                <div class="scheme-title" v-if="offlineMode">
-                    <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
-                    <span>Offline Editor</span>
-                </div>
-            </div>
-        </header-component>
-
         <quick-helper-panel
             v-if="schemeContainer"
             :project-id="projectId"
@@ -280,44 +257,43 @@ import { Keys } from '../events';
 
 import {enrichItemWithDefaults} from '../scheme/Item';
 import {enrichSchemeWithDefaults} from '../scheme/Scheme';
-import HeaderComponent from '../components/Header.vue';
-import Dropdown from '../components/Dropdown.vue';
-import SvgEditor from '../components/editor/SvgEditor.vue';
-import EventBus from '../components/editor/EventBus.js';
+import Dropdown from './Dropdown.vue';
+import SvgEditor from './editor/SvgEditor.vue';
+import EventBus from './editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
-import ItemProperties from '../components/editor/properties/ItemProperties.vue';
-import AdvancedBehaviorProperties from '../components/editor/properties/AdvancedBehaviorProperties.vue';
-import TextSlotProperties from '../components/editor/properties/TextSlotProperties.vue';
-import ItemDetails from '../components/editor/ItemDetails.vue';
-import SchemeProperties from '../components/editor/SchemeProperties.vue';
-import SchemeDetails from '../components/editor/SchemeDetails.vue';
-import CreateItemMenu   from '../components/editor/CreateItemMenu.vue';
-import CreateNewSchemeModal from '../components/CreateNewSchemeModal.vue';
-import LinkEditPopup from '../components/editor/LinkEditPopup.vue';
-import ItemTooltip from '../components/editor/ItemTooltip.vue';
-import ConnectorDestinationProposal from '../components/editor/ConnectorDestinationProposal.vue';
+import ItemProperties from './editor/properties/ItemProperties.vue';
+import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
+import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
+import ItemDetails from './editor/ItemDetails.vue';
+import SchemeProperties from './editor/SchemeProperties.vue';
+import SchemeDetails from './editor/SchemeDetails.vue';
+import CreateItemMenu   from './editor/CreateItemMenu.vue';
+import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
+import LinkEditPopup from './editor/LinkEditPopup.vue';
+import ItemTooltip from './editor/ItemTooltip.vue';
+import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
-import Shape from '../components/editor/items/shapes/Shape.js';
+import Shape from './editor/items/shapes/Shape.js';
 import AnimationRegistry from '../animations/AnimationRegistry';
-import Panel from '../components/editor/Panel.vue';
-import ItemSelector from '../components/editor/ItemSelector.vue';
+import Panel from './editor/Panel.vue';
+import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
-import ExportHTMLModal from '../components/editor/ExportHTMLModal.vue';
-import ExportEmbeddedModal from '../components/editor/ExportEmbeddedModal.vue';
-import ExportJSONModal from '../components/editor/ExportJSONModal.vue';
-import ShapeExporterModal from '../components/editor/ShapeExporterModal.vue';
-import ImportSchemeModal from '../components/editor/ImportSchemeModal.vue';
-import Modal from '../components/Modal.vue';
+import ExportHTMLModal from './editor/ExportHTMLModal.vue';
+import ExportEmbeddedModal from './editor/ExportEmbeddedModal.vue';
+import ExportJSONModal from './editor/ExportJSONModal.vue';
+import ShapeExporterModal from './editor/ShapeExporterModal.vue';
+import ImportSchemeModal from './editor/ImportSchemeModal.vue';
+import Modal from './Modal.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
-import QuickHelperPanel from '../components/editor/QuickHelperPanel.vue';
+import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
-import { getCapDefaultFill } from '../components/editor/items/shapes/ConnectorCaps.js';
+import { getCapDefaultFill } from './editor/items/shapes/ConnectorCaps.js';
 
 let history = new History({size: 30});
 
@@ -388,7 +364,7 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel,
-        CreateNewSchemeModal, LinkEditPopup, HeaderComponent,
+        CreateNewSchemeModal, LinkEditPopup,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal,
@@ -396,6 +372,11 @@ export default {
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
+    },
+
+    props: {
+        projectId: {type: String, default: null},
+        scheme: {type: Object, default: null},
     },
 
     beforeMount() {
@@ -436,7 +417,6 @@ export default {
 
     data() {
         return {
-            projectId: this.$route.params.projectId,
             offlineMode: false,
             project: null,
             schemeId: null,
@@ -523,44 +503,26 @@ export default {
     },
     methods: {
         init() {
-
-            if (!this.projectId) {
+            if (!this.scheme) {
                 this.initOfflineMode();
                 return;
             }
 
-            this.offlineMode = false;
+            if (!this.projectId) {
+                this.offlineMode = true;
+            }
+
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
 
             this.loadingStep = 'load';
             this.isLoading = true;
             this.schemeLoadErrorMessage = null;
 
-            this.schemeId = this.$route.params.schemeId;
+            this.schemeId = this.scheme.id;
 
 
-            Promise.all([
-                apiClient.getProject(this.projectId),
-                apiClient.loadScheme(this.projectId, this.schemeId)
-            ])
-            .then(values => {
-                const project = values[0];
-                const scheme = values[1];
-
-                this.project = project;
-                const currentUser = this.$store.state.currentUser;
-                this.editAllowed = project && (currentUser && project.owner && project.owner.id === currentUser.id
-                    || project.permissions && project.permissions.write);
-
-                if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
-                    this.mode = 'edit';
-                } else {
-                    this.mode = 'view';
-                }
-
-                this.initScheme(scheme);
-            })
-            .then(() => {
+            this.initScheme(scheme);
+            Promise.resolve(null).then(() => {
                 this.loadingStep = 'img-preload';
                 const images = findAllImages(this.schemeContainer.getItems());
                 return Promise.race([
@@ -570,21 +532,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-            })
-            .catch(err => {
-                this.isLoading = false;
-                if (err.statusCode == 404) {
-                    this.schemeLoadErrorMessage = 'Sorry, but this document does not exist';
-                } else if (err.statusCode === 401) {
-                    this.schemeLoadErrorMessage = 'Sorry, but you are not authorized to read this document';
-                } else if (err.data && err.data.message) {
-                    this.schemeLoadErrorMessage = err.data.message;
-                } else {
-                    this.schemeLoadErrorMessage = 'Sorry, something went wrong when loading this document. Please try again later';
-                    console.error(err);
-                }
             });
-
         },
 
         initOfflineMode() {
@@ -1323,10 +1271,6 @@ export default {
     },
 
     watch: {
-        $route(to, from) {
-            this.init();
-        },
-
         mode(value) {
             hasher.changeURLHash(hasher.encodeURLHash({
                 m: value
@@ -1351,10 +1295,6 @@ export default {
     },
 
     computed: {
-        currentUser() {
-            return this.$store.getters.currentUser;
-        },
-
         schemeModified() {
             return this.$store.getters.schemeModified;
         },
