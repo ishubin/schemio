@@ -67,6 +67,7 @@
 import CategoryTreeLeaf from './CategoryTreeLeaf.vue';
 import Modal from '../Modal.vue';
 import forEach from 'lodash/forEach';
+import apiClient from '../../apiClient';
 
 export default {
     components: {CategoryTreeLeaf, Modal},
@@ -125,6 +126,16 @@ export default {
     },
 
     methods: {
+        reloadCategoryTree() {
+            return apiClient.getCategoryTree(this.projectId)
+            .then(categories => {
+                this.categoriesMap = new Map();
+                return this.enrichAndIndexCategories(categories);
+            })
+            .then(categories => {
+                this.categories = categories;
+            });
+        },
         onAddCategoryClicked(parentCategory) {
             this.createCategoryModal.categoryName = '';
             this.createCategoryModal.parentCategory = parentCategory;
@@ -151,7 +162,7 @@ export default {
         onCategoryMoveRequested(category, newParentCategory) {
             if (newParentCategory !== null) {
                 const maxCategoryDepth = this.calculateMaxCategoryDepth(category, 1);
-                if (newParentCategory.ancestors.length + maxCategoryDepth + 1 > config.project.categories.maxDepth) {
+                if (newParentCategory.ancestors.length + maxCategoryDepth + 1 > this.maxDepth) {
                     StoreUtils.addErrorSystemMessage(this.$store, `Cannot move category as maximum categories depth reached`, 'max-category-depth-reached');
                     return;
                 }
@@ -183,7 +194,7 @@ export default {
                         this.editCategoryModal.shown = false;
                         return this.reloadCategoryTree()
                     }).catch(err => {
-                        this.editCategoryModal.errorMessage = 'Internal Server Error. Could not update category';
+                        this.editCategoryModal.errorMessage = 'Sorry, something went wrong. Please try again later';
                     });
                 } else {
                     this.editCategoryModal.errorMessage = 'Name should not be empty';
@@ -203,7 +214,7 @@ export default {
                     this.moveCategoryModal.shown = false;
                     this.categoryTreeRevision += 1;
                 }).catch(err => {
-                    this.moveCategoryModal.errorMessage = 'Internal Server Error. Could not move category';
+                    this.moveCategoryModal.errorMessage = 'Sorry, something went wrong. Please try again later';
                 });
             }
         },
@@ -220,7 +231,7 @@ export default {
                     return this.reloadCategoryTree();
                 })
                 .catch(err => {
-                    this.deleteCategoryModal.errorMessage = 'Internal Server Error. Could not delete category';
+                    this.deleteCategoryModal.errorMessage = 'Sorry, something went wrong. Please try again later';
                 });
             }
         },
@@ -237,7 +248,7 @@ export default {
                     this.createCategoryModal.shown = false;
                 })
                 .catch(err => {
-                    this.createCategoryModal.errorMessage = 'Could not add a category';
+                    this.createCategoryModal.errorMessage = 'Sorry, something went wrong. Please try again later';
                 });
             } else {
                 this.createCategoryModal.errorMessage = 'Category should not be empty';

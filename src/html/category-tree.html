@@ -38,13 +38,18 @@
                 "name": "Root 2",
                 "childCategories": [ ]
             } ];
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentCategory = urlParams.get('category');
+
+
             new Schemio.components.Vue({
                 components: {CategoryTree: Schemio.components.CategoryTree },
                 data() {
                     return {
                         categories,
-                        selectedCategoryId: null,
-                        urlPrefix: '/',
+                        selectedCategoryId: currentCategory,
+                        urlPrefix: '/category-tree',
                         editAllowed: true
                     }
                 }

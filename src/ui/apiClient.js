@@ -20,28 +20,28 @@ function unwrapAxiosError(err) {
 
 const XSRF_TOKEN_HEADER = 'xsrf-token';
 
-let xsrfToken = window.localStorage.getItem(XSRF_TOKEN_HEADER);
-
-
 const _axiosInstance = axios.create({
     timeout: 10000,
 });
 
 _axiosInstance.interceptors.request.use(config => {
-    if (xsrfToken && config.method !== 'get') {
-        config.headers[XSRF_TOKEN_HEADER] = xsrfToken;
+    if (config.method !== 'get') {
+        const xsrfToken = document.body.getAttribute('data-xsrf-token');
+        if (xsrfToken) {
+            config.headers[XSRF_TOKEN_HEADER] = xsrfToken;
+        }
     }
     return config;
 });
 
-_axiosInstance.interceptors.response.use(response => {
-    // renew xsrf token with each request
-    if (response.headers[XSRF_TOKEN_HEADER]) {
-        xsrfToken = response.headers[XSRF_TOKEN_HEADER];
-        window.localStorage.setItem(XSRF_TOKEN_HEADER, xsrfToken);
-    }
-    return response;
-});
+// _axiosInstance.interceptors.response.use(response => {
+//     // renew xsrf token with each request
+//     if (response.headers[XSRF_TOKEN_HEADER]) {
+//         xsrfToken = response.headers[XSRF_TOKEN_HEADER];
+//         window.localStorage.setItem(XSRF_TOKEN_HEADER, xsrfToken);
+//     }
+//     return response;
+// });
 
 
 function $axios() {
@@ -49,14 +49,6 @@ function $axios() {
 }
 
 export default {
-    getUserById(userId) {
-        return $axios().get(`/v1/users/${userId}`).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
-    createProject(project) {
-        return $axios().post('/v1/projects', project).then(unwrapAxios).catch(unwrapAxiosError);
-    },
-
     createArt(projectId, art) {
         return $axios().post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
     },

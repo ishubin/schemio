@@ -25,9 +25,5 @@ window.Schemio = {
                 scheme
             }})
         }); 
-
-        // new Vue(Vue.util.extend({
-        //     store,
-        // }, SchemioEditorApp)).$mount(querySelector);
     }
 }
