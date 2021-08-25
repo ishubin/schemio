@@ -41,6 +41,16 @@ function cosineAngleBetweenVectors(x1, y1, x2, y2) {
     return 0;
 }
 
+function fullAngleForNormalizedVector(x, y) {
+    if (x >= 0 && y >= 0) {
+        return Math.acos(x);
+    } else if (x < 0 && y >= 0) {
+        return Math.PI - Math.acos(x);
+    } else {
+        return -Math.acos(x);
+    }
+}
+
 /**
  * Generates line equation in form of ax + by + c = 0 which intersects given two points
  * returns an object with a, b, c parameters
@@ -165,6 +175,7 @@ export default {
     
     angleBetweenVectors,
     cosineAngleBetweenVectors,
+    fullAngleForNormalizedVector,
 
     createLineEquation,
     distanceFromPointToLine,

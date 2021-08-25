@@ -22,11 +22,12 @@
                     <g v-for="item in schemeContainer.worldItems" class="item-container"
                         v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
-                        <item-svg 
+                        <ItemSvg 
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
-                            @custom-event="onItemCustomEvent"/>
+                            @custom-event="onItemCustomEvent"
+                            @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
@@ -57,13 +58,14 @@
                     <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
                         :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
                         >
-                        <item-svg 
+                        <ItemSvg 
                             v-for="item in hud.childItems"
                             v-if="item.visible"
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
-                            @custom-event="onItemCustomEvent"/>
+                            @custom-event="onItemCustomEvent"
+                            @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
             </g>
@@ -90,7 +92,7 @@
                         v-if="item.visible"
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
-                        <item-svg
+                        <ItemSvg
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
                             :mode="mode"
@@ -595,6 +597,7 @@ export default {
             this.state = 'interact';
 
             this.reindexUserEvents();
+            this.prepareFrameAnimations();
             states[this.state].reset();
         },
         switchStateDragItem() {
@@ -768,6 +771,37 @@ export default {
                 userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         },
+
+        /**
+         * Compiles animations for all frame players in the scheme so that they could be played in view mode
+         */
+        prepareFrameAnimations() {
+            this.schemeContainer.prepareFrameAnimations();
+        },
+
+        onFrameAnimatorEvent(args) {
+            if (this.mode !== 'view') {
+                return;
+            }
+            const itemId = args.item.id;
+            const frameAnimation = this.schemeContainer.getFrameAnimation(itemId);
+            if (!frameAnimation) {
+                return;
+            }
+
+            if (args.operation === 'play') {
+                frameAnimation.setCallbacks(args.callbacks);
+                frameAnimation.setFrame(args.frame);
+                AnimationRegistry.play(frameAnimation, itemId);
+
+            } else if (args.operation === 'setFrame') {
+                frameAnimation.toggleFrame(args.frame);
+
+            } else if (args.operation === 'stop') {
+                frameAnimation.stop();
+            }
+        },
+
 
         onSvgItemLinkClick(url, event) {
             if (url.startsWith('/')) {

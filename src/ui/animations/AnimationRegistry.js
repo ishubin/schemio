@@ -66,9 +66,23 @@ export default {
      * @param {String} entityId Id of an item. It is needed in order to be able to stop all animations for a specific item
      */
     play(animation, entityId) {
+        // checking whether such animation already exists
+        // this can be a case for frame player
+        // instead of linear search this could be optimized by using a map of animation ids
+        // but I don't think we are going to be using that many animations at the same time,
+        // so it's fine like this for now
+        for (let i = 0; i < animations.length; i++) {
+            if (animations[i].id === animation.id) {
+                animations.enabled = false;
+                animations.splice(i, 1);
+                break;
+            }
+        }
+
         animation.entityId = entityId;
         let success = false;
         try {
+            animation.enabled = true;
             success = animation.init();
         } catch(e) {
             console.error('Could not initialize animation', e);
@@ -80,6 +94,7 @@ export default {
             animation.destroy();
         }
     },
+
 
     stopAllAnimations() {
         const animations = this.animations;

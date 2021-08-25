@@ -80,33 +80,57 @@ const item = {
 const framePlayer = {
     shape: 'frame_player',
     shapeProps: {
-        elementFrames: [{
-            element: '#some-item-id',
+        animations: [{
+            kind: 'item',
+            id: 'some-item-id',
             property: 'area.x',
             frames: [{
                 frame: 0,
                 value: 0,
-                kind: 'beizer', // can be 'linear', 'beizer', 'step'
-                a: { v: 0, f: -30 },
-                b: { v: 5, f: 10 },
+                kind: 'ease-out',
             }, {
                 frame: 30,
                 value: 10,
                 kind: 'linear',
             }]
         }, {
-            element: '#another-item-id',
+            kind: 'item',
+            id: 'another-item-id',
             property: 'shapeProps.strokeSize',
             frames: [{
-                
+                // ...
             }]
-        }]
+        }, {
+            kind: 'function', // 
+            id: 'qwe1', // id of the function that is defined in the "functions" section
+            property: 'time', // property of the function that is going to be animated
+            frames: [{
+                frame: 0,
+                value: 0,
+                kind: 'linear'
+            }]
+        }],
+
+        sections: [ {
+            frame: 0,
+            name: 'Init'
+        } ],
+
+        functions: {
+            // shortid
+            qwe1: {
+                functionId: 'move_along_path',
+                args: {
+                    itemId: 'some-item-id',
+                    pathId: 'some-other-item-id',
+                    rotate: true,
+                    rotationOffset: 80
+                }
+            },
+        }
     }
 };
 ```
-
-When clicking on frame player in edit mode - it will bring a thin frame `animation panel` on the bottom. The panel should have `Toggle Animation Editor` button.
-When user clicks that button - `animation panel` stays constantly on and frame player can now be deselected. When user selects a frame and clicks record in `animation panel` - it goes into `recording mode`. In `recording mode` if user changes any `recognized property` of any item - it will make a record of that in the `selected frame`.
 
 License
 ---------

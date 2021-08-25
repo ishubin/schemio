@@ -19,13 +19,10 @@
 <script>
 import Dropdown from '../../../Dropdown.vue';
 import NumberTextfield from '../../../NumberTextfield.vue';
-import Shape from '../../items/shapes/Shape.js';
 import ColorPicker from '../../../editor/ColorPicker.vue';
 import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
 import StrokePattern from '../../items/StrokePattern.js';
 
-
-const SHAPE_PROPS_PREFIX = 'shapeProps.';
 
 export default {
     props: ['argumentValue', 'argumentDescription', 'projectId'],

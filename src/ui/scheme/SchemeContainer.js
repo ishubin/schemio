@@ -21,6 +21,7 @@ import { Item, enrichItemWithDefaults, traverseItems } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
 import Functions from '../userevents/functions/Functions';
+import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
 
 const log = new Logger('SchemeContainer');
 
@@ -137,9 +138,6 @@ class SchemeContainer {
     constructor(scheme, eventBus) {
         Debugger.register('SchemioContainer', this);
 
-        if (!eventBus) {
-            throw new Error('Missing eventBus');
-        }
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
@@ -162,6 +160,9 @@ class SchemeContainer {
 
         this.spatialIndex = new SpatialIndex(); // used for indexing item path points
         this.pinSpatialIndex = new SpatialIndex(); // used for indexing item pins
+
+        // contains mapping of frame player id to its compiled animations
+        this.framesAnimations = {};
 
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
@@ -411,9 +412,19 @@ class SchemeContainer {
         const points = shape.getPins(item);
         forEach(points, (p, idx) => {
             const worldPoint = this.worldPointOnItem(p.x, p.y, item);
+
+            // checking if pin point has normals and converting normal to world transform
+            if (p.hasOwnProperty('nx')) {
+                const w0 = this.worldPointOnItem(0, 0, item);
+                const worldNormal = this.worldPointOnItem(p.nx, p.ny, item);
+                worldPoint.nx = worldNormal.x - w0.x;
+                worldPoint.ny = worldNormal.y - w0.y;
+            }
+
             this.pinSpatialIndex.addPoint(worldPoint.x, worldPoint.y, {
                 itemId: item.id,
-                pinIndex: idx
+                pinIndex: idx,
+                worldPinPoint: worldPoint
             });
         });
     }
@@ -619,26 +630,27 @@ class SchemeContainer {
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         let closestPin = null;
-        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex}, point) => {
+        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex, worldPinPoint}, point) => {
             if (itemId !== excludedId) {
                 const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
                 if (!closestPin || closestPin.distance > distance) {
-                    closestPin = { itemId, pinIndex, point, distance };
+                    closestPin = { itemId, pinIndex, point: worldPinPoint, distance };
                 }
             }
         });
 
         if (closestPin) {
-            return {
+            const result = {
                 x                 : closestPin.point.x,
                 y                 : closestPin.point.y,
                 distanceOnPath    : -closestPin.pinIndex - 1, // converting it to the negative space, yeah yeah, that's hacky, I know.
                 itemId            : closestPin.itemId
             };
-        }
-
-        if (closestPin) {
-            console.log('found closest pin', closestPin);
+            if (closestPin.point.hasOwnProperty('nx')) {
+                result.nx = closestPin.point.nx;
+                result.ny = closestPin.point.ny;
+            }
+            return result;
         }
 
         const items = new Map();
@@ -821,7 +833,7 @@ class SchemeContainer {
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
-            this.eventBus.emitItemChanged(item.id);
+            if (this.eventBus) this.eventBus.emitItemChanged(item.id);
         }
 
         // searching for items that depend on changed item
@@ -909,7 +921,7 @@ class SchemeContainer {
         item.area.y = newLocalPoint.y;
         item.area.r += angleCorrection;
 
-        this.eventBus.emitSchemeChangeCommited();
+        if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
         this.reindexItems();
     }
 
@@ -1079,7 +1091,7 @@ class SchemeContainer {
             this.multiItemEditBox = null;
             this.reindexItems();
             // This event is needed to inform some components that they need to update their state because selection has dissapeared
-            this.eventBus.emitAnyItemDeselected();
+            if (this.eventBus) this.eventBus.emitAnyItemDeselected();
         }
     }
 
@@ -1130,7 +1142,7 @@ class SchemeContainer {
         if (inclusive) {
             this.selectItemInclusive(item);
             this.selectedItemsMap[item.id] = true;
-            this.eventBus.emitItemSelected(item.id);
+            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
         } else {
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
@@ -1141,11 +1153,11 @@ class SchemeContainer {
             this.selectedItems = [];
             forEach(deselectedItemIds, itemId => {
                 this.selectedItemsMap[itemId] = false;
-                this.eventBus.emitItemDeselected(itemId);
+                if (this.eventBus) this.eventBus.emitItemDeselected(itemId);
             });
 
             this.selectItemInclusive(item);
-            this.eventBus.emitItemSelected(item.id);
+            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
         }
         this.updateMultiItemEditBox();
     }
@@ -1205,7 +1217,9 @@ class SchemeContainer {
 
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
-        forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+        if (this.eventBus) {
+            forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+        }
 
         this.updateMultiItemEditBox();
     }
@@ -1559,12 +1573,12 @@ class SchemeContainer {
                 item.meta.revision += 1;
 
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
-                this.eventBus.emitItemChanged(item.id, 'area');
+                if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
             }
         });
         forEach(itemsForReindex, item => this.updateChildTransforms(item));
 
-        this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
+        if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
     }
 
     readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {
@@ -1829,6 +1843,25 @@ class SchemeContainer {
         }
 
         return null;
+    }
+
+    prepareFrameAnimations() {
+        // This function is needed because animations for frame player can be triggered from two places:
+        // a) by clicking play button
+        // b) by calling "Play Frames" function in behavior actions
+
+        this.frameAnimations = {};
+        forEach(this.getItems(), item => {
+            if (item.shape !== 'frame_player') {
+                return;
+            }
+            const compiledAnimations = compileAnimations(item, this);
+            this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
+        });
+    }
+
+    getFrameAnimation(itemId) {
+        return this.frameAnimations[itemId];
     }
 }
 

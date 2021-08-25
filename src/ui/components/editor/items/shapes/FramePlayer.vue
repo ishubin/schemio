@@ -30,14 +30,19 @@
                 style="cursor: pointer"/>
         </g>
 
-        <foreignObject x="0" :y="buttonSize + 6 + topOffset" 
-            :width="item.area.w" height="30" xmlns="http://www.w3.org/1999/xhtml">
-            <div :style="framesTextStyle">{{currentFrame}} / {{item.shapeProps.totalFrames}}</div>
+        <foreignObject v-if="currentSection" x="0" :y="buttonSize + 6 + topOffset" 
+            :width="item.area.w" height="60" xmlns="http://www.w3.org/1999/xhtml">
+            <div :style="framesTextStyle">
+                <div>{{currentSection.number}} / {{totalSections}}</div>
+                <div>{{currentSection.name}}</div>
+            </div>
         </foreignObject>
     </g>
 </template>
 
 <script>
+import forEach from 'lodash/forEach';
+
 export default {
     props: ['item'],
 
@@ -83,10 +88,13 @@ export default {
         },
 
         args: {
-            totalFrames: {type: 'number', value: 5, name: 'Total frames'},
-            frameDelay: {type: 'number', value: 1, name: 'Frame delay (sec)'},
-            fillColor: {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
-            strokeColor: {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+            totalFrames    : {type: 'number', value: 5, name: 'Total frames'},
+            fps            : {type: 'number', value: 1, name: 'Frames per second'},
+            fillColor      : {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
+            strokeColor    : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
+            animations     : {type: 'animations', value: [], name: 'Animations', hidden: true},
+            functions      : {type: 'animation-functions', value: {}, name: 'Animation Functions', hidden: true},
+            sections       : {type: 'animation-sections', value: [], name: 'Sections', hidden: true},
         },
 
         /**
@@ -96,18 +104,41 @@ export default {
          */
         getEvents(item) {
             const events = [];
-            if (item.shapeProps.totalFrames > 0) {
-                for (let i = 1; i <= item.shapeProps.totalFrames; i++) {
-                    events.push({
-                        name: `Frame-${i}`
-                    });
-                }
-            }
             return events;
         },
     },
     
     data() {
+        const sectionsMapping = [];
+        const map = new Map();
+        const sectionsByNumber = new Map();
+
+        this.item.shapeProps.sections.sort((a, b) => a.frame - b.frame);
+
+        forEach(this.item.shapeProps.sections, (section, idx) => {
+            const sectionInfo = {
+                number: idx + 1,
+                name: section.value,
+                frame: section.frame
+            };
+            map.set(section.frame, sectionInfo);
+            sectionsByNumber.set(sectionInfo.number, sectionInfo);
+        });
+
+        let firstSection = null;
+        let currentSection = null;
+        for (let i = 0; i < this.item.shapeProps.totalFrames; i++) {
+            const frame = i + 1;
+            if (map.has(frame)) {
+                currentSection = map.get(frame);
+                if (!firstSection) {
+                    firstSection = currentSection;
+                }
+            }
+            sectionsMapping[i] = currentSection;
+        }
+
+
         return {
             currentFrame: 1,
             isPlaying: false,
@@ -116,6 +147,10 @@ export default {
             buttonSize: 20,
             buttonSpaceSize: 4,
             buttonFontSize: '10px',
+            sectionsMapping,
+            sectionsByNumber,
+            currentSection: firstSection,
+            totalSections: this.item.shapeProps.sections.length,
 
             buttons: [{
                 icon: 'fas fa-fast-backward',
@@ -147,60 +182,84 @@ export default {
         },
 
         onClickedToBegin() {
-            this.currentFrame = 1;
-            this.emitCurrentFrameEvent();
+            const firstSection = this.sectionsByNumber.get(1);
+            if (firstSection) {
+                this.currentFrame = 1;
+                this.currentSection = firstSection;
+                this.emitCurrentFrameEvent();
+            }
         },
 
         onClickedToEnd() {
-            this.currentFrame = this.item.shapeProps.totalFrames;
-            this.emitCurrentFrameEvent();
+            const lastSection = this.sectionsByNumber.get(this.totalSections);
+            if (lastSection) {
+                this.currentFrame = lastSection.frame;
+                this.currentSection = lastSection;
+                this.emitCurrentFrameEvent();
+            }
         },
 
         onClickedLeft() {
-            if (this.currentFrame > 1) {
-                this.currentFrame -= 1;
-                this.emitCurrentFrameEvent();
+            if (this.currentSection) {
+                const prevSection = this.sectionsByNumber.get(this.currentSection.number - 1);
+                if (prevSection) {
+                    const prevFrame = prevSection.frame;
+                    if (prevFrame >= 0) {
+                        this.currentFrame = prevFrame;
+                        this.currentSection = prevSection;
+                        this.emitCurrentFrameEvent();
+                    }
+                }
             }
         },
 
         onClickedRight() {
-            if (this.currentFrame < this.item.shapeProps.totalFrames) {
-                this.currentFrame += 1;
-                this.emitCurrentFrameEvent();
+            if (this.currentSection) {
+                const nextSection = this.sectionsByNumber.get(this.currentSection.number + 1);
+                if (nextSection) {
+                    const nextFrame = nextSection.frame;
+                    if (nextFrame < this.item.shapeProps.totalFrames) {
+                        this.currentFrame = nextFrame;
+                        this.currentSection = nextSection;
+                        this.emitCurrentFrameEvent();
+                    }
+                }
             }
         },
 
         onClickedTogglePlay() {
-            if (this.intervalId) {
-                clearInterval(this.intervalId);
-                this.intervalId = null;
-            }
-
             if (!this.isPlaying) {
-                if (this.currentFrame === this.item.shapeProps.totalFrames) {
-                    this.currentFrame = 1;
-                }
                 this.isPlaying = true;
-                this.emitCurrentFrameEvent();
-                this.intervalId = setInterval(this.onPlayInterval, this.item.shapeProps.frameDelay * 1000);
+                this.$emit('frame-animator', {
+                    operation: 'play', 
+                    item: this.item,
+                    frame: this.currentFrame,
+                    callbacks: {
+                        onFrame: (frame) => {
+                            this.currentFrame = frame;
+                            if (frame <= this.sectionsMapping.length && frame > 0) {
+                                this.currentSection = this.sectionsMapping[frame - 1];
+                            }
+                        },
+                        onFinish: () => {
+                            this.isPlaying = false;
+                        }
+                    }
+                });
             } else {
-                this.isPlaying = false;
-            }
-        },
-
-        onPlayInterval() {
-            if (this.currentFrame < this.item.shapeProps.totalFrames) {
-                this.currentFrame += 1;   
-                this.emitCurrentFrameEvent();
-            } else {
-                this.isPlaying = false;
-                clearInterval(this.intervalId);
-                this.intervalId = null;
+                this.$emit('frame-animator', {
+                    operation: 'stop', 
+                    item: this.item,
+                });
             }
         },
 
         emitCurrentFrameEvent() {
-            this.$emit('custom-event', `Frame-${this.currentFrame}`);
+            this.$emit('frame-animator', {
+                operation: 'setFrame',
+                item: this.item,
+                frame: this.currentFrame
+            });
         }
     },
 

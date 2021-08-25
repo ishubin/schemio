@@ -183,14 +183,15 @@
             </div>
 
 
-            <div v-if="mode === 'edit' && currentState === 'createItem'" class="quick-helper-panel-section">
+            <div v-if="mode === 'edit'" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <input type="checkbox" title="Automatically mount items into other items"
-                            id="item-creating-auto-remount"
-                            :checked="itemCreatingAutoRemount"
-                            @change="onItemCreatingAutoRemountChange"/>
-                        <label for="item-creating-auto-remount">Auto Remount</label>
+                            id="chk-auto-remount"
+                            :checked="autoRemount"
+                            :disabled="animationEditorIsRecording"
+                            @change="onAutoRemountChange"/>
+                        <label for="chk-auto-remount">Auto mount</label>
                     </li>
                 </ul>
             </div>
@@ -407,8 +408,8 @@ export default {
             });
         },
 
-        onItemCreatingAutoRemountChange(event) {
-            StoreUtils.setItemCreatingAutoRemount(this.$store, event.target.checked);
+        onAutoRemountChange(event) {
+            StoreUtils.setAutoRemount(this.$store, event.target.checked);
         },
 
         onZoomOutClicked() {
@@ -584,8 +585,8 @@ export default {
             return '';
         },
 
-        itemCreatingAutoRemount() {
-            return this.$store.getters.itemCreatingAutoRemount;
+        autoRemount() {
+            return this.$store.getters.autoRemount;
         },
 
         firstSelectedCurveEditPoint() {
@@ -594,6 +595,10 @@ export default {
 
         drawEpsilon() {
             return this.$store.getters.drawEpsilon;
+        },
+
+        animationEditorIsRecording() {
+            return this.$store.getters.animationEditorIsRecording;
         }
     }
 }

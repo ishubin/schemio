@@ -49,9 +49,7 @@ const store = new Vuex.Store({
             points: []
         },
 
-        itemCreating: {
-            autoRemount: true
-        },
+        autoRemount: true,
 
         // stores the state of the history in scheme editing
         history: {
@@ -105,6 +103,11 @@ const store = new Vuex.Store({
 
         draw: {
             epsilon: 5
+        },
+
+        animationEditor: {
+            currentFramePlayer: null,
+            isRecording: false
         }
     },
     mutations: {
@@ -116,8 +119,8 @@ const store = new Vuex.Store({
             state.schemeModified = isModified;
         },
 
-        SET_ITEM_CREATING_AUTO_REMOUNT(state, autoRemount) {
-            state.itemCreating.autoRemount = autoRemount;
+        SET_AUTO_REMOUNT(state, autoRemount) {
+            state.autoRemount = autoRemount;
         },
 
         /* Curve Editing */ 
@@ -337,6 +340,14 @@ const store = new Vuex.Store({
                 state.draw.epsilon = epsilon;
             }
         },
+
+        START_ANIMATION_EDITOR(state, framePlayer) {
+            state.animationEditor.currentFramePlayer = framePlayer;
+        },
+
+        SET_ANIMATION_EDITOR_RECORDING(state, isRecording) {
+            state.animationEditor.isRecording = isRecording;
+        }
     },
 
     actions: {
@@ -427,8 +438,8 @@ const store = new Vuex.Store({
             commit('CLEAR_ITEM_SNAPPERS');
         },
 
-        setItemCreatingAutoRemount({commit}, autoRemount) {
-            commit('SET_ITEM_CREATING_AUTO_REMOUNT', autoRemount);
+        setAutoRemount({commit}, autoRemount) {
+            commit('SET_AUTO_REMOUNT', autoRemount);
         },
 
         proposeConnectorDestinationItems({commit}, payload) {
@@ -466,6 +477,14 @@ const store = new Vuex.Store({
         updateDrawEpsilon({commit}, epsilon) {
             commit('UPDATE_DRAW_EPSILON', epsilon);
         },
+
+        startAnimationEditor({commit}, framePlayer) {
+            commit('START_ANIMATION_EDITOR', framePlayer);
+        },
+
+        setAnimationEditorRecording({commit}, isRecording) {
+            commit('SET_ANIMATION_EDITOR_RECORDING', isRecording);
+        }
     },
 
     getters: {
@@ -485,7 +504,7 @@ const store = new Vuex.Store({
         shouldSnapToGrid: state => state.snap.grid,
         shouldSnapToItems: state => state.snap.items,
 
-        itemCreatingAutoRemount: state => state.itemCreating.autoRemount,
+        autoRemount: state => state.autoRemount,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
 
@@ -499,6 +518,9 @@ const store = new Vuex.Store({
 
         editorStateName: state => state.editorStateName,
 
+        animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
+
+        animationEditorIsRecording: state => state.animationEditor.isRecording,
     }
 });
 

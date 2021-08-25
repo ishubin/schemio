@@ -1,5 +1,5 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
-import ValueAnimation, { convertTime } from '../../animations/ValueAnimation';
+import ValueAnimation  from '../../animations/ValueAnimation';
 
 export default {
     name: 'Hide',
@@ -14,6 +14,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (!item) {
+            resultCallback();
             return;
         }
         const initialOpacity = item.opacity;

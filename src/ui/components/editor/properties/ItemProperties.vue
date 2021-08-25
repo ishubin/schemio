@@ -92,44 +92,18 @@
                                 <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input v-if="arg.type === 'string'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)"/>
-
-                                <input v-if="arg.type === 'image'" class="textfield" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)"/>
-
-                                <number-textfield v-if="arg.type === 'number'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @changed="onShapePropChange(argName, arg.type, arguments[0])" :min="minForShapeProp(arg)" :max="maxForShapeProp(arg)"/>
-
-                                <color-picker v-if="arg.type === 'color'" :color="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0])"></color-picker>
-
-                                <advanced-color-editor v-if="arg.type === 'advanced-color'" :project-id="projectId" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @changed="onShapePropChange(argName, arg.type, arguments[0])" />
-
-                                <input v-if="arg.type === 'boolean'" type="checkbox" :checked="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].srcElement.checked)"/>
-
-                                <select v-if="arg.type === 'choice'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @input="onShapePropChange(argName, arg.type, arguments[0].target.value)">
-                                    <option v-for="argOption in arg.options">{{argOption}}</option>
-                                </select>
-
-                                <stroke-pattern-dropdown v-if="arg.type === 'stroke-pattern'" :value="item.shapeProps[argName]" :disabled="!shapePropsControlStates[argName].shown" @selected="onShapePropChange(argName, arg.type, arguments[0])"/>
-
-                                <curve-cap-dropdown v-if="arg.type === 'curve-cap'"
-                                    :key="`ip-curve-cap-${item.id}-${argName}-${item.shapeProps.fat}`"
+                                <PropertyInput
+                                    :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.fat}`"
+                                    :projectId="projectId"
+                                    :descriptor="arg"
                                     :value="item.shapeProps[argName]"
-                                    :is-source="argName === 'sourceCap'"
-                                    :is-fat="item.shape === 'connector' && item.shapeProps.fat"
-                                    width="16px"
-                                    height="16px"
+                                    :shapeProps="item.shapeProps"
                                     :disabled="!shapePropsControlStates[argName].shown"
-                                    @selected="onShapePropChange(argName, arg.type, arguments[0])"/>
-
-                                <element-picker v-if="arg.type === 'element'"
-                                    :element="item.shapeProps[argName]"
-                                    :use-self="false"
-                                    :allow-none="true"
-                                    :scheme-container="schemeContainer"
-                                    :disabled="!shapePropsControlStates[argName].shown"
-                                    :excluded-item-ids="[item.id]"
-                                    @selected="onShapePropChange(argName, arg.type, arguments[0])"
-                                    />
-
+                                    :schemeContainer="schemeContainer"
+                                    :leftOriented="argName === 'sourceCap'"
+                                    :itemId="item.id"
+                                    @input="onShapePropChange(argName, arg.type, arguments[0])"
+                                />
                             </td>
                         </tr>
                     </tbody>
@@ -238,21 +212,18 @@ import PositionPanel from './PositionPanel.vue';
 import LinksPanel from './LinksPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
-import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
-import StrokePattern from '../items/StrokePattern.js';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {ItemInteractionMode, knownBlendModes} from '../../../scheme/Item.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
-import ElementPicker from '../ElementPicker.vue';
-import StrokePatternDropdown from '../StrokePatternDropdown.vue';
-import CurveCapDropdown from '../CurveCapDropdown.vue';
 import EditEffectModal from '../../effects/EditEffectModal.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
+import PropertyInput from './PropertyInput.vue';
+import utils from '../../../utils.js';
 
 
 const ALL_TABS = [
@@ -272,8 +243,7 @@ export default {
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
-        ElementPicker, StrokePatternDropdown, AdvancedColorEditor, CurveCapDropdown,
-        EditEffectModal
+        EditEffectModal, PropertyInput
     },
 
     beforeMount() {
@@ -303,16 +273,11 @@ export default {
             tabs: ALL_TABS,
             knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
 
-            knownStrokePatterns: StrokePattern.patterns,
-
             knownShapes,
             currentTab: 'description',
             shapeComponent: shapeComponent,
             oldShape: this.item.shape,
-            knownBlendModes: [  'normal', 'multiply', 'screen', 'overlay', 'darken', 
-                                'lighten', 'color-dodge', 'color-burn', 'difference',
-                                'exclusion', 'hue', 'saturation', 'color', 'luminosity'
-            ],
+            knownBlendModes: utils.clone(knownBlendModes),
 
             shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
             knownInteractionModes: ItemInteractionMode.values(),
@@ -368,21 +333,7 @@ export default {
         },
 
         isArgumentHidden(argConfig) {
-            return argConfig.type === 'curve-points' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true);
-        },
-
-        minForShapeProp(arg) {
-            if (arg.hasOwnProperty('min')) {
-                return arg.min;
-            }
-            return null;
-        },
-
-        maxForShapeProp(arg) {
-            if (arg.hasOwnProperty('max')) {
-                return arg.max;
-            }
-            return null;
+            return argConfig.type === 'curve-points' || argConfig.type === 'animations' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true);
         },
 
         onStyleApplied(style) {

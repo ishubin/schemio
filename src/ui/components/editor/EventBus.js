@@ -24,7 +24,7 @@ const EventBus = new Vue({
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
 
-            SCHEME_CHANGE_COMITTED: 'scheme-changed-commited',
+            SCHEME_CHANGE_COMMITED: 'scheme-changed-commited',
 
             // triggered from CreateItemMenu component, when user clicks on any style from the list
             SHAPE_STYLE_APPLIED: 'shape-style-applied',
@@ -98,7 +98,7 @@ const EventBus = new Vue({
     },
     methods: {
         emitSchemeChangeCommited(affinityId) {
-            this.$emit(EventBus.SCHEME_CHANGE_COMITTED, affinityId);
+            this.$emit(EventBus.SCHEME_CHANGE_COMMITED, affinityId);
         },
 
         /**

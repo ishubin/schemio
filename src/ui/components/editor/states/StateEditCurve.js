@@ -906,9 +906,14 @@ export default class StateEditCurve extends State {
             curvePoint.y = localCurvePoint.y;
 
             const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
-            const normal = this.schemeContainer.calculateNormalOnPointInItemOutline(item, closestPointToItem.distanceOnPath);
-            curvePoint.bx = normal.x;
-            curvePoint.by = normal.y;
+            if (closestPointToItem.hasOwnProperty('nx')) {
+                curvePoint.bx = closestPointToItem.nx;
+                curvePoint.by = closestPointToItem.ny;
+            } else {
+                const normal = this.schemeContainer.calculateNormalOnPointInItemOutline(item, closestPointToItem.distanceOnPath);
+                curvePoint.bx = normal.x;
+                curvePoint.by = normal.y;
+            }
 
             this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
             if (isSource) {

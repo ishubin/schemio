@@ -135,7 +135,7 @@ import Functions from '../../../userevents/functions/Functions.js';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
-import FunctionArgumentsEditor from './behavior/FunctionArgumentsEditor.vue';
+import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties} from '../../../scheme/Item';
@@ -268,23 +268,38 @@ export default {
         },
 
         createMethodSuggestionsForElement(element) {
-            const methods = [];
-
-            forEach(Functions.main, (func, funcId) => {
-                if (funcId !== 'set' && funcId !== 'sendEvent') {
-                    methods.push({
-                        method: funcId,
-                        name: func.name,
-                        iconClass: 'fas fa-running',
-                        description: func.description
-                    });
-                }
-            });
-
             const item = this.findElement(element);
             if (!item) {
                 return [];
             }
+
+            const methods = [];
+
+            forEach(Functions.main, (func, funcId) => {
+                if (funcId !== 'set' && funcId !== 'sendEvent') {
+                    let shouldAddMethod = true;
+
+                    if (func.supportedShapes) {
+                        let foundShape = false;
+                        for (let i = 0; i < func.supportedShapes.length; i++) {
+                            if (func.supportedShapes[i] === item.shape) {
+                                foundShape = true;
+                                break;
+                            }
+                        }
+                        shouldAddMethod = foundShape;
+                    }
+
+                    if (shouldAddMethod) {
+                        methods.push({
+                            method: funcId,
+                            name: func.name,
+                            iconClass: 'fas fa-running',
+                            description: func.description
+                        });
+                    }
+                }
+            });
 
             forEach(this.collectAllItemCustomEvents(item), customEvent => {
                 methods.push({

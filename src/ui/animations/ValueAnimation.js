@@ -1,5 +1,18 @@
 import Animation from './Animation';
 
+export const Interpolations = {
+    LINEAR     : 'linear',
+    STEP       : 'step',
+    SMOOTH     : 'smooth',        // ease in and out
+    EASE_IN    : 'ease-in',
+    EASE_OUT   : 'ease-out',
+    EASE_IN_OUT: 'ease-in-out',
+    BOUNCE     : 'bounce',
+
+    values() {
+        return [this.LINEAR, this.STEP, this.SMOOTH, this.EASE_IN, this.EASE_OUT, this.EASE_IN_OUT, this.BOUNCE];
+    }
+};
 
 
 /**
@@ -8,13 +21,13 @@ import Animation from './Animation';
  * @param {String} type - type of animation (e.g. "linear", "ease-in" etc.)
  */
 export function convertTime(t, type) {
-    if (type === 'smooth') {
+    if (type === Interpolations.SMOOTH) {
         return Math.sin(t*Math.PI/2.0);
-    } else if (type === 'ease-in') {
+    } else if (type === Interpolations.EASE_IN) {
         return t*t;
-    } else if (type === 'ease-out') {
+    } else if (type === Interpolations.EASE_OUT) {
         return 1 - (t-1)*(t-1);
-    } else if (type === 'ease-in-out') {
+    } else if (type === Interpolations.EASE_IN_OUT) {
         return 0.5 - Math.cos(t * Math.PI) / 2;
     } else if (type === 'bounce') {
         return 1 - Math.pow(3, -10 * t) * Math.cos(10 * Math.PI *t);

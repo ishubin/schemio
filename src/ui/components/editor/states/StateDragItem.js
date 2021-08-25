@@ -411,11 +411,13 @@ export default class StateDragItem extends State {
             this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
         }
 
-        if (this.multiItemEditBox && this.proposedItemForMounting) {
-            // it should remount all items in multi item edit box into the new proposed parent
-            this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
-        } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
-            this.remountItems(this.multiItemEditBox.items);
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
+            if (this.multiItemEditBox && this.proposedItemForMounting) {
+                // it should remount all items in multi item edit box into the new proposed parent
+                this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
+            } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
+                this.remountItems(this.multiItemEditBox.items);
+            }
         }
 
         if (this.multiSelectBox) {
@@ -677,7 +679,11 @@ export default class StateDragItem extends State {
         }
 
         // checking if it can fit into another item
-        this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
+            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
+        } else {
+            this.proposedItemForMounting = [];
+        }
 
         if (this.proposedItemForMounting) {
             this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});

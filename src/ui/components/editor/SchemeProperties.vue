@@ -55,25 +55,25 @@
                         <tr>
                             <td class="label" width="50%">Background</td>
                             <td class="value" width="50%">
-                                <color-picker :color="schemeContainer.scheme.style.backgroundColor" @input="schemeContainer.scheme.style.backgroundColor = arguments[0]"></color-picker>
+                                <color-picker :color="schemeContainer.scheme.style.backgroundColor" @input="onSchemeStylePropertyChange('backgroundColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Grid</td>
                             <td class="value" width="50%">
-                                <color-picker :color="schemeContainer.scheme.style.gridColor" @input="schemeContainer.scheme.style.gridColor = arguments[0]"></color-picker>
+                                <color-picker :color="schemeContainer.scheme.style.gridColor" @input="onSchemeStylePropertyChange('gridColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Bound Box</td>
                             <td class="value" width="50%">
-                                <color-picker :color="schemeContainer.scheme.style.boundaryBoxColor" @input="schemeContainer.scheme.style.boundaryBoxColor = arguments[0]"></color-picker>
+                                <color-picker :color="schemeContainer.scheme.style.boundaryBoxColor" @input="onSchemeStylePropertyChange('boundaryBoxColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Control Points</td>
                             <td class="value" width="50%">
-                                <color-picker :color="schemeContainer.scheme.style.controlPointsColor" @input="schemeContainer.scheme.style.controlPointsColor = arguments[0]"></color-picker>
+                                <color-picker :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                     </tbody>
@@ -144,6 +144,11 @@ export default {
     },
 
     methods: {
+        onSchemeStylePropertyChange(fieldName, value) {
+            this.schemeContainer.scheme.style[fieldName] = value;
+            this.onPropertyChange(`scheme.style.${fieldName}`);
+        },
+
         onSchemeTagChange(newTags) {
             this.schemeContainer.scheme.tags = map(newTags, tag => tag.text);
             this.onPropertyChange('tags');

@@ -977,6 +977,7 @@ ul.pagination li a.current {
 
 .scheme-editor-middle-section {
     height: 100%;
+    position: relative;
 }
 
 .quick-helper-panel-wrapper {
@@ -1357,12 +1358,12 @@ ul.pagination li a.current {
 
 
 
-.top-right-panel {
+.header .top-right-panel {
     position: absolute;
     right: 15px;
     top: 14px;
 }
-.top-right-panel a, .top-right-panel span.link {
+.header .top-right-panel a, .header .top-right-panel span.link {
     color: var(--accent-weak-down);
 }
 
@@ -1491,7 +1492,6 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     width: 0px;
     position: absolute;
-    padding-top: 80px;
     top: 0;
     background: var(--faint-weak-up);
     box-shadow: 0 0 10px var(--shadow-color);
@@ -1542,6 +1542,28 @@ ul.button-group > li.disabled > .icon-button:hover,
     margin-top: 10px;
     margin-left: 1px;
 }
+
+/**************** Bottom Panel ***********************/
+.scheme-editor-view .bottom-panel {
+    position: absolute;
+    bottom: 0;
+    min-height: 30px;
+    background: var(--faint-weak-up);
+    box-shadow: 0 0 10px var(--shadow-color);
+    display: flex;
+    width: 100%;
+}
+.scheme-editor-view .bottom-panel .side-panel-filler-left {
+    width: 220px;
+}
+.scheme-editor-view .bottom-panel .side-panel-filler-right {
+    width: 400px;
+}
+.scheme-editor-view .bottom-panel .bottom-panel-content {
+    flex: 1;
+}
+
+
 
 /******************** Draw Side Panel Properties *********/
 .draw-color-pallete-option {
@@ -3016,4 +3038,138 @@ ul.effects-list > li .effect-right-panel .icon:hover {
 }
 ul.effects-list > li .effect-right-panel .icon-effect-delete {
     color: var(--critic-faint);
+}
+
+
+/************************ Frame Animator *************************/
+.frame-animator-panel .frame-animator-header {
+    position: relative;
+    display: flex;
+    padding: 4px;
+    font-size: 14px;
+    background: var(--faint-weak-down);
+    border-bottom: 1px solid var(--faint-strong-up-up);
+}
+.frame-animator-panel .frame-animator-title {
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.frame-animator-panel .frame-animator-title h3 {
+    display: inline;
+    font-weight: bold;
+    font-size: 14px;
+}
+.frame-animator-panel .frame-animator-controls {
+    flex: 1;
+    user-select: none;
+}
+.frame-animator-panel .frame-animator-controls .frame-animator-player-buttons {
+    display: inline-block;
+}
+.frame-animator-panel .frame-animator-controls .frame-animator-frame-input {
+    display: inline-block;
+    min-width: 100px;
+}
+.frame-animator-panel .frame-animator-controls .btn {
+    min-width: 22px;
+    text-align: center;
+}
+.frame-animator-panel .frame-animator-right-panel {
+    width: 60px;
+    text-align: right;
+}
+.frame-animator-panel .frame-animator-right-panel .icon {
+    cursor: pointer;
+}
+.frame-animator-panel .frame-animator-canvas {
+    position: relative;
+    overflow: scroll;
+    height: 200px;
+    min-height: 50px;
+}
+table.frame-animator-matrix {
+    border-collapse: collapse;
+    position: absolute;
+    user-select: none;
+}
+table.frame-animator-matrix th, table.frame-animator-matrix td {
+    border: 1px solid var(--faint-weak-down);
+}
+table.frame-animator-matrix th:first-child, table.frame-animator-matrix td:first-child {
+    min-width: 200px;
+    max-width: 200px;
+}
+table.frame-animator-matrix th:first-child {
+    text-align: right;
+}
+table.frame-animator-matrix th:first-child .btn {
+    text-align: center;
+}
+table.frame-animator-matrix th:first-child .btn {
+    min-width: 25px;
+}
+table.frame-animator-matrix th, table.frame-animator-matrix td.frame-animator-property {
+    background: var(--faint-weak);
+    color: var(--base-strong-up);
+}
+table.frame-animator-matrix th {
+    cursor: pointer;
+    min-width: 40px;
+    max-width: 40px;
+    overflow: hidden;
+    font-size: 12px;
+}
+table.frame-animator-matrix td.frame-animator-property {
+    position: relative;
+    font-size: 12px;
+    overflow: hidden;
+    max-height: 30px;
+    padding: 4px 4px 4px 20px;
+    text-align: left;
+}
+table.frame-animator-matrix td.frame-animator-property .frame-property-operations {
+    position: absolute;
+    display: none;
+    top: 2px;
+    right: 2px;
+    text-align: right;
+}
+table.frame-animator-matrix td.frame-animator-property:hover .frame-property-operations {
+    display: block;
+}
+table.frame-animator-matrix td.frame-animator-property-function-header {
+    border: none;
+    background: none;
+    padding: 0;
+}
+table.frame-animator-matrix td.frame-animator-property-function-header .function-animator-track-header {
+    margin-top: 20px;
+    padding: 4px 4px 4px 20px;
+    background: var(--faint-weak-down);
+}
+table.frame-animator-matrix td.frame-animator-property.frame-animator-property-function-header .frame-property-operations {
+    top: unset;
+    bottom: 2px;
+}
+table.frame-animator-matrix th.current {
+    background: var(--accent-strong);
+    color: var(--base-weak);
+}
+table.frame-animator-matrix td.current {
+    background: var(--accent-weak);
+}
+table.frame-animator-matrix tbody tr.selected-track td.current {
+    background: var(--accent-weak-down);
+}
+
+table.frame-animator-matrix td.frame {
+    text-align: center;
+}
+table.frame-animator-matrix td.frame .active-frame {
+    font-size: 12px;
+    opacity: 0.5;
+}
+table.frame-animator-matrix td.frame.drop-candidate {
+    background: var(--critic-weak-down);
 }

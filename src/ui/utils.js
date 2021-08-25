@@ -99,8 +99,21 @@ function getObjectProperty(item, propertyPath) {
     return undefined;
 }
 
+/**
+ * 
+ * @param {Object} obj 
+ * @param {String|Array} propertyPath either encoded property path in string or an array of fields
+ * @param {*} value 
+ * @returns 
+ */
 function setObjectProperty(obj, propertyPath, value) {
-    const objectPath = propertyPath.split('.');
+    let objectPath = null;
+    if (Array.isArray(propertyPath)) {
+        objectPath = propertyPath;
+    } else {
+        objectPath = propertyPath.split('.');
+    }
+
     let field = obj;
     let i = 0;
     while(i < objectPath.length) {

@@ -2,7 +2,7 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
-import myMath from '../../myMath';
+import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
 
 
 class MoveAlongPathAnimation extends Animation {
@@ -66,42 +66,18 @@ class MoveAlongPathAnimation extends Animation {
     }
 
     moveToPathLength(length) {
-        const point = this.domPath.getPointAtLength(length);
-        let worldPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.pathItem);
-
-        // bringing transform back from world to local so that also works correctly for sub-items
-        let localPoint = worldPoint;
-        if (this.item.meta && this.item.meta.parentId) {
-            const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
-            if (parentItem) {
-                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
-            }
-        }
-        this.item.area.x = localPoint.x - this.item.area.w / 2;
-        this.item.area.y = localPoint.y - this.item.area.h / 2;
-
-        if (this.args.rotateItem) {
-            const nextPoint = this.domPath.getPointAtLength(length + 2);
-            const Vx = nextPoint.x - point.x;
-            const Vy = nextPoint.y - point.y;
-            const dSquared = Vx * Vx + Vy * Vy;
-            if (!myMath.tooSmall(dSquared)) {
-                const d = Math.sqrt(dSquared);
-
-                const vx = Vx / d;
-                const vy = Vy / d;
-                let angle = Math.acos(vx) * 180 / Math.PI;
-                if (vy < 0) {
-                    angle = 180 - angle;
-                }
-                this.item.area.r = angle;
-                
-                if (isFinite(this.args.rotationOffset)) {
-                    this.item.area.r += this.args.rotationOffset;
-                };
-            }
-        }
-        this.schemeContainer.reindexItemTransforms(this.item);
+        MoveAlongPathAnimationFunction.execute({
+            path: this.domPath,
+            item: this.item,
+            pathItem: this.pathItem,
+            schemeContainer: this.schemeContainer,
+            totalLength: this.pathTotalLength,
+            rotateItem: this.args.rotateItem,
+            rotationOffset: this.args.rotationOffset
+        }, {
+            distance: 100 * length / Math.max(1, this.pathTotalLength),
+            rotation: 0
+        });
     }
 
     destroy() {
