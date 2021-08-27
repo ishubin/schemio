@@ -94,6 +94,8 @@ const EventBus = new Vue({
 
             // emited when user is drawing and clicks a color option in a draw panel (side panel)
             DRAW_COLOR_PICKED: 'draw-color-picked',
+
+            ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
         };
     },
     methods: {
@@ -196,6 +198,10 @@ const EventBus = new Vue({
 
         emitBringToViewInstantly(area) {
             this.$emit(EventBus.BRING_TO_VIEW, area, false);
+        },
+
+        emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {
+            this.$emit(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, item, pageX, pageY);
         }
     }
 });

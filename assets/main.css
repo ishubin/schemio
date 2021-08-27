@@ -1842,6 +1842,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     align-items: flex-start;
     justify-content:left;
     flex-wrap: wrap;
+    user-select: none;
 }
 .item-menu .item-container {
     display: inline-block;
@@ -1849,7 +1850,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 32px;
     margin: 2px;
     padding: 0;
-    cursor: pointer;
+    cursor: grab;
 }
 .item-menu .item-container img {
     display: block;
@@ -1876,9 +1877,9 @@ ul.button-group > li.disabled > .icon-button:hover,
 .create-item-menu .preview-item {
     position: absolute;
     padding: 5px;
-    width: 160px;
+    min-width: 160px;
     background: var(--faint-weak);
-    right: -160px;
+    left: 230px;
     top: 100px;
     box-shadow: 1px 1px 8px var(--shadow-color);
 }

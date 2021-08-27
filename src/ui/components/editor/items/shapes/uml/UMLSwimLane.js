@@ -213,7 +213,8 @@ export default {
                     col2: { text: '<b>In Progress</b>'},
                     col3: { text: '<b>Done</b>'},
                 }
-            }
+            },
+            previewArea: { x: 5, y: 5, w: 250, h: 100}
         }, {
             group: 'UML',
             name: 'Swim Lane (Horizontal)',
@@ -222,7 +223,7 @@ export default {
                 shapeProps: {
                     columns: 3,
                     vertical: false,
-                    headerHeight: 80,
+                    headerHeight: 110,
                     colw1: 33.33333,
                     colw2: 33.33333,
                     colw3: 33.33333,
@@ -232,7 +233,8 @@ export default {
                     col2: { text: '<b>In Progress</b>'},
                     col3: { text: '<b>Done</b>'},
                 }
-            }
+            },
+            previewArea: { x: 5, y: 5, w: 250, h: 100}
         }],
 
         computeCurves,

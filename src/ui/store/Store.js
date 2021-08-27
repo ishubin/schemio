@@ -6,7 +6,6 @@ import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 import config from '../config';
-import { hasGivenConsent } from '../privacy';
 
 Vue.use(Vuex);
 

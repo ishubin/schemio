@@ -14,7 +14,6 @@
             @dragenter="onDragEnter"
             @dragover="onDragOver"
             @dragleave="onDragLeave"
-            @drop="onDrop"
             data-void="true">
 
             <g v-if="mode === 'view' && schemeContainer">
@@ -320,6 +319,7 @@ export default {
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
+        EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
     },
     mounted() {
         this.updateSvgSize();
@@ -367,6 +367,7 @@ export default {
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
+        EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -433,9 +434,13 @@ export default {
         },
 
         mouseCoordsFromEvent(event) {
+            return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+        },
+
+        mouseCoordsFromPageCoords(pageX, pageY) {
             var rect = this.$refs.svgDomElement.getBoundingClientRect(),
-                offsetX = event.clientX - rect.left,
-                offsetY  = event.clientY - rect.top;
+                offsetX = pageX - rect.left,
+                offsetY  = pageY - rect.top;
 
             return {
                 x: Math.round(offsetX),
@@ -1505,6 +1510,7 @@ export default {
             event.stopPropagation();
         },
         onDrop(event) {
+            console.log('on drop');
             event.preventDefault();
             event.stopPropagation();
 
@@ -1565,6 +1571,15 @@ export default {
         convertCurveToSmartShape(item) {
             const shapeMatch = identifyShape(item.shapeProps.points);
             console.log('Identified shape', shapeMatch);
+        },
+
+        itemCreationDraggedToSvgEditor(item, pageX, pageY) {
+            const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
+            const p = this.toLocalPoint(coords.x, coords.y);
+            item.area.x = p.x;
+            item.area.y = p.y;
+
+            this.schemeContainer.addItem(item);
         },
 
         //calculates from world to screen
@@ -1639,6 +1654,10 @@ export default {
         },
         shouldShowStateHoverLayer() {
             return this.state === 'createItem' || this.state === 'draw';
+        },
+
+        shouldShowDropMask() {
+            return this.$store.getters.isDraggingItemCreation;
         }
     },
     filters: {

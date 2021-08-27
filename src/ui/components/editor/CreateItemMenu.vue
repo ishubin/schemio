@@ -34,7 +34,16 @@
 
             <panel v-for="panel in filteredItemPanels" v-if="panel.items.length > 0" :name="panel.name">
                 <div class="item-menu">
-                    <div v-for="item in panel.items" :title="item.name" class="item-container" @mouseleave="stopPreviewItem(item)" @mouseover="showPreviewItem(item)" @click="onItemPicked(item)">
+                    <div v-for="item in panel.items"
+                        class="item-container"
+                        :title="item.name"
+                        @mousedown="onItemMouseDown($event, item)"
+                        @mouseleave="stopPreviewItem(item)"
+                        @mouseover="showPreviewItem(item)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        @click="onItemPicked(item)"
+                        >
                         <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                     </div>
                 </div>
@@ -88,7 +97,7 @@
                 <div v-if="previewItem.item">
                     <h4>{{previewItem.item.name}}</h4>
                     
-                    <svg v-if="previewItem.item.item" width="150px" height="120px">
+                    <svg v-if="previewItem.item.item" :width="previewWidth + 'px'" :height="previewHeight + 'px'">
                         <item-svg :item="previewItem.item.item" mode="edit"/>
                     </svg>
                 </div>
@@ -103,6 +112,15 @@
 
                 <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>
             </div>
+        </div>
+
+        <div ref="itemDragger" style="position: fixed;" :style="{display: itemCreationDragged ? 'inline-block' : 'none' }">
+            <svg v-if="itemCreationDragged"
+                :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w}px`"
+                :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h}px`"
+                >
+                <item-svg :item="itemCreationDragged.item" mode="edit"/>
+            </svg>
         </div>
     </div>
 </template>
@@ -167,7 +185,9 @@ export default {
                 gif           : null,
                 y             : 50,
                 description   : null
-            }
+            },
+
+            itemCreationDragged: null,
         }
     },
     methods: {
@@ -432,6 +452,66 @@ export default {
 
         initiateSmartDrawing(name) {
             EventBus.$emit(EventBus.START_SMART_DRAWING);
+        },
+
+        preventEvent(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        },
+
+        onItemMouseDown(event, item) {
+            const mouseOffset = 2;
+            const itemDragger = this.$refs.itemDragger;
+            const itemClone = utils.clone(item);
+            if (itemClone.previewArea) {
+                itemClone.item.area.w = itemClone.previewArea.w;
+                itemClone.item.area.h = itemClone.previewArea.h;
+            } else {
+                itemClone.item.area.w = 100;
+                itemClone.item.area.h = 60;
+            }
+            this.itemCreationDragged = itemClone;
+
+            function moveAt(pageX, pageY) {
+                itemDragger.style.left = `${pageX + mouseOffset}px`;
+                itemDragger.style.top = `${pageY + mouseOffset}px`;
+            }
+
+            moveAt(event.pageX, event.pageY);
+
+            function onMouseMove(event) {
+                if (event.buttons === 0) {
+                    reset();
+                }
+                moveAt(event.pageX, event.pageY);
+            }
+
+            function onMouseUp(event) {
+                reset();
+                if (utils.domHasParentNode(event.target, el => el.id === 'svg_plot')) {
+                    submitItem(event.pageX, event.pageY);
+                }
+            }
+
+            const that = this;
+
+            function reset() {
+                that.itemCreationDragged = null;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            function submitItem(pageX, pageY) {
+                const newItem = utils.clone(item.item);
+                newItem.id = shortid.generate();
+                newItem.area = { x: 0, y: 0, w: itemClone.item.area.w, h: itemClone.item.area.h};
+                newItem.name = item.name;
+                recentPropsChanges.applyItemProps(newItem);
+                EventBus.emitItemCreationDraggedToSvgEditor(newItem, pageX + mouseOffset, pageY + mouseOffset);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
         }
     },
 
@@ -439,6 +519,22 @@ export default {
         searchKeyword() {
             this.filterItemPanels();
             this.filterArtPacks();
+        }
+    },
+
+    computed: {
+        previewWidth() {
+            if (this.previewItem && this.previewItem.item && this.previewItem.item.item) {
+                return this.previewItem.item.item.area.w + this.previewItem.item.item.area.x + 10;
+            }
+            return 150;
+        },
+
+        previewHeight() {
+            if (this.previewItem && this.previewItem.item && this.previewItem.item.item) {
+                return this.previewItem.item.item.area.h + this.previewItem.item.item.area.y + 10;
+            }
+            return 150;
         }
     }
 }

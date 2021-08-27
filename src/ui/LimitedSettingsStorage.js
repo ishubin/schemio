@@ -1,5 +1,4 @@
 import forEach from 'lodash/forEach';
-import { hasUISettingsConsent } from './privacy';
 
 export default class LimitedSettingsStorage {
 
@@ -113,16 +112,11 @@ export default class LimitedSettingsStorage {
 
 const schemioLocalStorage = {
     getItem(key) {
-        if (hasUISettingsConsent()) {
-            return window.localStorage.getItem(key);
-        }
-        return null;
+        return window.localStorage.getItem(key);
     },
 
     setItem(key, value) {
-        if (hasUISettingsConsent()) {
-            window.localStorage.setItem(key, value);
-        }
+        window.localStorage.setItem(key, value);
     }
 }
 
