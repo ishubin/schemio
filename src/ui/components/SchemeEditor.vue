@@ -33,7 +33,7 @@
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
                     <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else-if="!offlineMode && currentUser" class="btn btn-secondary" @click="saveScheme()">Save</span>
+                    <span v-else-if="!offlineMode && editAllowed" class="btn btn-secondary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-secondary" @click="exportAsJSON()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
@@ -405,6 +405,7 @@ export default {
     props: {
         projectId: {type: String, default: null},
         scheme: {type: Object, default: null},
+        editAllowed: {type: Boolean, default: false},
     },
 
     beforeMount() {
@@ -448,8 +449,6 @@ export default {
             offlineMode: false,
             project: null,
             schemeId: null,
-
-            editAllowed: false,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
@@ -835,7 +834,7 @@ export default {
                 } else if (key === Keys.CTRL_V) {
                     this.pasteItemsFromClipboard();
                 } else if (Keys.CTRL_S === key) {
-                    if (this.offlineMode || !this.$store.state.currentUser) {
+                    if (this.offlineMode || !this.editAllowed) {
                         this.exportAsJSON();
                     } else {
                         this.saveScheme();
@@ -1338,12 +1337,6 @@ export default {
             this.saveSchemeSettings();
         },
 
-        currentUser(user) {
-            if (this.project) {
-                this.editAllowed = (user && this.project.owner && this.project.owner.id === user.id)
-                    || (this.project.permissions && this.project.permissions.write);
-            }
-        }
     },
 
     computed: {

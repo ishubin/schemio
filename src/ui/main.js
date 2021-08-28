@@ -16,13 +16,14 @@ const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, 
 
 window.Schemio = {
     components: { Vue, Modal, CreateNewSchemeModal, CategoryTree},
-    mountSchemioEditorApp(querySelector, projectId, scheme) {
+    mountSchemioEditorApp(querySelector, projectId, scheme, editAllowed) {
         new Vue({
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {props: {
                 projectId,
-                scheme
+                scheme,
+                editAllowed
             }})
         }); 
     }
