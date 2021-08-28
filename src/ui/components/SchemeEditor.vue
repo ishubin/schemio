@@ -553,7 +553,7 @@ export default {
             this.schemeId = this.scheme.id;
 
 
-            this.initScheme(scheme);
+            this.initScheme(this.scheme);
             Promise.resolve(null).then(() => {
                 this.loadingStep = 'img-preload';
                 const images = findAllImages(this.schemeContainer.getItems());

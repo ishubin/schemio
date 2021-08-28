@@ -213,7 +213,7 @@ function creatObjectFrameAnimation(obj, propertyPath, propertyDescriptor, frames
 
             utils.setObjectProperty(obj, fields, value);
             if (isItem) {
-                EventBus.emitItemChanged(item.id);
+                EventBus.emitItemChanged(obj.id);
             }
         }
     };
