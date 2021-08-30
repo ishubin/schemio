@@ -14,6 +14,7 @@ const EventBus = new Vue({
         return {
             START_CREATING_COMPONENT: 'start-creating-component',
             START_CONNECTING_ITEM: 'start-connecting-item',
+            START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',
             START_SMART_DRAWING: 'start-smart-drawing',
             STOP_DRAWING: 'stop-drawing',
@@ -25,9 +26,6 @@ const EventBus = new Vue({
             BRING_TO_VIEW: 'bring-to-view',
 
             SCHEME_CHANGE_COMMITED: 'scheme-changed-commited',
-
-            // triggered from CreateItemMenu component, when user clicks on any style from the list
-            SHAPE_STYLE_APPLIED: 'shape-style-applied',
 
             ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',

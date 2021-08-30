@@ -42,7 +42,6 @@
                         @mouseover="showPreviewItem(item)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
-                        @click="onItemPicked(item)"
                         >
                         <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
                     </div>
@@ -391,6 +390,10 @@ export default {
         },
 
         onItemPicked(item) {
+            if (this.itemCreationDragged.startedDragging) {
+                return;
+            }
+
             const pageX = window.innerWidth / 2;
             const pageY = window.innerHeight / 2;
 
@@ -468,7 +471,7 @@ export default {
                 }
             };
             enrichItemWithDefaults(item);
-            EventBus.$emit(EventBus.START_CREATING_COMPONENT, item);
+            EventBus.$emit(EventBus.START_CURVE_EDITING, item);
         },
 
         initiateDrawing(name) {
@@ -488,6 +491,8 @@ export default {
             const that = this;
             const itemDragger = this.$refs.itemDragger;
             const itemClone = utils.clone(item.item);
+            let pixelsMoved = 0;
+
             if (item.previewArea) {
                 itemClone.area.w = item.previewArea.w;
                 itemClone.area.h = item.previewArea.h;
@@ -504,8 +509,13 @@ export default {
                 this.itemCreationDragged.imageProperty = null;
             }
 
+            const originalPageX = event.pageX;
+            const originalPageY = event.pageY;
+
             function moveAt(pageX, pageY) {
-                if (!that.itemCreationDragged.startedDragging) {
+                pixelsMoved += Math.abs(pageX - originalPageX) + Math.abs(pageY - originalPageY);
+
+                if (!that.itemCreationDragged.startedDragging && pixelsMoved > 10) {
                     that.itemCreationDragged.startedDragging = true;
                 }
                 itemDragger.style.left = `${pageX + mouseOffset}px`;
@@ -513,8 +523,6 @@ export default {
                 that.itemCreationDragged.pageX = pageX;
                 that.itemCreationDragged.pageY = pageY;
             }
-
-            moveAt(event.pageX, event.pageY);
 
             function onMouseMove(event) {
                 if (event.buttons === 0) {
@@ -527,6 +535,8 @@ export default {
                 reset();
                 if (utils.domHasParentNode(event.target, el => el.id === 'svg_plot')) {
                     submitItem(event.pageX, event.pageY);
+                } else if (pixelsMoved < 10) {
+                    that.onItemPicked(item);
                 }
             }
 
@@ -556,7 +566,7 @@ export default {
                 const newItem = utils.clone(item.item);
                 newItem.id = shortid.generate();
                 newItem.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
-                newItem.name = this.makeUniqueName(item.name);
+                newItem.name = that.makeUniqueName(item.name);
                 recentPropsChanges.applyItemProps(newItem);
                 EventBus.emitItemCreationDraggedToSvgEditor(newItem, pageX + mouseOffset, pageY + mouseOffset);
             }

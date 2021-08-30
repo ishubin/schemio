@@ -205,7 +205,6 @@ import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, enrichItemWithDefaults} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
-import StateCreateItem from './states/StateCreateItem.js';
 import StateDraw from './states/StateDraw.js';
 import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
@@ -254,7 +253,6 @@ const allDraggerEdges = [
 
 const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
-    createItem: new StateCreateItem(EventBus, store),
     editCurve: new StateEditCurve(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
@@ -293,7 +291,7 @@ export default {
             state.setEditor(this);
         })
 
-        EventBus.$on(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
+        EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$on(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
         EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
@@ -315,7 +313,6 @@ export default {
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$on(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
@@ -341,7 +338,7 @@ export default {
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
-        EventBus.$off(EventBus.START_CREATING_COMPONENT, this.onSwitchStateCreateItem);
+        EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$off(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
         EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
@@ -363,7 +360,6 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$off(EventBus.SHAPE_STYLE_APPLIED, this.onShapeStyleApplied);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
@@ -617,21 +613,20 @@ export default {
             states.pickElement.reset();
             states.pickElement.setElementPickCallback(elementPickCallback);
         },
-        onSwitchStateCreateItem(item) {
+
+        onStartCurveEditing(item) {
             this.highlightItems([]);
             states[this.state].cancel();
-            if (item.shape === 'curve' || item.shape === 'connector') {
-                item.shapeProps.points = [];
-                this.setCurveEditItem(item);
-                // making sure every new curve starts non-closed
-                if (item.shape === 'curve') {
-                    item.shapeProps.closed = false;
-                }
-                this.state = 'editCurve';
-                EventBus.emitCurveEdited(item);
-            } else {
-                this.state = 'createItem';
+
+            item.shapeProps.points = [];
+            this.setCurveEditItem(item);
+            // making sure every new curve starts non-closed
+            if (item.shape === 'curve') {
+                item.shapeProps.closed = false;
             }
+            this.state = 'editCurve';
+            EventBus.emitCurveEdited(item);
+
             states[this.state].reset();
             states[this.state].setItem(item);
         },
@@ -1396,22 +1391,6 @@ export default {
             this.customContextMenu.show = false;
         },
 
-        onShapeStyleApplied(shapeName, shapeProps) {
-            if (this.state === 'createItem' && states.createItem.item && states.createItem.item.shape === shapeName) {
-                const shape = Shape.find(shapeName);
-                if (!shape) {
-                    return;
-                }
-                const item = states.createItem.item;
-                forEach(shape.args, (arg, argName) => {
-                    item.shapeProps[argName] = arg.value;
-                });
-                forEach(shapeProps, (argValue, argName) => {
-                    item.shapeProps[argName] = argValue;
-                });
-            }
-        },
-
         /**
          * Used to generate a surrounding rect arround selected items.
          * It also remounts the selected item to the new rect
@@ -1580,6 +1559,7 @@ export default {
             item.area.y = p.y;
 
             this.schemeContainer.addItem(item);
+            this.schemeContainer.selectItem(item);
         },
 
         //calculates from world to screen
@@ -1653,7 +1633,7 @@ export default {
             return this.$store.getters.verticalSnapper;
         },
         shouldShowStateHoverLayer() {
-            return this.state === 'createItem' || this.state === 'draw';
+            return this.state === 'draw';
         },
 
         shouldShowDropMask() {

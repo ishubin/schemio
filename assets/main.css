@@ -1269,7 +1269,7 @@ ul.pagination li a.current {
 /*****************************************/
 /* Hover state in create component state */
 /*****************************************/
-#svg_plot.state-createItem, #svg_plot.state-createItem .state-hover-layer {
+#svg_plot.state-createItem .state-hover-layer {
     cursor: crosshair;
 }
 #svg_plot.state-draw, #svg_plot.state-draw .state-hover-layer {
