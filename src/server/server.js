@@ -3,6 +3,17 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 const express               = require('express');
+const fs            = require('fs-extra');
+const yaml          = require('js-yaml');
+
+const globalArt = [];
+// Loading global art from config
+fs.readdir('conf/art', function (err, files) {
+    files.forEach(function (file) {
+        const artContent = yaml.safeLoad(fs.readFileSync(`conf/art/${file}`, 'utf8'));
+        globalArt.push(artContent);
+    });
+});
 
 const app = express();
 
@@ -22,6 +33,10 @@ app.get('/offline-scheme-editor', (req, res) => {
 });
 app.get('/category-tree', (req, res) => {
     res.sendFile(`${cwd}/src/html/category-tree.html`)
+});
+
+app.get('/v1/art', (req, res) => {
+    res.json(globalArt);
 });
 
 app.listen(port, () => {

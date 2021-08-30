@@ -37,9 +37,9 @@
                     <div v-for="item in panel.items"
                         class="item-container"
                         :title="item.name"
-                        @mousedown="onItemMouseDown($event, item)"
                         @mouseleave="stopPreviewItem(item)"
                         @mouseover="showPreviewItem(item)"
+                        @mousedown="onItemMouseDown($event, item)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
                         >
@@ -57,7 +57,10 @@
                         v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
                         @mouseover="showPreviewArt(art)"
                         @mouseleave="stopPreviewArt(art)"
-                        @click="onArtSelected(art)">
+                        @mousedown="onArtMouseDown($event, icon)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        >
                         <img :src="art.url"/>
                     </div>
                 </div>
@@ -72,7 +75,10 @@
                             v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
                             @mouseover="showPreviewArt(icon)"
                             @mouseleave="stopPreviewArt(icon)"
-                            @click="onArtSelected(icon)">
+                            @mousedown="onArtMouseDown($event, icon)"
+                            @dragstart="preventEvent"
+                            @drag="preventEvent"
+                            >
                             <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
                         </div>
                     </div>
@@ -363,32 +369,6 @@ export default {
             this.customArtUploadModalShown = false;
         },
 
-        onArtSelected(art) {
-            const pageX = window.innerWidth / 2;
-            const pageY = window.innerHeight / 2;
-            const item = {
-                id: shortid.generate(),
-                cursor: 'default',
-                opacity: 100,
-                blendMode: 'normal',
-                name: this.makeUniqueName(art.name),
-                description: '',
-                text: '',
-                links: [],
-                shape: 'rect',
-                area: { x: 0, y: 0, w: 100, h: 60},
-                shapeProps: {
-                    strokeSize: 0,
-                    fill: {type: 'image', image: art.url}
-                },
-                itemDragged: {
-                    pageX: 0, pageY: 0
-                }
-            };
-            enrichItemWithDefaultShapeProps(item);
-            EventBus.emitItemCreationDraggedToSvgEditor(newItem, pageX, pageY);
-        },
-
         onItemPicked(item) {
             if (this.itemCreationDragged.startedDragging) {
                 return;
@@ -485,6 +465,31 @@ export default {
         preventEvent(event) {
             event.preventDefault();
             event.stopPropagation();
+        },
+
+        onArtMouseDown(event, art) {
+            const item = {
+                id: shortid.generate(),
+                cursor: 'default',
+                opacity: 100,
+                blendMode: 'normal',
+                name: this.makeUniqueName(art.name),
+                description: '',
+                text: '',
+                links: [],
+                shape: 'rect',
+                area: { x: 0, y: 0, w: 100, h: 60},
+                shapeProps: {
+                    strokeSize: 0,
+                    fill: {type: 'image', image: art.url}
+                },
+            };
+            enrichItemWithDefaults(item);
+
+            this.onItemMouseDown(event, {
+                item,
+                name: item.name
+            });
         },
 
         onItemMouseDown(event, item) {
