@@ -94,6 +94,9 @@ const EventBus = new Vue({
             DRAW_COLOR_PICKED: 'draw-color-picked',
 
             ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
+
+            // triggered in case user clicked undo or redo and the scheme was reset to a new state
+            HISTORY_UNDONE: 'history-undone'
         };
     },
     methods: {

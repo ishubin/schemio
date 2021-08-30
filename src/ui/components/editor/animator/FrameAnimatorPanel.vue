@@ -293,10 +293,12 @@ export default {
     beforeMount() {
         this.compileAnimations();
         EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+        EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+        EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
         StoreUtils.setAnimationEditorRecording(this.$store, false);
     },
 
@@ -1174,6 +1176,10 @@ export default {
                 });
             }
 
+            this.updateFramesMatrix();
+        },
+
+        onHistoryUndone() {
             this.updateFramesMatrix();
         }
     },

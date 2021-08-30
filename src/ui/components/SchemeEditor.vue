@@ -33,8 +33,8 @@
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
                     <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else-if="!offlineMode && editAllowed" class="btn btn-secondary" @click="saveScheme()">Save</span>
-                    <span v-else class="btn btn-secondary" @click="exportAsJSON()">Save</span>
+                    <span v-else-if="!offlineMode && editAllowed" class="btn btn-primary" @click="saveScheme()">Save</span>
+                    <span v-else class="btn btn-primary" @click="saveToLocalStorage()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -575,7 +575,18 @@ export default {
                 this.mode = 'edit';
             }
 
-            const scheme = {};
+            let scheme = {};
+
+            const offlineSchemeEncoded = window.localStorage.getItem('offlineScheme');
+            if (offlineSchemeEncoded) {
+                try {
+                    scheme = JSON.parse(offlineSchemeEncoded);
+                } catch (err) {
+                    scheme = {}
+                }
+            }
+
+
             enrichSchemeWithDefaults(scheme);
             this.offlineMode = true;
             this.initScheme(scheme);
@@ -674,6 +685,12 @@ export default {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save scheme, please try again');
                 this.markSchemeAsModified();
             });
+        },
+
+        saveToLocalStorage() {
+            window.localStorage.setItem('offlineScheme', JSON.stringify(this.schemeContainer.scheme));
+            StoreUtils.addInfoSystemMessage(this.$store, 'Saved scheme to local storage', 'offline-save');
+            this.markSchemeAsUnmodified();
         },
 
         createSchemePreview() {
@@ -906,6 +923,7 @@ export default {
                     this.updateRevision();
                     this.restoreItemSelection();
                     this.restoreCurveEditing();
+                    EventBus.$emit(EventBus.HISTORY_UNDONE);
                 }
                 this.updateHistoryState();
             }
@@ -920,6 +938,7 @@ export default {
                     this.updateRevision();
                     this.restoreItemSelection();
                     this.restoreCurveEditing();
+                    EventBus.$emit(EventBus.HISTORY_UNDONE);
                 }
                 this.updateHistoryState();
             }

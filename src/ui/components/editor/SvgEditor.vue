@@ -1560,6 +1560,7 @@ export default {
 
             this.schemeContainer.addItem(item);
             this.schemeContainer.selectItem(item);
+            EventBus.emitSchemeChangeCommited();
         },
 
         //calculates from world to screen
