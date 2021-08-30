@@ -225,7 +225,7 @@ function stopAnimations() {
     _isPlayingAnimation = false;
 }
 
-function playAnimations(animations, startFrame, fps, maxFrames, {onFrame, onFinish}) {
+function playAnimations(schemeContainer, animations, startFrame, fps, maxFrames, {onFrame, onFinish}) {
     if (_isPlayingAnimation) {
         return;
     }
@@ -251,6 +251,8 @@ function playAnimations(animations, startFrame, fps, maxFrames, {onFrame, onFini
         forEach(animations, animation => {
             animation.toggleFrame(frame);
         });
+        schemeContainer.updateMultiItemEditBox();
+
 
         if (nextFrame < maxFrames && _isPlayingAnimation) {
             window.requestAnimationFrame(() => {
@@ -362,6 +364,8 @@ export default {
             forEach(this.compiledAnimations, compiledAnimation => {
                 compiledAnimation.toggleFrame(frame);
             });
+
+            this.schemeContainer.updateMultiItemEditBox();
 
             if (this.selectedFrameControl.trackIdx >= 0 ) {
                 this.selectFrameControl(this.selectedFrameControl.trackIdx, frame - 1);
@@ -800,7 +804,7 @@ export default {
                 this.compileAnimations();
             }
             this.isPlaying = true;
-            playAnimations(this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, {
+            playAnimations(this.schemeContainer, this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, {
                 onFrame: (frame) => {
                     this.currentFrame = frame;
                 },
