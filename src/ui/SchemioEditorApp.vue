@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template>
-    <div class="app-container">
+    <div>
         <SchemeEditorView :projectId="projectId" :scheme="scheme" :editAllowed="editAllowed"/>
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
