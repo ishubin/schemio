@@ -544,6 +544,11 @@ export default {
             }
 
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            if (pageParams.m && pageParams.m === 'edit') {
+                this.mode = 'edit';
+            } else {
+                this.mode = 'view';
+            }
 
             this.loadingStep = 'load';
             this.isLoading = true;
