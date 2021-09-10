@@ -886,6 +886,7 @@ class SchemeContainer {
         }
 
         let parentItem = null;
+        let parentId = null;
         let angleCorrection = 0;
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
@@ -893,6 +894,7 @@ class SchemeContainer {
             if (!parentItem) {
                 return;
             }
+            parentId = parentItem.id;
             angleCorrection += parentItem.meta.transform.r + parentItem.area.r;
             itemsArray = parentItem.childItems;
         }
@@ -909,13 +911,22 @@ class SchemeContainer {
         itemsArray.splice(index, 1);
 
         let newItemsArray = this.scheme.items;
+        let newParentId = null;
         if (otherItem) {
             if (!otherItem.childItems) {
                 otherItem.childItems = [];
             }
             newItemsArray = otherItem.childItems;
+            newParentId = otherItem.id;
         }
-        newItemsArray.splice(position, 0, item);
+
+        let positionCorrection = 0;
+        if (parentId === newParentId && index < position) {
+            // if item was located in the same parent and was above destination we need to correct its new position
+            positionCorrection = -1;
+        }
+
+        newItemsArray.splice(position + positionCorrection, 0, item);
 
         item.area.x = newLocalPoint.x;
         item.area.y = newLocalPoint.y;

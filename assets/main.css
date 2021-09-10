@@ -82,6 +82,9 @@ body {
     display: flex;
     flex-direction: column;
 }
+.scheme-editor-app {
+    height: 100%;
+}
 
 * {
     box-sizing: border-box;
@@ -2736,6 +2739,7 @@ ul.category-breadcrumb li i {
     background: var(--base-weak);
     border: 1px solid #999;
     padding: 2px;
+    user-select: none;
 }
 
 .item-selector .item-row {

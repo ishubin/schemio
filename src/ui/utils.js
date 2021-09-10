@@ -182,6 +182,23 @@ function domHasParentNode(domElement, callbackCheck) {
     return false;
 }
 
+function domFindAncestorByClassUntil(domElement, cssClass, stopCallback) {
+    if (domElement.classList.contains(cssClass)) {
+        return domElement;
+    }
+
+    if (stopCallback) {
+        if (stopCallback(domElement)) {
+            return null;
+        }
+    }
+
+    if (domElement.parentElement) {
+        return domFindAncestorByClassUntil(domElement.parentElement, cssClass, stopCallback);
+    }
+    return null;
+}
+
 
 function forceDownload(fileName, contentType, content) {
     const dataUrl = `data:${contentType};base64,${btoa(content)}`;
@@ -211,5 +228,6 @@ export default {
     rotatePointAroundCenter,
     enumerateConstants,
     domHasParentNode,
+    domFindAncestorByClassUntil,
     forceDownload
 };
