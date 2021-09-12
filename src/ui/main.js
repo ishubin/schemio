@@ -8,6 +8,7 @@ import SchemioEditorApp from './SchemioEditorApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import CategoryTree from './components/search/CategoryTree.vue';
+import apiClient from './apiClient.js';
 
 
 const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, SchemioEditorApp));
@@ -16,6 +17,7 @@ const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, 
 
 window.Schemio = {
     components: { Vue, Modal, CreateNewSchemeModal, CategoryTree},
+    apiClient,
     mountSchemioEditorApp(querySelector, projectId, scheme, editAllowed) {
         new Vue({
             el: querySelector,

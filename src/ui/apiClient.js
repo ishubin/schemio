@@ -34,16 +34,6 @@ _axiosInstance.interceptors.request.use(config => {
     return config;
 });
 
-// _axiosInstance.interceptors.response.use(response => {
-//     // renew xsrf token with each request
-//     if (response.headers[XSRF_TOKEN_HEADER]) {
-//         xsrfToken = response.headers[XSRF_TOKEN_HEADER];
-//         window.localStorage.setItem(XSRF_TOKEN_HEADER, xsrfToken);
-//     }
-//     return response;
-// });
-
-
 function $axios() {
     return _axiosInstance;
 }
@@ -167,6 +157,14 @@ export default {
         return $axios().post(`/v1/projects/${projectId}/files`, form).then(unwrapAxios).then(data => {
             return data.url;
         }).catch(unwrapAxiosError);
+    },
+
+    addProjectToFavorites(projectId) {
+        return $axios().post(`/v1/favorites/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
+    },
+
+    removeProjectFromFavorites(projectId) {
+        return $axios().delete(`/v1/favorites/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
     },
 
     styles: {
