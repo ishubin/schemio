@@ -21,6 +21,7 @@ const port = 4010;
 
 app.use('/assets', express.static('assets'));
 app.use('/dist', express.static('dist'));
+app.use('/test-data', express.static('test/data'));
 
 app.get('/', (req, res) => {
     res.send('Hello World!')
@@ -30,6 +31,9 @@ const cwd = process.cwd();
 
 app.get('/offline-scheme-editor', (req, res) => {
     res.sendFile(`${cwd}/src/html/offline-editor.html`)
+});
+app.get('/scheme-diff-example', (req, res) => {
+    res.sendFile(`${cwd}/src/html/scheme-diff-example.html`)
 });
 app.get('/category-tree', (req, res) => {
     res.sendFile(`${cwd}/src/html/category-tree.html`)

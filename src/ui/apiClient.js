@@ -39,6 +39,10 @@ function $axios() {
 }
 
 export default {
+    get(url) {
+        return $axios().get(url).then(unwrapAxios);
+    },
+
     createArt(projectId, art) {
         return $axios().post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
     },

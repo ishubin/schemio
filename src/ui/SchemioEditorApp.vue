@@ -4,7 +4,7 @@
 
 <template>
     <div class="scheme-editor-app">
-        <SchemeEditorView :projectId="projectId" :scheme="scheme" :editAllowed="editAllowed"/>
+        <SchemeEditorView :projectId="projectId" :scheme="scheme" :changedScheme="changedScheme" :editAllowed="editAllowed"/>
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
@@ -23,9 +23,10 @@ export default{
     components: {Debugger, SystemMessagePanel, SchemeEditorView},
 
     props: {
-        projectId: {type: String, default: null},
-        scheme: {type: Object, default: null},
-        editAllowed: {type: Boolean, default: false},
+        projectId    : {type: String, default: null},
+        scheme       : {type: Object, default: null},
+        changedScheme: {type: Object, default: null},
+        editAllowed  : {type: Boolean, default: false},
     },
 
     mounted() {

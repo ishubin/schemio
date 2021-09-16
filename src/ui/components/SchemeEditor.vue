@@ -45,6 +45,21 @@
             </ul>
             </quick-helper-panel>
 
+        <div class="scheme-differ-container" v-if="scheme && changedScheme">
+            <div class="scheme-differ-panel">
+                <ul class="toggle-menu">
+                    <li v-for="state in schemeDiff.states">
+                        <span class="toggle-menu-button" :class="{selected: schemeDiff.state === state.id}" @click="switchSchemeDiffState(state.id)" :tooltip="state.description">
+                            {{state.name}}
+                        </span>
+                    </li>
+                </ul>
+                <span class='btn btn-secondary'>List all changes</span>
+                <span class='btn btn-primary'>Accept</span>
+                <span class='btn btn-danger'>Reject</span>
+            </div>
+        </div>
+
         <div class="scheme-editor-middle-section">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
                 <h3>{{schemeLoadErrorMessage}}</h3>
@@ -323,7 +338,13 @@ import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
 import { getCapDefaultFill } from './editor/items/shapes/ConnectorCaps.js';
 
-let history = new History({size: 30});
+const defaultHistorySize = 30;
+let history = new History({size: defaultHistorySize});
+
+
+const schemePages = {
+
+};
 
 function imgPreload(imageUrl) {
     return new Promise((resolve, reject) => {
@@ -403,9 +424,10 @@ export default {
     },
 
     props: {
-        projectId: {type: String, default: null},
-        scheme: {type: Object, default: null},
-        editAllowed: {type: Boolean, default: false},
+        projectId    : {type: String, default: null},
+        scheme       : {type: Object, default: null},
+        changedScheme: {type: Object, default: null},
+        editAllowed  : {type: Boolean, default: false},
     },
 
     beforeMount() {
@@ -468,6 +490,8 @@ export default {
             sidePanelLeftExpanded: true,
             schemeContainer: null,
             interactiveSchemeContainer: null,
+
+
             zoom: 100,
             mode: 'view',
 
@@ -529,6 +553,23 @@ export default {
 
             animatorPanel: {
                 framePlayer: null,
+            },
+
+            schemeDiff: {
+                state: 'origin',
+                states: [{
+                    id: 'origin',
+                    name: 'Origin',
+                    description: 'Represents your current version of the document'
+                }, {
+                    id: 'modified',
+                    name: 'Modified',
+                    description: 'Modified version of the scheme'
+                }, {
+                    id: 'diff',
+                    name: 'Diff Mode',
+                    description: 'Highlight all the changes in the modified version on top of your current version'
+                }]
             }
         }
     },
@@ -601,7 +642,7 @@ export default {
             this.currentCategory = scheme.category;
             this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
-            history = new History({size: 30});
+            history = new History({size: defaultHistorySize});
             history.commit(scheme);
             document._history = history;
 
@@ -1336,6 +1377,44 @@ export default {
 
         closeAnimatorEditor() {
             StoreUtils.startAnimationEditor(this.$store, null);
+        },
+
+        switchSchemeDiffState(state) {
+            AnimationRegistry.stopAllAnimations();
+
+            const oldState = this.schemeDiff.state;
+
+            if (!schemePages[oldState]) {
+                schemePages[oldState] = {
+                    schemeContainer: this.schemeContainer,
+                    interactiveSchemeContainer: this.interactiveSchemeContainer,
+                    history: history,
+                }
+            }
+
+            if (!schemePages[state]) {
+                schemePages[state] = this.generateSchemePage(state);
+            }
+
+            this.schemeDiff.state = state;
+
+            this.schemeContainer = schemePages[state].schemeContainer;
+            this.interactiveSchemeContainer = schemePages[state].interactiveSchemeContainer;
+            history = schemePages[state].history;
+            this.updateRevision();
+            this.updateHistoryState();
+        },
+
+        /**
+         * state can be either 'modified' or 'diff'. 'origin' state should be automatically filled with the first switch of the state
+         */
+        generateSchemePage(state) {
+            // if (state === 'modi')
+            return {
+                schemeContainer: new SchemeContainer(this.changedScheme, EventBus),
+                interactiveSchemeContainer: new SchemeContainer(this.changedScheme, EventBus),
+                history: new History({size: defaultHistorySize})
+            };
         }
     },
 

@@ -14,10 +14,18 @@
     <body>
         <div id="editor-app"></div>
         <script>
-            Schemio.mountSchemioEditorApp('#editor-app', {
-                projectId  : 'some-project',
-                scheme     : null,
-                editAllowed: true
+            Promise.all([
+                Schemio.apiClient.get('/test-data/scheme.1.1.json'),
+                Schemio.apiClient.get('/test-data/scheme.1.2.json')
+            ]).then(schemes => {
+                Schemio.mountSchemioEditorApp('#editor-app', {
+                    projectId    : 'some-project',
+                    scheme       : schemes[0],
+                    changedScheme: schemes[1],
+                    editAllowed  : true
+                });
+                console.log('Scheme1', schemes[0]);
+                console.log('Scheme2', schemes[1]);
             });
         </script>
     </body>

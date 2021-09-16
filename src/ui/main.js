@@ -18,14 +18,24 @@ const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, 
 window.Schemio = {
     components: { Vue, Modal, CreateNewSchemeModal, CategoryTree},
     apiClient,
-    mountSchemioEditorApp(querySelector, projectId, scheme, editAllowed) {
+    /**
+     * 
+     * @param {*} querySelector 
+     * @param {Object} options 
+     * @param {String} options.projectId
+     * @param {Object} options.scheme
+     * @param {Object} options.changedScheme - a scheme that was modified. This will allow user to check diff of the two schemes
+     * @param {Boolean} options.editAllowed
+     */
+    mountSchemioEditorApp(querySelector,  options /* projectId, scheme, editAllowed */) {
         new Vue({
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {props: {
-                projectId,
-                scheme,
-                editAllowed
+                projectId    : options.projectId || null,
+                scheme       : options.scheme || null,
+                changedScheme: options.changedScheme || null,
+                editAllowed  : options.editAllowed || false
             }})
         }); 
     }

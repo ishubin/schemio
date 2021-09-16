@@ -970,6 +970,7 @@ ul.pagination li a.current {
 
 
 .scheme-editor-view {
+    position: relative;
     width: 100%;
     height: 100%;
     display: flex;
@@ -3177,4 +3178,55 @@ table.frame-animator-matrix td.frame .active-frame {
 }
 table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--critic-weak-down);
+}
+
+
+/********************** Scheme Differ ************************/
+.scheme-differ-container {
+    position: absolute;
+    width: 100%;
+    top: 35px;
+    z-index: 19;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.scheme-differ-panel {
+    display: inline-block;
+    margin-left: auto; 
+    margin-right: auto; 
+    padding: 5px;
+    background: var(--faint-weak);
+    border: 1px solid var(--faint-strong);
+    border-top: none;
+    white-space: nowrap;
+}
+ul.toggle-menu {
+    display: inline;
+    margin: none;
+    padding: 0;
+    list-style: none;
+}
+ul.toggle-menu > li {
+    display: inline;
+}
+ul.toggle-menu > li > span.toggle-menu-button {
+    display: inline-block;
+    white-space: nowrap;
+    margin: 2px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: var(--faint-weak-down);
+    color: var(--base-strong-up);
+    cursor: pointer;
+}
+ul.toggle-menu > li > span.toggle-menu-button:hover {
+    background: var(--faint-strong-up-up);
+}
+ul.toggle-menu > li > span.toggle-menu-button.selected {
+    background: var(--accent-strong);
+    color: var(--base-weak);
+}
+ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
+    background: var(--accent-faint);
 }
