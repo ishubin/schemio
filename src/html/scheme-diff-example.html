@@ -21,7 +21,11 @@
                 Schemio.mountSchemioEditorApp('#editor-app', {
                     projectId    : 'some-project',
                     scheme       : schemes[0],
-                    changedScheme: schemes[1],
+                    schemeDiff   : {
+                        modifiedScheme : schemes[1],
+                        onAccept : () => alert('Accepted'),
+                        onReject : () => alert('Rejected')
+                    },
                     editAllowed  : true,
                     menuOptions  : [{
                         name: 'Fork scheme',

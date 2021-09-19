@@ -4,7 +4,7 @@
 
 <template>
     <div class="scheme-editor-app">
-        <SchemeEditorView :projectId="projectId" :scheme="scheme" :changedScheme="changedScheme" :editAllowed="editAllowed" :menuOptions="menuOptions"/>
+        <SchemeEditorView :projectId="projectId" :scheme="scheme" :schemeDiff="schemeDiff" :editAllowed="editAllowed" :menuOptions="menuOptions"/>
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
@@ -25,7 +25,7 @@ export default{
     props: {
         projectId    : {type: String, default: null},
         scheme       : {type: Object, default: null},
-        changedScheme: {type: Object, default: null},
+        schemeDiff   : {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
         menuOptions  : {type: Array, default: []},
     },

@@ -24,18 +24,18 @@ window.Schemio = {
      * @param {Object} options 
      * @param {String} options.projectId
      * @param {Object} options.scheme
-     * @param {Object} options.changedScheme - a scheme that was modified. This will allow user to check diff of the two schemes
+     * @param {Object} options.schemeDiff - {modifiedScheme: Object, onAccept: Function, onReject: Function}
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      */
-    mountSchemioEditorApp(querySelector,  options /* projectId, scheme, editAllowed, menuOptions */) {
+    mountSchemioEditorApp(querySelector,  options) {
         new Vue({
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {props: {
                 projectId    : options.projectId || null,
                 scheme       : options.scheme || null,
-                changedScheme: options.changedScheme || null,
+                schemeDiff   : options.schemeDiff || null,
                 editAllowed  : options.editAllowed || false,
                 menuOptions  : options.menuOptions || []
             }})

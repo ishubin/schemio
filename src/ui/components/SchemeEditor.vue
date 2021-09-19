@@ -46,18 +46,17 @@
             </ul>
             </quick-helper-panel>
 
-        <div class="scheme-differ-container" v-if="scheme && changedScheme">
+        <div class="scheme-differ-container" v-if="scheme && schemeDiff">
             <div class="scheme-differ-panel">
                 <ul class="toggle-menu">
-                    <li v-for="state in schemeDiff.states">
-                        <span class="toggle-menu-button" :class="{selected: schemeDiff.state === state.id}" @click="switchSchemeDiffState(state.id)" :tooltip="state.description">
+                    <li v-for="state in schemeDiffStates.states">
+                        <span class="toggle-menu-button" :class="{selected: schemeDiffStates.state === state.id}" @click="switchSchemeDiffState(state.id)" :tooltip="state.description">
                             {{state.name}}
                         </span>
                     </li>
                 </ul>
-                <span class='btn btn-secondary'>List all changes</span>
-                <span class='btn btn-primary'>Accept</span>
-                <span class='btn btn-danger'>Reject</span>
+                <span v-if="schemeDiff.onAccept" class="btn btn-primary" @click="schemeDiff.onAccept()">Accept</span>
+                <span v-if="schemeDiff.onReject" class="btn btn-danger" @click="schemeDiff.onReject()">Reject</span>
             </div>
         </div>
 
@@ -428,7 +427,7 @@ export default {
     props: {
         projectId    : {type: String, default: null},
         scheme       : {type: Object, default: null},
-        changedScheme: {type: Object, default: null},
+        schemeDiff   : {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
         menuOptions  : {type: Array, default: []},
     },
@@ -558,7 +557,7 @@ export default {
                 framePlayer: null,
             },
 
-            schemeDiff: {
+            schemeDiffStates: {
                 state: 'origin',
                 states: [{
                     id: 'origin',
@@ -1385,7 +1384,7 @@ export default {
         switchSchemeDiffState(state) {
             AnimationRegistry.stopAllAnimations();
 
-            const oldState = this.schemeDiff.state;
+            const oldState = this.schemeDiffStates.state;
 
             if (!schemePages[oldState]) {
                 schemePages[oldState] = {
@@ -1399,7 +1398,7 @@ export default {
                 schemePages[state] = this.generateSchemePage(state);
             }
 
-            this.schemeDiff.state = state;
+            this.schemeDiffStates.state = state;
 
             this.schemeContainer = schemePages[state].schemeContainer;
             this.interactiveSchemeContainer = schemePages[state].interactiveSchemeContainer;
@@ -1416,14 +1415,14 @@ export default {
                 return this.generateSchemeDiffPage();
             }
             return {
-                schemeContainer: new SchemeContainer(this.changedScheme, EventBus),
-                interactiveSchemeContainer: new SchemeContainer(this.changedScheme, EventBus),
+                schemeContainer: new SchemeContainer(this.schemeDiff.modifiedScheme, EventBus),
+                interactiveSchemeContainer: new SchemeContainer(this.schemeDiff.modifiedScheme, EventBus),
                 history: new History({size: defaultHistorySize})
             };
         },
 
         generateSchemeDiffPage() {
-            const diffSchemeContainer = generateDiffSchemeContainer(utils.clone(this.scheme), utils.clone(this.changedScheme));
+            const diffSchemeContainer = generateDiffSchemeContainer(utils.clone(this.scheme), utils.clone(this.schemeDiff.modifiedScheme));
             return {
                 schemeContainer: diffSchemeContainer,
                 interactiveSchemeContainer: new SchemeContainer(utils.clone(diffSchemeContainer.scheme), EventBus),
