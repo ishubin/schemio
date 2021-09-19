@@ -29,9 +29,9 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
 
     forEach(modifiedSchemeContainer.getItems(), modifiedItem => {
         const originItem = originSchemeContainer.findItemById(modifiedItem.id);
-        if (!modifiedItem) {
+        if (!originItem) {
             // it was added in the modified scheme
-            originItem.meta.diff = {
+            modifiedItem.meta.diff = {
                 change: ChangeType.ADDITION
             };
             return;
@@ -77,13 +77,13 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
         const modifiedItem = modifiedSchemeContainer.findItemById(item.id);
         if (!modifiedItem) {
             item.meta.diff = {
-                change: ChangeType.ADDITION,
+                change: ChangeType.DELETION,
             };
 
-            // marking all its children as "addition"
+            // marking all its children as "deletion"
             traverseItems(item.childItems, subItem => {
                 subItem.meta.diff = {
-                    change: ChangeType.ADDITION
+                    change: ChangeType.DELETION
                 };
             });
 

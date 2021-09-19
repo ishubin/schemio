@@ -572,8 +572,6 @@ class SchemeContainer {
         } else {
             item.meta.parentId = null;
         }
-
-        const shape = Shape.find(item.shape);
     }
 
     /**
