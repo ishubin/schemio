@@ -12,6 +12,7 @@
             :mode="mode"
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
+            :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
             @clicked-undo="historyUndo()"
@@ -429,6 +430,7 @@ export default {
         scheme       : {type: Object, default: null},
         changedScheme: {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
+        menuOptions  : {type: Array, default: []},
     },
 
     beforeMount() {

@@ -232,7 +232,8 @@ export default {
         project        : { type: Object  },
         mode           : { type: String, required: true }, // "edit" or "view"
         zoom           : { type: Number, required: true },
-        editAllowed    : { type: Boolean, default: false }
+        editAllowed    : { type: Boolean, default: false },
+        menuOptions    : { type: Array, default: []},
     },
 
     components: {
@@ -306,7 +307,7 @@ export default {
                 {name: 'Export as JSON', event: 'export-json-requested'},
                 {name: 'Export as SVG',  event: 'export-svg-requested'},
                 {name: 'Export as HTML', event: 'export-html-requested'}
-            ],
+            ].concat(this.menuOptions),
         };
     },
 

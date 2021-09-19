@@ -4,7 +4,7 @@
 
 <template>
     <div class="scheme-editor-app">
-        <SchemeEditorView :projectId="projectId" :scheme="scheme" :changedScheme="changedScheme" :editAllowed="editAllowed"/>
+        <SchemeEditorView :projectId="projectId" :scheme="scheme" :changedScheme="changedScheme" :editAllowed="editAllowed" :menuOptions="menuOptions"/>
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
@@ -27,6 +27,7 @@ export default{
         scheme       : {type: Object, default: null},
         changedScheme: {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
+        menuOptions  : {type: Array, default: []},
     },
 
     mounted() {

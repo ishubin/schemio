@@ -82,7 +82,12 @@ export default {
                 return;
             }
             this.menuDisplayed = false;
-            this.$emit(option.event);
+            if (option.event) {
+                this.$emit(option.event);
+            }
+            if (option.callback) {
+                option.callback();
+            }
         },
 
         onBodyClick(event) {
