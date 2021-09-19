@@ -304,6 +304,7 @@ import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
+import {generateDiffSchemeContainer} from '../scheme/scheme-diff.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -1409,10 +1410,21 @@ export default {
          * state can be either 'modified' or 'diff'. 'origin' state should be automatically filled with the first switch of the state
          */
         generateSchemePage(state) {
-            // if (state === 'modi')
+            if (state === 'diff') {
+                return this.generateSchemeDiffPage();
+            }
             return {
                 schemeContainer: new SchemeContainer(this.changedScheme, EventBus),
                 interactiveSchemeContainer: new SchemeContainer(this.changedScheme, EventBus),
+                history: new History({size: defaultHistorySize})
+            };
+        },
+
+        generateSchemeDiffPage() {
+            const diffSchemeContainer = generateDiffSchemeContainer(utils.clone(this.scheme), utils.clone(this.changedScheme));
+            return {
+                schemeContainer: diffSchemeContainer,
+                interactiveSchemeContainer: new SchemeContainer(utils.clone(diffSchemeContainer.scheme), EventBus),
                 history: new History({size: defaultHistorySize})
             };
         }
