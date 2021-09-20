@@ -277,7 +277,10 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
 
-        <SchemeChangeLogModal v-if="changeLogModal.shown" :changeLog="changeLogModal.changeLog" @close="changeLogModal.shown = false"/>
+        <SchemeChangeLogModal v-if="changeLogModal.shown"
+            :changeLog="changeLogModal.changeLog"
+            :schemeContainer="changeLogModal.schemeContainer"
+            @close="changeLogModal.shown = false"/>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -581,6 +584,7 @@ export default {
 
             changeLogModal: {
                 changeLog: null,
+                schemeContainer: null,
                 shown: false
             }
         }
@@ -1448,6 +1452,7 @@ export default {
             const changeLog = schemePages['diff'].changeLog;
 
             this.changeLogModal.changeLog = changeLog;
+            this.changeLogModal.schemeContainer = schemePages['diff'].schemeContainer;
             this.changeLogModal.shown = true;
         }
     },

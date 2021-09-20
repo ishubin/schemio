@@ -3232,7 +3232,7 @@ table.frame-animator-matrix td.frame.drop-candidate {
 }
 .diff-change-log .diff-change-addition {
     color: var(--complement-strong);
-    background: var(--complement-weak);
+    background: var(--complement-faint);
 }
 .diff-change-log .diff-change-log-entry.diff-change-addition::after {
     content: "added";
