@@ -55,6 +55,7 @@
                         </span>
                     </li>
                 </ul>
+                <span class="btn btn-secondary" @click="listSchemeDiffChanges()">List all changes</span>
                 <span v-if="schemeDiff.onAccept" class="btn btn-primary" @click="schemeDiff.onAccept()">Accept</span>
                 <span v-if="schemeDiff.onReject" class="btn btn-danger" @click="schemeDiff.onReject()">Reject</span>
             </div>
@@ -276,6 +277,8 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
 
+        <SchemeChangeLogModal v-if="changeLogModal.shown" :changeLog="changeLogModal.changeLog" @close="changeLogModal.shown = false"/>
+
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -304,7 +307,7 @@ import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
 import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
-import {generateDiffSchemeContainer} from '../scheme/scheme-diff.js';
+import {generateDiffSchemeContainerWithChangeLog} from '../scheme/scheme-diff.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -316,6 +319,7 @@ import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
+import SchemeChangeLogModal from './editor/SchemeChangeLogModal.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
@@ -418,6 +422,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel,
+        SchemeChangeLogModal,
         'export-embedded-modal': ExportEmbeddedModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -572,6 +577,11 @@ export default {
                     name: 'Diff Mode',
                     description: 'Highlight all the changes in the modified version on top of your current version'
                 }]
+            },
+
+            changeLogModal: {
+                changeLog: null,
+                shown: false
             }
         }
     },
@@ -1422,12 +1432,23 @@ export default {
         },
 
         generateSchemeDiffPage() {
-            const diffSchemeContainer = generateDiffSchemeContainer(utils.clone(this.scheme), utils.clone(this.schemeDiff.modifiedScheme));
+            const { schemeContainer, changeLog } = generateDiffSchemeContainerWithChangeLog(utils.clone(this.scheme), utils.clone(this.schemeDiff.modifiedScheme));
             return {
-                schemeContainer: diffSchemeContainer,
-                interactiveSchemeContainer: new SchemeContainer(utils.clone(diffSchemeContainer.scheme), EventBus),
-                history: new History({size: defaultHistorySize})
+                schemeContainer,
+                interactiveSchemeContainer: new SchemeContainer(utils.clone(schemeContainer.scheme), EventBus),
+                history: new History({size: defaultHistorySize}),
+                changeLog
             };
+        },
+
+        listSchemeDiffChanges() {
+            if (!schemePages['diff']) {
+                schemePages['diff'] = this.generateSchemeDiffPage();
+            }
+            const changeLog = schemePages['diff'].changeLog;
+
+            this.changeLogModal.changeLog = changeLog;
+            this.changeLogModal.shown = true;
         }
     },
 

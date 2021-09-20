@@ -23,9 +23,11 @@ function jsonDiffItemWhitelistCallback(item) {
 }
 
 
-export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
+export function generateDiffSchemeContainerWithChangeLog(originScheme, modifiedScheme) {
     const originSchemeContainer = new SchemeContainer(utils.clone(originScheme), EventBus);
     const modifiedSchemeContainer = new SchemeContainer(utils.clone(modifiedScheme), EventBus);
+
+    const changeLog = [];
 
     forEach(modifiedSchemeContainer.getItems(), modifiedItem => {
         const originItem = originSchemeContainer.findItemById(modifiedItem.id);
@@ -34,6 +36,11 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
             modifiedItem.meta.diff = {
                 change: ChangeType.ADDITION
             };
+            changeLog.push({
+                change: ChangeType.ADDITION,
+                itemId: modifiedItem.id,
+                name  : modifiedItem.name
+            });
             return;
         } else {
             const diff = jsonDiff(originItem, modifiedItem, {
@@ -44,6 +51,13 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
                     change: ChangeType.MODIFICATION,
                     modifications: diff.changes
                 };
+
+                changeLog.push({
+                    change       : ChangeType.MODIFICATION,
+                    itemId       : modifiedItem.id,
+                    name         : modifiedItem.name,
+                    modifications: diff.changes
+                });
             }
         }
     });
@@ -80,11 +94,22 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
                 change: ChangeType.DELETION,
             };
 
+            changeLog.push({
+                change: ChangeType.DELETION,
+                itemId: item.id,
+                name  : item.name
+            });
+
             // marking all its children as "deletion"
             traverseItems(item.childItems, subItem => {
                 subItem.meta.diff = {
                     change: ChangeType.DELETION
                 };
+                changeLog.push({
+                    change: ChangeType.DELETION,
+                    itemId: subItem.id,
+                    name  : subItem.name
+                });
             });
 
             addItemToModifiedScheme(item);
@@ -94,5 +119,8 @@ export function generateDiffSchemeContainer(originScheme, modifiedScheme) {
         return true;
     });
 
-    return new SchemeContainer(utils.clone(modifiedSchemeContainer.scheme), EventBus);
+    return {
+        schemeContainer: new SchemeContainer(utils.clone(modifiedSchemeContainer.scheme), EventBus),
+        changeLog
+    };
 }

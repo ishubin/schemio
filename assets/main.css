@@ -3201,6 +3201,46 @@ table.frame-animator-matrix td.frame.drop-candidate {
     border-top: none;
     white-space: nowrap;
 }
+
+/************* Diff Change Log *********************/
+.diff-change-log .diff-change-log-entry {
+    padding: 5px;
+    margin-bottom: 5px;
+    position: relative;
+}
+.diff-change-log .diff-change-log-entry::after {
+    display: inline-block;
+    position: absolute;
+    font-size: 13px;
+    top: 5px;
+    right: 5px;
+    font-style: italic;
+}
+.diff-change-log .diff-change-modification {
+    color: var(--accent-strong-down);
+    background: var(--accent-weak-down);
+}
+.diff-change-log .diff-change-log-entry.diff-change-modification::after {
+    content: "modified";
+}
+.diff-change-log .diff-change-deletion {
+    color: var(--critic-strong);
+    background: var(--critic-weak-up);
+}
+.diff-change-log .diff-change-log-entry.diff-change-deletion::after {
+    content: "deleted";
+}
+.diff-change-log .diff-change-addition {
+    color: var(--complement-strong);
+    background: var(--complement-weak);
+}
+.diff-change-log .diff-change-log-entry.diff-change-addition::after {
+    content: "added";
+}
+
+
+
+
 ul.toggle-menu {
     display: inline;
     margin: none;
