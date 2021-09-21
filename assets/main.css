@@ -2813,6 +2813,16 @@ ul.category-breadcrumb li i {
     border: 1px solid var(--faint-strong);
 }
 
+.item-selector .item-selector-diff-level-1 {
+    background: var(--accent-weak-down);
+}
+.item-selector .item-selector-diff-level-2 {
+    background: var(--critic-weak-down);
+}
+.item-selector .item-selector-diff-level-3 {
+    background: var(--complement-faint);
+}
+
 
 /****************** Language Markup ***************/
 pre.syntax-markup {

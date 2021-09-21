@@ -12,6 +12,7 @@
         <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
             <div v-for="(item, idx) in filteredItems"
                 class="item-selector-item-row-container"
+                :class="[item.meta && item.meta.diff ? `item-selector-diff-level-${item.meta.diff.change}`: '']"
                 :key="item.id"
                 :ref="`row_${item.id}`"
                 :data-item-id="item.id"
@@ -87,7 +88,6 @@ import indexOf from 'lodash/indexOf';
 import filter from 'lodash/filter';
 import EventBus from './EventBus';
 import utils from '../../utils';
-import myMath from '../../myMath';
 
 
 const mouseOffset = 2;
