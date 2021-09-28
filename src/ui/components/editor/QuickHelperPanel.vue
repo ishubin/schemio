@@ -301,12 +301,12 @@ export default {
             },
 
             menuDropdownOptions: [
-                {name: 'New scheme',     event: 'new-scheme-requested', disabled: newSchemeDisabled}, 
-                {name: 'Import scheme',  event: 'import-json-requested'},
-                {name: 'Export as embedded iframe', event: 'export-embedded-requested'},
-                {name: 'Export as JSON', event: 'export-json-requested'},
-                {name: 'Export as SVG',  event: 'export-svg-requested'},
-                {name: 'Export as HTML', event: 'export-html-requested'}
+                {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: newSchemeDisabled}, 
+                {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import'},
+                {name: 'Export as embedded iframe', event: 'export-embedded-requested', iconClass: 'fas fa-file-export'},
+                {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
+                {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
+                {name: 'Export as HTML', event: 'export-html-requested', iconClass: 'fas fa-file-export'}
             ].concat(this.menuOptions),
         };
     },

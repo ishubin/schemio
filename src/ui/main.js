@@ -24,7 +24,7 @@ window.Schemio = {
      * @param {Object} options 
      * @param {String} options.projectId
      * @param {Object} options.scheme
-     * @param {Object} options.schemeDiff - {modifiedScheme: Object, onAccept: Function, onReject: Function}
+     * @param {Object} options.schemeDiff - {modifiedScheme: Object}
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      */

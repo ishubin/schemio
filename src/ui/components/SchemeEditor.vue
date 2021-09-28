@@ -56,8 +56,6 @@
                     </li>
                 </ul>
                 <span class="btn btn-secondary" @click="listSchemeDiffChanges()">List all changes</span>
-                <span v-if="schemeDiff.onAccept" class="btn btn-primary" @click="schemeDiff.onAccept()">Accept</span>
-                <span v-if="schemeDiff.onReject" class="btn btn-danger" @click="schemeDiff.onReject()">Reject</span>
             </div>
         </div>
 
