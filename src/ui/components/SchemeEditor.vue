@@ -163,6 +163,13 @@
                                 @click="currentTab = tab"
                                 >{{tab}}</span>
                         </li>
+                        <li v-if="comments && comments.enabled">
+                            <span class="tab"
+                                :class="{active: currentTab === 'Comments'}"
+                                @click="currentTab = 'Comments'"
+                                ><i class="fas fa-comment-alt"></i> {{comments.counter}}</span>
+
+                        </li>
                         <li v-for="itemTextSlotTab in itemTextSlotsAvailable">
                             <span class="tab"
                                 :class="{active: currentTab === itemTextSlotTab.tabName}"
@@ -206,6 +213,10 @@
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
 
+                        </div>
+
+                        <div v-if="currentTab === 'Comments' && comments && comments.enabled">
+                            <Comments :entityId="commentsEntityId" :comments="comments"/>
                         </div>
 
                         <div v-if="textSlotEditted.item">
@@ -321,6 +332,7 @@ import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import SchemeChangeLogModal from './editor/SchemeChangeLogModal.vue';
+import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
 import History from '../history/History.js';
@@ -423,7 +435,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel,
-        SchemeChangeLogModal,
+        SchemeChangeLogModal, Comments,
         'export-embedded-modal': ExportEmbeddedModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -436,6 +448,13 @@ export default {
         schemeDiff   : {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
         menuOptions  : {type: Array, default: []},
+        comments     : {type: Object, default: {
+            enabled: false,
+            isAdmin: false,
+            allowed: false,
+            counter: 0,
+            provider: null
+        }}
     },
 
     beforeMount() {
@@ -1499,6 +1518,13 @@ export default {
         animationEditorCurrentFramePlayer() {
             return this.$store.getters.animationEditorCurrentFramePlayer;
         },
+
+        commentsEntityId() {
+            if (!this.scheme) {
+                return 'offline-scheme';
+            }
+            return this.scheme.id;
+        }
     }
 }
 </script>

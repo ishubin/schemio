@@ -27,6 +27,7 @@ window.Schemio = {
      * @param {Object} options.schemeDiff - {modifiedScheme: Object}
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
+     * @param {Object} options.comments
      */
     mountSchemioEditorApp(querySelector,  options) {
         new Vue({
@@ -37,7 +38,8 @@ window.Schemio = {
                 scheme       : options.scheme || null,
                 schemeDiff   : options.schemeDiff || null,
                 editAllowed  : options.editAllowed || false,
-                menuOptions  : options.menuOptions || []
+                menuOptions  : options.menuOptions || [],
+                comments     : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null}
             }})
         }); 
     }

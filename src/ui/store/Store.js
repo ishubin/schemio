@@ -97,7 +97,7 @@ const store = new Vuex.Store({
             isError: false
         },
 
-        // Contains global self descructing messages that can be written from any components
+        // Contains global self destructing messages that can be written from any components
         systemMessages: [],
 
         draw: {

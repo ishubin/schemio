@@ -3280,3 +3280,68 @@ ul.toggle-menu > li > span.toggle-menu-button.selected {
 ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     background: var(--accent-faint);
 }
+
+
+/*********** Comments *****************/
+.comments-container {
+    position: relative;
+}
+.comments-container .loading-splash {
+    position: absolute;
+    top: 30px;
+}
+.comments-container .comments-loading {
+    opacity: 0.3;
+}
+.comments-container .comment-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    background: var(--faint-weak);
+    border: 1px solid var(--faint-strong-up);
+    border-radius: var(--middle-border-radius);
+}
+.comments-container .comment-container .comment-header {
+    display: flex;
+    width: 100%;
+    background: var(--faint-weak-down);
+    border-bottom: 1px solid var(--faint-strong-up);
+    border-radius: var(--middle-border-radius) var(--middle-border-radius) 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 5px 5px;
+}
+.comments-container .comment-container .comment-header .comment-user-name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+    text-decoration: none;
+    color: var(--base-strong);
+    font-size: 14px;
+}
+.comments-container .comment-container .comment-header .timestamp {
+    font-size: 12px;
+    text-align: right;
+    color: var(--base-strong-up);
+}
+.comments-container .comment-container .comment-body {
+    padding: 5px;
+}
+.comments-container textarea {
+    margin-top: 20px;
+}
+.comment-more-placeholder {
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+.comment-ellipsis {
+    display: block;
+    color: var(--faint-strong-down);
+    width: 100%;
+    text-align: center;
+    margin: 5px;
+}

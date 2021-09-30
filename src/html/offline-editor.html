@@ -10,14 +10,24 @@
         <link rel="stylesheet" href="/assets/main.css">
         <link rel="stylesheet" href="/assets/css/all.min.css">
         <script src="dist/assets/schemio.js"></script>
+        <script src="assets/examples.js"></script>
     </head>
     <body>
         <div id="editor-app"></div>
         <script>
+
             Schemio.mountSchemioEditorApp('#editor-app', {
                 projectId  : 'some-project',
                 scheme     : null,
-                editAllowed: true
+                editAllowed: true,
+
+                comments: {
+                    enabled: true,
+                    allowed: true,
+                    isAdmin: true,
+                    counter: 2,
+                    provider: FakeCommentsProvider
+                }
             });
         </script>
     </body>
