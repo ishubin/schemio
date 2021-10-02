@@ -47,6 +47,10 @@ export default {
         return $axios().post(url, payload).then(unwrapAxios);
     },
 
+    delete(url) {
+        return $axios().delete(url).then(unwrapAxios);
+    },
+
     createArt(projectId, art) {
         return $axios().post(`/v1/projects/${projectId}/art`, art).then(unwrapAxios);
     },

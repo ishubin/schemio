@@ -30,13 +30,13 @@
                     <div class="comment-header">
                         <a v-if="message.user" :href="message.user.link" class="comment-user-name">{{message.user.name}}</a>
                         <span class="timestamp">{{message.time | formatTimeAgo }}</span>
-                        <MenuDropdown v-if="comments.isAdmin"
+                        <MenuDropdown v-if="comments.isAdmin || message.own"
                             iconClass="fas fa-ellipsis-v"
                             :options="commentOptions"
                             @delete-comment="deleteComment(messageIdx)"
                             />
                     </div>
-                    <div class="comment-body">{{message.text}}</div>
+                    <div class="comment-body"><pre>{{message.text}}</pre></div>
                 </div>
             </div>
 
