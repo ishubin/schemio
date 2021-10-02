@@ -3345,3 +3345,6 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     text-align: center;
     margin: 5px;
 }
+.comment-deleting {
+    opacity: 0.4;
+}

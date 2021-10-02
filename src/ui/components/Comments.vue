@@ -26,10 +26,15 @@
 
                     <div class="comment-ellipsis"><i class="fas fa-ellipsis-h"></i></div>
                 </div>
-                <div v-else class="comment-container">
+                <div v-else class="comment-container" :class="{'comment-deleting': message.isDeleting}">
                     <div class="comment-header">
                         <a v-if="message.user" :href="message.user.link" class="comment-user-name">{{message.user.name}}</a>
                         <span class="timestamp">{{message.time | formatTimeAgo }}</span>
+                        <MenuDropdown v-if="comments.isAdmin"
+                            iconClass="fas fa-ellipsis-v"
+                            :options="commentOptions"
+                            @delete-comment="deleteComment(messageIdx)"
+                            />
                     </div>
                     <div class="comment-body">{{message.text}}</div>
                 </div>
@@ -50,6 +55,8 @@
 
 <script>
 import forEach from 'lodash/forEach';
+import MenuDropdown from './MenuDropdown.vue';
+import StoreUtils from '../store/StoreUtils';
 
 const timeAgoUnits = [{
     label: 'y',
@@ -97,6 +104,7 @@ function enrichComment(comment) {
     if (comment.kind === 'placeholder') {
         comment.isLoading = false;
         comment.failedLoading = false;
+        comment.isDeleting = false;
     }
 }
 
@@ -111,6 +119,8 @@ export default {
             provider: null
         }}
     },
+
+    components: {MenuDropdown},
 
     beforeMount() {
         if (this.comments.provider) {
@@ -131,7 +141,12 @@ export default {
         return {
             messages: [],
             newMessage: '',
-            isLoading: true
+            isLoading: true,
+            commentOptions: [{
+                name: 'Delete this comment',
+                iconClass: 'fas fa-trash-alt',
+                event: 'delete-comment'
+            }]
         }
     },
 
@@ -170,6 +185,20 @@ export default {
                 this.messages[placeholderIdx].failedLoading = true;
                 this.$forceUpdate();
             });
+        },
+
+        deleteComment(idx) {
+            const message = this.messages[idx];
+            if (message.id) {
+                this.messages[idx].isDeleting = true;
+                this.comments.provider.deleteComment(message.id).then(() => {
+                    this.messages.splice(idx, 1);
+                }).catch(err => {
+                    console.error(err);
+                    this.messages[idx].isDeleting = false;
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Was not able to delete comment')
+                });
+            }
         }
     },
 
