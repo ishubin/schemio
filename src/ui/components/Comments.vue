@@ -4,7 +4,7 @@
 
         <div :class="{'comments-loading': isLoading}">
             <div v-for="(message, messageIdx) in messages">
-                <div v-if="message.kind === 'placholder'" class="comment-more-placeholder">
+                <div v-if="message.kind === 'placeholder'" class="comment-more-placeholder">
                     <div class="comment-ellipsis"><i class="fas fa-ellipsis-h"></i></div>
 
                     <div v-if="message.isLoading">
@@ -105,6 +105,7 @@ export default {
         entityId : {type: String},
         comments : {type: Object, default: {
             enabled: false,
+            allowed: false,
             isAdmin: false,
             counter: 0,
             provider: null
