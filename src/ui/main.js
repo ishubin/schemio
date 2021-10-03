@@ -8,16 +8,13 @@ import SchemioEditorApp from './SchemioEditorApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import CategoryTree from './components/search/CategoryTree.vue';
-import apiClient from './apiClient.js';
 
 
-const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, SchemioEditorApp));
 
 
 
 window.Schemio = {
     components: { Vue, Modal, CreateNewSchemeModal, CategoryTree},
-    apiClient,
     /**
      * 
      * @param {*} querySelector 
@@ -28,8 +25,14 @@ window.Schemio = {
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      * @param {Object} options.comments
+     * @param {Object} options.apiClient - API client
      */
     mountSchemioEditorApp(querySelector,  options) {
+        if (options.apiClient) {
+            store.dispatch('setApiClient', options.apiClient);
+        }
+        const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, SchemioEditorApp));
+
         new Vue({
             el: querySelector,
             components: { appComponent },
@@ -39,7 +42,7 @@ window.Schemio = {
                 schemeDiff   : options.schemeDiff || null,
                 editAllowed  : options.editAllowed || false,
                 menuOptions  : options.menuOptions || [],
-                comments     : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null}
+                comments     : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
             }})
         }); 
     }

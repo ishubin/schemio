@@ -138,7 +138,6 @@ import EditArtModal from './EditArtModal.vue';
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
-import apiClient from '../../apiClient.js';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
@@ -296,25 +295,27 @@ export default {
         },
         reloadArt() {
             this.artPacks = [];
-            if (this.projectId) {
-                apiClient.getAllArt(this.projectId).then(artList => {
+            if (this.projectId && this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
+                this.$store.state.apiClient.getAllArt(this.projectId).then(artList => {
                     this.artList = artList;
                 });
             }
-            apiClient.getGlobalArt().then(globalArt => {
-                forEach(globalArt, artPack => {
-                    forEach(artPack.icons, icon => {
-                        if (!icon.name) {
-                            icon.name = 'Unnamed';
-                        }
-                        if (!icon.description) {
-                            icon.description = '';
-                        }
-                    })
+            if (this.$store.state.apiClient && this.$store.state.apiClient.getGlobalArt) {
+                this.$store.state.apiClient.getGlobalArt().then(globalArt => {
+                    forEach(globalArt, artPack => {
+                        forEach(artPack.icons, icon => {
+                            if (!icon.name) {
+                                icon.name = 'Unnamed';
+                            }
+                            if (!icon.description) {
+                                icon.description = '';
+                            }
+                        })
+                    });
+                    this.artPacks = globalArt;
+                    this.filterArtPacks();
                 });
-                this.artPacks = globalArt;
-                this.filterArtPacks();
-            });
+            }
         },
 
         showPreviewItem(item) {

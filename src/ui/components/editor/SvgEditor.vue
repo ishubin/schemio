@@ -229,7 +229,6 @@ import StrokePattern from './items/StrokePattern';
 import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
-import apiClient from '../../apiClient';
 import StoreUtils from '../../store/StoreUtils';
 import {identifyShape} from './items/shapes/SmartShapeClassifier';
 import config from '../../config';
@@ -1489,9 +1488,12 @@ export default {
             event.stopPropagation();
         },
         onDrop(event) {
-            console.log('on drop');
             event.preventDefault();
             event.stopPropagation();
+
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile) {
+                return;
+            }
 
             if (this.projectId && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
                 const files = filter(event.dataTransfer.files, file => file.type.indexOf('image/') === 0);
@@ -1505,7 +1507,7 @@ export default {
                         const imageId = shortid.generate();
                         this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: true, uploadFailed: false });
 
-                        return apiClient.uploadFile(this.projectId, file)
+                        return this.$store.state.apiClient.uploadFile(this.projectId, file)
                             .then(imageUrl => {
                                 this.addUploadedImage(imageUrl, x + index * 20, y);
 

@@ -31,7 +31,6 @@
 </template>
 
 <script>
-import apiClient from '../apiClient.js';
 import config from '../config';
 import StoreUtils from '../store/StoreUtils.js';
 
@@ -56,13 +55,15 @@ function findCategoryInTree(categoryId, categories) {
 
 
 export default {
-    props: ['categories', 'projectId'],
+    props: ['categories', 'projectId', 'apiClient'],
 
     mounted() {
-        return apiClient.getCategoryTree(this.projectId).then(categories => {
-            this.treeCategories = categories;
-            this.reloadSuggestions();
-        });
+        if (this.apiClient && this.apiClient.getCategoryTree) {
+            return apiClient.getCategoryTree(this.projectId).then(categories => {
+                this.treeCategories = categories;
+                this.reloadSuggestions();
+            });
+        }
     },
 
     data() {

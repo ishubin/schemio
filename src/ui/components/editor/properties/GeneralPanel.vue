@@ -31,7 +31,6 @@ import map from 'lodash/map';
 import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
-import apiClient from '../../../apiClient.js';
 import EventBus from '../EventBus';
 import Shape from '../items/shapes/Shape';
 
@@ -44,8 +43,8 @@ export default {
     components: {VueTagsInput, Panel, RichTextEditor},
 
     mounted() {
-        if (this.tagsUsed) {
-            apiClient.getTags(this.projectId).then(tags => {
+        if (this.tagsUsed && this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
+            this.$store.state.apiClient.getTags(this.projectId).then(tags => {
                 this.existingItemTags = map(tags, tag => {
                     return {text: tag};
                 });

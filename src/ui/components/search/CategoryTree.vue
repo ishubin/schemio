@@ -67,7 +67,6 @@
 import CategoryTreeLeaf from './CategoryTreeLeaf.vue';
 import Modal from '../Modal.vue';
 import forEach from 'lodash/forEach';
-import apiClient from '../../apiClient';
 
 export default {
     components: {CategoryTreeLeaf, Modal},
@@ -79,6 +78,7 @@ export default {
         urlPrefix            : {type: String, default: '/'},
         editAllowed          : {type: Boolean, default: false},
         maxDepth             : {type: Number, default: 10},
+        apiClient            : {type: Object, default: null}
     },
 
     beforeMount() {
@@ -127,7 +127,7 @@ export default {
 
     methods: {
         reloadCategoryTree() {
-            return apiClient.getCategoryTree(this.projectId)
+            return this.$store.state.apiClient.getCategoryTree(this.projectId)
             .then(categories => {
                 this.categoriesMap = new Map();
                 return this.enrichAndIndexCategories(categories);
@@ -188,7 +188,7 @@ export default {
             if (this.editCategoryModal.category) {
                 const newName = this.editCategoryModal.categoryName.trim();
                 if (newName) {
-                    apiClient.updateCategory(this.projectId, this.editCategoryModal.category.id, {
+                    this.$store.state.apiClient.updateCategory(this.projectId, this.editCategoryModal.category.id, {
                         name: newName
                     }).then(() => {
                         this.editCategoryModal.shown = false;
@@ -208,7 +208,7 @@ export default {
                 if (this.moveCategoryModal.newParentCategory) {
                     destinationCategoryId = this.moveCategoryModal.newParentCategory.id;
                 }
-                apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, destinationCategoryId)
+                this.$store.state.apiClient.moveCategory(this.projectId, this.moveCategoryModal.category.id, destinationCategoryId)
                 .then(() => this.reloadCategoryTree())
                 .then(() => {
                     this.moveCategoryModal.shown = false;
@@ -221,7 +221,7 @@ export default {
         onConfirmDeleteCategoryClicked() {
             if (this.deleteCategoryModal.category) {
                 const isCurrentCategoryInDeletedTree = this.currentCategoryId && this.isInCategoryTree(this.currentCategoryId, this.deleteCategoryModal.category);
-                apiClient.deleteCategory(this.projectId, this.deleteCategoryModal.category.id).then(() => {
+                this.$store.state.apiClient.deleteCategory(this.projectId, this.deleteCategoryModal.category.id).then(() => {
                     this.deleteCategoryModal.shown = false;
                 }).then(() => {
                     if (isCurrentCategoryInDeletedTree) {
@@ -242,7 +242,7 @@ export default {
                 if (this.createCategoryModal.parentCategory) {
                     parentCategoryId = this.createCategoryModal.parentCategory.id;
                 }
-                apiClient.createCategory(this.projectId, name, parentCategoryId)
+                this.$store.state.apiClient.createCategory(this.projectId, name, parentCategoryId)
                 .then(() => this.reloadCategoryTree())
                 .then(() => {
                     this.createCategoryModal.shown = false;

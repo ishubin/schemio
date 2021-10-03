@@ -96,10 +96,8 @@ import shortid from 'shortid';
 import VueColor from 'vue-color';
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
-import apiClient from '../../apiClient';
 import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
-import config from '../../config';
 import StoreUtils from '../../store/StoreUtils';
 import myMath from '../../myMath';
 
@@ -178,7 +176,6 @@ export default {
             isUploading: false,
             uploadErrorMessage: null,
 
-            isUploadEnabled: config.media.uploadEnabled
         };
     },
 
@@ -254,12 +251,16 @@ export default {
             this.emitChange();
         },
         onImageUpload(event) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile) {
+                return;
+            }
+
             const file = event.target.files[0];
             if (file) {
                 this.isUploading = true;
                 this.uploadErrorMessage = null;
 
-                apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.color.image = imageUrl;
@@ -422,6 +423,11 @@ export default {
             result = result + ')';
             return result;
 
+        }
+    },
+    computed: {
+        isUploadEnabled() {
+            return this.$store.state.apiClient && this.$store.state.apiClient.uploadFile;
         }
     }
 

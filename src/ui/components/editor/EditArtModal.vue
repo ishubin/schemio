@@ -29,7 +29,6 @@
 </template>
 <script>
 import Modal from '../Modal.vue';
-import apiClient from '../../apiClient.js';
 
 export default {
     props: ['projectId', 'artList'],
@@ -45,13 +44,13 @@ export default {
 
     methods: {
         saveArt(art) {
-            apiClient.saveArt(this.projectId, art.id, art);
+            this.$store.state.apiClient.saveArt(this.projectId, art.id, art);
             this.changedArtIndex = -1;
         },
 
         deleteArtAtIndex(index) {
             if (index >= 0 && index < this.artList.length) {
-                apiClient.deleteArt(this.projectId, this.artList[index].id).then(() => {
+                this.$store.state.apiClient.deleteArt(this.projectId, this.artList[index].id).then(() => {
                     this.selectedIndex = -1;
                     this.artList.splice(index, 1);
                 });

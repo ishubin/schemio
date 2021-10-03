@@ -26,7 +26,6 @@
 <script>
 import Modal from '../Modal.vue';
 import Pagination from '../Pagination.vue';
-import apiClient from '../../apiClient.js';
 
 export default {
     components: {Modal, Pagination},
@@ -62,7 +61,7 @@ export default {
                     offset = (page - 1) * this.searchResult.resultsPerPage;
                 }
             }
-            apiClient.findSchemes(this.projectId, {
+            this.$store.state.apiClient.findSchemes(this.projectId, {
                 query: this.query,
                 offset: offset,
                 limit: this.resultsPerPage

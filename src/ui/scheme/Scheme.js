@@ -1,6 +1,7 @@
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import { defaultifyItem } from './Item';
 import map from 'lodash/map';
+import utils from '../utils';
 
 const defaultScheme = {
     name: '',
@@ -26,4 +27,10 @@ export function defaultifyScheme(scheme) {
     
     resultedScheme.items = map(resultedScheme.items, item => defaultifyItem(item));
     return resultedScheme;
+}
+
+export function prepareSchemeForSaving(scheme) {
+    const schemeCopy = utils.clone(scheme);
+    const sanitizedScheme = utils.sanitizeScheme(schemeCopy);
+    return defaultifyScheme(sanitizedScheme);
 }

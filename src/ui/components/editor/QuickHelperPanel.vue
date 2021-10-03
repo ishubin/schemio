@@ -259,6 +259,18 @@ export default {
             newSchemeDisabled = true;
         }
 
+        const defaultMenuDropDownOptions = [
+            {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: newSchemeDisabled}, 
+            {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import'},
+            {name: 'Export as embedded iframe', event: 'export-embedded-requested', iconClass: 'fas fa-file-export'},
+            {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
+            {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
+        ];
+
+        if (this.$store.state.apiClient && this.$store.state.apiClient.getExportHTMLResources) {
+            defaultMenuDropDownOptions.push({name: 'Export as HTML', event: 'export-html-requested', iconClass: 'fas fa-file-export'});
+        }
+
         return {
             knownModes: ['view', 'edit'],
             searchKeyword: '',
@@ -300,14 +312,7 @@ export default {
                 childItemOriginalPositions: {}
             },
 
-            menuDropdownOptions: [
-                {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: newSchemeDisabled}, 
-                {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import'},
-                {name: 'Export as embedded iframe', event: 'export-embedded-requested', iconClass: 'fas fa-file-export'},
-                {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
-                {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
-                {name: 'Export as HTML', event: 'export-html-requested', iconClass: 'fas fa-file-export'}
-            ].concat(this.menuOptions),
+            menuDropdownOptions: defaultMenuDropDownOptions.concat(this.menuOptions),
         };
     },
 

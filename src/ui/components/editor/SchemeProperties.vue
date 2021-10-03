@@ -27,7 +27,7 @@
             </li>
         </ul>
         <div v-else>
-            <span v-if="projectId" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
+            <span v-if="projectId && supportsCategoryModifications" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
         </div>
 
         <div v-if="schemeContainer.scheme">
@@ -82,7 +82,7 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
-                <span v-if="projectId" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+                <span v-if="projectId && supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
             </panel>
 
             <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
@@ -110,7 +110,6 @@
 
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
-import apiClient from '../../apiClient.js';
 import EventBus from './EventBus.js';
 import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
@@ -118,13 +117,14 @@ import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
+import { prepareSchemeForSaving } from '../../scheme/Scheme'
 
 export default {
     props: ['projectId', 'schemeContainer'],
     components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
     mounted() {
-        if (this.projectId) {
-            apiClient.getTags(this.projectId).then(tags => {
+        if (this.projectId && this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
+            this.$store.state.apiClient.getTags(this.projectId).then(tags => {
                 this.existingSchemeTags = map(tags, tag => {
                     return {text: tag};
                 });
@@ -159,13 +159,13 @@ export default {
         },
 
         deleteScheme() {
-            apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
+            this.$store.state.apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
                 window.location = `/projects/${this.projectId}`;
             });
         },
 
         showMoveToCategoryModal() {
-            apiClient.getCategoryTree(this.projectId).then(categories => {
+            this.$store.state.apiClient.getCategoryTree(this.projectId).then(categories => {
                 this.moveToCategoryModal.categories = categories;
                 this.moveToCategoryModal.shown = true;
             })
@@ -178,7 +178,7 @@ export default {
             } else {
                 scheme.categoryId = null;
             }
-            apiClient.saveScheme(this.projectId, this.schemeContainer.scheme.id, scheme).then(() => {
+            this.$store.state.apiClient.saveScheme(this.projectId, this.schemeContainer.scheme.id, prepareSchemeForSaving(scheme)).then(() => {
                 this.moveToCategoryModal.shown = false;
                 location.reload();
             });
@@ -191,6 +191,14 @@ export default {
         },
         schemeTags() {
             return map(this.schemeContainer.scheme.tags, tag => {return {text: tag}});
+        },
+
+        supportsSchemeDeletion() {
+            return this.$store.state.apiClient && this.$store.state.apiClient.deleteScheme;
+        },
+
+        supportsCategoryModifications() {
+            return this.$store.state.apiClient && this.$store.state.apiClient.getCategoryTree;
         }
     },
 }

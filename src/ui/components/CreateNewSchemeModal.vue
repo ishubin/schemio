@@ -12,17 +12,20 @@
 
         <div v-if="categoriesConfig.enabled">
             <h5>Category</h5>
-            <category-selector :project-id="projectId" :categories="categories"/>
+            <category-selector :project-id="projectId" :categories="categories" :apiClient="apiClient"/>
         </div>
 
-        <h5>Scheme Image URL</h5>
+        <div v-if="apiClient && apiClient.uploadFile">
+            <h5>Scheme Image URL</h5>
 
-        <div class="image-control">
-            <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL..."/>
-            <div class="file-upload-button" v-if="isUploadEnabled">
-                <i class="fas fa-file-upload icon"></i>
-                <input type="file" accept="image/*" @change="uploadImage"/>
+            <div class="image-control">
+                <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL..."/>
+                <div class="file-upload-button" v-if="isUploadEnabled">
+                    <i class="fas fa-file-upload icon"></i>
+                    <input type="file" accept="image/*" @change="uploadImage"/>
+                </div>
             </div>
+
         </div>
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
@@ -30,7 +33,6 @@
 </template>
 
 <script>
-import apiClient from '../apiClient.js';
 import RichTextEditor from './RichTextEditor.vue';
 import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
@@ -44,7 +46,8 @@ export default {
         projectId: {type: String},
         name: {type: String, default: ''},
         categories: {type: Array, default: []},
-        description: {type: String, default: ''}
+        description: {type: String, default: ''},
+        apiClient: {type: Object, default: null}
     },
     data() {
         return {
@@ -101,7 +104,7 @@ export default {
 
                 if (this.categoriesConfig.enabled) {
                     chain = chain.then(() => {
-                        return apiClient.ensureCategoryStructure(this.projectId, this.categories)
+                        return this.apiClient.ensureCategoryStructure(this.projectId, this.categories)
                     })
                 }
 
@@ -110,7 +113,7 @@ export default {
                     if (category && category.id) {
                         categoryId = category.id;
                     }
-                    return apiClient.createNewScheme(this.projectId, {
+                    return this.apiClient.createNewScheme(this.projectId, {
                         name: name,
                         categoryId: categoryId,
                         description: this.schemeDescription,
@@ -129,18 +132,20 @@ export default {
         },
 
         uploadImage(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const form = new FormData();
-                form.append('image', file, file.name);
-                apiClient.uploadFile(this.projectId, file)
-                .then(imageUrl => {
-                    this.imageUrl = imageUrl;
-                }).catch(err => {
-                    if (err.data && err.data.message) {
-                        StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
-                    }
-                });
+            if (this.apiClient && this.apiClient.uploadFile) {
+                const file = event.target.files[0];
+                if (file) {
+                    const form = new FormData();
+                    form.append('image', file, file.name);
+                    this.apiClient.uploadFile(this.projectId, file)
+                    .then(imageUrl => {
+                        this.imageUrl = imageUrl;
+                    }).catch(err => {
+                        if (err.data && err.data.message) {
+                            StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
+                        }
+                    });
+                }
             }
         }
 

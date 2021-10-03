@@ -15,7 +15,7 @@
         <h5>Image URL</h5>
         <div class="image-control">
             <input type="text" class="textfield" v-model="url" placeholder="Image URL..."/>
-            <div class="file-upload-button" v-if="isUploadEnabled">
+            <div class="file-upload-button" v-if="supportsUpload">
                 <i class="fas fa-file-upload icon"></i>
                 <input type="file" accept="image/*" @change="onFileSelect"/>
             </div>
@@ -30,8 +30,6 @@
 
 <script>
 import Modal from '../Modal.vue';
-import apiClient from '../../apiClient.js';
-import config from '../../config';
 import StoreUtils from '../../store/StoreUtils';
 
 export default {
@@ -45,12 +43,11 @@ export default {
             selectedFile: null,
             errorMessage: null,
             isUploading: false,
-            isUploadEnabled: config.media.uploadEnabled
         };
     },
     methods: {
         submitIcon() {
-            apiClient.createArt(this.projectId, {
+            this.$store.state.apiClient.createArt(this.projectId, {
                 name: this.iconName,
                 url: this.url
             }).then(art => {
@@ -63,6 +60,11 @@ export default {
             this.selectedFile = event.target.files[0];
         }
     },
+    computed: {
+        supportsUpload() {
+            return this.$store.state.apiClient && this.$store.state.apiClient.uploadFile;
+        }
+    },
     watch: {
         selectedFile(file) {
             if (file) {
@@ -70,7 +72,7 @@ export default {
                     this.iconName = file.name;
                 }
                 this.isUploading = true;
-                apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.errorMessage = null;
@@ -87,6 +89,3 @@ export default {
     }
 }
 </script>
-
-<style lang="css">
-</style>

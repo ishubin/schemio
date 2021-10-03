@@ -38,6 +38,8 @@ function enrichCurvePoint(point) {
 
 const store = new Vuex.Store({
     state: {
+        apiClient: null,
+
         schemeModified: false,
 
         editorStateName: 'interact',
@@ -110,8 +112,8 @@ const store = new Vuex.Store({
         }
     },
     mutations: {
-        SET_IS_LOADING_USER(state, isLoading) {
-            state.isLoadingUser = isLoading;
+        SET_API_CLIENT(state, apiClient) {
+            state.apiClient = apiClient
         },
 
         SET_SCHEME_MODIFIED(state, isModified) {
@@ -350,6 +352,10 @@ const store = new Vuex.Store({
     },
 
     actions: {
+        setApiClient({commit}, apiClient) {
+            commit('SET_API_CLIENT', apiClient);
+        },
+
         markSchemeAsModified({commit}) {
             commit('SET_SCHEME_MODIFIED', true);
         },
@@ -487,6 +493,8 @@ const store = new Vuex.Store({
     },
 
     getters: {
+        apiClient: state => state.apiClient,
+
         schemeModified: state => state.schemeModified,
         
         itemControlPointsList: state => state.itemControlPoints,

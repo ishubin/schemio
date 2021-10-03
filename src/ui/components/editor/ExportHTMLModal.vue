@@ -11,7 +11,6 @@
 import Modal from '../Modal.vue';
 import JSZip from 'jszip';
 import utils from '../../utils';
-import axios from 'axios';
 
 export default {
     props: ['scheme'],
@@ -31,18 +30,10 @@ export default {
 
             zip.file('scheme.json', JSON.stringify(scheme));
 
-            Promise.all([
-                axios.get('/schemio-standalone.css'),
-                axios.get('/schemio-standalone.html'),
-                axios.get('/schemio-standalone.js'),
-            ]).then(values => {
-                const css  = values[0].data;
-                const html = values[1].data;
-                const js   = values[2].data;
-
-                zip.file('schemio-standalone.css', css);
-                zip.file('index.html', html);
-                zip.file('schemio-standalone.js', js);
+            this.$store.state.apiClient.getExportHTMLResources().then(resources => {
+                zip.file('schemio-standalone.css', resources.css);
+                zip.file('index.html', resources.html);
+                zip.file('schemio-standalone.js', resources.js);
 
                 zip.generateAsync({type: 'base64'})
                 .then(content => {

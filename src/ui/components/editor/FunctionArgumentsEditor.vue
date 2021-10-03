@@ -32,6 +32,7 @@
                             @input="onValueChange(argName, arguments[0])"/>
 
                         <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
+                            :apiClient="apiClient"
                             :disabled="!argumentControlStates[argName].shown" />
 
                         <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
@@ -75,6 +76,7 @@ export default {
         projectId          : {type: String, required: true},
         primaryButton      : {type: String, default: null},
         closeName          : {type: String, default: 'Close'},
+        apiClient          : {type: Object, default: null}
     },
 
     components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor},

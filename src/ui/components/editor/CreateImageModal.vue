@@ -8,7 +8,7 @@
 
         <div class="image-control">
             <input type="text" class="textfield" v-model="url" placeholder="Image URL..."/>
-            <div class="file-upload-button" v-if="isUploadEnabled">
+            <div class="file-upload-button" v-if="supportsUpload">
                 <i class="fas fa-file-upload icon"></i>
                 <input type="file" accept="image/*" @change="onFileSelect"/>
             </div>
@@ -29,8 +29,6 @@
 
 <script>
 import Modal from '../Modal.vue';
-import apiClient from '../../apiClient.js';
-import config from '../../config';
 import StoreUtils from '../../store/StoreUtils';
 
 export default {
@@ -47,7 +45,6 @@ export default {
             selectedFile: null,
             errorUploading: false,
             isUploading: false,
-            isUploadEnabled: config.media.uploadEnabled
         }
     },
     methods: {
@@ -58,13 +55,18 @@ export default {
             this.selectedFile = event.target.files[0];
         }
     },
+    computed: {
+        supportsUpload() {
+            return this.$store.state.apiClient && this.$store.state.apiClient.uploadFile;
+        }
+    },
     watch: {
         selectedFile(file) {
             if (file) {
                 this.isUploading = true;
                 this.errorUploading = false;
 
-                apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(this.projectId, file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.errorUploading = false;

@@ -3,8 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import axios from 'axios';
-import utils from './utils.js';
-import { defaultifyScheme } from './scheme/Scheme';
 
 
 function unwrapAxios(response) {
@@ -77,10 +75,7 @@ export default {
 
     saveScheme(projectId, schemeId, scheme) {
         if (schemeId && schemeId.trim().length > 0) {
-            const sanitizedScheme = utils.sanitizeScheme(scheme);
-            const defScheme = defaultifyScheme(sanitizedScheme);
-
-            return $axios().put(`/v1/projects/${projectId}/docs/${schemeId}`, defScheme).then(unwrapAxios).then(() => {
+            return $axios().put(`/v1/projects/${projectId}/docs/${schemeId}`, scheme).then(unwrapAxios).then(() => {
                 return 'saved';
             });
         } else {
@@ -171,25 +166,33 @@ export default {
         }).catch(unwrapAxiosError);
     },
 
-    addProjectToFavorites(projectId) {
-        return $axios().post(`/v1/favorites/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
+    saveStyle(fill, strokeColor, textColor) {
+        return $axios().post(`/v1/user/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
     },
 
-    removeProjectFromFavorites(projectId) {
-        return $axios().delete(`/v1/favorites/projects/${projectId}`).then(unwrapAxios).catch(unwrapAxiosError);
+    getStyles() {
+        return $axios().get('/v1/user/styles/').then(unwrapAxios);
     },
 
-    styles: {
-        saveStyle(fill, strokeColor, textColor) {
-            return $axios().post(`/v1/user/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
-        },
+    deleteStyle(styleId) {
+        return $axios().delete(`/v1/user/styles/${styleId}`).then(unwrapAxios);
+    },
 
-        getStyles() {
-            return $axios().get('/v1/user/styles/').then(unwrapAxios);
-        },
-
-        deleteStyle(styleId) {
-            return $axios().delete(`/v1/user/styles/${styleId}`).then(unwrapAxios);
-        }
+    /**
+     * Returns static resources (html, css, js) for scheme exporting
+     */
+    getExportHTMLResources() {
+        Promise.all([
+            $axios.get('/schemio-standalone.css'),
+            $axios.get('/schemio-standalone.html'),
+            $axios.get('/schemio-standalone.js')
+        ]).then(values => {
+            const css  = values[0].data;
+            const html = values[1].data;
+            const js   = values[2].data;
+            return {
+                css, html, js
+            };
+        })
     }
 }

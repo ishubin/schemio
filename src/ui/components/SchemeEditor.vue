@@ -34,7 +34,7 @@
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
                     <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else-if="!offlineMode && editAllowed" class="btn btn-primary" @click="saveScheme()">Save</span>
+                    <span v-else-if="!offlineMode && editAllowed && apiClient" class="btn btn-primary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-primary" @click="saveToLocalStorage()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
@@ -253,6 +253,7 @@
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
             :categories="newSchemePopup.categories"
+            :apiClient="apiClient"
             @close="newSchemePopup.show = false"
             @scheme-created="openNewSchemePopupSchemeCreated"
             ></create-new-scheme-modal>
@@ -313,11 +314,10 @@ import utils from '../utils.js';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults} from '../scheme/Item';
-import {enrichSchemeWithDefaults} from '../scheme/Scheme';
+import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
-import apiClient from '../apiClient.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
 import {generateDiffSchemeContainerWithChangeLog} from '../scheme/scheme-diff.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
@@ -454,7 +454,7 @@ export default {
             allowed: false,
             counter: 0,
             provider: null
-        }}
+        }},
     },
 
     beforeMount() {
@@ -750,11 +750,15 @@ export default {
                 return;
             }
 
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
+                return;
+            }
+
             this.createSchemePreview();
 
             this.isSaving = true;
             this.$store.dispatch('clearStatusMessage');
-            apiClient.saveScheme(this.projectId, this.schemeId, this.schemeContainer.scheme)
+            this.$store.state.apiClient.saveScheme(this.projectId, this.schemeId, prepareSchemeForSaving(this.schemeContainer.scheme))
             .then(() => {
                 this.markSchemeAsUnmodified();
                 this.isSaving = false;
@@ -773,9 +777,11 @@ export default {
         },
 
         createSchemePreview() {
-            var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-            const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
-            apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
+            if (this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
+                var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+                const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
+                this.$store.state.apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
+            }
         },
 
         // Zooms to selected items in edit mode
@@ -1524,6 +1530,10 @@ export default {
                 return 'offline-scheme';
             }
             return this.scheme.id;
+        },
+
+        apiClient() {
+            return this.$store.getters.apiClient;
         }
     }
 }

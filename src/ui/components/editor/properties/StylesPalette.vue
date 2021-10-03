@@ -38,7 +38,6 @@
 <script>
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import apiClient from '../../../apiClient';
 import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
@@ -77,7 +76,7 @@ export default {
         init() {
             // optimizing it to not call api every time a new item is selected
             if (cachedUserStyles === null) {
-                apiClient.styles.getStyles().then(styles => {
+                this.$store.state.apiClient.getStyles().then(styles => {
                     cachedUserStyles = styles;
                     this.stylePreviews = map(styles, this.convertStyleToPreview);
                 });
@@ -132,7 +131,7 @@ export default {
                 }
             }
 
-            apiClient.styles.saveStyle(this.item.shapeProps.fill, this.item.shapeProps.strokeColor, textColor).then(style => {
+            this.$store.state.apiClient.saveStyle(this.item.shapeProps.fill, this.item.shapeProps.strokeColor, textColor).then(style => {
                 this.stylePreviews.push(this.convertStyleToPreview(style));
                 cachedUserStyles.push(style);
             });
@@ -144,7 +143,7 @@ export default {
                 return;
             }
             const styleId = stylePreview.style.id;
-            apiClient.styles.deleteStyle(styleId).then(() => {
+            this.$store.state.apiClient.deleteStyle(styleId).then(() => {
                 this.stylePreviews.splice(index, 1);
                 this.stylePreviews = filter(this.stylePreviews, sp => sp.style.id !== styleId);
             });

@@ -4,7 +4,12 @@
 
 <template>
     <div class="scheme-editor-app">
-        <SchemeEditor :projectId="projectId" :scheme="scheme" :schemeDiff="schemeDiff" :editAllowed="editAllowed" :menuOptions="menuOptions" :comments="comments"/>
+        <SchemeEditor :projectId="projectId"
+            :scheme="scheme"
+            :schemeDiff="schemeDiff"
+            :editAllowed="editAllowed"
+            :menuOptions="menuOptions"
+            :comments="comments" />
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
