@@ -29,7 +29,7 @@
                 <div v-else class="comment-container" :class="{'comment-deleting': message.isDeleting}">
                     <div class="comment-header">
                         <a v-if="message.user" :href="message.user.link" class="comment-user-name">{{message.user.name}}</a>
-                        <span class="timestamp">{{message.time | formatTimeAgo }}</span>
+                        <span class="timestamp" :title="message.formatedTime">{{message.time | formatTimeAgo }}</span>
                         <MenuDropdown v-if="comments.isAdmin || message.own"
                             iconClass="fas fa-ellipsis-v"
                             :options="commentOptions"
@@ -106,6 +106,7 @@ function enrichComment(comment) {
         comment.failedLoading = false;
         comment.isDeleting = false;
     }
+    comment.formatedTime = new Date(comment.time).toLocaleString();
 }
 
 export default {
@@ -213,8 +214,8 @@ export default {
             const d = new Date(time);
             const now = new Date();
             const secondsAgo = Math.floor((now.getTime() - d.getTime()) / 1000);
-            return timeAgo(secondsAgo, 2);
-        }
+            return timeAgo(secondsAgo, 1);
+        },
     }
 }
 </script>

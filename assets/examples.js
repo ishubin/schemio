@@ -80,7 +80,7 @@
                     comments = firstPart.concat([{
                         id: null,
                         text: 'Load more comments',
-                        kind: 'placholder',
+                        kind: 'placeholder',
                         timeRange: {
                             from: firstPart[firstPart.length - 1].time,
                             till: secondPart[0].time
