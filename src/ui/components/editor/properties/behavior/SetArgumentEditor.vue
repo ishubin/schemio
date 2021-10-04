@@ -7,7 +7,7 @@
 
         <color-picker v-if="argumentType === 'color'" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
 
-        <advanced-color-editor v-if="argumentType === 'advanced-color'" :project-id="projectId" height="18px" :value="argumentValue" @changed="emitValue"/>
+        <advanced-color-editor v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
 
         <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
@@ -25,7 +25,7 @@ import StrokePattern from '../../items/StrokePattern.js';
 
 
 export default {
-    props: ['argumentValue', 'argumentDescription', 'projectId'],
+    props: ['argumentValue', 'argumentDescription'],
 
     components: {Dropdown, ColorPicker, AdvancedColorEditor, NumberTextfield},
 

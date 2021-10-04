@@ -48,7 +48,7 @@
                 </div>
             </panel>
 
-            <panel v-if="projectId" name="Project Art">
+            <panel name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
                 <div class="item-menu">
@@ -86,16 +86,16 @@
             </panel>
         </div>
 
-        <create-image-modal v-if="imageCreation.popupShown" :project-id="projectId" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited(arguments[0])"></create-image-modal>
+        <create-image-modal v-if="imageCreation.popupShown" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited(arguments[0])"></create-image-modal>
 
-        <custom-art-upload-modal :project-id="projectId" v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false" @art-created="onArtCreated"/>
-        <edit-art-modal v-if="editArtModalShown" :project-id="projectId" :art-list="artList" @close="editArtModalShown = false"/>
+        <custom-art-upload-modal v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false" @art-created="onArtCreated"/>
+        <edit-art-modal v-if="editArtModalShown" :art-list="artList" @close="editArtModalShown = false"/>
 
         <modal title="Error" v-if="errorMessage" @close="errorMessage = null">
             {{errorMessage}}
         </modal>
 
-        <link-edit-popup v-if="linkCreation.popupShown" :edit="false" :project-id="projectId" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
+        <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
         <div v-if="previewItem.shown" class="preview-item">
             <div  class="item-container">
@@ -157,7 +157,7 @@ const _gifDescriptions = {
 const mouseOffset = 2;
 
 export default {
-    props: ['projectId', 'schemeContainer'],
+    props: ['schemeContainer'],
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
     beforeMount() {
         this.reloadArt();
@@ -295,8 +295,8 @@ export default {
         },
         reloadArt() {
             this.artPacks = [];
-            if (this.projectId && this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
-                this.$store.state.apiClient.getAllArt(this.projectId).then(artList => {
+            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
+                this.$store.state.apiClient.getAllArt().then(artList => {
                     this.artList = artList;
                 });
             }

@@ -5,7 +5,6 @@ const version = process.env['ASSETS_VERSION'] || `${new Date().getTime()}${Math.
 
 const files = [
     'src/html/index.html',
-    'src/html/embed.html',
 ];
 
 function fileNameFromPath(filePath) {

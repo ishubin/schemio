@@ -80,10 +80,6 @@ export default {
         store.dispatch('removeSystemMessage', id);
     },
 
-    giveConsent(store) {
-        store.dispatch('giveConsent');
-    },
-
     startAnimationEditor(store, framePlayer) {
         store.dispatch('startAnimationEditor', framePlayer);
     },

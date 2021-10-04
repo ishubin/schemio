@@ -33,7 +33,6 @@ import StoreUtils from '../../store/StoreUtils';
 
 export default {
     props: {
-        projectId: { type: String },
         imageUrl: { type: String, default: '' },
         primaryButton: { type: String, default: 'Create' }
     },
@@ -66,7 +65,7 @@ export default {
                 this.isUploading = true;
                 this.errorUploading = false;
 
-                this.$store.state.apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.errorUploading = false;

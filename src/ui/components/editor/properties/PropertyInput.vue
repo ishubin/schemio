@@ -8,7 +8,7 @@
 
         <ColorPicker v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
 
-        <AdvancedColorEditor v-if="descriptor.type === 'advanced-color'" :projectId="projectId" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
+        <AdvancedColorEditor v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
 
         <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue(arguments[0].srcElement.checked)"/>
 
@@ -54,7 +54,6 @@ export default {
     props: {
         descriptor     : {type: Object, required: true},
         schemeContainer: {type: Object, required: true},
-        projectId      : {type: String, required: true},
         value          : [Number, String, Object, Boolean],
         disabled       : {type: Boolean, default: false},
         leftOriented   : {type: Boolean, default: false},

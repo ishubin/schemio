@@ -14,14 +14,13 @@
             </li>
         </ul>
 
-        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :project-id="projectId" :item="item"/>
-        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :projectId="projectId" :item="item"/>
+        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :item="item"/>
+        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
             <behavior-properties
                 :key="`behavior-panel-${item.id}-${behaviorPanelRevision}`"
-                :project-id="projectId"
                 :item="item"
                 :scheme-container="schemeContainer"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
@@ -94,7 +93,6 @@
                             <td class="value" width="50%">
                                 <PropertyInput
                                     :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.fat}`"
-                                    :projectId="projectId"
                                     :descriptor="arg"
                                     :value="item.shapeProps[argName]"
                                     :shapeProps="item.shapeProps"
@@ -239,7 +237,7 @@ const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 100);
 
 export default {
-    props: ['projectId', 'item', 'schemeContainer'],
+    props: ['item', 'schemeContainer'],
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,

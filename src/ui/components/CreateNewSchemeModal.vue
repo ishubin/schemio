@@ -12,7 +12,7 @@
 
         <div v-if="categoriesConfig.enabled">
             <h5>Category</h5>
-            <category-selector :project-id="projectId" :categories="categories" :apiClient="apiClient"/>
+            <category-selector :categories="categories" :apiClient="apiClient"/>
         </div>
 
         <div v-if="apiClient && apiClient.uploadFile">
@@ -29,6 +29,11 @@
         </div>
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
+
+        <modal title="Loading" v-if="showLoading" :width="300" @close="showLoading = false">
+            <i class="fas fa-spinner fa-spin fa-1x"></i>
+            Loading...
+        </modal>
     </modal>
 </template>
 
@@ -43,7 +48,6 @@ import StoreUtils from '../store/StoreUtils.js';
 export default {
     components: {CategorySelector, Modal, RichTextEditor},
     props: {
-        projectId: {type: String},
         name: {type: String, default: ''},
         categories: {type: Array, default: []},
         description: {type: String, default: ''},
@@ -54,6 +58,8 @@ export default {
             schemeName: this.name,
             schemeDescription: this.description,
             imageUrl: '',
+
+            showLoading: false,
 
             mandatoryFields: {
                 name: {
@@ -101,10 +107,10 @@ export default {
                 }
 
                 let chain = Promise.resolve(null);
-
+                this.showLoading = true;
                 if (this.categoriesConfig.enabled) {
                     chain = chain.then(() => {
-                        return this.apiClient.ensureCategoryStructure(this.projectId, this.categories)
+                        return this.apiClient.ensureCategoryStructure(this.categories)
                     })
                 }
 
@@ -113,7 +119,7 @@ export default {
                     if (category && category.id) {
                         categoryId = category.id;
                     }
-                    return this.apiClient.createNewScheme(this.projectId, {
+                    return this.apiClient.createNewScheme({
                         name: name,
                         categoryId: categoryId,
                         description: this.schemeDescription,
@@ -121,8 +127,10 @@ export default {
                         items
                     });
                 }).then(scheme => {
-                    this.$emit('scheme-created', this.projectId, scheme);
+                    this.showLoading = false;
+                    this.$emit('scheme-created', scheme);
                 }).catch(err => {
+                    this.showLoading = false;
                     this.errorMessage = 'Failed to create new scheme';
                 });
             } else {
@@ -137,7 +145,7 @@ export default {
                 if (file) {
                     const form = new FormData();
                     form.append('image', file, file.name);
-                    this.apiClient.uploadFile(this.projectId, file)
+                    this.apiClient.uploadFile(file)
                     .then(imageUrl => {
                         this.imageUrl = imageUrl;
                     }).catch(err => {

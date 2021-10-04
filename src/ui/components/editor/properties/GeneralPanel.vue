@@ -36,7 +36,6 @@ import Shape from '../items/shapes/Shape';
 
 export default {
     props: {
-        'projectId': {type: String},
         'item': {type: Object}
     },
 
@@ -44,7 +43,7 @@ export default {
 
     mounted() {
         if (this.tagsUsed && this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
-            this.$store.state.apiClient.getTags(this.projectId).then(tags => {
+            this.$store.state.apiClient.getTags().then(tags => {
                 this.existingItemTags = map(tags, tag => {
                     return {text: tag};
                 });

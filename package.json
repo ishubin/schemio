@@ -17,7 +17,6 @@
   "devDependencies": {
     "@johmun/vue-tags-input": "^1.5.10",
     "@vue/test-utils": "^1.0.0-beta.29",
-    "axios": "^0.21.1",
     "babel-cli": "^6.25.0",
     "babel-core": "^6.25.0",
     "babel-loader": "^7.1.1",
@@ -37,7 +36,6 @@
     "tiptap": "^1.22.3",
     "tiptap-extensions": "^1.22.3",
     "vue": "^2.6.10",
-    "vue-axios": "^2.0.2",
     "vue-color": "2.7.0",
     "vue-gtag": "^1.16.1",
     "vue-loader": "^15.8.3",

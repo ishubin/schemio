@@ -33,7 +33,6 @@ import Modal from '../Modal.vue';
 import StoreUtils from '../../store/StoreUtils';
 
 export default {
-    props: ['projectId'],
     components: {Modal},
 
     data() {
@@ -47,7 +46,7 @@ export default {
     },
     methods: {
         submitIcon() {
-            this.$store.state.apiClient.createArt(this.projectId, {
+            this.$store.state.apiClient.createArt({
                 name: this.iconName,
                 url: this.url
             }).then(art => {
@@ -72,7 +71,7 @@ export default {
                     this.iconName = file.name;
                 }
                 this.isUploading = true;
-                this.$store.state.apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.errorMessage = null;

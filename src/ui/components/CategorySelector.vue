@@ -55,11 +55,11 @@ function findCategoryInTree(categoryId, categories) {
 
 
 export default {
-    props: ['categories', 'projectId', 'apiClient'],
+    props: ['categories', 'apiClient'],
 
     mounted() {
         if (this.apiClient && this.apiClient.getCategoryTree) {
-            return apiClient.getCategoryTree(this.projectId).then(categories => {
+            return this.apiClient.getCategoryTree().then(categories => {
                 this.treeCategories = categories;
                 this.reloadSuggestions();
             });

@@ -129,7 +129,6 @@ export default {
         value    : {type: Object, required: true},
         width    : {type: String, default: '100%'},
         height   : {type: String, default: '26px'},
-        projectId: {type: String, default: null },
         disabled : {type: Boolean, default : false},
     },
 
@@ -260,7 +259,7 @@ export default {
                 this.isUploading = true;
                 this.uploadErrorMessage = null;
 
-                this.$store.state.apiClient.uploadFile(this.projectId, file)
+                this.$store.state.apiClient.uploadFile(file)
                 .then(imageUrl => {
                     this.isUploading = false;
                     this.color.image = imageUrl;

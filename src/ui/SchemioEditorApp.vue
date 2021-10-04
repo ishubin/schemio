@@ -4,7 +4,7 @@
 
 <template>
     <div class="scheme-editor-app">
-        <SchemeEditor :projectId="projectId"
+        <SchemeEditor
             :scheme="scheme"
             :schemeDiff="schemeDiff"
             :editAllowed="editAllowed"
@@ -28,7 +28,6 @@ export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor},
 
     props: {
-        projectId    : {type: String, default: null},
         scheme       : {type: Object, default: null},
         schemeDiff   : {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},

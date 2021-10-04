@@ -36,10 +36,6 @@ export default {
         uploadEnabled: true
     },
 
-    consent: {
-        enabled: true
-    },
-
     analytics: {
         enabled: false,
         ga: {

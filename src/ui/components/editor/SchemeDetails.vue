@@ -12,13 +12,13 @@
                 <i class="fas fa-angle-right"></i>
             </li>
             <li v-for="category in schemeContainer.scheme.category.ancestors">
-                <router-link :to="{ path: `/projects/${projectId}?category=${category.id}` }">
+                <router-link :to="{ path: `${projectLink}?category=${category.id}` }">
                     <a href="#">{{category.name}}</a>
                 </router-link>
                 <i class="fas fa-angle-right"></i>
             </li>
             <li>
-                <router-link :to="{ path: `/projects/${projectId}?category=${schemeContainer.scheme.category.id}` }">
+                <router-link :to="{ path: `${projectLink}?category=${schemeContainer.scheme.category.id}` }">
                     <a href="#">{{schemeContainer.scheme.category.name}}</a>
                 </router-link>
             </li>
@@ -33,7 +33,13 @@
 import htmlSanitize from '../../../htmlSanitize.js';
 
 export default {
-    props: ['schemeContainer', 'projectId'],
+    props: ['schemeContainer'],
+
+    data() {
+        return {
+            projectLink: this.schemeContainer.scheme.projectLink
+        };
+    },
 
     computed: {
         sanitizedDescription() {

@@ -38,7 +38,6 @@
                         <div v-if="!selectedFrameControl.blank && selectedFrameControl.propertyDescriptor">
                             <PropertyInput
                                     :key="`frame-prop-input-${selectedFrameControl.trackIdx}-${selectedFrameControl.frame}`"
-                                    :projectId="projectId"
                                     :descriptor="selectedFrameControl.propertyDescriptor"
                                     :value="selectedFrameControl.value"
                                     :shapeProps="{}"
@@ -134,7 +133,6 @@
             :args="functionEditorModal.args"
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
             :schemeContainer="schemeContainer"
-            :projectId="projectId"
             closeName="Cancel"
             @close="functionEditorModal.shown = false"
             @argument-changed="onFunctionModalArgumentChanged"
@@ -282,7 +280,6 @@ function findFrameIdx(animation, frame) {
 
 export default {
     props: {
-        projectId      : {type: String, required: true},
         schemeContainer: {type: Object, required: true},
         framePlayer    : {type: Object, required: true},
         light          : {type: Boolean, default: true},

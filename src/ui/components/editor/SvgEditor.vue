@@ -274,7 +274,6 @@ const lastMousePosition = {
 export default {
     props: {
         offline  : { type: Boolean, default: false},
-        projectId: { type: String, default: null },
         mode     : { type: String, default: 'edit' },
 
         /** @type {SchemeContainer} */
@@ -1495,7 +1494,7 @@ export default {
                 return;
             }
 
-            if (this.projectId && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+            if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
                 const files = filter(event.dataTransfer.files, file => file.type.indexOf('image/') === 0);
 
                 const x = this.x_(this.width / 2);
@@ -1507,7 +1506,7 @@ export default {
                         const imageId = shortid.generate();
                         this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: true, uploadFailed: false });
 
-                        return this.$store.state.apiClient.uploadFile(this.projectId, file)
+                        return this.$store.state.apiClient.uploadFile(file)
                             .then(imageUrl => {
                                 this.addUploadedImage(imageUrl, x + index * 20, y);
 

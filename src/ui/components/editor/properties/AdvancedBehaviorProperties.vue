@@ -21,7 +21,6 @@
 
                     <behavior-properties
                         :key="`behavior-panel-${item.id}`"
-                        :project-id="projectId"
                         :item="item"
                         :extended="true"
                         :scheme-container="schemeContainer"
@@ -60,7 +59,6 @@ export default {
 
     props: {
         schemeContainer: Object,
-        projectId: String
     },
 
     beforeMount() {

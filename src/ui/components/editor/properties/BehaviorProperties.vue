@@ -79,7 +79,6 @@
 
                         <set-argument-editor v-if="action.method === 'set'"
                             :key="action.args.field"
-                            :project-id="projectId"
                             :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                             :argument-value="action.args.value"
                             @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
@@ -107,7 +106,6 @@
             :function-description="functionArgumentsEditor.functionDescription"
             :args="functionArgumentsEditor.args"
             :scheme-container="schemeContainer"
-            :project-id="projectId"
             @close="functionArgumentsEditor.shown = false"
             @argument-changed="onFunctionArgumentsEditorChange"
         />
@@ -152,7 +150,6 @@ export default {
     props: {
         item: Object,
         schemeContainer: Object,
-        projectId: String,
         extended: { type: Boolean, default: false }
     },
 

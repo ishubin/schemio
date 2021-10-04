@@ -19,7 +19,6 @@
                 Schemio.apiClient.get('/test-data/scheme.1.2.json')
             ]).then(schemes => {
                 Schemio.mountSchemioEditorApp('#editor-app', {
-                    projectId    : 'some-project',
                     scheme       : schemes[0],
                     schemeDiff   : {
                         modifiedScheme : schemes[1],

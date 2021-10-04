@@ -29,7 +29,6 @@ import Pagination from '../Pagination.vue';
 
 export default {
     components: {Modal, Pagination},
-    props: ['projectId'],
 
     mounted() {
         this.reloadSchemes();
@@ -61,7 +60,7 @@ export default {
                     offset = (page - 1) * this.searchResult.resultsPerPage;
                 }
             }
-            this.$store.state.apiClient.findSchemes(this.projectId, {
+            this.$store.state.apiClient.findSchemes({
                 query: this.query,
                 offset: offset,
                 limit: this.resultsPerPage

@@ -95,7 +95,6 @@
                 <ul class="button-group">
                     <li>
                         <advanced-color-editor
-                            :project-id="projectId"
                             :value="fillColor"
                             width="18px"
                             height="18px"
@@ -228,8 +227,6 @@ export default {
     props: {
         /** @type {SchemeContainer} */
         schemeContainer: { type: Object, required: true },
-        projectId      : { type: String  },
-        project        : { type: Object  },
         mode           : { type: String, required: true }, // "edit" or "view"
         zoom           : { type: Number, required: true },
         editAllowed    : { type: Boolean, default: false },
@@ -254,14 +251,9 @@ export default {
     },
 
     data() {
-        let newSchemeDisabled = false;
-        if (this.project && !this.project.permissions.write) {
-            newSchemeDisabled = true;
-        }
-
         const defaultMenuDropDownOptions = [
-            {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: newSchemeDisabled}, 
-            {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import'},
+            {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
+            {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
             {name: 'Export as embedded iframe', event: 'export-embedded-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},

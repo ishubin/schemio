@@ -6,8 +6,6 @@
     <div class="scheme-editor-view">
         <quick-helper-panel
             v-if="schemeContainer"
-            :project-id="projectId"
-            :project="project"
             :scheme-container="schemeContainer"
             :mode="mode"
             :zoom="zoom"
@@ -68,7 +66,6 @@
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}-edit`"
-                    :projectId="projectId"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -88,7 +85,6 @@
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-${schemeRevision}-view`"
-                    :projectId="projectId"
                     :schemeContainer="interactiveSchemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -112,7 +108,6 @@
                     <FrameAnimatorPanel
                         v-if="animationEditorCurrentFramePlayer"
                         :key="animationEditorCurrentFramePlayer.id"
-                        :projectId="projectId"
                         :schemeContainer="schemeContainer"
                         :framePlayer="animationEditorCurrentFramePlayer"
                         :light="false"
@@ -122,7 +117,6 @@
                     <FrameAnimatorPanel
                         v-else-if="animatorPanel.framePlayer"
                         :key="animatorPanel.framePlayer.id"
-                        :projectId="projectId"
                         :schemeContainer="schemeContainer"
                         :framePlayer="animatorPanel.framePlayer"
                         :light="true"
@@ -139,7 +133,7 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
-                        <create-item-menu :project-id="projectId" :scheme-container="schemeContainer"/>
+                        <create-item-menu :scheme-container="schemeContainer"/>
                     </div>
                 </div>
             </div>
@@ -184,11 +178,10 @@
                     <div v-else class="tabs-body">
                         <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties v-if="mode === 'edit'"
-                                :project-id="projectId"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
 
-                            <scheme-details v-else :project-id="projectId" :scheme-container="schemeContainer"></scheme-details>
+                            <scheme-details v-else :scheme-container="schemeContainer"></scheme-details>
                         </div>
 
                         <div v-if="currentTab === 'Item' && !textSlotEditted.item">
@@ -201,7 +194,6 @@
                                     :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
                                     :item="schemeContainer.selectedItems[0]"
                                     :revision="schemeRevision"
-                                    :project-id="projectId"
                                     :scheme-container="schemeContainer" 
                                     @shape-prop-changed="onItemShapePropChanged"
                                     @item-field-changed="onItemFieldChanged"
@@ -246,10 +238,9 @@
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importScheme"/>
 
-        <export-embedded-modal v-if="exportEmbeddedModalShown" :project-id="projectId" :scheme="schemeContainer.scheme" @close="exportEmbeddedModalShown = false"/>
+        <export-embedded-modal v-if="exportEmbeddedModalShown" :scheme="schemeContainer.scheme" @close="exportEmbeddedModalShown = false"/>
 
         <create-new-scheme-modal v-if="newSchemePopup.show"
-            :project-id="projectId"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
             :categories="newSchemePopup.categories"
@@ -261,7 +252,6 @@
 
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
-            :projectId="projectId"
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
 
@@ -281,7 +271,6 @@
         </div>
 
         <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
-            :project-id="projectId"
             :scheme-container="schemeContainer"
         />
 
@@ -443,7 +432,6 @@ export default {
     },
 
     props: {
-        projectId    : {type: String, default: null},
         scheme       : {type: Object, default: null},
         schemeDiff   : {type: Object, default: null},
         editAllowed  : {type: Boolean, default: false},
@@ -496,7 +484,6 @@ export default {
     data() {
         return {
             offlineMode: false,
-            project: null,
             schemeId: null,
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
@@ -613,10 +600,6 @@ export default {
                 return;
             }
 
-            if (!this.projectId) {
-                this.offlineMode = true;
-            }
-
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
             if (pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
@@ -714,12 +697,12 @@ export default {
         },
 
         onNewSchemeRequested() {
-            if (this.schemeId && this.project) {
-                this.openNewSchemePopup();
-            } else if (this.offlineMode) {
+            if (this.offlineMode) {
                 if (confirm('Area you sure you want to reset all your changes?')) {
                     this.initOfflineMode();
                 }
+            } else if (this.schemeId) {
+                this.openNewSchemePopup();
             }
         },
 
@@ -740,9 +723,9 @@ export default {
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(projectId, scheme) {
+        openNewSchemePopupSchemeCreated(scheme) {
             this.newSchemePopup.show = false;
-            window.location.href = `/projects/${projectId}/docs/${scheme.id}#m:edit`;
+            //TODO redirect to new scheme
         },
 
         saveScheme() {
@@ -758,7 +741,7 @@ export default {
 
             this.isSaving = true;
             this.$store.dispatch('clearStatusMessage');
-            this.$store.state.apiClient.saveScheme(this.projectId, this.schemeId, prepareSchemeForSaving(this.schemeContainer.scheme))
+            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(this.schemeContainer.scheme))
             .then(() => {
                 this.markSchemeAsUnmodified();
                 this.isSaving = false;
@@ -780,7 +763,7 @@ export default {
             if (this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
                 var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
                 const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
-                this.$store.state.apiClient.uploadSchemeSvgPreview(this.projectId, this.schemeId, svgCode);
+                this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, svgCode);
             }
         },
 
@@ -855,31 +838,33 @@ export default {
             }
 
             this.newSchemePopup.name = item.name;
-            this.newSchemePopup.description = `Go back to <a href="/projects/${this.projectId}/docs/${this.schemeContainer.scheme.id}">${escapeHTML(this.schemeContainer.scheme.name)}</a>`;
+            // TODO add link to newly created scheme
             this.newSchemePopup.parentSchemeItem = item;
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(projectId, scheme) {
-            var url = `/projects/${projectId}/docs/${scheme.id}`;
-            var item = this.newSchemePopup.parentSchemeItem;
-            if (item) {
-                if (!item.links) {
-                    item.links = [];
+        openNewSchemePopupSchemeCreated(scheme) {
+            if (scheme.link) {
+                var item = this.newSchemePopup.parentSchemeItem;
+                if (item) {
+                    if (!item.links) {
+                        item.links = [];
+                    }
+                    item.links.push({
+                        title: `${scheme.name}`,
+                        url: scheme.link,
+                        type: 'scheme'
+                    });
                 }
-                item.links.push({
-                    title: `${scheme.name}`,
-                    url: url,
-                    type: 'scheme'
-                });
+
+                EventBus.emitItemChanged(item.id, 'links');
+
+                var href = window.location.href;
+                var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
+                this.newSchemePopup.show = false;
+                window.open(`${urlPrefix}${scheme.link}#m:edit`, '_blank');
+
             }
-
-            EventBus.emitItemChanged(item.id, 'links');
-
-            var href = window.location.href;
-            var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
-            this.newSchemePopup.show = false;
-            window.open(`${urlPrefix}${url}#m:edit`, '_blank');
         },
 
         onUpdateOffset(x, y) {

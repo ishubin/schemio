@@ -1,6 +1,6 @@
 <template>
     <modal title="Export as Embedded iframe" @close="$emit('close')" primary-button="Copy to Clipboard" @primary-submit="copyToClipboard()">
-        <textarea class="textfield" :value="iframeContent"></textarea>
+        <textarea v-if="iframeContent" class="textfield" :value="iframeContent"></textarea>
 
         <div style="height: 60px; position: relative;">
             <div class="msg msg-info" style="position: absolute; width: 100%;" v-if="message">{{message}}</div>
@@ -12,14 +12,19 @@
 import Modal from '../Modal.vue';
 
 export default {
-    props: ['scheme', 'projectId'],
+    props: ['scheme'],
 
     components: {Modal},
 
+    beforeMount() {
+        this.$store.state.apiClient.getSchemeEmbeddingLink().then(link => {
+            this.iframeContent =  `<iframe width="800" height="600" src="${link}" frameborder="0" allowfullscreen></iframe>`;
+        });
+    },
+
     data() {
-        const url = new URL(window.location);
         return {
-            iframeContent: `<iframe width="800" height="600" src="${url.protocol}//${url.host}/embed/${this.projectId}/docs/${this.scheme.id}" frameborder="0" allowfullscreen></iframe>`,
+            iframeContent: '',
             message: '',
         };
     },

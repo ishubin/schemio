@@ -73,7 +73,6 @@ export default {
         functionDescription: {type: Object, required: true},
         args               : {type: Object, required: true},
         schemeContainer    : {type: Object, required: true},
-        projectId          : {type: String, required: true},
         primaryButton      : {type: String, default: null},
         closeName          : {type: String, default: 'Close'},
         apiClient          : {type: Object, default: null}

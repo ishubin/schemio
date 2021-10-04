@@ -12,13 +12,13 @@
                 <i class="fas fa-angle-right"></i>
             </li>
             <li v-for="category in schemeContainer.scheme.category.ancestors">
-                <router-link :to="{ path: `/projects/${projectId}?category=${category.id}` }">
+                <router-link :to="{ path: `${projectLink}?category=${category.id}` }">
                     <a href="#">{{category.name}}</a>
                 </router-link>
                 <i class="fas fa-angle-right"></i>
             </li>
             <li>
-                <router-link :to="{ path: `/projects/${projectId}?category=${schemeContainer.scheme.category.id}` }">
+                <router-link :to="{ path: `${projectLink}?category=${schemeContainer.scheme.category.id}` }">
                     <a href="#">{{schemeContainer.scheme.category.name}}</a>
                 </router-link>
             </li>
@@ -27,7 +27,7 @@
             </li>
         </ul>
         <div v-else>
-            <span v-if="projectId && supportsCategoryModifications" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
+            <span v-if="supportsCategoryModifications" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
         </div>
 
         <div v-if="schemeContainer.scheme">
@@ -82,7 +82,7 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
-                <span v-if="projectId && supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+                <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
             </panel>
 
             <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
@@ -120,11 +120,11 @@ import map from 'lodash/map';
 import { prepareSchemeForSaving } from '../../scheme/Scheme'
 
 export default {
-    props: ['projectId', 'schemeContainer'],
+    props: ['schemeContainer'],
     components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
     mounted() {
-        if (this.projectId && this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
-            this.$store.state.apiClient.getTags(this.projectId).then(tags => {
+        if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
+            this.$store.state.apiClient.getTags().then(tags => {
                 this.existingSchemeTags = map(tags, tag => {
                     return {text: tag};
                 });
@@ -134,6 +134,7 @@ export default {
     data() {
         return {
             schemeTag: '',
+            projectLink: this.schemeContainer.scheme.projectLink,
             existingSchemeTags: [],
             showDeleteSchemeWarning: false,
             moveToCategoryModal: {
@@ -159,13 +160,13 @@ export default {
         },
 
         deleteScheme() {
-            this.$store.state.apiClient.deleteScheme(this.projectId, this.schemeContainer.scheme.id).then(() => {
-                window.location = `/projects/${this.projectId}`;
+            this.$store.state.apiClient.deleteScheme().then(() => {
+                window.location = this.projectLink;
             });
         },
 
         showMoveToCategoryModal() {
-            this.$store.state.apiClient.getCategoryTree(this.projectId).then(categories => {
+            this.$store.state.apiClient.getCategoryTree().then(categories => {
                 this.moveToCategoryModal.categories = categories;
                 this.moveToCategoryModal.shown = true;
             })
@@ -178,7 +179,7 @@ export default {
             } else {
                 scheme.categoryId = null;
             }
-            this.$store.state.apiClient.saveScheme(this.projectId, this.schemeContainer.scheme.id, prepareSchemeForSaving(scheme)).then(() => {
+            this.$store.state.apiClient.saveScheme(this.schemeContainer.scheme.id, prepareSchemeForSaving(scheme)).then(() => {
                 this.moveToCategoryModal.shown = false;
                 location.reload();
             });

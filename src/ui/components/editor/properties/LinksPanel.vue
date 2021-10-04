@@ -19,7 +19,6 @@
 
 
         <link-edit-popup v-if="editLinkData"
-            :projectId="projectId"
             :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url" :type="editLinkData.type"
             @submit-link="onLinkSubmit"
             @close="editLinkData = null"/>
@@ -33,7 +32,7 @@ import linkTypes from '../LinkTypes.js';
 import EventBus from '../EventBus.js';
 
 export default {
-    props: ['item', 'projectId'],
+    props: ['item'],
     components: { Panel, LinkEditPopup },
 
     data() {
