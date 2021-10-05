@@ -723,11 +723,6 @@ export default {
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(scheme) {
-            this.newSchemePopup.show = false;
-            //TODO redirect to new scheme
-        },
-
         saveScheme() {
             if (this.offlineMode) {
                 return;
@@ -855,14 +850,11 @@ export default {
                         url: scheme.link,
                         type: 'scheme'
                     });
+                    EventBus.emitItemChanged(item.id, 'links');
                 }
 
-                EventBus.emitItemChanged(item.id, 'links');
-
-                var href = window.location.href;
-                var urlPrefix = href.substring(0, href.indexOf('/', href.indexOf('//') + 2));
                 this.newSchemePopup.show = false;
-                window.open(`${urlPrefix}${scheme.link}#m:edit`, '_blank');
+                window.open(`${scheme.link}#m:edit`, '_blank');
 
             }
         },

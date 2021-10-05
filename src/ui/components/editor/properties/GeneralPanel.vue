@@ -42,7 +42,7 @@ export default {
     components: {VueTagsInput, Panel, RichTextEditor},
 
     mounted() {
-        if (this.tagsUsed && this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
+        if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
             this.$store.state.apiClient.getTags().then(tags => {
                 this.existingItemTags = map(tags, tag => {
                     return {text: tag};
