@@ -225,7 +225,8 @@ export default {
                 }).then(() => {
                     if (isCurrentCategoryInDeletedTree) {
                         this.currentCategoryId = null;
-                        this.$router.push({path: this.$route.path, query: {}});
+                        // resetting query parameters
+                        window.location = window.location.pathname;
                     }
                     return this.reloadCategoryTree();
                 })

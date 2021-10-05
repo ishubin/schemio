@@ -94,7 +94,7 @@ export default {
         },
         onLinkClick(event) {
             if (this.item.shapeProps.url.startsWith('/')) {
-                this.$router.push({path: url});
+                window.location = url;
                 event.preventDefault();
             }
             return false;

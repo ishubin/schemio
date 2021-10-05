@@ -803,7 +803,7 @@ export default {
 
         onSvgItemLinkClick(url, event) {
             if (url.startsWith('/')) {
-                this.$router.push({path: url});
+                window.location = url;
                 event.preventDefault();
             }
             return false;
