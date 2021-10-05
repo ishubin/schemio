@@ -126,7 +126,7 @@ export default {
 
     methods: {
         reloadCategoryTree() {
-            return this.$store.state.apiClient.getCategoryTree()
+            return this.apiClient.getCategoryTree()
             .then(categories => {
                 this.categoriesMap = new Map();
                 return this.enrichAndIndexCategories(categories);
@@ -187,7 +187,7 @@ export default {
             if (this.editCategoryModal.category) {
                 const newName = this.editCategoryModal.categoryName.trim();
                 if (newName) {
-                    this.$store.state.apiClient.updateCategory(this.editCategoryModal.category.id, {
+                    this.apiClient.updateCategory(this.editCategoryModal.category.id, {
                         name: newName
                     }).then(() => {
                         this.editCategoryModal.shown = false;
@@ -207,7 +207,7 @@ export default {
                 if (this.moveCategoryModal.newParentCategory) {
                     destinationCategoryId = this.moveCategoryModal.newParentCategory.id;
                 }
-                this.$store.state.apiClient.moveCategory(this.moveCategoryModal.category.id, destinationCategoryId)
+                this.apiClient.moveCategory(this.moveCategoryModal.category.id, destinationCategoryId)
                 .then(() => this.reloadCategoryTree())
                 .then(() => {
                     this.moveCategoryModal.shown = false;
@@ -220,7 +220,7 @@ export default {
         onConfirmDeleteCategoryClicked() {
             if (this.deleteCategoryModal.category) {
                 const isCurrentCategoryInDeletedTree = this.currentCategoryId && this.isInCategoryTree(this.currentCategoryId, this.deleteCategoryModal.category);
-                this.$store.state.apiClient.deleteCategory(this.deleteCategoryModal.category.id).then(() => {
+                this.apiClient.deleteCategory(this.deleteCategoryModal.category.id).then(() => {
                     this.deleteCategoryModal.shown = false;
                 }).then(() => {
                     if (isCurrentCategoryInDeletedTree) {
@@ -242,7 +242,7 @@ export default {
                 if (this.createCategoryModal.parentCategory) {
                     parentCategoryId = this.createCategoryModal.parentCategory.id;
                 }
-                this.$store.state.apiClient.createCategory(name, parentCategoryId)
+                this.apiClient.createCategory(name, parentCategoryId)
                 .then(() => this.reloadCategoryTree())
                 .then(() => {
                     this.createCategoryModal.shown = false;
