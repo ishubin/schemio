@@ -1,5 +1,6 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation  from '../../animations/ValueAnimation';
+import EventBus from '../../components/editor/EventBus';
 
 export default {
     name: 'Hide',
@@ -24,9 +25,11 @@ export default {
                 animationType: args.transition,
                 update(t) {
                     item.opacity = initialOpacity  * (1.0 - t);
+                    EventBus.emitItemChanged(item.id);
                 },
                 destroy() {
                     item.visible = false;
+                    EventBus.emitItemChanged(item.id);
                     if (!args.inBackground) {
                         resultCallback();
                     }

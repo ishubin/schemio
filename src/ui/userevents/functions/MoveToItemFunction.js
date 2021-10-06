@@ -69,6 +69,7 @@ class MoveToItemAnimation extends Animation {
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
+            EventBus.emitItemChanged(this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
         }
         return false;

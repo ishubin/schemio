@@ -1,6 +1,7 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
+import EventBus from '../../components/editor/EventBus';
 
 
 class BlinkEffectAnimation extends Animation {
@@ -83,6 +84,8 @@ class BlinkEffectAnimation extends Animation {
                 return false;
             }
         }
+
+        EventBus.emitItemChanged(this.item.id);
 
         return this.elapsedTime < this.args.duration * 1000.0;
     }

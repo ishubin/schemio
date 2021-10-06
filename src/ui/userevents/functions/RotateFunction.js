@@ -1,6 +1,7 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
+import EventBus from '../../components/editor/EventBus';
 
 
 class RotateAnimation extends Animation {
@@ -36,11 +37,14 @@ class RotateAnimation extends Animation {
             this.item.area.r = this.originalAngle * (1.0 - convertedT) + this.destinationAngle * convertedT;
             this.schemeContainer.reindexItemTransforms(this.item);
 
+            EventBus.emitItemChanged(this.item.id);
             return proceed;
         } else {
             this.item.area.r = this.destinationAngle;
             this.schemeContainer.reindexItemTransforms(this.item);
         }
+
+        EventBus.emitItemChanged(this.item.id);
         return false;
     }
 

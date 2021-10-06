@@ -38,6 +38,9 @@ app.get('/scheme-diff-example', (req, res) => {
 app.get('/category-tree', (req, res) => {
     res.sendFile(`${cwd}/src/html/category-tree.html`)
 });
+app.get('/standalone', (req, res) => {
+    res.sendFile(`${cwd}/src/html/standalone-example.html`)
+});
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);

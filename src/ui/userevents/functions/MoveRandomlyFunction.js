@@ -2,6 +2,7 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import myMath from '../../myMath';
 import { convertTime } from '../../animations/ValueAnimation';
+import EventBus from '../../components/editor/EventBus';
 
 
 class MoveRandomlyAnimation extends Animation {
@@ -65,11 +66,13 @@ class MoveRandomlyAnimation extends Animation {
             // console.log('_t', this._t, 't', t, 'ix', this.item.area.x, 'iy', this.item.area.y, 'p1', this.point1.x, this.point1.x, 'p2', this.point2.x, this.point2.x, 'p3', this.point3.x, this.point3.x);
 
             this.schemeContainer.reindexItemTransforms(this.item);
+            EventBus.emitItemChanged(this.item.id);
             return true;
         } else {
             this.item.area.x = this.itemInitialPosition.x;
             this.item.area.y = this.itemInitialPosition.y;
             this.schemeContainer.reindexItemTransforms(this.item);
+            EventBus.emitItemChanged(this.item.id);
         }
         return false;
     }

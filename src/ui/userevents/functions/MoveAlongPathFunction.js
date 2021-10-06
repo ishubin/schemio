@@ -3,6 +3,7 @@ import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
 import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
+import EventBus from '../../components/editor/EventBus';
 
 
 class MoveAlongPathAnimation extends Animation {
@@ -59,7 +60,8 @@ class MoveAlongPathAnimation extends Animation {
 
             const convertedT = convertTime(t, this.args.movement);
             this.moveToPathLength(this.pathTotalLength * (this.args.startPosition * (1.0 - convertedT) + this.args.endPosition * convertedT) / 100.0);
-
+            
+            EventBus.emitItemChanged(this.item.id);
             return true;
         }
         return false;
