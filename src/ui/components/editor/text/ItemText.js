@@ -13,6 +13,7 @@ export function generateTextStyle(textSlot) {
         'vertical-align'  : textSlot.valign,
         'white-space'     : textSlot.whiteSpace,
         'display'         : 'table-cell',
+        'box-sizing'      : 'border-box'
     };
 
     return style;
