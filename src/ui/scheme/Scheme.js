@@ -9,6 +9,11 @@ const defaultScheme = {
     tags: [],
     categoryId: null,
     items: [],
+    settings: {
+        screen: {
+            draggable: true,
+        }
+    },
     style: {
         backgroundColor:    'rgba(240, 240, 240, 1.0)',
         gridColor:          'rgba(128 ,128, 128, 0.2)',

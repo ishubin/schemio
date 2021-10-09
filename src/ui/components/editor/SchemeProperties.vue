@@ -48,6 +48,23 @@
                     ></rich-text-editor>
             </panel>
 
+            <panel name="Screen Settings">
+                <table class="properties-table">
+                    <tbody>
+                        <tr>
+                            <td class="label" width="50%">
+                                Draggable
+                                <tooltip>
+                                    Allows users to drag screen using mouse in view mode.
+                                </tooltip>
+                            </td>
+                            <td class="value" width="50%">
+                                <input type="checkbox" v-model="screenSettings.draggable" id="chk-screen-draggable"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </panel>
 
             <panel name="Style">
                 <table class="properties-table">
@@ -117,11 +134,12 @@ import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
+import Tooltip from '../Tooltip.vue';
 import { prepareSchemeForSaving } from '../../scheme/Scheme'
 
 export default {
     props: ['schemeContainer'],
-    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel},
+    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel, Tooltip},
     mounted() {
         if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
             this.$store.state.apiClient.getTags().then(tags => {
@@ -137,6 +155,11 @@ export default {
             projectLink: this.schemeContainer.scheme.projectLink,
             existingSchemeTags: [],
             showDeleteSchemeWarning: false,
+
+            screenSettings: {
+                draggable: this.schemeContainer.scheme.settings.screen.draggable
+            },
+
             moveToCategoryModal: {
                 shown: false,
                 categories: []
@@ -202,6 +225,15 @@ export default {
             return this.$store.state.apiClient && this.$store.state.apiClient.getCategoryTree;
         }
     },
+
+    watch: {
+        'screenSettings.draggable': {
+            handler(value) {
+                this.schemeContainer.scheme.settings.screen.draggable = value;
+                EventBus.emitSchemeChangeCommited('scheme.settings.screen.draggable');
+            }
+        }
+    }
 }
 </script>
 

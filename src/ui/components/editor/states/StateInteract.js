@@ -138,6 +138,9 @@ class StateInteract extends State {
     }
 
     dragScreen(x, y) {
+        if (!this.schemeContainer.scheme.settings.screen.draggable) {
+            return;
+        }
         this.dragScreenTo(
             Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
             Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
