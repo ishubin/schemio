@@ -10,7 +10,7 @@
         <h5>Description</h5>
         <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
 
-        <div v-if="categoriesConfig.enabled">
+        <div v-if="categoriesEnabled">
             <h5>Category</h5>
             <category-selector :categories="categories" :apiClient="apiClient"/>
         </div>
@@ -42,7 +42,6 @@ import RichTextEditor from './RichTextEditor.vue';
 import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
 import {enrichItemWithDefaults} from '../scheme/Item';
-import config from '../config.js';
 import StoreUtils from '../store/StoreUtils.js';
 
 export default {
@@ -51,7 +50,8 @@ export default {
         name: {type: String, default: ''},
         categories: {type: Array, default: []},
         description: {type: String, default: ''},
-        apiClient: {type: Object, default: null}
+        apiClient: {type: Object, default: null},
+        categoriesEnabled: {type: Boolean, default: true},
     },
     data() {
         return {
@@ -65,10 +65,6 @@ export default {
                 name: {
                     highlight: false
                 }
-            },
-
-            categoriesConfig: {
-                enabled: config.project.categories.enabled
             },
 
             errorMessage: null,
@@ -108,7 +104,7 @@ export default {
 
                 let chain = Promise.resolve(null);
                 this.showLoading = true;
-                if (this.categoriesConfig.enabled) {
+                if (this.categoriesEnabled) {
                     chain = chain.then(() => {
                         return this.apiClient.ensureCategoryStructure(this.categories)
                     })

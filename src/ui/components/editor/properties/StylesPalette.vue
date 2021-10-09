@@ -42,9 +42,10 @@ import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
 import defaultStyles from './DefaultStyles';
-import config from '../../../config';
 import StoreUtils from '../../../store/StoreUtils';
 
+
+const maxStyles = 100;
 
 let cachedUserStyles = null;
 
@@ -104,8 +105,8 @@ export default {
         },
 
         saveStyleFromItem() {
-            if (this.stylePreviews.length >= config.styles.maxStyles) {
-                StoreUtils.addErrorSystemMessage(this.$store, `Cannot add style as you already have ${config.styles.maxStyles} styles. Please consider removing some.`)
+            if (this.stylePreviews.length >= maxStyles) {
+                StoreUtils.addErrorSystemMessage(this.$store, `Cannot add style as you already have ${maxStyles} styles. Please consider removing some.`)
                 return;
             }
 

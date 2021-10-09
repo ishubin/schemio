@@ -31,8 +31,8 @@
 </template>
 
 <script>
-import config from '../config';
 import StoreUtils from '../store/StoreUtils.js';
+
 
 
 function findCategoryInTree(categoryId, categories) {
@@ -55,7 +55,11 @@ function findCategoryInTree(categoryId, categories) {
 
 
 export default {
-    props: ['categories', 'apiClient'],
+    props: {
+        categories: {type: Array}, 
+        apiClient: {type: Object},
+        maxDepth: {type: Number, default: 10},
+    },
 
     mounted() {
         if (this.apiClient && this.apiClient.getCategoryTree) {
@@ -101,8 +105,8 @@ export default {
         enterPressed() {
             var text = this.inputText.trim();
             if (text.length > 0) {
-                if (this.categories.length > config.project.categories.maxDepth) {
-                    StoreUtils.addErrorSystemMessage(this.$store, `Max category depth (${config.project.categories.maxDepth}) exceeded`, 'max-category-depth');
+                if (this.categories.length > this.maxDepth) {
+                    StoreUtils.addErrorSystemMessage(this.$store, `Max category depth (${this.maxDepth}) exceeded`, 'max-category-depth');
                     return;
                 }
                 this.addCategory(text, null);
@@ -119,7 +123,7 @@ export default {
         },
 
         addCategory(name, id) {
-            if (this.categories.length > config.project.categories.maxDepth) {
+            if (this.categories.length > this.maxDepth) {
                 return;
             }
 

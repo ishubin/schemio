@@ -5,7 +5,6 @@ import find from 'lodash/find';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
-import config from '../config';
 
 Vue.use(Vuex);
 
@@ -314,7 +313,7 @@ const store = new Vuex.Store({
                 status,
             });
 
-            const timeout = config.messages.ttlSeconds * 1000;
+            const timeout = 5000;
             const selfDestruct = () => {
                 for (let i = 0; i < state.systemMessages.length; i++) {
                     if (state.systemMessages[i].id === id) {

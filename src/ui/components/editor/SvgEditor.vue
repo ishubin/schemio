@@ -230,8 +230,6 @@ import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import StoreUtils from '../../store/StoreUtils';
-import {identifyShape} from './items/shapes/SmartShapeClassifier';
-import config from '../../config';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -1094,14 +1092,6 @@ export default {
                     name: 'Edit Curve',
                     clicked: () => { EventBus.emitCurveEdited(item); }
                 });
-
-                // only when debugging
-                if (config.debug) {
-                    this.customContextMenu.menuOptions.push({
-                        name: 'DEBUG: Smart Convert',
-                        clicked: () => {this.convertCurveToSmartShape(item);}
-                    });
-                }
             }
 
             const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
@@ -1545,12 +1535,6 @@ export default {
             };
             this.schemeContainer.addItem(image);
             EventBus.emitSchemeChangeCommited();
-        },
-
-        // this function is only used for debugging smart draw conversion
-        convertCurveToSmartShape(item) {
-            const shapeMatch = identifyShape(item.shapeProps.points);
-            console.log('Identified shape', shapeMatch);
         },
 
         itemCreationDraggedToSvgEditor(item, pageX, pageY) {
