@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-const express               = require('express');
-const fs            = require('fs-extra');
-const yaml          = require('js-yaml');
+import express  from  'express';
+import fs from 'fs-extra';
+import yaml from 'js-yaml';
 
 const globalArt = [];
 // Loading global art from config
