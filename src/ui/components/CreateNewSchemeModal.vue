@@ -20,7 +20,7 @@
 
             <div class="image-control">
                 <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL..."/>
-                <div class="file-upload-button" v-if="isUploadEnabled">
+                <div class="file-upload-button" v-if="uploadEnabled">
                     <i class="fas fa-file-upload icon"></i>
                     <input type="file" accept="image/*" @change="uploadImage"/>
                 </div>
@@ -48,10 +48,12 @@ export default {
     components: {CategorySelector, Modal, RichTextEditor},
     props: {
         name: {type: String, default: ''},
-        categories: {type: Array, default: []},
+        categories: {type: Array, default: () => []},
+        maxCategoryDepth: {type: Number, default: 10},
         description: {type: String, default: ''},
-        apiClient: {type: Object, default: null},
+        apiClient: {type: Object, default: () => null},
         categoriesEnabled: {type: Boolean, default: true},
+        uploadEnabled: {type: Boolean, default: true}
     },
     data() {
         return {
@@ -68,7 +70,6 @@ export default {
             },
 
             errorMessage: null,
-            isUploadEnabled: config.media.uploadEnabled
         }
     },
     methods: {
@@ -97,8 +98,8 @@ export default {
                     items.push(imageItem);
                 }
 
-                if (this.categories && this.categories.length > config.project.categories.maxDepth) {
-                    this.errorMessage = `Categories cannot have more than ${config.project.categories.maxDepth} depth`;
+                if (this.categories && this.categories.length > this.maxCategoryDepth) {
+                    this.errorMessage = `Categories cannot have more than ${this.maxCategoryDepth} depth`;
                     return;
                 }
 

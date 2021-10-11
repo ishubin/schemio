@@ -2,7 +2,10 @@
     <div>
         <div class="fs-toolbar">
             <span class="btn btn-secondary" @click="showNewDirectoryModel()">
-               <i class="fas fa-folder-plus"></i> New directory
+                <i class="fas fa-folder-plus"></i> New directory
+            </span>
+            <span class="btn btn-secondary" @click="showNewSchemeModel()">
+                <i class="fas fa-file"></i> Create Scheme
             </span>
         </div>
         <table class="entries-table">
@@ -14,23 +17,31 @@
             <tbody>
                 <tr v-for="entry in entries">
                     <td>
-                        <a v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">{{entry.name}}</a>
-                        <a v-else :href="`/scheme?path=${entry.encodedPath}`">{{entry.name}}</a>
+                        <a v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`"><i class="fas fa-folder fa-2x"></i> {{entry.name}} / </a>
+                        <a v-else :href="`/scheme?path=${entry.encodedPath}`"><i class="fas fa-file fa-2x"></i> {{entry.name}}</a>
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <modal v-if="newDirectoryModel.shown" title="New Directory" @close="newDirectoryModel.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
-            <input type="text" class="textfield" v-model="newDirectoryModel.name" placeholder="Type name of new directory..."/>
+        <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
+            <input type="text" class="textfield" v-model="newDirectoryModal.name" placeholder="Type name of new directory..."/>
         </modal>
+
+        <CreateNewSchemeModal v-if="newSchemeModal.shown"
+            :categoriesEnabled="false"
+            :apiClient="apiClient"
+            @scheme-created="onSchemeCreated"
+            @close="newSchemeModal.shown = false"
+        />
     </div>
 </template>
 
 <script>
-import apiClient from '../apiClient';
+import { createApiClient } from '../apiClient';
 import forEach from 'lodash/forEach';
 import Modal from '../../components/Modal.vue';
+import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 
 
 function isValidCharCode(code) {
@@ -43,11 +54,10 @@ function isValidCharCode(code) {
 
 export default {
 
-    components: {Modal},
+    components: {Modal, CreateNewSchemeModal},
     
-    beforeCreate() {
-        this.path = this.$route.query.path;
-        apiClient.listEntries(this.path)
+    beforeMount() {
+        this.apiClient.listEntries(this.path)
         .then(result => {
             forEach(result.entries, entry => {
                 entry.encodedPath = encodeURIComponent(entry.path);
@@ -60,48 +70,62 @@ export default {
     },
 
     data() {
+        const path = this.$route.query.path; 
         return {
-            path: '',
+            path: path,
             entries: [],
             errorMessage: null,
 
-            newDirectoryModel: {
+            newDirectoryModal: {
                 name: '',
                 shown: false,
                 errorMessage: null
-            }
+            },
+
+            newSchemeModal: {
+                shown: false
+            },
+            apiClient: createApiClient(path)
         };
     },
 
     methods: {
+        showNewSchemeModel() {
+            this.newSchemeModal.shown = true;
+        },
+
         showNewDirectoryModel() {
-            this.newDirectoryModel.name = '';
-            this.newDirectoryModel.err = null;
-            this.newDirectoryModel.shown = true;
+            this.newDirectoryModal.name = '';
+            this.newDirectoryModal.err = null;
+            this.newDirectoryModal.shown = true;
         },
 
         submitNewDirectory() {
-            this.newDirectoryModel.errorMessage = null;
-            const name = this.newDirectoryModel.name.trim();
+            this.newDirectoryModal.errorMessage = null;
+            const name = this.newDirectoryModal.name.trim();
             if (!name) {
-                this.newDirectoryModel.errorMessage = 'Directory name should not be empty';
+                this.newDirectoryModal.errorMessage = 'Directory name should not be empty';
                 return;
             }
 
             for (let i = 0; i < name.length; i++) {
                 if (!isValidCharCode(name.charCodeAt(i))) {
-                    this.newDirectoryModel.errorMessage = 'Unsupported symbol: ' + name.charAt(i);
+                    this.newDirectoryModal.errorMessage = 'Unsupported symbol: ' + name.charAt(i);
                     return;
                 }
             }
 
-            apiClient.createDirectory(name, this.path)
+            this.apiClient.createDirectory(name, this.path)
             .then(() => {
                 window.location.reload();
             })
             .catch(err => {
-                this.newDirectoryModel.errorMessage = 'Failed to create new directory';
+                this.newDirectoryModal.errorMessage = 'Failed to create new directory';
             });
+        },
+
+        onSchemeCreated(scheme) {
+            window.location = '/scheme?path=' + encodeURIComponent(scheme.id);
         }
     }
 }

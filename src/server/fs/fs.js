@@ -25,6 +25,45 @@ function validateFileName(name) {
     return true;
 }
 
+function safePath(path) {
+    if (!path) {
+        path = '.';
+    }
+    path = path.replace(/\/\.\.\//g, '/./');
+    return path;
+}
+
+export function fsCreateScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        const realPath = config.fs.rootPath + path;
+        
+        const scheme = req.body;
+
+        if (!validateFileName(scheme.name)) {
+            res.status(400);
+            res.json({
+                error: 'BAD_REQUEST',
+                message: 'Invalid request'
+            })
+        }
+        const fullPath = realPath + '/' + scheme.name + schemioExtension;
+        scheme.id = path + '/' + scheme.name + schemioExtension;
+        scheme.path = path;
+
+        fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
+            res.json(scheme);
+        })
+        .catch(err => {
+            res.status(500);
+            res.json({
+                error: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to create scheme'
+            });
+        })
+    };
+}
+
 export function fsCreateDirectory(config) {
     return (req, res) => {
         const dirBody = req.body;
@@ -35,12 +74,8 @@ export function fsCreateDirectory(config) {
                 message: 'Invalid request'
             })
         }
-        
-        let path = dirBody.path;
-        if (!path) {
-            path = '.';
-        }
-        path = path.replace(/\/\.\.\//g, '/./');
+
+        const path = safePath(dirBody.path);
 
         const realPath = config.fs.rootPath + path + '/' + dirBody.name;
 
@@ -64,14 +99,11 @@ export function fsCreateDirectory(config) {
         });
     };
 }
+
+
 export function fsListFilesRoute(config) {
     return (req, res) => {
-        let path = req.query.path;
-        if (!path) {
-            path = '.';
-        }
-        path = path.replace(/\/\.\.\//g, '/./');
-
+        const path = safePath(req.query.path);
         const realPath = config.fs.rootPath + path;
 
         fs.readdir(realPath).then(files => {
