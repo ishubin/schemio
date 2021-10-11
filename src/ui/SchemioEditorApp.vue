@@ -28,11 +28,11 @@ export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor},
 
     props: {
-        scheme       : {type: Object, default: null},
-        schemeDiff   : {type: Object, default: null},
+        scheme       : {type: Object, default: () => null},
+        schemeDiff   : {type: Object, default: () => null},
         editAllowed  : {type: Boolean, default: false},
-        menuOptions  : {type: Array, default: []},
-        comments     : {type: Object, default: null},
+        menuOptions  : {type: Array, default: () => []},
+        comments     : {type: Object, default: () => null},
     },
 
     mounted() {

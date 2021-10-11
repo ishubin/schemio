@@ -6,6 +6,14 @@ function unwrapAxios(response) {
 
 export function createApiClient(path) {
     return {
+        _getSchemeUrl(schemeId) {
+            let url = '/v1/fs/scheme?id=' + encodeURIComponent(schemeId);
+            if (path) {
+                url = url + '&path=' + encodeURIComponent(path);
+            }
+            return url;
+        },
+
         listEntries(path) {
             let url = '/v1/fs/list';
             if (path) {
@@ -14,8 +22,12 @@ export function createApiClient(path) {
             return axios.get(url).then(unwrapAxios);
         },
 
-        createDirectory(name, path) {
+        createDirectory(name) {
             return axios.post('/v1/fs/dir', { name, path }).then(unwrapAxios);
+        },
+
+        getScheme(schemeId) {
+            return axios.get(this._getSchemeUrl(schemeId)).then(unwrapAxios);
         },
 
 
@@ -28,7 +40,7 @@ export function createApiClient(path) {
         },
 
         getGlobalArt() {
-            return Promise.resolve(null);
+            return axios.get('/v1/art').then(unwrapAxios);
         },
 
         saveArt(artId, art) {
@@ -36,17 +48,15 @@ export function createApiClient(path) {
         },
 
         deleteArt(artId) {
+            return Promise.resolve(null);
         },
 
         createNewScheme(scheme) {
-            let url = '/v1/docs';
-            if (path) {
-                url += '?path=' + path;
-            }
-            return axios.post(url, scheme).then(unwrapAxios);
+            return axios.post( `/v1/fs/scheme?path=${encodeURIComponent(path)}&id=${encodeURIComponent(scheme.id)}`, scheme).then(unwrapAxios);
         },
 
-        saveScheme(schemeId, scheme) {
+        saveScheme(scheme) {
+            return axios.put(this._getSchemeUrl(scheme.id), scheme).then(unwrapAxios);
         },
 
         deleteScheme(schemeId) {
@@ -56,6 +66,7 @@ export function createApiClient(path) {
         },
 
         getTags() {
+            return Promise.resolve([]);
         },
 
         createCategory(categoryName, parentCategoryId) {

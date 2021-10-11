@@ -18,7 +18,7 @@
                 <tr v-for="entry in entries">
                     <td>
                         <a v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`"><i class="fas fa-folder fa-2x"></i> {{entry.name}} / </a>
-                        <a v-else :href="`/scheme?path=${entry.encodedPath}`"><i class="fas fa-file fa-2x"></i> {{entry.name}}</a>
+                        <a v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`"><i class="fas fa-file fa-2x"></i> {{entry.name}}</a>
                     </td>
                 </tr>
             </tbody>
@@ -70,7 +70,7 @@ export default {
     },
 
     data() {
-        const path = this.$route.query.path; 
+        const path = this.$route.query.path || ''; 
         return {
             path: path,
             entries: [],
@@ -115,7 +115,7 @@ export default {
                 }
             }
 
-            this.apiClient.createDirectory(name, this.path)
+            this.apiClient.createDirectory(name)
             .then(() => {
                 window.location.reload();
             })
@@ -125,7 +125,7 @@ export default {
         },
 
         onSchemeCreated(scheme) {
-            window.location = '/scheme?path=' + encodeURIComponent(scheme.id);
+            window.location = `/scheme?path=${encodeURIComponent(this.path)}&id=${encodeURIComponent(scheme.id)}#m:edit`;
         }
     }
 }

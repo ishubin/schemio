@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import _ from 'lodash';
+import shortid from 'shortid';
 
 const schemioExtension = '.schemio.json';
 
@@ -33,6 +34,88 @@ function safePath(path) {
     return path;
 }
 
+export function fsGetScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            schemeId = '';
+        }
+
+        schemeId = schemeId.replace(/\//g, '');
+        if (schemeId.length === 0) {
+            res.status(400);
+            res.json({
+                error: 'BAD_REQUEST',
+                message: 'Invalid request'
+            })
+            return;
+        }
+
+        const realPath = config.fs.rootPath + path;
+        const fullPath = realPath + '/' + schemeId + schemioExtension;
+        
+        fs.readFile(fullPath, 'utf-8').then(content => {
+            res.json(JSON.parse(content));
+        })
+        .catch(err => {
+            console.error('Failed to read scheme file', fullPath, err);
+            res.status(500);
+            res.json({
+                error: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to create scheme'
+            });
+        })
+    };
+}
+
+export function fsSaveScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            schemeId = '';
+        }
+
+        schemeId = schemeId.replace(/\//g, '');
+        if (schemeId.length === 0) {
+            res.status(400);
+            res.json({
+                error: 'BAD_REQUEST',
+                message: 'Invalid request'
+            })
+            return;
+        }
+
+
+        const realPath = config.fs.rootPath + path;
+        const fullPath = realPath + '/' + schemeId + schemioExtension;
+
+        const scheme = req.body;
+        scheme.id = path + '/' + scheme.name + schemioExtension;
+        scheme.path = path;
+
+        fs.stat(fullPath)
+        .then(stat => {
+            if (!stat.isFile()) {
+                return Promise.reject();
+            }
+            return fs.writeFile(fullPath, JSON.stringify(scheme));
+        })
+        .then(() => {
+            res.json(scheme);
+        })
+        .catch(err => {
+            console.error(err);
+            res.status(500);
+            res.json({
+                error: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to create scheme'
+            });
+        });
+    };
+}
+
 export function fsCreateScheme(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
@@ -45,10 +128,12 @@ export function fsCreateScheme(config) {
             res.json({
                 error: 'BAD_REQUEST',
                 message: 'Invalid request'
-            })
+            });
+            return;
         }
-        const fullPath = realPath + '/' + scheme.name + schemioExtension;
-        scheme.id = path + '/' + scheme.name + schemioExtension;
+        const id = shortid.generate();
+        const fullPath = realPath + '/' + id + schemioExtension;
+        scheme.id = id;
         scheme.path = path;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
@@ -124,11 +209,19 @@ export function fsListFilesRoute(config) {
                         path: entryPath + file
                     });
                 } else if (file.endsWith(schemioExtension)) {
-                    entries.push({
-                        kind: 'scheme',
-                        name: file.substring(0, file.length - schemioExtension.length),
-                        path: entryPath + file
-                    })
+                    try {
+                        const content = fs.readFileSync(`${realPath}/${file}`, 'utf-8');
+                        const scheme = JSON.parse(content);
+
+                        entries.push({
+                            kind: 'scheme',
+                            id: file.substring(0, file.length - schemioExtension.length),
+                            name: scheme.name,
+                            path: entryPath
+                        });
+                    } catch(err) {
+                        console.error('Failed to parse scheme file', entryPath, err);
+                    }
                 }
             });
 

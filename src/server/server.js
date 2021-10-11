@@ -6,7 +6,7 @@ import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
-import { fsCreateDirectory, fsCreateScheme, fsListFilesRoute } from './fs/fs.js';
+import { fsCreateDirectory, fsCreateScheme, fsGetScheme, fsListFilesRoute, fsSaveScheme } from './fs/fs.js';
 import { loadConfig } from './config.js';
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
@@ -31,7 +31,9 @@ app.use('/assets', express.static('assets'));
 
 app.get('/v1/fs/list', fsListFilesRoute(config));
 app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
-app.post('/v1/docs', jsonBodyParser, fsCreateScheme(config));
+app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
+app.get('/v1/fs/scheme', jsonBodyParser, fsGetScheme(config));
+app.put('/v1/fs/scheme', jsonBodyParser, fsSaveScheme(config));
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);
