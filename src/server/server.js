@@ -6,11 +6,13 @@ import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
-import { fsListFilesRoute } from './fs/fs.js';
+import { fsCreateDirectory, fsListFilesRoute } from './fs/fs.js';
+import { loadConfig } from './config.js';
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
 const cwd = process.cwd();
+const config = loadConfig();
 
 const globalArt = [];
 // Loading global art from config
@@ -23,12 +25,12 @@ fs.readdir('conf/art', function (err, files) {
 
 const app = express();
 
-const port = 4010;
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/assets', express.static('assets'));
 
-app.get('/v1/fs/list', fsListFilesRoute);
+app.get('/v1/fs/list', fsListFilesRoute(config));
+app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);
@@ -39,6 +41,6 @@ app.get('*', (req, res) => {
 });
 
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+app.listen(config.serverPort, () => {
+    console.log(`Example app listening at http://localhost:${config.serverPort}`)
 });
