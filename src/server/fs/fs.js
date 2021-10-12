@@ -34,6 +34,52 @@ function safePath(path) {
     return path;
 }
 
+export function fsDeleteScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            schemeId = '';
+        }
+
+        schemeId = schemeId.replace(/\//g, '');
+        if (schemeId.length === 0) {
+            res.status(400);
+            res.json({
+                error: 'BAD_REQUEST',
+                message: 'Invalid request'
+            })
+            return;
+        }
+
+        const realPath = config.fs.rootPath + path;
+        const fullPath = realPath + '/' + schemeId + schemioExtension;
+        
+        fs.stat(fullPath).then(stat => {
+            if (!stat.isFile) {
+                throw new Error('Not a file '+ fullPath);
+            }
+        })
+        .then(() => {
+            return fs.unlink(fullPath);
+        })
+        .then(() => {
+            res.json({
+                status: 'ok',
+                message: 'Removed scheme ' + schemeId
+            });
+        })
+        .catch(err => {
+            console.error('Failed to delete scheme file', fullPath, err);
+            res.status(500);
+            res.json({
+                error: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to delete scheme'
+            });
+        })
+    };
+}
+
 export function fsGetScheme(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
@@ -149,6 +195,42 @@ export function fsCreateScheme(config) {
     };
 }
 
+export function fsDeleteDirectory(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        if (!validateFileName(req.query.name)) {
+            res.status(400);
+            res.json({
+                error: 'BAD_REQUEST',
+                message: 'Invalid request'
+            })
+        }
+
+        const realPath = config.fs.rootPath + path + '/' + req.query.name;
+
+        fs.stat(realPath).then(stat => {
+            if (!stat.isDirectory()) {
+                throw new Error('Not a directory');
+            }
+            return fs.rmdir(realPath, {recursive: true});
+        })
+        .then(() => {
+            res.json({
+                status: 'ok',
+                message: `Removed directory: ${path}/${req.query.name}`
+            })
+        })
+        .catch(err => {
+            console.error('Failed to delete a dir', realPath, err);
+            res.status(500);
+            res.json({
+                error: 'INTERNAL_SERVER_ERROR',
+                message: 'Failed to delete directory'
+            });
+        });
+    };
+}
+
 export function fsCreateDirectory(config) {
     return (req, res) => {
         const dirBody = req.body;
@@ -206,7 +288,8 @@ export function fsListFilesRoute(config) {
                     entries.push({
                         kind: 'dir',
                         name: file,
-                        path: entryPath + file
+                        path: entryPath + file,
+                        modifiedTime: stat.mtime,
                     });
                 } else if (file.endsWith(schemioExtension)) {
                     try {
@@ -217,7 +300,8 @@ export function fsListFilesRoute(config) {
                             kind: 'scheme',
                             id: file.substring(0, file.length - schemioExtension.length),
                             name: scheme.name,
-                            path: entryPath
+                            path: entryPath,
+                            modifiedTime: stat.mtime,
                         });
                     } catch(err) {
                         console.error('Failed to parse scheme file', entryPath, err);
