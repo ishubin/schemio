@@ -96,6 +96,11 @@ export function createApiClient(path) {
         },
 
         uploadFile(file) {
+            const form = new FormData();
+            form.append('file', file, file.name);
+            return axios.post(`/v1/media`, form).then(unwrapAxios).then(data => {
+                return data.url;
+            });
         },
 
         saveStyle(fill, strokeColor, textColor) {

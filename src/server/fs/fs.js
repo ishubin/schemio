@@ -1,8 +1,17 @@
 import fs from 'fs-extra';
 import _ from 'lodash';
-import shortid from 'shortid';
+import { nanoid } from 'nanoid'
 
 const schemioExtension = '.schemio.json';
+
+const supportedMediaExtensions = new Set([
+    'jpg',
+    'jpeg',
+    'png',
+    'gif',
+    'tiff',
+    'bmp'
+]);
 
 
 function isValidCharCode(code) {
@@ -48,11 +57,11 @@ export function fsDeleteScheme(config) {
             return;
         }
 
-        const realPath = config.fs.rootPath + path;
+        const realPath = rightFilePad(config.fs.rootPath) + path;
         const fullPath = realPath + '/' + schemeId + schemioExtension;
         
         fs.stat(fullPath).then(stat => {
-            if (!stat.isFile) {
+            if (!stat.isFile()) {
                 throw new Error('Not a file '+ fullPath);
             }
         })
@@ -83,7 +92,7 @@ export function fsGetScheme(config) {
             return;
         }
 
-        const realPath = config.fs.rootPath + path;
+        const realPath = rightFilePad(config.fs.rootPath) + path;
         const fullPath = realPath + '/' + schemeId + schemioExtension;
         
         fs.readFile(fullPath, 'utf-8').then(content => {
@@ -110,7 +119,7 @@ export function fsSaveScheme(config) {
             return;
         }
 
-        const realPath = config.fs.rootPath + path;
+        const realPath = rightFilePad(config.fs.rootPath) + path;
         const fullPath = realPath + '/' + schemeId + schemioExtension;
 
         const scheme = req.body;
@@ -137,7 +146,7 @@ export function fsSaveScheme(config) {
 export function fsCreateScheme(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
-        const realPath = config.fs.rootPath + path;
+        const realPath = rightFilePad(config.fs.rootPath) + path;
         
         const scheme = req.body;
 
@@ -145,7 +154,7 @@ export function fsCreateScheme(config) {
             res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
             return;
         }
-        const id = shortid.generate();
+        const id = nanoid();
         const fullPath = realPath + '/' + id + schemioExtension;
         scheme.id = id;
         scheme.path = path;
@@ -167,7 +176,7 @@ export function fsDeleteDirectory(config) {
             return;
         }
 
-        const realPath = config.fs.rootPath + path + '/' + req.query.name;
+        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + req.query.name;
 
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
@@ -198,7 +207,7 @@ export function fsCreateDirectory(config) {
 
         const path = safePath(dirBody.path);
 
-        const realPath = config.fs.rootPath + path + '/' + dirBody.name;
+        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + dirBody.name;
 
         let entryPath = path + '/';
         if (entryPath === './') {
@@ -221,7 +230,7 @@ export function fsCreateDirectory(config) {
 export function fsListFilesRoute(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
-        const realPath = config.fs.rootPath + path;
+        const realPath = rightFilePad(config.fs.rootPath) + path;
 
         fs.readdir(realPath).then(files => {
             
@@ -285,4 +294,98 @@ export function fsListFilesRoute(config) {
             res.$apiNotFound('Such path does not exist');
         });
     }
+}
+
+export function fsUploadMediaFile(config) {
+    return (req, res) => {
+        const file = req.files.file;
+        if (!file) {
+            res.$apiBadRequest();
+            return;
+        }
+
+        const extension = getFileExtension(file.name).toLowerCase();
+        if (!supportedMediaExtensions.has(extension)) {
+            res.$apiBadRequest('Unsupported file type');
+            return;
+        }
+        
+        const date = new Date();
+
+        const firstPart = `${date.getFullYear()}-${leftZeroPad(date.getMonth())}-${leftZeroPad(date.getDate())}`
+        const fileName = `${nanoid(30)}.${extension}`;
+        const id = `${firstPart}-${fileName}`;
+
+        const mediaStoragePath = rightFilePad(config.fs.rootPath) + '.media/';
+        const folderPath = mediaStoragePath +  firstPart.replace(/\-/g, '/');
+        const fullFilePath = folderPath + '/' + fileName;
+
+        fs.stat(folderPath).then(stat => {
+            if (!stat.isDirectory()) {
+                throw new Error('media storage is not a directory' + folderPath)
+            } 
+        })
+        .catch(() => {
+            return fs.mkdirs(folderPath);
+        })
+        .then(() => file.mv(fullFilePath))
+        .then(() => {
+            res.json({
+                url: `/v1/media/${id}`
+            })
+        })
+        .catch(err => {
+            console.error('Failed to store media file in ' + fullFilePath, err);
+            res.$serverError('Failed to upload file');
+        });
+    };
+}
+
+export function fsDownloadMediaFile(config) {
+    return (req, res) => {
+        const objectId = req.params.objectId;
+
+        if (objectId.length < 11) {
+            res.status(404);
+            res.send('Not found');
+            return;
+        }
+
+        const mediaStoragePath = rightFilePad(config.fs.rootPath) + '.media/';
+        const folderPart = safePath(objectId.substring(0, 10).replace(/\-/g, '/'));
+        const fileName = objectId.substring(11).replace(/\//g, '');
+        const fullFilePath = mediaStoragePath + folderPart + '/' + fileName;
+        fs.stat(fullFilePath).then(stat => {
+            if (!stat.isFile()) {
+                throw new Error('Not a file');
+            }
+            res.download(fullFilePath);
+        })
+        .catch(err => {
+            res.status(404);
+            res.send('Not found');
+        })
+    };
+}
+
+function leftZeroPad(number) {
+    if (number >= 0 && number < 10) {
+        return '0' + number;
+    }
+    return '' + number;
+}
+
+function getFileExtension(name) {
+    const idx = name.lastIndexOf('.');
+    if (idx > 0) {
+        return name.substring(idx + 1);
+    }
+    return '';
+}
+
+function rightFilePad(path) {
+    if (path.charAt(path.length - 1) !== '/') {
+        return path + '/';
+    }
+    return path;
 }
