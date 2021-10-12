@@ -44,11 +44,7 @@ export function fsDeleteScheme(config) {
 
         schemeId = schemeId.replace(/\//g, '');
         if (schemeId.length === 0) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            })
+            res.$apiBadRequest('Invalid request: scheme id is empty');
             return;
         }
 
@@ -64,18 +60,11 @@ export function fsDeleteScheme(config) {
             return fs.unlink(fullPath);
         })
         .then(() => {
-            res.json({
-                status: 'ok',
-                message: 'Removed scheme ' + schemeId
-            });
+            res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
             console.error('Failed to delete scheme file', fullPath, err);
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to delete scheme'
-            });
+            res.$serverError('Failed to delete scheme')
         })
     };
 }
@@ -90,11 +79,7 @@ export function fsGetScheme(config) {
 
         schemeId = schemeId.replace(/\//g, '');
         if (schemeId.length === 0) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            })
+            res.$apiBadRequest('Invalid request: scheme id is empty');
             return;
         }
 
@@ -106,12 +91,8 @@ export function fsGetScheme(config) {
         })
         .catch(err => {
             console.error('Failed to read scheme file', fullPath, err);
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to create scheme'
-            });
-        })
+            res.$serverError('Failed to create scheme');
+        });
     };
 }
 
@@ -125,14 +106,9 @@ export function fsSaveScheme(config) {
 
         schemeId = schemeId.replace(/\//g, '');
         if (schemeId.length === 0) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            })
+            res.$apiBadRequest('Invalid request: scheme id is empty');
             return;
         }
-
 
         const realPath = config.fs.rootPath + path;
         const fullPath = realPath + '/' + schemeId + schemioExtension;
@@ -153,11 +129,7 @@ export function fsSaveScheme(config) {
         })
         .catch(err => {
             console.error(err);
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to create scheme'
-            });
+            res.$serverError('Failed to create scheme');
         });
     };
 }
@@ -170,11 +142,7 @@ export function fsCreateScheme(config) {
         const scheme = req.body;
 
         if (!validateFileName(scheme.name)) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            });
+            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
             return;
         }
         const id = shortid.generate();
@@ -186,12 +154,8 @@ export function fsCreateScheme(config) {
             res.json(scheme);
         })
         .catch(err => {
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to create scheme'
-            });
-        })
+            res.$serverError('Failed to create scheme');
+        });
     };
 }
 
@@ -199,11 +163,8 @@ export function fsDeleteDirectory(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
         if (!validateFileName(req.query.name)) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            })
+            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
+            return;
         }
 
         const realPath = config.fs.rootPath + path + '/' + req.query.name;
@@ -218,15 +179,11 @@ export function fsDeleteDirectory(config) {
             res.json({
                 status: 'ok',
                 message: `Removed directory: ${path}/${req.query.name}`
-            })
+            });
         })
         .catch(err => {
             console.error('Failed to delete a dir', realPath, err);
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to delete directory'
-            });
+            res.$serverError('Failed to delete directory');
         });
     };
 }
@@ -235,11 +192,8 @@ export function fsCreateDirectory(config) {
     return (req, res) => {
         const dirBody = req.body;
         if (!validateFileName(dirBody.name)) {
-            res.status(400);
-            res.json({
-                error: 'BAD_REQUEST',
-                message: 'Invalid request'
-            })
+            res.$apiBadRequest('Invalid request: directory name contains illegal characters');
+            return;
         }
 
         const path = safePath(dirBody.path);
@@ -258,11 +212,7 @@ export function fsCreateDirectory(config) {
             });
         })
         .catch(err => {
-            res.status(500);
-            res.json({
-                error: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to create directory'
-            });
+            res.$serverError('Failed to create directory');
         });
     };
 }
@@ -332,8 +282,7 @@ export function fsListFilesRoute(config) {
             });
         }).catch(err => {
             console.error('Could not find files in ', path, err);
-            res.status = 404;
-            res.json({error: 'NOT_FOUND'});
+            res.$apiNotFound('Such path does not exist');
         });
     }
 }

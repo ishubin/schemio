@@ -8,6 +8,7 @@ import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
 import { fsCreateDirectory, fsCreateScheme, fsDeleteDirectory, fsDeleteScheme, fsGetScheme, fsListFilesRoute, fsSaveScheme } from './fs/fs.js';
 import { loadConfig } from './config.js';
+import { apiMiddleware } from './middleware.js';
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
@@ -28,6 +29,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/assets', express.static('assets'));
+app.use('/v1', apiMiddleware);
 
 app.get('/v1/fs/list', fsListFilesRoute(config));
 app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
