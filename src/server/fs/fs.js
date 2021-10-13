@@ -313,8 +313,8 @@ export function fsUploadMediaFile(config) {
         const date = new Date();
 
         const firstPart = `${date.getFullYear()}-${leftZeroPad(date.getMonth())}-${leftZeroPad(date.getDate())}`
-        const fileName = `${nanoid(30)}.${extension}`;
-        const id = `${firstPart}-${fileName}`;
+        const id = nanoid(30);
+        const fileName = `${id}.${extension}`;
 
         const mediaStoragePath = rightFilePad(config.fs.rootPath) + '.media/';
         const folderPath = mediaStoragePath +  firstPart.replace(/\-/g, '/');
