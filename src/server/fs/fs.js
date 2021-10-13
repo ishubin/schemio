@@ -43,6 +43,50 @@ function safePath(path) {
     return path;
 }
 
+export function fsPatchScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            schemeId = '';
+        }
+
+        schemeId = schemeId.replace(/\//g, '');
+        if (schemeId.length === 0) {
+            res.$apiBadRequest('Invalid request: scheme id is empty');
+            return;
+        }
+
+        const realPath = rightFilePad(config.fs.rootPath) + path;
+        const fullPath = realPath + '/' + schemeId + schemioExtension;
+
+        const patchRequest = req.body;
+        
+        fs.readFile(fullPath).then(content => {
+            const scheme = JSON.parse(content);
+
+            if (patchRequest.hasOwnProperty('name')) {
+                const newName = patchRequest.name.trim();
+                if (newName.length === 0) {
+                    throw new Error('Empty name');
+                }
+
+                scheme.name = newName;
+                return fs.writeFile(fullPath, JSON.stringify(scheme));
+            }
+        })
+        .then(() => {
+            res.json({
+                status: 'ok'
+            });
+        })
+        .catch(err => {
+            console.error('Failed to patch scheme', fullPath, err);
+            res.$serverError('Failed to patch scheme')
+        })
+    };
+}
+
 export function fsDeleteScheme(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
@@ -190,10 +234,6 @@ export function fsPatchDirectory(config) {
                 throw new Error('Not a directory');
             }
         })
-        .catch(err => {
-            res.$apiNotFound();
-            return;
-        })
         .then(() => {
             const newPath = rightFilePad(config.fs.rootPath) + path + '/' + newName;
             return fs.move(realPath, newPath);
@@ -224,10 +264,6 @@ export function fsDeleteDirectory(config) {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
-        })
-        .catch(err => {
-            res.$apiNotFound();
-            return;
         })
         .then(() => {
             return fs.rmdir(realPath, {recursive: true});

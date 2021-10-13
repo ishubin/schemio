@@ -237,11 +237,11 @@ export default {
                 this.renameEntryModal.errorMessage = 'Name should not be empty';
                 return;
             }
+            const oldName = this.entries[this.renameEntryModal.entryIdx].name;
+            if (oldName === this.renameEntryModal.name) {
+                return;
+            }
             if (this.renameEntryModal.kind === 'dir') {
-                const oldName = this.entries[this.renameEntryModal.entryIdx].name;
-                if (oldName === this.renameEntryModal.name) {
-                    return;
-                }
                 this.apiClient.renameDirectory(oldName, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
@@ -250,7 +250,19 @@ export default {
                     if (err.response  && err.response.status === 400) {
                         this.renameEntryModal.errorMessage = 'Such directory name is not allowed';
                     } else {
-                        this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename directory';
+                        this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this directory';
+                    }
+                });
+            } else if (this.renameEntryModal.kind === 'scheme') {
+                this.apiClient.renameScheme(this.entries[this.renameEntryModal.entryIdx].id, this.renameEntryModal.name).then(() => {
+                    this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
+                    this.renameEntryModal.shown = false;
+                })
+                .catch(err => {
+                    if (err.response  && err.response.status === 400) {
+                        this.renameEntryModal.errorMessage = 'Such scheme name is not allowed';
+                    } else {
+                        this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this scheme';
                     }
                 });
             }

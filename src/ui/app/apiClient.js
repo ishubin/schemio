@@ -31,11 +31,15 @@ export function createApiClient(path) {
         },
 
         renameDirectory(oldName, newName) {
-            return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(oldName)}`, {name: newName});
+            return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(oldName)}`, {name: newName}).then(unwrapAxios);
         },
 
         getScheme(schemeId) {
             return axios.get(this._getSchemeUrl(schemeId)).then(unwrapAxios);
+        },
+
+        renameScheme(schemeId, newName) {
+            return axios.patch(this._getSchemeUrl(schemeId), {name: newName}).then(unwrapAxios);
         },
 
 
