@@ -30,6 +30,10 @@ export function createApiClient(path) {
             return axios.post('/v1/fs/dir', { name, path }).then(unwrapAxios);
         },
 
+        renameDirectory(oldName, newName) {
+            return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(oldName)}`, {name: newName});
+        },
+
         getScheme(schemeId) {
             return axios.get(this._getSchemeUrl(schemeId)).then(unwrapAxios);
         },

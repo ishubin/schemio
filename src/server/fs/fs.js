@@ -168,6 +168,48 @@ export function fsCreateScheme(config) {
     };
 }
 
+export function fsPatchDirectory(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        if (!validateFileName(req.query.name)) {
+            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
+            return;
+        }
+        let newName = null;
+        if (req.body.hasOwnProperty('name')) {
+            newName = req.body.name.trim();
+        }
+        if (!validateFileName(newName)) {
+            res.$apiBadRequest('Invalid directory name');
+            return;
+        }
+
+        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + req.query.name;
+        fs.stat(realPath).then(stat => {
+            if (!stat.isDirectory()) {
+                throw new Error('Not a directory');
+            }
+        })
+        .catch(err => {
+            res.$apiNotFound();
+            return;
+        })
+        .then(() => {
+            const newPath = rightFilePad(config.fs.rootPath) + path + '/' + newName;
+            return fs.move(realPath, newPath);
+        })
+        .then(() => {
+            res.json({
+                status: 'ok'
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            res.$serverError('Failed to rename a directory');
+        });
+    };
+}
+
 export function fsDeleteDirectory(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
@@ -182,6 +224,12 @@ export function fsDeleteDirectory(config) {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
+        })
+        .catch(err => {
+            res.$apiNotFound();
+            return;
+        })
+        .then(() => {
             return fs.rmdir(realPath, {recursive: true});
         })
         .then(() => {
@@ -237,6 +285,9 @@ export function fsListFilesRoute(config) {
             const entries = [];
 
             _.forEach(files, file => {
+                if (file.startsWith('.')) {
+                    return;
+                }
                 const stat = fs.statSync(`${realPath}/${file}`);
 
                 let entryPath = path + '/';

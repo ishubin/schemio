@@ -17,10 +17,10 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="entry in entries">
+                <tr v-for="(entry, entryIdx) in entries">
                     <td>
                         <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">
-                            <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}} / </span>
+                            <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                         </a>
                         <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`">
                             <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
@@ -33,6 +33,7 @@
                     <td class="operation-column">
                         <menu-dropdown name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
                             @delete="onDeleteEntry(entry)"
+                            @rename="onRenameEntry(entry, entryIdx)"
                             />
                     </td>
                 </tr>
@@ -55,6 +56,12 @@
             </span>
 
             <div class="msg msg-error" v-if="deleteEntryModal.errorMessage">{{deleteEntryModal.errorMessage}}</div>
+        </modal>
+
+        <modal v-if="renameEntryModal.shown" :title="renameEntryModalTitle" @close="renameEntryModal.shown = false" primaryButton="Rename" @primary-submit="confirmEntryRename()">
+            <input ref="renameEntryModalInput" type="text" class="textfield" v-model="renameEntryModal.name"/>
+
+            <div class="msg msg-error" v-if="renameEntryModal.errorMessage">{{renameEntryModal.errorMessage}}</div>
         </modal>
 
         <CreateNewSchemeModal v-if="newSchemeModal.shown"
@@ -95,7 +102,12 @@ export default {
                     name: 'Delete',
                     iconClass: 'fas fa-trash',
                     event: 'delete'
+                }, {
+                    name: 'Rename',
+                    iconClass: 'fas fa-edit',
+                    event: 'rename'
                 }];
+
                 if (entry.kind === 'scheme') {
                     entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
                 }
@@ -126,6 +138,14 @@ export default {
 
             deleteEntryModal: {
                 entry: null,
+                shown: false,
+                errorMessage: null
+            },
+
+            renameEntryModal: {
+                entryIdx: -1,
+                name: '',
+                kind: null,
                 shown: false,
                 errorMessage: null
             },
@@ -195,6 +215,56 @@ export default {
                     this.deleteEntryModal.errorMessage = 'Failed to delete scheme';
                 });
             }
+        },
+
+        onRenameEntry(entry, entryIdx) {
+            this.renameEntryModal.name = entry.name;
+            this.renameEntryModal.entryIdx = entryIdx;
+            this.renameEntryModal.kind = entry.kind;
+            this.renameEntryModal.shown = true;
+
+            this.$nextTick(() => {
+                const input = this.$refs.renameEntryModalInput;
+                if (input) {
+                    input.focus();
+                }
+            });
+        },
+
+        confirmEntryRename() {
+            let name = this.renameEntryModal.name.trim();
+            if (name.length === 0) {
+                this.renameEntryModal.errorMessage = 'Name should not be empty';
+                return;
+            }
+            if (this.renameEntryModal.kind === 'dir') {
+                const oldName = this.entries[this.renameEntryModal.entryIdx].name;
+                if (oldName === this.renameEntryModal.name) {
+                    return;
+                }
+                this.apiClient.renameDirectory(oldName, this.renameEntryModal.name).then(() => {
+                    this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
+                    this.renameEntryModal.shown = false;
+                })
+                .catch(err => {
+                    if (err.response  && err.response.status === 400) {
+                        this.renameEntryModal.errorMessage = 'Such directory name is not allowed';
+                    } else {
+                        this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename directory';
+                    }
+                });
+            }
+        }
+    },
+
+    computed: {
+        renameEntryModalTitle() {
+            if (this.renameEntryModal.kind === 'dir') {
+                return 'Rename directory';
+            } else if (this.renameEntryModal.kind === 'scheme') {
+                return 'Rename scheme';
+            }
+            return 'Rename';
         }
     }
 }
