@@ -115,6 +115,7 @@ h5 {
 /******************* Middle content *********************/
 .middle-content {
     max-width: 1100px;
+    width: 100%;
     margin-left: auto;
     margin-right: auto;
 }
@@ -3347,4 +3348,57 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 .comment-deleting {
     opacity: 0.4;
+}
+
+
+/************************** Schemio App ****************************/
+table.entries-table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+table.entries-table thead tr {
+    border-bottom: 2px solid var(--faint-weak-down);
+}
+table.entries-table thead th {
+    text-align: left;
+    font-weight: bold;
+}
+table.entries-table tbody .entry-link {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    height: 40px;
+
+    padding: 5px;
+    color: var(--accent-strong-down);
+    text-decoration: none;
+}
+table.entries-table tbody .entry-link .entry-link-text {
+    margin-left: 10px;
+    white-space: nowrap;
+}
+table.entries-table tbody .entry-link > .icon {
+    width: 50px;
+}
+table.entries-table tbody .entry-link .scheme-preview {
+    max-width: 50px;
+    max-height: 40px;
+}
+table.entries-table tbody tr {
+    border-bottom: 1px solid var(--faint-weak);
+}
+table.entries-table tbody tr:last-child {
+    border-bottom: none;
+}
+table.entries-table tbody tr:hover {
+    background: var(--faint-weak);
+}
+table.entries-table tbody td.operation-column {
+    width: 1%;
+    white-space: nowrap;
+}
+table.entries-table tbody td.time-column {
+    width: 1%;
+    white-space: nowrap;
 }

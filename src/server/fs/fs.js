@@ -296,6 +296,66 @@ export function fsListFilesRoute(config) {
     }
 }
 
+export function fsCreateSchemePreview(config) {
+    return (req, res) => {
+        const svg = req.body.svg;
+        if (!svg) {
+            res.$apiBadRequest('Missing svg code');
+            return;
+        }
+        
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            res.$apiBadRequest('Missing id paramter');
+            return;
+        }
+        
+        schemeId = schemeId.replace(/(\/|\\)/g, '');
+
+        const folderPath = rightFilePad(config.fs.rootPath) + '.media/previews/';
+        fs.stat(folderPath).then(stat => {
+            if (!stat.isDirectory) {
+                throw new Error('Not a directory: ' + folderPath);
+            }
+        })
+        .catch(err => {
+            return fs.mkdirs(folderPath);
+        })
+        .then(() => {
+            return fs.writeFile(`${folderPath}/${schemeId}`, svg);
+        })
+        .then(() => {
+            res.json({
+                status: 'ok'
+            });
+        })
+        .catch(err => {
+            console.error('Failed to save scheme preview', err);
+            res.$serverError('Failed to save scheme preview');
+        });
+    };
+}
+
+export function fsDownloadSchemePreview(config) {
+    return (req, res) => {
+        const schemeId = req.params.schemeId;
+
+        const fullFilePath = `${rightFilePad(config.fs.rootPath)}.media/previews/${schemeId}`;
+        fs.stat(fullFilePath).then(stat => {
+            if (!stat.isFile()) {
+                throw new Error('Not a file: ' + fullFilePath);
+            }
+            res.setHeader('content-type', 'image/svg+xml');
+            res.download(fullFilePath);
+        })
+        .catch(err => {
+            res.status(404);
+            res.send('Not found');
+        })
+    };
+}
+
+
 export function fsUploadMediaFile(config) {
     return (req, res) => {
         const file = req.files.file;
@@ -331,7 +391,7 @@ export function fsUploadMediaFile(config) {
         .then(() => file.mv(fullFilePath))
         .then(() => {
             res.json({
-                url: `/v1/media/${firstPart}-${id}.${extension}`
+                url: `/media/${firstPart}-${id}.${extension}`
             })
         })
         .catch(err => {

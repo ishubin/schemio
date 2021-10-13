@@ -93,6 +93,11 @@ export function createApiClient(path) {
         },
 
         uploadSchemeSvgPreview(schemeId, svgCode) {
+            let url = '/v1/fs/scheme-preview?id=' + encodeURIComponent(schemeId);
+            if (path) {
+                url = url + '&path=' + encodeURIComponent(path);
+            }
+            return axios.post(url, {svg: svgCode}).then(unwrapAxios);
         },
 
         uploadFile(file) {

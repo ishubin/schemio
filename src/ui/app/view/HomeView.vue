@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="middle-content">
         <div class="fs-toolbar">
             <span class="btn btn-secondary" @click="showNewDirectoryModel()">
                 <i class="fas fa-folder-plus"></i> New directory
@@ -19,13 +19,18 @@
             <tbody>
                 <tr v-for="entry in entries">
                     <td>
-                        <a v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`"><i class="fas fa-folder fa-2x"></i> {{entry.name}} / </a>
-                        <a v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`"><i class="fas fa-file fa-2x"></i> {{entry.name}}</a>
+                        <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">
+                            <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}} / </span>
+                        </a>
+                        <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`">
+                            <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
+                            <span class="entry-link-text">{{entry.name}}</span>
+                        </a>
                     </td>
-                    <td>
+                    <td class="time-column">
                         <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
                     </td>
-                    <td>
+                    <td class="operation-column">
                         <menu-dropdown name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
                             @delete="onDeleteEntry(entry)"
                             />
@@ -91,6 +96,9 @@ export default {
                     iconClass: 'fas fa-trash',
                     event: 'delete'
                 }];
+                if (entry.kind === 'scheme') {
+                    entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
+                }
             });
             this.entries = result.entries;
 
