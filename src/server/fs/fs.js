@@ -123,7 +123,7 @@ export function fsSaveScheme(config) {
         const fullPath = realPath + '/' + schemeId + schemioExtension;
 
         const scheme = req.body;
-        scheme.id = path + '/' + scheme.name + schemioExtension;
+        scheme.id = schemeId;
         scheme.path = path;
 
         fs.stat(fullPath)
