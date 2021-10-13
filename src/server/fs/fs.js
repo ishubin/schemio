@@ -331,7 +331,7 @@ export function fsUploadMediaFile(config) {
         .then(() => file.mv(fullFilePath))
         .then(() => {
             res.json({
-                url: `/v1/media/${id}`
+                url: `/v1/media/${firstPart}-${id}.${extension}`
             })
         })
         .catch(err => {
