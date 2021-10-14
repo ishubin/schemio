@@ -22,6 +22,10 @@ export function createApiClient(path) {
             return axios.get(url).then(unwrapAxios);
         },
 
+        moveDir(oldPath, newPath) {
+            return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
+        },
+
         deleteDir(name) {
             return axios.delete(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`).then(unwrapAxios);
         },
@@ -40,6 +44,10 @@ export function createApiClient(path) {
 
         renameScheme(schemeId, newName) {
             return axios.patch(this._getSchemeUrl(schemeId), {name: newName}).then(unwrapAxios);
+        },
+
+        moveScheme(oldPath, schemeId, newPath) {
+            return axios.post(`/v1/fs/movescheme?path=${encodeURIComponent(oldPath)}&id=${encodeURIComponent(schemeId)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
         },
 
 

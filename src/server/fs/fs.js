@@ -212,6 +212,43 @@ export function fsCreateScheme(config) {
     };
 }
 
+export function fsMoveDirectory(config) {
+    return (req, res) => {
+        const src = safePath(req.query.src);
+        const dst = safePath(req.query.dst);
+
+        const realSrc = rightFilePad(config.fs.rootPath) + src;
+        const realDst = rightFilePad(config.fs.rootPath) + dst;
+
+        Promise.all([fs.stat(realSrc), fs.stat(realDst)])
+        .then(values => {
+            const [srcStat, dstStat] = values;
+            if (!srcStat.isDirectory) {
+                throw new Error('Source is not a directory');
+            }
+            if (!dstStat.isDirectory) {
+                throw new Error('Destination is not a directory');
+            }
+        })
+        .then(() => {
+            let name = src;
+            const idx = src.lastIndexOf('/');
+            if (idx >= 0)  {
+                name = src.substring(idx + 1);
+            }
+
+            return fs.move(realSrc, `${realDst}/${name}`);
+        })
+        .then(() => {
+            res.json({ satus: 'ok' });
+        })
+        .catch(err => {
+            console.error(err);
+            res.$serverError('Failed to move directory');
+        })
+    };
+}
+
 export function fsPatchDirectory(config) {
     return (req, res) => {
         const path = safePath(req.query.path);

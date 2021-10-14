@@ -3401,4 +3401,61 @@ table.entries-table tbody td.operation-column {
 table.entries-table tbody td.time-column {
     width: 1%;
     white-space: nowrap;
+    font-size: 14px;
+}
+
+
+.entries-container {
+    height: 400px;
+    overflow: auto;
+    border: 1px solid var(--faint-strong);
+    background: var(--base-weak);
+    padding: 5px;
+}
+.entries-container ul.entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.entries-container ul.entries li {
+    position: relative;
+}
+.entries-container ul.entries li .entry {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    height: 40px;
+    width: 100%;
+    padding: 2px 5px;
+    color: var(--accent-strong-down);
+    border-bottom: 1px solid var(--faint-weak);
+    cursor: pointer;
+    cursor: hand;
+}
+.entries-container ul.entries li .entry .entry-link-text {
+    margin-left: 10px;
+    flex: 1;
+    white-space: nowrap;
+}
+.entries-container ul.entries li .entry:hover {
+    background: var(--accent-weak);
+}
+.entries-container ul.entries li .entry:last-child {
+    border-bottom: none;
+}
+.entries-container ul.entries li .entry.disabled {
+    opacity: 0.3;
+}
+.entries-container ul.entries li .entry.disabled:hover {
+    background: none;
+    cursor: default;
+}
+.entries-container ul.entries li .entry-move-button {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    display: none;
+}
+.entries-container ul.entries li:hover .entry-move-button {
+    display: inline-block;
 }

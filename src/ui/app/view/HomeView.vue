@@ -28,12 +28,13 @@
                         </a>
                     </td>
                     <td class="time-column">
-                        <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
+                        <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
                     </td>
                     <td class="operation-column">
                         <menu-dropdown name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
                             @delete="onDeleteEntry(entry)"
                             @rename="onRenameEntry(entry, entryIdx)"
+                            @move="onMoveEntry(entry, entryIdx)"
                             />
                     </td>
                 </tr>
@@ -70,6 +71,13 @@
             @scheme-created="onSchemeCreated"
             @close="newSchemeModal.shown = false"
         />
+
+        <MoveToFolderModal v-if="moveEntryModal.shown"
+            :apiClient="apiClient"
+            :source="moveEntryModal.source"
+            :path="path"
+            @close="moveEntryModal.shown = false"
+            @moved="onEntryMoved"/>
     </div>
 </template>
 
@@ -79,6 +87,7 @@ import forEach from 'lodash/forEach';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
+import MoveToFolderModal from '../components/MoveToFolderModal.vue';
 
 
 function isValidCharCode(code) {
@@ -91,7 +100,7 @@ function isValidCharCode(code) {
 
 export default {
 
-    components: {Modal, CreateNewSchemeModal, MenuDropdown},
+    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
     
     beforeMount() {
         this.apiClient.listEntries(this.path)
@@ -106,6 +115,10 @@ export default {
                     name: 'Rename',
                     iconClass: 'fas fa-edit',
                     event: 'rename'
+                }, {
+                    name: 'Move',
+                    iconClass: 'fas fa-share',
+                    event: 'move'
                 }];
 
                 if (entry.kind === 'scheme') {
@@ -148,6 +161,13 @@ export default {
                 kind: null,
                 shown: false,
                 errorMessage: null
+            },
+
+            moveEntryModal: {
+                entryIdx: -1,
+                shown: false,
+                errorMessage: null,
+                source: null
             },
 
             apiClient: createApiClient(path)
@@ -266,6 +286,19 @@ export default {
                     }
                 });
             }
+        },
+
+        onMoveEntry(entry, entryIdx) {
+            this.moveEntryModal.entryIdx = entryIdx;
+            this.moveEntryModal.errorMessage = null;
+            this.moveEntryModal.shown = true;
+            this.moveEntryModal.source = entry;
+        },
+
+        onEntryMoved() {
+            this.entries.splice(this.moveEntryModal.entryIdx, 1);
+            this.moveEntryModal.shown = false;
+            this.$forceUpdate();
         }
     },
 
@@ -278,6 +311,6 @@ export default {
             }
             return 'Rename';
         }
-    }
+    },
 }
 </script>
