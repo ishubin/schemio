@@ -2,7 +2,12 @@
     <Modal title="Move to category" @close="$emit('close')" :primaryButton="primaryButton" @primary-submit="moveToCurrentLocation">
         <div v-if="errorMessage" class="msg msg-error">{{errorMessage}}</div>
 
-        <div class="entries-path">{{selectedPath}}</div>
+        <ul class="breadcrumbs">
+            <li v-for="(entry, entryIdx) in breadcrumbs">
+                <span class="breadcrumb-link" @click="selectNewPath(entry.path)">{{entry.name}}</span>
+                <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
+            </li>
+        </ul>
         <div class="entries-container">
             <div v-if="isLoading">
                 <i class="fas fa-spinner fa-spin fa-1x"></i>
@@ -24,6 +29,7 @@
 import Modal from '../../components/Modal.vue';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
+import { buildBreadcrumbs } from '../breadcrumbs';
 
 export default {
     components: { Modal },
@@ -34,12 +40,13 @@ export default {
     },
 
     beforeMount() {
-        this.loadEntries();
+        this.selectNewPath(this.path);
     },
 
     data() {
         return {
             selectedPath: this.path,
+            breadcrumbs: [],
             isLoading: true,
             entries: [],
             cachedEntries: new Map(),
@@ -76,7 +83,14 @@ export default {
         },
 
         selectNewPath(path) {
+            if (this.source.kind === 'dir' && this.source.path === path) {
+                return;
+            }
             this.selectedPath = path;
+            
+            this.breadcrumbs = buildBreadcrumbs(path);
+            this.$forceUpdate();
+
             this.loadEntries();
         },
 

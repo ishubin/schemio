@@ -3459,3 +3459,27 @@ table.entries-table tbody td.time-column {
 .entries-container ul.entries li:hover .entry-move-button {
     display: inline-block;
 }
+
+
+
+ul.breadcrumbs {
+    list-style: none;
+    margin: 10px 0 10px 0;
+    padding: 0;
+}
+ul.breadcrumbs li {
+    display: inline-block;
+}
+ul.breadcrumbs li .breadcrumb-link {
+    color: var(--accent-strong);
+    cursor: pointer;
+    cursor: hand;
+}
+ul.breadcrumbs li .breadcrumb-link:hover {
+    color: var(--accent-faint);
+}
+ul.breadcrumbs li .breadcrumb-separator {
+    color: var(--base-strong-up-up);
+    margin-left: 5px;
+    margin-right: 5px;
+}

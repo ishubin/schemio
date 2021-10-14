@@ -8,6 +8,15 @@
                 <i class="fas fa-file"></i> Create Scheme
             </span>
         </div>
+
+
+        <ul class="breadcrumbs">
+            <li v-for="(entry, entryIdx) in breadcrumbs">
+                <a class="breadcrumb-link" :href="`?path=${encodeURIComponent(entry.path)}`">{{entry.name}}</a>
+                <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
+            </li>
+        </ul>
+
         <table class="entries-table">
             <thead>
                 <tr>
@@ -31,7 +40,7 @@
                         <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
                     </td>
                     <td class="operation-column">
-                        <menu-dropdown name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
+                        <menu-dropdown v-if="entry.name !== '..'" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
                             @delete="onDeleteEntry(entry)"
                             @rename="onRenameEntry(entry, entryIdx)"
                             @move="onMoveEntry(entry, entryIdx)"
@@ -88,6 +97,7 @@ import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
+import { buildBreadcrumbs } from '../breadcrumbs';
 
 
 function isValidCharCode(code) {
@@ -136,6 +146,7 @@ export default {
         const path = this.$route.query.path || ''; 
         return {
             path: path,
+            breadcrumbs: buildBreadcrumbs(path),
             entries: [],
             errorMessage: null,
 
