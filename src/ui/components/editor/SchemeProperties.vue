@@ -138,7 +138,10 @@ import Tooltip from '../Tooltip.vue';
 import { prepareSchemeForSaving } from '../../scheme/Scheme'
 
 export default {
-    props: ['schemeContainer'],
+    props: {
+        schemeContainer: { type: Object },
+        categoriesEnabled: { type: Boolean, default: true }
+    },
     components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel, Tooltip},
     mounted() {
         if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
@@ -222,7 +225,7 @@ export default {
         },
 
         supportsCategoryModifications() {
-            return this.$store.state.apiClient && this.$store.state.apiClient.getCategoryTree;
+            return this.categoriesEnabled && this.$store.state.apiClient && this.$store.state.apiClient.getCategoryTree;
         }
     },
 

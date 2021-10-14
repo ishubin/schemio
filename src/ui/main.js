@@ -19,6 +19,7 @@ window.Schemio = {
      * @param {Object} options.schemeDiff - {modifiedScheme: Object}
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
+     * @param {Boolean} options.categoriesEnabled
      * @param {Object} options.comments
      * @param {Object} options.apiClient - API client
      */
@@ -32,11 +33,12 @@ window.Schemio = {
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {props: {
-                scheme       : options.scheme || null,
-                schemeDiff   : options.schemeDiff || null,
-                editAllowed  : options.editAllowed || false,
-                menuOptions  : options.menuOptions || [],
-                comments     : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
+                scheme           : options.scheme || null,
+                schemeDiff       : options.schemeDiff || null,
+                editAllowed      : options.editAllowed || false,
+                categoriesEnabled: options.categoriesEnabled || false,
+                menuOptions      : options.menuOptions || [],
+                comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
             }})
         }); 
     }

@@ -179,6 +179,7 @@
                         <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
+                                :categories-enabled="categoriesEnabled"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
 
                             <scheme-details v-else :scheme-container="schemeContainer"></scheme-details>
@@ -432,11 +433,12 @@ export default {
     },
 
     props: {
-        scheme       : {type: Object, default: null},
-        schemeDiff   : {type: Object, default: null},
-        editAllowed  : {type: Boolean, default: false},
-        menuOptions  : {type: Array, default: []},
-        comments     : {type: Object, default: {
+        scheme           : {type: Object, default: null},
+        schemeDiff       : {type: Object, default: null},
+        editAllowed      : {type: Boolean, default: false},
+        categoriesEnabled: {type: Boolean, default: true},
+        menuOptions      : {type: Array, default: []},
+        comments         : {type: Object, default: {
             enabled: false,
             isAdmin: false,
             allowed: false,

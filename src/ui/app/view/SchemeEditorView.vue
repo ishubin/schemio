@@ -3,6 +3,7 @@
         <SchemioEditorApp v-if="scheme"
             :scheme="scheme"
             :editAllowed="true"
+            :categoriesEnabled="false"
         />
     </div>
 </template>
