@@ -43,6 +43,50 @@ function safePath(path) {
     return path;
 }
 
+export function fsMoveScheme(config) {
+    return (req, res) => {
+        const path = safePath(req.query.path);
+        let schemeId = req.query.id;
+        if (!schemeId) {
+            schemeId = '';
+        }
+
+        schemeId = schemeId.replace(/\//g, '');
+        if (schemeId.length === 0) {
+            res.$apiBadRequest('Invalid request: scheme id is empty');
+            return;
+        }
+
+        const realPath = rightFilePad(config.fs.rootPath) + path;
+        const fileName = schemeId + schemioExtension;
+        const fullPath = realPath + '/' + fileName;
+
+        const dst = safePath(req.query.dst);
+        const realDst = rightFilePad(config.fs.rootPath) + dst;
+
+        Promise.all([fs.stat(fullPath), fs.stat(realDst)])
+        .then(values => {
+            const [srcStat, dstStat] = values;
+            if (!srcStat.isFile) {
+                throw new Error('Source is not a file');
+            }
+            if (!dstStat.isDirectory) {
+                throw new Error('Destination is not a directory');
+            }
+        })
+        .then(() => {
+            return fs.move(fullPath, `${realDst}/${fileName}`);
+        })
+        .then(() => {
+            res.json({ satus: 'ok' });
+        })
+        .catch(err => {
+            console.error(err);
+            res.$serverError('Failed to move directory');
+        })
+    };
+}
+
 export function fsPatchScheme(config) {
     return (req, res) => {
         const path = safePath(req.query.path);
@@ -248,6 +292,7 @@ export function fsMoveDirectory(config) {
         })
     };
 }
+
 
 export function fsPatchDirectory(config) {
     return (req, res) => {

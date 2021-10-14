@@ -1,5 +1,5 @@
 <template>
-    <Modal title="Move to category" @close="$emit('close')">
+    <Modal title="Move to category" @close="$emit('close')" :primaryButton="primaryButton" @primary-submit="moveToCurrentLocation">
         <div v-if="errorMessage" class="msg msg-error">{{errorMessage}}</div>
 
         <div class="entries-path">{{selectedPath}}</div>
@@ -90,6 +90,20 @@ export default {
                     this.$emit('moved');
                 });
             }
+        },
+
+        moveToCurrentLocation() {
+            this.moveTo(this.selectedPath);
+        },
+
+    },
+
+    computed: {
+        primaryButton() {
+            if (this.selectedPath !== this.path) {
+                return 'Move here';
+            }
+            return null;
         }
     }
 }

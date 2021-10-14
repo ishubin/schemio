@@ -6,7 +6,7 @@ import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
-import { fsCreateDirectory, fsCreateScheme, fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, fsDownloadMediaFile, fsDownloadSchemePreview, fsGetScheme, fsListFilesRoute, fsMoveDirectory, fsPatchDirectory, fsPatchScheme, fsSaveScheme, fsUploadMediaFile } from './fs/fs.js';
+import { fsCreateDirectory, fsCreateScheme, fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, fsDownloadMediaFile, fsDownloadSchemePreview, fsGetScheme, fsListFilesRoute, fsMoveDirectory, fsMoveScheme, fsPatchDirectory, fsPatchScheme, fsSaveScheme, fsUploadMediaFile } from './fs/fs.js';
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
@@ -46,6 +46,7 @@ app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config));
 app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config));
 
 app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
+app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
 
 app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
 app.patch('/v1/fs/scheme', jsonBodyParser, fsPatchScheme(config));
