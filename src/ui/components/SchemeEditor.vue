@@ -21,7 +21,6 @@
             @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
-            @export-embedded-requested="exportEmbedded"
             @export-svg-requested="exportAsSVG"
             @export-html-requested="exportHTMLModalShown = true"
             @zoom-changed="onZoomChanged"
@@ -240,8 +239,6 @@
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importScheme"/>
 
-        <export-embedded-modal v-if="exportEmbeddedModalShown" :scheme="schemeContainer.scheme" @close="exportEmbeddedModalShown = false"/>
-
         <create-new-scheme-modal v-if="newSchemePopup.show"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
@@ -333,7 +330,6 @@ import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
-import ExportEmbeddedModal from './editor/ExportEmbeddedModal.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import ImportSchemeModal from './editor/ImportSchemeModal.vue';
@@ -427,7 +423,6 @@ export default {
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel,
         SchemeChangeLogModal, Comments,
-        'export-embedded-modal': ExportEmbeddedModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -546,7 +541,6 @@ export default {
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
 
-            exportEmbeddedModalShown: false,
             exportHTMLModalShown: false,
             exportJSONModalShown: false,
             exportShapeModal: {
@@ -1125,10 +1119,6 @@ export default {
 
         exportAsJSON() {
             this.exportJSONModalShown = true;
-        },
-
-        exportEmbedded() {
-            this.exportEmbeddedModalShown= true;
         },
 
         exportAsSVG() {

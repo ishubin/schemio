@@ -254,7 +254,6 @@ export default {
         const defaultMenuDropDownOptions = [
             {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
             {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
-            {name: 'Export as embedded iframe', event: 'export-embedded-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
         ];
