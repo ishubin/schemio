@@ -52,11 +52,11 @@ export function createApiClient(path) {
 
 
         createArt(art) {
-            return Promise.resolve(null);
+            return axios.post('/v1/fs/art', art).then(unwrapAxios);
         },
 
         getAllArt() {
-            return Promise.resolve(null);
+            return axios.get('/v1/fs/art').then(unwrapAxios);
         },
 
         getGlobalArt() {
@@ -64,11 +64,11 @@ export function createApiClient(path) {
         },
 
         saveArt(artId, art) {
-            return Promise.resolve(null);
+            return axios.put(`/v1/fs/art/${artId}`, art).then(unwrapAxios);
         },
 
         deleteArt(artId) {
-            return Promise.resolve(null);
+            return axios.delete(`/v1/fs/art/${artId}`).then(unwrapAxios);
         },
 
         createNewScheme(scheme) {

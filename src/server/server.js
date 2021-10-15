@@ -6,7 +6,7 @@ import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
-import { fsCreateDirectory, fsCreateScheme, fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, fsDownloadMediaFile, fsDownloadSchemePreview, fsGetScheme, fsListFilesRoute, fsMoveDirectory, fsMoveScheme, fsPatchDirectory, fsPatchScheme, fsSaveScheme, fsUploadMediaFile } from './fs/fs.js';
+import { fsCreateArt, fsCreateDirectory, fsCreateScheme, fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, fsDownloadMediaFile, fsDownloadSchemePreview, fsGetArt, fsGetScheme, fsListFilesRoute, fsMoveDirectory, fsMoveScheme, fsPatchDirectory, fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, fsUploadMediaFile } from './fs/fs.js';
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
@@ -27,6 +27,8 @@ fs.readdir('conf/art', function (err, files) {
 });
 
 const app = express();
+const modification = false;
+const deletion = true;
 
 app.use(fileUpload({
     limits: {
@@ -59,9 +61,16 @@ app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
 app.get('/media/:objectId', fsDownloadMediaFile(config));
 app.get('/media/scheme-preview/:schemeId', jsonBodyParser, fsDownloadSchemePreview(config));
 
+app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
+app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
+
+app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
+app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
+
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);
 });
+
 
 app.get('*', (req, res) => {
     res.sendFile(`${cwd}/dist/assets/index.html`)

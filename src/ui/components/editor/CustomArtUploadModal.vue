@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="Create Art Icon" @close="$emit('close')" primary-button="Upload" @primary-submit="submitIcon()">
+    <modal title="Create Art Icon" @close="$emit('close')" primary-button="Create" @primary-submit="submitIcon()">
 
         <h5>Icon name</h5>
         <input class="textfield" type="text" v-model="iconName" placeholder="Name..."/>

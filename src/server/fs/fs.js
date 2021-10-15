@@ -597,6 +597,109 @@ export function fsDownloadMediaFile(config) {
     };
 }
 
+export function fsCreateArt(config) {
+    return (req, res) => {
+        const art = req.body;
+        if (!art.name || !art.url) {
+            res.$apiBadRequest('Invalid payload');
+            return;
+        }
+
+        const newArt = {
+            id: nanoid(),
+            name: art.name,
+            url: art.url
+        };
+
+        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+
+        fs.stat(artFile)
+        .catch(err => {
+            return fs.writeFile(artFile, '[]');
+        })
+        .then(() => {
+            return fs.readFile(artFile, 'utf-8');
+        })
+        .then(content => {
+            try {
+                return JSON.parse(content);
+            } catch(err) {
+                return [];
+            }
+        })
+        .then(existingArt => {
+            existingArt.push(newArt);
+            return fs.writeFile(artFile, JSON.stringify(existingArt));
+        })
+        .then(() => {
+            res.json(newArt);
+        })
+        .catch(err => {
+            console.error('Failed to create an art', err);
+        });
+    };
+}
+
+export function fsSaveDeleteArt(config, isDeletion) {
+    return (req, res) => {
+        const artId = req.params.artId;
+        let art = null;
+
+        if (!isDeletion) {
+            art = req.body;
+            if (!art.name || !art.url) {
+                res.$apiBadRequest('Invalid payload');
+                return;
+            }
+        }
+
+        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+        fs.readFile(artFile, 'utf-8').then(content => {
+            return JSON.parse(content);
+        })
+        .then(allArt => {
+            for (let i = 0; i < allArt.length; i++) {
+                if (allArt[i].id === artId) {
+                    if (isDeletion) {
+                        allArt.splice(i, 1);
+                    } else {
+                        allArt[i].name = art.name;
+                        allArt[i].url = art.url;
+                    }
+                    return allArt;
+                }
+            }
+            return null;
+        })
+        .then(modifiedArt => {
+            if (modifiedArt) {
+                return fs.writeFile(artFile, JSON.stringify(modifiedArt));
+            }
+        })
+        .then(() => {
+            res.json({
+                status: 'ok'
+            });
+        })
+        .catch(err => {
+            console.error('Failed to save art', err);
+            res.$serverError('Failed to save art');
+        })
+    };
+}
+
+export function fsGetArt(config) {
+    return (req, res) => {
+        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+        return fs.readFile(artFile).then(content => {
+            res.json(JSON.parse(content));
+        })
+        .catch(err => {
+            res.json([]);
+        });
+    };
+}
+
 function leftZeroPad(number) {
     if (number >= 0 && number < 10) {
         return '0' + number;
