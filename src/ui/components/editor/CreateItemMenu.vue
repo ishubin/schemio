@@ -57,7 +57,7 @@
                         v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
                         @mouseover="showPreviewArt(art)"
                         @mouseleave="stopPreviewArt(art)"
-                        @mousedown="onArtMouseDown($event, icon)"
+                        @mousedown="onArtMouseDown($event, art)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
                         >
