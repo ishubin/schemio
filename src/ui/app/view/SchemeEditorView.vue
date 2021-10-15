@@ -4,6 +4,7 @@
             :scheme="scheme"
             :editAllowed="true"
             :categoriesEnabled="false"
+            :userStylesEnabled="true"
         />
     </div>
 </template>

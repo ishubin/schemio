@@ -125,12 +125,15 @@ export function createApiClient(path) {
         },
 
         saveStyle(fill, strokeColor, textColor) {
+            return axios.post('/v1/fs/styles', { fill, strokeColor, textColor }).then(unwrapAxios);
         },
 
         getStyles() {
+            return axios.get('/v1/fs/styles').then(unwrapAxios);
         },
 
         deleteStyle(styleId) {
+            return axios.delete(`/v1/fs/styles/${styleId}`).then(unwrapAxios);
         },
 
         /**

@@ -6,7 +6,18 @@ import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import bodyParser  from 'body-parser';
-import { fsCreateArt, fsCreateDirectory, fsCreateScheme, fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, fsDownloadMediaFile, fsDownloadSchemePreview, fsGetArt, fsGetScheme, fsListFilesRoute, fsMoveDirectory, fsMoveScheme, fsPatchDirectory, fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, fsUploadMediaFile } from './fs/fs.js';
+
+import { 
+    fsCreateArt, fsCreateDirectory, fsCreateScheme,
+    fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, 
+    fsDeleteStyle, 
+    fsDownloadMediaFile, fsDownloadSchemePreview, fsGetArt, 
+    fsGetScheme, fsGetStyles, fsListFilesRoute, 
+    fsMoveDirectory, fsMoveScheme, fsPatchDirectory, 
+    fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, 
+    fsSaveStyle, fsUploadMediaFile 
+} from './fs/fs.js';
+
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
@@ -66,6 +77,10 @@ app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
 
 app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
 app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
+
+app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
+app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
+app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);

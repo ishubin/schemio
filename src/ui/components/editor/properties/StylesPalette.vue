@@ -14,7 +14,7 @@
                 </ul>
             </div>
         </panel>
-        <panel v-if="currentUser" uid="user-styles" name="User Styles">
+        <panel v-if="userStylesEnabled" uid="user-styles" name="User Styles">
             <span class="btn" @click="saveStyleFromItem">Add to Styles</span>
             <span v-if="!isEdit" class="btn" @click="isEdit = true"><i class="fas fa-edit"></i> Edit</span>
             <span v-else class="btn" @click="isEdit = false"><i class="fas fa-edit"></i> Stop Edit</span>
@@ -50,7 +50,10 @@ const maxStyles = 100;
 let cachedUserStyles = null;
 
 export default {
-    props: ['item'],
+    props: {
+        item: { type: Object },
+        userStylesEnabled: { type: Boolean, default: false }
+    },
 
     components: {Panel, AdvancedFill},
 
@@ -152,10 +155,5 @@ export default {
             cachedUserStyles = filter(cachedUserStyles, style => style.id !== styleId);
         },
     },
-    computed: {
-        currentUser() {
-            return this.$store.getters.currentUser;
-        },
-    }
 }
 </script>

@@ -195,7 +195,8 @@
                                     :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
                                     :item="schemeContainer.selectedItems[0]"
                                     :revision="schemeRevision"
-                                    :scheme-container="schemeContainer" 
+                                    :schemeContainer="schemeContainer" 
+                                    :userStylesEnabled="userStylesEnabled"
                                     @shape-prop-changed="onItemShapePropChanged"
                                     @item-field-changed="onItemFieldChanged"
                                     @item-style-applied="onItemStyleApplied"
@@ -437,6 +438,7 @@ export default {
         schemeDiff       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         categoriesEnabled: {type: Boolean, default: true},
+        userStylesEnabled: {type: Boolean, default: false},
         menuOptions      : {type: Array, default: []},
         comments         : {type: Object, default: {
             enabled: false,

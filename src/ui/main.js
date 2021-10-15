@@ -20,6 +20,7 @@ window.Schemio = {
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      * @param {Boolean} options.categoriesEnabled
+     * @param {Boolean} options.userStylesEnabled
      * @param {Object} options.comments
      * @param {Object} options.apiClient - API client
      */
@@ -37,6 +38,7 @@ window.Schemio = {
                 schemeDiff       : options.schemeDiff || null,
                 editAllowed      : options.editAllowed || false,
                 categoriesEnabled: options.categoriesEnabled || false,
+                userStylesEnabled: options.userStylesEnabled || false,
                 menuOptions      : options.menuOptions || [],
                 comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
             }})

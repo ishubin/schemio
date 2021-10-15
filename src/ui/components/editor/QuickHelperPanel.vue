@@ -530,10 +530,6 @@ export default {
     },
 
     computed: {
-        currentUser() {
-            return this.$store.getters.currentUser;
-        },
-
         historyRedoable() {
             return this.$store.state.history.redoable;
         },

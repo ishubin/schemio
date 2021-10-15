@@ -9,6 +9,7 @@
             :schemeDiff="schemeDiff"
             :editAllowed="editAllowed"
             :categoriesEnabled="categoriesEnabled"
+            :userStylesEnabled="userStylesEnabled"
             :menuOptions="menuOptions"
             :comments="comments" />
 
@@ -33,6 +34,7 @@ export default{
         schemeDiff       : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
         categoriesEnabled: {type: Boolean, default: true},
+        userStylesEnabled: {type: Boolean, default: false},
         menuOptions      : {type: Array, default: () => []},
         comments         : {type: Object, default: () => null},
     },

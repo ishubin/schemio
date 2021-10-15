@@ -29,7 +29,7 @@
         </div>
         
         <div v-if="currentTab === 'styles'">
-            <styles-palette :key="`styles-palette-for-item-${item.id}`" :item="item" @style-applied="onStyleApplied"/>
+            <styles-palette :key="`styles-palette-for-item-${item.id}`" :userStylesEnabled="userStylesEnabled" :item="item" @style-applied="onStyleApplied"/>
         </div>
 
         <div v-if="currentTab === 'effects'">
@@ -237,7 +237,11 @@ const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
 const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 100);
 
 export default {
-    props: ['item', 'schemeContainer'],
+    props: {
+        item: { type: Object }, 
+        schemeContainer: { type: Object },
+        userStylesEnabled: { type: Boolean, default: false}
+    },
     components: {
         Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
         GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,

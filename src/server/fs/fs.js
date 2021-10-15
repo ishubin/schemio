@@ -666,15 +666,10 @@ export function fsSaveDeleteArt(config, isDeletion) {
                         allArt[i].name = art.name;
                         allArt[i].url = art.url;
                     }
-                    return allArt;
+                    return fs.writeFile(artFile, JSON.stringify(allArt));
                 }
             }
             return null;
-        })
-        .then(modifiedArt => {
-            if (modifiedArt) {
-                return fs.writeFile(artFile, JSON.stringify(modifiedArt));
-            }
         })
         .then(() => {
             res.json({
@@ -699,6 +694,109 @@ export function fsGetArt(config) {
         });
     };
 }
+
+export function fsSaveStyle(config) {
+    return (req, res) => {
+        const style = req.body;
+        if (!style || !style.fill || !style.strokeColor || !style.textColor) {
+            res.$apiBadRequest('Invalid payload');
+            return;
+        }
+
+        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        
+        fs.stat(stylesFile)
+        .catch(err => {
+            return fs.writeFile(stylesFile, '[]');
+        })
+        .then(() => {
+            return fs.readFile(stylesFile, 'utf-8');
+        })
+        .then(content => {
+            try {
+                return JSON.parse(content);
+            } catch(err) {
+                return [];
+            }
+        })
+        .then(styles => {
+            const newStyle = {
+                id: nanoid(),
+                fill: style.fill,
+                strokeColor: style.strokeColor,
+                textColor: style.textColor
+            }
+            styles.push(newStyle);
+
+            return fs.writeFile(stylesFile, JSON.stringify(styles)).then(() => newStyle);
+        })
+        .then(style => {
+            res.json(style);
+        })
+        .catch(err => {
+            console.error('Failed to save style', err);
+            res.$serverError('Failed to save style');
+        });
+    }
+}
+
+export function fsDeleteStyle(config) {
+    return (req, res) => {
+        const styleId = req.params.styleId;
+
+        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        
+        fs.stat(stylesFile)
+        .catch(err => {
+            return fs.writeFile(stylesFile, '[]');
+        })
+        .then(() => {
+            return fs.readFile(stylesFile, 'utf-8');
+        })
+        .then(content => {
+            try {
+                return JSON.parse(content);
+            } catch(err) {
+                return [];
+            }
+        })
+        .then(styles => {
+            for (let i = 0; i < styles.length; i++) {
+                if (styles[i].id === styleId) {
+                    styles.splice(i, 1);
+                    return fs.writeFile(stylesFile, JSON.stringify(styles));
+                }
+            }
+            return null;
+        })
+        .then(() => {
+            res.json({
+                status: 'ok'
+            });
+        })
+        .catch(err => {
+            console.error('Failed to save style', err);
+            res.$serverError('Failed to save style');
+        });
+
+    }
+}
+
+export function fsGetStyles(config) {
+    return (req, res) => {
+        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        fs.readFile(stylesFile, 'utf-8').then(content => {
+            return JSON.parse(content);
+        })
+        .then(styles => {
+            res.json(styles);
+        })
+        .catch(err => {
+            res.json([]);
+        })
+    }
+}
+
 
 function leftZeroPad(number) {
     if (number >= 0 && number < 10) {
