@@ -126,7 +126,7 @@ function generateFilters(item) {
         const effect = getEffectById(itemEffect.id);
         if (effect) {
             if (effect.type === 'svg-filter') {
-                const filterId = `item-svg-filter-effect-${item.id}-${effect.id}-${idx}`;
+                const filterId = `item-svg-filter-effect-${item.id}-${idx}`;
                 svgFilters.push({
                     id: filterId,
                     html: effect.applyEffect(item, idx, itemEffect.args)

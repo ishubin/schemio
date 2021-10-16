@@ -28,6 +28,8 @@ const _shapes = [
     require('./basic/Diamond.js').default,
     require('./basic/cloud.js').default,
 
+    require('./StickyNote.vue').default,
+
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,

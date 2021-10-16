@@ -43,7 +43,9 @@
                         @dragstart="preventEvent"
                         @drag="preventEvent"
                         >
+
                         <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
+                        <svg v-else-if="item.iconSVG" width="42px" height="32px" v-html="item.iconSVG"></svg>
                     </div>
                 </div>
             </panel>
