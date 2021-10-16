@@ -51,6 +51,8 @@ export function createApiClient(path) {
         },
 
 
+        /************* Below are the functions that are used by SchemeEditor component *************/
+
         createArt(art) {
             return axios.post('/v1/fs/art', art).then(unwrapAxios);
         },
@@ -141,8 +143,5 @@ export function createApiClient(path) {
          */
         getExportHTMLResources() {
         },
-
-        getSchemeEmbeddingLink() {
-        }
     };
 }

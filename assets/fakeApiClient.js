@@ -72,8 +72,5 @@
          */
         getExportHTMLResources() {
         },
-
-        getSchemeEmbeddingLink() {
-        }
     };
 })();
