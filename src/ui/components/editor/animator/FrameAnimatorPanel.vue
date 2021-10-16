@@ -58,9 +58,7 @@
                 <table class="frame-animator-matrix">
                     <thead>
                         <tr>
-                            <th>
-                                <span class="btn btn-small" @click="toggleFunctionAddModal()">Add path function</span>
-                            </th>
+                            <th> </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
                                 :title="frame"

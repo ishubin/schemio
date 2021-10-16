@@ -3059,6 +3059,13 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 
 
 /************************ Frame Animator *************************/
+.frame-animator-panel .frame-animator-light {
+    padding: 5px;
+}
+.frame-animator-panel .frame-animator-light .frame-animator-title {
+    font-weight: bold;
+    margin-left: 10px;
+}
 .frame-animator-panel .frame-animator-header {
     position: relative;
     display: flex;
@@ -3111,6 +3118,7 @@ table.frame-animator-matrix {
     user-select: none;
 }
 table.frame-animator-matrix th, table.frame-animator-matrix td {
+    font-weight: normal;
     border: 1px solid var(--faint-weak-down);
 }
 table.frame-animator-matrix th:first-child, table.frame-animator-matrix td:first-child {
