@@ -26,6 +26,7 @@ export default {
                     section2: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
                 },
             },
+            size: {w: 140, h: 100}
         }],
 
         getPins(item) {

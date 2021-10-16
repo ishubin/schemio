@@ -14,6 +14,7 @@ export default {
             group: 'UML',
             name: 'Database',
             iconUrl: '/assets/images/items/uml-database.svg',
+            size: {w: 100, h: 130}
         }],
 
         computePath(item) {

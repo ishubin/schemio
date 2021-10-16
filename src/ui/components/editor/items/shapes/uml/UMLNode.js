@@ -22,6 +22,7 @@ export default {
             group: 'UML',
             name: 'Node',
             iconUrl: '/assets/images/items/uml-node.svg',
+            size: {w: 140, h: 100}
         }],
 
         controlPoints: {

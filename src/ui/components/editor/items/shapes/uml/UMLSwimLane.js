@@ -214,7 +214,8 @@ export default {
                     col3: { text: '<b>Done</b>'},
                 }
             },
-            previewArea: { x: 5, y: 5, w: 250, h: 100}
+            previewArea: { x: 5, y: 5, w: 250, h: 100},
+            size: {w: 800, h: 400}
         }, {
             group: 'UML',
             name: 'Swim Lane (Horizontal)',
@@ -234,7 +235,8 @@ export default {
                     col3: { text: '<b>Done</b>'},
                 }
             },
-            previewArea: { x: 5, y: 5, w: 250, h: 100}
+            previewArea: { x: 5, y: 5, w: 250, h: 100},
+            size: {w: 800, h: 400}
         }],
 
         computeCurves,

@@ -16,6 +16,7 @@ export default {
             group: 'UML',
             name: 'Document',
             iconUrl: '/assets/images/items/uml-document.svg',
+            size: {w: 140, h: 100}
         }],
 
         getPins(item) {

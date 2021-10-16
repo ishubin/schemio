@@ -19,6 +19,7 @@ export default {
             group: 'UML',
             name: 'Input/Output',
             iconUrl: '/assets/images/items/uml-input.svg',
+            size: {w: 140, h: 100}
         }],
 
         getPins(item) {

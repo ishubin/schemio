@@ -25,19 +25,11 @@
         <path :d="shapePath" stroke="none" :fill="svgFill"></path>
         <path :d="shapePath" stroke="none" :fill="`url(#sticky-note-gradient-${item.id})`" :style="{opacity: 0.5, 'mix-blend-mode': 'multiply'}"></path>
 
-        <g v-if="!hideTextSlot">
-            <foreignObject x="0" y="0" :width="item.area.w" :height="item.area.h">
-                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedItemText"></div>
-            </foreignObject>
-        </g>
     </g>
 </template>
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
-import EventBus from '../../EventBus';
-import htmlSanitize from '../../../../../htmlSanitize';
-import {generateTextStyle} from '../../text/ItemText';
 import map from 'lodash/map';
 
 function computePath(item) {
@@ -87,7 +79,8 @@ function generateItemMenu() {
                 shapeProps: {
                     fill: {type: 'solid', color: p.color}
                 },
-            }
+            },
+            size: {w: 180, h: 180}
         }
     });
 }
@@ -121,48 +114,9 @@ export default {
         },
     },
 
-    beforeMount() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
-    },
-    beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
-    },
-
-
     data() {
         return {
-            hideTextSlot: false,
-            textStyle: this.createTextStyle()
         };
-    },
-
-    methods: {
-        onItemChanged() {
-            this.textStyle = this.createTextStyle();
-        },
-        onItemTextSlotEditTriggered(item, slotName, area) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = true;
-            }
-        },
-        onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = false;
-            }
-        },
-        createTextStyle() {
-            let style = {};
-            if (this.item.textSlots && this.item.textSlots.body) {
-                style = generateTextStyle(this.item.textSlots.body);
-                style.width = `${this.item.area.w}px`;
-                style.height = `${this.item.area.h}px`;
-            }
-            return style;
-        },
     },
 
     computed: {
@@ -179,15 +133,6 @@ export default {
             const h = this.item.area.h * 1.03;
             return `M ${x0} ${y0}  L ${x1} ${y0} L ${w} ${h}  L ${x0} ${y1} Z`;
         },
-
-        sanitizedItemText() {
-            let text = '';
-            if (this.item.textSlots && this.item.textSlots.body) {
-                text = this.item.textSlots.body.text;
-            }
-            return htmlSanitize(text);
-        },
-
 
         svgFill() {
             return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);

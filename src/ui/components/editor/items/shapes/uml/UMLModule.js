@@ -16,6 +16,7 @@ export default {
                     body: {text: '', halign: 'left'}
                 },
             },
+            size: {w: 140, h: 100}
         }],
 
         controlPoints: {

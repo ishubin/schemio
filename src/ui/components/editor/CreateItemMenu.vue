@@ -508,6 +508,13 @@ export default {
                 itemClone.area.w = 100;
                 itemClone.area.h = 60;
             }
+
+            // each item might have different size defined in its menu
+            if (item.size) {
+                itemClone.area.w = item.size.w;
+                itemClone.area.h = item.size.h;
+            }
+
             this.itemCreationDragged.item = itemClone;
             this.itemCreationDragged.startedDragging = false;
 

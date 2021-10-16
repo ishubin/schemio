@@ -10,6 +10,7 @@ export default {
             group: 'UML',
             name: 'Package',
             iconUrl: '/assets/images/items/uml-package.svg',
+            size: {w: 140, h: 100}
         }],
 
         controlPoints: {
