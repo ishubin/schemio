@@ -10,7 +10,7 @@ import App from './app/App.vue';
 import HomeView from './app/view/HomeView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
-
+import NotFoundView from './app/view/NotFoundView.vue';
 
 Vue.use(VueRouter);
 
@@ -40,9 +40,9 @@ function route(name, path, component, props) {
 
 const routes = [
     route('HomeView',           '/', HomeView),
-    route('SchemeEditorView',         '/scheme', SchemeEditorView),
-    // route('NotFoundView',       '/not-found', NotFoundView),
-    // { path: '*', redirect: '/not-found' },
+    route('SchemeEditorView',   '/scheme', SchemeEditorView),
+    route('NotFoundView',       '/not-found', NotFoundView),
+    { path: '*', redirect: '/not-found' },
 ];
 
 
