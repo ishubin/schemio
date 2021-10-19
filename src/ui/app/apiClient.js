@@ -142,6 +142,19 @@ export function createApiClient(path) {
          * Returns static resources (html, css, js) for scheme exporting
          */
         getExportHTMLResources() {
+            return Promise.all([
+                axios.get('/assets/schemio-standalone.css'),
+                axios.get('/assets/schemio-standalone.html'),
+                axios.get('/assets/schemio-standalone.js')
+            ]).then(values => {
+                const css  = values[0].data;
+                const html = values[1].data;
+                const js   = values[2].data;
+                return {
+                    css, html, js
+                };
+            })
+
         },
     };
 }

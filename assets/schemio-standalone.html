@@ -1,0 +1,31 @@
+<html>
+    <head>
+        <script src="schemio-standalone.js"></script>
+        <link rel="stylesheet" href="schemio-standalone.css">
+        <style>
+            .app-container {
+                text-align: center;
+            }
+            .ssc-container {
+                margin-top: 80px;
+                display: inline-block;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="app" style="height: 600px;">loading</div>
+        <script>
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    schemioViewScheme('#app', JSON.parse(this.responseText), {
+                        sidePanelWidth: 400
+                    });
+                }
+            };
+
+            xhttp.open('GET', 'scheme.json', true);
+            xhttp.send();
+        </script>
+    </body>
+</html>

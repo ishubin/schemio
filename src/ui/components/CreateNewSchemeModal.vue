@@ -127,6 +127,7 @@ export default {
                     this.showLoading = false;
                     this.$emit('scheme-created', scheme);
                 }).catch(err => {
+                    console.error(err);
                     this.showLoading = false;
                     this.errorMessage = 'Failed to create new scheme';
                 });
