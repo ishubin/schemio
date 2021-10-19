@@ -1,92 +1,99 @@
 <template>
-    <div class="middle-content">
-        <div class="fs-toolbar">
-            <span class="btn btn-secondary" @click="showNewDirectoryModel()">
-                <i class="fas fa-folder-plus"></i> New directory
-            </span>
-            <span class="btn btn-secondary" @click="showNewSchemeModel()">
-                <i class="fas fa-file"></i> Create Scheme
-            </span>
+    <div>
+        <Header>
+            <div slot="middle-section">
+            </div>
+        </Header>
+
+        <div class="middle-content">
+            <div class="fs-toolbar">
+                <span class="btn btn-secondary" @click="showNewDirectoryModel()">
+                    <i class="fas fa-folder-plus"></i> New directory
+                </span>
+                <span class="btn btn-secondary" @click="showNewSchemeModel()">
+                    <i class="fas fa-file"></i> Create Scheme
+                </span>
+            </div>
+
+
+            <ul class="breadcrumbs">
+                <li v-for="(entry, entryIdx) in breadcrumbs">
+                    <a class="breadcrumb-link" :href="`?path=${encodeURIComponent(entry.path)}`">{{entry.name}}</a>
+                    <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
+                </li>
+            </ul>
+
+            <table class="entries-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Modified</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(entry, entryIdx) in entries">
+                        <td>
+                            <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">
+                                <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
+                            </a>
+                            <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`">
+                                <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
+                                <span class="entry-link-text">{{entry.name}}</span>
+                            </a>
+                        </td>
+                        <td class="time-column">
+                            <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
+                        </td>
+                        <td class="operation-column">
+                            <menu-dropdown v-if="entry.name !== '..'" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
+                                @delete="onDeleteEntry(entry)"
+                                @rename="onRenameEntry(entry, entryIdx)"
+                                @move="onMoveEntry(entry, entryIdx)"
+                                />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
+                <input type="text" class="textfield" v-model="newDirectoryModal.name" placeholder="Type name of new directory..."/>
+
+                <div class="msg msg-error" v-if="newDirectoryModal.errorMessage">{{newDirectoryModal.errorMessage}}</div>
+            </modal>
+
+            <modal v-if="deleteEntryModal.shown" title="Confirm delete" @close="deleteEntryModal.shown = false" primaryButton="Delete" @primary-submit="confirmDeleteEntry(deleteEntryModal.entry)">
+                Are you sure you want to delete
+                <span v-if="deleteEntryModal.entry.kind === 'dir'">
+                    <b>{{deleteEntryModal.entry.name}}</b> and all of its documents?
+                </span>
+                <span v-else>
+                    scheme <b>{{deleteEntryModal.entry.name}}</b>?
+                </span>
+
+                <div class="msg msg-error" v-if="deleteEntryModal.errorMessage">{{deleteEntryModal.errorMessage}}</div>
+            </modal>
+
+            <modal v-if="renameEntryModal.shown" :title="renameEntryModalTitle" @close="renameEntryModal.shown = false" primaryButton="Rename" @primary-submit="confirmEntryRename()">
+                <input ref="renameEntryModalInput" type="text" class="textfield" v-model="renameEntryModal.name"/>
+
+                <div class="msg msg-error" v-if="renameEntryModal.errorMessage">{{renameEntryModal.errorMessage}}</div>
+            </modal>
+
+            <CreateNewSchemeModal v-if="newSchemeModal.shown"
+                :categoriesEnabled="false"
+                :apiClient="apiClient"
+                @scheme-created="onSchemeCreated"
+                @close="newSchemeModal.shown = false"
+            />
+
+            <MoveToFolderModal v-if="moveEntryModal.shown"
+                :apiClient="apiClient"
+                :source="moveEntryModal.source"
+                :path="path"
+                @close="moveEntryModal.shown = false"
+                @moved="onEntryMoved"/>
         </div>
-
-
-        <ul class="breadcrumbs">
-            <li v-for="(entry, entryIdx) in breadcrumbs">
-                <a class="breadcrumb-link" :href="`?path=${encodeURIComponent(entry.path)}`">{{entry.name}}</a>
-                <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
-            </li>
-        </ul>
-
-        <table class="entries-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Modified</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr v-for="(entry, entryIdx) in entries">
-                    <td>
-                        <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">
-                            <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
-                        </a>
-                        <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`">
-                            <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
-                            <span class="entry-link-text">{{entry.name}}</span>
-                        </a>
-                    </td>
-                    <td class="time-column">
-                        <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
-                    </td>
-                    <td class="operation-column">
-                        <menu-dropdown v-if="entry.name !== '..'" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
-                            @delete="onDeleteEntry(entry)"
-                            @rename="onRenameEntry(entry, entryIdx)"
-                            @move="onMoveEntry(entry, entryIdx)"
-                            />
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
-            <input type="text" class="textfield" v-model="newDirectoryModal.name" placeholder="Type name of new directory..."/>
-
-            <div class="msg msg-error" v-if="newDirectoryModal.errorMessage">{{newDirectoryModal.errorMessage}}</div>
-        </modal>
-
-        <modal v-if="deleteEntryModal.shown" title="Confirm delete" @close="deleteEntryModal.shown = false" primaryButton="Delete" @primary-submit="confirmDeleteEntry(deleteEntryModal.entry)">
-            Are you sure you want to delete
-            <span v-if="deleteEntryModal.entry.kind === 'dir'">
-                <b>{{deleteEntryModal.entry.name}}</b> and all of its documents?
-            </span>
-            <span v-else>
-                scheme <b>{{deleteEntryModal.entry.name}}</b>?
-            </span>
-
-            <div class="msg msg-error" v-if="deleteEntryModal.errorMessage">{{deleteEntryModal.errorMessage}}</div>
-        </modal>
-
-        <modal v-if="renameEntryModal.shown" :title="renameEntryModalTitle" @close="renameEntryModal.shown = false" primaryButton="Rename" @primary-submit="confirmEntryRename()">
-            <input ref="renameEntryModalInput" type="text" class="textfield" v-model="renameEntryModal.name"/>
-
-            <div class="msg msg-error" v-if="renameEntryModal.errorMessage">{{renameEntryModal.errorMessage}}</div>
-        </modal>
-
-        <CreateNewSchemeModal v-if="newSchemeModal.shown"
-            :categoriesEnabled="false"
-            :apiClient="apiClient"
-            @scheme-created="onSchemeCreated"
-            @close="newSchemeModal.shown = false"
-        />
-
-        <MoveToFolderModal v-if="moveEntryModal.shown"
-            :apiClient="apiClient"
-            :source="moveEntryModal.source"
-            :path="path"
-            @close="moveEntryModal.shown = false"
-            @moved="onEntryMoved"/>
     </div>
 </template>
 
@@ -98,6 +105,7 @@ import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
 import { buildBreadcrumbs } from '../breadcrumbs';
+import Header from '../components/Header.vue';
 
 
 function isValidCharCode(code) {
@@ -110,7 +118,7 @@ function isValidCharCode(code) {
 
 export default {
 
-    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
+    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal, Header},
     
     beforeMount() {
         this.apiClient.listEntries(this.path)

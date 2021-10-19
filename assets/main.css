@@ -190,7 +190,7 @@ h5 {
 
 /******************** Header *********************/
 .header {
-    top: 0;
+    display: flex;
     width: 100%;
     height: 48px;
     background: var(--header-background);
@@ -200,6 +200,7 @@ h5 {
 }
 .header .header-middle-section {
     display: inline-block;
+    overflow: hidden;
 }
 .header > a, .header > .link {
     margin-left: 10px;
@@ -228,11 +229,10 @@ h5 {
 
 .header .scheme-title {
     position: relative;
-    display: block;
+    display: inline-block;
     height: 25px;
     margin-left: 20px;
     padding-left: 20px;
-    cursor: pointer;
     color: var(--base-weak);
 }
 .header .scheme-title .icon {
@@ -247,6 +247,27 @@ h5 {
     margin: 0;
     min-width: 40px;
 }
+
+.header .header-breadcrumbs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.header .header-breadcrumbs li {
+    display: inline-block;
+    margin-right: 10px;
+    color: var(--base-weak);
+}
+.header .header-breadcrumbs li .breadcrumb-separator {
+    margin-left: 10px;
+}
+
+.header .header-middle-section {
+    display: flex;
+    align-items: center;
+}
+
+/************** Menu dropdown *************/
 
 .menu-dropdown {
     display: inline-block;
@@ -3490,4 +3511,10 @@ ul.breadcrumbs li .breadcrumb-separator {
     color: var(--base-strong-up-up);
     margin-left: 5px;
     margin-right: 5px;
+}
+
+
+.fs-toolbar {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
