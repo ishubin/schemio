@@ -852,6 +852,22 @@ class SchemeContainer {
         this.remountItemInsideOtherItem(itemId, null, position);
     }
 
+    remountItemInsideOtherItemAtTheBottom(itemId, otherItemId) {
+        if (!otherItemId) {
+            return;
+        }
+        const otherItem = this.findItemById(otherItemId);
+        if (!otherItem) {
+            return;
+        }
+
+        let position = 0;
+        if (otherItem.childItems) {
+            position = otherItem.childItems.length;
+        }
+        this.remountItemInsideOtherItem(itemId, otherItemId, position);
+    }
+
     remountItemInsideOtherItem(itemId, otherItemId, position) {
         if (!position) {
             position = 0;

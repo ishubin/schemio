@@ -1543,7 +1543,17 @@ export default {
             item.area.x = p.x;
             item.area.y = p.y;
 
+            
+
             this.schemeContainer.addItem(item);
+
+            if (this.$store.state.autoRemount) {
+                const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item.area, x => x.id !== item.id);
+                if (proposedItemForMounting) {
+                    this.schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, proposedItemForMounting.id);
+                }
+            }
+
             this.schemeContainer.selectItem(item);
             EventBus.emitSchemeChangeCommited();
         },
