@@ -187,8 +187,12 @@ export function fsGetScheme(config) {
             res.json(JSON.parse(content));
         })
         .catch(err => {
-            console.error('Failed to read scheme file', fullPath, err);
-            res.$serverError('Failed to create scheme');
+            if (err.code === 'ENOENT') {
+                res.$apiNotFound('Such scheme does not exist');
+            } else {
+                console.error('Failed to read scheme file', fullPath, err);
+                res.$serverError('Failed to create scheme');
+            }
         });
     };
 }

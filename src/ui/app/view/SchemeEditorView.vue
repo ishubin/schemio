@@ -18,7 +18,13 @@
                 </div>
             </div>
         </Header>
-        <SchemioEditorApp v-if="scheme"
+        <div v-if="is404" class="middle-content">
+            <h4>Sorry, requested document was not found</h4>
+        </div>
+        <div v-else-if="errorMessage" class="middle-content">
+            <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
+        </div>
+        <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="true"
             :categoriesEnabled="false"
@@ -41,6 +47,13 @@ export default {
 
         this.apiClient.getScheme(this.schemeId).then(scheme => {
             this.scheme = scheme;
+        })
+        .catch(err => {
+            if (err.response && err.response.status === 404) {
+                this.is404 = true;
+            } else {
+                this.errorMessage = 'Oops, something went wrong';
+            }
         });
     },
     data() {
@@ -80,7 +93,9 @@ export default {
             schemeId: this.$route.query.id,
             breadcrumbs: breadcrumbs,
             scheme: null,
-            apiClient: createApiClient(path)
+            apiClient: createApiClient(path),
+            is404: false,
+            errorMessage: null
         };
     }
 }
