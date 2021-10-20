@@ -53,34 +53,37 @@ app.use('/assets', express.static('assets'));
 app.use('/v1', apiMiddleware);
 
 app.get('/v1/fs/list', fsListFilesRoute(config));
-
-app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
-app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config));
-app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config));
-
-app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
-app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
-
-app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
-app.patch('/v1/fs/scheme', jsonBodyParser, fsPatchScheme(config));
-app.delete('/v1/fs/scheme', jsonBodyParser, fsDeleteScheme(config));
 app.get('/v1/fs/scheme', jsonBodyParser, fsGetScheme(config));
-app.put('/v1/fs/scheme', jsonBodyParser, fsSaveScheme(config));
-app.post('/v1/fs/scheme-preview', jsonBodyParser, fsCreateSchemePreview(config));
-app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
+
+if (!config.viewOnlyMode) {
+    app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
+    app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config));
+    app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config));
+
+    app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
+    app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
+
+    app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
+    app.patch('/v1/fs/scheme', jsonBodyParser, fsPatchScheme(config));
+    app.delete('/v1/fs/scheme', jsonBodyParser, fsDeleteScheme(config));
+    app.put('/v1/fs/scheme', jsonBodyParser, fsSaveScheme(config));
+    app.post('/v1/fs/scheme-preview', jsonBodyParser, fsCreateSchemePreview(config));
+    app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
+
+    app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
+    app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
+
+    app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
+    app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
+
+    app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
+    app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
+    app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
+}
 
 app.get('/media/:objectId', fsDownloadMediaFile(config));
 app.get('/media/scheme-preview/:schemeId', jsonBodyParser, fsDownloadSchemePreview(config));
 
-app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
-app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
-
-app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
-app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
-
-app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
-app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
-app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);

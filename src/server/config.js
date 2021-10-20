@@ -6,14 +6,30 @@ function configVar(envVarName, defaultValue) {
     return defaultValue;
 }
 
+function configNumberVar(varName, defaultValue) {
+    if (process.env.hasOwnProperty(varName)) {
+        return parseInt(process.env[varName]);
+    }
+    return defaultValue;
+}
+
+function configBoolVar(varName, defaultValue) {
+    if (process.env.hasOwnProperty(varName)) {
+        return process.env[varName] === 'true';
+    }
+    return defaultValue;
+}
+
 export function loadConfig() {
     return {
         fs: {
             rootPath: configVar('FS_ROOT_PATH', '/opt/schemio/')
         },
 
-        serverPort: configVar('SERVER_PORT', 4010),
+        serverPort: configNumberVar('SERVER_PORT', 4010),
 
-        fileUploadMaxSize: configVar('FILE_UPLOAD_MAX_SIZE', 10 * 1024 * 1024)
+        fileUploadMaxSize: configNumberVar('FILE_UPLOAD_MAX_SIZE', 10 * 1024 * 1024),
+
+        viewOnlyMode: configBoolVar('VIEW_ONLY_MODE', true)
     };
 }

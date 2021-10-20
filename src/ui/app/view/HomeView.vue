@@ -11,7 +11,7 @@
                 <h4>Sorry, specfied path does not exist</h4>
             </div>
             <div v-else>
-                <div class="fs-toolbar">
+                <div class="fs-toolbar" v-if="!viewOnly">
                     <span class="btn btn-secondary" @click="showNewDirectoryModel()">
                         <i class="fas fa-folder-plus"></i> New directory
                     </span>
@@ -50,7 +50,7 @@
                                 <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
                             </td>
                             <td class="operation-column">
-                                <menu-dropdown v-if="entry.name !== '..'" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
+                                <menu-dropdown v-if="entry.name !== '..' && !viewOnly" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
                                     @delete="onDeleteEntry(entry)"
                                     @rename="onRenameEntry(entry, entryIdx)"
                                     @move="onMoveEntry(entry, entryIdx)"
@@ -149,6 +149,7 @@ export default {
                 }
             });
             this.entries = result.entries;
+            this.viewOnly = result.viewOnly;
         }).catch(err => {
             if (err.response && err.response.status === 404) {
                 this.is404 = true;
@@ -165,6 +166,7 @@ export default {
             breadcrumbs: buildBreadcrumbs(path),
             entries: [],
             errorMessage: null,
+            viewOnly: true,
 
             is404: false,
 

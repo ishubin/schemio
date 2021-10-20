@@ -184,7 +184,11 @@ export function fsGetScheme(config) {
         const fullPath = realPath + '/' + schemeId + schemioExtension;
         
         fs.readFile(fullPath, 'utf-8').then(content => {
-            res.json(JSON.parse(content));
+            const scheme = JSON.parse(content);
+            res.json({
+                scheme: scheme,
+                viewOnly: config.viewOnlyMode
+            });
         })
         .catch(err => {
             if (err.code === 'ENOENT') {
@@ -460,6 +464,7 @@ export function fsListFilesRoute(config) {
             }
             res.json({
                 path: path,
+                viewOnly: config.viewOnlyMode,
                 entries 
             });
         }).catch(err => {

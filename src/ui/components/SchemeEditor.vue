@@ -599,7 +599,7 @@ export default {
             }
 
             const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
-            if (pageParams.m && pageParams.m === 'edit') {
+            if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
             } else {
                 this.mode = 'view';
@@ -686,6 +686,10 @@ export default {
         },
 
         toggleMode(mode) {
+            if (mode === 'edit' && !this.editAllowed) {
+                return;
+            }
+
             this.mode = mode;
             if (mode === 'view') {
                 this.sidePanelRightExpanded = false;

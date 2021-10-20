@@ -26,7 +26,7 @@
         </div>
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
-            :editAllowed="true"
+            :editAllowed="editAllowed"
             :categoriesEnabled="false"
             :userStylesEnabled="true"
         />
@@ -45,8 +45,9 @@ export default {
     beforeMount() {
         this.$store.dispatch('setApiClient', this.apiClient);
 
-        this.apiClient.getScheme(this.schemeId).then(scheme => {
-            this.scheme = scheme;
+        this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
+            this.scheme = schemeDetails.scheme;
+            this.editAllowed = !schemeDetails.viewOnly;
         })
         .catch(err => {
             if (err.response && err.response.status === 404) {
@@ -92,6 +93,7 @@ export default {
             path: path,
             schemeId: this.$route.query.id,
             breadcrumbs: breadcrumbs,
+            editAllowed: false,
             scheme: null,
             apiClient: createApiClient(path),
             is404: false,
