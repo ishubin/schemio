@@ -64,7 +64,7 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
-                    :key="`${schemeContainer.scheme.id}-${schemeRevision}-edit`"
+                    :key="`${schemeContainer.scheme.id}-edit`"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -83,7 +83,7 @@
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
-                    :key="`${schemeContainer.scheme.id}-${schemeRevision}-view`"
+                    :key="`${schemeContainer.scheme.id}-view`"
                     :schemeContainer="interactiveSchemeContainer"
                     :mode="mode"
                     :offline="offlineMode"

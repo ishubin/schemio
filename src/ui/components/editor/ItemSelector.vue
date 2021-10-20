@@ -312,6 +312,7 @@ export default {
                 }
 
 
+                //TODO calling this function is slow
                 const bbox = domItem.getBoundingClientRect();
 
                 const xDiff = that.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;

@@ -230,7 +230,18 @@ class SchemeContainer {
         this.relativeSnappers.vertical = [];
         this.spatialIndex = new SpatialIndex();
         this.pinSpatialIndex = new SpatialIndex();
+        this.dependencyItemMap = {};
 
+        if (!this.scheme.items) {
+            return;
+        }
+        
+        this.reindexSpecifiedItems(this.scheme.items);
+
+        log.timeEnd('reindexItems');
+    }
+
+    reindexSpecifiedItems(items) {
         // stores element selectors with their dependants
         // this will be used once it has visited all items
         // so that it can finally start puting ids of existing items into dependencyItemMap
@@ -241,13 +252,9 @@ class SchemeContainer {
             dependencyElementSelectorMap[elementSelector] = dependants;
         };
 
-        if (!this.scheme.items) {
-            return;
-        }
-
         const newRevision = this.revision + 1;
 
-        visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
+        visitItems(items, (item, transform, parentItem, ancestorIds) => {
             this._itemArray.push(item);
             enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transform, parentItem, ancestorIds);
@@ -308,25 +315,20 @@ class SchemeContainer {
                 });
             }
 
-            
             this.indexItemPins(item, shape);
             this.indexItemOutlinePoints(item);
 
             this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
 
-            // storing revision in item as in future I am planning to optimize reindexItems function to only reindex changed and affected items
-            // this way not all items wold have the same revision
-            // revision itself is going to be used in item path cache handling
+            // storing revision in item as it is used  in ItemCache to identify whether item outline was changed or not
             item.meta.revision = newRevision;
         });
 
+        this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         this.itemGroups = keys(this._itemGroupsToIds);
         this.itemGroups.sort();
 
-
-        this.dependencyItemMap = this.buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap);
         this.revision = newRevision;
-        log.timeEnd('reindexItems');
     }
 
 
@@ -510,8 +512,7 @@ class SchemeContainer {
         */
     }
 
-    buildDependencyItemMapFromElementSelectors(dependencyElementSelectorMap) {
-        const dependencyItemMap = {};
+    buildDependencyItemMapFromElementSelectors(dependencyItemMap, dependencyElementSelectorMap) {
         const registerDependants = (itemId, newDependants) => {
             let dependants = dependencyItemMap[itemId] || [];
             dependants = dependants.concat(newDependants);
@@ -524,7 +525,6 @@ class SchemeContainer {
                 registerDependants(mainItem.id, dependants);
             }
         });
-        return dependencyItemMap;
     }
 
     /**
@@ -1113,7 +1113,7 @@ class SchemeContainer {
             item.id = shortid.generate();
         }
         this.scheme.items.push(item);
-        this.reindexItems();
+        this.reindexSpecifiedItems([item]);
         return item;
     }
 
@@ -1457,7 +1457,6 @@ class SchemeContainer {
             });
         });
 
-        this.reindexItems();
 
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
@@ -1476,6 +1475,8 @@ class SchemeContainer {
             this.updateMultiItemEditBoxItems(this.multiItemEditBox, true, DEFAULT_ITEM_MODIFICATION_CONTEXT);
             this.updateMultiItemEditBoxItems(this.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
+
+        this.reindexItems();
     }
 
     copyItem(oldItem) {
