@@ -30,6 +30,6 @@ export function loadConfig() {
 
         fileUploadMaxSize: configNumberVar('FILE_UPLOAD_MAX_SIZE', 10 * 1024 * 1024),
 
-        viewOnlyMode: configBoolVar('VIEW_ONLY_MODE', true)
+        viewOnlyMode: configBoolVar('VIEW_ONLY_MODE', false)
     };
 }
