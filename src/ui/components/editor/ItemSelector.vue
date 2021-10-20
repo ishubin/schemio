@@ -407,9 +407,12 @@ export default {
                 return;
             }
 
+            const itemsForSelection = [];
             for (let i = Math.min(idx1, idx2); i <= Math.max(idx1, idx2); i += 1) {
-                this.schemeContainer.selectItem(this.filteredItems[i], true);
+                itemsForSelection.push(this.filteredItems[i])
             }
+            this.schemeContainer.selectMultipleItems(itemsForSelection, true);
+
         },
 
         toggleItemCollapseState(item) {

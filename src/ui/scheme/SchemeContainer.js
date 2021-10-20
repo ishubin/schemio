@@ -1171,10 +1171,12 @@ class SchemeContainer {
         this.updateMultiItemEditBox();
     }
 
-    selectMultipleItems(items) {
-        this.deselectAllItems();
-        this.selectedItems = items;
-        forEach(this.selectedItems, item => {
+    selectMultipleItems(items, inclusive) {
+        if (!inclusive) {
+            this.deselectAllItems();
+        } 
+        forEach(items, item => {
+            this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
         });
         this.updateMultiItemEditBox();
