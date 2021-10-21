@@ -39,10 +39,11 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('HomeView',           '/', HomeView),
-    route('SchemeEditorView',   '/scheme', SchemeEditorView),
+    route('SchemeEditorView',   '/scheme/*', SchemeEditorView),
     route('NotFoundView',       '/not-found', NotFoundView),
-    { path: '*', redirect: '/not-found' },
+    route('HomeView',           '/', HomeView),
+    route('FolderView',         '/f/*', HomeView),
+    { path: '*', redirect: '/not-found'}
 ];
 
 

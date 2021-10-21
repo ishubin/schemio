@@ -52,8 +52,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/assets', express.static('assets'));
 app.use('/v1', apiMiddleware);
 
-app.get('/v1/fs/list', fsListFilesRoute(config));
-app.get('/v1/fs/scheme', jsonBodyParser, fsGetScheme(config));
+app.get('/v1/fs/list',   fsListFilesRoute(config));
+app.get('/v1/fs/list/*', fsListFilesRoute(config));
+app.get('/v1/fs/scheme/*', jsonBodyParser, fsGetScheme(config));
 
 if (!config.viewOnlyMode) {
     app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
@@ -64,9 +65,9 @@ if (!config.viewOnlyMode) {
     app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
 
     app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
-    app.patch('/v1/fs/scheme', jsonBodyParser, fsPatchScheme(config));
-    app.delete('/v1/fs/scheme', jsonBodyParser, fsDeleteScheme(config));
-    app.put('/v1/fs/scheme', jsonBodyParser, fsSaveScheme(config));
+    app.patch('/v1/fs/scheme/*', jsonBodyParser, fsPatchScheme(config));
+    app.delete('/v1/fs/scheme/*', jsonBodyParser, fsDeleteScheme(config));
+    app.put('/v1/fs/scheme/*', jsonBodyParser, fsSaveScheme(config));
     app.post('/v1/fs/scheme-preview', jsonBodyParser, fsCreateSchemePreview(config));
     app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
 

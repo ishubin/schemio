@@ -4,7 +4,7 @@
             <div slot="middle-section" class="header-middle-section">
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
-                        <a v-if="crumb.kind === 'dir'" :href="`/?path=${crumb.encodedPath}`">
+                        <a v-if="crumb.kind === 'dir'" :href="`/f/${crumb.path}`">
                             <i class="fas fa-folder"/>
                             {{crumb.name}}
                         </a>
@@ -58,7 +58,18 @@ export default {
         });
     },
     data() {
-        const path = this.$route.query.path || '';
+        const pathPrefix = '/scheme/';
+        let path = decodeURI(this.$route.path.substring(pathPrefix.length));
+        let schemeId = null;
+        const idx = path.lastIndexOf('/');
+        if (idx > 0) {
+            schemeId = path.substring(idx + 1);
+            path = path.substring(0, idx);
+        } else {
+            schemeId = path;
+            path = '';
+        }
+
         const folders = path.split('/');
         
         const breadcrumbs = [];
@@ -77,7 +88,7 @@ export default {
             breadcrumbs.push({
                 kind: 'dir',
                 name: folder,
-                encodedPath: encodeURIComponent(folderPath)
+                path: folderPath
             });
         });
 
@@ -91,7 +102,7 @@ export default {
 
         return {
             path: path,
-            schemeId: this.$route.query.id,
+            schemeId: schemeId,
             breadcrumbs: breadcrumbs,
             editAllowed: false,
             scheme: null,

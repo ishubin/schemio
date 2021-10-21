@@ -7,17 +7,20 @@ function unwrapAxios(response) {
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
-            let url = '/v1/fs/scheme?id=' + encodeURIComponent(schemeId);
+            let url = '/v1/fs/scheme/';
             if (path) {
-                url = url + '&path=' + encodeURIComponent(path);
+                url += path;
             }
-            return url;
+            if (url.charAt(url.length - 1) !== '/') {
+                url += '/';
+            }
+            return url + schemeId;
         },
 
         listEntries(path) {
             let url = '/v1/fs/list';
             if (path) {
-                url = url + '?path=' + encodeURIComponent(path);
+                url = url + '/' + path;
             }
             return axios.get(url).then(unwrapAxios);
         },

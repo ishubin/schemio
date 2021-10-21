@@ -87,26 +87,31 @@ export function fsMoveScheme(config) {
     };
 }
 
+function getPathDetailsToScheme(config, req) {
+    const pathPrefix = '/v1/fs/scheme/';
+    const path = safePath(decodeURI(req.path.substring(pathPrefix.length)));
+
+    const realPath = rightFilePad(config.fs.rootPath) + path;
+
+    const idx = path.lastIndexOf('/');
+    let schemeId = path;
+    if (idx >= 0) {
+        schemeId = path.substring(idx);
+    }
+    return {
+        fsPath: realPath + schemioExtension,
+        path: path,
+        schemeId: schemeId
+    };
+}
+
 export function fsPatchScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
-        let schemeId = req.query.id;
-        if (!schemeId) {
-            schemeId = '';
-        }
-
-        schemeId = schemeId.replace(/\//g, '');
-        if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: scheme id is empty');
-            return;
-        }
-
-        const realPath = rightFilePad(config.fs.rootPath) + path;
-        const fullPath = realPath + '/' + schemeId + schemioExtension;
+        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
 
         const patchRequest = req.body;
         
-        fs.readFile(fullPath).then(content => {
+        fs.readFile(fsPath).then(content => {
             const scheme = JSON.parse(content);
 
             if (patchRequest.hasOwnProperty('name')) {
@@ -116,7 +121,7 @@ export function fsPatchScheme(config) {
                 }
 
                 scheme.name = newName;
-                return fs.writeFile(fullPath, JSON.stringify(scheme));
+                return fs.writeFile(fsPath, JSON.stringify(scheme));
             }
         })
         .then(() => {
@@ -125,7 +130,7 @@ export function fsPatchScheme(config) {
             });
         })
         .catch(err => {
-            console.error('Failed to patch scheme', fullPath, err);
+            console.error('Failed to patch scheme', fsPath, err);
             res.$serverError('Failed to patch scheme')
         })
     };
@@ -133,34 +138,21 @@ export function fsPatchScheme(config) {
 
 export function fsDeleteScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
-        let schemeId = req.query.id;
-        if (!schemeId) {
-            schemeId = '';
-        }
-
-        schemeId = schemeId.replace(/\//g, '');
-        if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: scheme id is empty');
-            return;
-        }
-
-        const realPath = rightFilePad(config.fs.rootPath) + path;
-        const fullPath = realPath + '/' + schemeId + schemioExtension;
+        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
         
-        fs.stat(fullPath).then(stat => {
+        fs.stat(fsPath).then(stat => {
             if (!stat.isFile()) {
-                throw new Error('Not a file '+ fullPath);
+                throw new Error('Not a file '+ fsPath);
             }
         })
         .then(() => {
-            return fs.unlink(fullPath);
+            return fs.unlink(fsPath);
         })
         .then(() => {
             res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
-            console.error('Failed to delete scheme file', fullPath, err);
+            console.error('Failed to delete scheme file', fsPath, err);
             res.$serverError('Failed to delete scheme')
         })
     };
@@ -168,22 +160,9 @@ export function fsDeleteScheme(config) {
 
 export function fsGetScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
-        let schemeId = req.query.id;
-        if (!schemeId) {
-            schemeId = '';
-        }
+        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
 
-        schemeId = schemeId.replace(/\//g, '');
-        if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: scheme id is empty');
-            return;
-        }
-
-        const realPath = rightFilePad(config.fs.rootPath) + path;
-        const fullPath = realPath + '/' + schemeId + schemioExtension;
-        
-        fs.readFile(fullPath, 'utf-8').then(content => {
+        fs.readFile(fsPath, 'utf-8').then(content => {
             const scheme = JSON.parse(content);
             res.json({
                 scheme: scheme,
@@ -203,31 +182,18 @@ export function fsGetScheme(config) {
 
 export function fsSaveScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
-        let schemeId = req.query.id;
-        if (!schemeId) {
-            schemeId = '';
-        }
-
-        schemeId = schemeId.replace(/\//g, '');
-        if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: scheme id is empty');
-            return;
-        }
-
-        const realPath = rightFilePad(config.fs.rootPath) + path;
-        const fullPath = realPath + '/' + schemeId + schemioExtension;
+        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
 
         const scheme = req.body;
         scheme.id = schemeId;
         scheme.path = path;
 
-        fs.stat(fullPath)
+        fs.stat(fsPath)
         .then(stat => {
             if (!stat.isFile()) {
-                return Promise.reject();
+                return Promise.reject('Not a file: ' + fsPath);
             }
-            return fs.writeFile(fullPath, JSON.stringify(scheme));
+            return fs.writeFile(fsPath, JSON.stringify(scheme));
         })
         .then(() => {
             res.json(scheme);
@@ -379,7 +345,7 @@ export function fsCreateDirectory(config) {
             return;
         }
 
-        const path = safePath(dirBody.path);
+        const path = safePath(decodeURI(dirBody.path));
 
         const realPath = rightFilePad(config.fs.rootPath) + path + '/' + dirBody.name;
 
@@ -395,6 +361,7 @@ export function fsCreateDirectory(config) {
             });
         })
         .catch(err => {
+            console.error('Failed to create directory', realPath, err);
             res.$serverError('Failed to create directory');
         });
     };
@@ -403,7 +370,17 @@ export function fsCreateDirectory(config) {
 
 export function fsListFilesRoute(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
+        const pathPrefix = '/v1/fs/list';
+        if (req.path.indexOf(pathPrefix) !== 0) {
+            res.$apiBadRequest();
+            return;
+        }
+        
+        let path = safePath(decodeURI(req.path.substring(pathPrefix.length)));
+        if (path.charAt(0) === '/') {
+            path = path.substring(1);
+        }
+
         const realPath = rightFilePad(config.fs.rootPath) + path;
 
         fs.readdir(realPath).then(files => {

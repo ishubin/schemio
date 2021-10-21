@@ -22,7 +22,7 @@
 
                 <ul class="breadcrumbs">
                     <li v-for="(entry, entryIdx) in breadcrumbs">
-                        <a class="breadcrumb-link" :href="`?path=${encodeURIComponent(entry.path)}`">{{entry.name}}</a>
+                        <a class="breadcrumb-link" :href="`/f/${entry.path}`">{{entry.name}}</a>
                         <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
                     </li>
                 </ul>
@@ -38,10 +38,10 @@
                     <tbody>
                         <tr v-for="(entry, entryIdx) in entries">
                             <td>
-                                <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/?path=${entry.encodedPath}`">
+                                <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
-                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme?path=${entry.encodedPath}&id=${entry.id}`">
+                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme/${entry.fullPath}`">
                                     <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
@@ -129,7 +129,6 @@ export default {
         this.apiClient.listEntries(this.path)
         .then(result => {
             forEach(result.entries, entry => {
-                entry.encodedPath = encodeURIComponent(entry.path);
                 entry.menuOptions = [{
                     name: 'Delete',
                     iconClass: 'fas fa-trash',
@@ -146,6 +145,11 @@ export default {
 
                 if (entry.kind === 'scheme') {
                     entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
+                    let fullPath = entry.path;
+                    if (fullPath.charAt(fullPath.length - 1) !== '/') {
+                        fullPath += '/';
+                    }
+                    entry.fullPath = fullPath + entry.id;
                 }
             });
             this.entries = result.entries;
@@ -160,7 +164,14 @@ export default {
     },
 
     data() {
-        const path = this.$route.query.path || ''; 
+        let path = this.$route.fullPath.trim();
+        if (path === '/') {
+            path = '';
+        }
+        if (path.indexOf('/f/') === 0) {
+            path = decodeURI(path.substring(3));
+        }
+
         return {
             path: path,
             breadcrumbs: buildBreadcrumbs(path),
