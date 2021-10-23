@@ -14,7 +14,9 @@ class Index {
     }
 
     deregister(path) {
-        this.entries.delete(path);
+        if (this.entries.has(path)) {
+            this.entries.delete(path);
+        }
     }
 
     search(conditionCallback) {
@@ -37,6 +39,10 @@ export function indexScheme(path, fsPath, scheme) {
     if (scheme.name) {
         index.register(path, {fsPath, name: scheme.name, lowerName: scheme.name.toLowerCase() });
     }
+}
+
+export function unindexScheme(path) {
+    index.deregister(path);
 }
 
 export function searchSchemes(query) {

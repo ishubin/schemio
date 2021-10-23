@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import { nanoid } from 'nanoid'
 import {schemioExtension, supportedMediaExtensions} from './fsConsts';
-import { indexScheme, searchSchemes } from './searchIndex';
+import { indexScheme, searchSchemes, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -142,6 +142,7 @@ export function fsDeleteScheme(config) {
             return fs.unlink(fsPath);
         })
         .then(() => {
+            unindexScheme(path);
             res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
@@ -167,6 +168,7 @@ export function fsGetScheme(config) {
 
         fs.readFile(fsPath, 'utf-8').then(content => {
             const scheme = JSON.parse(content);
+            scheme.projectLink = '/';
             res.json({
                 scheme: scheme,
                 viewOnly: config.viewOnlyMode

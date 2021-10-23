@@ -186,7 +186,7 @@ export default {
         },
 
         deleteScheme() {
-            this.$store.state.apiClient.deleteScheme().then(() => {
+            this.$store.state.apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
                 window.location = this.projectLink;
             });
         },
