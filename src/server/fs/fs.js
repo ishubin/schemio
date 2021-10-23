@@ -112,7 +112,9 @@ export function fsPatchScheme(config) {
                 }
 
                 scheme.name = newName;
-                return fs.writeFile(fsPath, JSON.stringify(scheme));
+                return fs.writeFile(fsPath, JSON.stringify(scheme)).then(() => {
+                    indexScheme(path, fsPath, scheme);
+                });
             }
         })
         .then(() => {
