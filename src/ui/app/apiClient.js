@@ -7,7 +7,7 @@ function unwrapAxios(response) {
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
-            let url = '/v1/fs/scheme/';
+            let url = '/v1/fs/schemes/';
             if (path) {
                 url += path;
             }
@@ -77,7 +77,7 @@ export function createApiClient(path) {
         },
 
         createNewScheme(scheme) {
-            return axios.post(`/v1/fs/scheme?path=${encodeURIComponent(path)}&id=${encodeURIComponent(scheme.id)}`, scheme).then(unwrapAxios);
+            return axios.post(`/v1/fs/schemes?path=${encodeURIComponent(path)}&id=${encodeURIComponent(scheme.id)}`, scheme).then(unwrapAxios);
         },
 
         saveScheme(scheme) {
@@ -89,6 +89,12 @@ export function createApiClient(path) {
         },
 
         findSchemes(filters) {
+            let url = '/v1/fs/schemes';
+            if (filters.query) {
+                url += '?q=' + encodeURIComponent(filters.query);
+            }
+
+            return axios.get(url).then(unwrapAxios);
         },
 
         getTags() {

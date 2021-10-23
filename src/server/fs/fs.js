@@ -1,17 +1,8 @@
 import fs from 'fs-extra';
 import _ from 'lodash';
 import { nanoid } from 'nanoid'
-
-const schemioExtension = '.schemio.json';
-
-const supportedMediaExtensions = new Set([
-    'jpg',
-    'jpeg',
-    'png',
-    'gif',
-    'tiff',
-    'bmp'
-]);
+import {schemioExtension, supportedMediaExtensions} from './fsConsts';
+import { searchSchemes } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -88,7 +79,7 @@ export function fsMoveScheme(config) {
 }
 
 function getPathDetailsToScheme(config, req) {
-    const pathPrefix = '/v1/fs/scheme/';
+    const pathPrefix = '/v1/fs/schemes/';
     const path = safePath(decodeURI(req.path.substring(pathPrefix.length)));
 
     const realPath = rightFilePad(config.fs.rootPath) + path;
@@ -155,6 +146,16 @@ export function fsDeleteScheme(config) {
             console.error('Failed to delete scheme file', fsPath, err);
             res.$serverError('Failed to delete scheme')
         })
+    };
+}
+
+export function fsSearchSchemes(config) {
+    return (req, res) => {
+        const schemes = searchSchemes(req.query.q || '');
+        res.json({
+            totalResults: schemes.length,
+            results: schemes
+        });
     };
 }
 

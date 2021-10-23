@@ -69,7 +69,8 @@ export default {
         },
         onSchemeSelect(scheme) {
             this.editType = 'scheme';
-            this.editUrl = scheme.id;
+            this.editUrl = scheme.publicLink;
+
             if (!this.editTitle) {
                 this.editTitle = scheme.name;
             }

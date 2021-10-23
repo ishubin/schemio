@@ -15,12 +15,13 @@ import {
     fsGetScheme, fsGetStyles, fsListFilesRoute, 
     fsMoveDirectory, fsMoveScheme, fsPatchDirectory, 
     fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, 
-    fsSaveStyle, fsUploadMediaFile 
+    fsSaveStyle, fsSearchSchemes, fsUploadMediaFile 
 } from './fs/fs.js';
 
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
+import { createIndex } from './fs/searchIndex.js';
 
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
@@ -36,6 +37,8 @@ fs.readdir('conf/art', function (err, files) {
         globalArt.push(artContent);
     });
 });
+
+createIndex(config);
 
 const app = express();
 const modification = false;
@@ -54,7 +57,8 @@ app.use('/v1', apiMiddleware);
 
 app.get('/v1/fs/list',   fsListFilesRoute(config));
 app.get('/v1/fs/list/*', fsListFilesRoute(config));
-app.get('/v1/fs/scheme/*', jsonBodyParser, fsGetScheme(config));
+app.get('/v1/fs/schemes/*', jsonBodyParser, fsGetScheme(config));
+app.get('/v1/fs/schemes', jsonBodyParser, fsSearchSchemes(config));
 
 if (!config.viewOnlyMode) {
     app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
@@ -64,10 +68,10 @@ if (!config.viewOnlyMode) {
     app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
     app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
 
-    app.post('/v1/fs/scheme', jsonBodyParser, fsCreateScheme(config));
-    app.patch('/v1/fs/scheme/*', jsonBodyParser, fsPatchScheme(config));
-    app.delete('/v1/fs/scheme/*', jsonBodyParser, fsDeleteScheme(config));
-    app.put('/v1/fs/scheme/*', jsonBodyParser, fsSaveScheme(config));
+    app.post('/v1/fs/schemes', jsonBodyParser, fsCreateScheme(config));
+    app.patch('/v1/fs/schemes/*', jsonBodyParser, fsPatchScheme(config));
+    app.delete('/v1/fs/schemes/*', jsonBodyParser, fsDeleteScheme(config));
+    app.put('/v1/fs/schemes/*', jsonBodyParser, fsSaveScheme(config));
     app.post('/v1/fs/scheme-preview', jsonBodyParser, fsCreateSchemePreview(config));
     app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
 

@@ -41,7 +41,7 @@
                                 <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
-                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/scheme/${entry.fullPath}`">
+                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/schemes/${entry.fullPath}`">
                                     <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
@@ -252,7 +252,12 @@ export default {
         },
 
         onSchemeCreated(scheme) {
-            window.location = `/scheme?path=${encodeURIComponent(this.path)}&id=${encodeURIComponent(scheme.id)}#m:edit`;
+            let url = '/schemes/';
+            if (this.path) {
+                url += this.path + '/';
+            }
+            url += scheme.id;
+            window.location = `${url}#m:edit`;
         },
 
         onDeleteEntry(entry) {

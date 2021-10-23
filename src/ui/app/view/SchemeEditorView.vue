@@ -58,7 +58,7 @@ export default {
         });
     },
     data() {
-        const pathPrefix = '/scheme/';
+        const pathPrefix = '/schemes/';
         let path = decodeURI(this.$route.path.substring(pathPrefix.length));
         let schemeId = null;
         const idx = path.lastIndexOf('/');
