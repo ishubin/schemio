@@ -41,7 +41,7 @@
                                 <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
-                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/schemes/${entry.fullPath}`">
+                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/schemes/${entry.path}`">
                                     <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </a>
@@ -145,11 +145,6 @@ export default {
 
                 if (entry.kind === 'scheme') {
                     entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
-                    let fullPath = entry.path;
-                    if (fullPath.charAt(fullPath.length - 1) !== '/') {
-                        fullPath += '/';
-                    }
-                    entry.fullPath = fullPath + entry.id;
                 }
             });
             this.entries = result.entries;

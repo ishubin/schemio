@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import { nanoid } from 'nanoid'
 import {schemioExtension, supportedMediaExtensions} from './fsConsts';
-import { searchSchemes } from './searchIndex';
+import { indexScheme, searchSchemes } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -28,7 +28,7 @@ function validateFileName(name) {
 
 function safePath(path) {
     if (!path) {
-        path = '.';
+        path = '';
     }
     path = path.replace(/\/\.\.\//g, '/./');
     return path;
@@ -66,7 +66,7 @@ export function fsMoveScheme(config) {
             }
         })
         .then(() => {
-            return fs.move(fullPath, `${realDst}/${fileName}`);
+            return fs.move(fullPath, rightFilePad(realDst) + fileName);
         })
         .then(() => {
             res.json({ satus: 'ok' });
@@ -187,7 +187,7 @@ export function fsSaveScheme(config) {
 
         const scheme = req.body;
         scheme.id = schemeId;
-        scheme.path = path;
+        scheme.publicLink = `/schemes/${path}`;
 
         fs.stat(fsPath)
         .then(stat => {
@@ -197,6 +197,7 @@ export function fsSaveScheme(config) {
             return fs.writeFile(fsPath, JSON.stringify(scheme));
         })
         .then(() => {
+            indexScheme(path, fullPath, scheme);
             res.json(scheme);
         })
         .catch(err => {
@@ -218,11 +219,14 @@ export function fsCreateScheme(config) {
             return;
         }
         const id = nanoid();
-        const fullPath = realPath + '/' + id + schemioExtension;
+        const fullPath = rightFilePad(realPath) + id + schemioExtension;
         scheme.id = id;
-        scheme.path = path;
+        
+        const schemePath = path + '/' + id;
+        scheme.publicLink = `/schemes/${schemePath}`;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
+            indexScheme(schemePath, fullPath, scheme);
             res.json(scheme);
         })
         .catch(err => {
@@ -285,14 +289,14 @@ export function fsPatchDirectory(config) {
             return;
         }
 
-        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + req.query.name;
+        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + req.query.name;
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
         })
         .then(() => {
-            const newPath = rightFilePad(config.fs.rootPath) + path + '/' + newName;
+            const newPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + newName;
             return fs.move(realPath, newPath);
         })
         .then(() => {
@@ -315,7 +319,7 @@ export function fsDeleteDirectory(config) {
             return;
         }
 
-        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + req.query.name;
+        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + req.query.name;
 
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
@@ -348,17 +352,13 @@ export function fsCreateDirectory(config) {
 
         const path = safePath(decodeURI(dirBody.path));
 
-        const realPath = rightFilePad(config.fs.rootPath) + path + '/' + dirBody.name;
+        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + dirBody.name;
 
-        let entryPath = path + '/';
-        if (entryPath === './') {
-            entryPath = '';
-        }
         fs.mkdir(realPath).then(() => {
             res.json({
                 kind: 'dir',
                 name: dirBody.name,
-                path: entryPath + dirBody.name
+                path: realPath
             });
         })
         .catch(err => {
@@ -394,15 +394,16 @@ export function fsListFilesRoute(config) {
                 }
                 const stat = fs.statSync(`${realPath}/${file}`);
 
-                let entryPath = path + '/';
-                if (entryPath === './') {
-                    entryPath = '';
+                let entryPath = file;
+                if (path) {
+                    entryPath = rightFilePad(path) + file;
                 }
+
                 if (stat.isDirectory()) {
                     entries.push({
                         kind: 'dir',
                         name: file,
-                        path: entryPath + file,
+                        path: entryPath,
                         modifiedTime: stat.mtime,
                     });
                 } else if (file.endsWith(schemioExtension)) {
@@ -414,7 +415,7 @@ export function fsListFilesRoute(config) {
                             kind: 'scheme',
                             id: file.substring(0, file.length - schemioExtension.length),
                             name: scheme.name,
-                            path: entryPath,
+                            path: entryPath.substring(0, entryPath.length - schemioExtension.length),
                             modifiedTime: stat.mtime,
                         });
                     } catch(err) {
@@ -423,13 +424,13 @@ export function fsListFilesRoute(config) {
                 }
             });
 
-            if (path !== '.') {
+            if (path.length > 0) {
                 const pathDirs = path.split('/');
                 if (pathDirs.length === 0) {
                     entries.splice(0, 0, {
                         kind: 'dir',
                         name: '..',
-                        path: '.'
+                        path: ''
                     });
                 } else {
                     pathDirs.pop();
