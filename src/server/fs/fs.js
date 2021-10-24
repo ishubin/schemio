@@ -314,6 +314,7 @@ export function fsPatchDirectory(config) {
             return fs.move(realPath, newPath);
         })
         .then(() => {
+            reindex(config);
             res.json({
                 status: 'ok'
             });
@@ -344,6 +345,7 @@ export function fsDeleteDirectory(config) {
             return fs.rmdir(realPath, {recursive: true});
         })
         .then(() => {
+            reindex(config);
             res.json({
                 status: 'ok',
                 message: `Removed directory: ${path}/${req.query.name}`
