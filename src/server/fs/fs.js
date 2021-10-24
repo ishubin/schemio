@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import { nanoid } from 'nanoid'
 import {schemioExtension, supportedMediaExtensions} from './fsConsts';
-import { indexScheme, searchSchemes, unindexScheme } from './searchIndex';
+import { indexScheme, reindex, searchSchemes, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -50,7 +50,7 @@ export function fsMoveScheme(config) {
 
         const realPath = rightFilePad(config.fs.rootPath) + path;
         const fileName = schemeId + schemioExtension;
-        const fullPath = realPath + '/' + fileName;
+        const fullPath = realPath + schemioExtension;
 
         const dst = safePath(req.query.dst);
         const realDst = rightFilePad(config.fs.rootPath) + dst;
@@ -66,9 +66,18 @@ export function fsMoveScheme(config) {
             }
         })
         .then(() => {
-            return fs.move(fullPath, rightFilePad(realDst) + fileName);
+            return fs.readFile(fullPath).then(JSON.parse);
         })
-        .then(() => {
+        .then(scheme => {
+            return fs.move(fullPath, rightFilePad(realDst) + fileName).then(() => {
+                return scheme;
+            });
+        })
+        .then(scheme => {
+            unindexScheme(path);
+            const newPath = rightFilePad(dst) + schemeId;
+            indexScheme(newPath, realDst, scheme);
+
             res.json({ satus: 'ok' });
         })
         .catch(err => {
@@ -267,6 +276,7 @@ export function fsMoveDirectory(config) {
             return fs.move(realSrc, `${realDst}/${name}`);
         })
         .then(() => {
+            reindex(config);
             res.json({ satus: 'ok' });
         })
         .catch(err => {

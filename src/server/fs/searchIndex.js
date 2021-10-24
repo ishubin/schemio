@@ -22,7 +22,7 @@ class Index {
     search(conditionCallback) {
         const searchResults = [];
         this.entries.forEach((entry, path) => {
-            if (conditionCallback(entry)) {
+            if (conditionCallback(entry, path)) {
                 searchResults.push({
                     path: path,
                     entry
@@ -33,21 +33,29 @@ class Index {
     }
 }
 
-const index = new Index();
+let currentIndex = new Index();
 
-export function indexScheme(path, fsPath, scheme) {
+function _indexScheme(index, path, fsPath, scheme) {
     if (scheme.name) {
         index.register(path, {fsPath, name: scheme.name, lowerName: scheme.name.toLowerCase() });
     }
 }
 
-export function unindexScheme(path) {
+function _unindexScheme(index, path) {
     index.deregister(path);
+}
+
+export function indexScheme(path, fsPath, scheme) {
+    _indexScheme(currentIndex, path, fsPath, scheme);
+}
+
+export function unindexScheme(path) {
+    _unindexScheme(currentIndex, path);
 }
 
 export function searchSchemes(query) {
     const lowerQuery = query.toLowerCase();
-    const indexResults = index.search(entry => entry.name.indexOf(lowerQuery) >= 0);
+    const indexResults = currentIndex.search((entry, path) => entry.name.indexOf(lowerQuery) >= 0 || path.toLowerCase().indexOf(query) >= 0);
     
     return map(indexResults, item => {
         return {
@@ -57,14 +65,53 @@ export function searchSchemes(query) {
     });
 }
 
+function _createIndexFromScratch(index, config) {
+    const rootPath = config.fs.rootPath;
+
+    console.log('Starting reindex...');
+
+    return walk(config.fs.rootPath, filePath => {
+        if (filePath.endsWith(schemioExtension)) {
+            fs.readFile(filePath).then(content => {
+                const scheme = JSON.parse(content);
+                const fsPath = filePath.substring(rootPath.length);
+                const path = fsPath.substring(0, fsPath.length - schemioExtension.length);
+
+                _indexScheme(index, path, fsPath, scheme);
+            })
+            .catch(err => {
+                console.error('Failed to index scheme file:' + filePath, err);
+            });
+        }
+    }).then(() => {
+        console.log('Finished indexing');
+    });
+}
+
+export function createIndex(config) {
+    _createIndexFromScratch(currentIndex, config);
+}
+
+export function reindex(config) {
+    const newIndex = new Index();
+    _createIndexFromScratch(newIndex, config).then(() => {
+        currentIndex = newIndex;
+    })
+}
+
 
 function walk(dirPath, callback) {
-    fs.readdir(dirPath).then(files => {
+    return fs.readdir(dirPath).then(files => {
+        let chain = Promise.resolve(null);
+
         files.forEach(fileName => {
             const filePath = path.join(dirPath, fileName);
-            fs.stat(filePath).then(stat => {
-                if (stat.isDirectory()) {
-                    walk(filePath, callback);
+            chain = chain.then(() => {
+                return fs.stat(filePath);
+            })
+            .then(stat => {
+                if (stat.isDirectory() && fileName.charAt(0) !== '.') {
+                    return walk(filePath, callback);
                 } else if (stat.isFile()) {
                     callback(filePath);
                 }
@@ -73,26 +120,9 @@ function walk(dirPath, callback) {
                 console.error('Failed to stat file: ' + filePath, err);
             });
         });
+        return chain;
     })
     .catch(err => {
         console.error('Failed to walk dir: ', dirPath, err);
-    });
-}
-
-export function createIndex(config) {
-    const rootPath = config.fs.rootPath;
-
-    walk(config.fs.rootPath, filePath => {
-        if (filePath.endsWith(schemioExtension)) {
-            fs.readFile(filePath).then(content => {
-                const scheme = JSON.parse(content);
-                const fsPath = filePath.substring(rootPath.length);
-                const path = fsPath.substring(0, fsPath.length - schemioExtension.length);
-                indexScheme(path, fsPath, scheme);
-            })
-            .catch(err => {
-                console.error('Failed to index scheme file:' + filePath, err);
-            });
-        }
     });
 }
