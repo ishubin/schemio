@@ -124,6 +124,10 @@ function isValidCharCode(code) {
 export default {
 
     components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal, Header},
+
+    props: {
+        useStaticClient: {type: Boolean, default: false}
+    },
     
     beforeMount() {
         this.apiClient.listEntries(this.path)
@@ -166,6 +170,7 @@ export default {
         if (path.indexOf('/f/') === 0) {
             path = decodeURI(path.substring(3));
         }
+
 
         return {
             path: path,

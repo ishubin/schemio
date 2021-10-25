@@ -4,6 +4,21 @@ function unwrapAxios(response) {
     return response.data;
 }
 
+function getExportHTMLResources() {
+    return Promise.all([
+        axios.get('/assets/schemio-standalone.css'),
+        axios.get('/assets/schemio-standalone.html'),
+        axios.get('/assets/schemio-standalone.js')
+    ]).then(values => {
+        const css  = values[0].data;
+        const html = values[1].data;
+        const js   = values[2].data;
+        return {
+            css, html, js
+        };
+    })
+}
+
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
@@ -150,20 +165,20 @@ export function createApiClient(path) {
         /**
          * Returns static resources (html, css, js) for scheme exporting
          */
-        getExportHTMLResources() {
-            return Promise.all([
-                axios.get('/assets/schemio-standalone.css'),
-                axios.get('/assets/schemio-standalone.html'),
-                axios.get('/assets/schemio-standalone.js')
-            ]).then(values => {
-                const css  = values[0].data;
-                const html = values[1].data;
-                const js   = values[2].data;
-                return {
-                    css, html, js
-                };
-            })
+        getExportHTMLResources
+    };
+}
 
+
+export function createStaticClient(path) {
+    return {
+        listEntries(path) {
+            return axios.get('fs.index.json').then(unwrapAxios)
+            .then(index => {
+                return index.folders[path];
+            });
         },
+
+        getExportHTMLResources
     };
 }

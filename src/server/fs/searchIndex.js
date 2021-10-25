@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
-import path from 'path';
-import {schemioExtension} from './fsConsts';
 import map from 'lodash/map';
+import { schemioExtension } from './fsUtils.js';
+import { walk } from './walk';
 
 
 class Index {
@@ -70,9 +70,13 @@ function _createIndexFromScratch(index, config) {
 
     console.log('Starting reindex...');
 
-    return walk(config.fs.rootPath, filePath => {
+    return walk(config.fs.rootPath, (filePath, isDirectory) => {
+        if (isDirectory) {
+            return;
+        }
+
         if (filePath.endsWith(schemioExtension)) {
-            fs.readFile(filePath).then(content => {
+            return fs.readFile(filePath).then(content => {
                 const scheme = JSON.parse(content);
                 const fsPath = filePath.substring(rootPath.length);
                 const path = fsPath.substring(0, fsPath.length - schemioExtension.length);
@@ -99,30 +103,3 @@ export function reindex(config) {
     })
 }
 
-
-function walk(dirPath, callback) {
-    return fs.readdir(dirPath).then(files => {
-        let chain = Promise.resolve(null);
-
-        files.forEach(fileName => {
-            const filePath = path.join(dirPath, fileName);
-            chain = chain.then(() => {
-                return fs.stat(filePath);
-            })
-            .then(stat => {
-                if (stat.isDirectory() && fileName.charAt(0) !== '.') {
-                    return walk(filePath, callback);
-                } else if (stat.isFile()) {
-                    callback(filePath);
-                }
-            })
-            .catch(err => {
-                console.error('Failed to stat file: ' + filePath, err);
-            });
-        });
-        return chain;
-    })
-    .catch(err => {
-        console.error('Failed to walk dir: ', dirPath, err);
-    });
-}

@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import _ from 'lodash';
 import { nanoid } from 'nanoid'
-import {schemioExtension, supportedMediaExtensions} from './fsConsts';
+import {schemioExtension, supportedMediaExtensions, rightFilePad } from './fsUtils.js';
 import { indexScheme, reindex, searchSchemes, unindexScheme } from './searchIndex';
 
 
@@ -187,7 +187,7 @@ export function fsGetScheme(config) {
             if (err.code === 'ENOENT') {
                 res.$apiNotFound('Such scheme does not exist');
             } else {
-                console.error('Failed to read scheme file', fullPath, err);
+                console.error('Failed to read scheme file', fsPath, err);
                 res.$serverError('Failed to create scheme');
             }
         });
@@ -200,6 +200,7 @@ export function fsSaveScheme(config) {
 
         const scheme = req.body;
         scheme.id = schemeId;
+        scheme.modifiedTime = new Date();
         scheme.publicLink = `/schemes/${path}`;
 
         fs.stat(fsPath)
@@ -210,7 +211,7 @@ export function fsSaveScheme(config) {
             return fs.writeFile(fsPath, JSON.stringify(scheme));
         })
         .then(() => {
-            indexScheme(path, fullPath, scheme);
+            indexScheme(path, fsPath, scheme);
             res.json(scheme);
         })
         .catch(err => {
@@ -234,6 +235,7 @@ export function fsCreateScheme(config) {
         const id = nanoid();
         const fullPath = rightFilePad(realPath) + id + schemioExtension;
         scheme.id = id;
+        scheme.modifiedTime = new Date();
         
         const schemePath = path + '/' + id;
         scheme.publicLink = `/schemes/${schemePath}`;
@@ -432,7 +434,7 @@ export function fsListFilesRoute(config) {
                             id: file.substring(0, file.length - schemioExtension.length),
                             name: scheme.name,
                             path: entryPath.substring(0, entryPath.length - schemioExtension.length),
-                            modifiedTime: stat.mtime,
+                            modifiedTime: scheme.modifiedTime,
                         });
                     } catch(err) {
                         console.error('Failed to parse scheme file', entryPath, err);
@@ -815,11 +817,4 @@ function getFileExtension(name) {
         return name.substring(idx + 1);
     }
     return '';
-}
-
-function rightFilePad(path) {
-    if (path.charAt(path.length - 1) !== '/') {
-        return path + '/';
-    }
-    return path;
 }

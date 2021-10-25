@@ -11,38 +11,21 @@ import HomeView from './app/view/HomeView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
+import { applyVueFilters } from './vue.filters';
 
 Vue.use(VueRouter);
-
-function zeroPad(n) {
-    if (n >=0 && n < 10) {
-        return '0' + n;
-    } else {
-        return '' + n;
-    }
-}
-
-Vue.filter('formatDateTime', encodedDate => {
-    const d = new Date(encodedDate);
-    const z = zeroPad;
-    return `${d.getFullYear()}.${z(d.getMonth())}.${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`;
-});
+applyVueFilters(Vue);
 
 function route(name, path, component, props) {
-    return {
-        name,
-        path,
-        component,
-        props
-    };
+    return { name, path, component, props };
 }
 
 
 const routes = [
-    route('SchemeEditorView',   '/schemes/*', SchemeEditorView),
-    route('NotFoundView',       '/not-found', NotFoundView),
-    route('HomeView',           '/', HomeView),
-    route('FolderView',         '/f/*', HomeView),
+    route('SchemeEditorView',   '/schemes/*',   SchemeEditorView),
+    route('NotFoundView',       '/not-found',   NotFoundView),
+    route('HomeView',           '/',            HomeView, {useStaticClient: true}),
+    route('FolderView',         '/f/*',         HomeView, {useStaticClient: true}),
     { path: '*', redirect: '/not-found'}
 ];
 

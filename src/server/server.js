@@ -18,6 +18,8 @@ import {
     fsSaveStyle, fsSearchSchemes, fsUploadMediaFile 
 } from './fs/fs.js';
 
+import {fsExportStatic} from './fs/fsExporter';
+
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
@@ -84,6 +86,8 @@ if (!config.viewOnlyMode) {
     app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
     app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
     app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
+
+    app.post('/v1/static-exports/start', jsonBodyParser, fsExportStatic(config));
 }
 
 app.get('/media/:objectId', fsDownloadMediaFile(config));
