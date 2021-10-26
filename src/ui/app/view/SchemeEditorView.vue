@@ -4,10 +4,10 @@
             <div slot="middle-section" class="header-middle-section">
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
-                        <a v-if="crumb.kind === 'dir'" :href="`/f/${crumb.path}`">
+                        <router-link v-if="crumb.kind === 'dir'" :to="`/f/${crumb.path}`">
                             <i class="fas fa-folder"/>
                             {{crumb.name}}
-                        </a>
+                        </router-link>
                         <span v-if="crumb.kind === 'ellipsis'">...</span>
                         <i v-if="crumbIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
                     </li>
@@ -33,7 +33,7 @@
     </div>
 </template>
 <script>
-import { createApiClient } from '../apiClient';
+import { createApiClient, createStaticClient } from '../apiClient';
 import SchemioEditorApp from '../../SchemioEditorApp.vue';
 import Header from '../components/Header.vue';
 import forEach from 'lodash/forEach';
@@ -42,12 +42,16 @@ import forEach from 'lodash/forEach';
 export default {
     components: {SchemioEditorApp, Header},
 
+    props: {
+        useStaticClient: {type: Boolean, default: false}
+    },
+
     beforeMount() {
         this.$store.dispatch('setApiClient', this.apiClient);
 
         this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
             this.scheme = schemeDetails.scheme;
-            this.editAllowed = !schemeDetails.viewOnly;
+            this.editAllowed = !this.useStaticClient && !schemeDetails.viewOnly;
         })
         .catch(err => {
             if (err.response && err.response.status === 404) {
@@ -106,7 +110,7 @@ export default {
             breadcrumbs: breadcrumbs,
             editAllowed: false,
             scheme: null,
-            apiClient: createApiClient(path),
+            apiClient: this.useStaticClient ? createStaticClient(path) : createApiClient(path),
             is404: false,
             errorMessage: null
         };

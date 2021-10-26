@@ -1,4 +1,5 @@
 import axios from 'axios';
+import map from 'lodash/map';
 
 function unwrapAxios(response) {
     return response.data;
@@ -171,11 +172,81 @@ export function createApiClient(path) {
 
 
 export function createStaticClient(path) {
+
+    let cachedIndex = null;
+
+    function traverseEntries(entries, callback) {
+        for (let i = 0; i < entries.length; i++) {
+            callback(entries[i]);
+            if (entries[i].kind === 'dir' && entries[i].entries) {
+                traverseEntries(entries[i].entries, callback);
+            }
+        }
+    }
+
+    function prepareIndex(index) {
+        const dirLookup = new Map();
+
+        dirLookup.set('', {
+            path: '',
+            viewOnly: true,
+            entries: index.entries || []
+        });
+
+        traverseEntries(index.entries, entry => {
+            if (entry.kind === 'dir') {
+                dirLookup.set(entry.path, {
+                    path: entry.path,
+                    viewOnly: true,
+                    entries: entry.entries || []
+                });
+               dirLookup.set(entry.path, entry);
+            }
+        });
+
+        index.dirLookup = dirLookup;
+        cachedIndex = index;
+        return index;
+    }
+
     return {
         listEntries(path) {
-            return axios.get('fs.index.json').then(unwrapAxios)
-            .then(index => {
-                return index.folders[path];
+            let chain = null;
+
+            if (cachedIndex) {
+                chain = Promise.resolve(cachedIndex);
+            } else {
+                chain = axios.get('fs.index.json').then(unwrapAxios).then(prepareIndex)
+                .catch(err => {
+                    console.error('Failed to build index', err);
+                    throw err;
+                });
+            }
+
+            return chain.then(index => {
+                if (index.dirLookup.has(path)) {
+                    return {
+                        path: path,
+                        viewOnly: true,
+                        entries: index.dirLookup.get(path).entries
+                    }
+                } else {
+                    return Promise.reject({
+                        message: 'Not found',
+                        path: path
+                    });
+                }
+            });
+        },
+
+        getScheme(schemeId) {
+            return axios.get(`${path}/${schemeId}.schemio.json`)
+            .then(unwrapAxios)
+            .then(scheme => {
+                return {
+                    viewOnly: true,
+                    scheme: scheme
+                };
             });
         },
 

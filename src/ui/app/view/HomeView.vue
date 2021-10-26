@@ -11,7 +11,7 @@
                 <h4>Sorry, specfied path does not exist</h4>
             </div>
             <div v-else>
-                <div class="fs-toolbar" v-if="!viewOnly">
+                <div class="fs-toolbar" v-if="!viewOnly && !useStaticClient">
                     <span class="btn btn-secondary" @click="showNewDirectoryModel()">
                         <i class="fas fa-folder-plus"></i> New directory
                     </span>
@@ -22,7 +22,7 @@
 
                 <ul class="breadcrumbs">
                     <li v-for="(entry, entryIdx) in breadcrumbs">
-                        <a class="breadcrumb-link" :href="`/f/${entry.path}`">{{entry.name}}</a>
+                        <router-link class="breadcrumb-link" :to="`/f/${entry.path}`">{{entry.name}}</router-link>
                         <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
                     </li>
                 </ul>
@@ -38,13 +38,13 @@
                     <tbody>
                         <tr v-for="(entry, entryIdx) in entries">
                             <td>
-                                <a class="entry-link" v-if="entry.kind === 'dir'" :href="`/f/${entry.path}`">
+                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
-                                </a>
-                                <a class="entry-link" v-else-if="entry.kind === 'scheme'" :href="`/schemes/${entry.path}`">
+                                </router-link>
+                                <router-link class="entry-link" v-else-if="entry.kind === 'scheme'" :to="`/schemes/${entry.path}`">
                                     <img class="scheme-preview" :src="`/media/scheme-preview/${entry.id}?v=${entry.encodedTime}`"/>
                                     <span class="entry-link-text">{{entry.name}}</span>
-                                </a>
+                                </router-link>
                             </td>
                             <td class="time-column">
                                 <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
@@ -103,7 +103,7 @@
 </template>
 
 <script>
-import { createApiClient } from '../apiClient';
+import { createApiClient, createStaticClient } from '../apiClient';
 import forEach from 'lodash/forEach';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
@@ -212,7 +212,7 @@ export default {
                 source: null
             },
 
-            apiClient: createApiClient(path)
+            apiClient: this.useStaticClient ? createStaticClient(path) : createApiClient(path)
         };
     },
 

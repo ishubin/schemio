@@ -12,7 +12,7 @@ function startExporter(config) {
     const exporterIndexPath = path.join(exporterPath, 'fs.index.json');
 
     currentExporter = {
-        dirs: [],
+        entries: [],
         schemeIndex: new Map()
     };
 
@@ -46,10 +46,10 @@ function startExporter(config) {
                     kind: 'dir',
                     name: fileNameFromPath(filePath),
                     path: filePath,
-                    dirs: []
+                    entries: []
                 };
                 directoryLookup.set(filePath, newDir);
-                parentDir.dirs.push(newDir);
+                parentDir.entries.push(newDir);
 
                 return fs.ensureDir(path.join(exporterPath, filePath));
             } else if (filePath.endsWith(schemioExtension)) {
@@ -57,7 +57,7 @@ function startExporter(config) {
                 .then(JSON.parse)
                 .then(scheme => {
                     if (scheme.name) {
-                        parentDir.dirs.push({
+                        parentDir.entries.push({
                             kind: 'scheme',
                             name: scheme.name,
                             path: filePath.substring(0, filePath.length - schemioExtension.length),

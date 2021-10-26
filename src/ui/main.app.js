@@ -22,16 +22,16 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorView',   '/schemes/*',   SchemeEditorView),
+    route('SchemeEditorView',   '/schemes/*',   SchemeEditorView, {useStaticClient: false}),
     route('NotFoundView',       '/not-found',   NotFoundView),
-    route('HomeView',           '/',            HomeView, {useStaticClient: true}),
-    route('FolderView',         '/f/*',         HomeView, {useStaticClient: true}),
+    route('HomeView',           '/',            HomeView, {useStaticClient: false}),
+    route('FolderView',         '/f/*',         HomeView, {useStaticClient: false}),
     { path: '*', redirect: '/not-found'}
 ];
 
 
 const router = new VueRouter({
-    mode: 'history',
+    // mode: 'history',
     routes: routes,
 });
 
