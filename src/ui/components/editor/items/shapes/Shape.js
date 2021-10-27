@@ -260,6 +260,17 @@ function computeStandardCurves(item, shape) {
     }
 }
 
+function getShapeArgs(shape) {
+    if (shape.shapeType === 'standard') {
+        const args = {};
+        const copyArg = (arg, argName) => args[argName] = arg;
+        forEach(standardShapeProps, copyArg);
+        forEach(shape.args, copyArg);
+        return args;
+    }
+    return shape.args;
+}
+
 
 export default {
     make,
@@ -272,5 +283,6 @@ export default {
     standardShapeProps,
     getShapePropDescriptor,
     getRegistry,
-    computeStandardCurves
+    computeStandardCurves,
+    getShapeArgs
 };

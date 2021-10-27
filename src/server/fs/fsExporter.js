@@ -1,14 +1,87 @@
-import { fileNameFromPath, schemioExtension } from "./fsUtils.js";
+import { fileNameFromPath, mediaFolder, schemioExtension } from "./fsUtils.js";
 import { walk } from "./walk";
 import fs from 'fs-extra';
 import path from 'path'
+import forEach from 'lodash/forEach';
 
 
 let currentExporter = null;
 let lastExporter = null;
 
+const exporterFolder = '.exporter';
+
+function traverseItems(items, callback) {
+    forEach(items, item => {
+        callback(item);
+        if (item.childItems) {
+            traverseItems(item.childItems, callback);
+        }
+    })
+}
+const mediaPrefix = '/media/';
+
+function doesReferenceMedia(prop) {
+    return typeof prop === 'string' && prop.startsWith(mediaPrefix);
+}
+
+function exportMediaFile(config, mediaURL) {
+    if (!mediaURL.startsWith(mediaPrefix)) {
+        return Promise.resolve(null);
+    }
+
+    const relativeFilePath = mediaURL.substring(mediaPrefix.length);
+
+    const absoluteFilePath = path.join(config.fs.rootPath, '.media', relativeFilePath);
+    const absoluteDstFilePath = path.join(config.fs.rootPath, '.exporter', 'media', relativeFilePath);
+
+    return fs.stat(absoluteFilePath)
+    .then(stat => {
+        if (!stat.isFile) {
+            throw new Error(`Not a file: ${relativeFilePath}`)
+        }
+
+        const idx = absoluteDstFilePath.lastIndexOf('/');
+        if (idx > 0) {
+            const dirPath = absoluteDstFilePath.substring(0, idx);
+            return fs.ensureDir(dirPath);
+        }
+    })
+    .then(() => {
+        return fs.copyFile(absoluteFilePath, absoluteDstFilePath);
+    });
+}
+
+function exportMediaForScheme(config, scheme) {
+    let chain = Promise.resolve(null);
+
+    const mediaFailCatcher = err => {
+        console.error('Failed to export media', err);
+    };
+
+    traverseItems(scheme.items, item => {
+        if (item.shapeProps) {
+            if (item.shape === 'image' && doesReferenceMedia(item.shapeProps.image)) {
+                chain = chain.then(() => exportMediaFile(config, item.shapeProps.image))
+                .then(mediaURL => {
+                    item.shapeProps.image = mediaURL;
+                })
+                .catch(mediaFailCatcher);
+            } else if (item.shapeProps.fill && typeof item.shapeProps.fill === 'object' && doesReferenceMedia(item.shapeProps.fill.image)) {
+                chain = chain.then(() => exportMediaFile(config, item.shapeProps.fill.image))
+                .then(mediaURL => {
+                    item.shapeProps.fill.image = mediaURL;
+                })
+                .catch(mediaFailCatcher);
+            }
+        }
+    });
+
+    return chain.then(() =>  scheme);
+}
+
+
 function startExporter(config) {
-    const exporterPath = path.join(config.fs.rootPath, '.exporter');
+    const exporterPath = path.join(config.fs.rootPath, exporterFolder);
     const exporterIndexPath = path.join(exporterPath, 'fs.index.json');
 
     currentExporter = {
@@ -64,8 +137,9 @@ function startExporter(config) {
                             modifiedDate: scheme.modifiedDate
                         })
                     }
-                    return fs.copyFile(absoluteFilePath, path.join(exporterPath, filePath));
+                    return fs.copyFile(absoluteFilePath, path.join(exporterPath, filePath)).then(() => scheme);
                 })
+                .then(scheme => exportMediaForScheme(config, scheme))
             }
         });
     }).then(() => {

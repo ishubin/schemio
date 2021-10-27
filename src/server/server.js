@@ -90,8 +90,8 @@ if (!config.viewOnlyMode) {
     app.post('/v1/static-exports/start', jsonBodyParser, fsExportStatic(config));
 }
 
-app.get('/media/:objectId', fsDownloadMediaFile(config));
 app.get('/media/scheme-preview/:schemeId', jsonBodyParser, fsDownloadSchemePreview(config));
+app.get('/media/*', fsDownloadMediaFile(config));
 
 
 app.get('/v1/art', (req, res) => {

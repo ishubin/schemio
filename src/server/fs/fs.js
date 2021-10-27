@@ -1,7 +1,8 @@
 import fs from 'fs-extra';
 import _ from 'lodash';
+import path from 'path';
 import { nanoid } from 'nanoid'
-import {schemioExtension, supportedMediaExtensions, rightFilePad } from './fsUtils.js';
+import {schemioExtension, supportedMediaExtensions} from './fsUtils.js';
 import { indexScheme, reindex, searchSchemes, unindexScheme } from './searchIndex';
 
 
@@ -36,7 +37,7 @@ function safePath(path) {
 
 export function fsMoveScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
+        const oldPath = safePath(req.query.path);
         let schemeId = req.query.id;
         if (!schemeId) {
             schemeId = '';
@@ -48,12 +49,12 @@ export function fsMoveScheme(config) {
             return;
         }
 
-        const realPath = rightFilePad(config.fs.rootPath) + path;
+        const realPath = path.join(config.fs.rootPath, oldPath);
         const fileName = schemeId + schemioExtension;
         const fullPath = realPath + schemioExtension;
 
         const dst = safePath(req.query.dst);
-        const realDst = rightFilePad(config.fs.rootPath) + dst;
+        const realDst = path.join(config.fs.rootPath, dst);
 
         Promise.all([fs.stat(fullPath), fs.stat(realDst)])
         .then(values => {
@@ -69,13 +70,13 @@ export function fsMoveScheme(config) {
             return fs.readFile(fullPath).then(JSON.parse);
         })
         .then(scheme => {
-            return fs.move(fullPath, rightFilePad(realDst) + fileName).then(() => {
+            return fs.move(fullPath, path.join(realDst, fileName)).then(() => {
                 return scheme;
             });
         })
         .then(scheme => {
-            unindexScheme(path);
-            const newPath = rightFilePad(dst) + schemeId;
+            unindexScheme(oldPath);
+            const newPath = path.join(dst, schemeId);
             indexScheme(newPath, realDst, scheme);
 
             res.json({ satus: 'ok' });
@@ -89,25 +90,25 @@ export function fsMoveScheme(config) {
 
 function getPathDetailsToScheme(config, req) {
     const pathPrefix = '/v1/fs/schemes/';
-    const path = safePath(decodeURI(req.path.substring(pathPrefix.length)));
+    const schemePath = safePath(decodeURI(req.path.substring(pathPrefix.length)));
 
-    const realPath = rightFilePad(config.fs.rootPath) + path;
+    const realPath = path.join(config.fs.rootPath, schemePath);
 
-    const idx = path.lastIndexOf('/');
-    let schemeId = path;
+    const idx = schemePath.lastIndexOf('/');
+    let schemeId = schemePath;
     if (idx >= 0) {
-        schemeId = path.substring(idx);
+        schemeId = schemePath.substring(idx);
     }
     return {
         fsPath: realPath + schemioExtension,
-        path: path,
+        publicPath: schemePath,
         schemeId: schemeId
     };
 }
 
 export function fsPatchScheme(config) {
     return (req, res) => {
-        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
+        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
 
         const patchRequest = req.body;
         
@@ -122,7 +123,7 @@ export function fsPatchScheme(config) {
 
                 scheme.name = newName;
                 return fs.writeFile(fsPath, JSON.stringify(scheme)).then(() => {
-                    indexScheme(path, fsPath, scheme);
+                    indexScheme(publicPath, fsPath, scheme);
                 });
             }
         })
@@ -140,7 +141,7 @@ export function fsPatchScheme(config) {
 
 export function fsDeleteScheme(config) {
     return (req, res) => {
-        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
+        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
         
         fs.stat(fsPath).then(stat => {
             if (!stat.isFile()) {
@@ -151,7 +152,7 @@ export function fsDeleteScheme(config) {
             return fs.unlink(fsPath);
         })
         .then(() => {
-            unindexScheme(path);
+            unindexScheme(publicPath);
             res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
@@ -173,7 +174,7 @@ export function fsSearchSchemes(config) {
 
 export function fsGetScheme(config) {
     return (req, res) => {
-        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
+        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
 
         fs.readFile(fsPath, 'utf-8').then(content => {
             const scheme = JSON.parse(content);
@@ -196,12 +197,12 @@ export function fsGetScheme(config) {
 
 export function fsSaveScheme(config) {
     return (req, res) => {
-        const {fsPath, path, schemeId} = getPathDetailsToScheme(config, req);
+        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
 
         const scheme = req.body;
         scheme.id = schemeId;
         scheme.modifiedTime = new Date();
-        scheme.publicLink = `/schemes/${path}`;
+        scheme.publicLink = `/schemes/${publicPath}`;
 
         fs.stat(fsPath)
         .then(stat => {
@@ -211,7 +212,7 @@ export function fsSaveScheme(config) {
             return fs.writeFile(fsPath, JSON.stringify(scheme));
         })
         .then(() => {
-            indexScheme(path, fsPath, scheme);
+            indexScheme(publicPath, fsPath, scheme);
             res.json(scheme);
         })
         .catch(err => {
@@ -223,8 +224,8 @@ export function fsSaveScheme(config) {
 
 export function fsCreateScheme(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
-        const realPath = rightFilePad(config.fs.rootPath) + path;
+        const publicPath = safePath(req.query.path);
+        const realPath = path.join(config.fs.rootPath, publicPath);
         
         const scheme = req.body;
 
@@ -233,11 +234,11 @@ export function fsCreateScheme(config) {
             return;
         }
         const id = nanoid();
-        const fullPath = rightFilePad(realPath) + id + schemioExtension;
+        const fullPath = path.join(realPath, id + schemioExtension);
         scheme.id = id;
         scheme.modifiedTime = new Date();
         
-        const schemePath = path + '/' + id;
+        const schemePath = publicPath + '/' + id;
         scheme.publicLink = `/schemes/${schemePath}`;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
@@ -255,8 +256,8 @@ export function fsMoveDirectory(config) {
         const src = safePath(req.query.src);
         const dst = safePath(req.query.dst);
 
-        const realSrc = rightFilePad(config.fs.rootPath) + src;
-        const realDst = rightFilePad(config.fs.rootPath) + dst;
+        const realSrc = path.join(config.fs.rootPath, src);
+        const realDst = path.join(config.fs.rootPath, dst);
 
         Promise.all([fs.stat(realSrc), fs.stat(realDst)])
         .then(values => {
@@ -291,7 +292,7 @@ export function fsMoveDirectory(config) {
 
 export function fsPatchDirectory(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
+        const publicPath = safePath(req.query.path);
         if (!validateFileName(req.query.name)) {
             res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
             return;
@@ -305,14 +306,14 @@ export function fsPatchDirectory(config) {
             return;
         }
 
-        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + req.query.name;
+        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
         })
         .then(() => {
-            const newPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + newName;
+            const newPath = path.join(config.fs.rootPath, publicPath, newName);
             return fs.move(realPath, newPath);
         })
         .then(() => {
@@ -330,13 +331,13 @@ export function fsPatchDirectory(config) {
 
 export function fsDeleteDirectory(config) {
     return (req, res) => {
-        const path = safePath(req.query.path);
+        const publicPath = safePath(req.query.path);
         if (!validateFileName(req.query.name)) {
             res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
             return;
         }
 
-        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + req.query.name;
+        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
 
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
@@ -350,7 +351,7 @@ export function fsDeleteDirectory(config) {
             reindex(config);
             res.json({
                 status: 'ok',
-                message: `Removed directory: ${path}/${req.query.name}`
+                message: `Removed directory: ${publicPath}/${req.query.name}`
             });
         })
         .catch(err => {
@@ -368,9 +369,9 @@ export function fsCreateDirectory(config) {
             return;
         }
 
-        const path = safePath(decodeURI(dirBody.path));
+        const publicPath = safePath(decodeURI(dirBody.path));
 
-        const realPath = rightFilePad(rightFilePad(config.fs.rootPath) + path) + dirBody.name;
+        const realPath = path.join(config.fs.rootPath, publicPath, dirBody.name);
 
         fs.mkdir(realPath).then(() => {
             res.json({
@@ -395,12 +396,12 @@ export function fsListFilesRoute(config) {
             return;
         }
         
-        let path = safePath(decodeURI(req.path.substring(pathPrefix.length)));
-        if (path.charAt(0) === '/') {
-            path = path.substring(1);
+        let publicPath = safePath(decodeURI(req.path.substring(pathPrefix.length)));
+        if (publicPath.charAt(0) === '/') {
+            publicPath = publicPath.substring(1);
         }
 
-        const realPath = rightFilePad(config.fs.rootPath) + path;
+        const realPath = path.join(config.fs.rootPath, publicPath);
 
         fs.readdir(realPath).then(files => {
             
@@ -413,8 +414,8 @@ export function fsListFilesRoute(config) {
                 const stat = fs.statSync(`${realPath}/${file}`);
 
                 let entryPath = file;
-                if (path) {
-                    entryPath = rightFilePad(path) + file;
+                if (publicPath) {
+                    entryPath = path.join(publicPath, file);
                 }
 
                 if (stat.isDirectory()) {
@@ -442,8 +443,8 @@ export function fsListFilesRoute(config) {
                 }
             });
 
-            if (path.length > 0) {
-                const pathDirs = path.split('/');
+            if (publicPath.length > 0) {
+                const pathDirs = publicPath.split('/');
                 if (pathDirs.length === 0) {
                     entries.splice(0, 0, {
                         kind: 'dir',
@@ -460,12 +461,12 @@ export function fsListFilesRoute(config) {
                 }
             }
             res.json({
-                path: path,
+                path: publicPath,
                 viewOnly: config.viewOnlyMode,
                 entries 
             });
         }).catch(err => {
-            console.error('Could not find files in ', path, err);
+            console.error('Could not find files in ', publicPath, err);
             res.$apiNotFound('Such path does not exist');
         });
     }
@@ -487,7 +488,7 @@ export function fsCreateSchemePreview(config) {
         
         schemeId = schemeId.replace(/(\/|\\)/g, '');
 
-        const folderPath = rightFilePad(config.fs.rootPath) + '.media/previews/';
+        const folderPath = path.join(config.fs.rootPath, '.media', 'previews');
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
                 throw new Error('Not a directory: ' + folderPath);
@@ -497,7 +498,7 @@ export function fsCreateSchemePreview(config) {
             return fs.mkdirs(folderPath);
         })
         .then(() => {
-            return fs.writeFile(`${folderPath}/${schemeId}`, svg);
+            return fs.writeFile(path.join(folderPath, schemeId), svg);
         })
         .then(() => {
             res.json({
@@ -515,7 +516,7 @@ export function fsDownloadSchemePreview(config) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const fullFilePath = `${rightFilePad(config.fs.rootPath)}.media/previews/${schemeId}`;
+        const fullFilePath = path.join(config.fs.rootPath, '.media', 'previews', schemeId);
         fs.stat(fullFilePath).then(stat => {
             if (!stat.isFile()) {
                 throw new Error('Not a file: ' + fullFilePath);
@@ -547,12 +548,12 @@ export function fsUploadMediaFile(config) {
         
         const date = new Date();
 
-        const firstPart = `${date.getFullYear()}-${leftZeroPad(date.getMonth())}-${leftZeroPad(date.getDate())}`
+        const firstPart = `${date.getFullYear()}/${leftZeroPad(date.getMonth())}/${leftZeroPad(date.getDate())}`
         const id = nanoid(30);
         const fileName = `${id}.${extension}`;
 
-        const mediaStoragePath = rightFilePad(config.fs.rootPath) + '.media/';
-        const folderPath = mediaStoragePath +  firstPart.replace(/\-/g, '/');
+        const mediaStoragePath = path.join(config.fs.rootPath, '.media/');
+        const folderPath = mediaStoragePath +  firstPart;
         const fullFilePath = folderPath + '/' + fileName;
 
         fs.stat(folderPath).then(stat => {
@@ -566,7 +567,7 @@ export function fsUploadMediaFile(config) {
         .then(() => file.mv(fullFilePath))
         .then(() => {
             res.json({
-                url: `/media/${firstPart}-${id}.${extension}`
+                url: `/media/${firstPart}/${id}.${extension}`
             })
         })
         .catch(err => {
@@ -578,18 +579,17 @@ export function fsUploadMediaFile(config) {
 
 export function fsDownloadMediaFile(config) {
     return (req, res) => {
-        const objectId = req.params.objectId;
-
-        if (objectId.length < 11) {
-            res.status(404);
-            res.send('Not found');
+        const pathPrefix = '/media/';
+        if (!req.path.startsWith(pathPrefix)) {
+            res.status(400);
+            res.send('Bad request');
             return;
         }
+        
+        let mediaPath = safePath(decodeURI(req.path.substring(pathPrefix.length)));
 
-        const mediaStoragePath = rightFilePad(config.fs.rootPath) + '.media/';
-        const folderPart = safePath(objectId.substring(0, 10).replace(/\-/g, '/'));
-        const fileName = objectId.substring(11).replace(/\//g, '');
-        const fullFilePath = mediaStoragePath + folderPart + '/' + fileName;
+        const mediaStoragePath = path.join(config.fs.rootPath, '.media');
+        const fullFilePath = path.join(mediaStoragePath, mediaPath);
         fs.stat(fullFilePath).then(stat => {
             if (!stat.isFile()) {
                 throw new Error('Not a file');
@@ -617,7 +617,7 @@ export function fsCreateArt(config) {
             url: art.url
         };
 
-        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+        const artFile = path.join(config.fs.rootPath, '.art.json');
 
         fs.stat(artFile)
         .catch(err => {
@@ -659,7 +659,7 @@ export function fsSaveDeleteArt(config, isDeletion) {
             }
         }
 
-        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+        const artFile = path.join(config.fs.rootPath, '.art.json');
         fs.readFile(artFile, 'utf-8').then(content => {
             return JSON.parse(content);
         })
@@ -691,7 +691,7 @@ export function fsSaveDeleteArt(config, isDeletion) {
 
 export function fsGetArt(config) {
     return (req, res) => {
-        const artFile = rightFilePad(config.fs.rootPath) + '.art.json';
+        const artFile = path.join(config.fs.rootPath, '.art.json');
         return fs.readFile(artFile).then(content => {
             res.json(JSON.parse(content));
         })
@@ -709,7 +709,7 @@ export function fsSaveStyle(config) {
             return;
         }
 
-        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
         
         fs.stat(stylesFile)
         .catch(err => {
@@ -750,7 +750,7 @@ export function fsDeleteStyle(config) {
     return (req, res) => {
         const styleId = req.params.styleId;
 
-        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
         
         fs.stat(stylesFile)
         .catch(err => {
@@ -790,7 +790,7 @@ export function fsDeleteStyle(config) {
 
 export function fsGetStyles(config) {
     return (req, res) => {
-        const stylesFile = rightFilePad(config.fs.rootPath) + '.styles.json';
+        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
         fs.readFile(stylesFile, 'utf-8').then(content => {
             return JSON.parse(content);
         })
