@@ -51,7 +51,7 @@ function exportMediaFile(config, mediaURL) {
     });
 }
 
-function exportMediaForScheme(config, scheme) {
+function exportMediaForScheme(config, scheme, schemeId) {
     let chain = Promise.resolve(null);
 
     const mediaFailCatcher = err => {
@@ -76,7 +76,21 @@ function exportMediaForScheme(config, scheme) {
         }
     });
 
-    return chain.then(() =>  scheme);
+    return chain.then(() => {
+        const fileName =  `${schemeId}.svg`;
+        const filePath = path.join('previews', fileName);
+        const src = path.join(config.fs.rootPath, '.media', filePath);
+        const dstPreviewDir = path.join(config.fs.rootPath, exporterFolder, 'media', 'previews');
+        const dst = path.join(dstPreviewDir, fileName);
+
+        return fs.ensureDir(dstPreviewDir)
+        .then(() => {
+            return fs.copyFile(src, dst);
+        })
+        .catch(err => {
+            console.error('Could not cope scheme preview', err);
+        })
+    });
 }
 
 
@@ -126,6 +140,11 @@ function startExporter(config) {
 
                 return fs.ensureDir(path.join(exporterPath, filePath));
             } else if (filePath.endsWith(schemioExtension)) {
+
+                const idx = filePath.lastIndexOf('/') + 1;
+                const schemeId = filePath.substring(idx, filePath.length - schemioExtension.length);
+
+
                 return fs.readFile(absoluteFilePath)
                 .then(JSON.parse)
                 .then(scheme => {
@@ -139,7 +158,7 @@ function startExporter(config) {
                     }
                     return fs.copyFile(absoluteFilePath, path.join(exporterPath, filePath)).then(() => scheme);
                 })
-                .then(scheme => exportMediaForScheme(config, scheme))
+                .then(scheme => exportMediaForScheme(config, scheme, schemeId))
             }
         });
     }).then(() => {
