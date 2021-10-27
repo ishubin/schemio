@@ -498,7 +498,7 @@ export function fsCreateSchemePreview(config) {
             return fs.mkdirs(folderPath);
         })
         .then(() => {
-            return fs.writeFile(path.join(folderPath, schemeId), svg);
+            return fs.writeFile(path.join(folderPath, `${schemeId}.svg`), svg);
         })
         .then(() => {
             res.json({
@@ -511,26 +511,6 @@ export function fsCreateSchemePreview(config) {
         });
     };
 }
-
-export function fsDownloadSchemePreview(config) {
-    return (req, res) => {
-        const schemeId = req.params.schemeId;
-
-        const fullFilePath = path.join(config.fs.rootPath, '.media', 'previews', schemeId);
-        fs.stat(fullFilePath).then(stat => {
-            if (!stat.isFile()) {
-                throw new Error('Not a file: ' + fullFilePath);
-            }
-            res.setHeader('content-type', 'image/svg+xml');
-            res.download(fullFilePath);
-        })
-        .catch(err => {
-            res.status(404);
-            res.send('Not found');
-        })
-    };
-}
-
 
 export function fsUploadMediaFile(config) {
     return (req, res) => {
