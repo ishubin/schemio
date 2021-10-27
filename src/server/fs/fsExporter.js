@@ -151,6 +151,7 @@ function startExporter(config) {
                     if (scheme.name) {
                         parentDir.entries.push({
                             kind: 'scheme',
+                            id: schemeId,
                             name: scheme.name,
                             path: filePath.substring(0, filePath.length - schemioExtension.length),
                             modifiedDate: scheme.modifiedDate
