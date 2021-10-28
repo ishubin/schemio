@@ -252,12 +252,7 @@ export default {
         },
 
         onSchemeCreated(scheme) {
-            let url = '/schemes/';
-            if (this.path) {
-                url += this.path + '/';
-            }
-            url += scheme.id;
-            window.location = `${url}#m:edit`;
+            this.$router.push({path: `/schemes/${scheme.id}#m:edit`});
         },
 
         onDeleteEntry(entry) {
