@@ -267,6 +267,7 @@ export function fsCreateScheme(config) {
         scheme.modifiedTime = new Date();
         
         scheme.publicLink = `/schemes/${id}`;
+        scheme.previewURL = null;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
             indexScheme(id, scheme, indexPath);
@@ -468,6 +469,7 @@ export function fsListFilesRoute(config) {
                             name: scheme.name,
                             path: entryPath.substring(0, idx),
                             modifiedTime: scheme.modifiedTime,
+                            previewURL: scheme.previewURL
                         });
                     } catch(err) {
                         console.error('Failed to parse scheme file', entryPath, err);
@@ -520,6 +522,13 @@ export function fsCreateSchemePreview(config) {
         
         schemeId = schemeId.replace(/(\/|\\)/g, '');
 
+        const entity = getEntityFromIndex(schemeId);
+        if (!entity) {
+            res.$apiNotFound('Such scheme does not exist');
+            return;
+        }
+
+        const schemeFsPath = path.join(config.fs.rootPath, entity.fsPath);
         const folderPath = path.join(config.fs.rootPath, '.media', 'previews');
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
@@ -531,6 +540,14 @@ export function fsCreateSchemePreview(config) {
         })
         .then(() => {
             return fs.writeFile(path.join(folderPath, `${schemeId}.svg`), svg);
+        })
+        .then(() => {
+            return fs.readFile(schemeFsPath, 'utf-8').then(JSON.parse);
+        })
+        .then(scheme => {
+            scheme.previewURL = `/media/previews/${schemeId}.svg`;
+            console.log('writing to', schemeFsPath)
+            return fs.writeFile(schemeFsPath, JSON.stringify(scheme));
         })
         .then(() => {
             res.json({

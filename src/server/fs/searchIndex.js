@@ -1,5 +1,4 @@
 import fs from 'fs-extra';
-import map from 'lodash/map';
 import { schemioExtension } from './fsConsts';
 import { walk } from './walk';
 

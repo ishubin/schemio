@@ -42,7 +42,8 @@
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                                 <router-link class="entry-link" v-else-if="entry.kind === 'scheme'" :to="`/schemes/${entry.id}`">
-                                    <img class="scheme-preview" :src="`/media/previews/${entry.id}.svg?v=${entry.encodedTime}`"/>
+                                    <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
+                                    <i v-else class="icon far fa-file fa-2x"></i>
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                             </td>
