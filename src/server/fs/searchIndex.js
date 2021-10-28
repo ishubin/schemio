@@ -111,6 +111,7 @@ export function createIndex(config) {
     _createIndexFromScratch(currentIndex, config);
 }
 
+//TODO implement a better version of indexing and do only partial reindex of changed items (e.g. when renaming directories or moving schemes)
 export function reindex(config) {
     const newIndex = new Index();
     _createIndexFromScratch(newIndex, config).then(() => {

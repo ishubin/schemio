@@ -59,6 +59,7 @@ export default {
             if (err.response && err.response.status === 404) {
                 this.is404 = true;
             } else {
+                console.error(err);
                 this.errorMessage = 'Oops, something went wrong';
             }
         });

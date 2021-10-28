@@ -202,21 +202,22 @@ export function createStaticClient(path) {
         return index;
     }
 
+    function getIndex() {
+        if (cachedIndex) {
+            return Promise.resolve(cachedIndex);
+        } else {
+            return axios.get('fs.index.json').then(unwrapAxios)
+            .then(prepareIndex)
+            .catch(err => {
+                console.error('Failed to build index', err);
+                throw err;
+            });
+        }
+    }
+
     return {
         listEntries(path) {
-            let chain = null;
-
-            if (cachedIndex) {
-                chain = Promise.resolve(cachedIndex);
-            } else {
-                chain = axios.get('fs.index.json').then(unwrapAxios).then(prepareIndex)
-                .catch(err => {
-                    console.error('Failed to build index', err);
-                    throw err;
-                });
-            }
-
-            return chain.then(index => {
+            return getIndex().then(index => {
                 if (index.dirLookup.has(path)) {
                     return {
                         path: path,
@@ -233,11 +234,27 @@ export function createStaticClient(path) {
         },
 
         getScheme(schemeId) {
-            return axios.get(`${path}/${schemeId}.schemio.json`)
-            .then(unwrapAxios)
-            .then(scheme => {
+            return getIndex().then(index => {
+                const schemeEntry = index.schemeIndex[schemeId];
+                if (!schemeEntry) {
+                    throw new Error('Scheme was not found');
+                }
+                return axios.get(schemeEntry.path).then(unwrapAxios).then(scheme => {
+                    return [scheme, schemeEntry.path];
+                });
+            })
+            .then(values => {
+                const scheme = values[0];
+                const schemePath = values[1];
+                let idx = schemePath.lastIndexOf('/');
+                if (idx < 0) {
+                    idx = 0;
+                }
+                const folderPath = schemePath.substring(0, idx);
+
                 return {
                     viewOnly: true,
+                    folderPath: folderPath,
                     scheme: scheme
                 };
             });

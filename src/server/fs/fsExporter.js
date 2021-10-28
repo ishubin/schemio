@@ -100,7 +100,7 @@ function startExporter(config) {
 
     currentExporter = {
         entries: [],
-        schemeIndex: new Map()
+        schemeIndex: {}
     };
 
     const relativePath = filePath => {
@@ -144,7 +144,6 @@ function startExporter(config) {
                 const idx = filePath.lastIndexOf('/') + 1;
                 const schemeId = filePath.substring(idx, filePath.length - schemioExtension.length);
 
-
                 return fs.readFile(absoluteFilePath)
                 .then(JSON.parse)
                 .then(scheme => {
@@ -158,6 +157,13 @@ function startExporter(config) {
                         })
                     }
                     return fs.copyFile(absoluteFilePath, path.join(exporterPath, filePath)).then(() => scheme);
+                })
+                .then(scheme => {
+                    currentExporter.schemeIndex[schemeId] = {
+                        path: filePath,
+                        name: scheme.name
+                    };
+                    return scheme;
                 })
                 .then(scheme => exportMediaForScheme(config, scheme, schemeId))
             }
