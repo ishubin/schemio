@@ -93,6 +93,26 @@ function exportMediaForScheme(config, scheme, schemeId) {
     });
 }
 
+function referencesOtherScheme(url) {
+    return typeof url === 'string' && url.startsWith('/schemes/');
+}
+
+function fixSchemeLinks(scheme) {
+    traverseItems(scheme.items, item => {
+        if (item.shape === 'link' && referencesOtherScheme(item.shapeProps.url)) {
+            item.shapeProps.url = '#' + item.shapeProps.url;
+        }
+
+        if (item.links) {
+            forEach(item.links, link => {
+                if (referencesOtherScheme(link.url)) {
+                    link.url = '#' + link.url;
+                }
+            });
+        }
+    });
+    return Promise.resolve(scheme);
+}
 
 function startExporter(config) {
     const exporterPath = path.join(config.fs.rootPath, exporterFolder);
@@ -146,6 +166,7 @@ function startExporter(config) {
 
                 return fs.readFile(absoluteFilePath)
                 .then(JSON.parse)
+                .then(fixSchemeLinks)
                 .then(scheme => {
                     if (scheme.name) {
                         parentDir.entries.push({
@@ -156,7 +177,7 @@ function startExporter(config) {
                             modifiedDate: scheme.modifiedDate
                         })
                     }
-                    return fs.copyFile(absoluteFilePath, path.join(exporterPath, filePath)).then(() => scheme);
+                    return fs.writeFile(path.join(exporterPath, filePath), JSON.stringify(scheme)).then(() => scheme);
                 })
                 .then(scheme => {
                     currentExporter.schemeIndex[schemeId] = {
