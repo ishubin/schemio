@@ -23,14 +23,7 @@ function getExportHTMLResources() {
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
-            let url = '/v1/fs/schemes/';
-            if (path) {
-                url += path;
-            }
-            if (url.charAt(url.length - 1) !== '/') {
-                url += '/';
-            }
-            return url + schemeId;
+            return `/v1/fs/schemes/${schemeId}`;
         },
 
         listEntries(path) {
@@ -65,8 +58,8 @@ export function createApiClient(path) {
             return axios.patch(this._getSchemeUrl(schemeId), {name: newName}).then(unwrapAxios);
         },
 
-        moveScheme(oldPath, schemeId, newPath) {
-            return axios.post(`/v1/fs/movescheme?path=${encodeURIComponent(oldPath)}&id=${encodeURIComponent(schemeId)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
+        moveScheme(schemeId, newFolder) {
+            return axios.post(`/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&dst=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
         },
 
 
@@ -93,7 +86,7 @@ export function createApiClient(path) {
         },
 
         createNewScheme(scheme) {
-            return axios.post(`/v1/fs/schemes?path=${encodeURIComponent(path)}&id=${encodeURIComponent(scheme.id)}`, scheme).then(unwrapAxios);
+            return axios.post(`/v1/fs/schemes?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
         },
 
         saveScheme(scheme) {

@@ -22,10 +22,10 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorView',   '/schemes/*',   SchemeEditorView, {useStaticClient: false}),
-    route('NotFoundView',       '/not-found',   NotFoundView),
-    route('HomeView',           '/',            HomeView, {useStaticClient: false}),
-    route('FolderView',         '/f/*',         HomeView, {useStaticClient: false}),
+    route('SchemeEditorView',   '/schemes/:schemeId',   SchemeEditorView, {useStaticClient: false}),
+    route('NotFoundView',       '/not-found',           NotFoundView),
+    route('HomeView',           '/',                    HomeView, {useStaticClient: false}),
+    route('FolderView',         '/f/*',                 HomeView, {useStaticClient: false}),
     { path: '*', redirect: '/not-found'}
 ];
 

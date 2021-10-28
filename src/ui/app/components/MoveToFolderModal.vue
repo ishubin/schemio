@@ -100,7 +100,7 @@ export default {
                     this.$emit('moved');
                 });
             } else if (this.source.kind === 'scheme') {
-                this.apiClient.moveScheme(this.source.path, this.source.id, path).then(() => {
+                this.apiClient.moveScheme(this.source.id, path).then(() => {
                     this.$emit('moved');
                 });
             }

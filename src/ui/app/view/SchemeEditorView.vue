@@ -50,6 +50,8 @@ export default {
         this.$store.dispatch('setApiClient', this.apiClient);
 
         this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
+            this.buildBreadcrumbs(schemeDetails.folderPath);
+
             this.scheme = schemeDetails.scheme;
             this.editAllowed = !this.useStaticClient && !schemeDetails.viewOnly;
         })
@@ -62,58 +64,51 @@ export default {
         });
     },
     data() {
-        const pathPrefix = '/schemes/';
-        let path = decodeURI(this.$route.path.substring(pathPrefix.length));
-        let schemeId = null;
-        const idx = path.lastIndexOf('/');
-        if (idx > 0) {
-            schemeId = path.substring(idx + 1);
-            path = path.substring(0, idx);
-        } else {
-            schemeId = path;
-            path = '';
-        }
-
-        const folders = path.split('/');
-        
-        const breadcrumbs = [];
-
-        let folderPath = '';
-        forEach(folders, folder => {
-            if (folder === '') {
-                return;
-            }
-
-            if (folderPath === '') {
-                folderPath = folder;
-            } else {
-                folderPath = `${folderPath}/${folder}`;
-            }
-            breadcrumbs.push({
-                kind: 'dir',
-                name: folder,
-                path: folderPath
-            });
-        });
-
-        if (breadcrumbs.length > 2) {
-            breadcrumbs.splice(1, breadcrumbs.length - 2);
-            breadcrumbs.splice(1, 0, {
-                kind: 'ellipsis'
-            });
-        }
-
+        const schemeId = this.$route.params.schemeId;
 
         return {
-            path: path,
             schemeId: schemeId,
-            breadcrumbs: breadcrumbs,
+            breadcrumbs: [],
             editAllowed: false,
             scheme: null,
-            apiClient: this.useStaticClient ? createStaticClient(path) : createApiClient(path),
+            apiClient: this.useStaticClient ? createStaticClient('') : createApiClient(''),
             is404: false,
             errorMessage: null
         };
+    },
+
+    methods: {
+        buildBreadcrumbs(path) {
+            const folders = path.split('/');
+            
+            const breadcrumbs = [];
+
+            let folderPath = '';
+            forEach(folders, folder => {
+                if (folder === '') {
+                    return;
+                }
+
+                if (folderPath === '') {
+                    folderPath = folder;
+                } else {
+                    folderPath = `${folderPath}/${folder}`;
+                }
+                breadcrumbs.push({
+                    kind: 'dir',
+                    name: folder,
+                    path: folderPath
+                });
+            });
+
+            if (breadcrumbs.length > 2) {
+                breadcrumbs.splice(1, breadcrumbs.length - 2);
+                breadcrumbs.splice(1, 0, {
+                    kind: 'ellipsis'
+                });
+            }
+            this.breadcrumbs = breadcrumbs;
+        }
     }
 }
 </script>

@@ -1,32 +1,38 @@
 import fs from 'fs-extra';
 import map from 'lodash/map';
-import { schemioExtension } from './fsUtils.js';
+import { schemioExtension } from './fsConsts';
 import { walk } from './walk';
+
+/**
+ * @typedef {Object} IndexEntity
+ * @property {String} id - entity id
+ * @property {String} fsPath - path to entity on file system
+ * @property {String} name - name of entity
+ * @property {String} lowerName - name of entity but lower cased
+ * 
+ */
 
 
 class Index {
     constructor() {
-        this.entries = new Map();
+        this.entities = new Map();
     }
 
-    register(path, entry) {
-        this.entries.set(path, entry);
+    register(id, entity) {
+        this.entities.set(id, entity);
     }
 
-    deregister(path) {
-        if (this.entries.has(path)) {
-            this.entries.delete(path);
+    deregister(id) {
+        if (this.entities.has(id)) {
+            this.entities.delete(id);
         }
     }
 
     search(conditionCallback) {
         const searchResults = [];
-        this.entries.forEach((entry, path) => {
-            if (conditionCallback(entry, path)) {
-                searchResults.push({
-                    path: path,
-                    entry
-                });
+        this.entities.forEach((entity, id) => {
+            if (conditionCallback(entity, id)) {
+                searchResults.push(entity);
             }
         });
         return searchResults;
@@ -35,34 +41,42 @@ class Index {
 
 let currentIndex = new Index();
 
-function _indexScheme(index, path, fsPath, scheme) {
+function _indexScheme(index, schemeId, scheme, fsPath) {
     if (scheme.name) {
-        index.register(path, {fsPath, name: scheme.name, lowerName: scheme.name.toLowerCase() });
+        index.register(schemeId, {
+            id: schemeId,
+            fsPath,
+            name: scheme.name,
+            lowerName: scheme.name.toLowerCase()
+        });
     }
 }
 
-function _unindexScheme(index, path) {
-    index.deregister(path);
+function _unindexScheme(index, id) {
+    index.deregister(id);
 }
 
-export function indexScheme(path, fsPath, scheme) {
-    _indexScheme(currentIndex, path, fsPath, scheme);
+export function indexScheme(id, scheme, fsPath) {
+    _indexScheme(currentIndex, id, scheme, fsPath);
 }
 
-export function unindexScheme(path) {
-    _unindexScheme(currentIndex, path);
+export function unindexScheme(id) {
+    _unindexScheme(currentIndex, id);
 }
 
-export function searchSchemes(query) {
+/**
+ * 
+ * @param {String} id 
+ * @returns {IndexEntity} entity in index
+ */
+export function getEntityFromIndex(id) {
+    return currentIndex.entities.get(id);
+}
+
+export function searchIndexEntities(query) {
     const lowerQuery = query.toLowerCase();
-    const indexResults = currentIndex.search((entry, path) => entry.name.indexOf(lowerQuery) >= 0 || path.toLowerCase().indexOf(query) >= 0);
-    
-    return map(indexResults, item => {
-        return {
-            name: item.entry.name,
-            publicLink: `/schemes/${item.path}`
-        };
-    });
+    const indexResults = currentIndex.search(entity => entity.lowerName.indexOf(lowerQuery) >= 0);
+    return indexResults;  
 }
 
 function _createIndexFromScratch(index, config) {
@@ -79,9 +93,10 @@ function _createIndexFromScratch(index, config) {
             return fs.readFile(filePath).then(content => {
                 const scheme = JSON.parse(content);
                 const fsPath = filePath.substring(rootPath.length);
-                const path = fsPath.substring(0, fsPath.length - schemioExtension.length);
+                const idx = fsPath.lastIndexOf('/') + 1;
+                const schemeId = fsPath.substring(idx, fsPath.length - schemioExtension.length);
 
-                _indexScheme(index, path, fsPath, scheme);
+                _indexScheme(index, schemeId, scheme, fsPath);
             })
             .catch(err => {
                 console.error('Failed to index scheme file:' + filePath, err);

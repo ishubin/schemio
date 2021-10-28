@@ -3,7 +3,7 @@ import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
 import {schemioExtension, supportedMediaExtensions} from './fsUtils.js';
-import { indexScheme, reindex, searchSchemes, unindexScheme } from './searchIndex';
+import { getEntityFromIndex, indexScheme, reindex, searchIndexEntities, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -37,10 +37,10 @@ function safePath(path) {
 
 export function fsMoveScheme(config) {
     return (req, res) => {
-        const oldPath = safePath(req.query.path);
         let schemeId = req.query.id;
         if (!schemeId) {
-            schemeId = '';
+            res.$apiBadRequest();
+            return;
         }
 
         schemeId = schemeId.replace(/\//g, '');
@@ -49,14 +49,21 @@ export function fsMoveScheme(config) {
             return;
         }
 
-        const realPath = path.join(config.fs.rootPath, oldPath);
+        const entity = getEntityFromIndex(schemeId);
+        if (!entity) {
+            res.$apiNotFound('Scheme was not found');
+            return;
+        }
+
         const fileName = schemeId + schemioExtension;
-        const fullPath = realPath + schemioExtension;
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
 
-        const dst = safePath(req.query.dst);
-        const realDst = path.join(config.fs.rootPath, dst);
+        const safeDst = safePath(req.query.dst);
+        const relativeDstPath = path.join(safeDst, fileName);
+        const realDstFolder = path.join(config.fs.rootPath, safeDst)
+        const realDst = path.join(config.fs.rootPath, relativeDstPath);
 
-        Promise.all([fs.stat(fullPath), fs.stat(realDst)])
+        Promise.all([fs.stat(fullPath), fs.stat(realDstFolder)])
         .then(values => {
             const [srcStat, dstStat] = values;
             if (!srcStat.isFile) {
@@ -70,15 +77,12 @@ export function fsMoveScheme(config) {
             return fs.readFile(fullPath).then(JSON.parse);
         })
         .then(scheme => {
-            return fs.move(fullPath, path.join(realDst, fileName)).then(() => {
+            return fs.move(fullPath, realDst).then(() => {
                 return scheme;
             });
         })
         .then(scheme => {
-            unindexScheme(oldPath);
-            const newPath = path.join(dst, schemeId);
-            indexScheme(newPath, realDst, scheme);
-
+            indexScheme(schemeId, scheme, relativeDstPath);
             res.json({ satus: 'ok' });
         })
         .catch(err => {
@@ -88,31 +92,17 @@ export function fsMoveScheme(config) {
     };
 }
 
-function getPathDetailsToScheme(config, req) {
-    const pathPrefix = '/v1/fs/schemes/';
-    const schemePath = safePath(decodeURI(req.path.substring(pathPrefix.length)));
-
-    const realPath = path.join(config.fs.rootPath, schemePath);
-
-    const idx = schemePath.lastIndexOf('/');
-    let schemeId = schemePath;
-    if (idx >= 0) {
-        schemeId = schemePath.substring(idx);
-    }
-    return {
-        fsPath: realPath + schemioExtension,
-        publicPath: schemePath,
-        schemeId: schemeId
-    };
-}
-
 export function fsPatchScheme(config) {
     return (req, res) => {
-        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
+        const schemeId = req.params.schemeId;
 
+        const entity = getEntityFromIndex(schemeId)
+        if (!entity) {
+            res.$apiNotFound('Scheme was not found');
+        }
         const patchRequest = req.body;
         
-        fs.readFile(fsPath).then(content => {
+        fs.readFile(entity.fsPath).then(content => {
             const scheme = JSON.parse(content);
 
             if (patchRequest.hasOwnProperty('name')) {
@@ -122,8 +112,8 @@ export function fsPatchScheme(config) {
                 }
 
                 scheme.name = newName;
-                return fs.writeFile(fsPath, JSON.stringify(scheme)).then(() => {
-                    indexScheme(publicPath, fsPath, scheme);
+                return fs.writeFile(entity.fsPath, JSON.stringify(scheme)).then(() => {
+                    indexScheme(schemeId, scheme, entity.fsPath);
                 });
             }
         })
@@ -133,7 +123,7 @@ export function fsPatchScheme(config) {
             });
         })
         .catch(err => {
-            console.error('Failed to patch scheme', fsPath, err);
+            console.error('Failed to patch scheme', entity.fsPath, err);
             res.$serverError('Failed to patch scheme')
         })
     };
@@ -141,22 +131,29 @@ export function fsPatchScheme(config) {
 
 export function fsDeleteScheme(config) {
     return (req, res) => {
-        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
+        const schemeId = req.params.schemeId;
+
+        const entity = getEntityFromIndex(schemeId)
+        if (!entity) {
+            res.$apiNotFound('Scheme was not found');
+        }
         
-        fs.stat(fsPath).then(stat => {
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+
+        fs.stat(fullPath).then(stat => {
             if (!stat.isFile()) {
-                throw new Error('Not a file '+ fsPath);
+                throw new Error('Not a file '+ fullPath);
             }
         })
         .then(() => {
-            return fs.unlink(fsPath);
+            return fs.unlink(fullPath);
         })
         .then(() => {
-            unindexScheme(publicPath);
+            unindexScheme(schemeId);
             res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
-            console.error('Failed to delete scheme file', fsPath, err);
+            console.error('Failed to delete scheme file', fullPath, err);
             res.$serverError('Failed to delete scheme')
         })
     };
@@ -164,7 +161,13 @@ export function fsDeleteScheme(config) {
 
 export function fsSearchSchemes(config) {
     return (req, res) => {
-        const schemes = searchSchemes(req.query.q || '');
+        const entities = searchIndexEntities(req.query.q || '');
+        const schemes = _.map(entities, entity => {
+            return {
+                name: entity.name,
+                publicLink: `/schemes/${entity.id}`
+            };
+        });
         res.json({
             totalResults: schemes.length,
             results: schemes
@@ -174,13 +177,26 @@ export function fsSearchSchemes(config) {
 
 export function fsGetScheme(config) {
     return (req, res) => {
-        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
+        const schemeId = req.params.schemeId;
 
-        fs.readFile(fsPath, 'utf-8').then(content => {
+        const entity = getEntityFromIndex(schemeId)
+        if (!entity) {
+            res.$apiNotFound('Scheme was not found');
+        }
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+
+        let idx = entity.fsPath.lastIndexOf('/');
+        if (idx < 0) {
+            idx = 0;
+        }
+        const folderPath = entity.fsPath.substring(0, idx);
+        
+        fs.readFile(fullPath, 'utf-8').then(content => {
             const scheme = JSON.parse(content);
             scheme.projectLink = '/';
             res.json({
                 scheme: scheme,
+                folderPath: folderPath,
                 viewOnly: config.viewOnlyMode
             });
         })
@@ -188,7 +204,7 @@ export function fsGetScheme(config) {
             if (err.code === 'ENOENT') {
                 res.$apiNotFound('Such scheme does not exist');
             } else {
-                console.error('Failed to read scheme file', fsPath, err);
+                console.error('Failed to read scheme file', fullPath, err);
                 res.$serverError('Failed to create scheme');
             }
         });
@@ -197,22 +213,29 @@ export function fsGetScheme(config) {
 
 export function fsSaveScheme(config) {
     return (req, res) => {
-        const {fsPath, publicPath, schemeId} = getPathDetailsToScheme(config, req);
+        const schemeId = req.params.schemeId;
+
+        const entity = getEntityFromIndex(schemeId)
+        if (!entity) {
+            res.$apiNotFound('Scheme was not found');
+        }
 
         const scheme = req.body;
         scheme.id = schemeId;
         scheme.modifiedTime = new Date();
-        scheme.publicLink = `/schemes/${publicPath}`;
+        scheme.publicLink = `/schemes/${schemeId}`;
 
-        fs.stat(fsPath)
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+
+        fs.stat(fullPath)
         .then(stat => {
             if (!stat.isFile()) {
-                return Promise.reject('Not a file: ' + fsPath);
+                return Promise.reject('Not a file: ' + fullPath);
             }
-            return fs.writeFile(fsPath, JSON.stringify(scheme));
+            return fs.writeFile(fullPath, JSON.stringify(scheme));
         })
         .then(() => {
-            indexScheme(publicPath, fsPath, scheme);
+            indexScheme(schemeId, scheme, entity.fsPath);
             res.json(scheme);
         })
         .catch(err => {
@@ -225,7 +248,6 @@ export function fsSaveScheme(config) {
 export function fsCreateScheme(config) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        const realPath = path.join(config.fs.rootPath, publicPath);
         
         const scheme = req.body;
 
@@ -233,16 +255,21 @@ export function fsCreateScheme(config) {
             res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
             return;
         }
-        const id = nanoid();
-        const fullPath = path.join(realPath, id + schemioExtension);
+        let id = nanoid();
+        if (id.charAt(0) === '-'){
+            //doing this so that we don't get files that start with dash symbol
+            id = '_' + id.substr(1);
+        }
+
+        const indexPath = path.join(publicPath, id + schemioExtension)
+        const fullPath = path.join(config.fs.rootPath, indexPath);
         scheme.id = id;
         scheme.modifiedTime = new Date();
         
-        const schemePath = publicPath + '/' + id;
-        scheme.publicLink = `/schemes/${schemePath}`;
+        scheme.publicLink = `/schemes/${id}`;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
-            indexScheme(schemePath, fullPath, scheme);
+            indexScheme(id, scheme, indexPath);
             res.json(scheme);
         })
         .catch(err => {
@@ -430,11 +457,16 @@ export function fsListFilesRoute(config) {
                         const content = fs.readFileSync(`${realPath}/${file}`, 'utf-8');
                         const scheme = JSON.parse(content);
 
+                        let idx = entryPath.lastIndexOf('/');
+                        if (idx < 0) {
+                            idx = 0;
+                        }
+
                         entries.push({
                             kind: 'scheme',
                             id: file.substring(0, file.length - schemioExtension.length),
                             name: scheme.name,
-                            path: entryPath.substring(0, entryPath.length - schemioExtension.length),
+                            path: entryPath.substring(0, idx),
                             modifiedTime: scheme.modifiedTime,
                         });
                     } catch(err) {
