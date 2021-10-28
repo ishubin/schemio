@@ -111,6 +111,10 @@ function fixSchemeLinks(scheme) {
             });
         }
     });
+
+    if (scheme.previewURL && scheme.previewURL.startsWith('/media/previews/')) {
+        scheme.previewURL = scheme.previewURL.substring(1);
+    }
     return Promise.resolve(scheme);
 }
 
@@ -147,7 +151,6 @@ function startExporter(config) {
                 parentDir = directoryLookup.get(parentPath);
             }
 
-
             if (isDirectory) {
                 const newDir = {
                     kind: 'dir',
@@ -174,8 +177,9 @@ function startExporter(config) {
                             id: schemeId,
                             name: scheme.name,
                             path: filePath.substring(0, filePath.length - schemioExtension.length),
-                            modifiedDate: scheme.modifiedDate
-                        })
+                            modifiedDate: scheme.modifiedDate,
+                            previewURL: scheme.previewURL
+                        });
                     }
                     return fs.writeFile(path.join(exporterPath, filePath), JSON.stringify(scheme)).then(() => scheme);
                 })
