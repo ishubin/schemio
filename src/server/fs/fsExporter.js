@@ -177,7 +177,7 @@ function startExporter(config) {
                             id: schemeId,
                             name: scheme.name,
                             path: filePath.substring(0, filePath.length - schemioExtension.length),
-                            modifiedDate: scheme.modifiedDate,
+                            modifiedTime: scheme.modifiedTime,
                             previewURL: scheme.previewURL
                         });
                     }
@@ -186,7 +186,8 @@ function startExporter(config) {
                 .then(scheme => {
                     currentExporter.schemeIndex[schemeId] = {
                         path: filePath,
-                        name: scheme.name
+                        name: scheme.name,
+                        modifiedTime: scheme.modifiedTime
                     };
                     return scheme;
                 })

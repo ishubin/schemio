@@ -165,6 +165,7 @@ export function createApiClient(path) {
 
 
 export function createStaticClient(path) {
+    const currentTimestamp = new Date().getTime();
 
     let cachedIndex = null;
 
@@ -206,7 +207,7 @@ export function createStaticClient(path) {
         if (cachedIndex) {
             return Promise.resolve(cachedIndex);
         } else {
-            return axios.get('fs.index.json').then(unwrapAxios)
+            return axios.get(`fs.index.json?v=${currentTimestamp}`).then(unwrapAxios)
             .then(prepareIndex)
             .catch(err => {
                 console.error('Failed to build index', err);
@@ -239,7 +240,7 @@ export function createStaticClient(path) {
                 if (!schemeEntry) {
                     throw new Error('Scheme was not found');
                 }
-                return axios.get(schemeEntry.path).then(unwrapAxios).then(scheme => {
+                return axios.get(`${schemeEntry.path}?v=${encodeURIComponent(schemeEntry.modifiedTime)}`).then(unwrapAxios).then(scheme => {
                     return [scheme, schemeEntry.path];
                 });
             })

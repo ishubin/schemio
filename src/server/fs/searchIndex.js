@@ -46,7 +46,8 @@ function _indexScheme(index, schemeId, scheme, fsPath) {
             id: schemeId,
             fsPath,
             name: scheme.name,
-            lowerName: scheme.name.toLowerCase()
+            lowerName: scheme.name.toLowerCase(),
+            modifiedTime: scheme.modifiedTime
         });
     }
 }
