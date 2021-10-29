@@ -112,9 +112,6 @@ function fixSchemeLinks(scheme) {
         }
     });
 
-    if (scheme.previewURL && scheme.previewURL.startsWith('/media/previews/')) {
-        scheme.previewURL = scheme.previewURL.substring(1);
-    }
     return Promise.resolve(scheme);
 }
 
@@ -172,14 +169,17 @@ function startExporter(config) {
                 .then(fixSchemeLinks)
                 .then(scheme => {
                     if (scheme.name) {
-                        parentDir.entries.push({
+                        const entry = {
                             kind: 'scheme',
                             id: schemeId,
                             name: scheme.name,
                             path: filePath.substring(0, filePath.length - schemioExtension.length),
                             modifiedTime: scheme.modifiedTime,
-                            previewURL: scheme.previewURL
-                        });
+                        }
+                        if (fs.statSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
+                            entry.previewURL = `media/previews/${schemeId}.svg`;
+                        }
+                        parentDir.entries.push(entry);
                     }
                     return fs.writeFile(path.join(exporterPath, filePath), JSON.stringify(scheme)).then(() => scheme);
                 })

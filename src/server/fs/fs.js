@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import {schemioExtension, supportedMediaExtensions} from './fsUtils.js';
+import {mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
 import { getEntityFromIndex, indexScheme, reindex, searchIndexEntities, unindexScheme } from './searchIndex';
 
 
@@ -441,6 +441,7 @@ export function fsListFilesRoute(config) {
                 }
                 const stat = fs.statSync(`${realPath}/${file}`);
 
+
                 let entryPath = file;
                 if (publicPath) {
                     entryPath = path.join(publicPath, file);
@@ -463,14 +464,20 @@ export function fsListFilesRoute(config) {
                             idx = 0;
                         }
 
-                        entries.push({
+                        const schemeId = file.substring(0, file.length - schemioExtension.length);
+                        const entry = {
                             kind: 'scheme',
-                            id: file.substring(0, file.length - schemioExtension.length),
+                            id: schemeId,
                             name: scheme.name,
                             path: entryPath.substring(0, idx),
                             modifiedTime: scheme.modifiedTime,
-                            previewURL: scheme.previewURL
-                        });
+                        };
+
+                        if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
+                            entry.previewURL = `/media/previews/${schemeId}.svg`;
+                        }
+
+                        entries.push(entry);
                     } catch(err) {
                         console.error('Failed to parse scheme file', entryPath, err);
                     }
@@ -540,14 +547,6 @@ export function fsCreateSchemePreview(config) {
         })
         .then(() => {
             return fs.writeFile(path.join(folderPath, `${schemeId}.svg`), svg);
-        })
-        .then(() => {
-            return fs.readFile(schemeFsPath, 'utf-8').then(JSON.parse);
-        })
-        .then(scheme => {
-            scheme.previewURL = `/media/previews/${schemeId}.svg`;
-            console.log('writing to', schemeFsPath)
-            return fs.writeFile(schemeFsPath, JSON.stringify(scheme));
         })
         .then(() => {
             res.json({
