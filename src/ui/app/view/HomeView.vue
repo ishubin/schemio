@@ -133,6 +133,16 @@ export default {
     beforeMount() {
         this.apiClient.listEntries(this.path)
         .then(result => {
+            const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
+            result.entries.sort((a, b) => {
+                const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
+                const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
+                if (name1 < name2) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            });
             forEach(result.entries, entry => {
                 entry.menuOptions = [{
                     name: 'Delete',
