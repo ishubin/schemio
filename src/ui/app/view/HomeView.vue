@@ -63,7 +63,7 @@
             </div>
 
             <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
-                <input type="text" class="textfield" v-model="newDirectoryModal.name" placeholder="Type name of new directory..."/>
+                <input ref="newDirectoryModalInput" type="text" class="textfield" v-model="newDirectoryModal.name" placeholder="Type name of new directory..." v-on:keyup.enter="submitNewDirectory()"/>
 
                 <div class="msg msg-error" v-if="newDirectoryModal.errorMessage">{{newDirectoryModal.errorMessage}}</div>
             </modal>
@@ -81,7 +81,7 @@
             </modal>
 
             <modal v-if="renameEntryModal.shown" :title="renameEntryModalTitle" @close="renameEntryModal.shown = false" primaryButton="Rename" @primary-submit="confirmEntryRename()">
-                <input ref="renameEntryModalInput" type="text" class="textfield" v-model="renameEntryModal.name"/>
+                <input ref="renameEntryModalInput" type="text" class="textfield" v-model="renameEntryModal.name" v-on:keyup.enter="confirmEntryRename()"/>
 
                 <div class="msg msg-error" v-if="renameEntryModal.errorMessage">{{renameEntryModal.errorMessage}}</div>
             </modal>
@@ -236,6 +236,9 @@ export default {
             this.newDirectoryModal.name = '';
             this.newDirectoryModal.err = null;
             this.newDirectoryModal.shown = true;
+            this.$nextTick(() => {
+                this.$refs.newDirectoryModalInput.focus();
+            });
         },
 
         submitNewDirectory() {

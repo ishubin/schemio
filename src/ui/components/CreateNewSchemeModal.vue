@@ -5,7 +5,12 @@
 <template lang="html">
     <modal title="New Scheme" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
         <h5>Name</h5>
-        <input class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}" type="text" v-model="schemeName" placeholder="Name..."/>
+        <input ref="schemeNameInput" class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}"
+            type="text"
+            v-model="schemeName"
+            placeholder="Name..."
+            v-on:keyup.enter="submitNewScheme()"
+            />
 
         <h5>Description</h5>
         <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
@@ -55,6 +60,11 @@ export default {
         categoriesEnabled: {type: Boolean, default: true},
         uploadEnabled: {type: Boolean, default: true}
     },
+
+    mounted() {
+        this.$refs.schemeNameInput.focus();
+    },
+
     data() {
         return {
             schemeName: this.name,
@@ -72,6 +82,7 @@ export default {
             errorMessage: null,
         }
     },
+
     methods: {
         submitNewScheme() {
             const name = this.schemeName.trim();
