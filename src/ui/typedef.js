@@ -1,3 +1,6 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
 /**
@@ -21,6 +24,13 @@
  * @property {number} w - width
  * @property {number} h - height
  * @property {number} r - rotation in degrees
+ */
+
+/**
+ * @typedef {Object} Line - line object that represents line equation in form of ax + by + c = 0
+ * @property {Number} a
+ * @property {Number} b
+ * @property {Number} c
  */
 
 

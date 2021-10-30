@@ -182,8 +182,8 @@ export default {
 
     /**
      * Calculates instersection point of two lines
-     * @param {*} line1 line equation in form of {a, b, c}
-     * @param {*} line2 line equation in form of {a, b, c}
+     * @param {Line} line1 line equation in form of {a, b, c}
+     * @param {Line} line2 line equation in form of {a, b, c}
      * @returns 
      */
     linesIntersection(line1, line2) {
@@ -212,7 +212,7 @@ export default {
      * Returns either -1 or 1 depending on which plane the point is lying agaist specified line
      * @param {*} x 
      * @param {*} y 
-     * @param {*} line Line equation in form of {a, b, c} object
+     * @param {Line} line Line equation in form of {a, b, c} object
      */
     identifyPointSideAgainstLine(x, y, {a, b, c}) {
         if (a * x + b * y + c >= 0) {

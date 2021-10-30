@@ -1,3 +1,6 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 function createPointsForCurlyBracket(p, d, r, D, R) {
     const A = Math.min(40, R * 0.2);
     const B = Math.min(20, R * 0.2);
