@@ -115,15 +115,6 @@ export default {
             if (destinationItem && destinationItem.id !== item.id) {
                 destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer);
 
-                let worldAngle = destinationItem.area.r;
-                if (destinationItem.meta && destinationItem.meta.transform) {
-                    worldAngle += destinationItem.meta.transform.r;
-                }
-
-                if (item.meta && item.meta.transform) {
-                    destinationAngle = worldAngle - item.meta.transform.r + args.rotationOffset;
-                }
-
                 destinationWidth = destinationItem.area.w;
                 destinationHeight = destinationItem.area.h;
             }

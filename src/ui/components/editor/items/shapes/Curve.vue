@@ -135,9 +135,8 @@ function readjustItemArea(item, precision) {
     });
 }
 
-const _zeroTransform = {x: 0, y: 0, r: 0};
 function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
 function getSnappers(item) {

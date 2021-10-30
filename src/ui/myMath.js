@@ -3,8 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import './typedef';
 
-const _zeroTransform = {x: 0, y: 0, r: 0};
-
 const MAX_PATH_DIVISIONS = 20;
 const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 40;
@@ -303,65 +301,64 @@ export default {
 
     /**
      * calculates world point in specified area including its parent transform
-     * @param {*} x
-     * @param {*} y
-     * @param {*} area
-     * @param {*} transform - {x, y, r} parent transform of the item. May be null
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Area} area
+     * @param {Array} transformMatrix - parent transform matrix of the item. May be null
      * @returns {Point}
      */
-    worldPointInArea(x, y, area, transform) {
+    worldPointInArea(x, y, area, transformMatrix) {
         if (!area) {
             return {x: 0, y: 0};
         }
         
-        if (!transform) {
-            transform = _zeroTransform;
+        if (!transformMatrix) {
+            transformMatrix = this.identityMatrix();
         }
 
-        let tAngle = transform.r * Math.PI/180,
-            cosTA = Math.cos(tAngle),
-            sinTA = Math.sin(tAngle),
-            angle = (transform.r + area.r) * Math.PI/180,
-            cosa = Math.cos(angle),
-            sina = Math.sin(angle);
-
-        return {
-            x: transform.x + area.x * cosTA - area.y * sinTA  + x * cosa - y * sina,
-            y: transform.y + area.x * sinTA + area.y * cosTA  + x * sina + y * cosa,
-        };
+        const itemCompleteTransform = this.standardTransformWithArea(transformMatrix, area);
+        return this.transformPoint(itemCompleteTransform, x, y);
     },
 
     /**
      * 
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} area 
-     * @param {*} transform 
+     * @param {Number} x 
+     * @param {Number} y 
+     * @param {Area} area 
+     * @param {Array} transformMatrix 
      * @returns {Point}
      */
-    localPointInArea(x, y, area, transform) {
+    localPointInArea(x, y, area, transformMatrix) {
+        // To understand how to calculate local point in area we first need to imagine how we calculate a world point based on the items complete transform matrix
+        // We can imagine it with this formula:
+        //      Pw = At * P
+        // where
+        //      Pw - world point
+        //      At - complete transform matrix of item
+        //      P  - local point in item
+        //
+        // We can derive another formula from above by multiplying both sides by inverted transform matrix (from the left):
+        //      Ai * Pw = Ai * At * P
+        // where
+        //      Ai - is the inverse matrix of At
+        // this will turn into (because Ai * At - is equal to identity matrix):
+        //      P = Ai * Pw
+        // that is exactly what we need
+
         if (!area) {
             return {x: 0, y: 0};
         }
         
-        if (!transform) {
-            transform = _zeroTransform;
+        if (!transformMatrix) {
+            transformMatrix = this.identityMatrix();
+        }
+        const completeTransform = this.standardTransformWithArea(transformMatrix, area);
+        const invertedTransform = this.inverseMatrix3x3(completeTransform);
+        if (!invertedTransform) {
+            return {x: 0, y: 0};
         }
 
-        let tAngle = transform.r * Math.PI/180,
-            cosTA = Math.cos(tAngle),
-            sinTA = Math.sin(tAngle),
-            angle = (transform.r + area.r) * Math.PI/180,
-            cosa = Math.cos(angle),
-            sina = Math.sin(angle),
-            tx = transform.x + area.x * cosTA - area.y * sinTA,
-            ty = transform.y + area.x * sinTA + area.y * cosTA;
-
-
-        return {
-            x: (y - ty)*sina + (x - tx)*cosa,
-            y: (y - ty)*cosa - (x - tx)*sina
-        };
+        return this.transformPoint(invertedTransform, x, y);
     },
 
     /**
@@ -567,5 +564,147 @@ export default {
 
         smoothPoints.push(points[points.length - 1]);
         return smoothPoints;
+    },
+
+    multiplyMatrices(matrixA, matrixB) {
+        let rowsA = matrixA.length;
+        let colsA = matrixA[0].length;
+        let colsB = matrixB[0].length;
+        let result = new Array(rowsA);
+
+        for (let r = 0; r < rowsA; r++) {
+            result[r] = new Array(colsB);
+
+            for (let c = 0; c < colsB; c++) {
+                result[r][c] = 0;
+
+                for (let i = 0; i < colsA; i++) {
+                    result[r][c] += matrixA[r][i] * matrixB[i][c];
+                }
+            }
+        }
+
+        return result;
+    },
+
+    translationMatrix(tx, ty) {
+        return [
+            [1, 0, tx],
+            [0, 1, ty],
+            [0, 0, 1],
+        ];
+    },
+
+    rotationMatrixInDegrees(angle) {
+        return this.rotationMatrixInRadians(angle * Math.PI / 180);
+    },
+
+    rotationMatrixInRadians(angle) {
+        return [
+            [Math.cos(angle),   -Math.sin(angle),   0],
+            [Math.sin(angle),   Math.cos(angle),    0],
+            [0,                 0,                  1],
+        ];
+    },
+
+    scaleMatrix(sx, sy) {
+        return [
+            [sx, 0, 0],
+            [0, sy, 0],
+            [0, 0, 1],
+        ];
+    },
+
+    identityMatrix() {
+        return [
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+        ];
+    },
+
+    /**
+     * 
+     * @param {Array} parentTransform - parents transform
+     * @param {Number} x - translation on x axis
+     * @param {Number} y - translation on y axis
+     * @param {Number} angleInDegrees - rotation angle in degrees
+     * @returns {Array} new transformation matrix
+     */
+    standardTransform(parentTransform, x, y, angleInDegrees) {
+        return this.multiplyMatrices(this.multiplyMatrices(parentTransform, this.translationMatrix(x, y)), this.rotationMatrixInDegrees(angleInDegrees));
+    },
+
+    /**
+     * 
+     * @param {Array} parentTransform 
+     * @param {Area} area 
+     * @returns {Array} new transformation matrix
+     */
+    standardTransformWithArea(parentTransform, area) {
+        return this.standardTransform(parentTransform, area.x, area.y, area.r);
+    },
+
+    /**
+     * Trasforms specified point
+     * @param {Array} transformMatrix 
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {Point}
+     */
+    transformPoint(transformMatrix, x, y) {
+        const resultMatrix = this.multiplyMatrices(transformMatrix, [[x], [y], [1]]);
+        return {
+            x: resultMatrix[0][0],
+            y: resultMatrix[1][0]
+        };
+    },
+
+    /**
+     * 
+     * @param {Array} m - matrix of 3x3
+     * @returns {Array} - inversed matrix or null in case matrix cannot be inversed
+     */
+    inverseMatrix3x3(m) {
+        const xmod = (r, c) => {
+            const rows = [0, 1, 2];
+            const cols = [0, 1, 2];
+            rows.splice(r, 1);
+            cols.splice(c, 1);
+
+            return m[rows[0]][cols[0]] * m[rows[1]][cols[1]] - m[rows[0]][cols[1]] * m[rows[1]][cols[0]];
+        };
+
+        const det = m[0][0] * xmod(0, 0) - m[0][1] * xmod(0, 1) + m[0][2] * xmod(0, 2);
+        if (this.tooSmall(det)) {
+            return null;
+        }
+
+        const result = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+        let i = 2;
+
+        for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+                const k = i % 2 === 0 ? 1 : -1;
+                // here we need to get transposed matrix so we switch rows and columns, this will flip it around its own diagonal
+                result[c][r] = k * xmod(r,c) / det;
+                i++;
+            }
+        }
+
+        return result;
+    },
+
+
+    /**
+     * Converts value to 0 in case it is null or undefined
+     * @param {Number} value 
+     * @returns {Number}
+     */
+    nonNullNumber(value) {
+        if (value == null) {
+            return 0;
+        }
+        return value
     }
 }

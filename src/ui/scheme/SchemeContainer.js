@@ -48,47 +48,43 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
     id: ''
 };
 
-/*
-how to calculate item top-let corner position
-i - level of children (i-1 is the parent item)
-P[i]' = P[i-1]' + X[i] * K[i-1] + Y[i] * L[i-1]
-
-how to calculate point on item
-P(Xp, Yp, P[i]) = P[i]' + Xp * K[i] + Yp * L[i]
-*/
-
-const _zeroTransform = {x: 0, y: 0, r: 0};
-
 export function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
 export function localPointOnItem(x, y, item) {
-    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transform) ? item.meta.transform : _zeroTransform);
+    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+}
+
+export function itemCompleteTransform(item) {
+    const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
+    return myMath.standardTransformWithArea(parentTransform, item.area);
 }
 
 
-function visitItems(items, callback, transform, parentItem, ancestorIds) {
+function visitItems(items, callback, transformMatrix, parentItem, ancestorIds) {
     if (!items) {
         return;
     }
-    if (!transform) {
-        transform = {x: 0, y: 0, r: 0};
+    if (!transformMatrix) {
+        transformMatrix = myMath.identityMatrix();
     }
     if (!ancestorIds) {
         ancestorIds = [];
     }
-    let cosa = Math.cos(transform.r * Math.PI / 180);
-    let sina = Math.sin(transform.r * Math.PI / 180);
+
 
     for (let i = 0; i < items.length; i++) {
-        callback(items[i], transform, parentItem, ancestorIds);
+        callback(items[i], transformMatrix, parentItem, ancestorIds);
+
+        const x = myMath.nonNullNumber(items[i].area.x);
+        const y = myMath.nonNullNumber(items[i].area.y);
+        const r = myMath.nonNullNumber(items[i].area.r);
+
+        const itemTransform = myMath.standardTransform(transformMatrix, x, y, r);
+
         if (items[i].childItems) {
-            visitItems(items[i].childItems, callback, {
-                x:      transform.x + items[i].area.x * cosa - items[i].area.y * sina,
-                y:      transform.y + items[i].area.x * sina + items[i].area.y * cosa,
-                r:  transform.r + items[i].area.r
-            }, items[i], ancestorIds.concat([items[i].id]));
+            visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]));
         }
     }
 }
@@ -198,19 +194,23 @@ class SchemeContainer {
      * @param {Item} mainItem 
      */
     updateChildTransforms(mainItem) {
-        if (mainItem.childItems && mainItem.meta && mainItem.meta.transform) {
-            let cosa = Math.cos(mainItem.meta.transform.r * Math.PI / 180);
-            let sina = Math.sin(mainItem.meta.transform.r * Math.PI / 180);
-            const recalculatedTransform  = {
-                x:      mainItem.meta.transform.x + mainItem.area.x * cosa - mainItem.area.y * sina,
-                y:      mainItem.meta.transform.y + mainItem.area.x * sina + mainItem.area.y * cosa,
-                r:  mainItem.meta.transform.r + mainItem.area.r
-            };
-            visitItems(mainItem.childItems, (item, transform, parentItem, ancestorIds) => {
+        if (mainItem.childItems) {
+            let parentTransform = myMath.identityMatrix();
+
+            if (mainItem.meta && mainItem.meta.parentId) {
+                const item = this.findItemById(mainItem.meta.parentId);
+                if (item && item.meta && item.meta.transformMatrix) {
+                    parentTransform = item.meta.transformMatrix;
+                }
+            }
+            
+            const recalculatedTransform = myMath.standardTransform(parentTransform, mainItem.area.x, mainItem.area.y, mainItem.area.r);
+
+            visitItems(mainItem.childItems, (item, transformMatrix, parentItem, ancestorIds) => {
                 if (!item.meta) {
                     item.meta = {};
                 }
-                item.meta.transform = transform;
+                item.meta.transformMatrix = transformMatrix;
             }, recalculatedTransform, mainItem.meta.ancestorIds);
         }
     }
@@ -254,10 +254,10 @@ class SchemeContainer {
 
         const newRevision = this.revision + 1;
 
-        visitItems(items, (item, transform, parentItem, ancestorIds) => {
+        visitItems(items, (item, transformMatrix, parentItem, ancestorIds) => {
             this._itemArray.push(item);
             enrichItemWithDefaults(item);
-            this.enrichItemMeta(item, transform, parentItem, ancestorIds);
+            this.enrichItemMeta(item, transformMatrix, parentItem, ancestorIds);
             if (item.groups) {
                 this.indexItemGroups(item.id, item.groups);
             }
@@ -336,7 +336,7 @@ class SchemeContainer {
     // These groups are going to be used in the element picker
     reindexGroups() {
         this._itemGroupsToIds = {};
-        visitItems(this.scheme.items, (item, transform, parentItem, ancestorIds) => {
+        visitItems(this.scheme.items, (item, transformMatrix, parentItem, ancestorIds) => {
             if (item.groups) {
                 this.indexItemGroups(item.id, item.groups);
             }
@@ -535,11 +535,11 @@ class SchemeContainer {
         if (!item.childItems) {
             return;
         }
-        const callback = (childItem, transform, parentItem, ancestorIds) => {
-            childItem.meta.transform = transform;
+        const callback = (childItem, transformMatrix, parentItem, ancestorIds) => {
+            childItem.meta.transformMatrix = transformMatrix;
         };
         const parentItem = this.findItemById(item.meta.parentId);
-        visitItems(item.childItems, callback, item.meta.transform, parentItem, item.meta.ancestorIds);
+        visitItems(item.childItems, callback, item.meta.transformMatrix, parentItem, item.meta.ancestorIds);
     }
 
     indexItemGroups(itemId, groups) {
@@ -551,7 +551,7 @@ class SchemeContainer {
         })
     }
 
-    enrichItemMeta(item, transform, parentItem, ancestorIds) {
+    enrichItemMeta(item, transformMatrix, parentItem, ancestorIds) {
         if (!item.meta) {
             item.meta = {
                 collapsed: false, // used only for item tree selector
@@ -559,7 +559,7 @@ class SchemeContainer {
             };
         }
 
-        item.meta.transform = transform;
+        item.meta.transformMatrix = transformMatrix;
         item.meta.ancestorIds = ancestorIds;
         if (!parentItem) {
             item.meta.collapseBitMask = 0;
@@ -901,7 +901,6 @@ class SchemeContainer {
 
         let parentItem = null;
         let parentId = null;
-        let angleCorrection = 0;
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
             parentItem = this.findItemById(item.meta.parentId);
@@ -909,11 +908,7 @@ class SchemeContainer {
                 return;
             }
             parentId = parentItem.id;
-            angleCorrection += parentItem.meta.transform.r + parentItem.area.r;
             itemsArray = parentItem.childItems;
-        }
-        if (otherItem && otherItem.meta && otherItem.meta.transform) {
-            angleCorrection -= otherItem.meta.transform.r + otherItem.area.r;
         }
 
         const index = findIndex(itemsArray, it => it.id === itemId);
@@ -944,7 +939,8 @@ class SchemeContainer {
 
         item.area.x = newLocalPoint.x;
         item.area.y = newLocalPoint.y;
-        item.area.r += angleCorrection;
+        //TODO we need to correct angles when mouting items to other items. this is trickier with transform matrices
+        // item.area.r += angleCorrection;
 
         if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
         this.reindexItems();
@@ -1421,9 +1417,6 @@ class SchemeContainer {
                 newItem.name = this.copyNameAndMakeUnique(item.name);
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
-                if (item.meta.transform) {
-                    newItem.area.r += item.meta.transform.r;
-                }
 
                 this.scheme.items.push(newItem);
                 copiedItems.push(newItem);
@@ -1706,23 +1699,6 @@ class SchemeContainer {
         };
     }
 
-    createMultiItemEditBoxArea(item) {
-        const point = this.worldPointOnItem(0, 0, item);
-        let r = item.area.r; 
-
-        if (item.meta && item.meta.transform) {
-            r = r + item.meta.transform.r;
-        }
-
-        return {
-            x: point.x,
-            y: point.y,
-            w: item.area.w,
-            h: item.area.h,
-            r: r
-        };
-    }
-
     /**
      * 
      * @param {Array} items 
@@ -1731,9 +1707,14 @@ class SchemeContainer {
     generateMultiItemEditBox(items) {
         let area = null;
         let locked = true;
+        let transformMatrix = myMath.identityMatrix();
+
         if (items.length === 1) {
             // we want the item edit box to align with item if only that item was selected
-            area = this.createMultiItemEditBoxArea(items[0]);
+            area = utils.clone(items[0].area);
+            if (items[0].meta && items[0].meta.transformMatrix) {
+                transformMatrix = items[0].meta.transformMatrix;
+            }
         } else {
             // otherwise item edit box are will be an average of all other items
             area = this.createMultiItemEditBoxAveragedArea(items);
@@ -1825,6 +1806,7 @@ class SchemeContainer {
             items,
             itemIds,
             itemData,
+            transformMatrix,
             area,
             itemProjections,
         };

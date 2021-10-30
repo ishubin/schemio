@@ -313,6 +313,9 @@ export default class StateDragItem extends State {
      */
     handleItemLeftMouseDown(x, y, mx, my, item, event) {
         // if the item is already selected it should not do anything. This way we can let user drag multiple items
+
+        console.log('localPointOnItem', myMath.localPointInArea(x, y, item.area, item.meta.transformMatrix));
+
         if (!this.schemeContainer.isItemSelected(item)) {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }

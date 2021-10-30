@@ -216,6 +216,7 @@ import { generateTextStyle } from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer from '../../scheme/SchemeContainer.js';
+import {itemCompleteTransform} from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
 import ContextMenu from './ContextMenu.vue';
@@ -709,11 +710,7 @@ export default {
                     return;
                 }
 
-                const worldPoint = this.schemeContainer.worldPointOnItem(0, 0, item);
-                let angle = item.area.r;
-                if (item.meta && item.meta.transform) {
-                    angle += item.meta.transform.r;
-                }
+                const m = itemCompleteTransform(item);
 
                 let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
                 let strokeSize = 6;
@@ -726,7 +723,7 @@ export default {
 
                 const itemHighlight = {
                     id: itemId,
-                    transform: `translate(${worldPoint.x}, ${worldPoint.y}) rotate(${angle})`,
+                    transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
                     path,
                     fill,
                     strokeSize,
@@ -1219,7 +1216,8 @@ export default {
                 const item = collectedItem.item;
                 const itemDom = collectedItem.itemDom;
                 const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-                const angle = item.meta.transform.r + item.area.r;
+                // const angle = item.meta.transform.r + item.area.r;
+                const angle = 0;
                 const x = worldPoint.x - minP.x;
                 const y = worldPoint.y - minP.y;
 

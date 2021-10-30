@@ -5,7 +5,7 @@
     <g data-preview-ignore="true">
         <!-- rendering item custom control points -->
         <g v-if="editBox.items.length === 1"
-            :transform="`translate(${editBox.items[0].meta.transform.x},${editBox.items[0].meta.transform.y}) rotate(${editBox.items[0].meta.transform.r})`">
+            :transform="svgTransformMatrix">
             <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
 
                 <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath">
@@ -46,7 +46,7 @@
             </g>
         </g>
 
-        <g v-if="!isItemConnector" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
+        <g v-if="!isItemConnector" :transform="`${svgTransformMatrix} translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
                 :stroke-width="1/safeZoom"
@@ -217,6 +217,11 @@ export default {
     },
 
     computed: {
+        svgTransformMatrix() {
+            const m = this.editBox.transformMatrix;
+            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
+        },
+
         safeZoom() {
             if (this.zoom > 0.001) {
                 return this.zoom;
