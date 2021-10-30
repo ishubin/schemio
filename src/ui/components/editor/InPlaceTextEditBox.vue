@@ -1,3 +1,6 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="in-place-edit-editor-wrapper" :style="{left: `${area.x}px`, top: `${area.y}px`}">
         <div ref="editor" v-if="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">

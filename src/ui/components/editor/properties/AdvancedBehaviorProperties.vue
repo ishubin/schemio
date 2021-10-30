@@ -1,3 +1,6 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <modal title="Advanced Behavior Editor" @close="$emit('close')" :stretch-width="true" :max-width="900" :use-mask="false">
         <div ref="advancedBehaviorContainer" class="advanced-behavior-editor">
