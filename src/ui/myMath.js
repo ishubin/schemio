@@ -23,9 +23,9 @@ function tooSmall(value) {
  */
 function angleBetweenVectors(x1, y1, x2, y2) {
     const ds1 = x1*x1 + y1*y1;
-    if (ds1 > 0.001) {
+    if (!tooSmall(ds1)) {
         const ds2 = x2*x2 + y2*y2;
-        if (ds2 > 0.001) {
+        if (!tooSmall(ds2)) {
             const d1 = Math.sqrt(ds1);
             const d2 = Math.sqrt(ds2);
             return Math.asin((x1*y2 - y1*x2) / (d1*d2));
@@ -184,6 +184,19 @@ export default {
 
     distanceBetweenPoints(x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
+    },
+
+    normalizedVector(x, y) {
+        const dSquared = x * x + y * y;
+        if (myMath.tooSmall(dSquared)) {
+            return null;
+        }
+
+        const d = Math.sqrt(dSquared);
+        return {
+            x: x/d,
+            y: y/d,
+        };
     },
     
     angleBetweenVectors,

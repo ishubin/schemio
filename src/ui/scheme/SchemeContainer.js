@@ -56,6 +56,11 @@ export function localPointOnItem(x, y, item) {
     return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
+export function worldAngleOfItem(item) {
+    const v = worldVectorOnItem(item.area.w, 0, item);
+    return myMath.fullAngleForVector(v.x, v.y) * 180 / Math.PI;
+}
+
 export function worldVectorOnItem(x, y, item) {
     const p0 = worldPointOnItem(0, 0, item);
     const p1 = worldPointOnItem(x, y, item);
@@ -904,8 +909,13 @@ class SchemeContainer {
         let newLocalPoint = {
             x: worldPoint.x, y: worldPoint.y
         }
+
+        let previousParentWorldAngle = 0;
+        let otherItemWorldAngle = 0;
+
         if (otherItem) {
             newLocalPoint = this.localPointOnItem(worldPoint.x, worldPoint.y, otherItem);
+            otherItemWorldAngle = worldAngleOfItem(otherItem);
         }
 
         let parentItem = null;
@@ -918,6 +928,7 @@ class SchemeContainer {
             }
             parentId = parentItem.id;
             itemsArray = parentItem.childItems;
+            previousParentWorldAngle = worldAngleOfItem(parentItem);
         }
 
         const index = findIndex(itemsArray, it => it.id === itemId);
@@ -948,11 +959,13 @@ class SchemeContainer {
 
         item.area.x = newLocalPoint.x;
         item.area.y = newLocalPoint.y;
-        //TODO we need to correct angles when mouting items to other items. this is trickier with transform matrices
-        // item.area.r += angleCorrection;
-
+        item.area.r += previousParentWorldAngle - otherItemWorldAngle;
+ 
         if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
+
+        //TODO regenerate multi-item edit box
         this.reindexItems();
+        this.updateMultiItemEditBox();
     }
 
     remountItemAfterOtherItem(itemId, otherItemId) {
