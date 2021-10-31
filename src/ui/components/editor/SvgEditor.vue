@@ -1272,7 +1272,7 @@ export default {
         onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
             const itemTextSlot = item.textSlots[slotName];
-            const worldPoint = this.schemeContainer.worldPointOnItem(area.x, area.y, item);
+            const bBox = this.schemeContainer.getBoundingBoxOfItems([item]);
 
             this.inPlaceTextEditor.itemId = item.id;
             this.inPlaceTextEditor.slotName = slotName;
@@ -1281,8 +1281,8 @@ export default {
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
-            this.inPlaceTextEditor.area.x = this._x(worldPoint.x);
-            this.inPlaceTextEditor.area.y = this._y(worldPoint.y);
+            this.inPlaceTextEditor.area.x = this._x(bBox.x);
+            this.inPlaceTextEditor.area.y = this._y(bBox.y);
             this.inPlaceTextEditor.area.w = this._z(area.w);
             this.inPlaceTextEditor.area.h = this._z(area.h);
             this.inPlaceTextEditor.shown = true;
