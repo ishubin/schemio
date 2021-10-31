@@ -1707,14 +1707,26 @@ class SchemeContainer {
     generateMultiItemEditBox(items) {
         let area = null;
         let locked = true;
-        let transformMatrix = myMath.identityMatrix();
 
         if (items.length === 1) {
-            // we want the item edit box to align with item if only that item was selected
-            area = utils.clone(items[0].area);
-            if (items[0].meta && items[0].meta.transformMatrix) {
-                transformMatrix = items[0].meta.transformMatrix;
+            // we want the item edit box to aligned with item only if that item was selected
+            const   p0 = this.worldPointOnItem(0, 0, items[0]),
+                    p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
+                    p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
+                    
+            let angle = 0;
+            const d = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
+            if (!myMath.tooSmall(d)) {
+                angle = myMath.fullAngleForNormalizedVector((p1.x - p0.x) / d, (p1.y - p0.y) / d) * 180 / Math.PI;
             }
+
+            area = {
+                x: p0.x,
+                y: p0.y,
+                r: angle,
+                w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
+                h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
+            };
         } else {
             // otherwise item edit box are will be an average of all other items
             area = this.createMultiItemEditBoxAveragedArea(items);
@@ -1806,7 +1818,6 @@ class SchemeContainer {
             items,
             itemIds,
             itemData,
-            transformMatrix,
             area,
             itemProjections,
         };

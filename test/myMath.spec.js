@@ -40,4 +40,15 @@ describe('myMath.overlappingArea', () => {
         });
         expect(result).toBeNull();
     });
+
+    it('should calculate real angle back from rotated vector', () => {
+        const angles = [70, 110, -70, -110];
+
+        angles.forEach(angle => {
+            const x = Math.cos(angle * Math.PI/180);
+            const y = Math.sin(angle * Math.PI/180);
+
+            expect(myMath.fullAngleForNormalizedVector(x, y) * 180 / Math.PI).toBeCloseTo(angle);
+        });
+    })
 });

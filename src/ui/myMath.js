@@ -13,6 +13,14 @@ function tooSmall(value) {
     return Math.abs(value) < EPSILON;
 }
 
+/**
+ * 
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} x2 
+ * @param {*} y2 
+ * @returns angle in radians
+ */
 function angleBetweenVectors(x1, y1, x2, y2) {
     const ds1 = x1*x1 + y1*y1;
     if (ds1 > 0.001) {
@@ -40,10 +48,8 @@ function cosineAngleBetweenVectors(x1, y1, x2, y2) {
 }
 
 function fullAngleForNormalizedVector(x, y) {
-    if (x >= 0 && y >= 0) {
+    if (y >= 0) {
         return Math.acos(x);
-    } else if (x < 0 && y >= 0) {
-        return Math.PI - Math.acos(x);
     } else {
         return -Math.acos(x);
     }

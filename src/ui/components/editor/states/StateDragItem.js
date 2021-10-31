@@ -313,9 +313,6 @@ export default class StateDragItem extends State {
      */
     handleItemLeftMouseDown(x, y, mx, my, item, event) {
         // if the item is already selected it should not do anything. This way we can let user drag multiple items
-
-        console.log('localPointOnItem', myMath.localPointInArea(x, y, item.area, item.meta.transformMatrix));
-
         if (!this.schemeContainer.isItemSelected(item)) {
             this.schemeContainer.selectItem(item, isMultiSelectKey(event));
         }
@@ -675,7 +672,7 @@ export default class StateDragItem extends State {
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
 
-        // Fixing bug #392 where connector outline is rendered stale while conenctor itself gets readjusted
+        // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
         if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));

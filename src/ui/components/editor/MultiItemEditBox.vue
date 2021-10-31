@@ -2,51 +2,47 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g data-preview-ignore="true">
+    <g data-preview-ignore="true" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
         <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1"
-            :transform="svgTransformMatrix">
-            <g :transform="`translate(${editBox.items[0].area.x},${editBox.items[0].area.y}) rotate(${editBox.items[0].area.r})`">
+        <g v-if="editBox.items.length === 1">
+            <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath">
+                <path :d="selectedConnectorPath" 
+                    :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
+                    :stroke="boundaryBoxColor"
+                    style="stroke-linejoin: round;opacity: 0.6;"
+                    data-preview-ignore="true"
+                    :data-item-id="editBox.items[0].id"
+                    fill="none"/>
 
-                <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath">
-                    <path :d="selectedConnectorPath" 
-                        :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
-                        :stroke="boundaryBoxColor"
-                        style="stroke-linejoin: round;opacity: 0.6;"
-                        data-preview-ignore="true"
-                        :data-item-id="editBox.items[0].id"
-                        fill="none"/>
+                <path :d="selectedConnectorPath" 
+                    :stroke-width="`${editBox.items[0].shapeProps.strokeSize}px`"
+                    :stroke="editBox.items[0].shapeProps.strokeColor"
+                    style="stroke-linejoin: round;"
+                    data-preview-ignore="true"
+                    :data-item-id="editBox.items[0].id"
+                    :stroke-dasharray="createStrokeDashArray(editBox.items[0].shapeProps.strokePattern, editBox.items[0].shapeProps.strokeSize)"
+                    fill="none"/>
+            </g>
 
-                    <path :d="selectedConnectorPath" 
-                        :stroke-width="`${editBox.items[0].shapeProps.strokeSize}px`"
-                        :stroke="editBox.items[0].shapeProps.strokeColor"
-                        style="stroke-linejoin: round;"
-                        data-preview-ignore="true"
-                        :data-item-id="editBox.items[0].id"
-                        :stroke-dasharray="createStrokeDashArray(editBox.items[0].shapeProps.strokePattern, editBox.items[0].shapeProps.strokeSize)"
-                        fill="none"/>
-                </g>
-
-                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
-                    :key="`item-control-point-${controlPoint.id}`"
-                    class="item-control-point"
-                    :data-control-point-item-id="editBox.items[0].id"
-                    :data-control-point-id="controlPoint.id"
-                    :cx="controlPoint.point.x" :cy="controlPoint.point.y"
-                    :fill="controlPointsColor"
-                    :r="6/safeZoom"
-                    />
-                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
-                    <foreignObject :x="0" :y="0" width="100" height="20">
-                        <div>
-                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
-                        </div>
-                    </foreignObject>
-                </g>
+            <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
+                :key="`item-control-point-${controlPoint.id}`"
+                class="item-control-point"
+                :data-control-point-item-id="editBox.items[0].id"
+                :data-control-point-id="controlPoint.id"
+                :cx="controlPoint.point.x" :cy="controlPoint.point.y"
+                :fill="controlPointsColor"
+                :r="6/safeZoom"
+                />
+            <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
+                <foreignObject :x="0" :y="0" width="100" height="20">
+                    <div>
+                        <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
+                    </div>
+                </foreignObject>
             </g>
         </g>
 
-        <g v-if="!isItemConnector" :transform="`${svgTransformMatrix} translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
+        <g v-if="!isItemConnector">
             <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
                 data-type="multi-item-edit-box"
                 :stroke-width="1/safeZoom"
@@ -217,11 +213,6 @@ export default {
     },
 
     computed: {
-        svgTransformMatrix() {
-            const m = this.editBox.transformMatrix;
-            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
-        },
-
         safeZoom() {
             if (this.zoom > 0.001) {
                 return this.zoom;

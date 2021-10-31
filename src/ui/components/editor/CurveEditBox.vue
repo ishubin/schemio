@@ -47,6 +47,7 @@
     </g>
 </template>
 <script>
+import myMath from '../../myMath';
 import EventBus from './EventBus';
 export default {
     props: ['item', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
@@ -76,7 +77,7 @@ export default {
         },
 
         svgTransformMatrix() {
-            const m = this.item.meta.transformMatrix;
+            const m = myMath.standardTransformWithArea(this.item.meta.transformMatrix, this.item.area);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         }
     }
