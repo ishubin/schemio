@@ -389,11 +389,29 @@ export default {
             }
 
             this.$store.dispatch('setItemSurroundPadding', padding);
+            
+            let parentItem = null;
+            if (item.meta.parentId) {
+                parentItem = this.schemeContainer.findItemById(item.meta.parentId);
+            }
 
-            item.area.x = this.itemSurround.boundingBox.x - padding;
-            item.area.y = this.itemSurround.boundingBox.y - padding;
-            item.area.w = this.itemSurround.boundingBox.w + 2 * padding;
-            item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
+            if (parentItem) {
+                const localPoint = this.schemeContainer.localPointOnItem(
+                    this.itemSurround.boundingBox.x - padding,
+                    this.itemSurround.boundingBox.y - padding,
+                    parentItem
+                );
+                item.area.x = localPoint.x;
+                item.area.y = localPoint.y;
+                item.area.w = this.itemSurround.boundingBox.w + 2 * padding;
+                item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
+
+            } else {
+                item.area.x = this.itemSurround.boundingBox.x - padding;
+                item.area.y = this.itemSurround.boundingBox.y - padding;
+                item.area.w = this.itemSurround.boundingBox.w + 2 * padding;
+                item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
+            }
 
             EventBus.emitItemChanged(item.id, 'item.area');
             this.schemeContainer.updateMultiItemEditBox();
