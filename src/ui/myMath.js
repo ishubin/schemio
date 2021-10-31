@@ -654,24 +654,12 @@ export default {
 
     /**
      * 
-     * @param {Array} parentTransform - parents transform
-     * @param {Number} x - translation on x axis
-     * @param {Number} y - translation on y axis
-     * @param {Number} angleInDegrees - rotation angle in degrees
-     * @returns {Array} new transformation matrix
-     */
-    standardTransform(parentTransform, x, y, angleInDegrees) {
-        return this.multiplyMatrices(this.multiplyMatrices(parentTransform, this.translationMatrix(x, y)), this.rotationMatrixInDegrees(angleInDegrees));
-    },
-
-    /**
-     * 
      * @param {Array} parentTransform 
      * @param {Area} area 
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
-        return this.standardTransform(parentTransform, area.x, area.y, area.r);
+        return this.multiplyMatrices(this.multiplyMatrices(parentTransform, this.translationMatrix(area.x, area.y)), this.rotationMatrixInDegrees(area.r));
     },
 
     /**

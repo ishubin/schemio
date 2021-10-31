@@ -17,11 +17,12 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import { Item, enrichItemWithDefaults, traverseItems } from './Item.js';
+import { Item, enrichItemWithDefaults, traverseItems, defaultItemDefinition } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
 import Functions from '../userevents/functions/Functions';
 import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
+import { enrichObjectWithDefaults } from '../../defaultify';
 
 const log = new Logger('SchemeContainer');
 
@@ -87,15 +88,14 @@ function visitItems(items, callback, transformMatrix, parentItem, ancestorIds) {
         ancestorIds = [];
     }
 
-
     for (let i = 0; i < items.length; i++) {
+        // this has to be done here as the item might not yet be fully enriched
+        // also the app optimizes schemes on saving and removes fields with default values
+        enrichObjectWithDefaults(items[i].area, defaultItemDefinition.area);
+
         callback(items[i], transformMatrix, parentItem, ancestorIds);
 
-        const x = myMath.nonNullNumber(items[i].area.x);
-        const y = myMath.nonNullNumber(items[i].area.y);
-        const r = myMath.nonNullNumber(items[i].area.r);
-
-        const itemTransform = myMath.standardTransform(transformMatrix, x, y, r);
+        const itemTransform = myMath.standardTransformWithArea(transformMatrix, items[i].area);
 
         if (items[i].childItems) {
             visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]));
@@ -218,7 +218,7 @@ class SchemeContainer {
                 }
             }
             
-            const recalculatedTransform = myMath.standardTransform(parentTransform, mainItem.area.x, mainItem.area.y, mainItem.area.r);
+            const recalculatedTransform = myMath.standardTransformWithArea(parentTransform, mainItem.area);
 
             visitItems(mainItem.childItems, (item, transformMatrix, parentItem, ancestorIds) => {
                 if (!item.meta) {

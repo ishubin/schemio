@@ -77,7 +77,7 @@ function enrichItemWithStandardShapeProps(item) {
     enrichObjectWithDefaults(item.shapeProps, STANDARD_SHAPE_PROPS);
 }
 
-const defaultItemDefinition = {
+export const defaultItemDefinition = {
     area: {x:0, y: 0, w: 0, h: 0, r: 0},
     opacity: 100,
     selfOpacity: 100,
