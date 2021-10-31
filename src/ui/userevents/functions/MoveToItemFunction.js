@@ -5,6 +5,8 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
+import { worldVectorOnItem } from '../../scheme/SchemeContainer';
+import myMath from '../../myMath';
 
 
 function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer) {
@@ -107,13 +109,21 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             const destinationItem = schemeContainer.findFirstElementBySelector(args.destinationItem, item);
-            let destinationAngle = 0;
+            let destinationAngle = item.area.r;
             let destinationPosition = null;
             let destinationWidth = item.area.w;
             let destinationHeight = item.area.h;
 
             if (destinationItem && destinationItem.id !== item.id) {
                 destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer);
+                
+                const v1 = worldVectorOnItem(item.area.w, 0, item);
+                const v2 = worldVectorOnItem(destinationItem.area.w, 0, destinationItem);
+                
+                const a1 = myMath.fullAngleForVector(v1.x, v1.y);
+                const a2 = myMath.fullAngleForVector(v2.x, v2.y);
+
+                destinationAngle += (a2 - a1) * 180 / Math.PI;
 
                 destinationWidth = destinationItem.area.w;
                 destinationHeight = destinationItem.area.h;

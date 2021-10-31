@@ -56,6 +56,15 @@ export function localPointOnItem(x, y, item) {
     return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
+export function worldVectorOnItem(x, y, item) {
+    const p0 = worldPointOnItem(0, 0, item);
+    const p1 = worldPointOnItem(x, y, item);
+    return {
+        x: p1.x - p0.x,
+        y: p1.y - p0.y
+    };
+}
+
 export function itemCompleteTransform(item) {
     const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
     return myMath.standardTransformWithArea(parentTransform, item.area);
@@ -1714,16 +1723,10 @@ class SchemeContainer {
                     p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
                     p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
                     
-            let angle = 0;
-            const d = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
-            if (!myMath.tooSmall(d)) {
-                angle = myMath.fullAngleForNormalizedVector((p1.x - p0.x) / d, (p1.y - p0.y) / d) * 180 / Math.PI;
-            }
-
             area = {
                 x: p0.x,
                 y: p0.y,
-                r: angle,
+                r: myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI,
                 w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
                 h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
             };

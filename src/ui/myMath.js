@@ -47,6 +47,15 @@ function cosineAngleBetweenVectors(x1, y1, x2, y2) {
     return 0;
 }
 
+function fullAngleForVector(x, y) {
+    const dSquared = x * x + y * y;
+    if (!tooSmall(dSquared)) {
+        const d = Math.sqrt(dSquared);
+        return fullAngleForNormalizedVector(x/d, y/d);
+    }
+    return 0;
+}
+
 function fullAngleForNormalizedVector(x, y) {
     if (y >= 0) {
         return Math.acos(x);
@@ -180,6 +189,7 @@ export default {
     angleBetweenVectors,
     cosineAngleBetweenVectors,
     fullAngleForNormalizedVector,
+    fullAngleForVector,
 
     createLineEquation,
     distanceFromPointToLine,
