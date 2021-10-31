@@ -963,7 +963,6 @@ class SchemeContainer {
  
         if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
 
-        //TODO regenerate multi-item edit box
         this.reindexItems();
         this.updateMultiItemEditBox();
     }
@@ -1434,11 +1433,13 @@ class SchemeContainer {
             if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
                 copiedItemIds[item.id] = 1;
                 const worldPoint = this.worldPointOnItem(0, 0, item);
+                const worldAngle = worldAngleOfItem(item);
 
                 const newItem = this.copyItem(item);
                 newItem.name = this.copyNameAndMakeUnique(item.name);
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
+                newItem.area.r = worldAngle;
 
                 this.scheme.items.push(newItem);
                 copiedItems.push(newItem);
