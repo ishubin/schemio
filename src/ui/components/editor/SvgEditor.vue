@@ -215,7 +215,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import { generateTextStyle } from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer from '../../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem } from '../../scheme/SchemeContainer.js';
 import {itemCompleteTransform} from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
@@ -1216,8 +1216,7 @@ export default {
                 const item = collectedItem.item;
                 const itemDom = collectedItem.itemDom;
                 const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-                // const angle = item.meta.transform.r + item.area.r;
-                const angle = 0;
+                const angle = worldAngleOfItem(item);
                 const x = worldPoint.x - minP.x;
                 const y = worldPoint.y - minP.y;
 
