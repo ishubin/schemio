@@ -450,7 +450,7 @@ export default class StateDragItem extends State {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
                 this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-                if (item.shape === 'curve' && this.controlPoint) {
+                if ((item.shape === 'curve' || item.shape === 'connector') && this.controlPoint) {
                     shouldUpdateMultiItemEditBox = true;
                 }
             });

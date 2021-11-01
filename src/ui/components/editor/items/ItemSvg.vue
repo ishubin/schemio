@@ -115,6 +115,7 @@ import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 import { getEffectById } from '../../effects/Effects';
 import { ChangeType } from '../../../scheme/scheme-diff';
+import myMath from '../../../myMath';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -323,7 +324,8 @@ export default {
 
     computed: {
         svgItemTransform() {
-            return `translate(${this.item.area.x},${this.item.area.y}) rotate(${this.item.area.r})`;
+            const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.item.area);
+            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         },
 
 

@@ -174,6 +174,7 @@
 import Shape from './items/shapes/Shape';
 import StoreUtils from '../../store/StoreUtils';
 import StrokePattern from './items/StrokePattern';
+import myMath from '../../myMath';
 
 
 function isItemConnector(items) {
@@ -214,8 +215,8 @@ export default {
 
     computed: {
         svgTransform() {
-            const a = this.editBox.area;
-            return `translate(${a.x},${a.y}) rotate(${a.r})`;
+            const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.editBox.area);
+            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         },
 
         safeZoom() {
