@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g data-preview-ignore="true" :transform="`translate(${editBox.area.x},${editBox.area.y}) rotate(${editBox.area.r})`">
+    <g data-preview-ignore="true" :transform="svgTransform">
         <!-- rendering item custom control points -->
         <g v-if="editBox.items.length === 1">
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath">
@@ -213,6 +213,11 @@ export default {
     },
 
     computed: {
+        svgTransform() {
+            const a = this.editBox.area;
+            return `translate(${a.x},${a.y}) rotate(${a.r})`;
+        },
+
         safeZoom() {
             if (this.zoom > 0.001) {
                 return this.zoom;

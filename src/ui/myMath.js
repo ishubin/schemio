@@ -595,7 +595,20 @@ export default {
         return smoothPoints;
     },
 
-    multiplyMatrices(matrixA, matrixB) {
+    multiplyMatrices(...matrices) {
+        if (matrices.length === 0) {
+            return this.identityMatrix();
+        }
+        let matrix = matrices[0];
+
+        for (let i = 1; i < matrices.length; i++) {
+            matrix = this.multiplyTwoMatrices(matrix, matrices[i]);
+        }
+
+        return matrix;
+    },
+
+    multiplyTwoMatrices(matrixA, matrixB) {
         let rowsA = matrixA.length;
         let colsA = matrixA[0].length;
         let colsB = matrixB[0].length;
@@ -659,7 +672,11 @@ export default {
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
-        return this.multiplyMatrices(this.multiplyMatrices(parentTransform, this.translationMatrix(area.x, area.y)), this.rotationMatrixInDegrees(area.r));
+        return this.multiplyMatrices(
+            parentTransform,
+            this.translationMatrix(area.x, area.y),
+            this.rotationMatrixInDegrees(area.r),
+        );
     },
 
     /**

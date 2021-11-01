@@ -71,6 +71,11 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
+function localVectorOnItem(x, y, item) {
+    const p0 = worldPointOnItem(0, 0, item);
+    return localPointOnItem(p0.x + x, p0.y + y, item);
+}
+
 export function itemCompleteTransform(item) {
     const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
     return myMath.standardTransformWithArea(parentTransform, item.area);
@@ -1579,14 +1584,17 @@ class SchemeContainer {
                 }
 
                 // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
-                const nx = multiItemEditBox.area.x + topVx * itemProjection.x + leftVx * itemProjection.y;
-                const ny = multiItemEditBox.area.y + topVy * itemProjection.x + leftVy * itemProjection.y;
-                const topRightX = multiItemEditBox.area.x + topVx * itemProjection.topRightX + leftVx * itemProjection.topRightY;
-                const topRightY = multiItemEditBox.area.y + topVy * itemProjection.topRightX + leftVy * itemProjection.topRightY;
-                const bottomLeftX = multiItemEditBox.area.x + topVx * itemProjection.bottomLeftX + leftVx * itemProjection.bottomLeftY;
-                const bottomLeftY = multiItemEditBox.area.y + topVy * itemProjection.bottomLeftX + leftVy * itemProjection.bottomLeftY;
+                const projectBack = (point) => {
+                    return {
+                        x: multiItemEditBox.area.x + topVx * point.x + leftVx * point.y,
+                        y: multiItemEditBox.area.y + topVy * point.x + leftVy * point.y
+                    }
+                };
+                const n = projectBack(itemProjection.topLeft);
+                const topRight = projectBack(itemProjection.topRight);
+                const bottomLeft = projectBack(itemProjection.bottomLeft);
 
-                const relativePosition = this.relativePointForItem(nx, ny, item);
+                const relativePosition = this.relativePointForItem(n.x, n.y, item);
                 item.area.x = myMath.roundPrecise(relativePosition.x, precision);
                 item.area.y = myMath.roundPrecise(relativePosition.y, precision);
 
@@ -1594,14 +1602,14 @@ class SchemeContainer {
                 // recalculated width and height only in case multi item edit box was resized
                 // otherwise it doesn't make sense
                 if (context.resized) {
-                    const widthSquare = (topRightX - nx) * (topRightX - nx) + (topRightY - ny) * (topRightY - ny);
+                    const widthSquare = (topRight.x - n.x) * (topRight.x - n.x) + (topRight.y - n.y) * (topRight.y - n.y);
                     if (widthSquare > 0) {
                         item.area.w = myMath.roundPrecise(Math.sqrt(widthSquare), precision);
                     } else {
                         item.area.w = myMath.roundPrecise(multiItemEditBox.area.w, precision);
                     }
 
-                    const heightSquare = (bottomLeftX - nx) * (bottomLeftX - nx) + (bottomLeftY - ny) * (bottomLeftY - ny);
+                    const heightSquare = (bottomLeft.x - n.x) * (bottomLeft.x - n.x) + (bottomLeft.y - n.y) * (bottomLeft.y - n.y);
                     if (heightSquare > 0) {
                         item.area.h = myMath.roundPrecise(Math.sqrt(heightSquare), precision);
                     } else {
@@ -1732,11 +1740,11 @@ class SchemeContainer {
         let locked = true;
 
         if (items.length === 1) {
-            // we want the item edit box to aligned with item only if that item was selected
+            // we want the item edit box to be aligned with item only if that item was selected
             const   p0 = this.worldPointOnItem(0, 0, items[0]),
                     p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
                     p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
-                    
+
             area = {
                 x: p0.x,
                 y: p0.y,
@@ -1745,7 +1753,7 @@ class SchemeContainer {
                 h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
             };
         } else {
-            // otherwise item edit box are will be an average of all other items
+            // otherwise item edit box area will be an average of all other items
             area = this.createMultiItemEditBoxAveragedArea(items);
         }
 
@@ -1763,8 +1771,8 @@ class SchemeContainer {
         const originalBoxLeftVy = bottomLeftPoint.y - area.y;
 
         let topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
-        //TODO Think of a better way to check for zero width or height
-        if (topLengthSquare < 0.001) {
+
+        if (myMath.tooSmall(topLengthSquare)) {
             topLengthSquare = 0.001;
         }
 
@@ -1795,28 +1803,19 @@ class SchemeContainer {
             const worldTopRightPoint = this.worldPointOnItem(item.area.w, 0, item);
             const worldBottomLeftPoint = this.worldPointOnItem(0, item.area.h, item);
 
-            let Vx = worldPoint.x - area.x;
-            let Vy = worldPoint.y - area.y;
-            const projectionX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
-            const projectionY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
-
-            Vx = worldTopRightPoint.x - area.x;
-            Vy = worldTopRightPoint.y - area.y;
-            const projectionTopRightX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
-            const projectionTopRightY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
-
-            Vx = worldBottomLeftPoint.x - area.x;
-            Vy = worldBottomLeftPoint.y - area.y;
-            const projectionBottomLeftX = (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare;
-            const projectionBottomLeftY = (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare;
+            const projectPoint = (x, y) => {
+                let Vx = x - area.x;
+                let Vy = y - area.y;
+                return {
+                    x: (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare,
+                    y: (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare
+                };
+            };
 
             itemProjections[item.id] = {
-                x: projectionX,
-                y: projectionY,
-                topRightX: projectionTopRightX,
-                topRightY: projectionTopRightY,
-                bottomLeftX: projectionBottomLeftX,
-                bottomLeftY: projectionBottomLeftY,
+                topLeft: projectPoint(worldPoint.x, worldPoint.y),
+                topRight: projectPoint(worldTopRightPoint.x, worldTopRightPoint.y),
+                bottomLeft: projectPoint(worldBottomLeftPoint.x, worldBottomLeftPoint.y),
                 // the following angle correction is needed in case only one item is selected,
                 // in that case the initial edit box area might have a starting angle that matches item area
                 // in all other cases the initial angle will be 0

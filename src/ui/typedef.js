@@ -24,6 +24,8 @@
  * @property {number} w - width
  * @property {number} h - height
  * @property {number} r - rotation in degrees
+ * @property {number} px - x part of relative pivot point. Pivot point is calculated relatively to area width and height
+ * @property {number} py - y part of relative pivot point
  */
 
 /**

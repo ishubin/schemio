@@ -14,6 +14,7 @@ import '../../../typedef';
 import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
+import utils from '../../../utils.js';
 
 const log = new Logger('StateDragItem');
 
@@ -192,13 +193,7 @@ export default class StateDragItem extends State {
     }
 
     initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
-        this.multiItemEditBoxOriginalArea = {
-            x: multiItemEditBox.area.x,
-            y: multiItemEditBox.area.y,
-            w: multiItemEditBox.area.w,
-            h: multiItemEditBox.area.h,
-            r: multiItemEditBox.area.r
-        };
+        this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
     }
 
     initScreenDrag(mx, my) {
@@ -712,6 +707,7 @@ export default class StateDragItem extends State {
             rotated: true,
             resized: false
         }, this.getUpdatePrecision());
+
         this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }

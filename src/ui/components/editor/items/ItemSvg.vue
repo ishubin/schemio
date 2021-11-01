@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :transform="`translate(${item.area.x},${item.area.y}) rotate(${item.area.r})`"
+    <g :transform="svgItemTransform"
         :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
         :data-svg-item-container-id="item.id" >
 
@@ -322,6 +322,11 @@ export default {
     },
 
     computed: {
+        svgItemTransform() {
+            return `translate(${this.item.area.x},${this.item.area.y}) rotate(${this.item.area.r})`;
+        },
+
+
         hoverPathStrokeWidth() {
             if (this.item.shape === 'curve' || this.item.shape === 'connector') {
                 return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';

@@ -78,7 +78,11 @@ function enrichItemWithStandardShapeProps(item) {
 }
 
 export const defaultItemDefinition = {
-    area: {x:0, y: 0, w: 0, h: 0, r: 0},
+    area: {
+        x:0, y: 0, 
+        w: 0, h: 0, 
+        r: 0,
+    },
     opacity: 100,
     selfOpacity: 100,
     visible: true,
