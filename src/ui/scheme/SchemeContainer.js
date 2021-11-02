@@ -23,6 +23,7 @@ import { Debugger, Logger } from '../logger';
 import Functions from '../userevents/functions/Functions';
 import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
 import { enrichObjectWithDefaults } from '../../defaultify';
+import AnimationFunctions from '../animations/functions/AnimationFunctions';
 
 const log = new Logger('SchemeContainer');
 
@@ -1480,6 +1481,26 @@ class SchemeContainer {
                     item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
                     item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
                 }
+                
+                if (item.shape === 'frame_player') {
+                    forEach(item.shapeProps.animations, animation => {
+                        if (animation.kind === 'item') {
+                            animation.id = idOldToNewConversions.get(animation.id);
+                        }
+                    });
+                    forEach(item.shapeProps.functions, animationFunction => {
+                        const funcDef = AnimationFunctions[animationFunction.functionId];
+                        if (!funcDef) {
+                            return;
+                        }
+                        forEach(funcDef.args, (argDef, argName) => {
+                            if (argDef.type === 'element') {
+                                animationFunction.args[argName] = rebuildElementSelector(animationFunction.args[argName]);
+                            }
+                        });
+                    });
+                }
+
 
                 // converting behavior events as well
                 forEach(item.behavior.events, behaviorEvent => {
@@ -1921,14 +1942,19 @@ class SchemeContainer {
         // This function is needed because animations for frame player can be triggered from two places:
         // a) by clicking play button
         // b) by calling "Play Frames" function in behavior actions
+        this.prepareFrameAnimationsForItems(this.scheme.items);
+    }
 
+    prepareFrameAnimationsForItems(items) {
         this.frameAnimations = {};
-        forEach(this.getItems(), item => {
-            if (item.shape !== 'frame_player') {
-                return;
-            }
-            const compiledAnimations = compileAnimations(item, this);
-            this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
+        forEach(items, rootItem => {
+            traverseItems(rootItem, item => {
+                if (item.shape !== 'frame_player') {
+                    return;
+                }
+                const compiledAnimations = compileAnimations(item, this);
+                this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
+            });
         });
     }
 

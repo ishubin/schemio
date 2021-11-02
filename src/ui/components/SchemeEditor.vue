@@ -1470,6 +1470,7 @@ export default {
             .then(scheme => {
                 const componentSchemeContainer = new SchemeContainer(scheme);
                 this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
+                this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);
                 EventBus.emitItemChanged(item.id);
                 this.zoomToItems([item]);
                 this.$nextTick(() => {
