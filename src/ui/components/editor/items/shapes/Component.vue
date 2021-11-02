@@ -13,7 +13,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <g style="cursor: pointer;">
+        <g style="cursor: pointer;" v-if="buttonShown">
 
             <rect v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
@@ -163,6 +163,8 @@ export default {
     data() {
         return {
             buttonHovered: false,
+            buttonShown: !(this.item.childItems && this.item.childItems.length > 0),
+            isLoading: false,
             hideTextSlot: false,
             textStyle: this.createTextStyle()
         };
@@ -170,9 +172,14 @@ export default {
 
     methods: {
         onLoadSchemeClick() {
+            this.isLoading = true;
             EventBus.emitComponentLoadRequested(this.item);
         },
         onItemChanged() {
+            if (this.item.childItems && this.item.childItems.length > 0) {
+                this.buttonShown = false;
+            }
+            this.isLoading = false;
             this.buttonHovered = false;
             this.textStyle = this.createTextStyle();
         },
@@ -230,6 +237,9 @@ export default {
         },
 
         sanitizedButtonText() {
+            if (this.isLoading) {
+                return 'Loading ...';
+            }
             let text = '';
             if (this.item.textSlots && this.item.textSlots.button) {
                 text = this.item.textSlots.button.text;
