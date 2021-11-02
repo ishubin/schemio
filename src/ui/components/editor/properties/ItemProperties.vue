@@ -114,6 +114,7 @@
                 :edit-box="schemeContainer.multiItemEditBox"
                 :item="item"
                 @area-changed="onPositionPanelAreaChanged"
+                @scale-changed="onPositionPanelScaleChanged"
                 />
 
             <panel name="Advanced">
@@ -356,6 +357,19 @@ export default {
                     this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
                 }
                 EventBus.emitSchemeChangeCommited(`editbox.area.${areaProperty}`);
+            }
+        },
+
+        onPositionPanelScaleChanged(sx, sy) {
+            if (this.schemeContainer.multiItemEditBox) {
+                if (this.schemeContainer.multiItemEditBox.items.length === 1) {
+                    const item = this.schemeContainer.multiItemEditBox.items[0];
+                    item.area.sx = sx;
+                    item.area.sy = sy;
+
+                    EventBus.emitItemChanged(item.id, 'area.sx');
+                    EventBus.emitSchemeChangeCommited(`editbox.area.s`);
+                }
             }
         },
 

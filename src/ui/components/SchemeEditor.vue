@@ -459,6 +459,7 @@ export default {
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+        EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
@@ -474,6 +475,7 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+        EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
     },
 
     mounted() {
@@ -1452,6 +1454,23 @@ export default {
             this.changeLogModal.changeLog = changeLog;
             this.changeLogModal.schemeContainer = schemePages['diff'].schemeContainer;
             this.changeLogModal.shown = true;
+        },
+
+        onComponentLoadRequested(item) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
+                return;
+            }
+            console.log('will load component scheme', item);
+            this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
+            .then(scheme => {
+                const componentSchemeContainer = new SchemeContainer(scheme);
+                this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
+                EventBus.emitItemChanged(item.id);
+            })
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load scheme', 'scheme-component-load');
+            });
         }
     },
 

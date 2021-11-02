@@ -41,6 +41,18 @@
                 </tr>
             </tbody>
         </table>
+        <table v-if="isSingleItem">
+            <tbody>
+                <tr>
+                    <td>
+                        <number-textfield :value="sx" name="sx" @changed="updateScaleX(arguments[0])"/>
+                    </td>
+                    <td>
+                        <number-textfield :value="sy" name="sy" @changed="updateScaleY(arguments[0])"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </panel>
 </template>
 
@@ -69,6 +81,9 @@ export default {
             w: this.editBox.area.w,
             h: this.editBox.area.h,
             r: this.editBox.area.r,
+            isSingleItem: this.editBox.items.length === 1,
+            sx: this.editBox.items[0].area.sx,
+            sy: this.editBox.items[0].area.sy,
         };
     },
 
@@ -91,7 +106,17 @@ export default {
 
         updateAreaProperty(propertyName, value) {
             this.$emit('area-changed', propertyName, value);
-        }
+        },
+
+        updateScaleX(value) {
+            this.sx = value;
+            this.$emit('scale-changed', this.sx, this.sy);
+        },
+
+        updateScaleY(value) {
+            this.sy = value;
+            this.$emit('scale-changed', this.sx, this.sy);
+        },
     },
 }
 </script>

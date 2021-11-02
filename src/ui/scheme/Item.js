@@ -77,12 +77,17 @@ function enrichItemWithStandardShapeProps(item) {
     enrichObjectWithDefaults(item.shapeProps, STANDARD_SHAPE_PROPS);
 }
 
+
+const defaultArea = {
+    x:0, y: 0, 
+    w: 0, h: 0, 
+    r: 0,
+    sx: 1.0,
+    sy: 1.0
+};
+
 export const defaultItemDefinition = {
-    area: {
-        x:0, y: 0, 
-        w: 0, h: 0, 
-        r: 0,
-    },
+    area: defaultArea,
     opacity: 100,
     selfOpacity: 100,
     visible: true,
@@ -148,7 +153,7 @@ export function enrichItemWithDefaults(item) {
 
 export const defaultItem = {
     cursor: 'default',
-    area: {x: 0, y: 0, w: 0, h: 0, r: 0},
+    area: defaultArea,
     shape: 'empty',
     opacity: 100.0,
     blendMode: 'normal',
@@ -215,9 +220,18 @@ export function enrichItemWithDefaultShapeProps(item) {
         });
     }
 }
+
 export function traverseItems(rootItem, callback) {
     callback(rootItem);
     forEach(rootItem.childItems, item => {
         traverseItems(item, callback);
     });
+}
+
+export function createDefaultRectItem() {
+    const item = utils.clone(defaultItem);
+    item.shape = 'rect';
+
+    enrichItemWithDefaults(item);
+    return item;
 }

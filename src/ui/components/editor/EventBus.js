@@ -12,12 +12,13 @@ const log = new Logger('EventBus');
 const EventBus = new Vue({
     data() {
         return {
-            START_CREATING_COMPONENT: 'start-creating-component',
             START_CONNECTING_ITEM: 'start-connecting-item',
             START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',
             START_SMART_DRAWING: 'start-smart-drawing',
             STOP_DRAWING: 'stop-drawing',
+
+            COMPONENT_LOAD_REQUESTED: 'component-load-requested',
 
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
@@ -203,6 +204,10 @@ const EventBus = new Vue({
 
         emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {
             this.$emit(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, item, pageX, pageY);
+        },
+
+        emitComponentLoadRequested(item) {
+            this.$emit(EventBus.COMPONENT_LOAD_REQUESTED, item);
         }
     }
 });

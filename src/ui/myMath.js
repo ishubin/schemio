@@ -182,6 +182,10 @@ export default {
         return value;
     },
 
+    vectorLength(x, y) {
+        return Math.sqrt(x*x + y*y);
+    },
+
     distanceBetweenPoints(x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
@@ -381,6 +385,7 @@ export default {
         if (!transformMatrix) {
             transformMatrix = this.identityMatrix();
         }
+        // const completeTransform = this.standardTransformWithAreaAndScale(transformMatrix, area);
         const completeTransform = this.standardTransformWithArea(transformMatrix, area);
         const invertedTransform = this.inverseMatrix3x3(completeTransform);
         if (!invertedTransform) {
@@ -650,6 +655,9 @@ export default {
     },
 
     scaleMatrix(sx, sy) {
+        if (isNaN(sx)) {
+            throw new Error('nan');
+        }
         return [
             [sx, 0, 0],
             [0, sy, 0],
@@ -676,6 +684,22 @@ export default {
             parentTransform,
             this.translationMatrix(area.x, area.y),
             this.rotationMatrixInDegrees(area.r),
+            this.scaleMatrix(area.sx, area.sy)
+        );
+    },
+
+    /**
+     * 
+     * @param {Array} parentTransform 
+     * @param {Area} area 
+     * @returns {Array} new transformation matrix
+     */
+    standardTransformWithAreaAndScale(parentTransform, area) {
+        return this.multiplyMatrices(
+            parentTransform,
+            this.translationMatrix(area.x, area.y),
+            this.rotationMatrixInDegrees(area.r),
+            this.scaleMatrix(area.sx, area.sy)
         );
     },
 

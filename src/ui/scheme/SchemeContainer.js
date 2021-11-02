@@ -17,7 +17,7 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import { Item, enrichItemWithDefaults, traverseItems, defaultItemDefinition } from './Item.js';
+import { Item, enrichItemWithDefaults, traverseItems, defaultItemDefinition, createDefaultRectItem } from './Item.js';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
 import Functions from '../userevents/functions/Functions';
@@ -1418,18 +1418,7 @@ class SchemeContainer {
         return json;
     }
 
-    /**
-     * 
-     * @param {*} items array of items that should be copied and pasted
-     * @param {*} centerX x in relative transform for which items should put pasted to
-     * @param {*} centerY y in relative transform for which items should put pasted to 
-     */
-    pasteItems(items, centerX, centerY) {
-        if (!items || items.length === 0) {
-            return;
-        }
-        this.deselectAllItems();
-
+    cloneItems(items) {
         const copiedItemIds = {};
         const copiedItems = [];
         forEach(items, item => {
@@ -1446,7 +1435,6 @@ class SchemeContainer {
                 newItem.area.y = worldPoint.y;
                 newItem.area.r = worldAngle;
 
-                this.scheme.items.push(newItem);
                 copiedItems.push(newItem);
             }
         });
@@ -1475,7 +1463,6 @@ class SchemeContainer {
                 if (item.shape === 'connector') {
                     item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
                     item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
-                    this.readjustItem(item, false, DEFAULT_ITEM_MODIFICATION_CONTEXT, 3);
                 }
 
                 // converting behavior events as well
@@ -1495,7 +1482,25 @@ class SchemeContainer {
                 });
             });
         });
+        return copiedItems;
+    }
 
+    /**
+     * 
+     * @param {*} items array of items that should be copied and pasted
+     * @param {*} centerX x in relative transform for which items should put pasted to
+     * @param {*} centerY y in relative transform for which items should put pasted to 
+     */
+    pasteItems(items, centerX, centerY) {
+        if (!items || items.length === 0) {
+            return;
+        }
+        this.deselectAllItems();
+        
+        const copiedItems = this.cloneItems(items);
+        forEach(copiedItems, item => {
+            this.scheme.items.push(item);
+        });
 
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
@@ -1583,13 +1588,13 @@ class SchemeContainer {
                     item.area.r = myMath.roundPrecise(itemProjection.r + multiItemEditBox.area.r, precision);
                 }
 
-                // New_Position = Box_Position + V_top * itemProjection.x + V_left * itemProject.y
                 const projectBack = (point) => {
                     return {
                         x: multiItemEditBox.area.x + topVx * point.x + leftVx * point.y,
                         y: multiItemEditBox.area.y + topVy * point.x + leftVy * point.y
                     }
                 };
+
                 const n = projectBack(itemProjection.topLeft);
                 const topRight = projectBack(itemProjection.topRight);
                 const bottomLeft = projectBack(itemProjection.bottomLeft);
@@ -1602,18 +1607,20 @@ class SchemeContainer {
                 // recalculated width and height only in case multi item edit box was resized
                 // otherwise it doesn't make sense
                 if (context.resized) {
+                    const rescaleVector = localVectorOnItem(1, 1, item);
+
                     const widthSquare = (topRight.x - n.x) * (topRight.x - n.x) + (topRight.y - n.y) * (topRight.y - n.y);
                     if (widthSquare > 0) {
-                        item.area.w = myMath.roundPrecise(Math.sqrt(widthSquare), precision);
+                        item.area.w =  myMath.roundPrecise(rescaleVector.x * Math.sqrt(widthSquare), precision);
                     } else {
-                        item.area.w = myMath.roundPrecise(multiItemEditBox.area.w, precision);
+                        item.area.w = myMath.roundPrecise(rescaleVector.x * multiItemEditBox.area.w, precision);
                     }
 
                     const heightSquare = (bottomLeft.x - n.x) * (bottomLeft.x - n.x) + (bottomLeft.y - n.y) * (bottomLeft.y - n.y);
                     if (heightSquare > 0) {
-                        item.area.h = myMath.roundPrecise(Math.sqrt(heightSquare), precision);
+                        item.area.h = myMath.roundPrecise(rescaleVector.y * Math.sqrt(heightSquare), precision);
                     } else {
-                        item.area.h = myMath.roundPrecise(multiItemEditBox.area.h, precision);
+                        item.area.h = myMath.roundPrecise(rescaleVector.y * multiItemEditBox.area.h, precision);
                     }
                 }
 
@@ -1726,7 +1733,9 @@ class SchemeContainer {
            y: minP.y,
            w: maxP.x - minP.x,
            h: maxP.y - minP.y,
-           r: 0
+           r: 0,
+           sx: 1.0,
+           sy: 1.0
         };
     }
 
@@ -1751,6 +1760,8 @@ class SchemeContainer {
                 r: myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI,
                 w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
                 h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
+                sx: 1.0,
+                sy: 1.0
             };
         } else {
             // otherwise item edit box area will be an average of all other items
@@ -1899,6 +1910,64 @@ class SchemeContainer {
 
     getFrameAnimation(itemId) {
         return this.frameAnimations[itemId];
+    }
+
+    attachSchemeToComponentItem(componentItem, scheme) {
+        const childItems = this.cloneItems(scheme.items);
+
+        const topEdge = worldVectorOnItem(componentItem.area.w, 0, componentItem);
+        const leftEdge = worldVectorOnItem(0, componentItem.area.h, componentItem);
+
+        const worldWidth = myMath.vectorLength(topEdge.x, topEdge.y);
+        const worldHeight = myMath.vectorLength(leftEdge.x, leftEdge.y);
+
+        const bBox = this.getBoundingBoxOfItems(childItems);
+        forEach(childItems, item => {
+            item.area.x -= bBox.x;
+            item.area.y -= bBox.y;
+        });
+
+        let scale = 1.0, dx = 0, dy = 0;
+        const sx = worldWidth / bBox.w;
+        const sy = worldHeight / bBox.h;
+        let w = bBox.w;
+        let h = bBox.h;
+
+        if (bBox.w > 0 && bBox.h > 0) {
+            scale = Math.min(sx, sy, 1.0);
+            
+            if (sx > 1) {
+                dx = (worldWidth - bBox.w) / 2;
+            } else if (sx > sy) {
+                dx = (worldWidth - bBox.w * scale) / 2;
+                w = bBox.w / Math.max(0.00001, sx);
+            }
+
+            if (sy > 1) {
+                dy = (worldHeight - bBox.h) / 2;
+            } else if (sx < sy) {
+                dy = (worldHeight - bBox.h * scale) / 2;
+                h = bBox.h / Math.max(0.00001, sy);
+            }
+        }
+
+        const rectItem = createDefaultRectItem();
+        rectItem.area.x = dx;
+        rectItem.area.y = dy;
+
+        rectItem.area.w = w;
+        rectItem.area.h = h;
+
+        rectItem.area.sx = scale;
+        rectItem.area.sy = scale;
+        rectItem.shapeProps.fill = {type: 'none'};
+        rectItem.shapeProps.strokeSize = 0;
+
+        rectItem.childItems = childItems;
+
+        componentItem.childItems = [rectItem];
+
+        this.reindexItems();
     }
 }
 
