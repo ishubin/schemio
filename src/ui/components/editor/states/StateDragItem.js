@@ -7,7 +7,6 @@ import State from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
-import indexOf from 'lodash/indexOf';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';
@@ -15,6 +14,7 @@ import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
+import { worldScalingVectorOnItem } from '../../../scheme/SchemeContainer.js';
 
 const log = new Logger('StateDragItem');
 
@@ -830,10 +830,16 @@ export default class StateDragItem extends State {
                 const dy          = localPoint2.y - localPoint.y;
 
                 const shape = Shape.find(this.sourceItem.shape);
+
+                // using scaling vector as previously all control points were already corrected by scaling effect relatively to world (in StoreUtils)
+                const scalingVector = worldScalingVectorOnItem(this.sourceItem);
+                const svx = Math.max(0.0000001, scalingVector.x);
+                const svy = Math.max(0.0000001, scalingVector.y);
+
                 if (this.sourceItem.shape === 'connector') {
-                    this.handleConnectorPointDrag(this.sourceItem, this.controlPoint.id, dx, dy, this.controlPoint.originalX, this.controlPoint.originalY);
+                    this.handleConnectorPointDrag(this.sourceItem, this.controlPoint.id, dx, dy, this.controlPoint.originalX / svx, this.controlPoint.originalY / svy);
                 } else {
-                    shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX, this.controlPoint.originalY, dx, dy, this.snapper, this.schemeContainer);
+                    shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX / svx, this.controlPoint.originalY / svy, dx, dy, this.snapper, this.schemeContainer);
                 }
                 
                 this.eventBus.emitItemChanged(this.sourceItem.id);

@@ -385,7 +385,6 @@ export default {
         if (!transformMatrix) {
             transformMatrix = this.identityMatrix();
         }
-        // const completeTransform = this.standardTransformWithAreaAndScale(transformMatrix, area);
         const completeTransform = this.standardTransformWithArea(transformMatrix, area);
         const invertedTransform = this.inverseMatrix3x3(completeTransform);
         if (!invertedTransform) {
@@ -680,21 +679,6 @@ export default {
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
-        return this.multiplyMatrices(
-            parentTransform,
-            this.translationMatrix(area.x, area.y),
-            this.rotationMatrixInDegrees(area.r),
-            this.scaleMatrix(area.sx, area.sy)
-        );
-    },
-
-    /**
-     * 
-     * @param {Array} parentTransform 
-     * @param {Area} area 
-     * @returns {Array} new transformation matrix
-     */
-    standardTransformWithAreaAndScale(parentTransform, area) {
         return this.multiplyMatrices(
             parentTransform,
             this.translationMatrix(area.x, area.y),

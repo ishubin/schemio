@@ -71,6 +71,22 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
+/**
+ * Calculates scaling effect of the item relative to the world
+ * This is needed for proper computation of control points for scaled items
+ * @param {Item} item 
+ * @returns {Point}
+ */
+export function worldScalingVectorOnItem(item) {
+    const topLengthVector = worldVectorOnItem(1, 0, item);
+    const leftLengthVector = worldVectorOnItem(0, 1, item);
+
+    return {
+        x:  myMath.vectorLength(topLengthVector.x, topLengthVector.y),
+        y: myMath.vectorLength(leftLengthVector.x, leftLengthVector.y)
+    }
+}
+
 function localVectorOnItem(x, y, item) {
     const p0 = worldPointOnItem(0, 0, item);
     return localPointOnItem(p0.x + x, p0.y + y, item);
@@ -1814,6 +1830,9 @@ class SchemeContainer {
             const worldTopRightPoint = this.worldPointOnItem(item.area.w, 0, item);
             const worldBottomLeftPoint = this.worldPointOnItem(0, item.area.h, item);
 
+            const xAxisVector = worldVectorOnItem(1, 0, item);
+            const yAxisVector = worldVectorOnItem(0, 1, item);
+
             const projectPoint = (x, y) => {
                 let Vx = x - area.x;
                 let Vy = y - area.y;
@@ -1830,7 +1849,12 @@ class SchemeContainer {
                 // the following angle correction is needed in case only one item is selected,
                 // in that case the initial edit box area might have a starting angle that matches item area
                 // in all other cases the initial angle will be 0
-                r: item.area.r - area.r
+                r: item.area.r - area.r,
+
+                scalingVector: {
+                    x: myMath.vectorLength(xAxisVector.x, xAxisVector.y),
+                    y: myMath.vectorLength(yAxisVector.x, yAxisVector.y)
+                }
             };
 
             if (item.shape === 'curve') {

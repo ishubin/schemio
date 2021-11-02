@@ -1,14 +1,30 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import forEach from 'lodash/forEach';
 import Shape from '../components/editor/items/shapes/Shape';
+import myMath from '../myMath';
+import { worldScalingVectorOnItem, worldVectorOnItem } from '../scheme/SchemeContainer';
 import '../typedef';
 
 export default {
     setItemControlPoints(store, item) {
         const shape = Shape.find(item.shape);
         if (shape && shape.controlPoints) {
-            store.dispatch('setItemControlPoints', shape.controlPoints.make(item));
+            const controlPoints = shape.controlPoints.make(item);
+
+            // since item control points are supposed to be used by multi-item edit box
+            // and it uses scale of 1 always
+            // we need to convert positions of those points
+            // by recalculating the complete scaling effect of the item relative to the world
+            const scalingVector = worldScalingVectorOnItem(item);
+
+            forEach(controlPoints, controlPoint => {
+                controlPoint.x = controlPoint.x * scalingVector.x;
+                controlPoint.y = controlPoint.y * scalingVector.y;
+            });
+            
+            store.dispatch('setItemControlPoints', controlPoints);
         } else {
             this.clearItemControlPoints(store);
         }
