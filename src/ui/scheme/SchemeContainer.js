@@ -1939,12 +1939,6 @@ class SchemeContainer {
     attachSchemeToComponentItem(componentItem, scheme) {
         const childItems = this.cloneItems(scheme.items);
 
-        const topEdge = worldVectorOnItem(componentItem.area.w, 0, componentItem);
-        const leftEdge = worldVectorOnItem(0, componentItem.area.h, componentItem);
-
-        const worldWidth = myMath.vectorLength(topEdge.x, topEdge.y);
-        const worldHeight = myMath.vectorLength(leftEdge.x, leftEdge.y);
-
         const bBox = this.getBoundingBoxOfItems(childItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
@@ -1952,8 +1946,8 @@ class SchemeContainer {
         });
 
         let scale = 1.0, dx = 0, dy = 0;
-        const sx = worldWidth / bBox.w;
-        const sy = worldHeight / bBox.h;
+        const sx = componentItem.area.w / bBox.w;
+        const sy = componentItem.area.h / bBox.h;
         let w = bBox.w;
         let h = bBox.h;
 
@@ -1961,16 +1955,16 @@ class SchemeContainer {
             scale = Math.min(sx, sy, 1.0);
             
             if (sx > 1) {
-                dx = (worldWidth - bBox.w) / 2;
+                dx = (componentItem.area.w - bBox.w) / 2;
             } else if (sx > sy) {
-                dx = (worldWidth - bBox.w * scale) / 2;
+                dx = (componentItem.area.w - bBox.w * scale) / 2;
                 w = bBox.w / Math.max(0.00001, sx);
             }
 
             if (sy > 1) {
-                dy = (worldHeight - bBox.h) / 2;
+                dy = (componentItem.area.h - bBox.h) / 2;
             } else if (sx < sy) {
-                dy = (worldHeight - bBox.h * scale) / 2;
+                dy = (componentItem.area.h - bBox.h * scale) / 2;
                 h = bBox.h / Math.max(0.00001, sy);
             }
         }
