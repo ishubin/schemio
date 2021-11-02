@@ -4,6 +4,8 @@
 <template>
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+        <advanced-fill :fillId="`fill-pattern-button-${item.id}`" :fill="item.shapeProps.buttonFill" :area="item.area"/>
+        <advanced-fill :fillId="`fill-pattern-button-hovered-${item.id}`" :fill="item.shapeProps.buttonHoverFill" :area="item.area"/>
 
         <path :d="shapePath" 
             :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -11,7 +13,37 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <rect fill="red" x="10" y="10" :width="item.area.w - 20" height="30" @click="onLoadSchemeClick"/>
+        <g style="cursor: pointer;">
+
+            <rect v-if="buttonHovered"
+                :fill="svgButtonHoverFill"
+                :x="buttonArea.x" :y="buttonArea.y"
+                :width="buttonArea.w" :height="buttonArea.h"
+                :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
+                :stroke="item.shapeProps.buttonStrokeColor"
+                />
+            <rect v-else :fill="svgButtonFill"
+                :x="buttonArea.x" :y="buttonArea.y"
+                :width="buttonArea.w" :height="buttonArea.h"
+                :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
+                :stroke="item.shapeProps.buttonHoverStrokeColor"
+                />
+
+            <g v-if="!hideTextSlot">
+                <foreignObject :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
+                    <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
+                </foreignObject>
+            </g>
+            <rect 
+                data-preview-ignore="true" 
+                fill="rgba(255,255,255,0)"
+                :x="buttonArea.x" :y="buttonArea.y"
+                :width="buttonArea.w" :height="buttonArea.h"
+                @click="onLoadSchemeClick"
+                @mouseover="onButtonMouseOver"
+                @mouseleave="onButtonMouseLeave"
+                />
+        </g>
     </g>
 </template>
 
@@ -20,6 +52,8 @@ import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import AdvancedFill from '../AdvancedFill.vue';
 import EventBus from '../../EventBus';
+import {generateTextStyle} from '../../text/ItemText';
+import htmlSanitize from '../../../../../htmlSanitize';
 
 
 const computePath = (item) => {
@@ -28,6 +62,31 @@ const computePath = (item) => {
 
     return `M ${W} ${H}  L 0 ${H}   L 0 ${0}   L ${W} 0  L ${W} ${H} Z`;
 };
+
+function calculateButtonArea(item) {
+    const maxWidth = 180;
+    const maxHeight = 40;
+    const minPadding = 5;
+    const itemMaxWidth = item.area.w - 2 * minPadding;
+    const itemMaxHeight = item.area.h - 2 * minPadding;
+
+    let w = Math.min(maxWidth, itemMaxWidth);
+    let h = Math.min(maxHeight, itemMaxHeight);
+
+    let x = minPadding;
+    let y = minPadding;
+
+    if (w < itemMaxWidth) {
+        x = (itemMaxWidth - w) / 2;
+    }
+
+    if (h < itemMaxHeight) {
+        y = (itemMaxHeight - h) / 2;
+    }
+
+    return { x, y, w, h };
+}
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -44,6 +103,17 @@ export default {
             description: `
                 Lets you embed other schemes into this item. 
             `,
+            item: {
+                textSlots: {
+                    button: {
+                        text: 'Load more',
+                        paddingLeft  : 0,
+                        paddingRight : 0,
+                        paddingTop   : 0,
+                        paddingBottom: 0
+                    }
+                }
+            }
         }],
 
         getPins(item) {
@@ -52,8 +122,8 @@ export default {
 
         getTextSlots(item) {
             return [{
-                name: 'body',
-                area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
+                name: 'button',
+                area: calculateButtonArea(item)
             }];
         },
 
@@ -64,7 +134,12 @@ export default {
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
             strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-            schemeId              : {type: 'string', value: '', name: 'Scheme ID'}
+            schemeId              : {type: 'string', value: '', name: 'Scheme ID'},
+            buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill'},
+            buttonStrokeColor     : {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Button stroke color'},
+            buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill'},
+            buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color'},
+            buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size'},
         },
 
         editorProps: {
@@ -73,10 +148,62 @@ export default {
         },
     },
 
+    beforeMount() {
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+    },
+
+    beforeDestroy() {
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+    },
+
+    data() {
+        return {
+            buttonHovered: false,
+            hideTextSlot: false,
+            textStyle: this.createTextStyle()
+        };
+    },
+
     methods: {
         onLoadSchemeClick() {
             EventBus.emitComponentLoadRequested(this.item);
-        }
+        },
+        onItemChanged() {
+            this.buttonHovered = false;
+            this.textStyle = this.createTextStyle();
+        },
+        createTextStyle() {
+            let style = {};
+            if (this.item.textSlots && this.item.textSlots.button) {
+                style = generateTextStyle(this.item.textSlots.button);
+                const textArea = calculateButtonArea(this.item);
+                style.width = `${textArea.w}px`;
+                style.height = `${textArea.h}px`;
+            }
+            return style;
+        },
+        onItemTextSlotEditTriggered(item, slotName, area) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = true;
+            }
+        },
+        onItemTextSlotEditCanceled(item, slotName) {
+            if (item.id === this.item.id) {
+                this.hideTextSlot = false;
+            }
+        },
+        onButtonMouseOver() {
+            this.buttonHovered = true;
+            this.$forceUpdate();
+        },
+        onButtonMouseLeave() {
+            this.buttonHovered = false;
+            this.$forceUpdate();
+        },
     },
 
     computed: {
@@ -87,10 +214,28 @@ export default {
         svgFill() {
             return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
+        svgButtonFill() {
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.buttonFill, `fill-pattern-button-${this.item.id}`);
+        },
+        svgButtonHoverFill() {
+            return AdvancedFill.computeSvgFill(this.item.shapeProps.buttonHoverFill, `fill-pattern-button-hovered-${this.item.id}`);
+        },
 
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
+
+        buttonArea() {
+            return calculateButtonArea(this.item);
+        },
+
+        sanitizedButtonText() {
+            let text = '';
+            if (this.item.textSlots && this.item.textSlots.button) {
+                text = this.item.textSlots.button.text;
+            }
+            return htmlSanitize(text);
+        }
     }
 }
 </script>
