@@ -782,7 +782,12 @@ export default {
         },
 
         zoomToItems(items) {
-            const area = this.calculateZoomingAreaForItems(items);
+            let area = null;
+            if (items.length > 0) {
+                area = this.calculateZoomingAreaForItems(items);
+            } else {
+                area = this.calculateZoomingAreaForItems(this.schemeContainer.getItems());
+            }
             if (area) {
                 EventBus.emitBringToViewAnimated(area);
             }
