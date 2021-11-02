@@ -1471,6 +1471,7 @@ export default {
                 const componentSchemeContainer = new SchemeContainer(scheme);
                 this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
                 EventBus.emitItemChanged(item.id);
+                this.zoomToItems([item]);
             })
             .catch(err => {
                 console.error(err);

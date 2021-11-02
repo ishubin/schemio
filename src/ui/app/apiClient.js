@@ -26,7 +26,7 @@ function getExportHTMLResources() {
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
-            return `/v1/fs/schemes/${schemeId}`;
+            return `/v1/fs/schemes/${schemeId}?_v=${new Date().getTime()}`;
         },
 
         listEntries(path) {
