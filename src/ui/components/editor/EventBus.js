@@ -19,6 +19,7 @@ const EventBus = new Vue({
             STOP_DRAWING: 'stop-drawing',
 
             COMPONENT_LOAD_REQUESTED: 'component-load-requested',
+            COMPONENT_SCHEME_MOUNTED: 'component-scheme-mounted',
 
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
@@ -208,7 +209,11 @@ const EventBus = new Vue({
 
         emitComponentLoadRequested(item) {
             this.$emit(EventBus.COMPONENT_LOAD_REQUESTED, item);
-        }
+        },
+
+        emitComponentSchemeMounted(item) {
+            this.$emit(EventBus.COMPONENT_SCHEME_MOUNTED, item);
+        },
     }
 });
 

@@ -202,7 +202,7 @@ import '../../typedef';
 
 import {Keys} from '../../events';
 import myMath from '../../myMath';
-import {ItemInteractionMode, defaultItem, enrichItemWithDefaults} from '../../scheme/Item';
+import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateDraw from './states/StateDraw.js';
@@ -314,6 +314,7 @@ export default {
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+        EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
     },
     mounted() {
         this.updateSvgSize();
@@ -361,6 +362,7 @@ export default {
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+        EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -733,8 +735,6 @@ export default {
 
                 if (highlightPins) {
                     itemHighlight.pins = shape.getPins(item);
-                    // const pins = shape.getPins(item);
-                    // itemHighlight.pins = map(pins, pin => this.schemeContainer.worldPointOnItem(pin.x, pin.y, item));
                 }
 
                 this.worldHighlightedItems.push(itemHighlight);
@@ -743,26 +743,37 @@ export default {
 
         reindexUserEvents() {
             userEventBus.clear();
+            this.indexUserEventsInItems(this.schemeContainer.scheme.items);
+        },
 
+        indexUserEventsInItems(items) {
             // ids of items that have subscribed for Init event
             const itemsForInit = {};
 
-            forEach(this.schemeContainer.getItems(), item => {
-                if (item.behavior && item.behavior.events) {
-                    forEach(item.behavior.events, event => {
-                        const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
+            forEach(items, rootItem => {
+                traverseItems(rootItem, item => {
+                    if (item.behavior && item.behavior.events) {
+                        forEach(item.behavior.events, event => {
+                            const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
 
-                        if (event.event === Events.standardEvents.init.id) {
-                            itemsForInit[item.id] = 1;
-                        }
-                        userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
-                    })
-                }
+                            if (event.event === Events.standardEvents.init.id) {
+                                itemsForInit[item.id] = 1;
+                            }
+                            userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
+                        })
+                    }
+                });
             });
 
             forEach(itemsForInit, (val, itemId) => {
                 userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
+        },
+
+        onComponentSchemeMounted(item) {
+            if (item.childItems) {
+                this.indexUserEventsInItems(item.childItems);
+            }
         },
 
         /**

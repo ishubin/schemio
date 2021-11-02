@@ -1472,6 +1472,9 @@ export default {
                 this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
                 EventBus.emitItemChanged(item.id);
                 this.zoomToItems([item]);
+                this.$nextTick(() => {
+                    EventBus.emitComponentSchemeMounted(item);
+                });
             })
             .catch(err => {
                 console.error(err);
