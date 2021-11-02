@@ -5,8 +5,9 @@
 <template lang="html">
     <div class="scheme-editor-view">
         <quick-helper-panel
-            v-if="schemeContainer"
-            :scheme-container="schemeContainer"
+            :key="`quick-helper-panel-${mode}`"
+            v-if="currentSchemeContainer"
+            :scheme-container="currentSchemeContainer"
             :mode="mode"
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
@@ -1460,7 +1461,6 @@ export default {
             if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
                 return;
             }
-            console.log('will load component scheme', item);
             this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
             .then(scheme => {
                 const componentSchemeContainer = new SchemeContainer(scheme);
@@ -1499,6 +1499,14 @@ export default {
     },
 
     computed: {
+        currentSchemeContainer() {
+            if (this.mode === 'view') {
+                return this.interactiveSchemeContainer;
+            } else {
+                return this.schemeContainer;
+            }
+        },
+
         schemeModified() {
             return this.$store.getters.schemeModified;
         },
