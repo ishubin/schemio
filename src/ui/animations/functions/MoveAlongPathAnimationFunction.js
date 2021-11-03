@@ -103,14 +103,8 @@ export default {
             }
         }
 
-        const p0 = schemeContainer.worldPointOnItem(0, 0, item);
-        const pc = schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
-        const dx = pc.x - p0.x;
-        const dy = pc.y - p0.y;
-
-        item.area.x = localPoint.x - dx;
-        item.area.y = localPoint.y - dy;
-
+        item.area.x = localPoint.x - item.area.w/2;
+        item.area.y = localPoint.y - item.area.h/2;
 
         schemeContainer.reindexItemTransforms(item);
         EventBus.emitItemChanged(item.id);
