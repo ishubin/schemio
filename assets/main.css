@@ -1802,7 +1802,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .properties-table .value input.textfield {
     width: 100%;
-    padding: 2px 4px 2px 4px;
+    padding: 6px 4px 6px 4px;
     font-size: 14px;
 }
 .properties-table tr:nth-child(even) {
@@ -1812,6 +1812,15 @@ ul.button-group > li.disabled > .icon-button:hover,
     background: none;
 }
 
+
+.scheme-ref-control {
+    display: flex;
+}
+.scheme-ref-control .textfield {
+    display: block;
+    flex: 1;
+    margin-right: 4px;
+}
 
 
 /************* Links in Item Properties ***************/

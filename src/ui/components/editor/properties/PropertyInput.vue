@@ -40,6 +40,12 @@
             @selected="emitValue(arguments[0])"
             />
 
+        <div v-if="descriptor.type === 'scheme-ref'" class="scheme-ref-control">
+            <input type="text" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
+            <span class="btn btn-secondary" @click="toggleSchemeSearch()"><i class="fas fa-search"></i></span>
+        </div>
+
+       <scheme-search-modal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"></scheme-search-modal>
     </div>
     
 </template>
@@ -51,7 +57,7 @@ import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import CurveCapDropdown from '../CurveCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
-
+import SchemeSearchModal from '../SchemeSearchModal.vue';
 
 export default {
     props: {
@@ -66,12 +72,27 @@ export default {
 
     components: {
         NumberTextfield, ColorPicker, AdvancedColorEditor, StrokePatternDropdown,
-        CurveCapDropdown, ElementPicker
+        CurveCapDropdown, ElementPicker, SchemeSearchModal
+    },
+
+    data() {
+        return {
+            schemeSearchModalShown: false
+        };
     },
 
     methods: {
         emitValue(value) {
             this.$emit('input', value);
+        },
+
+        onSchemeRefSelect(scheme) {
+            this.schemeSearchModalShown = false;
+            this.emitValue(scheme.id);
+        },
+
+        toggleSchemeSearch() {
+            this.schemeSearchModalShown = true;
         }
     },
 
@@ -95,7 +116,7 @@ export default {
                 return true;
             }
             return false;
-        }
+        },
     }
 }
 </script>

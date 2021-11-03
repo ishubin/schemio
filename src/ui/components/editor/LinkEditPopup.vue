@@ -13,19 +13,9 @@
        </select>
 
        <h5>URL</h5>
-       <div v-if="editType === 'scheme'">
-           <table width="100%">
-               <tbody>
-                   <tr>
-                       <td width="30px">
-                           <span class="btn btn-secondary"><i class="fas fa-search" @click="toggleSchemeSearch"></i></span>
-                       </td>
-                       <td>
-                           <input type="text" class="textfield" v-model:value="editUrl"/>
-                       </td>
-                   </tr>
-               </tbody>
-           </table>
+       <div v-if="editType === 'scheme'" class="scheme-ref-control">
+            <input type="text" class="textfield" v-model:value="editUrl"/>
+            <span class="btn btn-secondary" @click="toggleSchemeSearch"><i class="fas fa-search"></i></span>
        </div>
        <div v-else>
            <input type="text" class="textfield" v-model:value="editUrl"/>

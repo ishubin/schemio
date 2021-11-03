@@ -168,7 +168,8 @@ export function fsSearchSchemes(config) {
         const schemes = _.map(entities, entity => {
             return {
                 name: entity.name,
-                publicLink: `/schemes/${entity.id}`
+                publicLink: `/schemes/${entity.id}`,
+                id: entity.id
             };
         });
         res.json({

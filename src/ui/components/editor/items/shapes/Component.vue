@@ -134,7 +134,7 @@ export default {
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
             strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-            schemeId              : {type: 'string', value: '', name: 'Scheme ID'},
+            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID'},
             buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill'},
             buttonStrokeColor     : {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Button stroke color'},
             buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill'},
