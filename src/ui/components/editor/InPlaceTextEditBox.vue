@@ -2,7 +2,9 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="in-place-edit-editor-wrapper" :style="{left: `${area.x}px`, top: `${area.y}px`}">
+    <div class="in-place-edit-editor-wrapper"
+        :style="cssStyle2"
+        >
         <div ref="editor" v-if="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
         </div>
@@ -23,7 +25,7 @@ import {
 
 
 export default {
-    props: ['item', 'area', 'text', 'cssStyle', 'zoom', 'creatingNewItem'],
+    props: ['item', 'area', 'text', 'cssStyle', 'zoom', 'creatingNewItem', 'scalingVector'],
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
@@ -121,6 +123,16 @@ export default {
                 }
             }
             this.$emit('close');
+        }
+    },
+
+    computed: {
+        cssStyle2() {
+            return {
+                left: `${this.area.x}px`,
+                top: `${this.area.y}px`,
+                transform: `scale(${this.scalingVector.x}, ${this.scalingVector.y})`
+            };
         }
     },
 

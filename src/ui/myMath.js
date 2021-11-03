@@ -748,5 +748,22 @@ export default {
             return 0;
         }
         return value
+    },
+
+    averagePoint(...points) {
+        let x = 0, y = 0;
+        points.forEach(p => {
+            x += p.x;
+            y += p.y;
+        })
+
+        if (points.length > 0) {
+            return {
+                x: x / points.length,
+                y: y / points.length,
+            }
+        }
+
+        return {x, y};
     }
 }

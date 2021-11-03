@@ -163,6 +163,7 @@
             :css-style="inPlaceTextEditor.style"
             :text="inPlaceTextEditor.text"
             :creating-new-item="inPlaceTextEditor.creatingNewItem"
+            :scalingVector="inPlaceTextEditor.scalingVector"
             :zoom="schemeContainer.screenTransform.scale"
             @close="closeItemTextEditor"
             @updated="onInPlaceTextEditorUpdate"
@@ -215,7 +216,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import { generateTextStyle } from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer, { worldAngleOfItem } from '../../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import {itemCompleteTransform} from '../../scheme/SchemeContainer.js';
 import UserEventBus from '../../userevents/UserEventBus.js';
 import Compiler from '../../userevents/Compiler.js';
@@ -399,6 +400,7 @@ export default {
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
                 creatingNewItem: false,
+                scalingVector: {x: 1, y: 1},
                 style: {}
             },
 
@@ -1287,7 +1289,18 @@ export default {
         onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
             const itemTextSlot = item.textSlots[slotName];
-            const bBox = this.schemeContainer.getBoundingBoxOfItems([item]);
+            const p0 = worldPointOnItem(area.x, area.y, item);
+            const p1 = worldPointOnItem(area.x + area.w, area.y, item);
+            const p2 = worldPointOnItem(area.x + area.w, area.y + area.h, item);
+            const p3 = worldPointOnItem(area.x, area.y + area.h, item);
+            const center = myMath.averagePoint(p0, p1, p2, p3);
+
+            const worldWidth = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
+            const worldHeight = myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y);
+
+            const scalingVector = worldScalingVectorOnItem(item);
+            const x = center.x - worldWidth / 2;
+            const y = center.y - worldHeight / 2;
 
             this.inPlaceTextEditor.itemId = item.id;
             this.inPlaceTextEditor.slotName = slotName;
@@ -1296,11 +1309,19 @@ export default {
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
-            this.inPlaceTextEditor.area.x = this._x(bBox.x);
-            this.inPlaceTextEditor.area.y = this._y(bBox.y);
-            this.inPlaceTextEditor.area.w = this._z(area.w);
-            this.inPlaceTextEditor.area.h = this._z(area.h);
+            // the following correction was calculated empirically and to be honest was done poorly
+            // I have no idea why it is needed, but for some reason in place text editor has
+            // an offset proportional to the scaling effect of the item
+            // Hopefully in future I can fix this differently
+            const scaleCorrectionX = 1 / Math.max(0.0000001, scalingVector.x);
+            const scaleCorrectionY = 1 / Math.max(0.0000001, scalingVector.y);
+
+            this.inPlaceTextEditor.area.x = this._x(x) - scaleCorrectionX;
+            this.inPlaceTextEditor.area.y = this._y(y) - scaleCorrectionY;
+            this.inPlaceTextEditor.area.w = this._z(worldWidth);
+            this.inPlaceTextEditor.area.h = this._z(worldHeight);
             this.inPlaceTextEditor.shown = true;
+            this.inPlaceTextEditor.scalingVector = scalingVector;
         },
 
         onInPlaceTextEditorUpdate(text) {
