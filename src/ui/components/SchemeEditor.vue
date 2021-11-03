@@ -1472,7 +1472,11 @@ export default {
                 this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);
                 EventBus.emitItemChanged(item.id);
-                this.zoomToItems([item]);
+
+                if (item.shape === 'component' && item.shapeProps.autoZoom) {
+                    this.zoomToItems([item]);
+                }
+
                 this.$nextTick(() => {
                     EventBus.emitComponentSchemeMounted(item);
                 });
