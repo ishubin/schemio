@@ -45,10 +45,15 @@
             <tbody>
                 <tr>
                     <td>
-                        <number-textfield :value="sx" name="sx" @changed="updateScaleX(arguments[0])"/>
+                        <number-textfield :value="sx" :name="scaleNameX" @changed="updateScaleX(arguments[0])"/>
                     </td>
                     <td>
-                        <number-textfield :value="sy" name="sy" @changed="updateScaleY(arguments[0])"/>
+                        <span class="toggle-button" :class="{toggled: scaleLocked}" @click="scaleLocked = !scaleLocked">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                    </td>
+                    <td>
+                        <number-textfield :value="sy" name="Scale Y" :disabled="scaleLocked"  @changed="updateScaleY(arguments[0])"/>
                     </td>
                 </tr>
             </tbody>
@@ -75,6 +80,9 @@ export default {
     },
 
     data() {
+        const sx = this.editBox.items[0].area.sx;
+        const sy = this.editBox.items[0].area.sy; 
+
         return {
             x: this.editBox.area.x,
             y: this.editBox.area.y,
@@ -82,8 +90,9 @@ export default {
             h: this.editBox.area.h,
             r: this.editBox.area.r,
             isSingleItem: this.editBox.items.length === 1,
-            sx: this.editBox.items[0].area.sx,
-            sy: this.editBox.items[0].area.sy,
+            sx: sx,
+            sy: sy,
+            scaleLocked: sx === sy
         };
     },
 
@@ -110,6 +119,11 @@ export default {
 
         updateScaleX(value) {
             this.sx = value;
+
+            if (this.scaleLocked) {
+                this.sy = this.sx;
+            }
+
             this.$emit('scale-changed', this.sx, this.sy);
         },
 
@@ -118,6 +132,15 @@ export default {
             this.$emit('scale-changed', this.sx, this.sy);
         },
     },
+
+    computed: {
+        scaleNameX() {
+            if (this.scaleLocked) {
+                return 'Scale';
+            }
+            return 'Scale X';
+        }
+    }
 }
 </script>
 
