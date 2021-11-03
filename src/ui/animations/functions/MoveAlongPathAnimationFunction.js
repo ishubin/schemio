@@ -102,6 +102,7 @@ export default {
                 localPoint = schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
             }
         }
+
         const p0 = schemeContainer.worldPointOnItem(0, 0, item);
         const pc = schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
         const dx = pc.x - p0.x;

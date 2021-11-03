@@ -277,7 +277,15 @@ class SchemeContainer {
         log.timeEnd('reindexItems');
     }
 
-    reindexSpecifiedItems(items) {
+    reindexChildItems(mainItem) {
+        const itemTransform = myMath.standardTransformWithArea(mainItem.meta.transformMatrix, mainItem.area);
+
+        if (mainItem.childItems) {
+            this.reindexSpecifiedItems(mainItem.childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
+        }
+    }
+
+    reindexSpecifiedItems(items, transformMatrix, parentItem, ancestorIds) {
         // stores element selectors with their dependants
         // this will be used once it has visited all items
         // so that it can finally start puting ids of existing items into dependencyItemMap
@@ -358,7 +366,7 @@ class SchemeContainer {
 
             // storing revision in item as it is used  in ItemCache to identify whether item outline was changed or not
             item.meta.revision = newRevision;
-        });
+        }, transformMatrix, parentItem, ancestorIds);
 
         this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         this.itemGroups = keys(this._itemGroupsToIds);
@@ -1996,6 +2004,7 @@ class SchemeContainer {
         }
 
         const rectItem = createDefaultRectItem();
+        rectItem.id = shortid.generate();
         rectItem.area.x = dx;
         rectItem.area.y = dy;
 
@@ -2011,7 +2020,7 @@ class SchemeContainer {
 
         componentItem.childItems = [rectItem];
 
-        this.reindexItems();
+        this.reindexChildItems(componentItem);
     }
 }
 
