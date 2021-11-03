@@ -182,9 +182,10 @@ export function fsGetScheme(config) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const entity = getEntityFromIndex(schemeId)
+        const entity = getEntityFromIndex(schemeId);
         if (!entity) {
             res.$apiNotFound('Scheme was not found');
+            return;
         }
         const fullPath = path.join(config.fs.rootPath, entity.fsPath);
 

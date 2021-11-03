@@ -1478,6 +1478,10 @@ export default {
                 });
             })
             .catch(err => {
+                if (item.shape === 'component') {
+                    item.textSlots.button.text = 'Loading failed';
+                    EventBus.emitItemChanged(item.id);
+                }
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load scheme', 'scheme-component-load');
             });
