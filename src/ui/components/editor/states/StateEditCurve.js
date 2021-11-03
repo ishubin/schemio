@@ -41,6 +41,7 @@ export default class StateEditCurve extends State {
         super(eventBus, store);
         this.name = 'editCurve';
         this.item = null;
+        this.parentItem = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
         this.originalClickPoint = {x: 0, y: 0, mx: 0, my: 0};
@@ -65,6 +66,7 @@ export default class StateEditCurve extends State {
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
+        this.parentItem = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
         this.softReset();
@@ -121,7 +123,7 @@ export default class StateEditCurve extends State {
 
         let curveItem = {
             shape: 'connector',
-            name: `${sourceItem.name} :: `,
+            name: `${sourceItem.name} -> `,
             area: {x: 0, y: 0, w: 200, h: 200, r: 0},
             shapeProps: { }
         };
@@ -129,12 +131,35 @@ export default class StateEditCurve extends State {
         curveItem = this.schemeContainer.addItem(curveItem);
         curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
+        let parentItem = null;
+        if (sourceItem.meta.parentId) {
+            parentItem = this.schemeContainer.findItemById(sourceItem.meta.parentId);
+            if (parentItem) {
+                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(curveItem.id, parentItem.id);
+                curveItem.area.x = 0;
+                curveItem.area.y = 0;
+                curveItem.area.w = parentItem.w;
+                curveItem.area.h = parentItem.h;
+            }
+        }
+
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
         curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+
+
+        let firstPoint = closestPoint;
+        let secondPoint = worldPoint;
+
+        // if item was remounted to some other item - we should recalculate its point from world to transform of its parent
+        if (parentItem) {
+            firstPoint = this.schemeContainer.localPointOnItem(closestPoint.x, closestPoint.y, parentItem);
+            secondPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+        }
+
         curveItem.shapeProps.points = [{
-            t: 'L', x: this.round(closestPoint.x), y: this.round(closestPoint.y)
+            t: 'L', x: this.round(firstPoint.x), y: this.round(firstPoint.y)
         }, {
-            t: 'L', x: this.round(worldPoint.x), y: this.round(worldPoint.y)
+            t: 'L', x: this.round(secondPoint.x), y: this.round(secondPoint.y)
         }];
 
         if (typeof closestPoint.bx != 'undefined') {
@@ -143,6 +168,7 @@ export default class StateEditCurve extends State {
         }
 
         this.item = curveItem;
+        this.parentItem = parentItem;
         this.addedToScheme = true;
         this.creatingNewPoints = true;
         this.updateCursor('crosshair');
@@ -153,7 +179,7 @@ export default class StateEditCurve extends State {
      * 
      * @param {Item} item 
      * @param {Point} localPoint 
-     * @returns {ItemClosestPoint}
+     * @returns {ItemClosestPoint} - closest point in world transform
      */
     findAttachmentPointToItem(item, localPoint) {
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
@@ -311,7 +337,13 @@ export default class StateEditCurve extends State {
             if (isEventRightClick(event) && this.item.shape === 'connector') {
                 this.proposeNewDestinationItemForConnector(this.item, mx, my);
             } else {
-                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
+                let realX = x, realY = y;
+                if (this.parentItem) {
+                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
+                    realX = relativePoint.x;
+                    realY = relativePoint.y;
+                }
+                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, realX, realY);
 
                 // checking if the curve was attached to another item
                 if (this.item.shapeProps.destinationItem) {
@@ -325,6 +357,8 @@ export default class StateEditCurve extends State {
                 }
 
                 const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
+
+
                 point.x = snappedCurvePoint.x;
                 point.y = snappedCurvePoint.y;
 
@@ -404,13 +438,21 @@ export default class StateEditCurve extends State {
                 point.y1 = -point.y2;
             } else {
                 // drag last point
-                const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, x, y);
+                let realX = x, realY = y;
+                if (this.parentItem) {
+                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
+                    realX = relativePoint.x;
+                    realY = relativePoint.y;
+                }
+                const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, realX, realY);
+                
                 point.x = this.round(snappedLocalCurvePoint.x);
                 point.y = this.round(snappedLocalCurvePoint.y);
 
+
                 this.shouldJoinClosedPoints = false;
 
-                if (this.item.shapeProps.points.length > 2) {
+                if (this.item.shapeProps.points.length > 2 && this.item.shape !== 'connector') {
                     // checking if the curve point was moved too close to first point,
                     // so that the placement of new points can be stopped and curve will become closed
                     // This needs to be checked in viewport (not in world transform)
@@ -477,7 +519,14 @@ export default class StateEditCurve extends State {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
 
-                const snappedLocalCurvePoint = this.snapCurvePoint(-1, x, y);
+                let realX = x, realY = y;
+                if (this.parentItem) {
+                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
+                    realX = relativePoint.x;
+                    realY = relativePoint.y;
+                }
+                const snappedLocalCurvePoint = this.snapCurvePoint(-1, realX, realY);
+
                 this.item.shapeProps.points.push({
                     x: this.round(snappedLocalCurvePoint.x),
                     y: this.round(snappedLocalCurvePoint.y),
