@@ -1587,7 +1587,9 @@ class SchemeContainer {
     }
 
     /**
-     * 
+     * This function is used to update the area of all items inside edit box so that
+     * they reflect transformations applied to edit box.
+     * The way it works is by computing original projection points of items onto new area of edit box
      * @param {MultiItemEditBox} multiItemEditBox 
      * @param {Boolean} isSoft 
      * @param {ItemModificationContext} context 
@@ -1640,33 +1642,19 @@ class SchemeContainer {
                     }
                 };
 
-                const n = projectBack(itemProjection.topLeft);
-                const topRight = projectBack(itemProjection.topRight);
-                const bottomLeft = projectBack(itemProjection.bottomLeft);
+                const worldTopLeft = projectBack(itemProjection.topLeft);
 
-                const relativePosition = this.relativePointForItem(n.x, n.y, item);
+                const relativePosition = this.relativePointForItem(worldTopLeft.x, worldTopLeft.y, item);
                 item.area.x = myMath.roundPrecise(relativePosition.x, precision);
                 item.area.y = myMath.roundPrecise(relativePosition.y, precision);
-
 
                 // recalculated width and height only in case multi item edit box was resized
                 // otherwise it doesn't make sense
                 if (context.resized) {
-                    const rescaleVector = localVectorOnItem(1, 1, item);
-
-                    const widthSquare = (topRight.x - n.x) * (topRight.x - n.x) + (topRight.y - n.y) * (topRight.y - n.y);
-                    if (widthSquare > 0) {
-                        item.area.w =  myMath.roundPrecise(rescaleVector.x * Math.sqrt(widthSquare), precision);
-                    } else {
-                        item.area.w = myMath.roundPrecise(rescaleVector.x * multiItemEditBox.area.w, precision);
-                    }
-
-                    const heightSquare = (bottomLeft.x - n.x) * (bottomLeft.x - n.x) + (bottomLeft.y - n.y) * (bottomLeft.y - n.y);
-                    if (heightSquare > 0) {
-                        item.area.h = myMath.roundPrecise(rescaleVector.y * Math.sqrt(heightSquare), precision);
-                    } else {
-                        item.area.h = myMath.roundPrecise(rescaleVector.y * multiItemEditBox.area.h, precision);
-                    }
+                    const worldBottomRight = projectBack(itemProjection.bottomRight);
+                    const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
+                    item.area.w = localBottomRight.x;
+                    item.area.h = localBottomRight.y;
                 }
 
                 if (item.shape === 'curve') {
@@ -1856,8 +1844,7 @@ class SchemeContainer {
             // since some items can be children of other items we need to project only their world location
 
             const worldPoint = this.worldPointOnItem(0, 0, item);
-            const worldTopRightPoint = this.worldPointOnItem(item.area.w, 0, item);
-            const worldBottomLeftPoint = this.worldPointOnItem(0, item.area.h, item);
+            const worldBottomRightPoint = this.worldPointOnItem(item.area.w, item.area.h, item);
 
             const xAxisVector = worldVectorOnItem(1, 0, item);
             const yAxisVector = worldVectorOnItem(0, 1, item);
@@ -1873,8 +1860,7 @@ class SchemeContainer {
 
             itemProjections[item.id] = {
                 topLeft: projectPoint(worldPoint.x, worldPoint.y),
-                topRight: projectPoint(worldTopRightPoint.x, worldTopRightPoint.y),
-                bottomLeft: projectPoint(worldBottomLeftPoint.x, worldBottomLeftPoint.y),
+                bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
                 // the following angle correction is needed in case only one item is selected,
                 // in that case the initial edit box area might have a starting angle that matches item area
                 // in all other cases the initial angle will be 0
