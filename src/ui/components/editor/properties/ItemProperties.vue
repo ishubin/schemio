@@ -364,11 +364,18 @@ export default {
             if (this.schemeContainer.multiItemEditBox) {
                 if (this.schemeContainer.multiItemEditBox.items.length === 1) {
                     const item = this.schemeContainer.multiItemEditBox.items[0];
-                    item.area.sx = sx;
-                    item.area.sy = sy;
+
+                    if (sx > 0) {
+                        item.area.sx = sx;
+                    }
+                    if (sy > 0) {
+                        item.area.sy = sy;
+                    }
 
                     EventBus.emitItemChanged(item.id, 'area.sx');
                     EventBus.emitSchemeChangeCommited(`editbox.area.s`);
+                    this.schemeContainer.updateMultiItemEditBoxAreaOnly();
+                    EventBus.$emit(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED);
                 }
             }
         },

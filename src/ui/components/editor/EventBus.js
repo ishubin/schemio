@@ -91,6 +91,7 @@ const EventBus = new Vue({
             BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',
 
             MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED: 'multi-item-edit-box-items-updated',
+            MULTI_ITEM_EDIT_BOX_AREA_UPDATED: 'multi-item-edit-box-area-updated',
 
             // emited when user is drawing and clicks a color option in a draw panel (side panel)
             DRAW_COLOR_PICKED: 'draw-color-picked',

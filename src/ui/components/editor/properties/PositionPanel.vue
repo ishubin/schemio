@@ -73,10 +73,12 @@ export default {
 
     beforeMount() {
         EventBus.$on(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
+        EventBus.$on(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED, this.onEditBoxChange);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
+        EventBus.$off(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED, this.onEditBoxChange);
     },
 
     data() {

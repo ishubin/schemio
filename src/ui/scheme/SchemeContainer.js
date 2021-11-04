@@ -1729,6 +1729,23 @@ class SchemeContainer {
         }
     }
 
+    /**
+     * This is needed only in case we don't want to reset multi-item edit box
+     * but we do need to update its area
+     */
+    updateMultiItemEditBoxAreaOnly() {
+        if (this.multiItemEditBox && this.selectedItems.length > 0) {
+            const box = this.generateMultiItemEditBox(this.selectedItems);
+            this.multiItemEditBox.area.x = box.area.x;
+            this.multiItemEditBox.area.y = box.area.y;
+            this.multiItemEditBox.area.w = box.area.w;
+            this.multiItemEditBox.area.h = box.area.h;
+            this.multiItemEditBox.area.r = box.area.r;
+            this.multiItemEditBox.area.sx = box.area.sx;
+            this.multiItemEditBox.area.sy = box.area.sy;
+        }
+    }
+
     createMultiItemEditBoxAveragedArea(items) {
         let minP = null;
         let maxP = null;
