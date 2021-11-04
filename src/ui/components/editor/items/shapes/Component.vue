@@ -99,7 +99,7 @@ export default {
         menuItems: [{
             group: 'General',
             name: 'Component',
-            iconUrl: '/assets/images/items/rect.svg',
+            iconUrl: '/assets/images/items/component.svg',
             description: `
                 Lets you embed other schemes into this item. 
             `,
