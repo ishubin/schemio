@@ -1576,7 +1576,11 @@ export default {
             item.area.x = p.x;
             item.area.y = p.y;
 
-            
+            item.area.w = item.area.w / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+            item.area.h = item.area.h / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+
+            const worldWidth = item.area.w;
+            const worldHeight = item.area.h;
 
             this.schemeContainer.addItem(item);
 
@@ -1586,6 +1590,11 @@ export default {
                     this.schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, proposedItemForMounting.id);
                 }
             }
+
+            const sv = worldScalingVectorOnItem(item);
+
+            item.area.w = worldWidth / Math.max(0.0000001, sv.x);
+            item.area.h = worldHeight / Math.max(0.0000001, sv.y);
 
             this.schemeContainer.selectItem(item);
             EventBus.emitSchemeChangeCommited();
