@@ -38,8 +38,8 @@ export default {
         // the following action will reset all the curve eidt points in store
         store.dispatch('setCurveEditItem', item);
     },
-    updateCurveEditPoint(store, pointId, point) {
-        store.dispatch('updateCurveEditPoint', { pointId, point });
+    updateCurveEditPoint(store, item, pointId, point) {
+        store.dispatch('updateCurveEditPoint', {item, pointId, point });
     },
     toggleCurveEditPointSelection(store, pointId, inclusive) {
         store.dispatch('toggleCurveEditPointSelection', { pointId, inclusive });

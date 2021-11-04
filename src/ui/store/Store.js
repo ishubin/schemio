@@ -8,12 +8,34 @@ import find from 'lodash/find';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
+import { itemCompleteTransform } from '../scheme/SchemeContainer';
+import myMath from '../myMath';
 
 Vue.use(Vuex);
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
+function createCurvePointConverter(item) {
+    const completeTransform = itemCompleteTransform(item);
 
+    return (point)  => {
+        const convertedPoint = utils.clone(point);
+        const p = myMath.transformPoint(completeTransform, point.x, point.y);
+
+        convertedPoint.x = p.x;
+        convertedPoint.y = p.y;
+
+        if (point.t === 'B') {
+            const p1 = myMath.transformPoint(completeTransform, point.x + point.x1, point.y + point.y1);
+            const p2 = myMath.transformPoint(completeTransform, point.x + point.x2, point.y + point.y2);
+            convertedPoint.x1 = p1.x - p.x;
+            convertedPoint.y1 = p1.y - p.y;
+            convertedPoint.x2 = p2.x - p.x;
+            convertedPoint.y2 = p2.y - p.y;
+        }
+        return convertedPoint;
+    }
+}
 
 function enrichCurvePoint(point) {
     if (point.t === 'B') {
@@ -130,15 +152,20 @@ const store = new Vuex.Store({
         SET_CURVE_EDIT_ITEM(state, {item, points}) {
             state.curveEditing.item = item;
             state.curveEditing.points.length = 0;
+            const pointConverter = createCurvePointConverter(item);
             forEach(points, point => {
-                state.curveEditing.points.push(point);
+                state.curveEditing.points.push(pointConverter(point));
             });
         },
-        UPDATE_CURVE_EDIT_POINT(state, {pointId, point}) {
+        UPDATE_CURVE_EDIT_POINT(state, {item, pointId, point}) {
             if (pointId < 0 || pointId >= state.curveEditing.points.length) {
                 return;
             }
-            forEach(point, (value, field) => {
+
+            const pointConverter = createCurvePointConverter(item);
+            const convertedPoint = pointConverter(point);
+
+            forEach(convertedPoint, (value, field) => {
                 state.curveEditing.points[pointId][field] = value;
                 enrichCurvePoint(state.curveEditing.points[pointId]);
             });
@@ -378,8 +405,8 @@ const store = new Vuex.Store({
             }
             commit('SET_CURVE_EDIT_ITEM', {item, points});
         },
-        updateCurveEditPoint({ commit }, { pointId, point }) {
-            commit('UPDATE_CURVE_EDIT_POINT', { pointId, point });
+        updateCurveEditPoint({ commit }, { item, pointId, point }) {
+            commit('UPDATE_CURVE_EDIT_POINT', { item, pointId, point });
         },
         toggleCurveEditPointSelection({ commit }, { pointId, inclusive }) {
             commit('TOGGLE_CURVE_EDIT_POINT_SELECTION', { pointId, inclusive });

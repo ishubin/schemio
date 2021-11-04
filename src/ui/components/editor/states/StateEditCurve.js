@@ -474,7 +474,7 @@ export default class StateEditCurve extends State {
                 this.handleEdgeCurvePointDrag(pointIndex, point, false);
             }
             this.eventBus.emitItemChanged(this.item.id);
-            StoreUtils.updateCurveEditPoint(this.store, pointIndex, point);
+            StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, point);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
             this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
@@ -743,7 +743,7 @@ export default class StateEditCurve extends State {
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -776,7 +776,7 @@ export default class StateEditCurve extends State {
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -802,7 +802,7 @@ export default class StateEditCurve extends State {
         point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
@@ -828,7 +828,7 @@ export default class StateEditCurve extends State {
             if (storePoint.selected && storePoint.id !== pointIndex) {
                 this.item.shapeProps.points[storePoint.id].x = this.originalCurvePoints[storePoint.id].x + dx;
                 this.item.shapeProps.points[storePoint.id].y = this.originalCurvePoints[storePoint.id].y + dy;
-                StoreUtils.updateCurveEditPoint(this.store, storePoint.id, this.item.shapeProps.points[storePoint.id]);
+                StoreUtils.updateCurveEditPoint(this.store, this.item, storePoint.id, this.item.shapeProps.points[storePoint.id]);
             }
         });
         
@@ -837,7 +837,7 @@ export default class StateEditCurve extends State {
         }
 
         this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
@@ -983,7 +983,7 @@ export default class StateEditCurve extends State {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
-        StoreUtils.updateCurveEditPoint(this.store, pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, curvePoint);
     }
 
     handleCurveControlPointDrag(x, y, event) {
@@ -1010,7 +1010,7 @@ export default class StateEditCurve extends State {
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, this.draggedObject.pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
