@@ -375,6 +375,7 @@ export default {
                     EventBus.emitItemChanged(item.id, 'area.sx');
                     EventBus.emitSchemeChangeCommited(`editbox.area.s`);
                     this.schemeContainer.updateMultiItemEditBoxAreaOnly();
+                    this.schemeContainer.updateChildTransforms(this.schemeContainer.multiItemEditBox.items[0]);
                     EventBus.$emit(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED);
                 }
             }

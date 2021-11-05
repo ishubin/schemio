@@ -326,8 +326,6 @@ export default {
 
     computed: {
         svgItemTransform() {
-            // const a = this.item.area;
-            // return `translate(${a.x} ${a.y}) rotate(${a.r})`;
             const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.item.area);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         },

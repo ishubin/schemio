@@ -692,14 +692,16 @@ export default class StateDragItem extends State {
     }
 
     rotateMultiItemEditBox(x, y, mx, my, event) {
-        const center = myMath.worldPointInArea(this.multiItemEditBoxOriginalArea.w/2, this.multiItemEditBoxOriginalArea.h/2, this.multiItemEditBoxOriginalArea)
-        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, center.x, center.y, event);
-        const angle = angleDegrees * Math.PI / 180;
+        const area = this.multiItemEditBoxOriginalArea;
 
-        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
-        this.multiItemEditBox.area.r = this.round(this.multiItemEditBoxOriginalArea.r + angleDegrees);
-        this.multiItemEditBox.area.x = this.round(np.x);
-        this.multiItemEditBox.area.y = this.round(np.y);
+        const pivotPoint = myMath.worldPointInArea(area.w * area.px, area.h * area.py, area);
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, pivotPoint.x, pivotPoint.y, event);
+        // const angle = angleDegrees * Math.PI / 180;
+
+        // const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
+        // this.multiItemEditBox.area.x = this.round(np.x);
+        // this.multiItemEditBox.area.y = this.round(np.y);
+        this.multiItemEditBox.area.r = this.round(area.r + angleDegrees);
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             id: this.modificationContextId,

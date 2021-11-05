@@ -679,10 +679,14 @@ export default {
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
+        const rpx = area.w * area.px;
+        const rpy = area.h * area.py;
+
         return this.multiplyMatrices(
             parentTransform,
-            this.translationMatrix(area.x, area.y),
+            this.translationMatrix(area.x + rpx, area.y + rpy),
             this.rotationMatrixInDegrees(area.r),
+            this.translationMatrix(- rpx, - rpy),
             this.scaleMatrix(area.sx, area.sy)
         );
     },

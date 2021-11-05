@@ -82,6 +82,7 @@ const defaultArea = {
     x:0, y: 0, 
     w: 0, h: 0, 
     r: 0,
+    px: 0.5, py: 0.5, // pivot point coords relative to items width and height
     sx: 1.0,
     sy: 1.0
 };
