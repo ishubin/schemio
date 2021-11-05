@@ -843,8 +843,12 @@ export default class StateDragItem extends State {
         }
         this.multiItemEditBox.area.x = nx;
         this.multiItemEditBox.area.y = ny;
-        this.multiItemEditBox.area.w = nw;
-        this.multiItemEditBox.area.h = nh;
+        if (nw > 0) {
+            this.multiItemEditBox.area.w = nw;
+        }
+        if (nh > 0) {
+            this.multiItemEditBox.area.h = nh;
+        }
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             moved: false,
             rotated: false,
