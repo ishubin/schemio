@@ -152,10 +152,12 @@ const store = new Vuex.Store({
         SET_CURVE_EDIT_ITEM(state, {item, points}) {
             state.curveEditing.item = item;
             state.curveEditing.points.length = 0;
-            const pointConverter = createCurvePointConverter(item);
-            forEach(points, point => {
-                state.curveEditing.points.push(pointConverter(point));
-            });
+            if (item) {
+                const pointConverter = createCurvePointConverter(item);
+                forEach(points, point => {
+                    state.curveEditing.points.push(pointConverter(point));
+                });
+            }
         },
         UPDATE_CURVE_EDIT_POINT(state, {item, pointId, point}) {
             if (pointId < 0 || pointId >= state.curveEditing.points.length) {
