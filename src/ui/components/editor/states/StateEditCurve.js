@@ -138,8 +138,8 @@ export default class StateEditCurve extends State {
                 this.schemeContainer.remountItemInsideOtherItemAtTheBottom(curveItem.id, parentItem.id);
                 curveItem.area.x = 0;
                 curveItem.area.y = 0;
-                curveItem.area.w = parentItem.w;
-                curveItem.area.h = parentItem.h;
+                curveItem.area.w = parentItem.area.w;
+                curveItem.area.h = parentItem.area.h;
             }
         }
 
