@@ -1871,11 +1871,13 @@ class SchemeContainer {
         let area = null;
         let locked = true;
 
+        const pivotPoint = {
+            x: 0.5,
+            y: 0.5
+        };
+
         if (items.length === 1) {
             // we want the item edit box to be aligned with item only if that item was selected
-            /*
-            Bt * Bd1 * Br * Bd2 * Bs * P0 = 
-            */
             const   p0 = this.worldPointOnItem(0, 0, items[0]),
                     p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
                     p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
@@ -1891,6 +1893,8 @@ class SchemeContainer {
                 sx: 1.0,
                 sy: 1.0
             };
+            pivotPoint.x = items[0].area.px;
+            pivotPoint.y = items[0].area.py;
 
 
         } else {
@@ -1983,6 +1987,7 @@ class SchemeContainer {
             itemData,
             area,
             itemProjections,
+            pivotPoint
         };
     }
 

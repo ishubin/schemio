@@ -470,6 +470,11 @@ export default {
                         multiItemEditBox: this.schemeContainer.multiItemEditBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
+                } else if (elementType === 'multi-item-edit-box-pivot-dragger') {
+                    return {
+                        type: elementType,
+                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
+                    };
                 } else if (elementType === 'multi-item-edit-box-edit-curve-link') {
                     return {
                         type: elementType,

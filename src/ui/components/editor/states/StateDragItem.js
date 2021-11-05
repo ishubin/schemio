@@ -70,6 +70,9 @@ export default class StateDragItem extends State {
 
         this.isRotating = false;
 
+        this.isDraggingPivot = false;
+        this.oldPivotPoint = null;
+
         // used to check whether the mouse moved between mouseDown and mouseUp events
         this.wasMouseMoved = false;
 
@@ -116,6 +119,8 @@ export default class StateDragItem extends State {
         this.shouldDragScreen = false;
         this.draggerEdges = null;
         this.isRotating = false;
+        this.isDraggingPivot = false;
+        this.oldPivotPoint = null;
         this.sourceItem = null;
         this.controlPoint = null;
         this.multiSelectBox = null;
@@ -192,6 +197,19 @@ export default class StateDragItem extends State {
         this.draggerEdges = draggerEdges;
     }
 
+    initPivotDrag(multiItemEditBox, x, y, mx, my) {
+        this.initDragging(x, y, mx, my);
+        this.multiItemEditBox = multiItemEditBox;
+        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
+        this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
+        this.isRotating = false;
+        this.isDraggingPivot = true;
+        this.oldPivotPoint = {
+            x: multiItemEditBox.pivotPoint.x,
+            y: multiItemEditBox.pivotPoint.y,
+        };
+    }
+
     initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
         this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
     }
@@ -233,6 +251,8 @@ export default class StateDragItem extends State {
             this.initMultiItemBoxRotation(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-pivot-dragger') {
+            this.initPivotDrag(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
             if (object.multiItemEditBox.items.length > 0
                 && object.multiItemEditBox.items[0].shape === 'curve') {
@@ -340,6 +360,8 @@ export default class StateDragItem extends State {
                     this.rotateMultiItemEditBox(x, y, mx, my, event);
                 } else if (this.draggerEdges) {
                     this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
+                } else if (this.isDraggingPivot) {
+                    this.dragMultiItemEditBoxPivot(x, y, event);
                 } else {
                     // doing this check since it is really easy to trigger item drag just by few pixels
                     if (!this.draggedEnough(mx, my)) {
@@ -458,6 +480,12 @@ export default class StateDragItem extends State {
                 this.schemeContainer.updateMultiItemEditBox();
             }
             this.schemeContainer.reindexItems();
+        }
+
+        if (this.multiItemEditBox && this.isDraggingPivot && this.multiItemEditBox.items.length === 1) {
+            this.multiItemEditBox.items[0].area.px = this.multiItemEditBox.pivotPoint.x;
+            this.multiItemEditBox.items[0].area.py = this.multiItemEditBox.pivotPoint.y;
+            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
         }
 
         // the code below is messy because it handles two conditions:
@@ -691,17 +719,32 @@ export default class StateDragItem extends State {
         this.reindexNeeded = true;
     }
 
+    dragMultiItemEditBoxPivot(x, y, event) {
+        if (!this.multiItemEditBox) {
+            return;
+        }
+
+        if (this.multiItemEditBox.area.w === 0 || this.multiItemEditBox.area.h === 0) {
+            return;
+        }
+        const localPoint = myMath.localPointInArea(x, y, this.multiItemEditBox.area);
+        const localOriginalPoint = myMath.localPointInArea(this.originalPoint.x, this.originalPoint.y, this.multiItemEditBox.area);
+
+        this.multiItemEditBox.pivotPoint.x = myMath.clamp(this.oldPivotPoint.x + (localPoint.x - localOriginalPoint.x) / this.multiItemEditBox.area.w, 0, 1);
+        this.multiItemEditBox.pivotPoint.y = myMath.clamp(this.oldPivotPoint.y + (localPoint.y - localOriginalPoint.y) / this.multiItemEditBox.area.h, 0, 1);
+    }
+
     rotateMultiItemEditBox(x, y, mx, my, event) {
         const area = this.multiItemEditBoxOriginalArea;
 
-        const pivotPoint = myMath.worldPointInArea(area.w * area.px, area.h * area.py, area);
+        const pivotPoint = myMath.worldPointInArea(area.w * this.multiItemEditBox.pivotPoint.x, area.h * this.multiItemEditBox.pivotPoint.y, area);
         const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, pivotPoint.x, pivotPoint.y, event);
-        // const angle = angleDegrees * Math.PI / 180;
+        const angle = angleDegrees * Math.PI / 180;
 
-        // const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, center.x, center.y, angle);
-        // this.multiItemEditBox.area.x = this.round(np.x);
-        // this.multiItemEditBox.area.y = this.round(np.y);
-        this.multiItemEditBox.area.r = this.round(area.r + angleDegrees);
+        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, pivotPoint.x, pivotPoint.y, angle);
+        this.multiItemEditBox.area.x = np.x;
+        this.multiItemEditBox.area.y = np.y;
+        this.multiItemEditBox.area.r = area.r + angleDegrees;
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             id: this.modificationContextId,

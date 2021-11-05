@@ -1190,6 +1190,10 @@ ul.pagination li a.current {
 #svg_plot .boundary-box-dragger:hover {
     opacity: 0.5;
 }
+#svg_plot .boundary-box-pivot-dragger:hover {
+    cursor: pointer;
+    opacity: 0.3;
+}
 
 #svg_plot .boundary-box-connector-starter {
     stroke: 'none';
