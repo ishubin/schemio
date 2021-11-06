@@ -43,7 +43,7 @@ describe('SchemeContainer', () => {
         const schemeContainer = new SchemeContainer({items: []}, EventBusStub);
 
         const point = schemeContainer.worldPointOnItem(30, 20, {
-            area: {x: 100, y: 200, r: 45, w: 100, h: 100}
+            area: {x: 100, y: 200, r: 45, w: 100, h: 100, px: 0, py: 0, sx: 1, sy: 1}
         });
 
         expect(Math.floor(point.x)).toBe(107);
@@ -54,11 +54,11 @@ describe('SchemeContainer', () => {
     it('should calculate world point on sub item', () => {
         const schemeContainer = new SchemeContainer({items: [{
             id: 'qwe',
-            area: {x: 100, y: 20, w: 100, h: 100, r: 90},
+            area: {x: 100, y: 20, w: 100, h: 100, r: 90, px: 0, py: 0, sx: 1, sy: 1},
             shape: 'rect',
             childItems: [{
                 id: 'asd',
-                area: {x: 10, y: 30, w: 10, h: 10, r: 90},
+                area: {x: 10, y: 30, w: 10, h: 10, r: 90, px: 0, py: 0, sx: 1, sy: 1},
                 shape: 'rect'
             }]
         }]}, EventBusStub);
@@ -73,11 +73,11 @@ describe('SchemeContainer', () => {
     it('should calculate local point on sub item from given world point', () => {
         const schemeContainer = new SchemeContainer({items: [{
             id: 'qwe',
-            area: {x: 100, y: 20, w: 100, h: 100, r: 90},
+            area: {x: 100, y: 20, w: 100, h: 100, r: 90, px: 0, py: 0, sx: 1, sy: 1},
             shape: 'rect',
             childItems: [{
                 id: 'asd',
-                area: {x: 10, y: 30, w: 10, h: 10, r: 90},
+                area: {x: 10, y: 30, w: 10, h: 10, r: 90, px: 0, py: 0, sx: 1, sy: 1},
                 shape: 'rect',
             }]
         }]}, EventBusStub);
