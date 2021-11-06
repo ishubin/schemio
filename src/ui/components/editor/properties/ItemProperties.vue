@@ -223,6 +223,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
 import PropertyInput from './PropertyInput.vue';
 import utils from '../../../utils.js';
+import myMath from '../../../myMath.js';
 
 
 const ALL_TABS = [
@@ -344,17 +345,25 @@ export default {
         },
 
         onPositionPanelAreaChanged(areaProperty, value) {
-            if (this.schemeContainer.multiItemEditBox) {
-                this.schemeContainer.multiItemEditBox.area[areaProperty] = value;
+            const box = this.schemeContainer.multiItemEditBox;
+
+            if (box) {
                 if (areaProperty === 'w' || areaProperty === 'h') {
-                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, ITEM_MODIFICATION_CONTEXT_RESIZED);
-                    if (this.schemeContainer.multiItemEditBox.items.length === 1) {
-                        StoreUtils.setItemControlPoints(this.$store, this.schemeContainer.multiItemEditBox.items[0]);
+                    box.area[areaProperty] = value;
+                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_RESIZED);
+                    if (box.items.length === 1) {
+                        StoreUtils.setItemControlPoints(this.$store, box.items[0]);
                     }
                 } else if (areaProperty === 'r') {
-                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, ITEM_MODIFICATION_CONTEXT_ROTATED);
+                    box.area.r = value;
+                    const worldPivotPoint = myMath.worldPointInArea(box.pivotPoint.x * box.area.w, box.pivotPoint.y * box.area.h, box.area);
+                    box.area.x += box.worldPivotPoint.x - worldPivotPoint.x;
+                    box.area.y += box.worldPivotPoint.y - worldPivotPoint.y;
+
+                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_ROTATED);
                 } else {
-                    this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+                    box.area[areaProperty] = value;
+                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
                 }
                 EventBus.emitSchemeChangeCommited(`editbox.area.${areaProperty}`);
             }

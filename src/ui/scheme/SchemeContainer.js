@@ -1602,14 +1602,6 @@ class SchemeContainer {
         // so that we can skip dragging or rotating an item
         const itemDraggedIds = new Set();
 
-        const topRightPoint = myMath.worldPointInArea(multiItemEditBox.area.w, 0, multiItemEditBox.area);
-        const bottomLeftPoint = myMath.worldPointInArea(0, multiItemEditBox.area.h, multiItemEditBox.area);
-        const topVx = topRightPoint.x - multiItemEditBox.area.x;
-        const topVy = topRightPoint.y - multiItemEditBox.area.y;
-
-        const leftVx = bottomLeftPoint.x - multiItemEditBox.area.x;
-        const leftVy = bottomLeftPoint.y - multiItemEditBox.area.y;
-
         const itemsForReindex = [];
 
         forEach(multiItemEditBox.items, item => {
@@ -1627,14 +1619,11 @@ class SchemeContainer {
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
 
                 if (!parentWasAlreadyUpdated) {
-                    item.area.r = myMath.roundPrecise(itemProjection.r + multiItemEditBox.area.r, precision);
+                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
                 }
 
                 const projectBack = (point) => {
-                    return {
-                        x: multiItemEditBox.area.x + topVx * point.x + leftVx * point.y,
-                        y: multiItemEditBox.area.y + topVy * point.x + leftVy * point.y
-                    }
+                    return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
                 };
                 
                 // Here we have to do some reversed computation to figure out which translation matrix should be used in the item
@@ -1904,28 +1893,6 @@ class SchemeContainer {
 
         const itemProjections = {};
 
-        // First we are going to map all item coords to a multi item box area by projecting their coords on to top and left edges of edit box
-        // later we will recalculate item new positions based on new edit box area using original projections
-        const topRightPoint = myMath.worldPointInArea(area.w, 0, area);
-        const bottomLeftPoint = myMath.worldPointInArea(0, area.h, area);
-
-        const originalBoxTopVx = topRightPoint.x - area.x;
-        const originalBoxTopVy = topRightPoint.y - area.y;
-
-        const originalBoxLeftVx = bottomLeftPoint.x - area.x;
-        const originalBoxLeftVy = bottomLeftPoint.y - area.y;
-
-        let topLengthSquare = originalBoxTopVx * originalBoxTopVx + originalBoxTopVy * originalBoxTopVy;
-
-        if (myMath.tooSmall(topLengthSquare)) {
-            topLengthSquare = 0.001;
-        }
-
-        let leftLengthSquare = originalBoxLeftVx * originalBoxLeftVx + originalBoxLeftVy * originalBoxLeftVy
-        if (leftLengthSquare < 0.001) {
-            leftLengthSquare = 0.001;
-        }
-        
         // used to store additional information that might be needed when modifying items
         const itemData = {};
 
@@ -1944,33 +1911,27 @@ class SchemeContainer {
             // caclulating projection of item world coords on the top and left edges of original edit box
             // since some items can be children of other items we need to project only their world location
 
-            const worldPoint = this.worldPointOnItem(0, 0, item);
+            const worldTopLeftPoint = this.worldPointOnItem(0, 0, item);
             const worldBottomRightPoint = this.worldPointOnItem(item.area.w, item.area.h, item);
 
-            const xAxisVector = worldVectorOnItem(1, 0, item);
-            const yAxisVector = worldVectorOnItem(0, 1, item);
-
             const projectPoint = (x, y) => {
-                let Vx = x - area.x;
-                let Vy = y - area.y;
-                return {
-                    x: (originalBoxTopVx * Vx + originalBoxTopVy * Vy) / topLengthSquare,
-                    y: (originalBoxLeftVx * Vx + originalBoxLeftVy * Vy) / leftLengthSquare
-                };
+                const localPoint = myMath.localPointInArea(x, y, area);
+                if (area.w > 0) {
+                    localPoint.x = localPoint.x / area.w;
+                }
+                if (area.h > 0) {
+                    localPoint.y = localPoint.y / area.h;
+                }
+                return localPoint;
             };
 
             itemProjections[item.id] = {
-                topLeft: projectPoint(worldPoint.x, worldPoint.y),
+                topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),
                 bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
                 // the following angle correction is needed in case only one item is selected,
                 // in that case the initial edit box area might have a starting angle that matches item area
                 // in all other cases the initial angle will be 0
                 r: item.area.r - area.r,
-
-                scalingVector: {
-                    x: myMath.vectorLength(xAxisVector.x, xAxisVector.y),
-                    y: myMath.vectorLength(yAxisVector.x, yAxisVector.y)
-                }
             };
 
             if (item.shape === 'curve') {
@@ -1987,7 +1948,15 @@ class SchemeContainer {
             itemData,
             area,
             itemProjections,
-            pivotPoint
+            pivotPoint,
+
+            // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
+            // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world
+            // I tried to rewrite the entire edit box calculation to make it simpler. I tried matching pivot point in edit box area to the ones of the item
+            // It turned out a lot better in the beginning, but later I discovered that resizing of edit box becomes wonky and the same problem appears
+            // when user  types x, y, width or height in number textfield in Position panel.
+            // So thats why I decided to keep it as is and to perform all the trickery only for rotation control.
+            worldPivotPoint: myMath.worldPointInArea(pivotPoint.x * area.w, pivotPoint.y * area.h, area)
         };
     }
 

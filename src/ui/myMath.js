@@ -769,5 +769,27 @@ export default {
         }
 
         return {x, y};
+    },
+
+    /**
+     * Calculates new offset for a box after its rotation around its own center so that its center would stay the same
+     * @param {Number} originalX - x of top left corner of a box
+     * @param {Number} originalY - y of top left corner of a box
+     * @param {Number} centerX - original center of the box
+     * @param {Number} centerY - original center of the box
+     * @param {Number} angle - rotated angle in radians
+     * @returns {Point} point with {x, y} of the new top left corner position
+     */
+    calculateRotationOffsetForSameCenter(originalX, originalY, centerX, centerY, angle) {
+        const ax = originalX - centerX;
+        const ay = originalY - centerY;
+        const cosa = Math.cos(angle);
+        const sina = Math.sin(angle);
+        const bx = ax * cosa - ay * sina;
+        const by = ax * sina + ay * cosa;
+        return {
+            x: centerX + bx,
+            y: centerY + by
+        };
     }
 }

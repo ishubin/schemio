@@ -18,6 +18,22 @@
     </div>
 </template>
 <script>
+import myMath from '../myMath';
+
+function numberToText(value) {
+    if (value % 1 === 0) {
+        return '' + value;
+    }
+
+    let text = '';
+    if (Math.floor(Math.abs(value)) > 0) {
+        text = '' + myMath.roundPrecise(value, 3);
+    } else {
+        text = '' + myMath.roundPrecise(value, 4);
+    }
+    return text;
+}
+
 export default {
     props: {
         value   : [Number, String, Object],
@@ -44,7 +60,7 @@ export default {
 
     data() {
         return {
-            text: this.value,
+            text: numberToText(this.value),
             number: this.value,
 
             paddingLeft: 4,
@@ -188,7 +204,7 @@ export default {
                 return;
             }
 
-            this.text = newValue;
+            this.text = numberToText(newValue);
         }
     }
 }

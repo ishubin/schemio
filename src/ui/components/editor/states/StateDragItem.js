@@ -716,6 +716,7 @@ export default class StateDragItem extends State {
             this.proposedToRemountToRoot = true;
         }
 
+        this.updateMultiItemEditBoxWorldPivot();
         this.reindexNeeded = true;
     }
 
@@ -732,6 +733,8 @@ export default class StateDragItem extends State {
 
         this.multiItemEditBox.pivotPoint.x = myMath.clamp(this.oldPivotPoint.x + (localPoint.x - localOriginalPoint.x) / this.multiItemEditBox.area.w, 0, 1);
         this.multiItemEditBox.pivotPoint.y = myMath.clamp(this.oldPivotPoint.y + (localPoint.y - localOriginalPoint.y) / this.multiItemEditBox.area.h, 0, 1);
+
+        this.updateMultiItemEditBoxWorldPivot();
     }
 
     rotateMultiItemEditBox(x, y, mx, my, event) {
@@ -741,7 +744,7 @@ export default class StateDragItem extends State {
         const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, pivotPoint.x, pivotPoint.y, event);
         const angle = angleDegrees * Math.PI / 180;
 
-        const np = this.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, pivotPoint.x, pivotPoint.y, angle);
+        const np = myMath.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, pivotPoint.x, pivotPoint.y, angle);
         this.multiItemEditBox.area.x = np.x;
         this.multiItemEditBox.area.y = np.y;
         this.multiItemEditBox.area.r = area.r + angleDegrees;
@@ -861,8 +864,21 @@ export default class StateDragItem extends State {
             // But setting it from scratch is safer
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
         }
+        this.updateMultiItemEditBoxWorldPivot();
         this.reindexNeeded = true;
         log.info('Resized multi item edit box', this.multiItemEditBox);
+    }
+
+    updateMultiItemEditBoxWorldPivot() {
+        if (!this.multiItemEditBox) {
+            return;
+        }
+
+        this.multiItemEditBox.worldPivotPoint = myMath.worldPointInArea(
+            this.multiItemEditBox.pivotPoint.x * this.multiItemEditBox.area.w,
+            this.multiItemEditBox.pivotPoint.y * this.multiItemEditBox.area.h,
+            this.multiItemEditBox.area
+        );
     }
 
     handleControlPointDrag(x, y) {
@@ -1058,28 +1074,6 @@ export default class StateDragItem extends State {
         }
 
         return angleDegrees;
-    }
-
-    /**
-     * Calculates new offset for a box after its rotation around its own center so that its center would stay the same
-     * @param {Number} originalX - x of top left corner of a box
-     * @param {Number} originalY - y of top left corner of a box
-     * @param {Number} centerX - original center of the box
-     * @param {Number} centerY - original center of the box
-     * @param {Number} angle - rotated angle in radians
-     * @returns {Point} point with {x, y} of the new top left corner position
-     */
-    calculateRotationOffsetForSameCenter(originalX, originalY, centerX, centerY, angle) {
-        const ax = originalX - centerX;
-        const ay = originalY - centerY;
-        const cosa = Math.cos(angle);
-        const sina = Math.sin(angle);
-        const bx = ax * cosa - ay * sina;
-        const by = ax * sina + ay * cosa;
-        return {
-            x: centerX + bx,
-            y: centerY + by
-        };
     }
 
     deselectAllItems() {
