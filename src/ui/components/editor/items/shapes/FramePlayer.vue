@@ -5,16 +5,16 @@
     <g>
         <g v-for="(button,buttonIndex) in buttons">
             <circle 
-                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2 + 2"
-                :cy="buttonSize/2 + 2 + topOffset"
+                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
+                :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
                 :fill="item.shapeProps.fillColor"
                 :stroke="item.shapeProps.strokeColor"
                 stroke-width="1"/>
 
             <foreignObject 
-                :x="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + 2"
-                :y="1 + topOffset"
+                :x="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize)"
+                :y="topOffset"
                 :width="buttonSize"
                 :height="buttonSize">
                 <div style="width: 100%; height: 100%; text-align: center; vertical-align: middle;" xmlns="http://www.w3.org/1999/xhtml">
@@ -23,8 +23,8 @@
             </foreignObject>
 
             <circle 
-                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2 + 2"
-                :cy="buttonSize/2 + 2 + topOffset"
+                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
+                :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
                 @click="onClickedButton(buttonIndex)"
                 fill="rgba(255, 255, 255, 0)"
@@ -37,7 +37,7 @@
             :width="item.area.w" height="60" xmlns="http://www.w3.org/1999/xhtml">
             <div :style="framesTextStyle">
                 <div>{{currentSection.number}} / {{totalSections}}</div>
-                <div>{{currentSection.name}}</div>
+                <div v-if="shoulShowCurrentSectionName">{{currentSection.name}}</div>
             </div>
         </foreignObject>
     </g>
@@ -58,6 +58,7 @@ export default {
             group: 'General',
             name: 'Frame Player',
             iconUrl: '/assets/images/items/frame-player.svg',
+            size: {w: 140, h: 100},
             item: {
                 textSlots: {
                     title: {
@@ -141,6 +142,31 @@ export default {
             sectionsMapping[i] = currentSection;
         }
 
+        let buttons = [{
+            icon: 'fas fa-play',
+            iconPlaying: 'fas fa-pause',
+            click: () => {this.onClickedTogglePlay()}
+        }];
+        
+        if (this.item.shapeProps.sections.length > 0) {
+            buttons = [{
+                icon: 'fas fa-fast-backward',
+                iconPlaying: 'fas fa-fast-backward',
+                click: () => {this.onClickedToBegin()}
+            }, {
+                icon: 'fas fa-step-backward',
+                iconPlaying: 'fas fa-step-backward',
+                click: () => {this.onClickedLeft()}
+            }].concat(buttons).concat([{
+                icon: 'fas fa-step-forward',
+                iconPlaying: 'fas fa-step-forward',
+                click: () => {this.onClickedRight()}
+            }, {
+                icon: 'fas fa-fast-forward',
+                iconPlaying: 'fas fa-fast-forward',
+                click: () => {this.onClickedToEnd()}
+            }]);
+        }
 
         return {
             currentFrame: 1,
@@ -155,27 +181,7 @@ export default {
             currentSection: firstSection,
             totalSections: this.item.shapeProps.sections.length,
 
-            buttons: [{
-                icon: 'fas fa-fast-backward',
-                iconPlaying: 'fas fa-fast-backward',
-                click: () => {this.onClickedToBegin()}
-            }, {
-                icon: 'fas fa-step-backward',
-                iconPlaying: 'fas fa-step-backward',
-                click: () => {this.onClickedLeft()}
-            }, {
-                icon: 'fas fa-play',
-                iconPlaying: 'fas fa-pause',
-                click: () => {this.onClickedTogglePlay()}
-            }, {
-                icon: 'fas fa-step-forward',
-                iconPlaying: 'fas fa-step-forward',
-                click: () => {this.onClickedRight()}
-            }, {
-                icon: 'fas fa-fast-forward',
-                iconPlaying: 'fas fa-fast-forward',
-                click: () => {this.onClickedToEnd()}
-            }]
+            buttons
         };
     },
 
@@ -221,7 +227,7 @@ export default {
                 const nextSection = this.sectionsByNumber.get(this.currentSection.number + 1);
                 if (nextSection) {
                     const nextFrame = nextSection.frame;
-                    if (nextFrame < this.item.shapeProps.totalFrames) {
+                    if (nextFrame <= this.item.shapeProps.totalFrames) {
                         this.currentFrame = nextFrame;
                         this.currentSection = nextSection;
                         this.emitCurrentFrameEvent();
@@ -233,10 +239,16 @@ export default {
         onClickedTogglePlay() {
             if (!this.isPlaying) {
                 this.isPlaying = true;
+                let startingFrame = this.currentFrame;
+
+                if (this.currentFrame >= this.item.shapeProps.totalFrames) {
+                    startingFrame = 1;
+                }
+
                 this.$emit('frame-animator', {
                     operation: 'play', 
                     item: this.item,
-                    frame: this.currentFrame,
+                    frame: startingFrame,
                     callbacks: {
                         onFrame: (frame) => {
                             this.currentFrame = frame;
@@ -268,7 +280,7 @@ export default {
 
     computed: {
         leftOffset() {
-            return this.item.area.w / 2 - (this.buttonSize*2.5 + this.buttonSpaceSize*2);
+            return this.item.area.w / 2 - (this.buttonSize* (this.buttons.length / 2) + this.buttonSpaceSize * (this.buttons.length - 1) / 2);
         },
         framesTextStyle() {
             return {
@@ -279,6 +291,12 @@ export default {
         },
         topOffset() {
             return Math.max(0, this.item.area.h - 60);
+        },
+        shoulShowCurrentSectionName() {
+            if (this.currentSection) {
+                return '' + this.currentSection.number !== this.currentSection.name;
+            }
+            return false;
         }
     }
 }
