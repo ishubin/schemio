@@ -1024,9 +1024,10 @@ ul.pagination li a.current {
 .quick-helper-panel-section {
     position: relative;
     display: inline-block;
+    margin-top: 4px;
     margin-left: 5px;
     padding-left: 5px;
-    height: 26px;
+    height: 28px;
     overflow: hidden;
 }
 .quick-helper-panel-section:before {
