@@ -14,10 +14,7 @@ Features of Schemio:
 - Behavior editor: you can assign event handlers to any item (events like: init, click, mouse in, mouse out)
 - Various animation functions: you can have smooth transitions like fade in or fade out, move items, render particle effect etc.
 - Export entire diagram or only selected objects as SVG
-- Generate static version of all of your diagrams so that you can host it anywhere.
-
-
-
+- Generate static version of all of your diagrams so that you can host it anywhere, even on GitHub pages
 
 License
 ---------
