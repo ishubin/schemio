@@ -321,15 +321,6 @@ class ItemParticleEffectAnimation extends Animation {
             return this.svg('circle', { cx: 0, cy: 0, r: size / 2, fill: color});
         } else if (type === 'rect') {
             return this.svg('rect', {x: -size/2, y: -size/2, width: size, height: size, fill: color, stroke: 'none'});
-        } else if (type === 'message') {
-            const icon = this.html('i', {class: 'fas fa-envelope', style: `color: ${color}; font-size: ${Math.floor(size)}px;`});
-            const particle = this.svg('foreignObject', { width: 100, height: 100, x: -size/2, y: -size/2 }, [icon]);
-            const rect = icon.getBoundingClientRect();
-            if (rect) {
-                particle.setAttribute('x', -rect.width/2);
-                particle.setAttribute('y', -rect.height/2);
-            }
-            return particle;
         } else {
             return this.svg('circle', { cx: 0, cy: 0, r: size / 2, fill: `url(#animation-particle-effect-gradient-${this.id})`});
         }
@@ -344,7 +335,7 @@ export default {
 
     args: {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
-            'spot', 'circle', 'rect', 'message', 'item'
+            'spot', 'circle', 'rect', 'item'
         ]},
         item              : {name: 'Item',              type: 'element', value: null, depends: {particleType: 'item'}},
         particlesCount    : {name: 'Particles',         type: 'number', value: 100},
