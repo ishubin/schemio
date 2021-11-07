@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
+import { worldPointOnItem } from '../../scheme/SchemeContainer';
 
 const PI_2 = Math.PI * 2.0;
 
@@ -26,8 +27,98 @@ function calculateCenterOfPath(svgPath) {
 }
 
 
+class Particle {
+    constructor() {
+        this.lifeTime = 0;
+        this.position = { x: 0, y: 0 };
+        this.scale = 1;
+        this.opacity = 0;
+        this.direction = {x: 0, y: 0};
+        this.floatAngle = 0;
+        this.floatAngleDirection = 0;
+    }
+
+    update() {}
+
+    destroy() {}
+}
+
+
+class DomParticle extends Particle {
+    constructor(domContainer, domParticle) {
+        super();
+        this.domParticle = domParticle;
+        this.domContainer = domContainer;
+        domContainer.appendChild(domParticle);
+    }
+
+    update() {
+        this.domParticle.setAttribute('style', `opacity: ${this.opacity}`);
+        this.domParticle.setAttribute('transform', `translate(${this.position.x} ${this.position.y}) scale(${this.scale} ${this.scale})`);
+    }
+
+    destroy() {
+        this.domContainer.removeChild(this.domParticle);
+    }
+}
+
+
+// since item destroying is a very expensive operation, it's better to destroy all items in bulk at the end of the animation
+class ItemDestroyer {
+    constructor(schemeContainer) {
+        this.items = [];
+        this.schemeContainer = schemeContainer;
+    }
+
+    registerItem(item) {
+        this.items.push(item);
+    }
+
+    destroy() {
+        this.schemeContainer.deleteItems(this.items);
+    }
+}
+
+//TODO implement item recycling for better efficiency
+
+class ItemParticle extends Particle {
+    constructor(schemeContainer, elementSelector, item, itemDestroyer) {
+        super();
+        this.item = item;
+        this.particleItem = null;
+        this.schemeContainer = schemeContainer;
+        this.itemDestroyer = itemDestroyer;
+        const particleReferenceItem = schemeContainer.findFirstElementBySelector(elementSelector);
+        if (particleReferenceItem) {
+            const [clonedItem] = schemeContainer.cloneItems([particleReferenceItem]);
+            schemeContainer.addItem(clonedItem);
+            this.particleItem = clonedItem;
+        }
+    }
+
+    update() {
+        if (!this.particleItem) {
+            return;
+        }
+        const worldPoint = worldPointOnItem(this.position.x, this.position.y, this.item);
+        this.particleItem.visible = true;
+        this.particleItem.area.x = worldPoint.x - this.particleItem.area.px * this.particleItem.area.w * this.scale;
+        this.particleItem.area.y = worldPoint.y - this.particleItem.area.py * this.particleItem.area.h * this.scale;
+        this.particleItem.area.sx = this.scale;
+        this.particleItem.area.sy = this.scale;
+        this.particleItem.opacity = this.opacity * 100;
+    }
+
+    destroy() {
+        if (this.particleItem) {
+            this.itemDestroyer.registerItem(this.particleItem);
+        }
+    }
+}
+
+
 class ItemParticleEffectAnimation extends Animation {
-    constructor(item, args, resultCallback) {
+    constructor(item, args, schemeContainer, resultCallback) {
         super();
         this.item = item;
         this.args = args;
@@ -35,6 +126,8 @@ class ItemParticleEffectAnimation extends Animation {
         this.domContainer = null;
         this.domItemPath = null;
         this.particles = [];
+        this.schemeContainer = schemeContainer;
+        this.itemDestroyer = new ItemDestroyer(schemeContainer);
 
         this.generatorCounter = 0.0;
         this.particlesLeft = this.args.particlesCount;
@@ -50,9 +143,7 @@ class ItemParticleEffectAnimation extends Animation {
         if (!shape) {
             return false;
         }
-        const path = shape.computeOutline(this.item);
-        this.domItemPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        this.domItemPath.setAttribute('d', path);
+        this.domItemPath = this.schemeContainer.getSvgOutlineOfItem(this.item);
 
         if (!this.domContainer || !this.domItemPath) {
             return false;
@@ -104,7 +195,7 @@ class ItemParticleEffectAnimation extends Animation {
         
         for (let i = 0; i < this.particles.length; i++) {
             if (this.particles[i].lifeTime > this.args.lifeTime) {
-                this.domContainer.removeChild(this.particles[i].domParticle);
+                this.particles[i].destroy();
                 this.particles.splice(i, 1);
                 i = i - 1;
             } else {
@@ -120,15 +211,14 @@ class ItemParticleEffectAnimation extends Animation {
             pathPosition = Math.random() * this.totalPathLength;
         }
         const position = this.domItemPath.getPointAtLength(pathPosition);
-        const domParticle = this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color);
-        domParticle.setAttribute('transform', `translate(${position.x} ${position.y})`);
-        this.domContainer.appendChild(domParticle);
 
-        const particle = {
-            lifeTime: 0.0,
-            domParticle,
-            position,
-        };
+        let particle = null;
+        if (this.args.particleType === 'item') {
+            particle = new ItemParticle(this.schemeContainer, this.args.item, this.item, this.itemDestroyer);
+        } else {
+            particle = new DomParticle(this.domContainer, this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color));
+            particle.position = position;
+        }
 
         if (this.args.travelAlongPath) {
             if (this.args.travelFloatRadius > 0) {
@@ -152,6 +242,7 @@ class ItemParticleEffectAnimation extends Animation {
             particle.direction = direction;
         }
         this.particles.push(particle);
+        particle.update();
 
         this.particlesLeft -= 1;
     }
@@ -185,7 +276,6 @@ class ItemParticleEffectAnimation extends Animation {
             particle.position.y += particle.direction.y * this.args.speed * dt / 1000.0;
         }
             
-        
 
         let scale = 1.0;
         let opacity = 1;
@@ -204,17 +294,19 @@ class ItemParticleEffectAnimation extends Animation {
                 scale = (100 - lifeTimePercent) / (100 - this.args.decline);
             }
         }
+        particle.scale = scale;
+        particle.opacity = opacity;
         
-        particle.domParticle.setAttribute('style', `opacity: ${opacity}`);
-        particle.domParticle.setAttribute('transform', `translate(${particle.position.x} ${particle.position.y}) scale(${scale} ${scale})`);
+        particle.update();
     }
 
     destroy() {
         if (!this.args.inBackground) {
             this.resultCallback();
         }
+        this.itemDestroyer.destroy();
         forEach(this.particles, particle => {
-            this.domContainer.removeChild(particle.domParticle);
+            particle.destroy();
         });
 
         forEach(this.cleanupDomElements, domElement => {
@@ -252,8 +344,9 @@ export default {
 
     args: {
         particleType:   {name: 'Particle Type',     type: 'choice', value: 'spot', options: [
-            'spot', 'circle', 'rect', 'message'
+            'spot', 'circle', 'rect', 'message', 'item'
         ]},
+        item              : {name: 'Item',              type: 'element', value: null, depends: {particleType: 'item'}},
         particlesCount    : {name: 'Particles',         type: 'number', value: 100},
         particleSize      : {name: 'Particle Size',     type: 'number', value: 10},
         color             : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
@@ -272,7 +365,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new ItemParticleEffectAnimation(item, args, resultCallback), item.id);
+            AnimationRegistry.play(new ItemParticleEffectAnimation(item, args, schemeContainer, resultCallback), item.id);
         }
         if (this.args.inBackground) {
             resultCallback();

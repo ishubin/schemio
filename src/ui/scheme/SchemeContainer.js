@@ -1129,6 +1129,13 @@ class SchemeContainer {
         this.reindexItems();
     }
 
+    deleteItems(items) {
+        forEach(items, item => {
+            this._deleteItem(item);
+        })
+        this.reindexItems();
+    }
+
     _deleteItem(item) {
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
