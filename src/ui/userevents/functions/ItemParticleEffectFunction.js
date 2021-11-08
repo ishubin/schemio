@@ -64,36 +64,47 @@ class DomParticle extends Particle {
 
 
 // since item destroying is a very expensive operation, it's better to destroy all items in bulk at the end of the animation
-class ItemDestroyer {
+class ItemRecycler {
     constructor(schemeContainer) {
         this.items = [];
         this.schemeContainer = schemeContainer;
+        this.recycledItems = [];
     }
 
-    registerItem(item) {
-        this.items.push(item);
+    recycleItem(item) {
+        this.recycledItems.push(item);
     }
+
 
     destroy() {
         this.schemeContainer.deleteItems(this.items);
     }
+
+    borrowItem(elementSelector) {
+        if (this.recycledItems.length > 0) {
+            return this.recycledItems.pop();
+        }
+
+        const particleReferenceItem = this.schemeContainer.findFirstElementBySelector(elementSelector);
+        if (particleReferenceItem) {
+            const [clonedItem] = this.schemeContainer.cloneItems([particleReferenceItem]);
+            this.schemeContainer.addItem(clonedItem);
+            this.items.push(clonedItem);
+            return clonedItem;
+        }
+        return null;
+    }
 }
 
-//TODO implement item recycling for better efficiency
-
 class ItemParticle extends Particle {
-    constructor(schemeContainer, elementSelector, item, itemDestroyer) {
+    constructor(schemeContainer, elementSelector, item, itemRecycler) {
         super();
         this.item = item;
         this.particleItem = null;
         this.schemeContainer = schemeContainer;
-        this.itemDestroyer = itemDestroyer;
-        const particleReferenceItem = schemeContainer.findFirstElementBySelector(elementSelector);
-        if (particleReferenceItem) {
-            const [clonedItem] = schemeContainer.cloneItems([particleReferenceItem]);
-            schemeContainer.addItem(clonedItem);
-            this.particleItem = clonedItem;
-        }
+        this.itemRecycler = itemRecycler;
+
+        this.particleItem = this.itemRecycler.borrowItem(elementSelector);
     }
 
     update() {
@@ -111,7 +122,7 @@ class ItemParticle extends Particle {
 
     destroy() {
         if (this.particleItem) {
-            this.itemDestroyer.registerItem(this.particleItem);
+            this.itemRecycler.recycleItem(this.particleItem);
         }
     }
 }
@@ -127,7 +138,7 @@ class ItemParticleEffectAnimation extends Animation {
         this.domItemPath = null;
         this.particles = [];
         this.schemeContainer = schemeContainer;
-        this.itemDestroyer = new ItemDestroyer(schemeContainer);
+        this.itemRecycler = new ItemRecycler(schemeContainer);
 
         this.generatorCounter = 0.0;
         this.particlesLeft = this.args.particlesCount;
@@ -214,7 +225,7 @@ class ItemParticleEffectAnimation extends Animation {
 
         let particle = null;
         if (this.args.particleType === 'item') {
-            particle = new ItemParticle(this.schemeContainer, this.args.item, this.item, this.itemDestroyer);
+            particle = new ItemParticle(this.schemeContainer, this.args.item, this.item, this.itemRecycler);
         } else {
             particle = new DomParticle(this.domContainer, this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color));
         }
@@ -305,10 +316,11 @@ class ItemParticleEffectAnimation extends Animation {
         if (!this.args.inBackground) {
             this.resultCallback();
         }
-        this.itemDestroyer.destroy();
         forEach(this.particles, particle => {
             particle.destroy();
         });
+
+        this.itemRecycler.destroy();
 
         forEach(this.cleanupDomElements, domElement => {
             this.domContainer.removeChild(domElement);
