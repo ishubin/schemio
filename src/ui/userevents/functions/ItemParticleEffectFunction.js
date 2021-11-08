@@ -6,6 +6,7 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import myMath from '../../myMath';
 
 const PI_2 = Math.PI * 2.0;
 
@@ -31,6 +32,7 @@ class Particle {
     constructor() {
         this.lifeTime = 0;
         this.position = { x: 0, y: 0 };
+        this.angle = 0;
         this.scale = 1;
         this.opacity = 0;
         this.direction = {x: 0, y: 0};
@@ -54,7 +56,7 @@ class DomParticle extends Particle {
 
     update() {
         this.domParticle.setAttribute('style', `opacity: ${this.opacity}`);
-        this.domParticle.setAttribute('transform', `translate(${this.position.x} ${this.position.y}) scale(${this.scale} ${this.scale})`);
+        this.domParticle.setAttribute('transform', `translate(${this.position.x} ${this.position.y}) rotate(${this.angle}) scale(${this.scale} ${this.scale})`);
     }
 
     destroy() {
@@ -117,6 +119,7 @@ class ItemParticle extends Particle {
         this.particleItem.area.y = worldPoint.y - this.particleItem.area.py * this.particleItem.area.h * this.scale;
         this.particleItem.area.sx = this.scale;
         this.particleItem.area.sy = this.scale;
+        this.particleItem.area.r = this.angle;
         this.particleItem.opacity = this.opacity * 100;
     }
 
@@ -264,7 +267,8 @@ class ItemParticleEffectAnimation extends Animation {
             if (maxLifeTime < 0.1) {
                 maxLifeTime = 1.0;
             }
-            const point = this.domItemPath.getPointAtLength(this.totalPathLength * particle.lifeTime / maxLifeTime);
+            const pathLength = this.totalPathLength * particle.lifeTime / maxLifeTime;
+            const point = this.domItemPath.getPointAtLength(pathLength);
             let x = point.x;
             let y = point.y;
 
@@ -279,6 +283,26 @@ class ItemParticleEffectAnimation extends Animation {
 
             particle.position.x = x;
             particle.position.y = y;
+
+            if (this.args.adjustRotation) {
+                const nextPoint  = this.domItemPath.getPointAtLength(pathLength + 2);
+                const Vx = nextPoint.x - point.x;
+                const Vy = nextPoint.y - point.y;
+                const dSquared = Vx * Vx + Vy * Vy;
+                if (!myMath.tooSmall(dSquared)) {
+                    const d = Math.sqrt(dSquared);
+
+                    const vx = Vx / d;
+                    const vy = Vy / d;
+                    const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
+
+                    particle.angle = angle;
+                    
+                    if (isFinite(this.args.rotationOffset)) {
+                        particle.angle += this.args.rotationOffset;
+                    };
+                }
+            }
 
         } else {
             particle.position.x += particle.direction.x * this.args.speed * dt / 1000.0;
@@ -348,17 +372,19 @@ export default {
             'spot', 'circle', 'rect', 'item'
         ]},
         item              : {name: 'Item',              type: 'element', value: null, depends: {particleType: 'item'}},
-        particlesCount    : {name: 'Particles',         type: 'number', value: 100},
-        particleSize      : {name: 'Particle Size',     type: 'number', value: 10},
+        particlesCount    : {name: 'Particles',         type: 'number', value: 20},
+        particleSize      : {name: 'Particle Size',     type: 'number', value: 20},
         color             : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
         speed             : {name: 'Speed',             type: 'number', value: 60, depends: {travelAlongPath: false}},
-        lifeTime          : {name: 'Life Time (sec)',   type: 'number', value: 1.0},
-        birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.1, description: 'Time in which it should generate all particles'},
-        growth            : {name: 'Growth to (%)',     type: 'number', value: 0.1},
-        decline           : {name: 'Decline from (%)',  type: 'number', value: 0.1},
-        fadeIn            : {name: 'Fade in (%)',       type: 'number', value: 1},
-        fadeOut           : {name: 'Fade out (%)',      type: 'number', value: 50},
-        travelAlongPath   : {name: 'Travel Along Path', type: 'boolean',value: false, description: 'The particle emits in the beggining of the path and travels along the path'},
+        lifeTime          : {name: 'Life Time (sec)',   type: 'number', value: 2.0},
+        birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.5, description: 'Time in which it should generate all particles'},
+        growth            : {name: 'Growth to (%)',     type: 'number', value: 10},
+        decline           : {name: 'Decline from (%)',  type: 'number', value: 90},
+        fadeIn            : {name: 'Fade in (%)',       type: 'number', value: 5},
+        fadeOut           : {name: 'Fade out (%)',      type: 'number', value: 95},
+        travelAlongPath   : {name: 'Travel Along Path', type: 'boolean',value: true, description: 'The particle emits in the beggining of the path and travels along the path'},
+        adjustRotation    : {name: 'Adjust rotation',   type: 'boolean',value: true, description: 'Adjust rotation of particles to path', depends: {travelAlongPath: true}},
+        rotationOffset    : {name: 'Rotation offset',   type: 'number', value: 0, description: 'Rotation angle offset', depends: {adjustRotation: true, travelAlongPath: true}},
         travelFloatRadius : {name: 'Travel Float Radius',type: 'number', value: 5, depends: {travelAlongPath: true}},
         travelFloatSpeed  : {name: 'Travel Float Speed',type: 'number', value: 10, depends: {travelAlongPath: true}},
         inBackground      : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
