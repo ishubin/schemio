@@ -188,17 +188,14 @@ class ItemParticleEffectAnimation extends Animation {
                 this.generatorCounter += dt / (this.singleParticleBirthTime * 1000.0);
                 if (this.generatorCounter >= 1.0) {
                     const roundedCounter = Math.floor(this.generatorCounter);
-                    this.generatorCounter -= roundedCounter;
-
                     const toGenerate = Math.min(this.particlesLeft, roundedCounter);
                     for (let i = 0; i < toGenerate; i++) {
-                        this.particlesLeft -= 1;
                         this.createParticle();
                     }
+                    this.generatorCounter -= roundedCounter;
                 }
             } else {
                 while(this.particlesLeft > 0) {
-                    this.particlesLeft -= 1;
                     this.createParticle();
                 }
             }
