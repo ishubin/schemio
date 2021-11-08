@@ -217,8 +217,9 @@ class ItemParticleEffectAnimation extends Animation {
             particle = new ItemParticle(this.schemeContainer, this.args.item, this.item, this.itemDestroyer);
         } else {
             particle = new DomParticle(this.domContainer, this.createParticleDom(this.args.particleType, this.args.particleSize, this.args.color));
-            particle.position = position;
         }
+
+        particle.position = position;
 
         if (this.args.travelAlongPath) {
             if (this.args.travelFloatRadius > 0) {
