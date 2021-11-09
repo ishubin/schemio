@@ -1139,6 +1139,7 @@ ul.pagination li a.current {
     position: relative;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 #svg_plot {
     width: 100%;

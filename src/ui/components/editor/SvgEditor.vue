@@ -327,7 +327,7 @@ export default {
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
             if (svgElement) {
-                svgElement.addEventListener('mousewheel', this.mouseWheel);
+                svgElement.addEventListener('wheel', this.mouseWheel);
             }
         }
 
