@@ -66,7 +66,7 @@ export default {
 
     computed: {
         safeZoom() {
-            if (this.zoom > 0.001) {
+            if (this.zoom > 0.00001) {
                 return this.zoom;
             }
             return 1.0;

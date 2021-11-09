@@ -71,6 +71,7 @@ const EventBus = new Vue({
 
             // used inside ElementPicker and force editor state to switch to StatePickElement
             ELEMENT_PICK_REQUESTED: 'element-pick-requested',
+            ELEMENT_PICK_CANCELED: 'element-pick-canceled',
 
             ELEMENT_PICKED: 'element-picked',
 
@@ -178,6 +179,10 @@ const EventBus = new Vue({
 
         emitElementPickRequested(elementPickCallback) {
             this.$emit(EventBus.ELEMENT_PICK_REQUESTED, elementPickCallback);
+        },
+
+        emitElementPickCanceled() {
+            this.$emit(EventBus.ELEMENT_PICK_CANCELED);
         },
 
         emitCurveEdited(item) {

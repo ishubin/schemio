@@ -3394,6 +3394,20 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 
 
+.editor-top-hint-label {
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    text-align: center;
+    background: var(--accent-strong-down);
+    color: var(--accent-weak-up);
+    font-weight: bold;
+    padding: 5px;
+    margin: 0 auto;
+    opacity: 0.8;
+}
+
 /************************** Schemio App ****************************/
 table.entries-table {
     margin-top: 20px;

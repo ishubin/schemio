@@ -3,7 +3,11 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="element-picker" :class="{disabled: disabled}">
-        <dropdown :options="allOptions" @selected="onElementSelected" :disabled="disabled">
+        <dropdown :options="allOptions" :disabled="disabled"
+            @selected="onElementSelected"
+            @dropdown-toggled="onDropdownToggled"
+            @dropdown-hidden="onDropdownHidden"
+            >
             <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`, disabled?'disabled': '']">
                 <i :class="enrichedElement.iconClass"/>
                 <span class="element-name">{{enrichedElement.name | toShortName}}</span>
@@ -43,14 +47,13 @@ export default {
     },
 
     beforeDestroy() {
+        EventBus.emitElementPickCanceled();
         EventBus.$off(EventBus.ELEMENT_PICKED, this.onElementPickedFromState);
     },
 
     data() {
         return {
             allOptions: this.collectAllOptions(),
-            // used as a unique id in order to distinguish subscribed event for picking element from StatePickElement
-            pickElementRequestId: null
         };
     },
 
@@ -66,14 +69,6 @@ export default {
                 });
             }
             
-            options.push({
-                iconClass: 'fas fa-crosshairs',
-                name: 'Pick...',
-                id: 'pick',
-                type: 'pick'
-            });
-
-
             if (this.useSelf) {
                 options.push({
                     iconClass: 'fas fa-cube',
@@ -117,11 +112,6 @@ export default {
         onElementSelected(option) {
             if (option.id === 'self') {
                 this.$emit('selected', 'self');
-            } else if (option.type === 'pick') {
-                this.pickElementRequestId = shortid.generate();
-                EventBus.emitElementPickRequested((element) => {
-                    this.$emit('selected', element);
-                });
             } else {
                 if (option.type === 'item') {
                     this.$emit('selected', `#${option.id}`);
@@ -133,6 +123,16 @@ export default {
                     console.error(option.type + ' is not supported');
                 }
             }
+        },
+
+        onDropdownToggled() {
+            EventBus.emitElementPickRequested((element) => {
+                this.$emit('selected', element);
+            });
+        },
+
+        onDropdownHidden() {
+            EventBus.emitElementPickCanceled();
         }
     },
 

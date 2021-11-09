@@ -113,6 +113,7 @@ export default {
             this.lastTimeClicked = new Date().getTime();
             this.shown = !this.shown;
             if (this.shown) {
+                this.emitToggled();
                 this.$nextTick(() => {
                     this.readjustDropdownPopup();
 
@@ -120,7 +121,17 @@ export default {
                         this.$refs.searchTextfield.focus();
                     }
                 });
+            } else {
+                this.emitHidden();
             }
+        },
+
+        emitToggled() {
+            this.$emit('dropdown-toggled');
+        },
+
+        emitHidden() {
+            this.$emit('dropdown-hidden');
         },
         
         readjustDropdownPopup() {
@@ -157,7 +168,6 @@ export default {
                 if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
                     return;
                 }
-                this.shown = false;
                 this.cancelPopup();
             }
         },
@@ -171,6 +181,9 @@ export default {
         },
 
         cancelPopup() {
+            if (this.shown) {
+                this.emitHidden();
+            }
             this.shown = false;
         },
 

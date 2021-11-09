@@ -30,7 +30,7 @@
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"
-                            :stroke-width="item.strokeSize+'px'"
+                            :stroke-width="`${item.strokeSize + 6/safeZoom}px`"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
                             data-preview-ignore="true"/>
@@ -119,7 +119,7 @@
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"
-                            :stroke-width="item.strokeSize+'px'"
+                            :stroke-width="`${item.strokeSize + 6/safeZoom}px`"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
                             stroke-linejoin="round"
@@ -154,6 +154,8 @@
                 <rect class="state-hover-layer" v-if="shouldShowStateHoverLayer"  x="0" y="0" :width="width" :height="height" fill="rgba(255, 255, 255, 0.0)"/>
             </g>
         </svg>
+        
+        <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
 
         <!-- Item Text Editor -->
         <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
@@ -308,6 +310,7 @@ export default {
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
+        EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -356,6 +359,7 @@ export default {
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
+        EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -724,11 +728,18 @@ export default {
                 let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
                 let strokeSize = 6;
                 if (item.shape === 'curve') {
-                    strokeSize = item.shapeProps.strokeSize + 6;
+                    strokeSize = item.shapeProps.strokeSize;
                     if (item.shapeProps.fill.type === 'none' && !item.shapeProps.closed) {
                         fill = 'none';
                     }
+                } else {
+                    const shape = Shape.find(item.shape);
+                    if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
+                        strokeSize = item.shapeProps.strokeSize;
+                    }
                 }
+
+            
 
                 const itemHighlight = {
                     id: itemId,
@@ -1400,6 +1411,12 @@ export default {
             this.switchStatePickElement(elementPickCallback);
         },
 
+        onElementPickCanceled() {
+            if (this.state === 'pickElement') {
+                states.pickElement.cancel();
+            }
+        },
+
         onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.customContextMenu.menuOptions = menuOptions;
 
@@ -1623,6 +1640,13 @@ export default {
         },
     },
     computed: {
+        safeZoom() {
+            if (this.schemeContainer.screenTransform.scale > 0.00001) {
+                return this.schemeContainer.screenTransform.scale;
+            }
+            return 1.0;
+        },
+
         transformSvg() {
             const x = Math.floor(this.schemeContainer.screenTransform.x || 0);
             const y = Math.floor(this.schemeContainer.screenTransform.y || 0);
