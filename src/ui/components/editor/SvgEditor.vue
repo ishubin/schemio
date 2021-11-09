@@ -30,7 +30,7 @@
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"
-                            :stroke-width="`${item.strokeSize + 6/safeZoom}px`"
+                            :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
                             data-preview-ignore="true"/>
@@ -119,12 +119,12 @@
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" fill="none" :stroke="item.stroke"
-                            :stroke-width="`${item.strokeSize + 6/safeZoom}px`"
+                            :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
                             :data-item-id="item.id"
                             style="opacity: 0.5"
                             stroke-linejoin="round"
                             data-preview-ignore="true"/>
-                        <circle v-for="pin in item.pins" :cx="pin.x" :cy="pin.y" r="5" style="opacity:0.5" data-preview-ignore="true" :fill="item.stroke"/>
+                        <circle v-for="pin in item.pins" :cx="pin.x" :cy="pin.y" :r="8/(item.scalingFactor*safeZoom)" style="opacity:0.5" data-preview-ignore="true" :fill="item.stroke"/>
                     </g>
 
                 </g>
@@ -724,6 +724,12 @@ export default {
                 }
 
                 const m = itemCompleteTransform(item);
+                const scalingVector = worldScalingVectorOnItem(item);
+
+                let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
+                if (myMath.tooSmall(scalingFactor)) {
+                    scalingFactor = 1;
+                }
 
                 let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
                 let strokeSize = 6;
@@ -748,7 +754,8 @@ export default {
                     fill,
                     strokeSize,
                     stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                    pins: []
+                    pins: [],
+                    scalingFactor
                 };
 
                 if (highlightPins) {
