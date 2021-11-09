@@ -27,6 +27,12 @@ import AnimationFunctions from '../animations/functions/AnimationFunctions';
 
 const log = new Logger('SchemeContainer');
 
+// for now putting it here until I figure out a more elegant way of indexing item outline points
+// There is a problem when the items are scaled too litle and when user zooms in to that downscaled item
+// In that case it would not be able to find points in the quad tree as the generated points are too sparse
+// Therefore we need to compensate for that and use this const value as the minimum search range
+const minSpatialIndexDistance = 20;
+
 const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
 
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
@@ -476,10 +482,8 @@ class SchemeContainer {
             return;
         }
         
-        const minDistance = 20;
         const totalLength = svgPath.getTotalLength();
-
-        const totalPoints = Math.max(1, Math.ceil(totalLength/minDistance));
+        const totalPoints = Math.max(1, Math.ceil(totalLength / minSpatialIndexDistance));
 
         // Doing a breadth-first indexing by taking midpoint of each segment
         // This is needed for more efficient indexing
@@ -506,7 +510,7 @@ class SchemeContainer {
                 let diff = b - a;
                 if (diff >= 2) {
                     const mid = Math.floor((a + b) / 2);
-                    pathDistance = mid * minDistance;
+                    pathDistance = mid * minSpatialIndexDistance;
                     if (mid > a) {
                         newSegments.push([a, mid - 1]);
                     }
@@ -515,11 +519,11 @@ class SchemeContainer {
                     }
 
                 } else if (diff >= 1) {
-                    pathDistance = b * minDistance;
+                    pathDistance = b * minSpatialIndexDistance;
                     newSegments.push([a, a]);
 
                 } else if (diff >= 0) {
-                    pathDistance = a * minDistance;
+                    pathDistance = a * minSpatialIndexDistance;
                 }
 
                 if (pathDistance >= 0) {
@@ -546,7 +550,7 @@ class SchemeContainer {
                 itemId: item.id,
                 pathDistance
             });
-            pathDistance += minDistance;
+            pathDistance += minSpatialIndexDistance;
         }
         */
     }
@@ -691,17 +695,22 @@ class SchemeContainer {
         }
 
         const items = new Map();
+        
+        // compensating for sparse points in the quad tree because originally,
+        // when the index was created, it was using the distance of 20 between points on path
+        const searchDistance = Math.max(d, minSpatialIndexDistance);
 
-        this.spatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pathDistance}) => {
+
+        this.spatialIndex.forEachInRange(x - searchDistance, y - searchDistance, x + searchDistance, y + searchDistance, ({itemId, pathDistance}, point) => {
+            // if there are multiple points in the same item we want to select the closest ones
+            // this way we late can get better precision when search for closest point on path, since we can pass the initial search range (startDistance, stopDistance)
+            const squaredDistanceToPoint = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
             if (!items.has(itemId)) {
-                items.set(itemId, {min: pathDistance, max: pathDistance});
+                items.set(itemId, {pathDistance, squaredDistanceToPoint});
             } else {
-                const pathRange = items.get(itemId);
-                if (pathRange.min > pathDistance) {
-                    pathRange.min = pathDistance;
-                }
-                if (pathRange.max < pathDistance) {
-                    pathRange.max = pathDistance;
+                const pathLocation = items.get(itemId);
+                if (pathLocation.squaredDistanceToPoint > squaredDistanceToPoint) {
+                    items.set(itemId, {pathDistance, squaredDistanceToPoint});
                 }
             }
         });
@@ -711,7 +720,7 @@ class SchemeContainer {
         let foundPoint = null;
         let bestSquaredDistance = 100000;
 
-        items.forEach((pathRange, itemId) => {
+        items.forEach((pathLocation, itemId) => {
             const item = this.findItemById(itemId);
             if (item.id === excludedId) {
                 return;
@@ -722,8 +731,9 @@ class SchemeContainer {
             }
 
             const closestPoint = this.closestPointToItemOutline(item, globalPoint, {
-                startDistance: Math.max(0, pathRange.min - d),
-                stopDistance: pathRange.max + d
+                startDistance: Math.max(0, pathLocation.pathDistance - searchDistance),
+                stopDistance: pathLocation.pathDistance + searchDistance,
+                precision: Math.min(d / 2, 0.5)
             });
 
             if (!closestPoint) {
@@ -1047,7 +1057,7 @@ class SchemeContainer {
      * @param {Object} settings specifies whether it should calculate the normal vector on the point on specified path
      * @param {ItemClosestPoint}
      */
-    closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance}) {
+    closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance, precision}) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
         const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
 
@@ -1058,7 +1068,8 @@ class SchemeContainer {
 
         const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, shadowSvgPath, {
             startDistance,
-            stopDistance
+            stopDistance,
+            precision
         });
         const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;

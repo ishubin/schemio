@@ -943,7 +943,7 @@ export default class StateDragItem extends State {
         // but it also modifies a control point in the end
         // so it is not that easy to share code
 
-        let distanceThreshold = 0;
+        let distanceThreshold = 20;
         if (this.schemeContainer.screenTransform.scale > 0) {
             distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
         }
