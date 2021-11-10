@@ -22,6 +22,7 @@ import ToggleFunction from './ToggleFunction';
 import UntoggleFunction from './UntoggleFunction';
 import PlayFramesFunction from './PlayFramesFunction';
 import StopFramePlayerFunction from './StopFramePlayerFunction';
+import LoadComponentFunction from './LoadComponentFunction';
 
 export default {
     main: {
@@ -32,6 +33,7 @@ export default {
         particleEffect:     ItemParticleEffectFunction,
         crawlEffect:        CrawlEffectFunction,
         blinkEffect:        BlinkEffectFunction,
+        loadComponent:      LoadComponentFunction,
         move:               MoveFunction,
         moveAlongPath:      MoveAlongPathFunction,
         moveToItem:         MoveToItemFunction,

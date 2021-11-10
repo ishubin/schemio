@@ -2097,6 +2097,10 @@ class SchemeContainer {
 
         this.reindexChildItems(componentItem);
     }
+
+    getEventBus() {
+        return this.eventBus;
+    }
 }
 
 
