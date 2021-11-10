@@ -87,6 +87,8 @@ function calculateButtonArea(item) {
     return { x, y, w, h };
 }
 
+export const COMPONENT_LOADED_EVENT = 'Component Loaded';
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -147,6 +149,15 @@ export default {
         editorProps: {
             customTextRendering: true,
             ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
+        },
+
+        /**
+         * Returns events that given item is able to emit
+         * The result of this function is dynamic based on the item settings.
+         * This is used in order to build suggestions in BehaviorPanel.
+         */
+        getEvents(item) {
+            return [{name: COMPONENT_LOADED_EVENT}];
         },
     },
 

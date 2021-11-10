@@ -100,16 +100,6 @@ export default {
             functions      : {type: 'animation-functions', value: {}, name: 'Animation Functions', hidden: true},
             sections       : {type: 'animation-sections', value: [], name: 'Sections', hidden: true},
         },
-
-        /**
-         * Returns events that given item is able to emit
-         * The result of this function is dynamic based on the item settings.
-         * This is used in order to build suggestions in BehaviorPanel.
-         */
-        getEvents(item) {
-            const events = [];
-            return events;
-        },
     },
     
     data() {

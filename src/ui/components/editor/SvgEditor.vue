@@ -234,6 +234,7 @@ import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import StoreUtils from '../../store/StoreUtils';
+import { COMPONENT_LOADED_EVENT } from './items/shapes/Component.vue';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -798,6 +799,9 @@ export default {
         onComponentSchemeMounted(item) {
             if (item.childItems) {
                 this.indexUserEventsInItems(item.childItems);
+            }
+            if (item.shape === 'component') {
+                userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
             }
         },
 
@@ -1634,6 +1638,7 @@ export default {
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
 
+        //TODO apparently something is off if the formula is identical to conversion from world to screen. This needs to be investigated
         //calculates from screen to world
         x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
