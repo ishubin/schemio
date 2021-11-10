@@ -263,11 +263,6 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
 
-        <SchemeChangeLogModal v-if="changeLogModal.shown"
-            :changeLog="changeLogModal.changeLog"
-            :schemeContainer="changeLogModal.schemeContainer"
-            @close="changeLogModal.shown = false"/>
-
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -306,7 +301,6 @@ import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
-import SchemeChangeLogModal from './editor/SchemeChangeLogModal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import hasher from '../url/hasher.js';
@@ -409,7 +403,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel,
-        SchemeChangeLogModal, Comments,
+        Comments,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -555,11 +549,6 @@ export default {
                 framePlayer: null,
             },
 
-            changeLogModal: {
-                changeLog: null,
-                schemeContainer: null,
-                shown: false
-            }
         }
     },
     methods: {

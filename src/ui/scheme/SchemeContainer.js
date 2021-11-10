@@ -1662,7 +1662,7 @@ class SchemeContainer {
                 //      Pw  - top left corner in world transform
                 //      Ap  - parent item transform matrix
                 //      At  - translation matrix. This is unknown in the equation
-                //      Ac1 - translation matrix for items pivot point. It moves item to by (rpx, rpy). 
+                //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy). 
                 //            This matrix is needed so that item is rotated around pivot point
                 //      Ar  - rotation matrix. Rotates item by its area.r value
                 //      Ac2 - translation matrix for items pivot point. It moves item back by (-rpx, -rpy)
@@ -1678,7 +1678,7 @@ class SchemeContainer {
                 //      Ap-1 = is inverse of Ap matrix
                 //      A = Ac1 * Ar * Ac2 * As
                 // 
-                // lets call matrinx Ap-1 as B to make it easier to distinguish between the two matrices:
+                // lets call matrix Ap-1 as B to make it easier to distinguish between the two matrices:
                 //
                 //      B * Pw = At * A * P0
                 //
