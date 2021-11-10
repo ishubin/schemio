@@ -1615,30 +1615,30 @@ class SchemeContainer {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;
         }
 
-        // storing ids of dragged items in a map
+        // storing ids of dragged or rotated items in a map
         // this way we will be able to figure out whether any items ancestors were dragged already
         // so that we can skip dragging or rotating an item
-        const itemDraggedIds = new Set();
+        const changedItemIds = new Set();
 
         const itemsForReindex = [];
 
         forEach(multiItemEditBox.items, item => {
-            itemDraggedIds.add(item.id)
+            changedItemIds.add(item.id)
 
             // checking whether the item in the box list is actually a descendant of the other item that was also in the same box
             // this is needed to build proper reindexing of items and not to double rotate child items in case their parent was already rotated
-            const parentWasAlreadyUpdated = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => itemDraggedIds.has(id)));
+            const parentWasAlreadyUpdated = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => changedItemIds.has(id)));
             if (!parentWasAlreadyUpdated) {
                 itemsForReindex.push(item);
             }
 
-            if (!item.locked) {
+            const shouldSkipItemUpdate = parentWasAlreadyUpdated && (context.moved || context.rotated) && !context.resized;
+
+            if (!item.locked && !shouldSkipItemUpdate) {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
 
-                if (!parentWasAlreadyUpdated) {
-                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
-                }
+                item.area.r = itemProjection.r + multiItemEditBox.area.r;
 
                 const projectBack = (point) => {
                     return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);

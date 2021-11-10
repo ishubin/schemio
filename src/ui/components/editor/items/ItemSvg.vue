@@ -184,6 +184,7 @@ export default {
             filterUrl             : '',
             backgroundEffects     : [],
             foregroundEffects     : [],
+            svgItemTransform      : this.calculateSVGItemTransform()
         };
 
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
@@ -202,6 +203,11 @@ export default {
     },
 
     methods: {
+        calculateSVGItemTransform() {
+            const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.item.area);
+            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
+        },
+
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.find(shapeId);
@@ -224,7 +230,7 @@ export default {
             this.itemSvgOutlinePath = shape.computeOutline(this.item);
         },
 
-        onItemChanged() {
+        onItemChanged(propertyPath) {
             const shape = Shape.find(this.item.shape);
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
@@ -237,6 +243,9 @@ export default {
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
+            if (propertyPath && propertyPath.startsWith('area')) {
+                this.svgItemTransform = this.calculateSVGItemTransform();
+            }
 
             this.revision += 1;
 
@@ -300,12 +309,6 @@ export default {
     },
 
     computed: {
-        svgItemTransform() {
-            const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.item.area);
-            return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
-        },
-
-
         hoverPathStrokeWidth() {
             if (this.item.shape === 'curve' || this.item.shape === 'connector') {
                 return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
