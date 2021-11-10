@@ -1488,6 +1488,7 @@ export default {
                 }
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load scheme', 'scheme-component-load');
+                EventBus.emitComponentLoadFailed(item);
             });
         }
     },

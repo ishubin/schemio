@@ -3,6 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
 import shortid from 'shortid';
+import { Logger } from '../logger';
+
+const log = new Logger('UserEventBus');
 
 /**
  * This UserEventBus is used in order to track and handle events that emitted in interactive mode
@@ -33,6 +36,8 @@ export default class UserEventBus {
      * @param {string} eventName 
      */
     emitItemEvent(itemId, eventName) {
+        log.infoEvent(eventName, [itemId]);
+
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             forEach(itemSubs[eventName], subscriber => {

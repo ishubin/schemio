@@ -234,7 +234,7 @@ import ExportSVGModal from './ExportSVGModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT } from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -320,6 +320,7 @@ export default {
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
+        EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
     },
     mounted() {
         this.updateSvgSize();
@@ -369,6 +370,7 @@ export default {
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
+        EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -802,6 +804,12 @@ export default {
             }
             if (item.shape === 'component') {
                 userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
+            }
+        },
+
+        onComponentLoadFailed(item) {
+            if (item.shape === 'component') {
+                userEventBus.emitItemEvent(item.id, COMPONENT_FAILED);
             }
         },
 

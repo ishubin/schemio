@@ -88,6 +88,7 @@ function calculateButtonArea(item) {
 }
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
+export const COMPONENT_FAILED = 'Component Failed';
 
 export default {
     props: ['item'],
@@ -157,7 +158,11 @@ export default {
          * This is used in order to build suggestions in BehaviorPanel.
          */
         getEvents(item) {
-            return [{name: COMPONENT_LOADED_EVENT}];
+            return [{
+                name: COMPONENT_LOADED_EVENT
+            }, {
+                name: COMPONENT_FAILED
+            }];
         },
     },
 
