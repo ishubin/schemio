@@ -66,18 +66,6 @@
             stroke="rgba(255, 255, 255, 0)"
             :fill="hoverPathFill" />
 
-        <path v-if="itemSvgOutlinePath && diff"
-            class="svg-event-diff-outline"
-            data-preview-ignore="true"
-            :data-item-id="item.id"
-            :d="itemSvgOutlinePath" 
-            stroke-width="10px"
-            :style="{'cursor': item.cursor}"
-            :stroke="diff.color"
-            style="opacity: 0.5;"
-            fill="none"
-            />
-
 
         <defs v-if="item.clip">
             <clipPath :id="`item-clip-path-${item.id}`">
@@ -116,7 +104,6 @@ import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 import { getEffectById } from '../../effects/Effects';
-import { ChangeType } from '../../../scheme/scheme-diff';
 import myMath from '../../../myMath';
 
 function generateFilters(item) {
@@ -197,19 +184,7 @@ export default {
             filterUrl             : '',
             backgroundEffects     : [],
             foregroundEffects     : [],
-            diff                  : null
         };
-
-        if (this.item.meta && this.item.meta.diff) {
-            data.diff = {
-                color: 'rgb(100, 100, 255)'
-            };
-            if (this.item.meta.diff.change === ChangeType.DELETION) {
-                data.diff.color = 'rgb(255, 100, 100)';
-            } else if (this.item.meta.diff.change === ChangeType.ADDITION) {
-                data.diff.color = 'rgb(100, 255, 100)';
-            }
-        }
 
         if (!shape.editorProps || !shape.editorProps.customTextRendering) {
             data.textSlots = this.generateTextSlots();

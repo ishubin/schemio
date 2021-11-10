@@ -16,7 +16,6 @@ window.Schemio = {
      * @param {*} querySelector 
      * @param {Object} options 
      * @param {Object} options.scheme
-     * @param {Object} options.schemeDiff - {modifiedScheme: Object}
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      * @param {Boolean} options.categoriesEnabled
@@ -35,7 +34,6 @@ window.Schemio = {
             components: { appComponent },
             render: h => h('appComponent', {props: {
                 scheme           : options.scheme || null,
-                schemeDiff       : options.schemeDiff || null,
                 editAllowed      : options.editAllowed || false,
                 categoriesEnabled: options.categoriesEnabled || false,
                 userStylesEnabled: options.userStylesEnabled || false,

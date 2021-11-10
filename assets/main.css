@@ -2850,17 +2850,6 @@ ul.category-breadcrumb li i {
     border: 1px solid var(--faint-strong);
 }
 
-.item-selector .item-selector-diff-level-1 {
-    background: var(--accent-weak-down);
-}
-.item-selector .item-selector-diff-level-2 {
-    background: var(--critic-weak-down);
-}
-.item-selector .item-selector-diff-level-3 {
-    background: var(--complement-faint);
-}
-
-
 /****************** Language Markup ***************/
 pre.syntax-markup {
     padding: 30px 10px 10px 10px;
@@ -3234,66 +3223,6 @@ table.frame-animator-matrix td.frame .active-frame {
 table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--critic-weak-down);
 }
-
-
-/********************** Scheme Differ ************************/
-.scheme-differ-container {
-    position: absolute;
-    width: 100%;
-    top: 35px;
-    z-index: 19;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.scheme-differ-panel {
-    display: inline-block;
-    margin-left: auto; 
-    margin-right: auto; 
-    padding: 5px;
-    background: var(--faint-weak);
-    border: 1px solid var(--faint-strong);
-    border-top: none;
-    white-space: nowrap;
-}
-
-/************* Diff Change Log *********************/
-.diff-change-log .diff-change-log-entry {
-    padding: 5px;
-    margin-bottom: 5px;
-    position: relative;
-}
-.diff-change-log .diff-change-log-entry::after {
-    display: inline-block;
-    position: absolute;
-    font-size: 13px;
-    top: 5px;
-    right: 5px;
-    font-style: italic;
-}
-.diff-change-log .diff-change-modification {
-    color: var(--accent-strong-down);
-    background: var(--accent-weak-down);
-}
-.diff-change-log .diff-change-log-entry.diff-change-modification::after {
-    content: "modified";
-}
-.diff-change-log .diff-change-deletion {
-    color: var(--critic-strong);
-    background: var(--critic-weak-up);
-}
-.diff-change-log .diff-change-log-entry.diff-change-deletion::after {
-    content: "deleted";
-}
-.diff-change-log .diff-change-addition {
-    color: var(--complement-strong);
-    background: var(--complement-faint);
-}
-.diff-change-log .diff-change-log-entry.diff-change-addition::after {
-    content: "added";
-}
-
-
 
 
 ul.toggle-menu {

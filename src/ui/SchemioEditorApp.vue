@@ -6,7 +6,6 @@
     <div class="scheme-editor-app">
         <SchemeEditor
             :scheme="scheme"
-            :schemeDiff="schemeDiff"
             :editAllowed="editAllowed"
             :categoriesEnabled="categoriesEnabled"
             :userStylesEnabled="userStylesEnabled"
@@ -31,7 +30,6 @@ export default{
 
     props: {
         scheme           : {type: Object, default: () => null},
-        schemeDiff       : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
         categoriesEnabled: {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},

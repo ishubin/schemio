@@ -36,9 +36,6 @@ const cwd = process.cwd();
 app.get('/offline-scheme-editor', (req, res) => {
     res.sendFile(`${cwd}/src/html/offline-editor.html`)
 });
-app.get('/scheme-diff-example', (req, res) => {
-    res.sendFile(`${cwd}/src/html/scheme-diff-example.html`)
-});
 app.get('/category-tree', (req, res) => {
     res.sendFile(`${cwd}/src/html/category-tree.html`)
 });

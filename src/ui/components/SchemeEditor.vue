@@ -44,19 +44,6 @@
             </ul>
             </quick-helper-panel>
 
-        <div class="scheme-differ-container" v-if="scheme && schemeDiff">
-            <div class="scheme-differ-panel">
-                <ul class="toggle-menu">
-                    <li v-for="state in schemeDiffStates.states">
-                        <span class="toggle-menu-button" :class="{selected: schemeDiffStates.state === state.id}" @click="switchSchemeDiffState(state.id)" :tooltip="state.description">
-                            {{state.name}}
-                        </span>
-                    </li>
-                </ul>
-                <span class="btn btn-secondary" @click="listSchemeDiffChanges()">List all changes</span>
-            </div>
-        </div>
-
         <div class="scheme-editor-middle-section">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
                 <h3>{{schemeLoadErrorMessage}}</h3>
@@ -308,7 +295,6 @@ import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
 import SchemeContainer from '../scheme/SchemeContainer.js';
-import {generateDiffSchemeContainerWithChangeLog} from '../scheme/scheme-diff.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -431,7 +417,6 @@ export default {
 
     props: {
         scheme           : {type: Object, default: null},
-        schemeDiff       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         categoriesEnabled: {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},
@@ -568,23 +553,6 @@ export default {
 
             animatorPanel: {
                 framePlayer: null,
-            },
-
-            schemeDiffStates: {
-                state: 'origin',
-                states: [{
-                    id: 'origin',
-                    name: 'Origin',
-                    description: 'Represents your current version of the document'
-                }, {
-                    id: 'modified',
-                    name: 'Modified',
-                    description: 'Modified version of the scheme'
-                }, {
-                    id: 'diff',
-                    name: 'Diff Mode',
-                    description: 'Highlight all the changes in the modified version on top of your current version'
-                }]
             },
 
             changeLogModal: {
@@ -1399,67 +1367,6 @@ export default {
 
         closeAnimatorEditor() {
             StoreUtils.startAnimationEditor(this.$store, null);
-        },
-
-        switchSchemeDiffState(state) {
-            AnimationRegistry.stopAllAnimations();
-
-            const oldState = this.schemeDiffStates.state;
-
-            if (!schemePages[oldState]) {
-                schemePages[oldState] = {
-                    schemeContainer: this.schemeContainer,
-                    interactiveSchemeContainer: this.interactiveSchemeContainer,
-                    history: history,
-                }
-            }
-
-            if (!schemePages[state]) {
-                schemePages[state] = this.generateSchemePage(state);
-            }
-
-            this.schemeDiffStates.state = state;
-
-            this.schemeContainer = schemePages[state].schemeContainer;
-            this.interactiveSchemeContainer = schemePages[state].interactiveSchemeContainer;
-            history = schemePages[state].history;
-            this.updateRevision();
-            this.updateHistoryState();
-        },
-
-        /**
-         * state can be either 'modified' or 'diff'. 'origin' state should be automatically filled with the first switch of the state
-         */
-        generateSchemePage(state) {
-            if (state === 'diff') {
-                return this.generateSchemeDiffPage();
-            }
-            return {
-                schemeContainer: new SchemeContainer(this.schemeDiff.modifiedScheme, EventBus),
-                interactiveSchemeContainer: new SchemeContainer(this.schemeDiff.modifiedScheme, EventBus),
-                history: new History({size: defaultHistorySize})
-            };
-        },
-
-        generateSchemeDiffPage() {
-            const { schemeContainer, changeLog } = generateDiffSchemeContainerWithChangeLog(utils.clone(this.scheme), utils.clone(this.schemeDiff.modifiedScheme));
-            return {
-                schemeContainer,
-                interactiveSchemeContainer: new SchemeContainer(utils.clone(schemeContainer.scheme), EventBus),
-                history: new History({size: defaultHistorySize}),
-                changeLog
-            };
-        },
-
-        listSchemeDiffChanges() {
-            if (!schemePages['diff']) {
-                schemePages['diff'] = this.generateSchemeDiffPage();
-            }
-            const changeLog = schemePages['diff'].changeLog;
-
-            this.changeLogModal.changeLog = changeLog;
-            this.changeLogModal.schemeContainer = schemePages['diff'].schemeContainer;
-            this.changeLogModal.shown = true;
         },
 
         onComponentLoadRequested(item) {
