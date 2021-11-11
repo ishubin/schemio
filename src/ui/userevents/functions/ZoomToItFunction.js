@@ -12,18 +12,13 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
  * the transforms in item metas are not properly recalculated.
  */
 function createItemTransform(item, schemeContainer) {
-    let transform = {x: 0, y: 0, r: 0};
+    let transform = myMath.identityMatrix();
+
     if (item.meta.ancestorIds) {
         for (let i = 0; i < item.meta.ancestorIds.length; i++) {
             const ancestorItem = schemeContainer.findItemById(item.meta.ancestorIds[i]);
             if (ancestorItem) {
-                let cosa = Math.cos(transform.r * Math.PI / 180);
-                let sina = Math.sin(transform.r * Math.PI / 180);
-                transform = {
-                    x:  transform.x + ancestorItem.area.x * cosa - ancestorItem.area.y * sina,
-                    y:  transform.y + ancestorItem.area.x * sina + ancestorItem.area.y * cosa,
-                    r:  transform.r + ancestorItem.area.r
-                };
+                transform = myMath.standardTransformWithArea(transform, ancestorItem.area);
             }
         }
     }
@@ -147,7 +142,6 @@ export default {
         const area = calculateBoundingBox(item, schemeContainer, 10);
 
         let newZoom = 1.0;
-        console.log("screen settings", schemeContainer.screenSettings);
         const width = schemeContainer.screenSettings.width;
         const height = schemeContainer.screenSettings.height;
         if (area.w > 0 && area.h > 0 && width > 0 && height > 0) {
