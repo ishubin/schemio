@@ -31,7 +31,7 @@
                         <div class="zoom-control">
                             <span class="zoom-button zoom-out" @click="onZoomOutClicked"><i class="fas fa-search-minus"></i></span>
                             <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
-                                <input :value="zoom" @keydown.enter="onZoomSubmit"/>
+                                <input :value="zoom" @keydown.enter="onZoomSubmit" style="min-width: 80px; padding-left: 1px; padding-right: 1px;"/>
                             </dropdown>
                             <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
                         </div>

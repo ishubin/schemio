@@ -2244,6 +2244,7 @@ ul.category-breadcrumb li i {
     padding: 0;
     list-style: none;
     font-size: 12px;
+    min-width: 100px;
 }
 .dropdown-container .dropdown-popup ul li {
     position: relative;
