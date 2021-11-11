@@ -129,6 +129,8 @@ export default {
         closeEnough         : {name: 'Close Enough', type: 'boolean', value: false, description: 'If checked, then it will only zoom to item just enough for it to appear fully inside the screen. Otherwise it will bring it to the center of the screen'},
         animated            : {name: 'Animated', type: 'boolean', value: true},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, min: 0, depends: {animated: true}},
+        minZoom             : {name: 'Minimum Zoom(%)', type: 'number', value: 0, min: 0},
+        maxZoom             : {name: 'Maximum Zoom(%)', type: 'number', value: 100, min: 0},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
@@ -146,7 +148,7 @@ export default {
         const height = schemeContainer.screenSettings.height;
         if (area.w > 0 && area.h > 0 && width > 0 && height > 0) {
             newZoom = Math.min(width/area.w, height/area.h);
-            newZoom = Math.max(0.05, Math.min(newZoom, 1.0));
+            newZoom = Math.max(args.minZoom / 100.0, Math.min(newZoom, args.maxZoom / 100.0));
         }
 
         let destX = width/2  - (area.x + area.w/2) * newZoom;

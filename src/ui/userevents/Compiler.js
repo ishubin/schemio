@@ -5,6 +5,15 @@
 import forEach from 'lodash/forEach';
 import knownFunctions from './functions/Functions.js';
 
+function enrichFuncArgs(args, funcDef) {
+    forEach(funcDef.args, (argDef, argName) => {
+        if (!args.hasOwnProperty(argName)) {
+            args[argName] = argDef.value;
+        }
+    });
+    return args;
+}
+
 
 export default class Compiler {
 
@@ -23,10 +32,11 @@ export default class Compiler {
                     const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
                     if (elements) {
                         forEach(elements, element => {
+                            const knownFunc = knownFunctions.main[action.method];
                             funcs.push({
-                                func: knownFunctions.main[action.method],
+                                func: knownFunc,
                                 element,
-                                args: action.args
+                                args: enrichFuncArgs(action.args, knownFunc)
                             });
                         });
                     }
