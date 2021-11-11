@@ -235,20 +235,22 @@ class SchemeContainer {
             let parentTransform = myMath.identityMatrix();
 
             if (mainItem.meta && mainItem.meta.parentId) {
-                const item = this.findItemById(mainItem.meta.parentId);
-                if (item && item.meta && item.meta.transformMatrix) {
-                    parentTransform = item.meta.transformMatrix;
+                const parentItem = this.findItemById(mainItem.meta.parentId);
+                if (parentItem) {
+                    parentTransform = itemCompleteTransform(parentItem);
                 }
             }
             
             const recalculatedTransform = myMath.standardTransformWithArea(parentTransform, mainItem.area);
-
-            visitItems(mainItem.childItems, (item, transformMatrix, parentItem, ancestorIds) => {
+            
+            const callback = (item, transformMatrix, parentItem, ancestorIds) => {
                 if (!item.meta) {
                     item.meta = {};
                 }
                 item.meta.transformMatrix = transformMatrix;
-            }, recalculatedTransform, mainItem.meta.ancestorIds);
+            };
+
+            visitItems(mainItem.childItems, callback, recalculatedTransform, mainItem, mainItem.meta.ancestorIds);
         }
     }
 
@@ -1699,12 +1701,11 @@ class SchemeContainer {
                 //      Xt = (B11*Xw + B12*Yw + B13 - A13) / A33
                 //      Yt = (B21*Xw + B22*Yw + B23 - A23) / A33
 
-                let parentTransform = myMath.identityMatrix();
                 let itemParentInversedTransform = myMath.identityMatrix();
 
                 const parent = this.findItemById(item.meta.parentId);
                 if (parent) {
-                    parentTransform = itemCompleteTransform(parent);
+                    const parentTransform = itemCompleteTransform(parent);
                     itemParentInversedTransform = myMath.inverseMatrix3x3(parentTransform);
                 }
 
@@ -1737,10 +1738,7 @@ class SchemeContainer {
                 // otherwise it doesn't make sense
                 if (context.resized) {
                     const worldBottomRight = projectBack(itemProjection.bottomRight);
-                    // IMPORTANT: here we have to use localPointInArea from myMath instead of relying on localPointOnItem
-                    // this is because when multiple items are selected and resized - parent transform update does not propagate into child item.meta object
-                    // that is why we have to fetch parent item complete tranform first and pass it here explicitly
-                    const localBottomRight = myMath.localPointInArea(worldBottomRight.x, worldBottomRight.y, item.area, parentTransform);
+                    const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
                     item.area.w = Math.max(0, localBottomRight.x);
                     item.area.h = Math.max(0, localBottomRight.y);
                 }
