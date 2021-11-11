@@ -413,7 +413,8 @@ export default {
                 item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
             }
 
-            EventBus.emitItemChanged(item.id, 'item.area');
+            EventBus.emitItemChanged(item.id, 'area');
+
             this.schemeContainer.updateMultiItemEditBox();
 
             forEach(item.childItems, childItem => {
@@ -422,7 +423,7 @@ export default {
                 const localPoint = this.schemeContainer.localPointOnItem(originalWorldPoint.x, originalWorldPoint.y, item);
                 childItem.area.x = localPoint.x;
                 childItem.area.y = localPoint.y;
-                EventBus.emitItemChanged(childItem.id, 'item.area');
+                EventBus.emitItemChanged(childItem.id, 'area');
             });
         },
 
