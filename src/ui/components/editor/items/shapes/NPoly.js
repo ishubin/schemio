@@ -11,6 +11,7 @@ export default {
             group: 'Basic Shapes',
             name: 'N-Polygon',
             iconUrl: '/assets/images/items/npolygon.svg',
+            size: {w: 60, h: 60}
         }],
 
         computePath(item) {

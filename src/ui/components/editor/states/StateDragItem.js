@@ -853,6 +853,14 @@ export default class StateDragItem extends State {
         if (nh > 0) {
             this.multiItemEditBox.area.h = nh;
         }
+
+        if (isMultiSelectKey(event)) {
+            const max = Math.max(this.multiItemEditBox.area.w, this.multiItemEditBox.area.h);
+            this.multiItemEditBox.area.w = max;
+            this.multiItemEditBox.area.h = max;
+        }
+
+
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             moved: false,
             rotated: false,
