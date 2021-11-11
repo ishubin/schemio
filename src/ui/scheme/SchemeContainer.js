@@ -1620,25 +1620,25 @@ class SchemeContainer {
         // so that we can skip dragging or rotating an item
         const changedItemIds = new Set();
 
-        const itemsForReindex = [];
-
         forEach(multiItemEditBox.items, item => {
             changedItemIds.add(item.id)
+
 
             // checking whether the item in the box list is actually a descendant of the other item that was also in the same box
             // this is needed to build proper reindexing of items and not to double rotate child items in case their parent was already rotated
             const parentWasAlreadyUpdated = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => changedItemIds.has(id)));
-            if (!parentWasAlreadyUpdated) {
-                itemsForReindex.push(item);
-            }
 
             const shouldSkipItemUpdate = parentWasAlreadyUpdated && (context.moved || context.rotated) && !context.resized;
 
             if (!item.locked && !shouldSkipItemUpdate) {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
-
-                item.area.r = itemProjection.r + multiItemEditBox.area.r;
+                
+                // this condition is needed becase there can be a situation when edit box is first rotated and only then resized
+                // in this case we should skip rotation of child items if their parents were already rotated.
+                if (!parentWasAlreadyUpdated) {
+                    item.area.r = itemProjection.r + multiItemEditBox.area.r;
+                }
 
                 const projectBack = (point) => {
                     return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
@@ -1694,12 +1694,20 @@ class SchemeContainer {
                 //      | B21*Xw + B22*Yw + B23 | = | A23 + A33*Yt |
                 //      |    B31 + B32 + B33    |   |     A33      |
                 //
-                // from the abouve equation we can take out the relevant parts and finally get our complete formula
+                // from the above equation we can take out the relevant parts and finally get our complete formula
                 //
                 //      Xt = (B11*Xw + B12*Yw + B13 - A13) / A33
                 //      Yt = (B21*Xw + B22*Yw + B23 - A23) / A33
 
-                const itemParentInversedTransform = myMath.inverseMatrix3x3(item.meta.transformMatrix);
+                let parentTransform = myMath.identityMatrix();
+                let itemParentInversedTransform = myMath.identityMatrix();
+
+                const parent = this.findItemById(item.meta.parentId);
+                if (parent) {
+                    parentTransform = itemCompleteTransform(parent);
+                    itemParentInversedTransform = myMath.inverseMatrix3x3(parentTransform);
+                }
+
                 if (itemParentInversedTransform) {
 
                     const rpx = item.area.px * item.area.w;
@@ -1712,12 +1720,12 @@ class SchemeContainer {
                         myMath.translationMatrix(-rpx, -rpy),
                         myMath.scaleMatrix(item.area.sx, item.area.sy)
                     );
-
                     
                     const worldTopLeft = projectBack(itemProjection.topLeft);
 
                     const xw = worldTopLeft.x;
                     const yw = worldTopLeft.y;
+
 
                     if (!myMath.tooSmall(A[2][2])) {
                         item.area.x = (B[0][0]*xw + B[0][1]*yw + B[0][2] - A[0][2]) / A[2][2];
@@ -1729,10 +1737,15 @@ class SchemeContainer {
                 // otherwise it doesn't make sense
                 if (context.resized) {
                     const worldBottomRight = projectBack(itemProjection.bottomRight);
-                    const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
-                    item.area.w = localBottomRight.x;
-                    item.area.h = localBottomRight.y;
+                    // IMPORTANT: here we have to use localPointInArea from myMath instead of relying on localPointOnItem
+                    // this is because when multiple items are selected and resized - parent transform update does not propagate into child item.meta object
+                    // that is why we have to fetch parent item complete tranform first and pass it here explicitly
+                    const localBottomRight = myMath.localPointInArea(worldBottomRight.x, worldBottomRight.y, item.area, parentTransform);
+                    item.area.w = Math.max(0, localBottomRight.x);
+                    item.area.h = Math.max(0, localBottomRight.y);
                 }
+
+                this.updateChildTransforms(item);
 
                 if (item.shape === 'curve') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
@@ -1746,7 +1759,6 @@ class SchemeContainer {
 
             }
         });
-        forEach(itemsForReindex, item => this.updateChildTransforms(item));
 
         if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
     }
