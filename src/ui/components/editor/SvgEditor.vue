@@ -1114,19 +1114,34 @@ export default {
             if (this.schemeContainer.multiItemEditBox) {
                 items = this.schemeContainer.multiItemEditBox.items;
             }
+            const alignSubOptions = [{
+                name: 'Horizontally in parent',
+                clicked: () => this.schemeContainer.alignItemsHorizontallyInParent(items)
+            }, {
+                name: 'Vertically in parent',
+                clicked: () => this.schemeContainer.alignItemsVerticallyInParent(items)
+            }, {
+                name: 'Centered in parent',
+                clicked: () => this.schemeContainer.alignItemsCenteredInParent(items)
+            }];
+
+            if (items.length > 1) {
+                alignSubOptions.push({
+                    name: 'All items horizontally',
+                    clicked: () => this.schemeContainer.alignItemsHorizontally(items)
+                });
+                alignSubOptions.push({
+                    name: 'All items vertically',
+                    clicked: () => this.schemeContainer.alignItemsVertically(items)
+                });
+            }
+
             this.customContextMenu.menuOptions.push({
                 name: 'Align',
-                subOptions: [{
-                    name: 'Horizontally in parent',
-                    clicked: () => this.schemeContainer.alignItemsHorizontallyInParent(items)
-                }, {
-                    name: 'Vertically in parent',
-                    clicked: () => this.schemeContainer.alignItemsVerticallyInParent(items)
-                }, {
-                    name: 'Centered in parent',
-                    clicked: () => this.schemeContainer.alignItemsCenteredInParent(items)
-                }]
+                subOptions: alignSubOptions
             });
+            
+
 
             if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1) {
                 this.customContextMenu.menuOptions.push({

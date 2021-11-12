@@ -710,6 +710,15 @@ export default {
         };
     },
 
+    transformVector(transformMatrix, x, y) {
+        const p0 = this.transformPoint(transformMatrix, 0, 0);
+        const p1 = this.transformPoint(transformMatrix, x, y);
+        return {
+            x: p1.x - p0.x,
+            y: p1.y - p0.y,
+        };
+    },
+
     /**
      * 
      * @param {Array} m - matrix of 3x3

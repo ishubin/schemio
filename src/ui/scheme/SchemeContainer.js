@@ -2111,7 +2111,131 @@ class SchemeContainer {
     getEventBus() {
         return this.eventBus;
     }
-    
+
+    alignItemsHorizontally(items) {
+        if (items.length < 2) {
+            return;
+        }
+
+        let centerSum = 0;
+        const worldBoxes = [];
+        forEach(items, item => {
+            const bbox = this.getBoundingBoxOfItems([item]);
+            worldBoxes.push({ bbox, item });
+
+            centerSum += bbox.y + bbox.h/2;
+        });
+
+        const center = centerSum / worldBoxes.length;
+
+        worldBoxes.sort((a, b) => {
+            return a.bbox.x - b.bbox.x;
+        });
+
+        let marginSum = 0;
+        let properMarginCount = 0;
+
+        for(let i = 0; i < worldBoxes.length - 1; i++) {
+            const margin = worldBoxes[i+1].bbox.x - (worldBoxes[i].bbox.x + worldBoxes[i].bbox.w);
+            if (margin > 0) {
+                marginSum += margin;
+                properMarginCount++;
+            }
+        }
+
+        const finalMargin = marginSum / Math.max(1, properMarginCount);
+        
+        let prevWorldOffset = worldBoxes[0].bbox.x;
+
+        for(let i = 0; i < worldBoxes.length; i++) {
+            const item = worldBoxes[i].item;
+            let dx = 0;
+            if (i > 0) {
+                dx = prevWorldOffset + finalMargin - worldBoxes[i].bbox.x;
+            }
+            const dy = center - worldBoxes[i].bbox.y - worldBoxes[i].bbox.h / 2;
+
+            let parentTransform = myMath.identityMatrix();
+            if (item.meta.parentId) {
+                const parent = this.findItemById(item.meta.parentId);
+                if (parent) {
+                    parentTransform = itemCompleteTransform(parent);
+                }
+            }
+            const correction = myMath.transformVector(parentTransform, dx, dy);
+
+            prevWorldOffset = dx + worldBoxes[i].bbox.x + worldBoxes[i].bbox.w;
+            
+            item.area.x += correction.x;
+            item.area.y += correction.y;
+            this.eventBus.emitItemChanged(item.id, 'area');
+        }
+        this.eventBus.emitSchemeChangeCommited();
+        this.updateMultiItemEditBox();
+    }
+
+    alignItemsVertically(items) {
+        if (items.length < 2) {
+            return;
+        }
+
+        let centerSum = 0;
+        const worldBoxes = [];
+        forEach(items, item => {
+            const bbox = this.getBoundingBoxOfItems([item]);
+            worldBoxes.push({ bbox, item });
+
+            centerSum += bbox.x + bbox.w/2;
+        });
+
+        const center = centerSum / worldBoxes.length;
+
+        worldBoxes.sort((a, b) => {
+            return a.bbox.y - b.bbox.y;
+        });
+
+        let marginSum = 0;
+        let properMarginCount = 0;
+
+        for(let i = 0; i < worldBoxes.length - 1; i++) {
+            const margin = worldBoxes[i+1].bbox.y - (worldBoxes[i].bbox.y + worldBoxes[i].bbox.h);
+            if (margin > 0) {
+                marginSum += margin;
+                properMarginCount++;
+            }
+        }
+
+        const finalMargin = marginSum / Math.max(1, properMarginCount);
+        
+        let prevWorldOffset = worldBoxes[0].bbox.y;
+
+        for(let i = 0; i < worldBoxes.length; i++) {
+            const item = worldBoxes[i].item;
+            let dy = 0;
+            if (i > 0) {
+                dy = prevWorldOffset + finalMargin - worldBoxes[i].bbox.y;
+            }
+            const dx = center - worldBoxes[i].bbox.x - worldBoxes[i].bbox.w / 2;
+
+            let parentTransform = myMath.identityMatrix();
+            if (item.meta.parentId) {
+                const parent = this.findItemById(item.meta.parentId);
+                if (parent) {
+                    parentTransform = itemCompleteTransform(parent);
+                }
+            }
+            const correction = myMath.transformVector(parentTransform, dx, dy);
+
+            prevWorldOffset = dy + worldBoxes[i].bbox.y + worldBoxes[i].bbox.h;
+            
+            item.area.x += correction.x;
+            item.area.y += correction.y;
+            this.eventBus.emitItemChanged(item.id, 'area');
+        }
+        this.eventBus.emitSchemeChangeCommited();
+        this.updateMultiItemEditBox();
+    }
+
     alignItemsHorizontallyInParent(items) {
         this._alignItemsWith(items, (item, correction) => {
             item.area.x += correction.x;
