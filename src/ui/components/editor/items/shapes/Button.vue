@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick">
+    <g @mouseover="onMouseOver" @mouseleave="onMouseLeave" @click="onMouseClick" style="cursor: pointer;">
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-hover-${item.id}`" :fill="item.shapeProps.hoverFill" :area="item.area"/>
 

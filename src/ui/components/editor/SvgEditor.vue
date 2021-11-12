@@ -1110,7 +1110,25 @@ export default {
             }]);
 
 
-            if (!this.schemeContainer.multiItemEditBox || (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1)) {
+            let items = [item];
+            if (this.schemeContainer.multiItemEditBox) {
+                items = this.schemeContainer.multiItemEditBox.items;
+            }
+            this.customContextMenu.menuOptions.push({
+                name: 'Align',
+                subOptions: [{
+                    name: 'Horizontally in parent',
+                    clicked: () => this.schemeContainer.alignItemsHorizontallyInParent(items)
+                }, {
+                    name: 'Vertically in parent',
+                    clicked: () => this.schemeContainer.alignItemsVerticallyInParent(items)
+                }, {
+                    name: 'Centered in parent',
+                    clicked: () => this.schemeContainer.alignItemsCenteredInParent(items)
+                }]
+            });
+
+            if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Events',
                     subOptions: [{

@@ -2111,6 +2111,89 @@ class SchemeContainer {
     getEventBus() {
         return this.eventBus;
     }
+    
+    alignItemsHorizontallyInParent(items) {
+        this._alignItemsWith(items, (item, correction) => {
+            item.area.x += correction.x;
+        });
+    }
+
+    alignItemsVerticallyInParent(items) {
+        this._alignItemsWith(items, (item, correction) => {
+            item.area.y += correction.y;
+        });
+    }
+
+    alignItemsCenteredInParent(items) {
+        this._alignItemsWith(items, (item, correction) => {
+            item.area.x += correction.x;
+            item.area.y += correction.y;
+        });
+    }
+
+    _alignItemsWith(items, correctionCallback) {
+        const itemsByParent = this._breakItemsByParents(items);
+        itemsByParent.forEach((items, parentId) => {
+            const correction = this._findCenteringCorrection(items, parentId);
+            forEach(items, item => {
+                correctionCallback(item, correction);
+                this.eventBus.emitItemChanged(item.id, 'area');
+            });
+        });
+        this.eventBus.emitSchemeChangeCommited();
+        this.updateMultiItemEditBox();
+    }
+
+    _findCenteringCorrection(items, parentId) {
+        if (items.length === 0) {
+            return {x: 0, y: 0};
+        }
+        const parentItem = this.findItemById(parentId);
+        if (!parentItem) {
+            return;
+        }
+
+        let minX = items[0].area.x;
+        let maxX = items[0].area.x;
+        let minY = items[0].area.y;
+        let maxY = items[0].area.y;
+
+        forEach(items, item => {
+            minX = Math.min(minX, item.area.x);
+            maxX = Math.max(maxX, item.area.x + item.area.w);
+            minY = Math.min(minY, item.area.y);
+            maxY = Math.max(maxY, item.area.y + item.area.h);
+        });
+
+        const leftMargin = minX;
+        const rightMargin = parentItem.area.w - maxX;
+
+        const topMargin = minY;
+        const bottomMargin = parentItem.area.h - maxY;
+
+        return {
+            x: (rightMargin - leftMargin) / 2,
+            y: (bottomMargin - topMargin) / 2
+        };
+    }
+
+    /**
+     * @param {Array} items 
+     * @returns {Map}
+     */
+    _breakItemsByParents(items) {
+        const itemsByParent = new Map();
+        forEach(items, item => {
+            const parentId = item.meta.parentId;
+            if (parentId) {
+                if (!itemsByParent.has(parentId)) {
+                    itemsByParent.set(parentId, []);
+                }
+                itemsByParent.get(parentId).push(item);
+            }
+        });
+        return itemsByParent;
+    }
 }
 
 
