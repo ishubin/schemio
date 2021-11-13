@@ -192,7 +192,7 @@ export default {
 
     normalizedVector(x, y) {
         const dSquared = x * x + y * y;
-        if (myMath.tooSmall(dSquared)) {
+        if (this.tooSmall(dSquared)) {
             return null;
         }
 
@@ -752,6 +752,102 @@ export default {
         }
 
         return result;
+    },
+
+
+    /**
+     * Calculates local translation for specified area so that its top left corner 
+     * would match world point
+     * 
+     * @param {Number} x - x part of world point
+     * @param {Number} y - y part of world point
+     * @param {Area} area 
+     * @param {Array} parentTransform 
+     * @returns {Point} - can be null. Point in the local transform of area with which its top left corner would match specified world point
+     */
+    findTranslationMatchingWorldPoint(x, y, area, parentTransform) {
+        // Here we have to do some reversed computation to figure out which translation matrix should be used in the area
+        // so that its top left corner matches specified point in world.
+        // (this is used to reflect changes in multi-item edit box)
+        // We do it like this:
+        // We take a point at (0, 0) which represents top left corner in the item and try to match it to the
+        // representative projected point in multi-item edit box in the world transform
+        // In other words: edit box stores projection of topLeft corner relatively to itself.
+        // So if we project that corner to the real world - we would get a point where it is supposed to be after 
+        // all modifications made to the edit box. Lets call this point Pw.
+        // Then we know how to calculate local point of top left corner P0 which is in (0, 0) inside item area
+        // We just need to apply standard transformation together with parent transform.
+        // Based on this we can write the following equation:
+        //
+        //      Pw = Ap * At * Ac1 * Ar * Ac2 * As * P0
+        //
+        // where
+        //      Pw  - top left corner in world transform
+        //      Ap  - parent item transform matrix
+        //      At  - translation matrix. This is unknown in the equation
+        //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy). 
+        //            This matrix is needed so that item is rotated around pivot point
+        //      Ar  - rotation matrix. Rotates item by its area.r value
+        //      Ac2 - translation matrix for items pivot point. It moves item back by (-rpx, -rpy)
+        //      As  - scale matrix
+        //      P0  - top left corner is just a 1-column matrix representing point in (0, 0)
+        //
+        // We can move Ap to the left if we inverse it. Lets also group all matrices
+        // on the right between At and P0 and call it just matrix A
+        //
+        //      Ap-1 * Pw = At * A * P0
+        // 
+        // where
+        //      Ap-1 = is inverse of Ap matrix
+        //      A = Ac1 * Ar * Ac2 * As
+        // 
+        // lets call matrix Ap-1 as B to make it easier to distinguish between the two matrices:
+        //
+        //      B * Pw = At * A * P0
+        //
+        // in the equation above only At is unknown so lets expand all multiplications of all matrices
+        //
+        //      | B11  B12  B13 |   | Xw |     | 1  0  Xt |   | A11  A12  A13 |   | 0 |
+        //      | B21  B22  B23 | * | Yw |  =  | 0  1  Yt | * | A21  A22  A23 | * | 0 |
+        //      | B31  B32  B33 | * | 1  |     | 0  0  1  |   | A31  A32  A33 |   | 1 |
+        //
+        // if we multiple all matrices we will find out that
+        //
+        //      | B11*Xw + B12*Yw + B13 |   | A13 + A33*Xt |
+        //      | B21*Xw + B22*Yw + B23 | = | A23 + A33*Yt |
+        //      |    B31 + B32 + B33    |   |     A33      |
+        //
+        // from the above equation we can take out the relevant parts and finally get our complete formula
+        //
+        //      Xt = (B11*Xw + B12*Yw + B13 - A13) / A33
+        //      Yt = (B21*Xw + B22*Yw + B23 - A23) / A33
+
+        let parentInversedTransform = this.identityMatrix();
+        if (parentTransform) {
+            parentInversedTransform = this.inverseMatrix3x3(parentTransform);
+        }
+
+        if (parentInversedTransform) {
+            const rpx = area.px * area.w;
+            const rpy = area.py * area.h;
+
+            const B = parentInversedTransform;
+            const A = this.multiplyMatrices(
+                this.translationMatrix(rpx, rpy),
+                this.rotationMatrixInDegrees(area.r),
+                this.translationMatrix(-rpx, -rpy),
+                this.scaleMatrix(area.sx, area.sy)
+            );
+
+            if (!this.tooSmall(A[2][2])) {
+                return {
+                    x: (B[0][0] * x + B[0][1] * y + B[0][2] - A[0][2]) / A[2][2],
+                    y: (B[1][0] * x + B[1][1] * y + B[1][2] - A[1][2]) / A[2][2]
+                };
+            }
+        }
+        
+        return null;
     },
 
 
