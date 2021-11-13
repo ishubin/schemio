@@ -942,16 +942,14 @@ class SchemeContainer {
         }
 
         // Recalculating item area so that its world coords would match under new transform
-        const worldPoint = this.worldPointOnItem(0, 0, item);
-        let newLocalPoint = {
-            x: worldPoint.x, y: worldPoint.y
-        }
+        const topLeftWorldPoint = this.worldPointOnItem(0, 0, item);
 
         let previousParentWorldAngle = 0;
         let otherItemWorldAngle = 0;
 
+        let newParentTransform = myMath.identityMatrix();
         if (otherItem) {
-            newLocalPoint = this.localPointOnItem(worldPoint.x, worldPoint.y, otherItem);
+            newParentTransform = itemCompleteTransform(otherItem);
             otherItemWorldAngle = worldAngleOfItem(otherItem);
         }
 
@@ -994,9 +992,13 @@ class SchemeContainer {
 
         newItemsArray.splice(position + positionCorrection, 0, item);
 
-        item.area.x = newLocalPoint.x;
-        item.area.y = newLocalPoint.y;
         item.area.r += previousParentWorldAngle - otherItemWorldAngle;
+
+        const newLocalPoint = myMath.findTranslationMatchingWorldPoint(topLeftWorldPoint.x, topLeftWorldPoint.y, item.area, newParentTransform);
+        if (newLocalPoint) {
+            item.area.x = newLocalPoint.x;
+            item.area.y = newLocalPoint.y;
+        }
  
         if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
 
