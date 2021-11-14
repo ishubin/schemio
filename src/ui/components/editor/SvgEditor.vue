@@ -1142,8 +1142,8 @@ export default {
             });
             
 
-
-            if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1) {
+            
+            if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Events',
                     subOptions: [{

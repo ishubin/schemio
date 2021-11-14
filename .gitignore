@@ -9,5 +9,6 @@ dist/
 *.swp
 public/public-images/
 assets/schemio.app.js
+assets/schemio.js
 assets/schemio-standalone.js
 build-docker.sh
