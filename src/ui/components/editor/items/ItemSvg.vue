@@ -243,9 +243,7 @@ export default {
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
 
-            if (propertyPath && propertyPath.startsWith('area')) {
-                this.svgItemTransform = this.calculateSVGItemTransform();
-            }
+            this.svgItemTransform = this.calculateSVGItemTransform();
 
             this.revision += 1;
 

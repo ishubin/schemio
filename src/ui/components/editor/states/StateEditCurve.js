@@ -1023,9 +1023,9 @@ export default class StateEditCurve extends State {
         }
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.eventBus.emitItemChanged(this.item.id);
-        this.eventBus.emitSchemeChangeCommited();
         this.schemeContainer.reindexItems();
+        this.eventBus.emitItemChanged(this.item.id, 'area');
+        this.eventBus.emitSchemeChangeCommited();
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }
