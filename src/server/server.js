@@ -99,7 +99,7 @@ app.get('/v1/art', (req, res) => {
 
 
 app.get('*', (req, res) => {
-    res.sendFile(`${cwd}/dist/assets/index.html`)
+    res.sendFile(`${cwd}/html/index.html`)
 });
 
 

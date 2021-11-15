@@ -4,18 +4,19 @@
   "description": "",
   "scripts": {
     "build": "babel src/server -d dist/server",
-    "start": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
+    "start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
     "build-playground": "babel src/server/server-playground.js -d dist/server",
     "start-playground": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; npm run build-playground && node dist/server/server-playground.js'",
     "build-clean-init": "mkdir -p dist; rm -rf dist/*; mkdir -p dist/server; mkdir -p uploads",
     "build-assets": "npm run build-clean-init; mkdir -p dist/assets; cp -r assets/* dist/assets/",
-    "build-app-dev": "webpack --config webpack.build.app.dev.js; cp dist/assets/schemio.app.js assets/; cp src/html/index.html dist/assets/index.html; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
+    "build-app-dev": "webpack --config webpack.build.app.dev.js; cp dist/assets/schemio.app.js assets/; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
+    "build-app-prod": "webpack --config webpack.build.app.prod.js; cp dist/assets/schemio.app.js assets/; npm run build-standalone-prod; cp dist/assets/schemio-standalone.js assets/.",
     "build-component-dev": "webpack --config webpack.build.dev.js; npm run build-standalone",
     "build-component-prod": "npm run build-assets; webpack --config webpack.build.prod.js; npm run build-standalone-prod",
     "build-standalone": "webpack --config webpack.standalone.js",
     "build-standalone-prod": "webpack --config webpack.standalone.prod.js",
     "build-ui-static-app": "webpack --config webpack.build.app.static.dev.js",
-    "test": "mocha-webpack --webpack-config webpack.build.test.js -r test/setup.js test/*.spec.js test/**/*.spec.js"
+    "test": "webpack --config webpack.build.test.js && mocha dist/schemio.tests.js"
   },
   "author": "Ivan Shubin",
   "license": "MPL-2.0",
@@ -29,10 +30,9 @@
     "babel-loader": "^8.2.2",
     "expect": "^24.8.0",
     "file-loader": "^0.11.2",
-    "jsdom": "^16.4.0",
+    "jsdom": "^18.1.0",
     "jszip": "^3.5.0",
     "mocha": "^7.0.0",
-    "mocha-webpack": "v2.0.0-beta.0",
     "sanitize-html": "^1.20.1",
     "shortid": "^2.2.16",
     "tiptap": "^1.22.3",
@@ -40,16 +40,17 @@
     "vue": "^2.6.10",
     "vue-color": "2.7.0",
     "vue-gtag": "^1.16.1",
-    "vue-loader": "^15.8.3",
+    "vue-loader": "^15.9.8",
     "vue-router": "^2.7.0",
     "vue-template-compiler": "^2.6.10",
     "vuex": "^3.5.1",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0"
+    "webpack": "^5.64.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.5.0"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
+    "buffer": "^6.0.3",
     "express": "^4.16.2",
     "express-fileupload": "^1.2.1",
     "express-session": "^1.15.6",
@@ -60,6 +61,7 @@
     "nodemon": "^1.18.7",
     "path": "^0.12.7",
     "properties-reader": "0.0.16",
-    "sinon": "^7.4.2"
+    "sinon": "^7.4.2",
+    "stream": "^0.0.2"
   }
 }

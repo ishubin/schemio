@@ -1,17 +1,16 @@
 const { VueLoaderPlugin } = require('vue-loader');
-const webpack = require('webpack');
 const path = require('path');
 module.exports = {
     // This is the "main" file which should include all other modules
-    entry: './all-tests.js',
+    entry: './src/ui/main.app.static.js',
     // Where should the compiled file go?
     output: {
-        path: path.resolve(__dirname, 'dist'),
-        publicPath: 'dist/schemio.tests.js',
-        filename: 'schemio.tests.js'
+        path: path.resolve(__dirname, 'dist/assets'),
+        publicPath: 'dist/assets/schemio.app.static.js',
+        filename: 'schemio.app.static.js'
     },
     optimization: {
-        minimize: false
+        minimize: tue
     },
     resolve: {
         alias: {
@@ -40,11 +39,6 @@ module.exports = {
         ]
     },
     plugins: [
-        new VueLoaderPlugin(),
-        new webpack.IgnorePlugin({
-            resourceRegExp: /canvas/, 
-            contextRegExp: /jsdom$/
-        })
-    ],
-    target: 'node'
+        new VueLoaderPlugin()
+    ]
 };
