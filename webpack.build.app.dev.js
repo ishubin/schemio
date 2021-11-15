@@ -1,6 +1,7 @@
 const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
 module.exports = {
+    mode: 'production',
     // This is the "main" file which should include all other modules
     entry: './src/ui/main.app.js',
     // Where should the compiled file go?
@@ -14,7 +15,7 @@ module.exports = {
     },
     resolve: {
         alias: {
-            vue: 'vue/dist/vue.js'
+            vue: 'vue/dist/vue.min.js'
         }
     },
     module: {
