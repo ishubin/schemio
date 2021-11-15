@@ -1,6 +1,7 @@
 const { VueLoaderPlugin } = require('vue-loader');
 const path = require('path');
 module.exports = {
+    mode: 'production',
     // This is the "main" file which should include all other modules
     entry: './src/ui/main.app.static.js',
     // Where should the compiled file go?
