@@ -10,7 +10,9 @@
             <div v-if="searchResult">
                 <div class="search-panel">
                     <input ref="searchField" type="text" v-model="query" class="textfield" @keydown.enter="toggleSearch"/>
-                    <span class="btn btn-primary" @click="toggleSearch">Search</span>
+                    <span class="btn btn-primary" @click="toggleSearch">
+                        <i class="fas fa-search"></i> Search
+                    </span>
                 </div>
 
                 Total results: {{searchResult.totalResults}}

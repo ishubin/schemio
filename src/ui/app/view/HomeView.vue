@@ -22,6 +22,9 @@
                         <i class="fas fa-file"></i> Create Scheme
                     </span>
                     <input type="text" class="textfield" placeholder="Search ..." v-model="searchKeyword" @keydown.enter="searchSchemes"/>
+                    <span class="btn btn-primary" @click="searchSchemes">
+                        <i class="fas fa-search"></i> Search
+                    </span>
                 </div>
 
                 <ul class="breadcrumbs">
