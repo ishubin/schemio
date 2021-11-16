@@ -4,14 +4,15 @@
 
 <template>
     <div class="ssc-container" oncontextmenu="return false;" style="position: relative;">
-        <div class="ssc-header" style="">
-            <div style="padding: 4px;">
+        <div class="ssc-header">
+            <div class="ssc-header-search">
                 Zoom:
-                <input class="ssc-search" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
+                <input class="ssc-zoom" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
-
-            <a class="ssc-schemio-logo" target="_top" :href="homeLink"><img src="/assets/images/schemio-logo-white.small.png" height="20"> <span>Schemio</span></a>
+            <div class="ssc-header-right">
+                built by <a target="_top" :href="homeLink">Schemio</a>
+            </div>
         </div>
         <div class="ssc-body">
             <svg-editor ref="svgEditor"
