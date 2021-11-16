@@ -392,130 +392,6 @@ ul.projects > li .project-footer {
 }
 
 
-/***************** Mocking elements ************************/
-.mock-container .mock-element {
-    border-radius: var(--control-border-radius);
-}
-
-.mock-container .mock-long-field {
-    display: block;
-    width: 100%;
-    height: 20px;
-    margin-bottom: 20px;
-}
-
-.mock-projects-list .mock-project {
-    display: block;
-    margin-bottom: 25px;
-}
-.mock-projects-list .mock-project .mock-project-header {
-    display: block;
-    padding-left: 35px;
-    position: relative;
-    height: 20px;
-    width: 100%;
-}
-.mock-projects-list .mock-project .mock-project-icon {
-    position: absolute;
-    display: inline-block;
-    background: var(--faint-weak);
-    left: 0;
-    top: 0;
-    width: 25px;
-    height: 20px;
-}
-.mock-projects-list .mock-project .mock-project-title {
-    display: block;
-    width: 100%;
-    height: 20px;
-}
-.mock-projects-list .mock-project .mock-project-description {
-    display: block;
-    margin-top: 5px;
-    width: 100%;
-    height: 30px;
-}
-
-
-/************ Mocking Project page ****************/
-
-.mock-project .mock-project-name {
-    display: inline-block;
-    width: 400px;
-    height: 25px;
-    border-radius: var(--control-border-radius);
-    margin-top: 25px;
-    margin-bottom: 20px;
-}
-.mock-project .mock-project-description {
-    display: block;
-    height: 60px;
-    border-radius: var(--control-border-radius);
-    margin-bottom: 10px;
-}
-
-.mock-project-schemes .mock-scheme-tag {
-    display: inline-block;
-    background: var(--faint-weak);
-    margin-right: 10px;
-    width: 50px;
-    height: 25px;
-}
-.mock-project-schemes .mock-scheme-gallery-row {
-    margin-bottom: 10px;
-}
-.mock-project-schemes .mock-scheme-gallery-row .mock-scheme {
-    display: inline-block;
-    background: var(--faint-weak);
-    width: 250px;
-    height: 200px;
-    margin-right: 20px;
-}
-.mock-project-schemes .mock-scheme-list-row {
-    position: relative;
-    margin-bottom: 20px;
-    padding-left: 100px;
-    height: 80px;
-}
-.mock-project-schemes .mock-scheme-list-row .mock-scheme-preview {
-    display: inline-block;
-    position: absolute;
-    background: var(--faint-weak);
-    top: 0;
-    left: 0;
-    width: 80px;
-    height: 80px
-}
-.mock-project-schemes .mock-scheme-list-row .mock-scheme-info .mock-scheme-name {
-    height: 25px;
-    margin-bottom: 10px;
-}
-.mock-project-schemes .mock-scheme-list-row .mock-scheme-info .mock-scheme-description {
-    height: 45px;
-}
-
-
-
-
-@keyframes mockBackgroundMoving {
-    0% {
-        background-position: 0px 0;
-    }
-    100% {
-        background-position: 200em 0;
-    }
-}
-.mock-container .mock-element.mock-animated {
-    animation-duration: 3s;
-    animation-fill-mode: forwards;
-    animation-iteration-count: infinite;
-    animation-name: mockBackgroundMoving;
-    animation-timing-function: linear;
-    background: linear-gradient(to right, var(--faint-weak) 0%, var(--faint-weak-down) 50%, var(--faint-weak) 100%);
-    -webkit-backface-visibility: hidden;
-}
-
-
 /********** Scheme List & Categories ***********/
 
 ul.categories, ul.schemes {
@@ -801,12 +677,6 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     padding: 1px 2px;
     font-size: 13px;
 }
-
-.btn.search-button {
-    min-width: 130px;
-    text-align: center;
-}
-
 
 
 /******************** Textfields *******************/
@@ -1790,10 +1660,10 @@ ul.button-group > li.disabled > .icon-button:hover,
     border-collapse: collapse;
     width: 100%;
 }
-.properties-table td {
+.properties-table > tbody > tr > td {
     padding: 2px;
 }
-.properties-table td.disabled {
+.properties-table > tbody > tr > td.disabled {
     opacity: 0.3;
 }
 .properties-table .label {
@@ -1811,10 +1681,10 @@ ul.button-group > li.disabled > .icon-button:hover,
     padding: 6px 4px 6px 4px;
     font-size: 14px;
 }
-.properties-table tr:nth-child(even) {
+.properties-table > tbody > tr:nth-child(even) {
     background: var(--faint-weak);
 }
-.properties-table tr:nth-child(odd) {
+.properties-table > tbody > tr:nth-child(odd) {
     background: none;
 }
 
@@ -2391,50 +2261,7 @@ ul.category-breadcrumb li i {
 }
 
 
-/****************** Project Page ****************/
-.project-view .project-layout {
-    display: flex;
-}
-.project-view .project-layout .project-categories {
-    flex: 2;
-    margin-left: 10px;
-    margin-right: 10px;
-}
-.project-view .project-layout .project-body {
-    flex: 6;
-}
-.project-view .project-layout .empty-placeholder {
-    flex: 2;
-}
-
-.search-controls {
-    display: flex;
-}
-.search-controls .textfield {
-    margin-right: 10px;
-    max-width: 600px;
-}
-
-.project-view h3 .project-edit-button:hover {
-    color: var(--accent-faint);
-    background: var(--accent-weak-up);
-}
-
-.radio-project-permission-option {
-    margin-bottom: 10px;
-    border-radius: 5px;
-    padding: 5px;
-    cursor: pointer;
-    opacity: 0.7;
-    border: 1px solid var(--faint-weak-up);
-}
-.radio-project-permission-option.selected {
-    opacity: 1.0;
-    border-radius: 5px;
-    padding: 5px;
-    border: 1px solid var(--faint-strong-up);
-}
-
+/***************** Category Tree *********************/
 
 .category-tree .category-selector {
     position: relative;
@@ -3339,6 +3166,35 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     opacity: 0.8;
 }
 
+
+.scheme-search-results {
+    width: 100%;
+}
+.scheme-search-results .scheme-row {
+    padding: 5px;
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid var(--faint-weak-down);
+}
+.scheme-search-results .scheme-row:last-child {
+    border-bottom: none;
+}
+.scheme-search-results .scheme-row .scheme-icon {
+    width: 50px;
+}
+.scheme-search-results .scheme-row .scheme-preview {
+    max-width: 40px;
+    max-height: 30px;
+}
+.scheme-search-results .scheme-row .scheme-title {
+    flex: 1;
+}
+.scheme-search-results .scheme-row:hover {
+    background: var(--base-weak);
+}
+
+
+
 /************************** Schemio App ****************************/
 table.entries-table {
     margin-top: 20px;
@@ -3476,4 +3332,20 @@ ul.breadcrumbs li .breadcrumb-separator {
 .fs-toolbar {
     margin-top: 10px;
     margin-bottom: 10px;
+}
+.fs-toolbar input[type='text'] {
+    max-width: 250px;
+}
+
+
+.search-panel {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    max-width: 600px;
+}
+.search-panel input.textfield {
+    flex: 1;
+    margin-right: 10px;
 }

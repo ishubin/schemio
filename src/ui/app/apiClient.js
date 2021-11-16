@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import axios from 'axios';
+import forEach from 'lodash/forEach';
 
 function unwrapAxios(response) {
     return response.data;
@@ -22,6 +23,7 @@ function getExportHTMLResources() {
     })
 }
 
+//TODO get rid of this path argument and provide it explicitly to each function
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
@@ -105,9 +107,23 @@ export function createApiClient(path) {
 
         findSchemes(filters) {
             let url = '/v1/fs/schemes';
+            let params = {};
+
             if (filters.query) {
-                url += '?q=' + encodeURIComponent(filters.query);
+                params.q = filters.query;
             }
+            if (filters.page) {
+                params.page = filters.page;
+            }
+
+            let isFirst = true;
+            forEach(params, (value, name) => {
+                url += isFirst ? '?' : '&';
+                url += name + '=';
+                url += encodeURIComponent(value);
+                
+                isFirst = false;
+            });
 
             return axios.get(url).then(unwrapAxios);
         },
@@ -170,7 +186,7 @@ export function createApiClient(path) {
 }
 
 
-export function createStaticClient(path) {
+export function createStaticClient() {
     const currentTimestamp = new Date().getTime();
 
     let cachedIndex = null;

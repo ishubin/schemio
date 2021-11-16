@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="Search Schemes" @close="$emit('close')">
+    <modal title="Search Schemes" @close="$emit('close')" :height="600">
         <h5>Name</h5>
         <input type="text" class="textfield" v-model="query"/>
 
@@ -15,10 +15,17 @@
                 :total-pages="totalPages"
                 @page-clicked="selectSearchPage"
             />
-            <div v-for="scheme in searchResult.results">
-                <span class="link" @click="onSchemeSelect(scheme)">{{scheme.name}}</span>
-                <span class="tag" v-for="tag in scheme.tags">{{tag}}</span>
-            </div>
+            <table class="scheme-search-results">
+                <tbody>
+                    <tr class="scheme-row" v-for="scheme in searchResult.results"  @click="onSchemeSelect(scheme)">
+                        <td class="scheme-icon">
+                            <img v-if="scheme.previewURL" class="scheme-preview" :src="`${scheme.previewURL}?v=${scheme.modifiedTime}`"/>
+                            <i v-else class="icon far fa-file fa-2x"></i>
+                        </td>
+                        <td class="scheme-title">{{scheme.name}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </modal>
 </template>
@@ -54,19 +61,13 @@ export default {
         },
 
         reloadSchemes(page) {
-            var offset = 0;
-            if (this.searchResult) {
-                if (page > 0) {
-                    offset = (page - 1) * this.searchResult.resultsPerPage;
-                }
-            }
             this.$store.state.apiClient.findSchemes({
                 query: this.query,
-                offset: offset,
+                page: page,
                 limit: this.resultsPerPage
             }).then(searchResponse => {
                 this.searchResult = searchResponse;
-                this.totalPages = Math.ceil(searchResponse.total / searchResponse.resultsPerPage);
+                this.totalPages = searchResponse.totalPages
             });
         },
     },

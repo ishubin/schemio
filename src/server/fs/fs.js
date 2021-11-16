@@ -162,19 +162,48 @@ export function fsDeleteScheme(config) {
     };
 }
 
+const resultsPerPage = 25;
+
+function toPageNumber(text) {
+    const page = parseInt(text);
+    if (!isNaN(page) && page !== undefined) {
+        return Math.max(1, page);
+    }
+    return 1;
+}
+
 export function fsSearchSchemes(config) {
     return (req, res) => {
         const entities = searchIndexEntities(req.query.q || '');
-        const schemes = _.map(entities, entity => {
+        const page = toPageNumber(req.query.page);
+        
+        let start = (page - 1) * resultsPerPage;
+        let end = start + resultsPerPage;
+        start = Math.max(0, Math.min(start, entities.length));
+        end = Math.max(start, Math.min(end, entities.length));
+
+        const totalResults = entities.length;
+        const filtered = entities.slice(start, end);
+
+        const schemes = _.map(filtered, entity => {
+            let previewURL = null;
+            if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${entity.id}.svg`))) {
+                previewURL = `/media/previews/${entity.id}.svg`;
+            }
             return {
                 name: entity.name,
                 publicLink: `/schemes/${entity.id}`,
-                id: entity.id
+                id: entity.id,
+                modifiedTime: entity.modifiedTime,
+                previewURL
             };
         });
+
         res.json({
-            totalResults: schemes.length,
-            results: schemes
+            totalResults: totalResults,
+            results: schemes,
+            totalPages: Math.ceil(totalResults / resultsPerPage),
+            page: page
         });
     };
 }

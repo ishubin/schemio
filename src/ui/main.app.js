@@ -8,6 +8,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './app/App.vue';
 import HomeView from './app/view/HomeView.vue';
+import SearchView from './app/view/SearchView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
@@ -25,6 +26,7 @@ const routes = [
     route('SchemeEditorView',   '/schemes/:schemeId',   SchemeEditorView, {useStaticClient: false}),
     route('NotFoundView',       '/not-found',           NotFoundView),
     route('HomeView',           '/',                    HomeView, {useStaticClient: false}),
+    route('HomeView',           '/search',              SearchView, {useStaticClient: false}),
     route('FolderView',         '/f/*',                 HomeView, {useStaticClient: false}),
     { path: '*', redirect: '/not-found'}
 ];

@@ -21,6 +21,7 @@
                     <span class="btn btn-secondary" @click="showNewSchemeModel()">
                         <i class="fas fa-file"></i> Create Scheme
                     </span>
+                    <input type="text" class="textfield" placeholder="Search ..." v-model="searchKeyword" @keydown.enter="searchSchemes"/>
                 </div>
 
                 <ul class="breadcrumbs">
@@ -192,6 +193,7 @@ export default {
             entries: [],
             errorMessage: null,
             viewOnly: true,
+            searchKeyword: '',
 
             is404: false,
 
@@ -358,6 +360,12 @@ export default {
             this.entries.splice(this.moveEntryModal.entryIdx, 1);
             this.moveEntryModal.shown = false;
             this.$forceUpdate();
+        },
+
+        searchSchemes() {
+            this.$router.push({
+                path: `/search?q=${encodeURIComponent(this.searchKeyword)}`
+            });
         }
     },
 
