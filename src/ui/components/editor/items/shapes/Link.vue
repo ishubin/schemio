@@ -67,7 +67,7 @@ export default {
             underline: {type: 'boolean', value: true, name: 'Underline'},
             showIcon : {type: 'boolean', value: true, name: 'Show Icon'},
             icon     : {type: 'choice', value: 'default', name: 'Icon', options: map(LinkTypes.knownTypes, linkType => linkType.name)},
-            iconColor: {type: 'color', value: '#666666', name: 'Color'}
+            iconColor: {type: 'color', value: '#666666', name: 'Color', depends: {showIcon: true}}
         },
     },
 
