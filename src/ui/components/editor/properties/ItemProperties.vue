@@ -189,6 +189,7 @@
             :isAdding="editEffectModal.isAdding"
             :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
+            :schemeContainer="schemeContainer"
             @close="effectModalClosed"
             @effect-submited="onEffectSubmited"
             @effect-arg-changed="onEffectArgChanged"

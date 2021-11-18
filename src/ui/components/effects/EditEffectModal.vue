@@ -21,7 +21,12 @@
         <div class="ctrl-label">Name</div>
         <input class="textfield" v-model="effectName"/>
 
-        <EffectEditor :key="`effect-editor-${effectId}`" :effectId="effectId" :effectArgs="effectArgs" @effect-arg-changed="onEffectArgEdited"/>
+        <EffectEditor
+            :key="`effect-editor-${effectId}`"
+            :schemeContainer="schemeContainer"
+            :effectId="effectId"
+            :effectArgs="effectArgs"
+            @effect-arg-changed="onEffectArgEdited"/>
 
     </Modal>
 </template>
@@ -48,6 +53,7 @@ export default {
         isAdding  : { type: Boolean, default: true },
         effectId  : { type: String, required: true },
         effectArgs: { type: Object, required: true },
+        schemeContainer: { type: Object, required: true },
     },
 
     data() {

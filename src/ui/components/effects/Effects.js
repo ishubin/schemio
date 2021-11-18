@@ -23,16 +23,18 @@ function svgElement(name, attrs, childElements) {
     return el;
 }
 
+const $ = svgElement;
+
 const effects = {
     'drop-shadow': {
         name: 'Drop Shadow',
-        type: 'back',
         args: {
             color  : {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Color'},
             dx     : {type: 'number', value: 10, name: 'Offset X'},
             dy     : {type: 'number', value: 10, name: 'Offset Y'},
             blur   : {type: 'number', value: 5, name: 'Blur', min: 0, max: 100},
             opacity: {type: 'number', value: 50, name: 'Opacity (%)', min: 0, max: 100},
+            inside : {type: 'boolean', value: false, name: 'Inside'}
         },
 
         applyEffect(item, effectIdx, effectArgs) {
@@ -48,45 +50,69 @@ const effects = {
 
             const filterId =  `item-effect-drop-shadow-${item.id}-${effectIdx}`;
 
-            return svgElement('g', {}, [
-                svgElement('defs', {}, [
-                    svgElement('filter', {id: filterId}, [
-                        svgElement('feGaussianBlur', {
-                            in: 'SourceGraphic',
-                            stdDeviation: effectArgs.blur
-                        })
-                    ])
-                ]),
+            if (effectArgs.inside) {
+                return {
+                    kind: 'svg-filter',
+                    html: $('g', {}, [
+                        $('feComponentTransfer', {in: 'SourceAlpha' }, [
+                            $('feFuncA', {type: 'table', tableValues: '1 0'})
+                        ]),
+                        $('feGaussianBlur', {stdDeviation: effectArgs.blur}),
+                        $('feOffset', {dx: effectArgs.dx, dy: effectArgs.dy, result: 'offsetblur'}),
+                        $('feFlood', {'flood-color': effectArgs.color, result: 'color', 'flood-opacity': effectArgs.opacity / 100.0}),
+                        $('feComposite', {in2: 'offsetblur', operator: 'in'}),
+                        $('feComposite', {in2: 'SourceAlpha', operator: 'in'}),
+                        $('feMerge', {}, [
+                            $('feMergeNode', {in: 'SourceGraphic'}),
+                            $('feMergeNode'),
+                        ])
+                    ]).innerHTML
+                };
+            } else {
+                return {
+                    kind: 'back',
+                    html: svgElement('g', {}, [
+                        svgElement('defs', {}, [
+                            svgElement('filter', {id: filterId}, [
+                                svgElement('feGaussianBlur', {
+                                    in: 'SourceGraphic',
+                                    stdDeviation: effectArgs.blur
+                                })
+                            ])
+                        ]),
 
-                svgElement('path', {
-                    d: path,
-                    stroke: 'none',
-                    fill: effectArgs.color,
-                    transform: `translate(${effectArgs.dx} ${effectArgs.dy})`,
-                    style: `opacity: ${effectArgs.opacity / 100.0}`,
-                    filter: `url(#${filterId})`
-                })
-            ]).innerHTML;
+                        svgElement('path', {
+                            d: path,
+                            stroke: 'none',
+                            fill: effectArgs.color,
+                            transform: `translate(${effectArgs.dx} ${effectArgs.dy})`,
+                            style: `opacity: ${effectArgs.opacity / 100.0}`,
+                            filter: `url(#${filterId})`
+                        })
+                    ]).innerHTML
+                };
+            }
         }
     },
 
     'blur': {
         name: 'Blur',
-        type: 'svg-filter',
         args: {
             size: {type: 'number', value: 5, name: 'Size'},
         },
         applyEffect(item, effectIdx, effectArgs) {
-            return svgElement('feGaussianBlur', {
-                in: 'SourceGraphic',
-                stdDeviation: effectArgs.size
-            }).outerHTML;
+            return {
+                kind: 'svg-filter',
+                html: svgElement('feGaussianBlur', {
+                    in: 'SourceGraphic',
+                    stdDeviation: effectArgs.size
+                }).outerHTML
+            };
         }
     },
 
     'glow': {
         name: 'Glow',
-        type: 'front',
         args: {
             color  : {type: 'color', value: 'rgba(126,237,255,1.0)', name: 'Color'},
             size   : {type: 'number', value: 3, name: 'Size', min: 0, max: 100},
@@ -112,32 +138,34 @@ const effects = {
                 strokeSize = effectArgs.size + item.shapeProps['strokeSize'];
             }
 
-            return svgElement('g', {}, [
-                svgElement('defs', {}, [
-                    svgElement('filter', {id: filterId}, [
-                        svgElement('feGaussianBlur', {
-                            in: 'SourceGraphic',
-                            stdDeviation: effectArgs.blur
-                        })
-                    ])
-                ]),
+            return {
+                kind: 'front',
+                html: svgElement('g', {}, [
+                    svgElement('defs', {}, [
+                        svgElement('filter', {id: filterId}, [
+                            svgElement('feGaussianBlur', {
+                                in: 'SourceGraphic',
+                                stdDeviation: effectArgs.blur
+                            })
+                        ])
+                    ]),
 
-                svgElement('path', {
-                    d: path,
-                    'data-item-id': item.id,
-                    stroke: effectArgs.color,
-                    'stroke-width': `${strokeSize}px`,
-                    fill: 'none',
-                    style: `opacity: ${effectArgs.opacity / 100.0}`,
-                    filter: `url(#${filterId})`
-                })
-            ]).innerHTML;
+                    svgElement('path', {
+                        d: path,
+                        'data-item-id': item.id,
+                        stroke: effectArgs.color,
+                        'stroke-width': `${strokeSize}px`,
+                        fill: 'none',
+                        style: `opacity: ${effectArgs.opacity / 100.0}`,
+                        filter: `url(#${filterId})`
+                    })
+                ]).innerHTML
+            };
         }
     },
 
     'repeat': {
         name: 'Repeat',
-        type: 'back',
         args: {
             repeat: {type: 'number', value: 3, name: 'Repeat', min: 1, max: 20},
             dx    : {type: 'number', value: 10, name: 'Offset X'},
@@ -191,7 +219,10 @@ const effects = {
                 });
                 root.appendChild(g);
             }
-            return root.innerHTML;
+            return {
+                kind: 'back',
+                html: root.innerHTML
+            };
         }
     },
 }

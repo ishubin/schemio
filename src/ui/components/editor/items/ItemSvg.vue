@@ -10,7 +10,7 @@
         <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
 
         <defs>
-            <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html"></filter>
+            <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html" x="-50%" y="-50%" width="200%" height="200%"></filter>
         </defs>
 
         <g :filter="filterUrl">
@@ -115,18 +115,20 @@ function generateFilters(item) {
     forEach(item.effects, (itemEffect, idx) => {
         const effect = getEffectById(itemEffect.id);
         if (effect) {
-            if (effect.type === 'svg-filter') {
+            const generatedEffect = effect.applyEffect(item, idx, itemEffect.args);
+
+            if (generatedEffect.kind === 'svg-filter') {
                 const filterId = `item-svg-filter-effect-${item.id}-${idx}`;
                 svgFilters.push({
                     id: filterId,
-                    html: effect.applyEffect(item, idx, itemEffect.args)
+                    html: generatedEffect.html
                 });
 
                 filterUrl += `url(#${filterId}) `;
-            } else if (effect.type === 'back') {
-                backgroundEffects.push(effect.applyEffect(item, idx, itemEffect.args));
-            } else if (effect.type === 'front') {
-                foregroundEffects.push(effect.applyEffect(item, idx, itemEffect.args));
+            } else if (generatedEffect.kind === 'back') {
+                backgroundEffects.push(generatedEffect.html);
+            } else if (generatedEffect.kind === 'front') {
+                foregroundEffects.push(generatedEffect.html);
             }
         }
     });

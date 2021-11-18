@@ -11,9 +11,12 @@
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                     </td>
                     <td class="value" width="50%">
-                        <number-textfield v-if="arg.type === 'number'" :value="effectArgs[argName]" @changed="onPropChange(argName, arguments[0])" :min="arg.min" :max="arg.max"/>
-
-                        <color-picker v-if="arg.type === 'color'" :color="effectArgs[argName]"  @input="onPropChange(argName, arguments[0])"></color-picker>
+                        <PropertyInput
+                            :descriptor="arg"
+                            :value="effectArgs[argName]"
+                            :schemeContainer="schemeContainer"
+                            @input="onPropChange(argName, arguments[0])"
+                            />
                     </td>
                 </tr>
             </tbody>
@@ -25,15 +28,14 @@
 <script>
 import utils from '../../utils';
 
-import NumberTextfield from '../NumberTextfield.vue';
-import ColorPicker from '../editor/ColorPicker.vue';
+import PropertyInput from '../editor/properties/PropertyInput.vue';
 import Tooltip from '../Tooltip.vue';
 import {getEffectById} from './Effects';
 
 export default {
-    props: ['effectId', 'effectArgs'],
+    props: ['effectId', 'effectArgs', 'schemeContainer'],
 
-    components: {NumberTextfield, ColorPicker, Tooltip},
+    components: {PropertyInput, Tooltip},
 
     data() {
         const effect = getEffectById(this.effectId);
