@@ -69,6 +69,7 @@ export default {
                     style: 'curly',
                 }
             },
+            size: {w: 20, h: 200},
             previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
         }, {
             name: 'Square Bracket',
@@ -80,6 +81,7 @@ export default {
                     style: 'square'
                 }
             },
+            size: {w: 20, h: 200},
             previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
         }, {
             name: 'Round Bracket',
@@ -91,6 +93,7 @@ export default {
                     style: 'round'
                 }
             },
+            size: {w: 20, h: 200},
             previewArea: {x: 5, y: 30, w: 130, h: 15, r: 0},
         }],
 
