@@ -566,7 +566,13 @@ export default class StateEditCurve extends State {
 
     handleRightClick(x, y, mx, my, object) {
         const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
-        if (selectedPoints.length > 1) {
+
+        let clickedOnSelectedPoint = false;
+        for (let i = 0; i < selectedPoints.length && !clickedOnSelectedPoint; i++) {
+            clickedOnSelectedPoint = object.pointIndex === selectedPoints[i].id;
+        }
+        
+        if (selectedPoints.length > 1 && clickedOnSelectedPoint) {
             const menuOptions = [{
                 name: 'Delete points',
                 clicked: () => this.deleteSelectedPoints()
@@ -578,15 +584,13 @@ export default class StateEditCurve extends State {
                 clicked: () => this.convertSelectedPointsToSimple()
             }];
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+            return;
         }
 
         if (object && object.type === 'curve-point') {
             const allPoints = StoreUtils.getCurveEditPoints(this.store);
-            if (allPoints.length > object.pointIndex && allPoints[object.pointIndex].selected) {
-                // if user right clicked on selected point, then that's enough since earlier we already triggered context menu for multi-point selection
-                return;
-            }
-            // otherwise user might have clicked the deselected point. In this case we need to reset everything and treat it as a single point context menu
+            // user might have clicked the deselected point or the single selected point.
+            // In this case we need to reset everything and treat it as a single point context menu
 
             StoreUtils.selectCurveEditPoint(this.store, object.pointIndex, false);
 
