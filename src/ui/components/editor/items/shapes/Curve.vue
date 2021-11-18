@@ -103,36 +103,74 @@ function readjustItemArea(item, precision) {
         return;
     }
 
-    let minX = item.shapeProps.points[0].x + item.area.x,
-        minY = item.shapeProps.points[0].y + item.area.y,
-        maxX = minX,
-        maxY = minY;
+    const worldPoints = [];
 
     forEach(item.shapeProps.points, point => {
-        minX = Math.min(minX, point.x + item.area.x);
-        minY = Math.min(minY, point.y + item.area.y);
-        maxX = Math.max(maxX, point.x + item.area.x);
-        maxY = Math.max(maxY, point.y + item.area.y);
+        const p = worldPointOnItem(point.x, point.y, item);
+        p.t = point.t;
+
+        if (point.t === 'B' || point.t === 'A') {
+            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
+            p.p1 = p1;
+        }
         if (point.t === 'B') {
-            minX = Math.min(minX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
-            minY = Math.min(minY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
-            maxX = Math.max(maxX, point.x1 + point.x + item.area.x, point.x2 + point.x + item.area.x);
-            maxY = Math.max(maxY, point.y1 + point.y + item.area.y, point.y2 + point.y + item.area.y);
+            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
+            p.p2 = p2;
+        }
+
+        worldPoints.push(p);
+    });
+
+    let minX = worldPoints[0].x,
+        minY = worldPoints[0].y,
+        maxX = worldPoints[0].x,
+        maxY = worldPoints[0].y;
+    
+    forEach(worldPoints, p => {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+        if (p.t === 'B' || p.t === 'A') {
+            minX = Math.min(minX, p.p1.x);
+            minY = Math.min(minY, p.p1.y);
+            maxX = Math.max(maxX, p.p1.x);
+            maxY = Math.max(maxY, p.p1.y);
+        }
+        if (p.t === 'B') {
+            minX = Math.min(minX, p.p2.x);
+            minY = Math.min(minY, p.p2.y);
+            maxX = Math.max(maxX, p.p2.x);
+            maxY = Math.max(maxY, p.p2.y);
         }
     });
 
-    const dx = item.area.x - minX;
-    const dy = item.area.y - minY;
-
-    item.area.x = myMath.roundPrecise(minX, precision);
-    item.area.y = myMath.roundPrecise(minY, precision);
-    item.area.w = myMath.roundPrecise(maxX - minX, precision);
-    item.area.h = myMath.roundPrecise(maxY - minY, precision);
-
-    forEach(item.shapeProps.points, point => {
-        point.x = myMath.roundPrecise(point.x + dx, precision);
-        point.y = myMath.roundPrecise(point.y + dy, precision);
+    const newPoints = [];
+    forEach(worldPoints, p => {
+        const itemPoint = {
+            x: p.x - minX,
+            y: p.y - minY,
+            t: p.t
+        };
+        if (p.t === 'B' || p.t === 'A') {
+            itemPoint.x1 = p.p1.x - p.x;
+            itemPoint.y1 = p.p1.y - p.y;
+        }
+        if (p.t === 'B') {
+            itemPoint.x2 = p.p2.x - p.x;
+            itemPoint.y2 = p.p2.y - p.y;
+        }
+        newPoints.push(itemPoint);
     });
+    item.shapeProps.points = newPoints;
+
+    item.area.r = 0;
+    item.area.w = Math.max(0, maxX - minX);
+    item.area.h = Math.max(0, maxY - minY);
+
+    const position = myMath.findTranslationMatchingWorldPoint(minX, minY, item.area, item.meta.transformMatrix);
+    item.area.x = position.x;
+    item.area.y = position.y;
 }
 
 function worldPointOnItem(x, y, item) {
