@@ -73,7 +73,7 @@ const effects = {
                     kind: 'back',
                     html: svgElement('g', {}, [
                         svgElement('defs', {}, [
-                            svgElement('filter', {id: filterId}, [
+                            svgElement('filter', {id: filterId, x: '-50%', y: '-50%', width: '200%', height: '200%'}, [
                                 svgElement('feGaussianBlur', {
                                     in: 'SourceGraphic',
                                     stdDeviation: effectArgs.blur
