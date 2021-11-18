@@ -225,11 +225,11 @@ export default {
                 this.color.stretch = false;
             }
             if (colorType === 'solid' && !this.color.color) {
-                this.color.color = 'rgba(255,255,255,.10)';
+                this.color.color = 'rgba(255,255,255,1.0)';
             }
             if (colorType === 'gradient' && !this.color.gradient) {
-                let color1 = 'rgba(0,0,0, 1.0)';
-                let color2 = 'rgba(255,255,255, 1.0)';
+                let color1 = 'rgba(0,0,0,1.0)';
+                let color2 = 'rgba(255,255,255,1.0)';
 
                 if (this.color.color) {
                     color1 = this.color.color;
