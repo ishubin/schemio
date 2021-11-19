@@ -2930,6 +2930,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 .frame-animator-panel .frame-animator-title {
     width: 200px;
     white-space: nowrap;
+    padding-left: 20px;
     overflow: hidden;
 }
 .frame-animator-panel .frame-animator-title h3 {
@@ -2940,9 +2941,12 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 .frame-animator-panel .frame-animator-controls {
     flex: 1;
     user-select: none;
+    display: flex;
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-player-buttons {
     display: inline-block;
+    margin-right: 10px;
+    height: 30px;
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-frame-input {
     display: inline-block;
@@ -2955,6 +2959,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 .frame-animator-panel .frame-animator-right-panel {
     width: 60px;
     text-align: right;
+    padding-right: 20px;
 }
 .frame-animator-panel .frame-animator-right-panel .icon {
     cursor: pointer;
