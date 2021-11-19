@@ -35,7 +35,7 @@ npm test
 echo "Cleaning dists folder"
 rm -rf dists/*
 
-echo_section "Buildin server part"
+echo_section "Building server part"
 npm run build
 
 echo_section "Building app"
@@ -50,6 +50,11 @@ npm run build-ui-static-app-prod
 
 echo_section "Updating package.json"
 cat package.json | jq ".version=\"$NEW_VERSION\"" > tmp && mv tmp package.json
-
+git add package.json
+git commit -m "Updated version to $NEW_VERSION"
+git push
 
 echo_section "Creating a git tag for version: $NEW_VERSION"
+NEW_TAG="v$NEW_VERSION"
+git tag "$NEW_TAG"
+git push origin --tags
