@@ -198,7 +198,8 @@ function detectChanges(schemeContainer, originSchemeContainer) {
                     kind: 'item',
                     id: item.id,
                     property: change.path.join('.'),
-                    value: change.value
+                    value: change.value,
+                    oldValue: change.oldValue
                 });
             });
         }
@@ -597,15 +598,23 @@ export default {
                 let animation = find(this.framePlayer.shapeProps.animations, animation => isAnimationForSame(change, animation));
                 if (!animation) {
                     animation = change;
+                    const frames = [{
+                        frame: this.currentFrame,
+                        value: change.value,
+                        kind : 'linear'
+                    }];
+                    if (this.currentFrame > 1) {
+                        frames.splice(0, 0, {
+                            frame: 1,
+                            value: change.oldValue,
+                            kind : 'linear'
+                        });
+                    }
                     this.framePlayer.shapeProps.animations.push({
                         kind    : change.kind,
                         id      : change.id,
                         property: change.property,
-                        frames  : [{
-                            frame: this.currentFrame,
-                            value: change.value,
-                            kind : 'linear'
-                        }]
+                        frames  : frames
                     });
                 } else {
                     let idx = -1;
