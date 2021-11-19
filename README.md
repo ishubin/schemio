@@ -18,6 +18,20 @@ Features of Schemio:
 - Generate static version of all of your diagrams so that you can host it anywhere, even on GitHub pages
 
 
+Configuration
+---------------
+
+You can configure Schemio via the following environent variables
+
+| Env var                | Default value  | Description |
+| ---------------------- | -------------- | ----------- |
+| `SERVER_PORT`          | `4010`         | Server listening port |
+| `FS_ROOT_PATH`         | `/opt/schemio` | Path to Schemio storage on file system. This is where it will store all your diagrams and uploaded files |
+| `FILE_UPLOAD_MAX_SIZE` | `10485760`     | Upload size limit for media files |
+| `VIEW_ONLY_MODE`       | `false`        | If set to true - it does not allow editing, only viewing of folders and diagrams |
+
+
+
 License
 ---------
 
