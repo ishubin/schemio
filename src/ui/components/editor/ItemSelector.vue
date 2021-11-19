@@ -462,6 +462,7 @@ export default {
                     const item = this.schemeContainer.findItemById(this.nameEdit.itemId);
                     if (item) {
                         item.name = this.nameEdit.name;
+                        EventBus.emitSchemeChangeCommited(`item.${item.id}.name`);
                     }
                 }
             }
