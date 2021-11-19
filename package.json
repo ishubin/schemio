@@ -1,7 +1,7 @@
 {
   "name": "schemio",
   "version": "0.1.1",
-  "description": "",
+  "description": "in browser app for creating interactive diagrams",
   "scripts": {
     "build": "babel src/server -d dist/server",
     "start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",

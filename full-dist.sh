@@ -2,17 +2,38 @@
 
 set -e
 
+PROJECT_DIR=$(pwd)
+
 function echo_section() {
     echo "--------------------------------------------"
     echo $1
     echo "--------------------------------------------"
 }
 
-
 function readVersion() {
     echo -n "Type new version: "
     read NEW_VERSION
 }
+
+function copy_doc_files() {
+    cp $PROJECT_DIR/README.md .
+    cp $PROJECT_DIR/LICENSE .
+}
+
+function copy_project_file() {
+    cp -r "$PROJECT_DIR/$1" .
+}
+
+function copy_standard_assets() {
+    copy_project_file dist/assets/schemio-standalone.js
+    copy_project_file assets/schemio-standalone.html
+    copy_project_file assets/schemio-standalone.css
+    copy_project_file assets/main.css
+    copy_project_file assets/css
+    copy_project_file assets/images
+    copy_project_file assets/webfonts
+}
+
 
 CURRENT_VERSION=$(cat package.json | jq -r .version)
 
@@ -35,9 +56,6 @@ npm test
 echo "Cleaning dists folder"
 rm -rf dists/*
 
-echo_section "Building server part"
-npm run build
-
 echo_section "Building app"
 npm run build-app-prod
 
@@ -46,6 +64,38 @@ npm run build-component-prod
 
 echo_section "Building static app"
 npm run build-ui-static-app-prod
+
+
+
+echo_section "Building release assets"
+
+mkdir -p dist/release
+rm -rf dist/release/*
+
+
+BIN_FOLDER_NAME="schemio-$NEW_VERSION"
+BIN_FOLDER_PATH="$PROJECT_DIR/dist/release/$BIN_FOLDER_NAME"
+mkdir "$BIN_FOLDER_PATH"
+cd "$BIN_FOLDER_PATH"
+copy_doc_files
+copy_project_file dist/assets/schemio.js
+copy_standard_assets
+copy_project_file html/index.html
+cd $PROJECT_DIR/dist/release
+zip -9 -r "schemio-$NEW_VERSION.zip" $BIN_FOLDER_NAME
+
+
+cd $PROJECT_DIR
+BIN_FOLDER_NAME="schemio-static-$NEW_VERSION"
+BIN_FOLDER_PATH="$PROJECT_DIR/dist/release/$BIN_FOLDER_NAME"
+mkdir "$BIN_FOLDER_PATH"
+cd "$BIN_FOLDER_PATH"
+copy_doc_files
+copy_project_file dist/assets/schemio.app.static.js
+copy_standard_assets
+cp $PROJECT_DIR/html/index-static.html $BIN_FOLDER_PATH/index.html
+cd $PROJECT_DIR/dist/release
+zip -9 -r "schemio-static-$NEW_VERSION.zip" $BIN_FOLDER_NAME
 
 
 echo_section "Updating package.json"
