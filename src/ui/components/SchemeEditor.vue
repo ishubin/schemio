@@ -1109,7 +1109,6 @@ export default {
          */
         onItemSelectionUpdated() {
             if (this.schemeContainer.selectedItems.length > 0) {
-                this.currentTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
                 const shape = Shape.find(item.shape);
                 if (!shape) {
@@ -1137,11 +1136,6 @@ export default {
                 }
             } else {
                 this.animatorPanel.framePlayer = null;
-
-                // in case nothing was selected - we need to make sure the tab is not set to a text slot anymore
-                if (this.currentTab !== 'Item' && this.currentTab !== 'Scheme') {
-                    this.currentTab = 'Item';
-                }
                 this.itemTextSlotsAvailable.length = 0;
             }
 
