@@ -20,6 +20,7 @@ Features of Schemio:
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot.png?raw=true)
 
+![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot-2.png?raw=true)
 
 Configuration
 ---------------
