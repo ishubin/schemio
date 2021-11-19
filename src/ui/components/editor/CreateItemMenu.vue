@@ -492,13 +492,18 @@ export default {
             this.onItemMouseDown(event, {
                 item,
                 name: item.name
-            });
+            }, true);
         },
 
-        onItemMouseDown(event, item) {
+        onItemMouseDown(event, item, shouldIgnoreRecentProps) {
             const that = this;
             const itemDragger = this.$refs.itemDragger;
             const itemClone = utils.clone(item.item);
+
+            if (!shouldIgnoreRecentProps && itemClone.shape !== 'sticky_note') {
+                recentPropsChanges.applyItemProps(itemClone);
+            }
+
             let pixelsMoved = 0;
 
             if (item.previewArea) {
@@ -578,12 +583,10 @@ export default {
                     return;
                 }
 
-                const newItem = utils.clone(item.item);
-                newItem.id = shortid.generate();
-                newItem.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
-                newItem.name = that.makeUniqueName(item.name);
-                recentPropsChanges.applyItemProps(newItem);
-                EventBus.emitItemCreationDraggedToSvgEditor(newItem, pageX + mouseOffset, pageY + mouseOffset);
+                itemClone.id = shortid.generate();
+                itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
+                itemClone.name = that.makeUniqueName(item.name);
+                EventBus.emitItemCreationDraggedToSvgEditor(itemClone, pageX + mouseOffset, pageY + mouseOffset);
             }
 
             document.addEventListener('mousemove', onMouseMove);
