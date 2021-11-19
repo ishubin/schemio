@@ -87,7 +87,7 @@ if (!config.viewOnlyMode) {
     app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
     app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
-    app.post('/v1/static-exports/start', jsonBodyParser, fsExportStatic(config));
+    app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
 }
 
 app.get('/media/*', fsDownloadMediaFile(config));
