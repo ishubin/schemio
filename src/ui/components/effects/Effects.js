@@ -71,17 +71,17 @@ const effects = {
             } else {
                 return {
                     kind: 'back',
-                    html: svgElement('g', {}, [
-                        svgElement('defs', {}, [
-                            svgElement('filter', {id: filterId, x: '-50%', y: '-50%', width: '200%', height: '200%'}, [
-                                svgElement('feGaussianBlur', {
+                    html: $('g', {}, [
+                        $('defs', {}, [
+                            $('filter', {id: filterId, x: '-50%', y: '-50%', width: '200%', height: '200%'}, [
+                                $('feGaussianBlur', {
                                     in: 'SourceGraphic',
                                     stdDeviation: effectArgs.blur
                                 })
                             ])
                         ]),
 
-                        svgElement('path', {
+                        $('path', {
                             d: path,
                             stroke: 'none',
                             fill: effectArgs.color,
@@ -103,7 +103,7 @@ const effects = {
         applyEffect(item, effectIdx, effectArgs) {
             return {
                 kind: 'svg-filter',
-                html: svgElement('feGaussianBlur', {
+                html: $('feGaussianBlur', {
                     in: 'SourceGraphic',
                     stdDeviation: effectArgs.size
                 }).outerHTML
@@ -140,17 +140,17 @@ const effects = {
 
             return {
                 kind: 'front',
-                html: svgElement('g', {}, [
-                    svgElement('defs', {}, [
-                        svgElement('filter', {id: filterId}, [
-                            svgElement('feGaussianBlur', {
+                html: $('g', {}, [
+                    $('defs', {}, [
+                        $('filter', {id: filterId}, [
+                            $('feGaussianBlur', {
                                 in: 'SourceGraphic',
                                 stdDeviation: effectArgs.blur
                             })
                         ])
                     ]),
 
-                    svgElement('path', {
+                    $('path', {
                         d: path,
                         'data-item-id': item.id,
                         stroke: effectArgs.color,
