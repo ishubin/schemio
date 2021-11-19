@@ -11,7 +11,7 @@ module.exports = {
         filename: 'schemio.app.static.js'
     },
     optimization: {
-        minimize: tue
+        minimize: true
     },
     resolve: {
         alias: {
