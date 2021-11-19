@@ -108,3 +108,7 @@ echo_section "Creating a git tag for version: $NEW_VERSION"
 NEW_TAG="v$NEW_VERSION"
 git tag "$NEW_TAG"
 git push origin --tags
+
+echo_section "Publishing release on GitHub"
+
+gh release create $NEW_TAG dist/release/*.zip --title "Released version $NEW_VERSION"
