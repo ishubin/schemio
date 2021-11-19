@@ -1287,7 +1287,7 @@ ul.button-group > li {
     display: table-cell;
     margin: 0;
     padding: 0 2px 0 2px;
-    vertical-align: middle;
+    vertical-align: top;
 }
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;
