@@ -75,8 +75,13 @@
                         <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx}">
                             <td class="frame-animator-property" :class="['frame-animator-property-'+track.kind]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
                                 <div v-if="track.kind === 'item'">
-                                    <span v-if="track.itemName">{{track.itemName}}</span>
-                                    {{track.property}}
+                                    <div v-if="track.propertyDescriptor">
+                                        <span v-if="track.itemName">{{track.itemName}}</span>
+                                        {{track.property}}
+                                    </div>
+                                    <span v-else class="frame-animator-missing-item">
+                                        Missing item: {{track.property}}
+                                    </span>
                                 </div>
                                 <div v-else-if="track.kind === 'sections'">
                                     <i class="fas fa-paragraph"></i> Sections

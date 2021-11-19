@@ -3011,6 +3011,10 @@ table.frame-animator-matrix td.frame-animator-property {
     padding: 4px 4px 4px 20px;
     text-align: left;
 }
+table.frame-animator-matrix td.frame-animator-property .frame-animator-missing-item {
+    color: var(--critic-strong);
+    text-decoration: line-through;
+}
 table.frame-animator-matrix td.frame-animator-property .frame-property-operations {
     position: absolute;
     display: none;
