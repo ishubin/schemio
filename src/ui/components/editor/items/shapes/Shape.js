@@ -22,7 +22,6 @@ const _shapes = [
     require('./Link.vue').default,
     require('./FramePlayer.vue').default,
     require('./CodeBlock.vue').default,
-    require('./Button.vue').default,
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
 

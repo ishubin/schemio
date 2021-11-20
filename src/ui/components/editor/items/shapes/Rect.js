@@ -30,7 +30,6 @@ export default {
         }, {
             group: 'General',
             name: 'Overlay',
-            iconUrl: '/assets/images/items/rounded-rect.svg',
             iconUrl: '/assets/images/items/overlay.svg',
             description: `
                 It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
@@ -66,6 +65,67 @@ export default {
                     }]
                 },
             }
+        }, {
+            group: 'General',
+            name: 'Button',
+            iconUrl: '/assets/images/items/button.svg',
+            item: {
+                cursor: 'pointer',
+                opacity: 100,
+                shapeProps: {
+                    cornerRadius: 20,
+                    fill: {
+                        type: 'gradient',
+                        color: 'rgba(29, 108, 176, 1)',
+                        gradient: {
+                            colors: [ {
+                                c: 'rgba(25, 121, 204, 1)',
+                                p: 0
+                            }, {
+                                c: 'rgba(86, 172, 246, 1)',
+                                p: 100
+                            } ],
+                            type: 'linear',
+                            direction: 0
+                        }
+                    },
+                    strokeColor: 'rgba(39, 132, 211, 1)',
+                    strokeSize: 2,
+                    strokePattern: 'solid'
+                },
+                textSlots: {
+                    body: {
+                        text: '<p><strong>Button</strong></p>',
+                        color: 'rgba(255, 255, 255, 1)',
+                        halign: 'center',
+                        valign: 'middle',
+                    }
+                },
+                behavior: {
+                    events: [{
+                        event: 'mousein',
+                        actions: [{
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'opacity',
+                                value: 90
+                            }
+                        }]
+                    }, {
+                        event: 'mouseout',
+                        actions: [ {
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'opacity',
+                                value: 100
+                            }
+                        } ]
+                    }]
+                },
+            },
+            previewArea: {x: 0, y: 0, w: 140, h: 60, r: 0},
         }],
 
         getPins(item) {
