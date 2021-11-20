@@ -96,6 +96,15 @@ copy_standard_assets
 cp $PROJECT_DIR/html/index-static.html $BIN_FOLDER_PATH/index.html
 cd $PROJECT_DIR/dist/release
 zip -9 -r "schemio-static-$NEW_VERSION.zip" $BIN_FOLDER_NAME
+cd $PROJECT_DIR
+
+
+echo_section "Building docker container"
+# changing package version to hardcoded value so that docker build does not rebuild all layers
+cat package.json | jq ".version=\"0.1.1\"" > tmp && mv tmp package.json
+DOCKER_CONTAINER="schemio:$NEW_VERSION"
+docker build -t "$DOCKER_CONTAINER" .
+#TODO push to docker hub registry
 
 
 echo_section "Updating package.json"
