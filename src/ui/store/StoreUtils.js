@@ -3,8 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
 import Shape from '../components/editor/items/shapes/Shape';
-import myMath from '../myMath';
-import { worldScalingVectorOnItem, worldVectorOnItem } from '../scheme/SchemeContainer';
+import { worldScalingVectorOnItem } from '../scheme/SchemeContainer';
 import '../typedef';
 
 export default {
@@ -77,6 +76,10 @@ export default {
 
     setAutoRemount(store, shouldAutoRemount) {
         store.dispatch('setAutoRemount', shouldAutoRemount);
+    },
+
+    setShowPivot(store, show) {
+        store.dispatch('setShowPivot', show);
     },
 
     proposeConnectorDestinationItems(store, connectorItemId, mx, my) {

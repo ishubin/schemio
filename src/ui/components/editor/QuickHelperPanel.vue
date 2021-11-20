@@ -197,6 +197,17 @@
                     </li>
                 </ul>
             </div>
+            <div v-if="mode === 'edit'" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <input type="checkbox" title="Show pivot point handler"
+                            id="chk-show-pivot"
+                            :checked="showPivot"
+                            @change="onShowPivotChange"/>
+                        <label for="chk-show-pivot">Pivot</label>
+                    </li>
+                </ul>
+            </div>
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
@@ -431,6 +442,10 @@ export default {
             StoreUtils.setAutoRemount(this.$store, event.target.checked);
         },
 
+        onShowPivotChange(event) {
+            StoreUtils.setShowPivot(this.$store, event.target.checked);
+        },
+
         onZoomOutClicked() {
             let selectedZoom = this.zoomOptions[0].value;
             let found = false;
@@ -602,6 +617,10 @@ export default {
 
         autoRemount() {
             return this.$store.getters.autoRemount;
+        },
+
+        showPivot() {
+            return this.$store.getters.showPivot;
         },
 
         firstSelectedCurveEditPoint() {

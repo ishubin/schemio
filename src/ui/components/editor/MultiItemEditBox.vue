@@ -169,7 +169,7 @@
                 :height="draggerSize * 2 / safeZoom"
             />
 
-            <g class="boundary-box-pivot-dragger">
+            <g class="boundary-box-pivot-dragger" v-if="showPivot">
                 <line 
                     :x1="editBox.area.w * editBox.pivotPoint.x" 
                     :y1="editBox.area.h * editBox.pivotPoint.y - 10/safeZoom" 
@@ -287,6 +287,10 @@ export default {
 
         selectedConnectorPath() {
             return this.$store.getters.selectedConnectorPath;
+        },
+
+        showPivot() {
+            return this.$store.getters.showPivot;
         }
     }
 }

@@ -75,6 +75,7 @@ const store = new Vuex.Store({
         },
 
         autoRemount: true,
+        showPivot: true,
 
         // stores the state of the history in scheme editing
         history: {
@@ -146,6 +147,10 @@ const store = new Vuex.Store({
 
         SET_AUTO_REMOUNT(state, autoRemount) {
             state.autoRemount = autoRemount;
+        },
+
+        SET_SHOW_PIVOT(state, show) {
+            state.showPivot = show;
         },
 
         /* Curve Editing */ 
@@ -478,6 +483,10 @@ const store = new Vuex.Store({
             commit('SET_AUTO_REMOUNT', autoRemount);
         },
 
+        setShowPivot({commit}, show) {
+            commit('SET_SHOW_PIVOT', show);
+        },
+
         proposeConnectorDestinationItems({commit}, payload) {
             commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
         },
@@ -543,6 +552,7 @@ const store = new Vuex.Store({
         shouldSnapToItems: state => state.snap.items,
 
         autoRemount: state => state.autoRemount,
+        showPivot: state => state.showPivot,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
 
