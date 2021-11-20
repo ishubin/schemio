@@ -16,7 +16,11 @@ export default {
             item: {
                 textSlots: {
                     body: {
-                        text: 'Text ...'
+                        text: 'Text ...',
+                        paddingLeft  : 0,
+                        paddingRight : 0,
+                        paddingTop   : 0,
+                        paddingBottom: 0
                     }
                 },
             }

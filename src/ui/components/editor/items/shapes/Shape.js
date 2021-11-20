@@ -17,7 +17,6 @@ const _shapes = [
     require('./Curve.vue').default,
     require('./Connector.vue').default,
     require('./Bracket.js').default,
-    require('./Overlay.vue').default,
     require('./Image.vue').default,
     require('./Comment.js').default,
     require('./Link.vue').default,

@@ -27,6 +27,45 @@ export default {
             item: {
                 shapeProps: {cornerRadius: 20}
             }
+        }, {
+            group: 'General',
+            name: 'Overlay',
+            iconUrl: '/assets/images/items/rounded-rect.svg',
+            iconUrl: '/assets/images/items/overlay.svg',
+            description: `
+                It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
+                E.g. you can select it, trigger events or connect it to other items on the page.
+            `,
+            item: {
+                cursor: 'pointer',
+                opacity: 5,
+                shapeProps: {
+                    cornerRadius: 0
+                },
+                behavior: {
+                    events: [{
+                        event: 'mousein',
+                        actions: [{
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'opacity',
+                                value: 50
+                            }
+                        }]
+                    }, {
+                        event: 'mouseout',
+                        actions: [ {
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'opacity',
+                                value: 5
+                            }
+                        } ]
+                    }]
+                },
+            }
         }],
 
         getPins(item) {
