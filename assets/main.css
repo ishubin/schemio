@@ -3011,7 +3011,8 @@ table.frame-animator-matrix td.frame-animator-property {
     padding: 4px 4px 4px 20px;
     text-align: left;
 }
-table.frame-animator-matrix td.frame-animator-property .frame-animator-missing-item {
+table.frame-animator-matrix tr.track-missing td.frame-animator-property,
+table.frame-animator-matrix tr.track-missing td.frame {
     color: var(--critic-strong);
     text-decoration: line-through;
 }
