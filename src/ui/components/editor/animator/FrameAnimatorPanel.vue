@@ -1041,16 +1041,21 @@ export default {
                 value: `${frameNum}`,
                 kind: 'step',
             };
-            this.framesMatrix[trackIdx].frames[frameIdx] = frame;
 
             let idx = 0;
             const sections = this.framePlayer.shapeProps.sections;
             for (let i = 0; i < sections.length; i++) {
+                if (sections[i].frame === frameNum) {
+                    // such frame already exists so avoiding duplicates
+                    return;
+                }
                 if (sections[i].frame > frameNum) {
                     idx = i;
                     break;
                 }
             }
+
+            this.framesMatrix[trackIdx].frames[frameIdx] = frame;
             sections.splice(idx, 0, frame);
             EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
         },
