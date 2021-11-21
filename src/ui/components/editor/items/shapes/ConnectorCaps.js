@@ -19,6 +19,19 @@ function light(func) {
 const allCaps = {
     'empty': null,
 
+
+    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
+    'triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
+    'triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+
+    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, false)),
+    'arrow-1':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, false)),
+    'arrow-2':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, false)),
+    
+    'triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
+    'triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
+    'triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+
     'circle': standard((x, y, Vx, Vy, capFill) => {
         const squaredD = Vx * Vx + Vy * Vy;
         if (squaredD > 0.01) {
@@ -50,20 +63,11 @@ const allCaps = {
         return null;
     }),
 
-    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, false)),
-    'arrow-1':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, false)),
-    'arrow-2':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, false)),
     'double-arrow':  standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, false)),
     'double-arrow-1':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, false)),
     'double-arrow-2':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, false)),
 
-    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
-    'triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
-    'triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
 
-    'triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
-    'triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
-    'triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
 
     'double-triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, true)),
     'double-triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, true)),
