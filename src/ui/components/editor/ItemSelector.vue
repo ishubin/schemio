@@ -422,7 +422,7 @@ export default {
                 itemsForSelection.push(this.filteredItems[i])
             }
             this.schemeContainer.selectMultipleItems(itemsForSelection, true);
-
+            this.$forceUpdate();
         },
 
         toggleItemCollapseState(item) {
