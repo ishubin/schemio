@@ -72,7 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor}">
+                        <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function'}">
                             <td class="frame-animator-property" :class="['frame-animator-property-'+track.kind]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
                                 <div v-if="track.kind === 'item'">
                                     <span v-if="track.itemName">{{track.itemName}}</span>
