@@ -90,6 +90,7 @@ import indexOf from 'lodash/indexOf';
 import filter from 'lodash/filter';
 import EventBus from './EventBus';
 import utils from '../../utils';
+import myMath from '../../myMath';
 
 
 const mouseOffset = 2;
@@ -234,7 +235,9 @@ export default {
                 that.dragging.item = item;
                 that.dragging.previewItemName = item.name;
                 that.dragging.startedDragging = true;
-                that.filteredItems = filter(that.filterItemsByKeyword(that.searchKeyword), item => !that.schemeContainer.isItemSelected(item));
+                that.filteredItems = filter(that.filterItemsByKeyword(that.searchKeyword), itemForFilter => {
+                    return !that.schemeContainer.isItemSelected(itemForFilter) && indexOf(itemForFilter.meta.ancestorIds, that.dragging.item.id) < 0;
+                });
             }
 
             const itemSelectorDom = this.$refs.itemSelectorContainer;
@@ -313,13 +316,17 @@ export default {
                     }
                 }
 
-
-                //TODO calling this function is slow
                 const bbox = domItem.getBoundingClientRect();
 
                 const xDiff = that.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
+
                 that.dragging.destinationId = overItem.id;
-                that.dragging.dropInside = xDiff > 50;
+                that.dragging.dropInside = xDiff > 35;
+
+                if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
+                    const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
+                    that.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
+                }
 
                 if (Array.isArray(domItem)) {
                     domItem = domItem[0];
@@ -370,6 +377,7 @@ export default {
                 that.dragging.destinationId = null;
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
+                that.filteredItems = that.filterItemsByKeyword(that.searchKeyword);
             }
 
             document.addEventListener('mousemove', onMouseMove);
