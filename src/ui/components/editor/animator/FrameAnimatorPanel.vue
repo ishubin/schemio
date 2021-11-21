@@ -499,18 +499,23 @@ export default {
 
         // sorts frames, removes duplicate frames
         fixAllAnimationFrames() {
-            forEach(this.framePlayer.shapeProps.animations, animation => {
-                animation.frames.sort((a, b) => a.frame - b.frame);
-                if (animation.frames.length < 2) {
+            const sortAndDeduplicate = (frames) => {
+                frames.sort((a, b) => a.frame - b.frame);
+                if (frames.length < 2) {
                     return;
                 }
-                for (let i = 1; i < animation.frames.length; i++) {
-                    if (animation.frames[i].frame === animation.frames[i - 1].frame) {
-                        animation.frames.splice(i, 1);
+                for (let i = 1; i < frames.length; i++) {
+                    if (frames[i].frame === frames[i - 1].frame) {
+                        frames.splice(i, 1);
                         i = i - 1;
                     }
                 }
+            }
+
+            forEach(this.framePlayer.shapeProps.animations, animation => {
+                sortAndDeduplicate(animation.frames);
             });
+            sortAndDeduplicate(this.framePlayer.shapeProps.sections);
         },
 
         buildSectionsTrack() {
