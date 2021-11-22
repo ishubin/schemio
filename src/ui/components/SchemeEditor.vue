@@ -44,7 +44,7 @@
             </ul>
             </quick-helper-panel>
 
-        <div class="scheme-editor-middle-section">
+        <div class="scheme-editor-middle-section" ref="middleSection">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
                 <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
@@ -927,7 +927,9 @@ export default {
         onItemTooltipTriggered(item, mouseX, mouseY) {
             this.itemTooltip.item = item;
             this.itemTooltip.x = mouseX;
-            this.itemTooltip.y = mouseY;
+
+            const rect = this.$refs.middleSection.getBoundingClientRect();
+            this.itemTooltip.y = Math.max(rect.top, mouseY);
             this.itemTooltip.shown = true;
         },
 
