@@ -1033,6 +1033,10 @@ export default {
                     if (item) {
                         utils.setObjectProperty(item, animation.property, value);
                         EventBus.emitItemChanged(item.id, animation.property);
+
+                        if (animation.property.startsWith('area.')) {
+                            this.schemeContainer.updateMultiItemEditBox();
+                        }
                     }
                 } else if (animation.kind === 'scheme') {
                     utils.setObjectProperty(this.schemeContainer.scheme, animation.property, value);
