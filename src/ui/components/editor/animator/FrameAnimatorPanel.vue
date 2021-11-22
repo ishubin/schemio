@@ -169,6 +169,16 @@ function jsonDiffItemWhitelistCallback(item) {
             return false;
         }
 
+        if ((item.shape === 'connector' || item.shape === 'curve') && path.length > 1 && path[0] === 'shapeProps') {
+            if (path[1] === 'points'
+                || path[1] === 'sourceItem'
+                || path[1] === 'destinationItem'
+                || path[1] === 'sourceItemPosition'
+                || path[1] === 'destinationItemPosition') {
+                return false;
+            }
+        }
+
         if (item.shape === 'frame_player' && path.length > 1 && path[0] === 'shapeProps') {
             return false;
         }
