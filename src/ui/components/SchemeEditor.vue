@@ -151,7 +151,7 @@
                                 ><i class="fas fa-comment-alt"></i> {{comments.counter}}</span>
 
                         </li>
-                        <li v-for="itemTextSlotTab in itemTextSlotsAvailable">
+                        <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
                             <span class="tab"
                                 :class="{active: currentTab === itemTextSlotTab.tabName}"
                                 @click="currentTab = itemTextSlotTab.tabName"
@@ -200,13 +200,13 @@
                             <Comments :entityId="commentsEntityId" :comments="comments"/>
                         </div>
 
-                        <div v-if="textSlotEditted.item">
+                        <div v-if="textSlotEditted.item && mode === 'edit'">
                             <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"
                                 @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"
                                 @property-changed="onInPlaceEditTextPropertyChanged(textSlotEditted.item, textSlotEditted.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
-                        <div v-else>
+                        <div v-else-if="mode === 'edit'">
                             <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
                                 :item="itemTextSlot.item"
