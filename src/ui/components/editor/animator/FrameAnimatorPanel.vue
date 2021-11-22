@@ -157,6 +157,7 @@ import StoreUtils from '../../../store/StoreUtils';
 import AnimationFunctions from '../../../animations/functions/AnimationFunctions';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import shortid from 'shortid';
+import myMath from '../../../myMath';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -601,6 +602,17 @@ export default {
                 return a.kind === b.kind && a.id === b.id && a.property === b.property;
             };
             forEach(changes, change => {
+
+                // checking if the change was just too small
+                // this is needed in situations when item was rotated
+                // due to how item edit box is implemented it has to readjust items position
+                // and often there is a small error in its calculation
+                if (typeof change.value === 'number' && typeof change.oldValue === 'number') {
+                    if (myMath.tooSmall(change.value - change.oldValue)) {
+                        return;
+                    }
+                }
+
                 let animation = find(this.framePlayer.shapeProps.animations, animation => isAnimationForSame(change, animation));
                 if (!animation) {
                     animation = change;
