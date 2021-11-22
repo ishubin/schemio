@@ -295,11 +295,13 @@ export default {
         this.compileAnimations();
         EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
         EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
+        EventBus.subscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
         EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
+        EventBus.unsubscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
         StoreUtils.setAnimationEditorRecording(this.$store, false);
     },
 
@@ -307,6 +309,7 @@ export default {
         return {
             originSchemeContainer: null,
             currentFrame: 1,
+            totalFrames: this.framePlayer.shapeProps.totalFrames,
             framesMatrix: this.buildFramesMatrix(),
             compiledAnimations: [],
             isPlaying: false,
@@ -441,20 +444,24 @@ export default {
                 }
             };
 
+            const totalFrames = this.framePlayer.shapeProps.totalFrames;
+
             let prevFrame = null;
             forEach(originFrames, f => {
-                if (f.frame - 1 > matrixFrames.length) {
+                if (f.frame - 1 > matrixFrames.length && f.frame <= totalFrames) {
                     // should fill with empty cells first and then add the frame
                     addBlankFrames(f.frame - 1 - matrixFrames.length);
                 }
                 if (!prevFrame || prevFrame.frame !== f.frame) {
                     // protect from duplicate frames
-                    matrixFrames.push(f);
+                    if (f.frame <= totalFrames) {
+                        matrixFrames.push(f);
+                    }
                 }
                 prevFrame = f;
             });
-            if (matrixFrames.length < this.framePlayer.shapeProps.totalFrames) {
-                addBlankFrames(this.framePlayer.shapeProps.totalFrames - matrixFrames.length);
+            if (matrixFrames.length < totalFrames) {
+                addBlankFrames(totalFrames - matrixFrames.length);
             }
             return matrixFrames;
         },
@@ -1211,13 +1218,14 @@ export default {
 
         onHistoryUndone() {
             this.updateFramesMatrix();
+        },
+
+        onFramePlayerChanged() {
+            if (this.totalFrames !== this.framePlayer.shapeProps.totalFrames) {
+                this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+                this.updateFramesMatrix();
+            }
         }
     },
-
-    computed: {
-        totalFrames() {
-            return this.framePlayer.shapeProps.totalFrames;
-        },
-    }
 }
 </script>
