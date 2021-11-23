@@ -3214,6 +3214,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     width: 18px;
     height: 18px;
     cursor: pointer;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQoU2M8c+bMfwY0oKenhy7EwDgUFP769QvDM5cuXcL0zBBQCADjtDObjg4SggAAAABJRU5ErkJggg==') repeat;
     border-radius: var(--control-border-radius);
 }
 .stroke-control .stroke-control-dropdown {
