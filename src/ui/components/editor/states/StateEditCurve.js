@@ -554,14 +554,9 @@ export default class StateEditCurve extends State {
         this.softReset();
     }
 
-    convertSelectedPointsToBeizer() {
+    convertSelectedPoints(callback) {
         const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
-        forEach(selectedPoints, point => this.convertPointToBeizer(point.id));
-    }
-
-    convertSelectedPointsToSimple() {
-        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
-        forEach(selectedPoints, point => this.convertPointToSimple(point.id));
+        forEach(selectedPoints, point => callback(point));
     }
 
     handleRightClick(x, y, mx, my, object) {
@@ -578,10 +573,13 @@ export default class StateEditCurve extends State {
                 clicked: () => this.deleteSelectedPoints()
             }, {
                 name: 'Convert to beizer',
-                clicked: () => this.convertSelectedPointsToBeizer()
+                clicked: () => this.convertSelectedPoints(p => this.convertPointToBeizer(p.id))
             }, {
                 name: 'Convert to simple',
-                clicked: () => this.convertSelectedPointsToSimple()
+                clicked: () => this.convertSelectedPoints(p => this.convertPointToSimple(p.id))
+            }, {
+                name: 'Convert to arc',
+                clicked: () => this.convertSelectedPoints(p => this.convertPointToArc(p.id))
             }];
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
             return;
