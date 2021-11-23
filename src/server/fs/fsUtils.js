@@ -9,7 +9,8 @@ export const supportedMediaExtensions = new Set([
     'png',
     'gif',
     'tiff',
-    'bmp'
+    'bmp',
+    'svg'
 ]);
 
 export function fileNameFromPath(filePath) {
