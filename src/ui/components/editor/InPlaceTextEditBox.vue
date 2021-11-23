@@ -116,8 +116,9 @@ export default {
                             name = name.substring(0, 20);
                         }
                         this.$emit('item-renamed', this.item, name);
+
+                        this.$emit('item-area-changed', this.item, rect.width, rect.height);
                     }
-                    this.$emit('item-area-changed', this.item, rect.width, rect.height);
                 } else {
                     this.$emit('item-text-cleared', this.item);
                 }
