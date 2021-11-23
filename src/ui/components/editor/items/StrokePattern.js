@@ -15,7 +15,6 @@ const patterns = {
     'dashed-dotted-4': (w) => `${w*8} ${w*2} ${w*2} ${w*2}`,
 };
 
-
 export default {
     createDashArray(strokePattern, strokeSize) {
         const dashArrayFunc = patterns[strokePattern];
@@ -25,6 +24,13 @@ export default {
         return '';
     },
 
+    generateStrokeHtml(pattern, strokeWidth, y, w, h) {
+        const dashArray = this.createDashArray(pattern, strokeWidth);
+        return `<svg width="${w}px" height="${h}px">`
+            + `<path d="M0 ${y} l ${w} 0" fill="none" stroke="#111111" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}"/>`
+            + '</svg>';
+    },
+    
     patterns: keys(patterns),
 
     SOLID: 'solid',

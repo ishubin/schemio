@@ -103,20 +103,15 @@
                             height="18px"
                             @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
                     </li>
-                    <li>
-                        <color-picker
-                            :color="strokeColor"
-                            width="18px"
-                            height="18px"
-                            :hollow="true"
-                            @input="emitShapePropChange('strokeColor', 'color', arguments[0])"></color-picker>
-                    </li>
-                    <li>
-                        <stroke-pattern-dropdown
-                            :value="strokePattern"
-                            :width="60"
-                            height="16"
-                            @selected="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"/>
+                    <li v-if="firstSelectedItem">
+                        <StrokeControl
+                            :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :shapeId="firstSelectedItem.shape"
+                            :shapeProps="firstSelectedItem.shapeProps"
+                            @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
+                            @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
+                            @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
+                            />
                     </li>
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
@@ -227,6 +222,7 @@
 import '../../typedef';
 import EventBus from './EventBus';
 import Dropdown from '../../components/Dropdown.vue';
+import StrokeControl from './StrokeControl.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
@@ -249,7 +245,8 @@ export default {
 
     components: {
         AdvancedColorEditor, ColorPicker, StrokePatternDropdown,
-        CurveCapDropdown, NumberTextfield, MenuDropdown, Dropdown
+        CurveCapDropdown, NumberTextfield, MenuDropdown, Dropdown,
+        StrokeControl
     },
 
     beforeMount() {
@@ -302,12 +299,9 @@ export default {
             firstSelectedItem: null,
 
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
-            strokeColor: 'rgba(255,255,255,1.0)',
 
             curveSourceCap: 'empty',
             curveDestinationCap: 'empty',
-
-            strokePattern: 'solid',
 
             itemSurround: {
                 shown: false,
@@ -340,12 +334,6 @@ export default {
                 if (shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
                 }
-                if (shape.argType('strokeColor') === 'color') {
-                    this.strokeColor = item.shapeProps.strokeColor;
-                }
-                if (shape.argType('strokePattern') === 'stroke-pattern') {
-                    this.strokePattern = item.shapeProps.strokePattern;
-                }
 
                 if (item.shape === 'connector') {
                     this.curveSourceCap = item.shapeProps.sourceCap;
@@ -371,10 +359,7 @@ export default {
 
         emitShapePropChange(name, type, value) {
             this.$emit('shape-prop-changed', name, type, value);
-            if (name === 'strokePattern' && type === 'stroke-pattern') {
-                this.strokePattern = value;
-            }
-            else if (name === 'sourceCap') {
+            if (name === 'sourceCap') {
                 this.curveSourceCap = value;
             }
             else if (name === 'destinationCap') {
