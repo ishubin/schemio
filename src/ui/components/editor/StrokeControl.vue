@@ -129,23 +129,6 @@ export default {
                 this.toggled = false;
             }
         }
-    },
-
-    watch: {
-        shapeProps: {
-            deep: true,
-            handler(value) {
-                if (this.supportsStrokeColor) {
-                    this.strokeColor = this.shapeProps.strokeColor;
-                }
-                if (this.supportsStrokeSize) {
-                    this.strokeSize = this.shapeProps.strokeSize;
-                }
-                if (this.supportsStrokePattern) {
-                    this.strokePattern = this.shapeProps.strokePattern;
-                }
-            }
-        }
     }
 }
 </script>
