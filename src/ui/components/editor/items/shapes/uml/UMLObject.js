@@ -16,7 +16,7 @@ export default {
             iconUrl: '/assets/images/items/uml-object.svg',
             item: {
                 textSlots: {
-                    title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
+                    title: {text: '<b>Object</b>', fontSize: 16, halign: 'center', valign: 'middle', paddingLeft: 0, paddingTop: 0, paddingRight: 0, paddingBottom: 0},
                     body: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
                 },
             },

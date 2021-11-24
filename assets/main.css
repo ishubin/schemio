@@ -3248,6 +3248,39 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     color: var(--base-weak);
 }
 
+/***************************** Text Style Control ***********************************/
+.text-style-control {
+    position: relative;
+}
+.text-style-control .text-style-control-toggle-button {
+    display: inline-block;
+    width: 18px;
+    height: 20px;
+    cursor: pointer;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    padding-bottom: 2px;
+}
+.text-style-control .text-style-control-dropdown {
+    position: fixed;
+    padding: 5px;
+    display: flex;
+    background: var(--faint-weak);
+    z-index: 100;
+    box-shadow: 1px 1px 10px var(--shadow-color);
+}
+.text-style-control .text-style-control-dropdown .text-style-control-other-controls {
+    display: flex;
+    padding-left: 5px;
+    flex-direction: column;
+    height: 100%;
+    max-width: 200px;
+}
+
+.text-style-control .text-style-control-dropdown .text-style-control-other-controls > div {
+    margin-bottom: 5px;
+}
 
 
 

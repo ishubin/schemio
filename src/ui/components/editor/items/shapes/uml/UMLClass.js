@@ -24,7 +24,7 @@ export default {
             iconUrl: '/assets/images/items/uml-class.svg',
             item: {
                 textSlots: {
-                    title: {text: '<b>Class</b>', fontSize: 16, halign: 'center', valign: 'middle', padding: {top: 6}},
+                    title: {text: '<b>Class</b>', fontSize: 16, halign: 'center', valign: 'middle', paddingLeft: 0, paddingTop: 0, paddingRight: 0, paddingBottom: 0},
                     section1: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'},
                     section2: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
                 },

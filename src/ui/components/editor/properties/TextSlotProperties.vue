@@ -151,9 +151,11 @@ export default {
 
     beforeMount() {
         EventBus.$on(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
     data() {
         const shape = Shape.find(this.item.shape);
@@ -184,6 +186,12 @@ export default {
         };
     },
     methods: {
+        onItemChanged(propertyPath) {
+            if (propertyPath && propertyPath.startsWith('textSlots.')) {
+                this.textSlot = this.item.textSlots[this.slotName];
+                this.$forceUpdate();
+            }
+        },
         onTextEditorCreated(editor) {
             this.editor = editor;
         },

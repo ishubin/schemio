@@ -113,6 +113,13 @@
                             @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
                             />
                     </li>
+                    <li v-if="firstSelectedItem">
+                        <TextStyleControl
+                            :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :item="firstSelectedItem"
+                            @property-changed="onTextStylePropertyChange"
+                            />
+                    </li>
                     <li v-if="shouldShowCurveCaps">
                         <curve-cap-dropdown 
                             :key="`qhp-curve-cap-source-${firstSelectedItem.meta.revision}`"
@@ -223,6 +230,7 @@ import '../../typedef';
 import EventBus from './EventBus';
 import Dropdown from '../../components/Dropdown.vue';
 import StrokeControl from './StrokeControl.vue';
+import TextStyleControl from './TextStyleControl.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
@@ -246,7 +254,7 @@ export default {
     components: {
         AdvancedColorEditor, ColorPicker, StrokePatternDropdown,
         CurveCapDropdown, NumberTextfield, MenuDropdown, Dropdown,
-        StrokeControl
+        StrokeControl, TextStyleControl
     },
 
     beforeMount() {
@@ -370,6 +378,10 @@ export default {
             else if (name === 'destinationCap') {
                 this.curveDestinationCap = value;
             }
+        },
+
+        onTextStylePropertyChange(name, value) {
+            this.$emit('text-style-prop-change', name, value);
         },
 
         onItemSurroundCreated(item, boundingBox, padding) {

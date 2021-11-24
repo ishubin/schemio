@@ -13,6 +13,7 @@
             :edit-allowed="offlineMode || editAllowed"
             :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
+            @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
             @clicked-undo="historyUndo()"
             @clicked-redo="historyRedo()"
@@ -1256,6 +1257,24 @@ export default {
             EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
         },
 
+        // this is triggered from quick helper panel
+        onItemGenericTextSlotPropChanged(propertyName, value) {
+            let itemIds = '';
+            forEach(this.schemeContainer.selectedItems, item => {
+                if (item.textSlots) {
+                    forEach(item.textSlots, (textSlot, textSlotName) => {
+                        item.textSlots[textSlotName][propertyName] = utils.clone(value);
+                        recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
+                    });
+                }
+                EventBus.emitItemChanged(item.id, `textSlots.*.${propertyName}`);
+                itemIds += item.id;
+            });
+            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.*.${propertyName}`);
+
+        },
+
+        // this is triggerd from specific text slot in side panel
         onTextPropertyChanged(textSlotName, propertyName, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
@@ -1263,7 +1282,7 @@ export default {
                     item.textSlots[textSlotName][propertyName] = utils.clone(value);
                     recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                 }
-                EventBus.emitItemChanged(item.id);
+                EventBus.emitItemChanged(item.id, `textSlots.${textSlotName}.${propertyName}`);
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
