@@ -109,7 +109,7 @@ export default {
         },
 
         updateColor(color) {
-            this.strokeColor = color.hex;
+            this.strokeColor = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
             this.$emit('color-changed', this.strokeColor);
         },
 
