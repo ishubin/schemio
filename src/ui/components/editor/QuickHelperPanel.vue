@@ -96,7 +96,7 @@
             </div>
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && selectedItemsCount > 0">
                 <ul class="button-group">
-                    <li>
+                    <li v-if="supportsFill">
                         <advanced-color-editor
                             :value="fillColor"
                             width="18px"
@@ -298,6 +298,7 @@ export default {
             selectedItemsCount: 0,
             firstSelectedItem: null,
 
+            supportsFill: false,
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
 
             curveSourceCap: 'empty',
@@ -312,6 +313,7 @@ export default {
             },
 
             menuDropdownOptions: defaultMenuDropDownOptions.concat(this.menuOptions),
+
         };
     },
 
@@ -333,6 +335,9 @@ export default {
                 this.firstSelectedItem = item;
                 if (shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
+                    this.supportsFill = true;
+                } else {
+                    this.supportsFill = false;
                 }
 
                 if (item.shape === 'connector') {
