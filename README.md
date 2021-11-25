@@ -35,6 +35,21 @@ You can configure Schemio via the following environent variables
 | `VIEW_ONLY_MODE`       | `false`        | If set to true - it does not allow editing, only viewing of folders and diagrams |
 
 
+Running with Docker
+--------------------
+
+Dockerized version of Schemio is available here: https://hub.docker.com/repository/docker/binshu/schemio
+
+You can run it like this:
+
+```
+docker run -v /opt/schemio:/opt/schemio \
+    -p 4010:4010 \
+    -e FS_ROOT_PATH=/opt/schemio \
+    -e SERVER_PORT=4010 \
+    binshu/schemio:latest
+```
+
 
 License
 ---------
