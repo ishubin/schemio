@@ -176,11 +176,11 @@ export default {
             }],
 
             valignOptions: [{
-                name: 'Top', value: 'top', iconCss: 'fas fa-angle-down'
+                name: 'Top', value: 'top', iconCss: 'schemio-icon schemio-icon-valign-top'
             }, {
-                name: 'Middle', value: 'middle', iconCss: 'fas fa-arrows-alt-v'
+                name: 'Middle', value: 'middle', iconCss: 'schemio-icon schemio-icon-valign-middle'
             }, {
-                name: 'Bottom', value: 'bottom', iconCss: 'fas fa-angle-up'
+                name: 'Bottom', value: 'bottom', iconCss: 'schemio-icon schemio-icon-valign-bottom'
             }],
 
         };

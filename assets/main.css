@@ -3297,6 +3297,24 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 
 
+/************************** Schemio Icons ***************************/
+.schemio-icon {
+    display: inline-block;
+    min-width: 15px;
+    min-height: 15px;
+    background-repeat: no-repeat;
+}
+.schemio-icon-valign-top {
+    background: url('/assets/images/icons/valign-top.svg')
+}
+.schemio-icon-valign-middle {
+    background: url('/assets/images/icons/valign-middle.svg')
+}
+.schemio-icon-valign-bottom {
+    background: url('/assets/images/icons/valign-bottom.svg')
+}
+
+
 
 /************************** Schemio App ****************************/
 table.entries-table {
