@@ -258,10 +258,12 @@ export default {
         }
         this.currentTab = tab;
         EventBus.$on(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
     mounted() {
@@ -300,6 +302,10 @@ export default {
     },
 
     methods: {
+        onItemChanged() {
+            this.$forceUpdate();
+        },
+
         emitItemFieldChange(name, value) {
             this.$emit('item-field-changed', name, value);
         },

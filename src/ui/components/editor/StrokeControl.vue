@@ -2,7 +2,7 @@
     <div class="stroke-control">
         <div v-if="supportsStrokeColor" 
             class="stroke-control-toggle-button"
-            :style="{border: `2px solid ${strokeColor}`}"
+            :style="{border: `4px solid ${strokeColor}`}"
             @click="toggleDropdown"
             title="Stroke"
             ></div>
@@ -33,6 +33,7 @@ import VueColor from 'vue-color';
 import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
 import StrokePattern from './items/StrokePattern';
+import EventBus from './EventBus';
 
 function shapeHasArgument(shape, argName, argType) {
     const argDef = Shape.getShapePropDescriptor(shape, argName);
@@ -41,60 +42,90 @@ function shapeHasArgument(shape, argName, argType) {
 
 export default {
     props: {
-        shapeProps: {type: Object, required: true},
-        shapeId   : {type: Object, required: true},
+        item: {type: Object, required: true},
     },
 
     components: {'color-picker': VueColor.Sketch, NumberTextfield},
 
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
     },
 
 
     data() {
-        const shape = Shape.find(this.shapeId);
-
-        const supportsStrokeColor   = shapeHasArgument(shape, 'strokeColor', 'color');
-        const supportsStrokeSize    = shapeHasArgument(shape, 'strokeSize', 'number');
-        const supportsStrokePattern = shapeHasArgument(shape, 'strokePattern', 'stroke-pattern');
-
-        let strokeColor = 'rgba(0, 0, 0, 1.0)';
-        let strokeSize = 0;
-        let strokePattern = null;
-
-        if (supportsStrokeColor) {
-            strokeColor = this.shapeProps.strokeColor;
-        }
-        if (supportsStrokeSize) {
-            strokeSize = this.shapeProps.strokeSize;
-        }
-        if (supportsStrokePattern) {
-            strokePattern = this.shapeProps.strokePattern;
-        }
+        const props = this.buildProps();
 
         return {
             toggled: false,
         
-            supportsStrokeColor,
-            supportsStrokeSize,
-            supportsStrokePattern,
+            supportsStrokeColor: props.supportsStrokeColor,
+            supportsStrokeSize: props.supportsStrokeSize,
+            supportsStrokePattern: props.supportsStrokePattern,
 
-            strokeColor,
-            strokeSize,
-            strokePattern,
+            strokeColor: props.strokeColor,
+            strokeSize: props.strokeSize,
+            strokePattern: props.strokePattern,
 
-            vuePickerColor: {hex: strokeColor},
+            vuePickerColor: {hex: props.strokeColor},
 
-            strokePatterns: this.buildStrokePatterns(strokeSize)
+            strokePatterns: this.buildStrokePatterns(props.strokeSize)
         };
     },
 
     methods: {
+        buildProps() {
+            const shape = Shape.find(this.item.shape);
+
+            const supportsStrokeColor   = shapeHasArgument(shape, 'strokeColor', 'color');
+            const supportsStrokeSize    = shapeHasArgument(shape, 'strokeSize', 'number');
+            const supportsStrokePattern = shapeHasArgument(shape, 'strokePattern', 'stroke-pattern');
+
+            let strokeColor = 'rgba(0, 0, 0, 1.0)';
+            let strokeSize = 0;
+            let strokePattern = null;
+
+            if (supportsStrokeColor) {
+                strokeColor = this.item.shapeProps.strokeColor;
+            }
+            if (supportsStrokeSize) {
+                strokeSize = this.item.shapeProps.strokeSize;
+            }
+            if (supportsStrokePattern) {
+                strokePattern = this.item.shapeProps.strokePattern;
+            }
+
+            return {
+                strokeColor,
+                strokeSize,
+                strokePattern,
+                supportsStrokeColor,
+                supportsStrokeSize,
+                supportsStrokePattern
+            }
+        },
+
+        onItemChanged(propertyPath) {
+            if (propertyPath === 'shapeProps.strokeColor'
+                || propertyPath === 'shapeProps.strokeSize'
+                || propertyPath === 'shapeProps.strokePattern') {
+                const props = this.buildProps();
+
+                this.strokeColor = props.strokeColor;
+                this.strokeSize = props.strokeSize;
+                this.strokePattern = props.strokePattern;
+                this.vuePickerColor.hex = props.strokeColor;
+
+                this.strokePatterns = this.buildStrokePatterns(props.strokeSize);
+
+            }
+        },
+
         buildStrokePatterns(strokeSize) {
             return map(StrokePattern.patterns, pattern => {
                 return {

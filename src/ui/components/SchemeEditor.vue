@@ -1179,7 +1179,7 @@ export default {
                         }
 
                         item.meta.revision += 1;
-                        EventBus.emitItemChanged(item.id);
+                        EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }

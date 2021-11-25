@@ -106,8 +106,7 @@
                     <li v-if="firstSelectedItem">
                         <StrokeControl
                             :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
-                            :shapeId="firstSelectedItem.shape"
-                            :shapeProps="firstSelectedItem.shapeProps"
+                            :item="firstSelectedItem"
                             @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
                             @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
                             @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
