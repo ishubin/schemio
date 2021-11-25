@@ -3,7 +3,10 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="element-picker" :class="{disabled: disabled}">
-        <dropdown :options="allOptions" :disabled="disabled"
+        <dropdown :options="allOptions"
+            :disabled="disabled"
+            :inline="inline"
+            :borderless="borderless"
             @selected="onElementSelected"
             @dropdown-toggled="onDropdownToggled"
             @dropdown-hidden="onDropdownHidden"
@@ -23,7 +26,6 @@ import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
 import forEach from 'lodash/forEach';
 import indexOf from 'lodash/indexOf';
-import shortid from 'shortid';
 
 const maxNameSymbols = 20;
 
@@ -37,7 +39,9 @@ export default {
         allowNone:          {type: Boolean, default: false},
         allowGroups:        {type: Boolean, default: true},
         excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
-        disabled:           {type: Boolean, default: false}
+        disabled:           {type: Boolean, default: false},
+        inline:             {type: Boolean, default: false},
+        borderless:         {type: Boolean, default: false},
     },
 
     components: {Dropdown},

@@ -25,6 +25,8 @@
                     :options="eventOptions"
                     :auto-focus-search="isStandardEvent(event.event)"
                     @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
+                    :inline="true"
+                    :borderless="true"
                     >
                     <span class="icon-event"><i class="fas fa-bell"></i></span>
                     <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
@@ -57,6 +59,8 @@
                                 :element="action.element" 
                                 :scheme-container="schemeContainer"
                                 :self-item="item"
+                                :inline="true"
+                                :borderless="true"
                                 @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
                                 />
                         </div>
@@ -66,6 +70,8 @@
                                 :key="action.element.item"
                                 :options="createMethodSuggestionsForElement(action.element)"
                                 @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
+                                :inline="true"
+                                :borderless="true"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
                                 <span class="behavior-function" v-if="action.method !== 'set' && action.method !== 'sendEvent'">{{action.method | toPrettyMethod(action.element) }} </span>

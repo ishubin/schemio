@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="dropdown-container">
+    <div class="dropdown-container" :class="{inline: inline, borderless: borderless}">
         <div class="dropdown-click-area" :class="{'hover-effect': hoverEffect && !disabled}" @click="toggleDropdown">
             <slot v-if="value === null"></slot>
             <div v-else>
@@ -64,7 +64,9 @@ export default {
         hoverEffect    : {type: Boolean, default: true},
         searchEnabled  : {type: Boolean, default: true},
         disabled       : {type: Boolean, default: false},
-        autoFocusSearch: {type: Boolean, default: true}
+        autoFocusSearch: {type: Boolean, default: true},
+        inline         : {type: Boolean, default: false},
+        borderless     : {type: Boolean, default: false},
     },
 
     mounted() {

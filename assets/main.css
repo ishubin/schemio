@@ -2084,21 +2084,35 @@ ul.category-breadcrumb li i {
 
 /**************  Dropdown    ********************/
 .dropdown-container {
-    display: inline-block;
+    display: block;
     position: relative;
     padding: 0;
     margin: 0;
 }
 .dropdown-container .dropdown-click-area {
-    display: inline-block;
-    padding: 2px 4px;
-    margin: 1px;
+    display: block;
+    padding: 4px 4px;
+    border: 1px solid var(--faint-strong-up-up);
+    background: var(--base-weak);
     cursor: pointer;
+    border-radius: var(--control-border-radius);
+}
+.dropdown-container.inline {
+    display: inline-block;
+}
+.dropdown-container.inline .dropdown-click-area {
+    display: inline-block;
 }
 .dropdown-container .dropdown-click-area.hover-effect:hover {
-    background: #fff;
-    border: 1px solid var(--faint-strong-up-up);
-    border-radius: var(--control-border-radius);
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong-down);
+}
+.dropdown-container.borderless .dropdown-click-area {
+    border: none;
+    background: none;
+    margin: 1px;
+}
+.dropdown-container.borderless .dropdown-click-area.hover-effect:hover {
     margin: 0;
 }
 .dropdown-container .dropdown-popup {
