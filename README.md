@@ -1,7 +1,7 @@
 Schemio
 --------------------
 
-Schemio is a web based diagramming app that allows you to build interactive diagrams. Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app or as an SVG editor.
+Schemio is a web based diagramming app that allows you to build interactive diagrams. Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app.
 
 Features of Schemio:
 
