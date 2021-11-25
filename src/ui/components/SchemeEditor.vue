@@ -53,7 +53,7 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
-                    :key="`${schemeContainer.scheme.id}-edit`"
+                    :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -72,7 +72,7 @@
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
-                    :key="`${schemeContainer.scheme.id}-view`"
+                    :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :schemeContainer="interactiveSchemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
@@ -329,10 +329,6 @@ const defaultHistorySize = 30;
 let history = new History({size: defaultHistorySize});
 
 
-const schemePages = {
-
-};
-
 function imgPreload(imageUrl) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -465,6 +461,10 @@ export default {
 
     data() {
         return {
+            // this is used to trigger full reload of SvgEditor component
+            // it is needed only when scheme is imported from file
+            editorRevision: 0,
+
             offlineMode: false,
             schemeId: null,
 
@@ -1058,6 +1058,7 @@ export default {
             this.schemeContainer.reindexItems();
             this.updateRevision();
             this.commitHistory();
+            this.editorRevision++;
         },
 
         onImportSchemeJSONClicked() {
