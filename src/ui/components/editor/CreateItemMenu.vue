@@ -419,20 +419,24 @@ export default {
             this.imageCreation.popupShown = false;
             var img = new Image();
             const that = this;
+
+            const newItem = utils.clone(that.imageCreation.item);
+            newItem.name = that.makeUniqueName('Image');
+            newItem.id = shortid.generate();
+            newItem.area = { x: 0, y: 0, w: 100, h: 100};
+            utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
+
             img.onload = function () {
                 if (this.width > 1 && this.height > 1) {
-                    const newItem = utils.clone(that.imageCreation.item);
-                    newItem.name = that.makeUniqueName('Image');
-                    newItem.id = shortid.generate();
                     newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
 
-                    utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
                     EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                 }
                 that.imageCreation.popupShown = false;
             };
-            img.onerror = () => {
-                this.errorMessage = 'Could not load image. Check if the path is correct';
+            img.onerror = (err) => {
+                EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                that.imageCreation.popupShown = false;
             };
             img.src = imageUrl;
         },
