@@ -966,6 +966,8 @@ ul.pagination li a.current {
 .zoom-control {
     margin-left: 5px;
     display: flex;
+    align-items: center;
+    justify-items: center;
 }
 .zoom-control .zoom-button {
     display: inline-block;
@@ -982,10 +984,12 @@ ul.pagination li a.current {
     background: var(--faint-weak-down);
 }
 .zoom-control .zoom-button.zoom-out {
-    border-radius: var(--control-border-radius) 0 0 var(--control-border-radius);
+    border-radius: var(--control-border-radius) 0 0 var(--control-border-radius) !important;
+    border-right: none;
 }
 .zoom-control .zoom-button.zoom-in {
-    border-radius:  0 var(--control-border-radius) var(--control-border-radius) 0;
+    border-radius:  0 var(--control-border-radius) var(--control-border-radius) 0 !important;
+    border-left: none;
 }
 .zoom-control .dropdown-container,
 .zoom-control .dropdown-container .dropdown-click-area {
@@ -995,12 +999,10 @@ ul.pagination li a.current {
 .zoom-control .dropdown-container input {
     border: none;
     padding: 2px 7px;
-    height: 24px;
+    height: 22px;
     width: 50px;
     font-size: 14px;
     text-align: center;
-    border-top: 1px solid var(--faint-strong-up);
-    border-bottom: 1px solid var(--faint-strong-up);
 }
 
 /********************* Svg editor *******************/
