@@ -104,8 +104,10 @@ echo_section "Building docker container"
 cat package.json | jq ".version=\"0.1.1\"" > tmp && mv tmp package.json
 DOCKER_CONTAINER="schemio:$NEW_VERSION"
 PUBLIC_DOCKER_TAG="binshu/schemio:$NEW_VERSION"
+PUBLIC_LATEST_TAG="binshu/schemio:latest"
 docker build -t "$DOCKER_CONTAINER" .
 docker tag "$DOCKER_CONTAINER" "$PUBLIC_DOCKER_TAG"
+docker tag "$DOCKER_CONTAINER" "$PUBLIC_LATEST_TAG"
 
 
 echo_section "Updating package.json"
@@ -127,4 +129,4 @@ gh release create $NEW_TAG dist/release/*.zip --title "Released version $NEW_VER
 echo_section "Done"
 echo "You can push docker container to docker hub now using the following command:"
 echo ""
-echo "   docker login --username=binshu && docker push $PUBLIC_DOCKER_TAG"
+echo "   docker login --username=binshu && docker push $PUBLIC_DOCKER_TAG && docker push $PUBLIC_LATEST_TAG"
