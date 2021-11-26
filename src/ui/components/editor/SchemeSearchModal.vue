@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="Search Schemes" @close="$emit('close')" :height="600">
+    <modal title="Search Diagrams" @close="$emit('close')" :height="600">
         <h5>Name</h5>
         <input type="text" class="textfield" v-model="query"/>
 

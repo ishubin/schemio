@@ -33,7 +33,7 @@
                     <tbody>
                         <tr v-for="(entry, entryIdx) in searchResult.results">
                             <td>
-                                <router-link class="entry-link" :to="`/schemes/${entry.id}`">
+                                <router-link class="entry-link" :to="`/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
                                     <span class="entry-link-text">{{entry.name}}</span>

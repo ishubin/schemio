@@ -30,7 +30,7 @@
                     <li>
                         <div class="zoom-control">
                             <span class="zoom-button zoom-out" @click="onZoomOutClicked"><i class="fas fa-search-minus"></i></span>
-                            <dropdown :options="zoomOptions" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
+                            <dropdown :options="zoomOptions" :inline="true" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
                                 <input :value="zoom" @keydown.enter="onZoomSubmit" style="min-width: 80px; padding-left: 1px; padding-right: 1px;"/>
                             </dropdown>
                             <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
@@ -270,8 +270,8 @@ export default {
 
     data() {
         const defaultMenuDropDownOptions = [
-            {name: 'New scheme',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
-            {name: 'Import scheme',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
+            {name: 'New diagram',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
+            {name: 'Import diagram',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
             {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
         ];

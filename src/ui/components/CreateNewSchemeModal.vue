@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="New Scheme" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
+    <modal title="New Diagram" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
         <h5>Name</h5>
         <input ref="schemeNameInput" class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}"
             type="text"
@@ -21,7 +21,7 @@
         </div>
 
         <div v-if="apiClient && apiClient.uploadFile">
-            <h5>Scheme Image URL</h5>
+            <h5>Diagram Image URL</h5>
 
             <div class="image-control">
                 <input class="textfield" type="text" v-model="imageUrl" placeholder="Image URL..."/>
@@ -140,11 +140,11 @@ export default {
                 }).catch(err => {
                     console.error(err);
                     this.showLoading = false;
-                    this.errorMessage = 'Failed to create new scheme';
+                    this.errorMessage = 'Failed to create new diagram';
                 });
             } else {
                 this.mandatoryFields.name.highlight = true;
-                this.errorMessage = 'Scheme name should not be empty';
+                this.errorMessage = 'Diagram name should not be empty';
             }
         },
 

@@ -19,7 +19,7 @@
                         <i class="fas fa-folder-plus"></i> New directory
                     </span>
                     <span class="btn btn-secondary" @click="showNewSchemeModel()">
-                        <i class="fas fa-file"></i> Create Scheme
+                        <i class="fas fa-file"></i> New Diagram
                     </span>
                     <input type="text" class="textfield" placeholder="Search ..." v-model="searchKeyword" @keydown.enter="searchSchemes"/>
                     <span class="btn btn-primary" @click="searchSchemes">
@@ -48,7 +48,7 @@
                                 <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
-                                <router-link class="entry-link" v-else-if="entry.kind === 'scheme'" :to="`/schemes/${entry.id}`">
+                                <router-link class="entry-link" v-else-if="entry.kind === 'scheme'" :to="`/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
                                     <span class="entry-link-text">{{entry.name}}</span>
@@ -274,7 +274,7 @@ export default {
         },
 
         onSchemeCreated(scheme) {
-            this.$router.push({path: `/schemes/${scheme.id}#m:edit`});
+            this.$router.push({path: `/docs/${scheme.id}#m:edit`});
         },
 
         onDeleteEntry(entry) {
@@ -296,7 +296,7 @@ export default {
                     window.location.reload();
                 })
                 .catch(err => {
-                    this.deleteEntryModal.errorMessage = 'Failed to delete scheme';
+                    this.deleteEntryModal.errorMessage = 'Failed to delete diagram';
                 });
             }
         },

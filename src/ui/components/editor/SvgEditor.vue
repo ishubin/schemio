@@ -1089,7 +1089,7 @@ export default {
 
             if (!this.offline) {
                 this.customContextMenu.menuOptions.push({
-                    name: 'Create scheme for this element...',
+                    name: 'Create diagram for this element...',
                     iconClass: 'far fa-file',
                     clicked: () => {this.$emit('clicked-create-child-scheme-to-item', item); }
                 });

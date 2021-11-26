@@ -4,8 +4,8 @@
 <template>
     <modal title="Export as HTML" @close="$emit('close')" primaryButton="Export" @primary-submit="exportSubmitted">
         <p>
-            Exports scheme into a separate HTML page with standalone Schemio player.
-            It packages your scheme together with Schemio javascript files into a zip archive.
+            Exports diagram into a separate HTML page with standalone Schemio player.
+            It packages your diagram together with Schemio javascript files into a zip archive.
         </p>
     </modal>
 </template>

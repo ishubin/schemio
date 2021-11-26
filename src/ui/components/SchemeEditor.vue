@@ -164,7 +164,7 @@
                         <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
                     </div>
                     <div v-else class="tabs-body">
-                        <div v-if="currentTab === 'Scheme' && schemeContainer && !textSlotEditted.item">
+                        <div v-if="currentTab === 'Doc' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 :categories-enabled="categoriesEnabled"
@@ -504,8 +504,8 @@ export default {
                 parentSchemeItem: null
             },
 
-            currentTab: 'Scheme',
-            tabs: [ 'Scheme', 'Item'],
+            currentTab: 'Doc',
+            tabs: [ 'Doc', 'Item'],
 
             offsetSaveTimerId: null,
 

@@ -13,7 +13,7 @@
        </select>
 
        <h5>URL</h5>
-       <div v-if="editType === 'scheme'" class="scheme-ref-control">
+       <div v-if="editType === 'doc'" class="scheme-ref-control">
             <input type="text" class="textfield" v-model:value="editUrl"/>
             <span class="btn btn-secondary" @click="toggleSchemeSearch"><i class="fas fa-search"></i></span>
        </div>
@@ -58,7 +58,7 @@ export default {
             this.showSchemeSearchModal = true;
         },
         onSchemeSelect(scheme) {
-            this.editType = 'scheme';
+            this.editType = 'doc';
             this.editUrl = scheme.publicLink;
 
             if (!this.editTitle) {

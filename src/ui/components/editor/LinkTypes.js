@@ -9,7 +9,7 @@ const _knownTypes = [{
     fontAwesomeSymbol: '\uf0c1',
     cssClass: 'fas fa-link'
 }, {
-    name: 'scheme',
+    name: 'doc',
     fontAwesomeSymbol: '\uf542',
     cssClass: 'fas fa-project-diagram'
 }, {

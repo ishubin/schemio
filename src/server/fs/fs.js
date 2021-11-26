@@ -156,8 +156,8 @@ export function fsDeleteScheme(config) {
             res.$success('Removed scheme ' + schemeId);
         })
         .catch(err => {
-            console.error('Failed to delete scheme file', fullPath, err);
-            res.$serverError('Failed to delete scheme')
+            console.error('Failed to delete diagram file', fullPath, err);
+            res.$serverError('Failed to delete diagram')
         })
     };
 }
@@ -192,7 +192,7 @@ export function fsSearchSchemes(config) {
             }
             return {
                 name: entity.name,
-                publicLink: `/schemes/${entity.id}`,
+                publicLink: `/docs/${entity.id}`,
                 id: entity.id,
                 modifiedTime: entity.modifiedTime,
                 previewURL
@@ -210,7 +210,7 @@ export function fsSearchSchemes(config) {
 
 export function fsGetScheme(config) {
     return (req, res) => {
-        const schemeId = req.params.schemeId;
+        const schemeId = req.params.docId;
 
         const entity = getEntityFromIndex(schemeId);
         if (!entity) {
@@ -257,7 +257,7 @@ export function fsSaveScheme(config) {
         const scheme = req.body;
         scheme.id = schemeId;
         scheme.modifiedTime = new Date();
-        scheme.publicLink = `/schemes/${schemeId}`;
+        scheme.publicLink = `/docs/${schemeId}`;
 
         const fullPath = path.join(config.fs.rootPath, entity.fsPath);
 
@@ -300,7 +300,7 @@ export function fsCreateScheme(config) {
         scheme.id = id;
         scheme.modifiedTime = new Date();
         
-        scheme.publicLink = `/schemes/${id}`;
+        scheme.publicLink = `/docs/${id}`;
         scheme.previewURL = null;
 
         fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {

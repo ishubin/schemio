@@ -97,7 +97,7 @@ function exportMediaForScheme(config, scheme, schemeId) {
 }
 
 function referencesOtherScheme(url) {
-    return typeof url === 'string' && url.startsWith('/schemes/');
+    return typeof url === 'string' && url.startsWith('/docs/');
 }
 
 function fixSchemeLinks(scheme) {

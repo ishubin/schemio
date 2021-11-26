@@ -27,7 +27,7 @@ function getExportHTMLResources() {
 export function createApiClient(path) {
     return {
         _getSchemeUrl(schemeId) {
-            return `/v1/fs/schemes/${schemeId}?_v=${new Date().getTime()}`;
+            return `/v1/fs/docs/${schemeId}?_v=${new Date().getTime()}`;
         },
 
         listEntries(path) {
@@ -90,7 +90,7 @@ export function createApiClient(path) {
         },
 
         createNewScheme(scheme) {
-            return axios.post(`/v1/fs/schemes?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
+            return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
         },
 
         saveScheme(scheme) {
@@ -106,7 +106,7 @@ export function createApiClient(path) {
         },
 
         findSchemes(filters) {
-            let url = '/v1/fs/schemes';
+            let url = '/v1/fs/docs';
             let params = {};
 
             if (filters.query) {
@@ -145,13 +145,14 @@ export function createApiClient(path) {
         },
 
         getCategoryTree() {
+            return Promise.resolve([]);
         },
 
         ensureCategoryStructure(categories) {
         },
 
         uploadSchemeSvgPreview(schemeId, svgCode) {
-            let url = '/v1/fs/scheme-preview?id=' + encodeURIComponent(schemeId);
+            let url = '/v1/fs/doc-preview?id=' + encodeURIComponent(schemeId);
             if (path) {
                 url = url + '&path=' + encodeURIComponent(path);
             }

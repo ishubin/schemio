@@ -99,10 +99,10 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
-                <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Scheme</span>
+                <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Diagram</span>
             </panel>
 
-            <modal v-if="showDeleteSchemeWarning" title="Delete scheme"
+            <modal v-if="showDeleteSchemeWarning" title="Delete diagram"
                 primaryButton="Delete"
                 @close="showDeleteSchemeWarning = false"
                 @primary-submit="deleteScheme()"
