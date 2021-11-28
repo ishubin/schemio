@@ -96,7 +96,6 @@ import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
 import Tooltip from '../Tooltip.vue';
-import { prepareSchemeForSaving } from '../../scheme/Scheme'
 
 export default {
     props: {
