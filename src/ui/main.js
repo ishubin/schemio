@@ -7,10 +7,9 @@ import store from './store/Store.js';
 import SchemioEditorApp from './SchemioEditorApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
-import CategoryTree from './components/search/CategoryTree.vue';
 
 window.Schemio = {
-    components: { Vue, Modal, CreateNewSchemeModal, CategoryTree},
+    components: { Vue, Modal, CreateNewSchemeModal},
     /**
      * 
      * @param {*} querySelector 
@@ -18,7 +17,6 @@ window.Schemio = {
      * @param {Object} options.scheme
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
-     * @param {Boolean} options.categoriesEnabled
      * @param {Boolean} options.userStylesEnabled
      * @param {Object} options.comments
      * @param {Object} options.apiClient - API client
@@ -35,7 +33,6 @@ window.Schemio = {
             render: h => h('appComponent', {props: {
                 scheme           : options.scheme || null,
                 editAllowed      : options.editAllowed || false,
-                categoriesEnabled: options.categoriesEnabled || false,
                 userStylesEnabled: options.userStylesEnabled || false,
                 menuOptions      : options.menuOptions || [],
                 comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},

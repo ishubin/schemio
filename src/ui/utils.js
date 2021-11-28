@@ -32,7 +32,6 @@ function sanitizeScheme(scheme) {
         description: scheme.description,
         tags: scheme.tags,
         modifiedTime: scheme.modifiedTime,
-        categoryId: scheme.categoryId,
         items: items,
         style: scheme.style || {}
     }

@@ -169,7 +169,7 @@
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
 
-                            <scheme-details v-else :scheme-container="schemeContainer"></scheme-details>
+                            <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
 
                         <div v-if="currentTab === 'Item' && !textSlotEditted.item">

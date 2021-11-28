@@ -34,24 +34,6 @@
         getTags() {
         },
 
-        createCategory(categoryName, parentCategoryId) {
-        },
-
-        deleteCategory(categoryId) {
-        },
-
-        updateCategory(categoryId, category) {
-        },
-
-        moveCategory(categoryId, newParentCategoryId) {
-        },
-
-        getCategoryTree() {
-        },
-
-        ensureCategoryStructure(categories) {
-        },
-
         uploadSchemeSvgPreview(schemeId, svgCode) {
         },
 

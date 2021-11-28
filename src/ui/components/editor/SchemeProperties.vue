@@ -4,32 +4,6 @@
 
 <template lang="html">
     <div>
-        <ul class="category-breadcrumb" v-if="schemeContainer.scheme.category">
-            <li>
-                <router-link :to="{path: '/'}">
-                    <a href="#"><i class="fas fa-home"></i></a>
-                </router-link>
-                <i class="fas fa-angle-right"></i>
-            </li>
-            <li v-for="category in schemeContainer.scheme.category.ancestors">
-                <router-link :to="{ path: `${projectLink}?category=${category.id}` }">
-                    <a href="#">{{category.name}}</a>
-                </router-link>
-                <i class="fas fa-angle-right"></i>
-            </li>
-            <li>
-                <router-link :to="{ path: `${projectLink}?category=${schemeContainer.scheme.category.id}` }">
-                    <a href="#">{{schemeContainer.scheme.category.name}}</a>
-                </router-link>
-            </li>
-            <li>
-                <span class="link" title="Move to another category" @click="showMoveToCategoryModal"><i class="fas fa-edit"></i></span>
-            </li>
-        </ul>
-        <div v-else>
-            <span v-if="supportsCategoryModifications" class="link" title="Move to another category" @click="showMoveToCategoryModal">Move to category</span>
-        </div>
-
         <div v-if="schemeContainer.scheme">
             <panel name="General">
                 <h5 class="section">Name</h5>
@@ -109,18 +83,6 @@
                 >
                 Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
             </modal>
-
-
-            <modal v-if="moveToCategoryModal.shown"
-                title="Move to Category"
-                @close="moveToCategoryModal.shown = false"
-                >
-                <p>Select category:</p>
-                <span class="btn btn-secondary" @click="onMovedToCategoryClicked(null)">Make Uncategorized</span>
-                <div style="max-height: 400px; overflow: auto;">
-                    <simple-category-tree :categories="moveToCategoryModal.categories" @category-selected="onMovedToCategoryClicked"/>
-                </div>
-            </modal>
         </div>
     </div>
 </template>
@@ -130,7 +92,6 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import EventBus from './EventBus.js';
 import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
-import SimpleCategoryTree from '../SimpleCategoryTree.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
@@ -140,9 +101,8 @@ import { prepareSchemeForSaving } from '../../scheme/Scheme'
 export default {
     props: {
         schemeContainer: { type: Object },
-        categoriesEnabled: { type: Boolean, default: true }
     },
-    components: {VueTagsInput, Modal, RichTextEditor, SimpleCategoryTree, ColorPicker, Panel, Tooltip},
+    components: {VueTagsInput, Modal, RichTextEditor, ColorPicker, Panel, Tooltip},
     mounted() {
         if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
             this.$store.state.apiClient.getTags().then(tags => {
@@ -162,11 +122,6 @@ export default {
             screenSettings: {
                 draggable: this.schemeContainer.scheme.settings.screen.draggable
             },
-
-            moveToCategoryModal: {
-                shown: false,
-                categories: []
-            }
         }
     },
 
@@ -190,26 +145,6 @@ export default {
                 window.location = this.projectLink;
             });
         },
-
-        showMoveToCategoryModal() {
-            this.$store.state.apiClient.getCategoryTree().then(categories => {
-                this.moveToCategoryModal.categories = categories;
-                this.moveToCategoryModal.shown = true;
-            })
-        },
-
-        onMovedToCategoryClicked(category) {
-            const scheme = this.schemeContainer.scheme;
-            if (category) {
-                scheme.categoryId = category.id;
-            } else {
-                scheme.categoryId = null;
-            }
-            this.$store.state.apiClient.saveScheme(this.schemeContainer.scheme.id, prepareSchemeForSaving(scheme)).then(() => {
-                this.moveToCategoryModal.shown = false;
-                location.reload();
-            });
-        }
     },
 
     computed: {
@@ -223,10 +158,6 @@ export default {
         supportsSchemeDeletion() {
             return this.$store.state.apiClient && this.$store.state.apiClient.deleteScheme;
         },
-
-        supportsCategoryModifications() {
-            return this.categoriesEnabled && this.$store.state.apiClient && this.$store.state.apiClient.getCategoryTree;
-        }
     },
 
     watch: {

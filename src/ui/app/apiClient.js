@@ -131,25 +131,6 @@ function createApiClient() {
             return Promise.resolve([]);
         },
 
-        createCategory(categoryName, parentCategoryId) {
-        },
-
-        deleteCategory(categoryId) {
-        },
-
-        updateCategory(categoryId, category) {
-        },
-
-        moveCategory(categoryId, newParentCategoryId) {
-        },
-
-        getCategoryTree() {
-            return Promise.resolve([]);
-        },
-
-        ensureCategoryStructure(categories) {
-        },
-
         uploadSchemeSvgPreview(schemeId, svgCode) {
             let url = '/v1/fs/doc-preview?id=' + encodeURIComponent(schemeId);
             if (path) {

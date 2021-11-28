@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <Modal title="Move to category" @close="$emit('close')" :primaryButton="primaryButton" @primary-submit="moveToCurrentLocation">
+    <Modal title="Move to folder" @close="$emit('close')" :primaryButton="primaryButton" @primary-submit="moveToCurrentLocation">
         <div v-if="errorMessage" class="msg msg-error">{{errorMessage}}</div>
 
         <ul class="breadcrumbs">
