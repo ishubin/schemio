@@ -53,7 +53,7 @@
 <script>
 import Header from '../components/Header.vue';
 import Pagination from '../../components/Pagination.vue';
-import { createApiClient, createStaticClient } from '../apiClient';
+import { createApiClient, createApiClientForType, createStaticClient } from '../apiClient';
 
 function toPageNumber(text) {
     const page = parseInt(text);
@@ -65,6 +65,11 @@ function toPageNumber(text) {
 
 export default {
     components: {Header, Pagination},
+
+    props: {
+        apiClientType  : {type: String, default: 'fs'},
+    },
+
 
     beforeMount() {
         this.apiClient.findSchemes({
@@ -86,7 +91,7 @@ export default {
             query,
             page,
             searchResult: null,
-            apiClient: this.useStaticClient ? createStaticClient('') : createApiClient()
+            apiClient: createApiClientForType(this.apiClientType)
         };
     },
 

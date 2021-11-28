@@ -167,7 +167,6 @@
                         <div v-if="currentTab === 'Doc' && schemeContainer && !textSlotEditted.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
-                                :categories-enabled="categoriesEnabled"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
 
                             <scheme-details v-else :scheme-container="schemeContainer"></scheme-details>
@@ -231,10 +230,9 @@
         <create-new-scheme-modal v-if="newSchemePopup.show"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
-            :categories="newSchemePopup.categories"
             :apiClient="apiClient"
             @close="newSchemePopup.show = false"
-            @scheme-created="openNewSchemePopupSchemeCreated"
+            @scheme-submitted="openNewSchemePopupSchemeSubmitted"
             ></create-new-scheme-modal>
 
 
@@ -361,11 +359,6 @@ function timeoutPromise(timeInMillis) {
 
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
-function escapeHTML(html) {
-    return new Option(html).innerHTML;
-}
-
-
 let currentState = null;
 
 const drawColorPallete = [
@@ -409,7 +402,6 @@ export default {
     props: {
         scheme           : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
-        categoriesEnabled: {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},
         menuOptions      : {type: Array, default: []},
         comments         : {type: Object, default: {
@@ -470,7 +462,6 @@ export default {
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
-            currentCategory: null,
             originalUrlEncoded: encodeURIComponent(window.location),
 
             isLoading: false,
@@ -499,7 +490,6 @@ export default {
             newSchemePopup: {
                 name: '',
                 description: '',
-                categories: [],
                 show: false,
                 parentSchemeItem: null
             },
@@ -614,7 +604,6 @@ export default {
         },
 
         initScheme(scheme) {
-            this.currentCategory = scheme.category;
             this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
             history = new History({size: defaultHistorySize});
@@ -670,19 +659,6 @@ export default {
         },
 
         openNewSchemePopup() {
-            if (this.currentCategory && this.currentCategory.id) {
-                var categories = map(this.currentCategory.ancestors, ancestor => {
-                    return {name: ancestor.name, id: ancestor.id};
-                });
-
-                categories.push({
-                    name: this.currentCategory.name,
-                    id: this.currentCategory.id
-                });
-                this.newSchemePopup.categories = categories;
-            } else {
-                this.newSchemePopup.categories = [];
-            }
             this.newSchemePopup.show = true;
         },
 
@@ -785,46 +761,33 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item) {
-            var category = this.schemeContainer.scheme.category;
-            if (category && category.id) {
-                var categories = map(category.ancestors, ancestor => {
-                    return {name: ancestor.name, id: ancestor.id};
-                });
-
-                categories.push({
-                    name: category.name,
-                    id: category.id
-                });
-                this.newSchemePopup.categories = categories;
-            } else {
-                this.newSchemePopup.categories = [];
-            }
-
             this.newSchemePopup.name = item.name;
-            // TODO add link to newly created scheme
             this.newSchemePopup.parentSchemeItem = item;
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeCreated(scheme) {
-            if (scheme.link) {
-                var item = this.newSchemePopup.parentSchemeItem;
-                if (item) {
-                    if (!item.links) {
-                        item.links = [];
+        openNewSchemePopupSchemeSubmitted(scheme) {
+            //TODO in case item is a component - it should set scheme id in the shape props instead
+            this.$emit('new-scheme-submitted', scheme, (createdScheme, publicLink) => {
+                if (publicLink) {
+                    const item = this.newSchemePopup.parentSchemeItem;
+                    if (item) {
+                        if (!item.links) {
+                            item.links = [];
+                        }
+                        item.links.push({
+                            title: `${createdScheme.name}`,
+                            url: publicLink,
+                            type: 'scheme'
+                        });
+                        EventBus.emitItemChanged(item.id, 'links');
                     }
-                    item.links.push({
-                        title: `${scheme.name}`,
-                        url: scheme.link,
-                        type: 'scheme'
-                    });
-                    EventBus.emitItemChanged(item.id, 'links');
+
+                    window.open(`${publicLink}#m:edit`, '_blank');
                 }
 
                 this.newSchemePopup.show = false;
-                window.open(`${scheme.link}#m:edit`, '_blank');
-
-            }
+            })
         },
 
         onUpdateOffset(x, y) {

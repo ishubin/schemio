@@ -7,10 +7,10 @@
         <SchemeEditor
             :scheme="scheme"
             :editAllowed="editAllowed"
-            :categoriesEnabled="categoriesEnabled"
             :userStylesEnabled="userStylesEnabled"
             :menuOptions="menuOptions"
-            :comments="comments" />
+            :comments="comments"
+            @new-scheme-submitted="onNewSchemeSubmitted"/>
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
@@ -31,7 +31,6 @@ export default{
     props: {
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
-        categoriesEnabled: {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},
         menuOptions      : {type: Array, default: () => []},
         comments         : {type: Object, default: () => null},
@@ -48,5 +47,11 @@ export default{
             debuggerShown: false,
         };
     },
+
+    methods: {
+        onNewSchemeSubmitted(scheme, callback) {
+            this.$emit('new-scheme-submitted', scheme, callback);
+        }
+    }
 }
 </script>

@@ -23,8 +23,7 @@ function getExportHTMLResources() {
     })
 }
 
-//TODO get rid of this path argument and provide it explicitly to each function
-export function createApiClient(path) {
+function createApiClient() {
     return {
         _getSchemeUrl(schemeId) {
             return `/v1/fs/docs/${schemeId}?_v=${new Date().getTime()}`;
@@ -42,15 +41,15 @@ export function createApiClient(path) {
             return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
         },
 
-        deleteDir(name) {
+        deleteDir(path, name) {
             return axios.delete(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`).then(unwrapAxios);
         },
 
-        createDirectory(name) {
+        createDirectory(path, name) {
             return axios.post('/v1/fs/dir', { name, path }).then(unwrapAxios);
         },
 
-        renameDirectory(oldName, newName) {
+        renameDirectory(path, oldName, newName) {
             return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(oldName)}`, {name: newName}).then(unwrapAxios);
         },
 
@@ -64,6 +63,10 @@ export function createApiClient(path) {
 
         moveScheme(schemeId, newFolder) {
             return axios.post(`/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&dst=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
+        },
+
+        createNewScheme(path, scheme) {
+            return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
         },
 
 
@@ -87,10 +90,6 @@ export function createApiClient(path) {
 
         deleteArt(artId) {
             return axios.delete(`/v1/fs/art/${artId}`).then(unwrapAxios);
-        },
-
-        createNewScheme(scheme) {
-            return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
         },
 
         saveScheme(scheme) {
@@ -187,7 +186,7 @@ export function createApiClient(path) {
 }
 
 
-export function createStaticClient() {
+function createStaticClient() {
     const currentTimestamp = new Date().getTime();
 
     let cachedIndex = null;
@@ -286,4 +285,15 @@ export function createStaticClient() {
 
         getExportHTMLResources
     };
+}
+
+
+export function createApiClientForType(apiClientType) {
+    if (apiClientType === 'fs') {
+        return createApiClient();
+    } else if (apiClientType === 'static') {
+        return createStaticClient();
+    } else {
+        throw new Error('Unknown api client type: ' + apiClientType);
+    }
 }

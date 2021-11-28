@@ -14,7 +14,7 @@
                 <h4>Sorry, specfied path does not exist</h4>
             </div>
             <div v-else>
-                <div class="fs-toolbar" v-if="!viewOnly && !useStaticClient">
+                <div class="fs-toolbar" v-if="!viewOnly && toolbarShown">
                     <span class="btn btn-secondary" @click="showNewDirectoryModel()">
                         <i class="fas fa-folder-plus"></i> New directory
                     </span>
@@ -94,9 +94,8 @@
             </modal>
 
             <CreateNewSchemeModal v-if="newSchemeModal.shown"
-                :categoriesEnabled="false"
                 :apiClient="apiClient"
-                @scheme-created="onSchemeCreated"
+                @scheme-submitted="onSchemeSubmitted"
                 @close="newSchemeModal.shown = false"
             />
 
@@ -111,7 +110,7 @@
 </template>
 
 <script>
-import { createApiClient, createStaticClient } from '../apiClient';
+import { createApiClientForType } from '../apiClient';
 import forEach from 'lodash/forEach';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
@@ -134,7 +133,8 @@ export default {
     components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal, Header},
 
     props: {
-        useStaticClient: {type: Boolean, default: false}
+        apiClientType  : {type: String, default: 'fs'},
+        toolbarShown   : {type: Boolean, default: true},
     },
     
     beforeMount() {
@@ -231,7 +231,7 @@ export default {
                 source: null
             },
 
-            apiClient: this.useStaticClient ? createStaticClient(path) : createApiClient(path)
+            apiClient: createApiClientForType(this.apiClientType)
         };
     },
 
@@ -264,7 +264,7 @@ export default {
                 }
             }
 
-            this.apiClient.createDirectory(name)
+            this.apiClient.createDirectory(this.path, name)
             .then(() => {
                 window.location.reload();
             })
@@ -273,8 +273,14 @@ export default {
             });
         },
 
-        onSchemeCreated(scheme) {
-            this.$router.push({path: `/docs/${scheme.id}#m:edit`});
+        onSchemeSubmitted(scheme) {
+            this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
+                this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+            })
+            .catch(err => {
+                console.error('Failed to create diagram', err);
+                this.errorMessage = 'Failed to create diagram';
+            });
         },
 
         onDeleteEntry(entry) {
@@ -285,7 +291,7 @@ export default {
 
         confirmDeleteEntry(entry) {
             if (entry.kind === 'dir') {
-                this.apiClient.deleteDir(entry.name).then(() => {
+                this.apiClient.deleteDir(this.path, entry.name).then(() => {
                     window.location.reload();
                 })
                 .catch(err => {
@@ -326,7 +332,7 @@ export default {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
-                this.apiClient.renameDirectory(oldName, this.renameEntryModal.name).then(() => {
+                this.apiClient.renameDirectory(this.path, oldName, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
                 })

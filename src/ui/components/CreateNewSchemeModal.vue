@@ -15,11 +15,6 @@
         <h5>Description</h5>
         <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
 
-        <div v-if="categoriesEnabled">
-            <h5>Category</h5>
-            <category-selector :categories="categories" :apiClient="apiClient"/>
-        </div>
-
         <div v-if="apiClient && apiClient.uploadFile">
             <h5>Diagram Image URL</h5>
 
@@ -44,20 +39,16 @@
 
 <script>
 import RichTextEditor from './RichTextEditor.vue';
-import CategorySelector from './CategorySelector.vue';
 import Modal from './Modal.vue';
 import {enrichItemWithDefaults} from '../scheme/Item';
 import StoreUtils from '../store/StoreUtils.js';
 
 export default {
-    components: {CategorySelector, Modal, RichTextEditor},
+    components: {Modal, RichTextEditor},
     props: {
-        name: {type: String, default: ''},
-        categories: {type: Array, default: () => []},
-        maxCategoryDepth: {type: Number, default: 10},
-        description: {type: String, default: ''},
-        apiClient: {type: Object, default: () => null},
-        categoriesEnabled: {type: Boolean, default: true},
+        name         : {type: String, default: ''},
+        description  : {type: String, default: ''},
+        apiClient    : {type: Object, default: () => null},
         uploadEnabled: {type: Boolean, default: true}
     },
 
@@ -109,39 +100,13 @@ export default {
                     items.push(imageItem);
                 }
 
-                if (this.categories && this.categories.length > this.maxCategoryDepth) {
-                    this.errorMessage = `Categories cannot have more than ${this.maxCategoryDepth} depth`;
-                    return;
-                }
-
-                let chain = Promise.resolve(null);
-                this.showLoading = true;
-                if (this.categoriesEnabled) {
-                    chain = chain.then(() => {
-                        return this.apiClient.ensureCategoryStructure(this.categories)
-                    })
-                }
-
-                chain.then(category => {
-                    let categoryId = null;
-                    if (category && category.id) {
-                        categoryId = category.id;
-                    }
-                    return this.apiClient.createNewScheme({
-                        name: name,
-                        categoryId: categoryId,
-                        description: this.schemeDescription,
-                        tags: [],
-                        items
-                    });
-                }).then(scheme => {
-                    this.showLoading = false;
-                    this.$emit('scheme-created', scheme);
-                }).catch(err => {
-                    console.error(err);
-                    this.showLoading = false;
-                    this.errorMessage = 'Failed to create new diagram';
+                this.$emit('scheme-submitted', {
+                    name: name,
+                    description: this.schemeDescription,
+                    tags: [],
+                    items
                 });
+
             } else {
                 this.mandatoryFields.name.highlight = true;
                 this.errorMessage = 'Diagram name should not be empty';

@@ -30,33 +30,34 @@
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"
-            :categoriesEnabled="false"
             :userStylesEnabled="true"
+            @new-scheme-submitted="onNewSchemeSubmitted"
         />
     </div>
 </template>
 <script>
-import { createApiClient, createStaticClient } from '../apiClient';
+import { createApiClientForType } from '../apiClient';
 import SchemioEditorApp from '../../SchemioEditorApp.vue';
 import Header from '../components/Header.vue';
 import forEach from 'lodash/forEach';
+import StoreUtils from '../../store/StoreUtils';
 
 
 export default {
     components: {SchemioEditorApp, Header},
 
     props: {
-        useStaticClient: {type: Boolean, default: false}
+        apiClientType  : {type: String, default: 'fs'},
     },
 
     beforeMount() {
         this.$store.dispatch('setApiClient', this.apiClient);
 
         this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
+            this.path = schemeDetails.folderPath;
             this.buildBreadcrumbs(schemeDetails.folderPath);
-
             this.scheme = schemeDetails.scheme;
-            this.editAllowed = !this.useStaticClient && !schemeDetails.viewOnly;
+            this.editAllowed = !schemeDetails.viewOnly && this.apiClientType !== 'static';
         })
         .catch(err => {
             if (err.response && err.response.status === 404) {
@@ -72,10 +73,11 @@ export default {
 
         return {
             schemeId: schemeId,
+            path: '',
             breadcrumbs: [],
             editAllowed: false,
             scheme: null,
-            apiClient: this.useStaticClient ? createStaticClient('') : createApiClient(''),
+            apiClient: createApiClientForType(this.apiClientType),
             is404: false,
             errorMessage: null
         };
@@ -112,6 +114,19 @@ export default {
                 });
             }
             this.breadcrumbs = breadcrumbs;
+        },
+
+    
+        onNewSchemeSubmitted(scheme, callback) {
+            this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
+                if (callback) {
+                    callback(createdScheme, `/docs/${createdScheme.id}`);
+                }
+            })
+            .catch(err => {
+                console.error('Failed to create new diagram', err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to create new diagram');
+            });
         }
     }
 }

@@ -11,7 +11,7 @@ import {
     fsCreateArt, fsCreateDirectory, fsCreateScheme,
     fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, 
     fsDeleteStyle, 
-    fsDownloadMediaFile, fsDownloadSchemePreview, fsGetArt, 
+    fsDownloadMediaFile, fsGetArt, 
     fsGetScheme, fsGetStyles, fsListFilesRoute, 
     fsMoveDirectory, fsMoveScheme, fsPatchDirectory, 
     fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, 
