@@ -2,12 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-// This script is used as a playground for testing various UI componentes of Schemio
-
-
 import express  from  'express';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import bodyParser  from 'body-parser';
+
+import { loadConfig } from './config.js';
+
+const cwd = process.cwd();
+const config = loadConfig();
 
 const globalArt = [];
 // Loading global art from config
@@ -18,33 +21,22 @@ fs.readdir('conf/art', function (err, files) {
     });
 });
 
+
 const app = express();
 
-const port = 4010;
-
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/assets', express.static('assets'));
-app.use('/dist', express.static('dist'));
-app.use('/test-data', express.static('test/data'));
-
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-});
-
-const cwd = process.cwd();
-
-
-app.get('/offline-scheme-editor', (req, res) => {
-    res.sendFile(`${cwd}/src/html/offline-editor.html`)
-});
-app.get('/standalone', (req, res) => {
-    res.sendFile(`${cwd}/src/html/standalone-example.html`)
-});
 
 app.get('/v1/art', (req, res) => {
     res.json(globalArt);
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+app.get('*', (req, res) => {
+    res.sendFile(`${cwd}/html/index-drive.html`)
+});
+
+
+app.listen(config.serverPort, () => {
+    console.log(`Example app listening at http://localhost:${config.serverPort}`)
 });
 
