@@ -32,9 +32,8 @@
             >
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
-                    <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else-if="!offlineMode && editAllowed && apiClient" class="btn btn-primary" @click="saveScheme()">Save</span>
-                    <span v-else class="btn btn-primary" @click="saveToLocalStorage()">Save</span>
+                    <span v-if="isSaving" class="btn btn-secondary" @click="onSaveSchemeClick()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
+                    <span v-else class="btn btn-primary" @click="onSaveSchemeClick()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -660,6 +659,14 @@ export default {
 
         openNewSchemePopup() {
             this.newSchemePopup.show = true;
+        },
+
+        onSaveSchemeClick() {
+            if (!this.offlineMode && this.$store.state.apiClient) {
+                this.saveScheme();
+            } else {
+                this.saveToLocalStorage();
+            }
         },
 
         saveScheme() {

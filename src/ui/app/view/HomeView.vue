@@ -138,7 +138,13 @@ export default {
     },
     
     beforeMount() {
-        this.apiClient.listEntries(this.path)
+        createApiClientForType(this.apiClientType)
+        .then(apiClient => {
+            this.apiClient = apiClient;
+        })
+        .then(() => {
+            return this.apiClient.listEntries(this.path);
+        })
         .then(result => {
             const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
             result.entries.sort((a, b) => {
@@ -172,6 +178,7 @@ export default {
             this.entries = result.entries;
             this.viewOnly = result.viewOnly;
         }).catch(err => {
+            console.error(err);
             if (err.response && err.response.status === 404) {
                 this.is404 = true;
             } else {
@@ -231,7 +238,7 @@ export default {
                 source: null
             },
 
-            apiClient: createApiClientForType(this.apiClientType)
+            apiClient: null,
         };
     },
 

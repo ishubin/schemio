@@ -5,6 +5,7 @@
   "scripts": {
     "build": "babel src/server -d dist/server",
     "start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
+    "start-drive": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-drive-dev; npm run build && node dist/server/server-drive.js'",
     "build-playground": "babel src/server/server-playground.js -d dist/server",
     "start-playground": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; npm run build-playground && node dist/server/server-playground.js'",
     "build-app-dev": "webpack --config webpack.build.app.dev.js; cp dist/assets/schemio.app.js assets/; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
@@ -15,6 +16,7 @@
     "build-standalone-prod": "NODE_ENV=production webpack --config webpack.standalone.prod.js",
     "build-ui-static-app-dev": "webpack --config webpack.build.app.static.dev.js",
     "build-ui-static-app-prod": "NODE_ENV=production webpack --config webpack.build.app.static.prod.js",
+    "build-app-drive-dev": "webpack --config webpack.build.app.drive.dev.js; cp dist/assets/schemio.app.drive.js assets/; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
     "test": "webpack --config webpack.build.test.js && mocha dist/schemio.tests.js"
   },
   "author": "Ivan Shubin",

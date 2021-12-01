@@ -268,13 +268,185 @@ function createStaticClient() {
     };
 }
 
+function createGoogleDriveClient() {
+    return window.getGoogleAuth().then(() => {
+        return {
+            listEntries(path) {
+                return gapi.client.drive.files.list(
+                    { q:"trashed = false"}
+                ).then(results => {
+                    console.log('Got drive files', JSON.stringify(results));
+                    const entries = [];
+                    forEach(results.result.items, file => {
+                        if (file.mimeType === 'application/vnd.google-apps.folder') {
+                            entries.push({
+                                kind: 'dir',
+                                path: file.id,
+                                name: file.title,
+                                modifiedTime: file.modifiedDate
+                            });
+                        } else if (file.mimeType === 'application/json' && file.title.endsWith('.schemio.json')) {
+                            entries.push({
+                                kind: 'scheme',
+                                id: file.id,
+                                name: file.title,
+                                modifiedTime: file.modifiedDate
+                            });
+                        }
+                    });
+                    return {
+                        path: path,
+                        viewOnly: false,
+                        entries
+                    };
+                });
+            },
+
+            createDirectory(parentId, name) {
+                return gapi.client.drive.files.insert({
+                    resource:{
+                        title: name,
+                        mimeType: 'application/vnd.google-apps.folder'
+                    }
+                })
+                .then(() => {
+                    return {
+                        kind: 'dir',
+                        name: name,
+                        path: parentId
+                    }
+                });
+            },
+
+
+            createNewScheme(parentId, scheme) {
+                const boundary = '-------314159265358979323846';
+                const delimiter = "\r\n--" + boundary + "\r\n";
+                const close_delim = "\r\n--" + boundary + "--";
+
+                const contentType = 'application/json';
+                const metadata = {
+                    title:  `${scheme.name}.schemio.json`,
+                    mimeType: 'application/json'
+                };
+                const base64Data = btoa(JSON.stringify(scheme));
+                const multipartRequestBody =
+                    delimiter +
+                    'Content-Type: application/json\r\n\r\n' +
+                    JSON.stringify(metadata) +
+                    delimiter +
+                    'Content-Type: ' + contentType + '\r\n' +
+                    'Content-Transfer-Encoding: base64\r\n' +
+                    '\r\n' +
+                    base64Data +
+                    close_delim;
+
+                const request = gapi.client.request({
+                    'path': '/upload/drive/v2/files',
+                    'method': 'POST',
+                    'params': {'uploadType': 'multipart'},
+                    'headers': {
+                        'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+                    },
+                    'body': multipartRequestBody});
+
+                return request.then(response => {
+                    console.log('Created file', response.result);
+                    scheme.id = response.result.id;
+                    return scheme;
+                });
+            },
+
+            getScheme(schemeId) {
+                return gapi.client.drive.files.get({
+                    fileId: schemeId
+                }).then(response => {
+                    const file = response.result;
+                    console.log('Got file', file);
+
+                    if (file.downloadUrl) {
+                        var accessToken = gapi.auth.getToken().access_token;
+                        var xhr = new XMLHttpRequest();
+                        // For some reason google API returns a "lockedDomainCreationFailure" error even though the code is completelly copied from Google API documentation
+                        // Followed the advice here https://stackoverflow.com/questions/68016649/google-drive-api-download-file-gives-lockeddomaincreationfailure-error
+                        // and it worked. For some reason we need to replace content. with www.
+                        xhr.open('GET', file.downloadUrl.replace('https://content.googleapis.com', 'https://www.googleapis.com'));
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
+                        return new Promise((resolve, reject) => {
+                            xhr.onload = function() {
+                                resolve(xhr.responseText);
+                            };
+                            xhr.onerror = function() {
+                                reject();
+                            };
+                            xhr.send();
+                        });
+                    } else {
+                        throw new Error('File is missing downloadUrl');
+                    }
+                }).then(content => {
+                    const scheme = JSON.parse(content);
+                    scheme.id = schemeId;
+                    return {
+                        scheme: scheme,
+                        folderPath: '',
+                        viewOnly: false
+                    };
+                });
+            },
+
+            saveScheme(scheme) {
+                const boundary = '-------314159265358979323846';
+                const delimiter = "\r\n--" + boundary + "\r\n";
+                const close_delim = "\r\n--" + boundary + "--";
+
+                var contentType = 'application/json';
+                var base64Data = btoa(JSON.stringify(scheme));
+                
+                const metadata = {
+                    title:  `${scheme.name}.schemio.json`,
+                    mimeType: 'application/json'
+                };
+                var multipartRequestBody =
+                    delimiter +
+                    'Content-Type: application/json\r\n\r\n' +
+                    JSON.stringify(metadata) +
+                    delimiter +
+                    'Content-Type: ' + contentType + '\r\n' +
+                    'Content-Transfer-Encoding: base64\r\n' +
+                    '\r\n' +
+                    base64Data +
+                    close_delim;
+
+                return gapi.client.request({
+                    'path': '/upload/drive/v2/files/' + scheme.id,
+                    'method': 'PUT',
+                    'params': {'uploadType': 'multipart', 'alt': 'json'},
+                    'headers': {
+                        'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+                    },
+                    'body': multipartRequestBody
+                }).then(() => {
+                    return scheme;
+                });
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Failed to build api client', err);
+        throw err;
+    });
+}
+
 
 export function createApiClientForType(apiClientType) {
     if (apiClientType === 'fs') {
-        return createApiClient();
+        return Promise.resolve(createApiClient());
     } else if (apiClientType === 'static') {
-        return createStaticClient();
+        return Promise.resolve(createStaticClient());
+    } else if (apiClientType === 'drive') {
+        return createGoogleDriveClient();
     } else {
-        throw new Error('Unknown api client type: ' + apiClientType);
+        return Promise.reject(new Error('Unknown api client type: ' + apiClientType));
     }
 }

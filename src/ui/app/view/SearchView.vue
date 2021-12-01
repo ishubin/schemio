@@ -72,10 +72,15 @@ export default {
 
 
     beforeMount() {
-        this.apiClient.findSchemes({
-            query: this.query,
-            page: this.page
-        }).then(result => {
+        createApiClientForType(this.apiClientType)
+        .then(apiClient => {
+            this.apiClient = apiClient;
+            return apiClient.findSchemes({
+                query: this.query,
+                page: this.page
+            });
+        })
+        .then(result => {
             this.searchResult = result;
 
             this.$nextTick(() => {
@@ -91,7 +96,7 @@ export default {
             query,
             page,
             searchResult: null,
-            apiClient: createApiClientForType(this.apiClientType)
+            apiClient: null,
         };
     },
 

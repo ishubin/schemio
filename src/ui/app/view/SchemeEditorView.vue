@@ -51,9 +51,13 @@ export default {
     },
 
     beforeMount() {
-        this.$store.dispatch('setApiClient', this.apiClient);
-
-        this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
+        createApiClientForType(this.apiClientType)
+        .then(apiClient => {
+            this.$store.dispatch('setApiClient', apiClient);
+            this.apiClient = apiClient;
+            return apiClient.getScheme(this.schemeId);
+        })
+        .then(schemeDetails => {
             this.path = schemeDetails.folderPath;
             this.buildBreadcrumbs(schemeDetails.folderPath);
             this.scheme = schemeDetails.scheme;
@@ -77,7 +81,7 @@ export default {
             breadcrumbs: [],
             editAllowed: false,
             scheme: null,
-            apiClient: createApiClientForType(this.apiClientType),
+            apiClient: null,
             is404: false,
             errorMessage: null
         };
