@@ -298,7 +298,7 @@ export default {
 
         confirmDeleteEntry(entry) {
             if (entry.kind === 'dir') {
-                this.apiClient.deleteDir(this.path, entry.name).then(() => {
+                this.apiClient.deleteDir(entry.path, entry.name).then(() => {
                     window.location.reload();
                 })
                 .catch(err => {

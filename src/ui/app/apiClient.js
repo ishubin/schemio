@@ -272,9 +272,13 @@ function createGoogleDriveClient() {
     return window.getGoogleAuth().then(() => {
         return {
             listEntries(path) {
-                return gapi.client.drive.files.list(
-                    { q:"trashed = false"}
-                ).then(results => {
+                let query = "trashed = false";
+
+                if (path) {
+                    query += ` and '${escape(path)}' in parents`;
+                }
+
+                return gapi.client.drive.files.list( { q: query}).then(results => {
                     console.log('Got drive files', JSON.stringify(results));
                     const entries = [];
                     forEach(results.result.items, file => {
@@ -303,13 +307,12 @@ function createGoogleDriveClient() {
             },
 
             createDirectory(parentId, name) {
-                return gapi.client.drive.files.insert({
-                    resource:{
-                        title: name,
-                        mimeType: 'application/vnd.google-apps.folder'
-                    }
-                })
-                .then(() => {
+                const resource = {
+                    title: name,
+                    mimeType: 'application/vnd.google-apps.folder'
+                };
+
+                return gapi.client.drive.files.insert({ resource }).then(() => {
                     return {
                         kind: 'dir',
                         name: name,
@@ -318,6 +321,23 @@ function createGoogleDriveClient() {
                 });
             },
 
+            deleteDir(path, name) {
+                return this.deleteGoogleFile(path);
+            },
+
+            deleteGoogleFile(fileId) {
+                return gapi.client.drive.files.delete({
+                    'fileId': fileId
+                }).then(() => {
+                    return {
+                        status: 'ok'
+                    };
+                });
+            },
+
+            deleteScheme(schemeId) {
+                return this.deleteGoogleFile(schemeId);
+            },
 
             createNewScheme(parentId, scheme) {
                 const boundary = '-------314159265358979323846';
@@ -329,6 +349,7 @@ function createGoogleDriveClient() {
                     title:  `${scheme.name}.schemio.json`,
                     mimeType: 'application/json'
                 };
+
                 const base64Data = btoa(JSON.stringify(scheme));
                 const multipartRequestBody =
                     delimiter +
@@ -369,7 +390,7 @@ function createGoogleDriveClient() {
                         var xhr = new XMLHttpRequest();
                         // For some reason google API returns a "lockedDomainCreationFailure" error even though the code is completelly copied from Google API documentation
                         // Followed the advice here https://stackoverflow.com/questions/68016649/google-drive-api-download-file-gives-lockeddomaincreationfailure-error
-                        // and it worked. For some reason we need to replace content. with www.
+                        // and it worked. For some reason we need to replace "content" subdomain with "www"
                         xhr.open('GET', file.downloadUrl.replace('https://content.googleapis.com', 'https://www.googleapis.com'));
                         xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
                         return new Promise((resolve, reject) => {
