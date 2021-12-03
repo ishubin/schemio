@@ -334,12 +334,13 @@ export default {
                 this.renameEntryModal.errorMessage = 'Name should not be empty';
                 return;
             }
+            const path = this.entries[this.renameEntryModal.entryIdx].path;
             const oldName = this.entries[this.renameEntryModal.entryIdx].name;
             if (oldName === this.renameEntryModal.name) {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
-                this.apiClient.renameDirectory(this.path, oldName, this.renameEntryModal.name).then(() => {
+                this.apiClient.renameDirectory(path, oldName, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
                 })

@@ -325,6 +325,19 @@ function createGoogleDriveClient() {
                 return this.deleteGoogleFile(path);
             },
 
+            renameDirectory(path, oldName, newName) {
+                return this.renameGoogleFile(path, newName);
+            },
+
+            renameGoogleFile(fileId, newName) {
+                return gapi.client.drive.files.patch({
+                    fileId: fileId,
+                    resource: {
+                        title: newName
+                    }
+                });
+            },
+
             deleteGoogleFile(fileId) {
                 return gapi.client.drive.files.delete({
                     'fileId': fileId
@@ -333,6 +346,10 @@ function createGoogleDriveClient() {
                         status: 'ok'
                     };
                 });
+            },
+
+            renameScheme(schemeId, newName) {
+                return this.renameGoogleFile(schemeId, newName);
             },
 
             deleteScheme(schemeId) {
