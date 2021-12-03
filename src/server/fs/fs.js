@@ -569,7 +569,6 @@ export function fsCreateSchemePreview(config) {
             return;
         }
 
-        const schemeFsPath = path.join(config.fs.rootPath, entity.fsPath);
         const folderPath = path.join(config.fs.rootPath, '.media', 'previews');
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
