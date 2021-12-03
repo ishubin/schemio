@@ -276,6 +276,8 @@ function createGoogleDriveClient() {
 
                 if (path) {
                     query += ` and '${escape(path)}' in parents`;
+                } else {
+                    query += ` and 'root' in parents`;
                 }
 
                 return gapi.client.drive.files.list( { q: query}).then(results => {
