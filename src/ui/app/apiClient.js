@@ -273,38 +273,63 @@ function createGoogleDriveClient() {
         return {
             listEntries(path) {
                 let query = "trashed = false";
+                let chain = null;
 
                 if (path) {
                     query += ` and '${escape(path)}' in parents`;
+                    chain = gapi.client.drive.parents.list({ fileId: path }).then(response => {
+                        if (response.result.items.length > 0) {
+                            if (!response.result.items[0].isRoot) {
+                                return {
+                                    kind: 'dir',
+                                    name: '..',
+                                    path: response.result.items[0].id
+                                };
+                            }
+                        }
+                        return {
+                            kind: 'dir',
+                            name: '..',
+                            path: ''
+                        };
+                    });
                 } else {
                     query += ` and 'root' in parents`;
+                    chain = Promise.resolve(null);
                 }
 
-                return gapi.client.drive.files.list( { q: query}).then(results => {
-                    console.log('Got drive files', JSON.stringify(results));
-                    const entries = [];
-                    forEach(results.result.items, file => {
-                        if (file.mimeType === 'application/vnd.google-apps.folder') {
-                            entries.push({
-                                kind: 'dir',
-                                path: file.id,
-                                name: file.title,
-                                modifiedTime: file.modifiedDate
-                            });
-                        } else if (file.mimeType === 'application/json' && file.title.endsWith('.schemio.json')) {
-                            entries.push({
-                                kind: 'scheme',
-                                id: file.id,
-                                name: file.title,
-                                modifiedTime: file.modifiedDate
-                            });
+                return chain.then(parentEntry => {
+                    return gapi.client.drive.files.list( { q: query}).then(results => {
+                        console.log('Got drive files', JSON.stringify(results));
+                        const entries = [  ];
+
+                        if (parentEntry) {
+                            entries.push(parentEntry);
                         }
+
+                        forEach(results.result.items, file => {
+                            if (file.mimeType === 'application/vnd.google-apps.folder') {
+                                entries.push({
+                                    kind: 'dir',
+                                    path: file.id,
+                                    name: file.title,
+                                    modifiedTime: file.modifiedDate
+                                });
+                            } else if (file.mimeType === 'application/json' && file.title.endsWith('.schemio.json')) {
+                                entries.push({
+                                    kind: 'scheme',
+                                    id: file.id,
+                                    name: file.title,
+                                    modifiedTime: file.modifiedDate
+                                });
+                            }
+                        });
+                        return {
+                            path: path,
+                            viewOnly: false,
+                            entries
+                        };
                     });
-                    return {
-                        path: path,
-                        viewOnly: false,
-                        entries
-                    };
                 });
             },
 
@@ -324,6 +349,24 @@ function createGoogleDriveClient() {
                         name: name,
                         path: parentId
                     }
+                });
+            },
+
+            moveDir(oldPath, newPath) {
+                return this.moveGoogleFile(oldPath, newPath);
+            },
+
+            moveGoogleFile(fileId, parentId) {
+                const parents = [];
+                if (parentId && parentId.length > 0) {
+                    parents.push({ id: parentId });
+                } else {
+                    parents.push({ id: 'root' });
+                }
+
+                return gapi.client.drive.files.patch({
+                    fileId: fileId,
+                    resource: { parents }
                 });
             },
 
@@ -360,6 +403,10 @@ function createGoogleDriveClient() {
 
             deleteScheme(schemeId) {
                 return this.deleteGoogleFile(schemeId);
+            },
+
+            moveScheme(schemeId, newFolder) {
+                return this.moveGoogleFile(schemeId, newFolder);
             },
 
             createNewScheme(parentId, scheme) {
