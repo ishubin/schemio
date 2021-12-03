@@ -430,6 +430,11 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
 function readjustItem(item, schemeContainer, isSoft, context, precision) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
+    if (!isSoft) {
+        readjustItemArea(item, precision);
+    }
+
+
     if (item.shapeProps.sourceItem) {
         readjustCurveAttachment(schemeContainer,
             item,
@@ -462,9 +467,6 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
         );
     }
 
-    if (!isSoft) {
-        readjustItemArea(item, precision);
-    }
     if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
         realignNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
     }
@@ -482,29 +484,40 @@ function readjustItemArea(item, precision) {
         return;
     }
 
-    let minX = item.shapeProps.points[0].x + item.area.x,
-        minY = item.shapeProps.points[0].y + item.area.y,
-        maxX = minX,
-        maxY = minY;
+    const worldPoints = [];
 
     forEach(item.shapeProps.points, point => {
-        minX = Math.min(minX, point.x + item.area.x);
-        minY = Math.min(minY, point.y + item.area.y);
-        maxX = Math.max(maxX, point.x + item.area.x);
-        maxY = Math.max(maxY, point.y + item.area.y);
+        worldPoints.push(worldPointOnItem(point.x, point.y, item));
     });
 
-    const dx = item.area.x - minX;
-    const dy = item.area.y - minY;
-    item.area.x = myMath.roundPrecise(minX, precision);
-    item.area.y = myMath.roundPrecise(minY, precision);
-    item.area.w = myMath.roundPrecise(maxX - minX, precision);
-    item.area.h = myMath.roundPrecise(maxY - minY, precision);
-
-    forEach(item.shapeProps.points, point => {
-        point.x = myMath.roundPrecise(point.x + dx, precision);
-        point.y = myMath.roundPrecise(point.y + dy, precision);
+    let minX = worldPoints[0].x,
+        minY = worldPoints[0].y,
+        maxX = worldPoints[0].x,
+        maxY = worldPoints[0].y;
+    
+    forEach(worldPoints, p => {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
     });
+
+    const newPoints = [];
+    forEach(worldPoints, p => {
+        newPoints.push({
+            x: p.x - minX,
+            y: p.y - minY,
+        });
+    });
+    item.shapeProps.points = newPoints;
+
+    item.area.r = 0;
+    item.area.w = Math.max(0, maxX - minX);
+    item.area.h = Math.max(0, maxY - minY);
+
+    const position = myMath.findTranslationMatchingWorldPoint(minX, minY, item.area, item.meta.transformMatrix);
+    item.area.x = position.x;
+    item.area.y = position.y;
 }
 
 function getSnappers(item) {
