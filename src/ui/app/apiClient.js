@@ -312,6 +312,10 @@ function createGoogleDriveClient() {
                     mimeType: 'application/vnd.google-apps.folder'
                 };
 
+                if (parentId) {
+                    resource.parents = [{id: parentId}];
+                }
+
                 return gapi.client.drive.files.insert({ resource }).then(() => {
                     return {
                         kind: 'dir',
@@ -366,6 +370,10 @@ function createGoogleDriveClient() {
                     title:  `${scheme.name}.schemio.json`,
                     mimeType: 'application/json'
                 };
+
+                if (parentId) {
+                    metadata.parents = [{id: parentId}];
+                }
 
                 const base64Data = btoa(JSON.stringify(scheme));
                 const multipartRequestBody =
