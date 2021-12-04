@@ -112,11 +112,11 @@
 <script>
 import { createApiClientForType } from '../apiClient';
 import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
-import { buildBreadcrumbs } from '../breadcrumbs';
 import Header from '../components/Header.vue';
 
 
@@ -146,6 +146,14 @@ export default {
             return this.apiClient.listEntries(this.path);
         })
         .then(result => {
+            this.breadcrumbs = map(result.breadcrumbs, b => {
+                return {
+                    kind: 'dir',
+                    path: b.path,
+                    name: b.name
+                };
+            });
+
             const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
             result.entries.sort((a, b) => {
                 const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
@@ -199,7 +207,7 @@ export default {
 
         return {
             path: path,
-            breadcrumbs: buildBreadcrumbs(path),
+            breadcrumbs: [],
             entries: [],
             errorMessage: null,
             viewOnly: true,

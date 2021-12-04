@@ -270,41 +270,63 @@ function createStaticClient() {
 
 function createGoogleDriveClient() {
     return window.getGoogleAuth().then(() => {
+
+        function buildFileBreadCrumbs(fileId, ancestors, counter) {
+            if (!counter) {
+                counter = 0;
+            }
+            if (counter > 10) {
+                return Promise.resolve(ancestors);
+            }
+            if (!ancestors) {
+                ancestors = [];
+            }
+
+            if (fileId) {
+                return gapi.client.drive.files.get( { fileId: fileId, fields: 'id, title, parents(id,isRoot)'}).then(response => {
+
+                    ancestors.splice(0, 0, {
+                        path: response.result.id,
+                        name: response.result.title
+                    });
+
+                    if (response.result.parents.length > 0) {
+                        if (!response.result.parents[0].isRoot) {
+                            return buildFileBreadCrumbs(response.result.parents[0].id, ancestors, counter + 1);
+                        } else {
+                            ancestors.splice(0, 0, {
+                                path: '',
+                                name: 'Home'
+                            });
+                        }
+                    }
+                    return Promise.resolve(ancestors);
+                });
+            }
+            return Promise.resolve(ancestors);
+        }
+
         return {
             listEntries(path) {
                 let query = "trashed = false";
-                let chain = null;
 
                 if (path) {
                     query += ` and '${escape(path)}' in parents`;
-                    chain = gapi.client.drive.parents.list({ fileId: path }).then(response => {
-                        if (response.result.items.length > 0) {
-                            if (!response.result.items[0].isRoot) {
-                                return {
-                                    kind: 'dir',
-                                    name: '..',
-                                    path: response.result.items[0].id
-                                };
-                            }
-                        }
-                        return {
-                            kind: 'dir',
-                            name: '..',
-                            path: ''
-                        };
-                    });
                 } else {
                     query += ` and 'root' in parents`;
-                    chain = Promise.resolve(null);
                 }
-
-                return chain.then(parentEntry => {
+                
+                return buildFileBreadCrumbs(path).then(breadcrumbs => {
                     return gapi.client.drive.files.list( { q: query}).then(results => {
                         console.log('Got drive files', JSON.stringify(results));
                         const entries = [  ];
 
-                        if (parentEntry) {
-                            entries.push(parentEntry);
+                        if (breadcrumbs.length > 1) {
+                            entries.push({
+                                kind: 'dir',
+                                path: breadcrumbs[breadcrumbs.length - 2].path,
+                                name: '..',
+                            });
                         }
 
                         forEach(results.result.items, file => {
@@ -325,6 +347,7 @@ function createGoogleDriveClient() {
                             }
                         });
                         return {
+                            breadcrumbs: breadcrumbs,
                             path: path,
                             viewOnly: false,
                             entries
