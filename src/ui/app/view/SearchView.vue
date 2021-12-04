@@ -53,7 +53,7 @@
 <script>
 import Header from '../components/Header.vue';
 import Pagination from '../../components/Pagination.vue';
-import { createApiClient, createApiClientForType, createStaticClient } from '../apiClient';
+import { createApiClientForType } from '../apiClient';
 
 function toPageNumber(text) {
     const page = parseInt(text);

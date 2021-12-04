@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import axios from 'axios';
+import { map } from 'lodash';
 import forEach from 'lodash/forEach';
 
 function unwrapAxios(response) {
@@ -266,6 +267,25 @@ function createStaticClient() {
 }
 
 function createGoogleDriveClient() {
+    const schemioExtension = '.schemio.json';
+
+    function escapeDriveQuery(text) {
+        return text
+            .replace(/[\']/g, "\\'")
+            .replace(/[\"]/g, '\\"');
+    }
+
+    /**
+     * 
+     * @param {String} title 
+     */
+    function convertSchemioFileTitle(title) {
+        if (title.endsWith(schemioExtension)) {
+            return title.substring(0, title.length - schemioExtension.length);
+        }
+        return title;
+    }
+
     return window.getGoogleAuth().then(() => {
 
         function buildFileBreadCrumbs(fileId, ancestors, counter) {
@@ -308,7 +328,7 @@ function createGoogleDriveClient() {
                 let query = "trashed = false";
 
                 if (path) {
-                    query += ` and '${escape(path)}' in parents`;
+                    query += ` and '${escapeDriveQuery(path)}' in parents`;
                 } else {
                     query += ` and 'root' in parents`;
                 }
@@ -334,11 +354,11 @@ function createGoogleDriveClient() {
                                     name: file.title,
                                     modifiedTime: file.modifiedDate
                                 });
-                            } else if (file.mimeType === 'application/json' && file.title.endsWith('.schemio.json')) {
+                            } else if (file.mimeType === 'application/json' && file.title.endsWith(schemioExtension)) {
                                 entries.push({
                                     kind: 'scheme',
                                     id: file.id,
-                                    name: file.title,
+                                    name: convertSchemioFileTitle(file.title),
                                     modifiedTime: file.modifiedDate
                                 });
                             }
@@ -436,7 +456,7 @@ function createGoogleDriveClient() {
 
                 const contentType = 'application/json';
                 const metadata = {
-                    title:  `${scheme.name}.schemio.json`,
+                    title:  `${scheme.name}${schemioExtension}`,
                     mimeType: 'application/json'
                 };
 
@@ -519,7 +539,7 @@ function createGoogleDriveClient() {
                 var base64Data = btoa(JSON.stringify(scheme));
                 
                 const metadata = {
-                    title:  `${scheme.name}.schemio.json`,
+                    title:  `${scheme.name}${schemioExtension}`,
                     mimeType: 'application/json'
                 };
                 var multipartRequestBody =
@@ -543,6 +563,29 @@ function createGoogleDriveClient() {
                     'body': multipartRequestBody
                 }).then(() => {
                     return scheme;
+                });
+            },
+
+            findSchemes(filters) {
+                let query = "trashed = false and mimeType = 'application/json'";
+
+                if (filters.query) {
+                    query += ` and title contains '${escapeDriveQuery(filters.query)}'`;
+                }
+
+                return gapi.client.drive.files.list( { q: query, fields: 'items(mimeType, title, id, modifiedDate)'}).then(response => {
+                    //TODO handle loading next chunk
+                    return {
+                        kind: 'chunk',
+                        results: map(response.result.items, file => {
+                            return {
+                                id: file.id,
+                                name: convertSchemioFileTitle(file.title),
+                                modifiedTime: file.modifiedDate,
+                                publicLink: `/docs/${file.id}`
+                            };
+                        })
+                    };
                 });
             }
         }

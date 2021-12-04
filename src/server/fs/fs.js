@@ -200,6 +200,7 @@ export function fsSearchSchemes(config) {
         });
 
         res.json({
+            kind: 'page',
             totalResults: totalResults,
             results: schemes,
             totalPages: Math.ceil(totalResults / resultsPerPage),
