@@ -3,10 +3,10 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <Header>
+        <schemio-header>
             <div slot="middle-section">
             </div>
-        </Header>
+        </schemio-header>
 
         <div class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
@@ -117,7 +117,6 @@ import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
-import Header from '../components/Header.vue';
 
 
 function isValidCharCode(code) {
@@ -130,7 +129,7 @@ function isValidCharCode(code) {
 
 export default {
 
-    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal, Header},
+    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
 
     props: {
         apiClientType  : {type: String, default: 'fs'},

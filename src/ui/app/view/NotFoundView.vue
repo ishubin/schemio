@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <Header></Header>
+        <schemio-header></schemio-header>
         <div class="middle-content">
             <h3>Sorry, the page you have requested was not found</h3>
         </div>
@@ -11,9 +11,7 @@
 </template>
 
 <script>
-import Header from '../components/Header.vue';
 
 export default {
-    components: {Header}
 }
 </script>

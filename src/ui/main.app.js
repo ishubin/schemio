@@ -7,15 +7,18 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './app/App.vue';
-import HomeView from './app/view/HomeView.vue';
+import FolderView from './app/view/FolderView.vue';
 import SearchView from './app/view/SearchView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
+import Header from './app/components/Header.vue';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
+
+Vue.component('schemio-header', Header);
 
 function route(name, path, component, props) {
     return { name, path, component, props };
@@ -25,9 +28,9 @@ function route(name, path, component, props) {
 const routes = [
     route('SchemeEditorView',   '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'fs'}),
     route('NotFoundView',       '/not-found',        NotFoundView),
-    route('HomeView',           '/',                 HomeView, {apiClientType: 'fs'}),
+    route('HomeView',           '/',                 FolderView, {apiClientType: 'fs'}),
     route('SearchView',         '/search',           SearchView, {apiClientType: 'fs'}),
-    route('FolderView',         '/f/*',              HomeView, {apiClientType: 'fs'}),
+    route('FolderView',         '/f/*',              FolderView, {apiClientType: 'fs'}),
     { path: '*', redirect: '/not-found'}
 ];
 

@@ -1,9 +1,9 @@
 <template>
     <div>
-        <Header>
+        <schemio-header>
             <div slot="middle-section">
             </div>
-        </Header>
+        </schemio-header>
 
 
         <div class="middle-content">
@@ -51,7 +51,6 @@
 </template>
 
 <script>
-import Header from '../components/Header.vue';
 import Pagination from '../../components/Pagination.vue';
 import { createApiClientForType } from '../apiClient';
 
@@ -64,7 +63,7 @@ function toPageNumber(text) {
 }
 
 export default {
-    components: {Header, Pagination},
+    components: {Pagination},
 
     props: {
         apiClientType  : {type: String, default: 'fs'},

@@ -199,6 +199,7 @@ h5 {
     z-index: 100;
 }
 .header .header-middle-section {
+    flex: 1;
     display: inline-block;
     overflow: hidden;
 }
@@ -2913,6 +2914,53 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 
 
 /************************** Schemio App ****************************/
+.header .current-user {
+    position: relative;
+}
+.header .current-user .user-profile-menu {
+    position: absolute;
+    right: 10px;
+    display: none;
+    min-width: 150px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong);
+}
+.header .current-user .user-profile-menu .link {
+    color: var(--accent-strong);
+    display: block;
+    padding: 5px 10px;
+}
+.header .current-user .user-profile-menu .link:hover {
+    background: var(--accent-strong);
+    color: var(--base-weak);
+}
+.header .current-user:hover .user-profile-menu {
+    display: block;
+}
+
+.header .current-user .user-profile {
+    margin-top: 8px;
+    margin-right: 10px;
+}
+.header .current-user .user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.header .current-user .user-profile .user-avatar {
+    max-width: 32px;
+    max-height: 32px;
+    border-radius: 16px;
+    margin-right: 10px;
+}
+.header .current-user .user-profile .user-name {
+    color: var(--base-weak);
+}
+
+
 table.entries-table {
     margin-top: 20px;
     border-collapse: collapse;
