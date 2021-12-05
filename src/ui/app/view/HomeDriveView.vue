@@ -5,9 +5,34 @@
     <div>
         <schemio-header></schemio-header>
         <div class="middle-content">
-            <h2>Welcome to Schemio</h2>
+            
+            <div class="login-box" v-if="isSignedIn">
+                <div class="login-box-body">
+                    <h2>Welcome to Schemio</h2>
 
-            <span class="link" @click="loginGoogleDrive">Google Drive</span>
+                    <p class="login-alternative-caption">
+                        You are signed into Google Drive
+                    </p>
+
+                    <router-link class="btn btn-login btn-login-alt btn-login-google-drive" to="/f/">Edit diagrams in Google Drive</router-link>
+
+                    <div class="login-alternative-caption">Or check out offline editor</div>
+
+                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/">Edit diagrams offline</router-link>
+
+                </div>
+            </div>
+
+            <div v-else class="login-box">
+                <div class="login-box-body">
+                    <span @click="loginGoogleDrive" class="btn btn-login btn-login-alt btn-login-google-drive">Sign to Google Drive</span>
+
+                    <div class="login-alternative-caption">Or check out offline editor</div>
+
+                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/">Edit diagrams offline</router-link>
+
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -15,6 +40,19 @@
 <script>
 
 export default {
+
+    beforeMount() {
+        window.getGoogleAuth().then(googleAuth => {
+            this.isSignedIn = googleAuth.isSignedIn.get();
+        })
+    },
+
+    data() {
+        return {
+            isSignedIn: false,
+        };
+    },
+
     methods: {
         loginGoogleDrive() {
             window.getGoogleAuth().then(googleAuth => {

@@ -28,11 +28,12 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorView',   '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'drive'}),
-    route('NotFoundView',       '/not-found',        NotFoundView),
-    route('HomeView',           '/',                 HomeDriveView, {apiClientType: 'offline'}),
-    route('SearchView',         '/search',           SearchView, {apiClientType: 'drive'}),
-    route('FolderView',         '/f/*',              FolderView, {apiClientType: 'drive'}),
+    route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'drive'}),
+    route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline'}),
+    route('NotFoundView',           '/not-found',        NotFoundView),
+    route('HomeView',               '/',                 HomeDriveView),
+    route('SearchView',             '/search',           SearchView, {apiClientType: 'drive'}),
+    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'drive'}),
     { path: '*', redirect: '/not-found'}
 ];
 

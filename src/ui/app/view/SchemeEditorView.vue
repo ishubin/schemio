@@ -28,6 +28,11 @@
         <div v-else-if="errorMessage" class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
+        <SchemioEditorApp v-else-if="apiClientType === 'offline'"
+            :scheme="null"
+            :editAllowed="true"
+            :userStylesEnabled="false"
+        />
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"

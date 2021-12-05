@@ -334,8 +334,7 @@ function createGoogleDriveClient() {
                 }
                 
                 return buildFileBreadCrumbs(path).then(breadcrumbs => {
-                    return gapi.client.drive.files.list( { q: query}).then(results => {
-                        console.log('Got drive files', JSON.stringify(results));
+                    return gapi.client.drive.files.list( { q: query, fields: 'items(id, title, mimeType, modifiedDate)'}).then(results => {
                         const entries = [  ];
 
                         if (breadcrumbs.length > 1) {

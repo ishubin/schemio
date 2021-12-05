@@ -1822,90 +1822,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 
 
-/************** Login Box ******************/
-.login-box {
-    max-width: 400px;
-    margin: 0 auto;
-    vertical-align: middle;
-    background: var(--base-weak);
-    box-shadow: 1px 1px 10px var(--shadow-color);
-}
-.login-box .login-box-body {
-    padding: 20px 40px 60px 40px;
-}
-.login-box .login-box-body .textfield {
-    margin-bottom: 10px;
-}
-.login-box .error-message {
-    display: block;
-    font-style: italic;
-    padding: 5px 10px;
-    margin-top: 10px;
-    color: var(--critic-strong);
-    background: var(--critic-weak);
-    border-radius: var(--control-border-radius);
-}
-.login-box .ctrl-label {
-    margin-top: 20px;
-}
-.login-box input.textfield::placeholder {
-    font-style: italic;
-}
-.login-box input.textfield {
-    display: block;
-    padding: 10px 10px;
-    margin-bottom: 20px;
-}
-.login-box .btn-login {
-    margin-top: 20px;
-    display: block;
-    text-align: center;
-    font-size: 18px;
-    padding: 10px;
-}
-.login-box .login-alternative-caption {
-    margin-top: 20px;
-    color: var(--faint-strong-down);
-    text-align: center;
-}
-.login-box .btn-login-alt {
-    position: relative;
-    color: var(--base-strong-up);
-    text-decoration: none;
-    background: var(--faint-weak-up);
-    border: 1px solid var(--faint-weak-down);
-}
-.login-box .btn-login-alt:hover {
-    text-decoration: none;
-    background: var(--accent-weak-up);
-}
-.login-box .btn-login-google::after {
-    display: block;
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 30px;
-    height: 30px;
-    background: url('/assets/images/icons/google.svg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    content: "";
-}
-.login-box .btn-login-github::after {
-    display: block;
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 30px;
-    height: 30px;
-    background: url('/assets/images/icons/github.svg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    content: "";
-}
-
 /****************** Tag Filter ********************/
 .tag-filter-container ul.tag-filter {
     list-style: none;
@@ -3113,4 +3029,73 @@ ul.breadcrumbs li .breadcrumb-separator {
 .search-panel input.textfield {
     flex: 1;
     margin-right: 10px;
+}
+
+/************** Login Box ******************/
+.login-box {
+    max-width: 400px;
+    margin: 0 auto;
+    vertical-align: middle;
+    background: var(--base-weak);
+    box-shadow: 1px 1px 10px var(--shadow-color);
+}
+.login-box .login-box-body {
+    padding: 20px 40px 60px 40px;
+}
+
+.login-box .error-message {
+    display: block;
+    font-style: italic;
+    padding: 5px 10px;
+    margin-top: 10px;
+    color: var(--critic-strong);
+    background: var(--critic-weak);
+    border-radius: var(--control-border-radius);
+}
+.login-box .ctrl-label {
+    margin-top: 20px;
+}
+.login-box input.textfield::placeholder {
+    font-style: italic;
+}
+.login-box input.textfield {
+    display: block;
+    padding: 10px 10px;
+    margin-bottom: 20px;
+}
+.login-box .btn-login {
+    margin-top: 20px;
+    display: block;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+}
+.login-box .login-alternative-caption {
+    margin-top: 20px;
+    color: var(--faint-strong-down);
+    text-align: center;
+}
+.login-box .btn-login-alt {
+    position: relative;
+    color: var(--base-strong-up);
+    text-decoration: none;
+    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-weak-down);
+}
+.login-box .btn-login-alt:hover {
+    text-decoration: none;
+    background: var(--accent-weak-up);
+}
+.login-box .btn-login-google-drive::after {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 30px;
+    height: 30px;
+    background: url('https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    content: "";
 }

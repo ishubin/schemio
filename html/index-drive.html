@@ -29,8 +29,6 @@
                         client_id: '49605926377-mcb27jl2eakpbb9sqdh8pduq0l266vq3.apps.googleusercontent.com',
                         scope    : 'https://www.googleapis.com/auth/drive.file',
                     }).then(function(googleAuth) {
-                        console.log('gapi auth2 initialized', googleAuth);
-
                         window._googleAuth = googleAuth;
                         while(window._googleAuthCallback.length > 0) {
                             const callback = window._googleAuthCallback.pop();
