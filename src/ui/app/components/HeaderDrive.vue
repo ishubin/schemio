@@ -21,12 +21,21 @@
                     </li>
                 </ul>
             </div>
+            <div v-else-if="!isSignedIn">
+                <span class="link" @click="loginModalShown = true">Sign in</span>
+            </div>
         </div>
+
+        <login-modal v-if="loginModalShown" @close="loginModalShown = false"/>
     </div>
 </template>
 
 <script>
+import LoginModal from './LoginModal.vue';
+
 export default {
+
+    components: {LoginModal},
 
     beforeMount() {
         window.getGoogleAuth().then(googleAuth => {
@@ -47,7 +56,8 @@ export default {
     data() {
         return {
             isSignedIn: false,
-            currentUser: null
+            currentUser: null,
+            loginModalShown: false
         };
     },
 

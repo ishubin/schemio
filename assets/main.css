@@ -3032,18 +3032,37 @@ ul.breadcrumbs li .breadcrumb-separator {
 }
 
 /************** Login Box ******************/
-.login-box {
+
+.login-modal-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
+.login-modal {
     max-width: 400px;
+    z-index: 1000;
     margin: 0 auto;
     vertical-align: middle;
+    position: relative;
+    width: 500px;
     background: var(--base-weak);
     box-shadow: 1px 1px 10px var(--shadow-color);
 }
-.login-box .login-box-body {
+.login-modal .login-modal-body {
     padding: 20px 40px 60px 40px;
 }
 
-.login-box .error-message {
+.login-modal h2 {
+    text-align: center;
+}
+.login-modal .modal-close {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    cursor: pointer;
+    color: var(--faint-strong);
+}
+
+.login-modal .error-message {
     display: block;
     font-style: italic;
     padding: 5px 10px;
@@ -3052,41 +3071,41 @@ ul.breadcrumbs li .breadcrumb-separator {
     background: var(--critic-weak);
     border-radius: var(--control-border-radius);
 }
-.login-box .ctrl-label {
+.login-modal .ctrl-label {
     margin-top: 20px;
 }
-.login-box input.textfield::placeholder {
+.login-modal input.textfield::placeholder {
     font-style: italic;
 }
-.login-box input.textfield {
+.login-modal input.textfield {
     display: block;
     padding: 10px 10px;
     margin-bottom: 20px;
 }
-.login-box .btn-login {
+.login-modal .btn-login {
     margin-top: 20px;
     display: block;
     text-align: center;
     font-size: 18px;
     padding: 10px;
 }
-.login-box .login-alternative-caption {
+.login-modal .login-alternative-caption {
     margin-top: 20px;
     color: var(--faint-strong-down);
     text-align: center;
 }
-.login-box .btn-login-alt {
+.login-modal .btn-login-alt {
     position: relative;
     color: var(--base-strong-up);
     text-decoration: none;
     background: var(--faint-weak-up);
     border: 1px solid var(--faint-weak-down);
 }
-.login-box .btn-login-alt:hover {
+.login-modal .btn-login-alt:hover {
     text-decoration: none;
     background: var(--accent-weak-up);
 }
-.login-box .btn-login-google-drive::after {
+.login-modal .btn-login-google-drive::after {
     display: block;
     position: absolute;
     left: 6px;

@@ -5,41 +5,30 @@
     <div>
         <schemio-header></schemio-header>
         <div class="middle-content">
-            
-            <div class="login-box" v-if="isSignedIn">
-                <div class="login-box-body">
-                    <h2>Welcome to Schemio</h2>
+            <p>
+                <a href="/">Schemio</a> is a web based diagramming app that allows you to build interactive diagrams.
+                Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app.
+            </p>
 
-                    <p class="login-alternative-caption">
-                        You are signed into Google Drive
-                    </p>
+            <p v-if="isSignedIn">
+                <router-link to="/f/" class="btn btn-primary">Open Diagram Editor</router-link>
+            </p>
 
-                    <router-link class="btn btn-login btn-login-alt btn-login-google-drive" to="/f/">Edit diagrams in Google Drive</router-link>
-
-                    <div class="login-alternative-caption">Or check out offline editor</div>
-
-                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/">Edit diagrams offline</router-link>
-
-                </div>
-            </div>
-
-            <div v-else class="login-box">
-                <div class="login-box-body">
-                    <span @click="loginGoogleDrive" class="btn btn-login btn-login-alt btn-login-google-drive">Sign to Google Drive</span>
-
-                    <div class="login-alternative-caption">Or check out offline editor</div>
-
-                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/">Edit diagrams offline</router-link>
-
-                </div>
-            </div>
+            <p v-else>
+                <span class="btn btn-primary" @click="loginModalShown = true">Sign in</span> or
+                <router-link class="btn btn-secondary" to="/offline-editor/">Edit diagram offline</router-link>
+            </p>
         </div>
+
+        <login-modal v-if="loginModalShown" @close="loginModalShown = false"/>
     </div>
 </template>
 
 <script>
+import LoginModal from '../components/LoginModal.vue';
 
 export default {
+    components: {LoginModal},
 
     beforeMount() {
         window.getGoogleAuth().then(googleAuth => {
@@ -50,17 +39,11 @@ export default {
     data() {
         return {
             isSignedIn: false,
+            loginModalShown: false
         };
     },
 
     methods: {
-        loginGoogleDrive() {
-            window.getGoogleAuth().then(googleAuth => {
-                googleAuth.signIn().then(user => {
-                    this.$router.push({path: '/f/'});
-                });
-            });
-        }
     }
 }
 </script>
