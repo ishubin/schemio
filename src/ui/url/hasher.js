@@ -3,42 +3,68 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
 
-export default {
-    encodeURLHash(params) {
-        let result = '';
-        let isFirst = true;
-        forEach(params, (value, key) => {
-            if (!isFirst) {
-                result += ';';
+export function createHasher(mode) {
+
+    return {
+        encodeURLHash(params) {
+            let result = '';
+            let isFirst = true;
+            forEach(params, (value, key) => {
+                if (!isFirst) {
+                    result += '&';
+                }
+                result += key + '=' + encodeURIComponent(value);
+                isFirst = false;
+            });
+            return result;
+        },
+
+        decodeURLHash() {
+            const urlHash = window.location.hash.substr(1);
+
+            if (!urlHash) {
+                return {};
             }
-            result += key + ':' + encodeURIComponent(value);
-            isFirst = false;
-        });
-        return result;
-    },
 
-    decodeURLHash(urlHash) {
-        if (!urlHash) {
-            return {};
-        }
+            const result = {};
 
-        const result = {};
-        const keyValues = urlHash.split(';');
-        forEach(keyValues, keyValue => {
-            const arr = keyValue.split(':')
-            if (arr.length > 1) {
-                result[arr[0]] = decodeURIComponent(arr[1]);
+            let encodedParams = urlHash;
+            if (mode === 'hash') {
+                const idx = urlHash.indexOf('?');
+                if (idx >= 0) {
+                    encodedParams = urlHash.substring(idx + 1);
+                } else {
+                    return {};
+                }
             }
-        })
-        return result;
-    },
 
-    changeURLHash(hashValue) {
-        if(history && history.pushState) {
-            history.pushState(null, null, '#' + hashValue);
+            const keyValues = encodedParams.split('&');
+            forEach(keyValues, keyValue => {
+                const arr = keyValue.split('=')
+                if (arr.length > 1) {
+                    result[arr[0]] = decodeURIComponent(arr[1]);
+                }
+            })
+            return result;
+        },
+
+        changeURLHash(params) {
+            const hashValue = this.encodeURLHash(params);
+
+            if (mode === 'hash') {
+                let firstPart = location.hash;
+                const idx = location.hash.indexOf('?');
+                if (idx >= 0) {
+                    firstPart = location.hash.substring(0, idx);
+                }
+
+                if (firstPart.length === 0 && firstPart.charAt(0) !== '#') {
+                    firstPart = '#' + firstPart;
+                }
+                history.pushState(null, null, firstPart + '?' + hashValue);
+            } else {
+                history.pushState(null, null, '#' + hashValue);
+            }
         }
-        else {
-            location.hash = '#' + hashValue;
-        }
-    }
+    };
 }

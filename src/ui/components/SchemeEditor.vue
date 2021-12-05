@@ -301,7 +301,7 @@ import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
-import hasher from '../url/hasher.js';
+import { createHasher } from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from './editor/items/shapes/Shape.js';
 import AnimationRegistry from '../animations/AnimationRegistry';
@@ -456,6 +456,8 @@ export default {
             // it is needed only when scheme is imported from file
             editorRevision: 0,
 
+            hasher: createHasher(this.$router ? this.$router.mode : 'history'),
+
             offlineMode: false,
             schemeId: null,
 
@@ -548,7 +550,7 @@ export default {
                 return;
             }
 
-            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            const pageParams = this.hasher.decodeURLHash();
             if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
             } else {
@@ -578,7 +580,7 @@ export default {
 
         initOfflineMode() {
             // here the edit mode is default since user chose to edit offline
-            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            const pageParams = this.hasher.decodeURLHash();
             if (pageParams.m && pageParams.m === 'view') {
                 this.mode = 'view';
             } else {
@@ -1383,9 +1385,11 @@ export default {
 
     watch: {
         mode(value) {
-            hasher.changeURLHash(hasher.encodeURLHash({
+            console.log('router mode', this.$router.mode);
+
+            this.hasher.changeURLHash({
                 m: value
-            }));
+            });
             if (value === 'view') {
                 this.switchToViewMode();
             } else {
