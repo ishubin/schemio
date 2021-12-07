@@ -278,8 +278,11 @@ h5 {
     display: inline-block;
     height: 100%;
 }
-.header ul.header-menu > li > a {
+.header ul.header-menu > li > a,
+.header ul.header-menu > li > span {
     display: inline-block;
+    cursor: pointer;
+    color: var(--base-weak);
     height: 100%;
     padding: 10px 20px 10px 20px;
 }

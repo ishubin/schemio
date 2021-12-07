@@ -11,6 +11,9 @@
                 <li v-if="isSignedIn">
                     <router-link to="/f/"><span>My Diagrams</span></router-link>
                 </li>
+                <li v-else>
+                    <span @click="loginModalShown = true">Sign in</span>
+                </li>
             </ul>
             <slot name="middle-section"></slot>
         </div>
@@ -25,9 +28,6 @@
                         <span class="link" @click="logout">Logout</span>
                     </li>
                 </ul>
-            </div>
-            <div v-else-if="!isSignedIn">
-                <span class="link" @click="loginModalShown = true">Sign in</span>
             </div>
         </div>
 
