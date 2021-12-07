@@ -4,7 +4,7 @@
 <template>
     <div style="height: 100%; display: flex; flex-direction: column">
         <schemio-header>
-            <div slot="middle-section" class="header-middle-section">
+            <div slot="middle-section">
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
                         <router-link v-if="crumb.kind === 'dir'" :to="`/f/${crumb.path}`">

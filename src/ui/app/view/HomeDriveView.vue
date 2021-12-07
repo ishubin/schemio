@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <schemio-header></schemio-header>
+        <schemio-header @user-logged-out="onUserLoggedOut"/>
         <div class="middle-content">
             <p>
                 <a href="/">Schemio</a> is a web based diagramming app that allows you to build interactive diagrams.
@@ -11,7 +11,7 @@
             </p>
 
             <p v-if="isSignedIn">
-                <router-link to="/f/" class="btn btn-primary">Open Diagram Editor</router-link>
+                <router-link to="/f/" class="btn btn-primary">Open Diagram Explorer</router-link>
             </p>
 
             <p v-else>
@@ -26,24 +26,28 @@
 
 <script>
 import LoginModal from '../components/LoginModal.vue';
+import { getGoogleAuth, getGoogleCurrentUserSession } from '../../googleApi';
 
 export default {
     components: {LoginModal},
 
     beforeMount() {
-        window.getGoogleAuth().then(googleAuth => {
+        getGoogleAuth().then(googleAuth => {
             this.isSignedIn = googleAuth.isSignedIn.get();
-        })
+        });
     },
 
     data() {
         return {
-            isSignedIn: false,
+            isSignedIn: getGoogleCurrentUserSession().isSignedIn,
             loginModalShown: false
         };
     },
 
     methods: {
+        onUserLoggedOut() {
+            this.isSignedIn = false;
+        }
     }
 }
 </script>

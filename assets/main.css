@@ -268,6 +268,24 @@ h5 {
     align-items: center;
 }
 
+.header ul.header-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+.header ul.header-menu > li {
+    display: inline-block;
+    height: 100%;
+}
+.header ul.header-menu > li > a {
+    display: inline-block;
+    height: 100%;
+    padding: 10px 20px 10px 20px;
+}
+.header ul.header-menu > li > a:hover {
+    background: var(--base-strong-up);
+}
 /************** Menu dropdown *************/
 
 .menu-dropdown {

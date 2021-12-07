@@ -19,13 +19,13 @@
 </template>
 
 <script>
+import { googleSignIn } from '../../googleApi';
+
 export default {
     methods: {
         loginGoogleDrive() {
-            window.getGoogleAuth().then(googleAuth => {
-                googleAuth.signIn().then(user => {
-                    this.$router.push({path: '/f/'});
-                });
+            googleSignIn().then(() => {
+                this.$router.push({path: '/f/'});
             });
         }
     }
