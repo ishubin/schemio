@@ -36,7 +36,7 @@
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"
-            :userStylesEnabled="true"
+            :userStylesEnabled="userStylesEnabled"
             @new-scheme-submitted="onNewSchemeSubmitted"
         />
     </div>
@@ -52,7 +52,8 @@ export default {
     components: {SchemioEditorApp},
 
     props: {
-        apiClientType  : {type: String, default: 'fs'},
+        apiClientType    : {type: String, default: 'fs'},
+        userStylesEnabled: {type: Boolean, default: true},
     },
 
     beforeMount() {
