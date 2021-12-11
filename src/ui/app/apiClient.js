@@ -324,7 +324,8 @@ function createGoogleDriveClient() {
         }
 
         return {
-            listEntries(path) {
+            listEntries(path, filters) {
+
                 let query = "trashed = false";
 
                 if (path) {
@@ -332,9 +333,18 @@ function createGoogleDriveClient() {
                 } else {
                     query += ` and 'root' in parents`;
                 }
+
+                const params = {
+                    q: query,
+                    fields: 'nextPageToken, items(id, title, mimeType, modifiedDate)'
+                };
+
+                if (filters && filters.nextPageToken) {
+                    params.pageToken = filters.nextPageToken;
+                }
                 
                 return buildFileBreadCrumbs(path).then(breadcrumbs => {
-                    return gapi.client.drive.files.list( { q: query, fields: 'items(id, title, mimeType, modifiedDate)'}).then(results => {
+                    return gapi.client.drive.files.list(params).then(results => {
                         const entries = [  ];
 
                         if (breadcrumbs.length > 1) {
@@ -366,7 +376,8 @@ function createGoogleDriveClient() {
                             breadcrumbs: breadcrumbs,
                             path: path,
                             viewOnly: false,
-                            entries
+                            entries,
+                            nextPageToken: results.result.nextPageToken
                         };
                     });
                 });
@@ -485,7 +496,6 @@ function createGoogleDriveClient() {
                     'body': multipartRequestBody});
 
                 return request.then(response => {
-                    console.log('Created file', response.result);
                     scheme.id = response.result.id;
                     return scheme;
                 });
@@ -496,8 +506,6 @@ function createGoogleDriveClient() {
                     fileId: schemeId
                 }).then(response => {
                     const file = response.result;
-                    console.log('Got file', file);
-
                     if (file.downloadUrl) {
                         var accessToken = gapi.auth.getToken().access_token;
                         var xhr = new XMLHttpRequest();

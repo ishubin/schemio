@@ -5,6 +5,9 @@
     <div>
         <schemio-header>
             <div slot="middle-section">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
             </div>
         </schemio-header>
 
@@ -67,6 +70,10 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <p v-if="nextPageToken && !isLoading" style="text-align: center;">
+                    <span class="btn btn-primary" @click="loadNextPage">Load more</span>
+                </p>
             </div>
 
             <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
@@ -137,61 +144,7 @@ export default {
     },
     
     beforeMount() {
-        createApiClientForType(this.apiClientType)
-        .then(apiClient => {
-            this.apiClient = apiClient;
-        })
-        .then(() => {
-            return this.apiClient.listEntries(this.path);
-        })
-        .then(result => {
-            this.breadcrumbs = map(result.breadcrumbs, b => {
-                return {
-                    kind: 'dir',
-                    path: b.path,
-                    name: b.name
-                };
-            });
-
-            const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
-            result.entries.sort((a, b) => {
-                const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
-                const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
-                if (name1 < name2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            });
-            forEach(result.entries, entry => {
-                entry.menuOptions = [{
-                    name: 'Delete',
-                    iconClass: 'fas fa-trash',
-                    event: 'delete'
-                }, {
-                    name: 'Rename',
-                    iconClass: 'fas fa-edit',
-                    event: 'rename'
-                }, {
-                    name: 'Move',
-                    iconClass: 'fas fa-share',
-                    event: 'move'
-                }];
-
-                if (entry.kind === 'scheme') {
-                    entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
-                }
-            });
-            this.entries = result.entries;
-            this.viewOnly = result.viewOnly;
-        }).catch(err => {
-            console.error(err);
-            if (err.response && err.response.status === 404) {
-                this.is404 = true;
-            } else {
-                this.errorMessage = 'Oops, something went wrong';
-            }
-        })
+        this.loadNextPage();
     },
 
     data() {
@@ -211,6 +164,8 @@ export default {
             errorMessage: null,
             viewOnly: true,
             searchKeyword: '',
+            nextPageToken: null,
+            isLoading: true,
 
             is404: false,
 
@@ -289,7 +244,11 @@ export default {
 
         onSchemeSubmitted(scheme) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
-                this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+                if (this.$router.mode === 'history') {
+                    this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+                } else {
+                    this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
+                }
             })
             .catch(err => {
                 console.error('Failed to create diagram', err);
@@ -390,6 +349,74 @@ export default {
             this.$router.push({
                 path: `/search?q=${encodeURIComponent(this.searchKeyword)}`
             });
+        },
+
+        loadNextPage() {
+            this.isLoading = true;
+            createApiClientForType(this.apiClientType)
+            .then(apiClient => {
+                this.apiClient = apiClient;
+            })
+            .then(() => {
+                const filters = {};
+                if (this.nextPageToken) {
+                    filters.nextPageToken = this.nextPageToken;
+                }
+                return this.apiClient.listEntries(this.path, filters);
+            })
+            .then(result => {
+                this.nextPageToken = result.nextPageToken;
+
+                this.breadcrumbs = map(result.breadcrumbs, b => {
+                    return {
+                        kind: 'dir',
+                        path: b.path,
+                        name: b.name
+                    };
+                });
+
+                const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
+                result.entries.sort((a, b) => {
+                    const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
+                    const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
+                    if (name1 < name2) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                });
+                forEach(result.entries, entry => {
+                    entry.menuOptions = [{
+                        name: 'Delete',
+                        iconClass: 'fas fa-trash',
+                        event: 'delete'
+                    }, {
+                        name: 'Rename',
+                        iconClass: 'fas fa-edit',
+                        event: 'rename'
+                    }, {
+                        name: 'Move',
+                        iconClass: 'fas fa-share',
+                        event: 'move'
+                    }];
+
+                    if (entry.kind === 'scheme') {
+                        entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
+                    }
+                });
+                this.entries = this.entries.concat(result.entries);
+                this.viewOnly = result.viewOnly;
+                this.isLoading = false;
+
+            }).catch(err => {
+                console.error(err);
+                this.isLoading = false;
+                if (err.response && err.response.status === 404) {
+                    this.is404 = true;
+                } else {
+                    this.errorMessage = 'Oops, something went wrong';
+                }
+            })
         }
     },
 

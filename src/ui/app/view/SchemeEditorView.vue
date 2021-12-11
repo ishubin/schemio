@@ -132,7 +132,11 @@ export default {
         onNewSchemeSubmitted(scheme, callback) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (callback) {
-                    callback(createdScheme, `/docs/${createdScheme.id}`);
+                    if (this.$router && this.$router.mode === 'history') {
+                        callback(createdScheme, `/docs/${createdScheme.id}#m:edit`);
+                    } else {
+                        callback(createdScheme, `#/docs/${createdScheme.id}?m=edit`);
+                    }
                 }
             })
             .catch(err => {

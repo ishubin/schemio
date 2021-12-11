@@ -792,7 +792,7 @@ export default {
                         EventBus.emitItemChanged(item.id, 'links');
                     }
 
-                    window.open(`${publicLink}#m:edit`, '_blank');
+                    window.open(publicLink, '_blank');
                 }
 
                 this.newSchemePopup.show = false;
@@ -1385,8 +1385,6 @@ export default {
 
     watch: {
         mode(value) {
-            console.log('router mode', this.$router.mode);
-
             this.hasher.changeURLHash({
                 m: value
             });
