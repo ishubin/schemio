@@ -1,12 +1,18 @@
 <template>
     <div>
         <schemio-header>
-            <div slot="middle-section">
+            <div slot="loader">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
             </div>
         </schemio-header>
 
 
         <div class="middle-content">
+
+            <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
+
             <div v-if="searchResult">
                 <div class="search-panel">
                     <input ref="searchField" type="text" v-model="query" class="textfield" @keydown.enter="toggleSearch"/>
@@ -45,6 +51,10 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <p v-if="nextPageToken && !isLoading" style="text-align: center;">
+                    <span class="btn btn-primary" @click="loadNextPage">Load more</span>
+                </p>
             </div>
         </div>
     </div>
@@ -69,23 +79,8 @@ export default {
         apiClientType  : {type: String, default: 'fs'},
     },
 
-
     beforeMount() {
-        createApiClientForType(this.apiClientType)
-        .then(apiClient => {
-            this.apiClient = apiClient;
-            return apiClient.findSchemes({
-                query: this.query,
-                page: this.page
-            });
-        })
-        .then(result => {
-            this.searchResult = result;
-
-            this.$nextTick(() => {
-                this.$refs.searchField.focus();
-            });
-        });
+        this.loadNextPage();
     },
 
     data() {
@@ -94,8 +89,11 @@ export default {
         return {
             query,
             page,
+            isLoading: true,
             searchResult: null,
             apiClient: null,
+            nextPageToken: null,
+            errorMessage: null,
         };
     },
 
@@ -108,6 +106,49 @@ export default {
                     page: 1
                 }
             });
+        },
+
+        loadNextPage() {
+            this.isLoading = true;
+            createApiClientForType(this.apiClientType)
+            .then(apiClient => {
+                this.apiClient = apiClient;
+                const params = {
+                    query: this.query,
+                    page: this.page
+                };
+
+                if (this.nextPageToken) {
+                    params.nextPageToken = this.nextPageToken;
+                }
+                return apiClient.findSchemes(params);
+            })
+            .then(result => {
+                this.isLoading = false;
+                this.errorMessage = null;
+
+                if (this.searchResult && result.kind === 'chunk') {
+                    // then appending to previous search result
+                    this.searchResult.results = this.searchResult.results.concat(result.results);
+                } else {
+                    this.searchResult = result;
+                }
+
+                if (result.kind === 'chunk') {
+                    // this is only supported in drive app
+                    this.nextPageToken = result.nextPageToken;
+                }
+
+                this.$nextTick(() => {
+                    this.$refs.searchField.focus();
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                this.isLoading = false;
+                this.errorMessage = 'Something went wrong, failed to search for your diagrams';
+            });
+
         }
     }
 

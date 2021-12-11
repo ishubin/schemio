@@ -4,7 +4,7 @@
 <template>
     <div>
         <schemio-header>
-            <div slot="middle-section">
+            <div slot="loader">
                 <div v-if="isLoading" class="loader">
                     <div class="loader-element"></div>
                 </div>

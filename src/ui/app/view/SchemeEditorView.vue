@@ -20,6 +20,11 @@
                     <span>{{scheme.name}}</span>
                 </div>
             </div>
+            <div slot="loader">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
+            </div>
         </schemio-header>
 
         <div v-if="is404" class="middle-content">
@@ -58,6 +63,7 @@ export default {
 
     beforeMount() {
         if (this.apiClientType !== 'offline') {
+            this.isLoading = true;
             createApiClientForType(this.apiClientType)
             .then(apiClient => {
                 this.$store.dispatch('setApiClient', apiClient);
@@ -65,12 +71,14 @@ export default {
                 return apiClient.getScheme(this.schemeId);
             })
             .then(schemeDetails => {
+                this.isLoading = false;
                 this.path = schemeDetails.folderPath;
                 this.buildBreadcrumbs(schemeDetails.folderPath);
                 this.scheme = schemeDetails.scheme;
                 this.editAllowed = !schemeDetails.viewOnly && this.apiClientType !== 'static';
             })
             .catch(err => {
+                this.isLoading = false;
                 if (err.response && err.response.status === 404) {
                     this.is404 = true;
                 } else {
@@ -91,7 +99,8 @@ export default {
             scheme: null,
             apiClient: null,
             is404: false,
-            errorMessage: null
+            errorMessage: null,
+            isLoading: false
         };
     },
 

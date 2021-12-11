@@ -3,34 +3,38 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="header">
-        <a href="/" class="header-caption">
-            <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
-        </a>
-        <div class="header-middle-section">
-            <ul class="header-menu">
-                <li v-if="isSignedIn">
-                    <router-link to="/f/"><span>My Diagrams</span></router-link>
-                </li>
-                <li v-else>
-                    <span @click="loginModalShown = true">Sign in</span>
-                </li>
-            </ul>
-            <slot name="middle-section"></slot>
-        </div>
-        <div class="right-section">
-            <div v-if="currentUser" class="current-user">
-                <div class="user-profile">
-                    <img :src="currentUser.image" v-if="currentUser.image" class="user-avatar">
-                    <span class="user-name">{{currentUser.name}}</span>
-                </div>
-                <ul class="user-profile-menu">
-                    <li>
-                        <span class="link" @click="logout">Logout</span>
+        <div class="header-body">
+            <a href="/" class="header-caption">
+                <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
+            </a>
+            <div class="header-middle-section">
+                <ul class="header-menu">
+                    <li v-if="isSignedIn">
+                        <router-link to="/f/"><span>My Diagrams</span></router-link>
+                    </li>
+                    <li v-else>
+                        <span @click="loginModalShown = true">Sign in</span>
                     </li>
                 </ul>
+                <slot name="middle-section"></slot>
+            </div>
+            <div class="right-section">
+                <div v-if="currentUser" class="current-user">
+                    <div class="user-profile">
+                        <img :src="currentUser.image" v-if="currentUser.image" class="user-avatar">
+                        <span class="user-name">{{currentUser.name}}</span>
+                    </div>
+                    <ul class="user-profile-menu">
+                        <li>
+                            <span class="link" @click="logout">Logout</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-
+        <div class="header-loader-container">
+            <slot name="loader"></slot>
+        </div>
         <login-modal v-if="loginModalShown" @close="loginModalShown = false"/>
     </div>
 </template>

@@ -580,10 +580,20 @@ function createGoogleDriveClient() {
                     query += ` and title contains '${escapeDriveQuery(filters.query)}'`;
                 }
 
-                return gapi.client.drive.files.list( { q: query, fields: 'items(mimeType, title, id, modifiedDate)'}).then(response => {
-                    //TODO handle loading next chunk
+                const params = {
+                    q: query,
+                    maxResults: 5,
+                    fields: 'nextPageToken, items(mimeType, title, id, modifiedDate)'
+                };
+
+                if (filters.nextPageToken) {
+                    params.pageToken = filters.nextPageToken;
+                }
+
+                return gapi.client.drive.files.list(params).then(response => {
                     return {
                         kind: 'chunk',
+                        nextPageToken: response.result.nextPageToken,
                         results: map(response.result.items, file => {
                             return {
                                 id: file.id,
