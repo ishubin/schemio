@@ -258,7 +258,7 @@ h5 {
 .header .scheme-title span {
     display: inline-block;
     height: 25px;
-    padding: 2px 5px;
+    padding: 0 5px;
     margin: 0;
     min-width: 40px;
 }
@@ -299,7 +299,7 @@ h5 {
     cursor: pointer;
     color: var(--base-weak);
     height: 100%;
-    padding: 10px 20px 10px 20px;
+    padding: 12px 20px 10px 20px;
 }
 .header ul.header-menu > li > a:hover {
     background: var(--base-strong-up);
