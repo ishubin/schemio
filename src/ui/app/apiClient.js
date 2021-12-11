@@ -582,7 +582,7 @@ function createGoogleDriveClient() {
 
                 const params = {
                     q: query,
-                    maxResults: 5,
+                    maxResults: 100,
                     fields: 'nextPageToken, items(mimeType, title, id, modifiedDate)'
                 };
 
