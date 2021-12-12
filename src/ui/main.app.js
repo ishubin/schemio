@@ -14,11 +14,13 @@ import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
+import Footer from './app/components/Footer.vue';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
 
 Vue.component('schemio-header', Header);
+Vue.component('schemio-footer', Footer);
 
 function route(name, path, component, props) {
     return { name, path, component, props };

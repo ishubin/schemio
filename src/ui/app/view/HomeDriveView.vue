@@ -19,7 +19,6 @@
                 <router-link class="btn btn-secondary" to="/offline-editor/">Edit diagram offline</router-link>
             </p>
         </div>
-
         <login-modal v-if="loginModalShown" @close="loginModalShown = false"/>
     </div>
 </template>

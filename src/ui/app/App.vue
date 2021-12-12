@@ -4,10 +4,28 @@
 <template>
     <div class="app-container">
         <router-view :key="$route.fullPath"></router-view>
+
+        <schemio-footer v-if="footerShown"/>
     </div>
 </template>
+
 <script>
+
+
+function shouldShowFooter(route) {
+    return route.name !== 'SchemeEditorView' && route.name !== 'OfflineSchemeEditorView';
+}
 export default {
-    
+    data() {
+        return {
+            footerShown: shouldShowFooter(this.$route)
+        };
+    },
+
+    watch: {
+        $route (to, from) {
+            this.footerShown = shouldShowFooter(this.$route);
+        }
+    }
 }
 </script>
