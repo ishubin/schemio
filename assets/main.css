@@ -62,9 +62,6 @@
     --page-content-font-size: 20px;
 }
 
-@import url(http://fonts.googleapis.com/css?family=Patua+One);
-
-
 html, body, .app-container {
     width: 100%;
     height: 100%;
@@ -96,7 +93,6 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--base-strong);
-    font-family: 'Patua One', 'Open Sans', sans-serif;
 }
 
 h5 {
