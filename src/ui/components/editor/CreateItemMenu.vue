@@ -50,7 +50,7 @@
                 </div>
             </panel>
 
-            <panel name="Project Art">
+            <panel v-if="projectArtEnabled" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
                 <div class="item-menu">
@@ -159,8 +159,13 @@ const _gifDescriptions = {
 const mouseOffset = 2;
 
 export default {
-    props: ['schemeContainer'],
+    props: {
+        schemeContainer  : {type: Object},
+        projectArtEnabled: {type: Boolean, default: true},
+    },
+
     components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
+
     beforeMount() {
         this.reloadArt();
         this.filterItemPanels();

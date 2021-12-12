@@ -37,12 +37,14 @@
             :scheme="null"
             :editAllowed="true"
             :userStylesEnabled="false"
+            :projectArtEnabled="false"
         />
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"
             :userStylesEnabled="userStylesEnabled"
             @new-scheme-submitted="onNewSchemeSubmitted"
+            :projectArtEnabled="projectArtEnabled"
         />
     </div>
 </template>
@@ -59,6 +61,7 @@ export default {
     props: {
         apiClientType    : {type: String, default: 'fs'},
         userStylesEnabled: {type: Boolean, default: true},
+        projectArtEnabled: {type: Boolean, default: true},
     },
 
     beforeMount() {

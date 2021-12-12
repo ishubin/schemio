@@ -120,7 +120,7 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
-                        <create-item-menu :scheme-container="schemeContainer"/>
+                        <create-item-menu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"/>
                     </div>
                 </div>
             </div>
@@ -402,6 +402,7 @@ export default {
         scheme           : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
+        projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
         comments         : {type: Object, default: {
             enabled: false,
