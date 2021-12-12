@@ -58,7 +58,11 @@
     --control-border-radius: 3px;
     --middle-border-radius: 5px;
     --modal-border-radius: 10px;
+
+    --page-content-font-size: 20px;
 }
+
+@import url(http://fonts.googleapis.com/css?family=Patua+One);
 
 
 html, body, .app-container {
@@ -92,6 +96,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     color: var(--base-strong);
+    font-family: 'Patua One', 'Open Sans', sans-serif;
 }
 
 h5 {
@@ -2726,6 +2731,9 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 
 
 /************************** Schemio App ****************************/
+.page-content {
+    font-size: var(--page-content-font-size);
+}
 
 .footer {
     background: var(--base-strong-up);
@@ -3166,6 +3174,8 @@ ul.breadcrumbs li .breadcrumb-separator {
 
 
 /*********************** Home ******************************/
+.home-page h1,
+.home-page p,
 .home-buttons {
     text-align: center;
 }

@@ -2,7 +2,7 @@
     <div>
         <schemio-header/>
 
-        <div class="middle-content">
+        <div class="middle-content page-content">
             <h1>About</h1>
             <p>
                 <a href="/">Schemio</a> is a web based diagramming app that allows you to build interactive diagrams.

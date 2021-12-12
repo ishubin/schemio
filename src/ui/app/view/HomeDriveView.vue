@@ -4,7 +4,9 @@
 <template>
     <div>
         <schemio-header @user-logged-out="onUserLoggedOut"/>
-        <div class="middle-content">
+        <div class="middle-content home-page page-content">
+            <h1>Welcome to Schemio</h1>
+
             <p>
                 <a href="/">Schemio</a> is a web based diagramming app that allows you to build interactive diagrams.
                 Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app.
