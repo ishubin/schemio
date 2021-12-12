@@ -3165,6 +3165,21 @@ ul.breadcrumbs li .breadcrumb-separator {
 }
 
 
+/*********************** Home ******************************/
+.home-buttons {
+    text-align: center;
+}
+
+.home-screenshot {
+    max-width: 100%;
+    display: block;
+    text-decoration: none;
+}
+
+.home-screenshot img {
+    max-width: 100%;
+}
+
 /*********************** Loader Line ***********************/
 .loader {
     overflow: hidden;

@@ -10,14 +10,17 @@
                 Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app.
             </p>
 
-            <p v-if="isSignedIn">
+            <p v-if="isSignedIn" class="home-buttons">
                 <router-link to="/f/" class="btn btn-primary">Open Diagram Explorer</router-link>
             </p>
-
-            <p v-else>
+            <p v-else class="home-buttons">
                 <span class="btn btn-primary" @click="loginModalShown = true">Sign in</span> or
                 <router-link class="btn btn-secondary" to="/offline-editor/">Edit diagram offline</router-link>
             </p>
+
+            <a href="assets/images/schemio-screenshot.png" class="home-screenshot">
+                <img src="assets/images/schemio-screenshot.png"/>
+            </a>
         </div>
         <login-modal v-if="loginModalShown" @close="loginModalShown = false"/>
     </div>
