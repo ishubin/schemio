@@ -13,11 +13,11 @@
             </p>
 
             <p v-if="isSignedIn" class="home-buttons">
-                <router-link to="/f/" class="btn btn-primary">Open Diagram Explorer</router-link>
+                <router-link to="/f/" class="btn btn-primary btn-large">Open Diagram Explorer</router-link>
             </p>
             <p v-else class="home-buttons">
-                <span class="btn btn-primary" @click="loginModalShown = true">Sign in</span> or
-                <router-link class="btn btn-secondary" to="/offline-editor/">Edit diagram offline</router-link>
+                <span class="btn btn-primary btn-large" @click="loginModalShown = true">Sign in</span> or
+                <router-link class="btn btn-secondary btn-large" to="/offline-editor/">Edit diagram offline</router-link>
             </p>
 
             <a href="assets/images/schemio-screenshot.png" class="home-screenshot">

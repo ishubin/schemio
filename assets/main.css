@@ -291,10 +291,14 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--faint-strong-down);
     text-decoration: none;
 }
+.btn.btn-large {
+    padding: 10px 15px 10px 15px;
+    font-size: 20px;
+}
 .btn.btn-primary, .btn.btn-primary.disabled:hover {
-    background: linear-gradient( 0deg , var(--accent-strong-down) 0%, var(--accent-faint) 100%);
+    background: var(--accent-strong);
     color: var(--base-weak);
-    border: 1px solid var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-primary:hover {
     background: var(--accent-faint);
@@ -302,14 +306,14 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong-down);
+    background: var(--accent-weak-up);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-secondary:hover {
-    background: var(--faint-weak);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong-down);
+    background: var(--accent-weak-down);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {
     background: linear-gradient( 0deg , var(--critic-strong) 0%, var(--critic-faint) 100%);
@@ -3184,6 +3188,7 @@ ul.breadcrumbs li .breadcrumb-separator {
 
 .home-screenshot img {
     max-width: 100%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 /*********************** Loader Line ***********************/
