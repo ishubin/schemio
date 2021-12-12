@@ -42,16 +42,16 @@ function createApiClient() {
             return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
         },
 
-        deleteDir(path, name) {
-            return axios.delete(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(name)}`).then(unwrapAxios);
+        deleteDir(path) {
+            return axios.delete(`/v1/fs/dir?path=${encodeURIComponent(path)}`).then(unwrapAxios);
         },
 
         createDirectory(path, name) {
             return axios.post('/v1/fs/dir', { name, path }).then(unwrapAxios);
         },
 
-        renameDirectory(path, oldName, newName) {
-            return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}&name=${encodeURIComponent(oldName)}`, {name: newName}).then(unwrapAxios);
+        renameDirectory(path, newName) {
+            return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}`, {name: newName}).then(unwrapAxios);
         },
 
         getScheme(schemeId) {
@@ -424,7 +424,7 @@ function createGoogleDriveClient() {
                 return this.deleteGoogleFile(path);
             },
 
-            renameDirectory(path, oldName, newName) {
+            renameDirectory(path, newName) {
                 return this.renameGoogleFile(path, newName);
             },
 
@@ -434,6 +434,12 @@ function createGoogleDriveClient() {
                     resource: {
                         title: newName
                     }
+                }).then(() => {
+                    return {
+                        kind: 'dir',
+                        path: fileId,
+                        name: newName
+                    };
                 });
             },
 

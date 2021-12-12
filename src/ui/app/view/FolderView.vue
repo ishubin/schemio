@@ -306,8 +306,9 @@ export default {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
-                this.apiClient.renameDirectory(path, oldName, this.renameEntryModal.name).then(() => {
-                    this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
+                this.apiClient.renameDirectory(path, this.renameEntryModal.name).then(changedEntry => {
+                    this.entries[this.renameEntryModal.entryIdx].name = changedEntry.name;
+                    this.entries[this.renameEntryModal.entryIdx].path = changedEntry.path;
                     this.renameEntryModal.shown = false;
                 })
                 .catch(err => {

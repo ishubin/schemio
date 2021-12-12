@@ -356,10 +356,7 @@ export function fsMoveDirectory(config) {
 export function fsPatchDirectory(config) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        if (!validateFileName(req.query.name)) {
-            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
-            return;
-        }
+
         let newName = null;
         if (req.body.hasOwnProperty('name')) {
             newName = req.body.name.trim();
@@ -369,20 +366,24 @@ export function fsPatchDirectory(config) {
             return;
         }
 
-        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
+        const realPath = path.join(config.fs.rootPath, publicPath);
+        const newPublicPath = path.join(path.dirname(publicPath), newName);
+
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
         })
         .then(() => {
-            const newPath = path.join(config.fs.rootPath, publicPath, newName);
+            const newPath = path.join(config.fs.rootPath, newPublicPath);
             return fs.move(realPath, newPath);
         })
         .then(() => {
             reindex(config);
             res.json({
-                status: 'ok'
+                kind: 'dir',
+                path: newPublicPath,
+                name: newName
             });
         })
         .catch(err => {
@@ -395,12 +396,7 @@ export function fsPatchDirectory(config) {
 export function fsDeleteDirectory(config) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        if (!validateFileName(req.query.name)) {
-            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
-            return;
-        }
-
-        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
+        const realPath = path.join(config.fs.rootPath, publicPath);
 
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
