@@ -105,7 +105,9 @@ export function fsPatchScheme(config) {
         }
         const patchRequest = req.body;
         
-        fs.readFile(entity.fsPath).then(content => {
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+
+        fs.readFile(fullPath).then(content => {
             const scheme = JSON.parse(content);
 
             if (patchRequest.hasOwnProperty('name')) {
@@ -115,7 +117,7 @@ export function fsPatchScheme(config) {
                 }
 
                 scheme.name = newName;
-                return fs.writeFile(entity.fsPath, JSON.stringify(scheme)).then(() => {
+                return fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
                     indexScheme(schemeId, scheme, entity.fsPath);
                 });
             }
