@@ -267,7 +267,7 @@ h5 {
     display: inline-block;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding-left: 30px;
 }
 .header .header-breadcrumbs li {
     display: inline-block;
