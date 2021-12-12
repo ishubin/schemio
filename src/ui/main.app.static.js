@@ -8,6 +8,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
+import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
@@ -28,6 +29,7 @@ function route(name, path, component, props) {
 
 const routes = [
     route('SchemeEditorView',   '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'static'}),
+    route('AboutView',          '/about',            AboutView),
     route('NotFoundView',       '/not-found',        NotFoundView),
     route('HomeView',           '/',                 FolderView, {apiClientType: 'static'}),
     route('FolderView',         '/f/*',              FolderView, {apiClientType: 'static', toolbarShown: false}),

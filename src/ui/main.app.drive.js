@@ -9,6 +9,7 @@ import VueRouter from 'vue-router';
 import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
 import SearchView from './app/view/SearchView.vue';
+import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
@@ -32,6 +33,7 @@ function route(name, path, component, props) {
 const routes = [
     route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'drive', userStylesEnabled: false, projectArtEnabled: false}),
     route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
+    route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 HomeDriveView),
     route('SearchView',             '/search',           SearchView, {apiClientType: 'drive'}),
