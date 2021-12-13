@@ -1,0 +1,52 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Schemio</title>
+    <link rel="stylesheet" href="/assets/main.css">
+    <link rel="stylesheet" href="/assets/css/all.min.css">
+    <script>
+        window._googleAuth = null;
+        window._googleAuthCallback = [];
+        window.getGoogleAuth = () => {
+            if (window._googleAuth) {
+                return Promise.resolve(window._googleAuth);
+            } else {
+                return new Promise((resolve, reject) => {
+                    window._googleAuthCallback.push(resolve);
+                });
+            }
+        };
+
+        function gapiLoaded() {
+            gapi.load('auth2', function() {
+                gapi.client.load('drive', 'v2').then(function () {
+                    gapi.auth2.init({
+                        client_id: '49605926377-mcb27jl2eakpbb9sqdh8pduq0l266vq3.apps.googleusercontent.com',
+                        scope    : 'https://www.googleapis.com/auth/drive.file',
+                    }).then(function(googleAuth) {
+                        window._googleAuth = googleAuth;
+                        while(window._googleAuthCallback.length > 0) {
+                            const callback = window._googleAuthCallback.pop();
+                            callback(googleAuth);
+                        }
+
+                    }, function(err) {
+                        console.error(err);
+                    })
+                });
+            });
+        }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="https://apis.google.com/js/client.js?onload=gapiLoaded"></script>
+    <script src="/assets/schemio.app.drive.js"></script>
+  </body>
+</html>
+

@@ -105,7 +105,9 @@ export function fsPatchScheme(config) {
         }
         const patchRequest = req.body;
         
-        fs.readFile(entity.fsPath).then(content => {
+        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+
+        fs.readFile(fullPath).then(content => {
             const scheme = JSON.parse(content);
 
             if (patchRequest.hasOwnProperty('name')) {
@@ -115,7 +117,7 @@ export function fsPatchScheme(config) {
                 }
 
                 scheme.name = newName;
-                return fs.writeFile(entity.fsPath, JSON.stringify(scheme)).then(() => {
+                return fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
                     indexScheme(schemeId, scheme, entity.fsPath);
                 });
             }
@@ -200,6 +202,7 @@ export function fsSearchSchemes(config) {
         });
 
         res.json({
+            kind: 'page',
             totalResults: totalResults,
             results: schemes,
             totalPages: Math.ceil(totalResults / resultsPerPage),
@@ -355,10 +358,7 @@ export function fsMoveDirectory(config) {
 export function fsPatchDirectory(config) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        if (!validateFileName(req.query.name)) {
-            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
-            return;
-        }
+
         let newName = null;
         if (req.body.hasOwnProperty('name')) {
             newName = req.body.name.trim();
@@ -368,20 +368,24 @@ export function fsPatchDirectory(config) {
             return;
         }
 
-        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
+        const realPath = path.join(config.fs.rootPath, publicPath);
+        const newPublicPath = path.join(path.dirname(publicPath), newName);
+
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {
                 throw new Error('Not a directory');
             }
         })
         .then(() => {
-            const newPath = path.join(config.fs.rootPath, publicPath, newName);
+            const newPath = path.join(config.fs.rootPath, newPublicPath);
             return fs.move(realPath, newPath);
         })
         .then(() => {
             reindex(config);
             res.json({
-                status: 'ok'
+                kind: 'dir',
+                path: newPublicPath,
+                name: newName
             });
         })
         .catch(err => {
@@ -394,12 +398,7 @@ export function fsPatchDirectory(config) {
 export function fsDeleteDirectory(config) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        if (!validateFileName(req.query.name)) {
-            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
-            return;
-        }
-
-        const realPath = path.join(config.fs.rootPath, publicPath, req.query.name);
+        const realPath = path.join(config.fs.rootPath, publicPath);
 
         fs.stat(realPath).then(stat => {
             if (!stat.isDirectory()) {

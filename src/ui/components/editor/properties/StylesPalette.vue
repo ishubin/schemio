@@ -82,7 +82,7 @@ export default {
     methods: {
         init() {
             // optimizing it to not call api every time a new item is selected
-            if (cachedUserStyles === null) {
+            if (cachedUserStyles === null && this.userStylesEnabled) {
                 this.$store.state.apiClient.getStyles().then(styles => {
                     cachedUserStyles = styles;
                     this.stylePreviews = map(styles, this.convertStyleToPreview);

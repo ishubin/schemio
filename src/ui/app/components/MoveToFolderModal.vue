@@ -32,7 +32,6 @@
 import Modal from '../../components/Modal.vue';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import { buildBreadcrumbs } from '../breadcrumbs';
 
 export default {
     components: { Modal },
@@ -69,6 +68,7 @@ export default {
 
             this.isLoading = true;
             this.apiClient.listEntries(this.selectedPath).then(result => {
+                this.breadcrumbs = result.breadcrumbs;
                 const filteredEntries = map(filter(result.entries, entry => entry.kind === 'dir'), entry => {
                     entry.disabled = this.source.kind === 'dir' && this.source.path === entry.path;
                     return entry;
@@ -91,7 +91,6 @@ export default {
             }
             this.selectedPath = path;
             
-            this.breadcrumbs = buildBreadcrumbs(path);
             this.$forceUpdate();
 
             this.loadEntries();

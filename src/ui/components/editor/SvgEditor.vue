@@ -1026,9 +1026,18 @@ export default {
                     destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
                 }
 
+                // perhaps not the best way to handle this, but for now this trick should do
+                // drive app uses different type of router and therefor we need to adjust the url so that it can properly reference other diagrams
+                const convertLinkUrl = link => {
+                    if (link.type === 'doc' && link.url && link.url.startsWith('/docs/') && this.$router && this.$router.mode !== 'history') {
+                        return '#' + link.url;
+                    }
+                    return link.url;
+                }
+
                 return map(item.links, (link, index) => {
                     return {
-                        url: link.url,
+                        url: convertLinkUrl(link),
                         type: link.type,
                         shortTitle: this.getFontAwesomeSymbolForLink(link),
                         title: link.title,

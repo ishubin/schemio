@@ -1,12 +1,18 @@
 <template>
     <div>
-        <Header>
-            <div slot="middle-section">
+        <schemio-header>
+            <div slot="loader">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
             </div>
-        </Header>
+        </schemio-header>
 
 
         <div class="middle-content">
+
+            <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
+
             <div v-if="searchResult">
                 <div class="search-panel">
                     <input ref="searchField" type="text" v-model="query" class="textfield" @keydown.enter="toggleSearch"/>
@@ -45,15 +51,18 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <p v-if="nextPageToken && !isLoading" style="text-align: center;">
+                    <span class="btn btn-primary" @click="loadNextPage">Load more</span>
+                </p>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-import Header from '../components/Header.vue';
 import Pagination from '../../components/Pagination.vue';
-import { createApiClient, createApiClientForType, createStaticClient } from '../apiClient';
+import { createApiClientForType } from '../apiClient';
 
 function toPageNumber(text) {
     const page = parseInt(text);
@@ -64,24 +73,14 @@ function toPageNumber(text) {
 }
 
 export default {
-    components: {Header, Pagination},
+    components: {Pagination},
 
     props: {
         apiClientType  : {type: String, default: 'fs'},
     },
 
-
     beforeMount() {
-        this.apiClient.findSchemes({
-            query: this.query,
-            page: this.page
-        }).then(result => {
-            this.searchResult = result;
-
-            this.$nextTick(() => {
-                this.$refs.searchField.focus();
-            });
-        });
+        this.loadNextPage();
     },
 
     data() {
@@ -90,8 +89,11 @@ export default {
         return {
             query,
             page,
+            isLoading: true,
             searchResult: null,
-            apiClient: createApiClientForType(this.apiClientType)
+            apiClient: null,
+            nextPageToken: null,
+            errorMessage: null,
         };
     },
 
@@ -104,6 +106,49 @@ export default {
                     page: 1
                 }
             });
+        },
+
+        loadNextPage() {
+            this.isLoading = true;
+            createApiClientForType(this.apiClientType)
+            .then(apiClient => {
+                this.apiClient = apiClient;
+                const params = {
+                    query: this.query,
+                    page: this.page
+                };
+
+                if (this.nextPageToken) {
+                    params.nextPageToken = this.nextPageToken;
+                }
+                return apiClient.findSchemes(params);
+            })
+            .then(result => {
+                this.isLoading = false;
+                this.errorMessage = null;
+
+                if (this.searchResult && result.kind === 'chunk') {
+                    // then appending to previous search result
+                    this.searchResult.results = this.searchResult.results.concat(result.results);
+                } else {
+                    this.searchResult = result;
+                }
+
+                if (result.kind === 'chunk') {
+                    // this is only supported in drive app
+                    this.nextPageToken = result.nextPageToken;
+                }
+
+                this.$nextTick(() => {
+                    this.$refs.searchField.focus();
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                this.isLoading = false;
+                this.errorMessage = 'Something went wrong, failed to search for your diagrams';
+            });
+
         }
     }
 

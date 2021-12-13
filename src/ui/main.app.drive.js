@@ -2,19 +2,21 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-// This is an entry point for schemio bundle that is used for FS based Schemio app
+// This is an entry point for schemio bundle that is used for Google Drive based Schemio app
 
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
+import SearchView from './app/view/SearchView.vue';
 import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorView from './app/view/SchemeEditorView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
-import Header from './app/components/Header.vue';
+import Header from './app/components/HeaderDrive.vue';
 import Footer from './app/components/Footer.vue';
+import HomeDriveView from './app/view/HomeDriveView.vue';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -27,12 +29,15 @@ function route(name, path, component, props) {
 }
 
 
+
 const routes = [
-    route('SchemeEditorView',   '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'static'}),
-    route('AboutView',          '/about',            AboutView),
-    route('NotFoundView',       '/not-found',        NotFoundView),
-    route('HomeView',           '/',                 FolderView, {apiClientType: 'static'}),
-    route('FolderView',         '/f/*',              FolderView, {apiClientType: 'static', toolbarShown: false}),
+    route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'drive', userStylesEnabled: false, projectArtEnabled: false}),
+    route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
+    route('AboutView',              '/about',            AboutView),
+    route('NotFoundView',           '/not-found',        NotFoundView),
+    route('HomeView',               '/',                 HomeDriveView),
+    route('SearchView',             '/search',           SearchView, {apiClientType: 'drive'}),
+    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'drive'}),
     { path: '*', redirect: '/not-found'}
 ];
 
@@ -46,4 +51,3 @@ new Vue(Vue.util.extend({
     router,
     store,
 }, App)).$mount('#app');
-

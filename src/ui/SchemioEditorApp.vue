@@ -8,6 +8,7 @@
             :scheme="scheme"
             :editAllowed="editAllowed"
             :userStylesEnabled="userStylesEnabled"
+            :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"/>
@@ -32,6 +33,7 @@ export default{
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
+        projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
         comments         : {type: Object, default: () => null},
     },

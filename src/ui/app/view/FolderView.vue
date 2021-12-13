@@ -3,10 +3,13 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <Header>
-            <div slot="middle-section">
+        <schemio-header>
+            <div slot="loader">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
             </div>
-        </Header>
+        </schemio-header>
 
         <div class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
@@ -67,6 +70,10 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <p v-if="nextPageToken && !isLoading" style="text-align: center;">
+                    <span class="btn btn-primary" @click="loadNextPage">Load more</span>
+                </p>
             </div>
 
             <modal v-if="newDirectoryModal.shown" title="New Directory" @close="newDirectoryModal.shown = false" primaryButton="Create" @primary-submit="submitNewDirectory()">
@@ -112,12 +119,11 @@
 <script>
 import { createApiClientForType } from '../apiClient';
 import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
-import { buildBreadcrumbs } from '../breadcrumbs';
-import Header from '../components/Header.vue';
 
 
 function isValidCharCode(code) {
@@ -130,7 +136,7 @@ function isValidCharCode(code) {
 
 export default {
 
-    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal, Header},
+    components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
 
     props: {
         apiClientType  : {type: String, default: 'fs'},
@@ -138,46 +144,7 @@ export default {
     },
     
     beforeMount() {
-        this.apiClient.listEntries(this.path)
-        .then(result => {
-            const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
-            result.entries.sort((a, b) => {
-                const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
-                const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
-                if (name1 < name2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            });
-            forEach(result.entries, entry => {
-                entry.menuOptions = [{
-                    name: 'Delete',
-                    iconClass: 'fas fa-trash',
-                    event: 'delete'
-                }, {
-                    name: 'Rename',
-                    iconClass: 'fas fa-edit',
-                    event: 'rename'
-                }, {
-                    name: 'Move',
-                    iconClass: 'fas fa-share',
-                    event: 'move'
-                }];
-
-                if (entry.kind === 'scheme') {
-                    entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
-                }
-            });
-            this.entries = result.entries;
-            this.viewOnly = result.viewOnly;
-        }).catch(err => {
-            if (err.response && err.response.status === 404) {
-                this.is404 = true;
-            } else {
-                this.errorMessage = 'Oops, something went wrong';
-            }
-        })
+        this.loadNextPage();
     },
 
     data() {
@@ -192,11 +159,13 @@ export default {
 
         return {
             path: path,
-            breadcrumbs: buildBreadcrumbs(path),
+            breadcrumbs: [],
             entries: [],
             errorMessage: null,
             viewOnly: true,
             searchKeyword: '',
+            nextPageToken: null,
+            isLoading: true,
 
             is404: false,
 
@@ -231,7 +200,7 @@ export default {
                 source: null
             },
 
-            apiClient: createApiClientForType(this.apiClientType)
+            apiClient: null,
         };
     },
 
@@ -275,7 +244,11 @@ export default {
 
         onSchemeSubmitted(scheme) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
-                this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+                if (this.$router.mode === 'history') {
+                    this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+                } else {
+                    this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
+                }
             })
             .catch(err => {
                 console.error('Failed to create diagram', err);
@@ -291,7 +264,7 @@ export default {
 
         confirmDeleteEntry(entry) {
             if (entry.kind === 'dir') {
-                this.apiClient.deleteDir(this.path, entry.name).then(() => {
+                this.apiClient.deleteDir(entry.path, entry.name).then(() => {
                     window.location.reload();
                 })
                 .catch(err => {
@@ -327,13 +300,15 @@ export default {
                 this.renameEntryModal.errorMessage = 'Name should not be empty';
                 return;
             }
+            const path = this.entries[this.renameEntryModal.entryIdx].path;
             const oldName = this.entries[this.renameEntryModal.entryIdx].name;
             if (oldName === this.renameEntryModal.name) {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
-                this.apiClient.renameDirectory(this.path, oldName, this.renameEntryModal.name).then(() => {
-                    this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
+                this.apiClient.renameDirectory(path, this.renameEntryModal.name).then(changedEntry => {
+                    this.entries[this.renameEntryModal.entryIdx].name = changedEntry.name;
+                    this.entries[this.renameEntryModal.entryIdx].path = changedEntry.path;
                     this.renameEntryModal.shown = false;
                 })
                 .catch(err => {
@@ -375,6 +350,74 @@ export default {
             this.$router.push({
                 path: `/search?q=${encodeURIComponent(this.searchKeyword)}`
             });
+        },
+
+        loadNextPage() {
+            this.isLoading = true;
+            createApiClientForType(this.apiClientType)
+            .then(apiClient => {
+                this.apiClient = apiClient;
+            })
+            .then(() => {
+                const filters = {};
+                if (this.nextPageToken) {
+                    filters.nextPageToken = this.nextPageToken;
+                }
+                return this.apiClient.listEntries(this.path, filters);
+            })
+            .then(result => {
+                this.nextPageToken = result.nextPageToken;
+
+                this.breadcrumbs = map(result.breadcrumbs, b => {
+                    return {
+                        kind: 'dir',
+                        path: b.path,
+                        name: b.name
+                    };
+                });
+
+                const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
+                result.entries.sort((a, b) => {
+                    const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
+                    const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
+                    if (name1 < name2) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                });
+                forEach(result.entries, entry => {
+                    entry.menuOptions = [{
+                        name: 'Delete',
+                        iconClass: 'fas fa-trash',
+                        event: 'delete'
+                    }, {
+                        name: 'Rename',
+                        iconClass: 'fas fa-edit',
+                        event: 'rename'
+                    }, {
+                        name: 'Move',
+                        iconClass: 'fas fa-share',
+                        event: 'move'
+                    }];
+
+                    if (entry.kind === 'scheme') {
+                        entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
+                    }
+                });
+                this.entries = this.entries.concat(result.entries);
+                this.viewOnly = result.viewOnly;
+                this.isLoading = false;
+
+            }).catch(err => {
+                console.error(err);
+                this.isLoading = false;
+                if (err.response && err.response.status === 404) {
+                    this.is404 = true;
+                } else {
+                    this.errorMessage = 'Oops, something went wrong';
+                }
+            })
         }
     },
 

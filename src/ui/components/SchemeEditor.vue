@@ -32,9 +32,8 @@
             >
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
-                    <span v-if="isSaving" class="btn btn-secondary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else-if="!offlineMode && editAllowed && apiClient" class="btn btn-primary" @click="saveScheme()">Save</span>
-                    <span v-else class="btn btn-primary" @click="saveToLocalStorage()">Save</span>
+                    <span v-if="isSaving" class="btn btn-secondary" @click="onSaveSchemeClick()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
+                    <span v-else class="btn btn-primary" @click="onSaveSchemeClick()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -121,7 +120,7 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
                     <div class="wrapper">
-                        <create-item-menu :scheme-container="schemeContainer"/>
+                        <create-item-menu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"/>
                     </div>
                 </div>
             </div>
@@ -302,7 +301,7 @@ import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
-import hasher from '../url/hasher.js';
+import { createHasher } from '../url/hasher.js';
 import History from '../history/History.js';
 import Shape from './editor/items/shapes/Shape.js';
 import AnimationRegistry from '../animations/AnimationRegistry';
@@ -403,6 +402,7 @@ export default {
         scheme           : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
+        projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
         comments         : {type: Object, default: {
             enabled: false,
@@ -456,6 +456,8 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file
             editorRevision: 0,
+
+            hasher: createHasher(this.$router ? this.$router.mode : 'history'),
 
             offlineMode: false,
             schemeId: null,
@@ -549,7 +551,7 @@ export default {
                 return;
             }
 
-            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            const pageParams = this.hasher.decodeURLHash();
             if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
             } else {
@@ -579,7 +581,7 @@ export default {
 
         initOfflineMode() {
             // here the edit mode is default since user chose to edit offline
-            const pageParams = hasher.decodeURLHash(window.location.hash.substr(1));
+            const pageParams = this.hasher.decodeURLHash();
             if (pageParams.m && pageParams.m === 'view') {
                 this.mode = 'view';
             } else {
@@ -660,6 +662,14 @@ export default {
 
         openNewSchemePopup() {
             this.newSchemePopup.show = true;
+        },
+
+        onSaveSchemeClick() {
+            if (!this.offlineMode && this.$store.state.apiClient) {
+                this.saveScheme();
+            } else {
+                this.saveToLocalStorage();
+            }
         },
 
         saveScheme() {
@@ -783,7 +793,7 @@ export default {
                         EventBus.emitItemChanged(item.id, 'links');
                     }
 
-                    window.open(`${publicLink}#m:edit`, '_blank');
+                    window.open(publicLink, '_blank');
                 }
 
                 this.newSchemePopup.show = false;
@@ -1376,9 +1386,9 @@ export default {
 
     watch: {
         mode(value) {
-            hasher.changeURLHash(hasher.encodeURLHash({
+            this.hasher.changeURLHash({
                 m: value
-            }));
+            });
             if (value === 'view') {
                 this.switchToViewMode();
             } else {

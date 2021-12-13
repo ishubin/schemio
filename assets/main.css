@@ -58,8 +58,9 @@
     --control-border-radius: 3px;
     --middle-border-radius: 5px;
     --modal-border-radius: 10px;
-}
 
+    --page-content-font-size: 20px;
+}
 
 html, body, .app-container {
     width: 100%;
@@ -114,6 +115,9 @@ h5 {
 
 /******************* Middle content *********************/
 .middle-content {
+    position: relative;
+    padding-top: 10px;
+    padding-bottom: 20px;
     max-width: 1100px;
     width: 100%;
     margin-left: auto;
@@ -121,12 +125,12 @@ h5 {
 }
 
 
-.link {
+a, .link {
     text-decoration: none;
     color: var(--accent-strong);
     cursor: pointer;
 }
-.link:hover {
+a:hover, .link:hover {
     text-decoration: underline;
 }
 
@@ -159,112 +163,6 @@ h5 {
 }
 .hint.hint-small {
     font-size: 12px;
-}
-
-
-.footer {
-    background: var(--base-strong-up);
-    color: var(--base-weak);
-    margin-top: auto;
-    padding: 20px;
-    padding-bottom: 50px;
-}
-.footer ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-.footer ul li {
-    padding: 5px;
-}
-.footer a, .footer .link {
-    color: var(--base-weak);
-    text-decoration: none;
-}
-.footer a:hover, .footer .link:hover {
-    color: var(--base-weak);
-    text-decoration: underline;
-}
-
-
-
-/******************** Header *********************/
-.header {
-    display: flex;
-    width: 100%;
-    height: 48px;
-    background: var(--header-background);
-    padding: 0;
-    margin: 0;
-    z-index: 100;
-}
-.header .header-middle-section {
-    display: inline-block;
-    overflow: hidden;
-}
-.header > a, .header > .link {
-    margin-left: 10px;
-    margin-right: 10px;
-}
-.header a, .header .link {
-    color: var(--header-text-color);
-    text-decoration: none;
-}
-.header a.header-caption {
-    display: inline-block;
-    position: relative;
-    color: var(--header-text-color);
-    font-weight: normal;
-    font-size: 18px;
-    text-decoration: none;
-    display: inline-block;
-    padding: 10px 4px 4px 38px;
-    height: 36px;
-}
-.header a.header-caption img {
-    position: absolute;
-    left: 8px;
-    top: 8px;
-}
-
-.header .scheme-title {
-    position: relative;
-    display: inline-block;
-    height: 25px;
-    margin-left: 20px;
-    padding-left: 20px;
-    color: var(--base-weak);
-}
-.header .scheme-title .icon {
-    position: absolute;
-    top: -1px;
-    left: 0px;
-}
-.header .scheme-title span {
-    display: inline-block;
-    height: 25px;
-    padding: 2px 5px;
-    margin: 0;
-    min-width: 40px;
-}
-
-.header .header-breadcrumbs {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-.header .header-breadcrumbs li {
-    display: inline-block;
-    margin-right: 10px;
-    color: var(--base-weak);
-}
-.header .header-breadcrumbs li .breadcrumb-separator {
-    margin-left: 10px;
-}
-
-.header .header-middle-section {
-    display: flex;
-    align-items: center;
 }
 
 /************** Menu dropdown *************/
@@ -393,10 +291,14 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--faint-strong-down);
     text-decoration: none;
 }
+.btn.btn-large {
+    padding: 10px 15px 10px 15px;
+    font-size: 20px;
+}
 .btn.btn-primary, .btn.btn-primary.disabled:hover {
-    background: linear-gradient( 0deg , var(--accent-strong-down) 0%, var(--accent-faint) 100%);
+    background: var(--accent-strong);
     color: var(--base-weak);
-    border: 1px solid var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-primary:hover {
     background: var(--accent-faint);
@@ -404,14 +306,14 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong-down);
+    background: var(--accent-weak-up);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-secondary:hover {
-    background: var(--faint-weak);
-    color: var(--base-strong-up);
-    border: 1px solid var(--faint-strong-down);
+    background: var(--accent-weak-down);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent-strong-down);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {
     background: linear-gradient( 0deg , var(--critic-strong) 0%, var(--critic-faint) 100%);
@@ -1821,90 +1723,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 
 
-/************** Login Box ******************/
-.login-box {
-    max-width: 400px;
-    margin: 0 auto;
-    vertical-align: middle;
-    background: var(--base-weak);
-    box-shadow: 1px 1px 10px var(--shadow-color);
-}
-.login-box .login-box-body {
-    padding: 20px 40px 60px 40px;
-}
-.login-box .login-box-body .textfield {
-    margin-bottom: 10px;
-}
-.login-box .error-message {
-    display: block;
-    font-style: italic;
-    padding: 5px 10px;
-    margin-top: 10px;
-    color: var(--critic-strong);
-    background: var(--critic-weak);
-    border-radius: var(--control-border-radius);
-}
-.login-box .ctrl-label {
-    margin-top: 20px;
-}
-.login-box input.textfield::placeholder {
-    font-style: italic;
-}
-.login-box input.textfield {
-    display: block;
-    padding: 10px 10px;
-    margin-bottom: 20px;
-}
-.login-box .btn-login {
-    margin-top: 20px;
-    display: block;
-    text-align: center;
-    font-size: 18px;
-    padding: 10px;
-}
-.login-box .login-alternative-caption {
-    margin-top: 20px;
-    color: var(--faint-strong-down);
-    text-align: center;
-}
-.login-box .btn-login-alt {
-    position: relative;
-    color: var(--base-strong-up);
-    text-decoration: none;
-    background: var(--faint-weak-up);
-    border: 1px solid var(--faint-weak-down);
-}
-.login-box .btn-login-alt:hover {
-    text-decoration: none;
-    background: var(--accent-weak-up);
-}
-.login-box .btn-login-google::after {
-    display: block;
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 30px;
-    height: 30px;
-    background: url('/assets/images/icons/google.svg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    content: "";
-}
-.login-box .btn-login-github::after {
-    display: block;
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 30px;
-    height: 30px;
-    background: url('/assets/images/icons/github.svg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center center;
-    content: "";
-}
-
 /****************** Tag Filter ********************/
 .tag-filter-container ul.tag-filter {
     list-style: none;
@@ -2913,6 +2731,205 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 
 
 /************************** Schemio App ****************************/
+.page-content {
+    font-size: var(--page-content-font-size);
+}
+
+.footer {
+    background: var(--base-strong-up);
+    color: var(--base-weak);
+    margin-top: auto;
+    padding: 20px;
+    padding-bottom: 50px;
+}
+
+.footer .footer-body {
+    position: relative;
+    max-width: 1100px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.footer ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.footer ul li {
+    padding: 5px;
+}
+.footer a, .footer .link {
+    color: var(--base-weak);
+    text-decoration: none;
+}
+.footer a:hover, .footer .link:hover {
+    color: var(--base-weak);
+    text-decoration: underline;
+}
+
+
+
+/******************** Header *********************/
+.header {
+    position: relative;
+    width: 100%;
+    height: 48px;
+    background: var(--header-background);
+    padding: 0;
+    margin: 0;
+    z-index: 100;
+}
+.header .header-body {
+    display: flex;
+    width: 100%;
+    height: 48px;
+}
+.header .header-loader-container {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+}
+.header .header-middle-section {
+    flex: 1;
+    display: inline-block;
+    overflow: hidden;
+}
+.header > a, .header > .link {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.header a, .header .link {
+    color: var(--header-text-color);
+    text-decoration: none;
+}
+.header a.header-caption {
+    display: inline-block;
+    position: relative;
+    color: var(--header-text-color);
+    font-weight: normal;
+    font-size: 18px;
+    text-decoration: none;
+    display: inline-block;
+    padding: 10px 4px 4px 38px;
+    height: 36px;
+}
+.header a.header-caption img {
+    position: absolute;
+    left: 8px;
+    top: 8px;
+}
+
+.header .scheme-title {
+    position: relative;
+    display: inline-block;
+    height: 25px;
+    margin-left: 20px;
+    padding-left: 20px;
+    color: var(--base-weak);
+}
+.header .scheme-title .icon {
+    position: absolute;
+    top: -1px;
+    left: 0px;
+}
+.header .scheme-title span {
+    display: inline-block;
+    height: 25px;
+    padding: 0 5px;
+    margin: 0;
+    min-width: 40px;
+}
+
+.header .header-breadcrumbs {
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+    padding-left: 20px;
+}
+.header .header-breadcrumbs li {
+    display: inline-block;
+    margin-right: 10px;
+    color: var(--base-weak);
+}
+.header .header-breadcrumbs li .breadcrumb-separator {
+    margin-left: 10px;
+}
+
+.header .header-middle-section {
+    display: flex;
+    align-items: center;
+}
+
+.header ul.header-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+.header ul.header-menu > li {
+    display: inline-block;
+    height: 100%;
+}
+.header ul.header-menu > li > a,
+.header ul.header-menu > li > span {
+    display: inline-block;
+    cursor: pointer;
+    color: var(--base-weak);
+    height: 100%;
+    padding: 12px 20px 10px 20px;
+}
+.header ul.header-menu > li > a:hover {
+    background: var(--base-strong-up);
+}
+.header .current-user {
+    position: relative;
+}
+.header .current-user .user-profile-menu {
+    position: absolute;
+    right: 10px;
+    display: none;
+    min-width: 150px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong);
+}
+.header .current-user .user-profile-menu .link {
+    color: var(--accent-strong);
+    display: block;
+    padding: 5px 10px;
+}
+.header .current-user .user-profile-menu .link:hover {
+    background: var(--accent-strong);
+    color: var(--base-weak);
+}
+.header .current-user:hover .user-profile-menu {
+    display: block;
+}
+
+.header .current-user .user-profile {
+    margin-top: 8px;
+    margin-right: 10px;
+}
+.header .current-user .user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.header .current-user .user-profile .user-avatar {
+    max-width: 32px;
+    max-height: 32px;
+    border-radius: 16px;
+    margin-right: 10px;
+}
+.header .current-user .user-profile .user-name {
+    color: var(--base-weak);
+}
+
+
 table.entries-table {
     margin-top: 20px;
     border-collapse: collapse;
@@ -3065,4 +3082,145 @@ ul.breadcrumbs li .breadcrumb-separator {
 .search-panel input.textfield {
     flex: 1;
     margin-right: 10px;
+}
+
+/************** Login Box ******************/
+
+.login-modal-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
+.login-modal {
+    max-width: 400px;
+    z-index: 1000;
+    margin: 0 auto;
+    vertical-align: middle;
+    position: relative;
+    width: 500px;
+    background: var(--base-weak);
+    box-shadow: 1px 1px 10px var(--shadow-color);
+}
+.login-modal .login-modal-body {
+    padding: 20px 40px 60px 40px;
+}
+
+.login-modal h2 {
+    text-align: center;
+}
+.login-modal .modal-close {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    cursor: pointer;
+    color: var(--faint-strong);
+}
+
+.login-modal .error-message {
+    display: block;
+    font-style: italic;
+    padding: 5px 10px;
+    margin-top: 10px;
+    color: var(--critic-strong);
+    background: var(--critic-weak);
+    border-radius: var(--control-border-radius);
+}
+.login-modal .ctrl-label {
+    margin-top: 20px;
+}
+.login-modal input.textfield::placeholder {
+    font-style: italic;
+}
+.login-modal input.textfield {
+    display: block;
+    padding: 10px 10px;
+    margin-bottom: 20px;
+}
+.login-modal .btn-login {
+    margin-top: 20px;
+    display: block;
+    text-align: center;
+    font-size: 18px;
+    padding: 10px;
+}
+.login-modal .login-alternative-caption {
+    margin-top: 20px;
+    color: var(--faint-strong-down);
+    text-align: center;
+}
+.login-modal .btn-login-alt {
+    position: relative;
+    color: var(--base-strong-up);
+    text-decoration: none;
+    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-weak-down);
+}
+.login-modal .btn-login-alt:hover {
+    text-decoration: none;
+    background: var(--accent-weak-up);
+}
+.login-modal .btn-login-google-drive::after {
+    display: block;
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 30px;
+    height: 30px;
+    background: url('https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_48dp.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    content: "";
+}
+
+
+/*********************** Home ******************************/
+.home-page h1,
+.home-page p,
+.home-buttons {
+    text-align: center;
+}
+
+.home-screenshot {
+    max-width: 100%;
+    display: block;
+    text-decoration: none;
+}
+
+.home-screenshot img {
+    max-width: 100%;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/*********************** Loader Line ***********************/
+.loader {
+    overflow: hidden;
+    width: 100%;
+    height: 5px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    z-index: 100000;
+}
+
+.loader-element {
+    height: 5px;
+    width: 100%;
+    background: var(--accent-faint-up);
+}
+
+.loader-element:before {
+    content: '';
+    display: block;
+    background-color: var(--accent-strong);
+    height: 5px;
+    width: 0;
+    animation: getWidth 3s ease-in infinite;
+}
+
+@keyframes getWidth {
+    100% { width: 100%; }
 }

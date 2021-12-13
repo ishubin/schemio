@@ -3,8 +3,8 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div style="height: 100%; display: flex; flex-direction: column">
-        <Header>
-            <div slot="middle-section" class="header-middle-section">
+        <schemio-header>
+            <div slot="middle-section">
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
                         <router-link v-if="crumb.kind === 'dir'" :to="`/f/${crumb.path}`">
@@ -20,53 +20,76 @@
                     <span>{{scheme.name}}</span>
                 </div>
             </div>
-        </Header>
+            <div slot="loader">
+                <div v-if="isLoading" class="loader">
+                    <div class="loader-element"></div>
+                </div>
+            </div>
+        </schemio-header>
+
         <div v-if="is404" class="middle-content">
             <h4>Sorry, requested document was not found</h4>
         </div>
         <div v-else-if="errorMessage" class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
+        <SchemioEditorApp v-else-if="apiClientType === 'offline'"
+            :scheme="null"
+            :editAllowed="true"
+            :userStylesEnabled="false"
+            :projectArtEnabled="false"
+        />
         <SchemioEditorApp v-else-if="scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"
-            :userStylesEnabled="true"
+            :userStylesEnabled="userStylesEnabled"
             @new-scheme-submitted="onNewSchemeSubmitted"
+            :projectArtEnabled="projectArtEnabled"
         />
     </div>
 </template>
 <script>
 import { createApiClientForType } from '../apiClient';
 import SchemioEditorApp from '../../SchemioEditorApp.vue';
-import Header from '../components/Header.vue';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
 
 
 export default {
-    components: {SchemioEditorApp, Header},
+    components: {SchemioEditorApp},
 
     props: {
-        apiClientType  : {type: String, default: 'fs'},
+        apiClientType    : {type: String, default: 'fs'},
+        userStylesEnabled: {type: Boolean, default: true},
+        projectArtEnabled: {type: Boolean, default: true},
     },
 
     beforeMount() {
-        this.$store.dispatch('setApiClient', this.apiClient);
-
-        this.apiClient.getScheme(this.schemeId).then(schemeDetails => {
-            this.path = schemeDetails.folderPath;
-            this.buildBreadcrumbs(schemeDetails.folderPath);
-            this.scheme = schemeDetails.scheme;
-            this.editAllowed = !schemeDetails.viewOnly && this.apiClientType !== 'static';
-        })
-        .catch(err => {
-            if (err.response && err.response.status === 404) {
-                this.is404 = true;
-            } else {
-                console.error(err);
-                this.errorMessage = 'Oops, something went wrong';
-            }
-        });
+        if (this.apiClientType !== 'offline') {
+            this.isLoading = true;
+            createApiClientForType(this.apiClientType)
+            .then(apiClient => {
+                this.$store.dispatch('setApiClient', apiClient);
+                this.apiClient = apiClient;
+                return apiClient.getScheme(this.schemeId);
+            })
+            .then(schemeDetails => {
+                this.isLoading = false;
+                this.path = schemeDetails.folderPath;
+                this.buildBreadcrumbs(schemeDetails.folderPath);
+                this.scheme = schemeDetails.scheme;
+                this.editAllowed = !schemeDetails.viewOnly && this.apiClientType !== 'static';
+            })
+            .catch(err => {
+                this.isLoading = false;
+                if (err.response && err.response.status === 404) {
+                    this.is404 = true;
+                } else {
+                    console.error(err);
+                    this.errorMessage = 'Oops, something went wrong';
+                }
+            });
+        }
     },
     data() {
         const schemeId = this.$route.params.schemeId;
@@ -77,9 +100,10 @@ export default {
             breadcrumbs: [],
             editAllowed: false,
             scheme: null,
-            apiClient: createApiClientForType(this.apiClientType),
+            apiClient: null,
             is404: false,
-            errorMessage: null
+            errorMessage: null,
+            isLoading: false
         };
     },
 
@@ -120,7 +144,11 @@ export default {
         onNewSchemeSubmitted(scheme, callback) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (callback) {
-                    callback(createdScheme, `/docs/${createdScheme.id}`);
+                    if (this.$router && this.$router.mode === 'history') {
+                        callback(createdScheme, `/docs/${createdScheme.id}#m:edit`);
+                    } else {
+                        callback(createdScheme, `#/docs/${createdScheme.id}?m=edit`);
+                    }
                 }
             })
             .catch(err => {
