@@ -768,6 +768,7 @@ export default {
                 url: link.url,
                 type: link.type
             });
+            EventBus.emitSchemeChangeCommited();
         },
 
         startCreatingChildSchemeForItem(item) {
