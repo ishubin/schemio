@@ -82,7 +82,7 @@ function createApiClient() {
         },
 
         getGlobalArt() {
-            return axios.get('/v1/art').then(unwrapAxios);
+            return axios.get('/assets/art/art.json').then(unwrapAxios);
         },
 
         saveArt(artId, art) {
@@ -610,7 +610,11 @@ function createGoogleDriveClient() {
                         })
                     };
                 });
-            }
+            },
+
+            getGlobalArt() {
+                return axios.get('/assets/art/art.json').then(unwrapAxios);
+            },
         }
     })
     .catch(err => {
