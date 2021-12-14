@@ -18,6 +18,10 @@ def azure_icon_name(name):
         return name[idx+len(word):].replace('-', ' ')
     return name
 
+
+def google_icon_name(name):
+    return ' '.join(list(map(lambda x: x.capitalize(), name.replace('_', ' ').split())))
+
 def scan_art(path, art):
     icons = []
     for f in os.listdir(path):
@@ -29,6 +33,8 @@ def scan_art(path, art):
             name = f[:-4]
             if art['name'] == 'Azure':
                 name = azure_icon_name(name)
+            if art['name'] == 'Google Cloud':
+                name = google_icon_name(name)
             icons.append({
                 'name': name,
                 'url' : urllib.request.pathname2url('/' + full_path)
