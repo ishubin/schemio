@@ -9,6 +9,11 @@ function unwrapAxios(response) {
     return response.data;
 }
 
+function getGlobalArt() {
+    return axios.get('/assets/art/art.json').then(unwrapAxios);
+}
+
+
 function getExportHTMLResources() {
     return Promise.all([
         axios.get('/assets/schemio-standalone.css'),
@@ -81,9 +86,7 @@ function createApiClient() {
             return axios.get('/v1/fs/art').then(unwrapAxios);
         },
 
-        getGlobalArt() {
-            return axios.get('/assets/art/art.json').then(unwrapAxios);
-        },
+        getGlobalArt,
 
         saveArt(artId, art) {
             return axios.put(`/v1/fs/art/${artId}`, art).then(unwrapAxios);
@@ -262,7 +265,8 @@ function createStaticClient() {
             });
         },
 
-        getExportHTMLResources
+        getExportHTMLResources,
+        getGlobalArt
     };
 }
 
@@ -612,9 +616,8 @@ function createGoogleDriveClient() {
                 });
             },
 
-            getGlobalArt() {
-                return axios.get('/assets/art/art.json').then(unwrapAxios);
-            },
+            getExportHTMLResources,
+            getGlobalArt
         }
     })
     .catch(err => {
