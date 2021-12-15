@@ -1423,8 +1423,8 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .item-menu .item-container img {
     display: block;
-    max-width: 42px;
-    max-height: 32px;
+    width: 42px;
+    height: 32px;
     text-align: center;
 }
 .item-menu .item-container span {
@@ -1458,6 +1458,8 @@ ul.button-group > li.disabled > .icon-button:hover,
 .create-item-menu .preview-item img.preview-art {
     max-height: 100px;
     max-width: 100%;
+    min-width: 50%;
+    min-height: 80px;
 }
 .create-item-menu .preview-item .preview-item-description {
     font-size: 12px;

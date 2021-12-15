@@ -72,6 +72,7 @@ export default {
                 this.item.links[this.editLinkData.linkId].title = link.title;
                 this.item.links[this.editLinkData.linkId].url = link.url;
                 this.item.links[this.editLinkData.linkId].type = link.type;
+                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.links.${this.editLinkData.linkId}`);
             } else {
                 if (!this.item.links) {
                     this.item.links = [];

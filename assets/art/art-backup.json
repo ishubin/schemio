@@ -1,0 +1,271 @@
+[
+    {
+      "name": "WHCompare Servers Isometric",
+      "author": "WHCompare",
+      "link": "https://www.iconfinder.com/WHCompare",
+      "icons": [
+        {
+          "name": "analytics",
+          "description": "Analytics, Graphs, Diagrams",
+          "url": "/assets/images/art/whcompare-isometric/analytics.svg"
+        },
+        {
+          "name": "backup",
+          "description": "Backups",
+          "url": "/assets/images/art/whcompare-isometric/backup.svg"
+        },
+        {
+          "name": "build-http",
+          "description": "Builder, Assemble, Build, Website, Construct",
+          "url": "/assets/images/art/whcompare-isometric/build-http.svg"
+        },
+        {
+          "name": "builder",
+          "description": "Builder, Assemble, Construct",
+          "url": "/assets/images/art/whcompare-isometric/builder.svg"
+        },
+        {
+          "name": "cdn",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/cdn.svg"
+        },
+        {
+          "name": "computer-02",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/computer-02.svg"
+        },
+        {
+          "name": "computer",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/computer.svg"
+        },
+        {
+          "name": "connection",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/connection.svg"
+        },
+        {
+          "name": "db-cache",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/db-cache.svg"
+        },
+        {
+          "name": "db-cloud",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/db-cloud.svg"
+        },
+        {
+          "name": "db",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/db.svg"
+        },
+        {
+          "name": "email",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/email.svg"
+        },
+        {
+          "name": "firewall",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/firewall.svg"
+        },
+        {
+          "name": "http-2",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/http-2.svg"
+        },
+        {
+          "name": "laptop-01",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/laptop-01.svg"
+        },
+        {
+          "name": "laptop-02",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/laptop-02.svg"
+        },
+        {
+          "name": "laptop-03",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/laptop-03.svg"
+        },
+        {
+          "name": "laptop-04",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/laptop-04.svg"
+        },
+        {
+          "name": "laptop-email",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/laptop-email.svg"
+        },
+        {
+          "name": "migration-racks",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/migration-racks.svg"
+        },
+        {
+          "name": "migration",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/migration.svg"
+        },
+        {
+          "name": "rack",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/rack.svg"
+        },
+        {
+          "name": "raid",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/raid.svg"
+        },
+        {
+          "name": "server-01",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-01.svg"
+        },
+        {
+          "name": "server-02",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-02.svg"
+        },
+        {
+          "name": "server-03",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-03.svg"
+        },
+        {
+          "name": "server-cloud",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-cloud.svg"
+        },
+        {
+          "name": "server-connected",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-connected.svg"
+        },
+        {
+          "name": "server-firewall",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-firewall.svg"
+        },
+        {
+          "name": "server-secure",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/server-secure.svg"
+        },
+        {
+          "name": "servers-stacked",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/servers-stacked.svg"
+        },
+        {
+          "name": "speed",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/speed.svg"
+        },
+        {
+          "name": "support",
+          "description": null,
+          "url": "/assets/images/art/whcompare-isometric/support.svg"
+        }
+      ]
+    },
+    {
+      "name": "WHCompare Servers Flat",
+      "author": "WHCompare",
+      "link": "https://www.iconfinder.com/WHCompare",
+      "icons": [
+        {
+          "name": "browser",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/browser.svg"
+        },
+        {
+          "name": "cdn",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/cdn.svg"
+        },
+        {
+          "name": "connection",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/connection.svg"
+        },
+        {
+          "name": "desktop",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/desktop.svg"
+        },
+        {
+          "name": "hdd",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/hdd.svg"
+        },
+        {
+          "name": "headset",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/headset.svg"
+        },
+        {
+          "name": "http-2",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/http-2.svg"
+        },
+        {
+          "name": "ip",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/ip.svg"
+        },
+        {
+          "name": "server-cloud",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/server-cloud.svg"
+        },
+        {
+          "name": "server-gauge",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/server-gauge.svg"
+        },
+        {
+          "name": "server-protection",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/server-protection.svg"
+        },
+        {
+          "name": "server-wordpress",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/server-wordpress.svg"
+        },
+        {
+          "name": "sftp",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/sftp.svg"
+        },
+        {
+          "name": "shared-hosting",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/shared-hosting.svg"
+        },
+        {
+          "name": "ssd-dark",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/ssd-dark.svg"
+        },
+        {
+          "name": "ssd-gray",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/ssd-gray.svg"
+        },
+        {
+          "name": "ssl",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/ssl.svg"
+        },
+        {
+          "name": "user",
+          "description": null,
+          "url": "/assets/images/art/whcompare-servers-flat/user.svg"
+        }
+      ]
+    }
+  ]

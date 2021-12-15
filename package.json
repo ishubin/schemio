@@ -17,6 +17,7 @@
     "build-ui-static-app-dev": "webpack --config webpack.build.app.static.dev.js",
     "build-ui-static-app-prod": "NODE_ENV=production webpack --config webpack.build.app.static.prod.js",
     "build-app-drive-dev": "webpack --config webpack.build.app.drive.dev.js; cp dist/assets/schemio.app.drive.js assets/; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
+    "build-app-drive-prod": "webpack --config webpack.build.app.drive.prod.js; cp dist/assets/schemio.app.drive.js assets/; npm run build-standalone; cp dist/assets/schemio-standalone.js assets/.",
     "test": "webpack --config webpack.build.test.js && mocha dist/schemio.tests.js"
   },
   "author": "Ivan Shubin",
