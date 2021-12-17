@@ -808,6 +808,18 @@ ul.pagination li a.current {
     padding: 0;
 }
 
+/*************** Item marker ********************/
+
+.clickable-item-marker {
+    animation: item-marker-blinker 3s linear infinite;
+    opacity: 0.9;
+}
+@keyframes item-marker-blinker {  
+    0% { opacity: 0.9; }
+    50% { opacity: 0.3; }
+    100% { opacity: 0.9; }
+}
+
 
 /***************************************/
 /* In place text edit                  */

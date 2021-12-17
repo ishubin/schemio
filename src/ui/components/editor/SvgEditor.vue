@@ -35,6 +35,15 @@
                             style="opacity: 0.5"
                             data-preview-ignore="true"/>
                     </g>
+                    <g data-preview-ignore="true">
+                        <circle v-for="marker in clickableItemMarkers"
+                            class="clickable-item-marker"
+                            :cx="marker.x" :cy="marker.y"
+                            :r="5 / safeZoom"
+                            :data-item-id="marker.itemId"
+                            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
+                            :fill="schemeContainer.scheme.style.boundaryBoxColor"/>
+                    </g>
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -67,6 +76,7 @@
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
+
             </g>
 
 
@@ -205,7 +215,7 @@ import '../../typedef';
 
 import {Keys} from '../../events';
 import myMath from '../../myMath';
-import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems} from '../../scheme/Item';
+import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems, hasItemDescription} from '../../scheme/Item';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateDraw from './states/StateDraw.js';
@@ -391,6 +401,9 @@ export default {
 
             selectedItemLinks: [],
             lastHoveredItem: null,
+
+            // array of markers for items that are clickable
+            clickableItemMarkers: [],
 
             customContextMenu: {
                 id: shortid.generate(),
@@ -603,9 +616,29 @@ export default {
             }
             states[this.state].reset();
         },
+
+        buildClickableItemMarkers() {
+            const markers = [];
+
+            forEach(this.schemeContainer.worldItems, worldItem => {
+                traverseItems(worldItem, item => {
+                    if (hasItemDescription(item)) {
+                        const box = this.schemeContainer.getBoundingBoxOfItems([item]);
+                        markers.push({
+                            x: box.x + box.w,
+                            y: box.y,
+                            itemId: item.id
+                        });
+                    }
+                });
+            });
+
+            this.clickableItemMarkers = markers;
+        },
+
         switchStateInteract() {
             this.highlightItems([]);
-
+            this.buildClickableItemMarkers();
             states.interact.schemeContainer = this.schemeContainer;
             states[this.state].cancel();
             this.state = 'interact';

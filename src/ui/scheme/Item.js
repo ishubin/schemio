@@ -236,3 +236,20 @@ export function createDefaultRectItem() {
     enrichItemWithDefaults(item);
     return item;
 }
+
+
+/**
+ * 
+ * @param {Item} item 
+ * @returns true if item has meaningfull description
+ */
+export function hasItemDescription(item) {
+    /*
+    This is very dirty but it is the simplest way to check if the item has a proper description
+    If would only check for non-empty strings, then it would still show side panel 
+    even when description is an empty parahraph like "<p></p>"
+    This happens when you use rich text editor and delete the entire description.
+    Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
+    */
+    return item.description.trim().length > 8;
+}

@@ -6,7 +6,7 @@ import State from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import EventBus from '../EventBus.js';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
@@ -96,15 +96,7 @@ class StateInteract extends State {
         if (item.links && item.links.length > 0) {
             this.eventBus.$emit(EventBus.ITEM_LINKS_SHOW_REQUESTED, item);
         }
-
-        /*
-        This is very dirty but it is the simplest way to check if the item has a proper description
-        If would only check for non-empty strings, then it would still show side panel 
-        even when description is an empty parahraph like "<p></p>"
-        This happens when you use rich text editor and delete the entire description.
-        Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
-        */
-        if (item.description.trim().length > 8) {
+        if (hasItemDescription(item)) {
             if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
                 this.eventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
             } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
