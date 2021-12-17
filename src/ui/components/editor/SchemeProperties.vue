@@ -62,6 +62,12 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="label" width="50%">Item Marker</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="schemeContainer.scheme.style.itemMarkerColor" @input="onSchemeStylePropertyChange('itemMarkerColor', arguments[0])"></color-picker>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="label" width="50%">Control Points</td>
                             <td class="value" width="50%">
                                 <color-picker :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', arguments[0])"></color-picker>

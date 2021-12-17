@@ -42,8 +42,8 @@
                             :cx="marker.x" :cy="marker.y"
                             :r="5 / safeZoom"
                             :data-item-id="marker.itemId"
-                            :stroke="schemeContainer.scheme.style.boundaryBoxColor"
-                            :fill="schemeContainer.scheme.style.boundaryBoxColor"/>
+                            :stroke="schemeContainer.scheme.style.itemMarkerColor"
+                            :fill="schemeContainer.scheme.style.itemMarkerColor"/>
                     </g>
                 </g>
 
