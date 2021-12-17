@@ -37,6 +37,7 @@
                     </g>
                     <g data-preview-ignore="true">
                         <circle v-for="marker in clickableItemMarkers"
+                            v-if="marker.visible"
                             class="clickable-item-marker"
                             :cx="marker.x" :cy="marker.y"
                             :r="5 / safeZoom"
@@ -622,12 +623,16 @@ export default {
 
             forEach(this.schemeContainer.worldItems, worldItem => {
                 traverseItems(worldItem, item => {
-                    if (hasItemDescription(item)) {
+                    const hasItemLinks = item.links && item.links.length > 0;
+                    const hasItemClickEvents = find(item.behavior.events, event => event.event === Events.standardEvents.clicked.id);
+                    
+                    if (hasItemDescription(item) || hasItemLinks || hasItemClickEvents) {
                         const box = this.schemeContainer.getBoundingBoxOfItems([item]);
                         markers.push({
                             x: box.x + box.w,
                             y: box.y,
-                            itemId: item.id
+                            itemId: item.id,
+                            visible: item.meta.calculatedVisibility
                         });
                     }
                 });
