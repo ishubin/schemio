@@ -52,12 +52,16 @@
                             </span>
                         </div>
                     </li>
-                    <li v-if="mode === 'view'">
+                </ul>
+            </div>
+
+            <div class="quick-helper-panel-section" v-if="mode === 'view'">
+                <ul class="button-group">
+                    <li>
                         <span title="Toggle clickable items" class="toggle-button" :class="{toggled: showClickableMarkers}" @click="toggleClickableMarkers(!showClickableMarkers)">
                             <i class="schemio-icon schemio-icon-iterm-marker"></i>
                         </span>
                     </li>
-
                 </ul>
             </div>
 

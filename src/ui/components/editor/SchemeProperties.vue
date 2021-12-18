@@ -56,21 +56,31 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="label" width="50%">Bound Box</td>
+                            <td class="label" width="50%">Bound box</td>
                             <td class="value" width="50%">
                                 <color-picker :color="schemeContainer.scheme.style.boundaryBoxColor" @input="onSchemeStylePropertyChange('boundaryBoxColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
-                            <td class="label" width="50%">Item Marker</td>
+                            <td class="label" width="50%">Control points</td>
+                            <td class="value" width="50%">
+                                <color-picker :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', arguments[0])"></color-picker>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">Item marker</td>
                             <td class="value" width="50%">
                                 <color-picker :color="schemeContainer.scheme.style.itemMarkerColor" @input="onSchemeStylePropertyChange('itemMarkerColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr>
-                            <td class="label" width="50%">Control Points</td>
+                            <td class="label" width="50%">Item marker toggled by default
+                                <tooltip>
+                                    When diagram is open in view mode it will displayed markers for items that are clickable
+                                </tooltip>
+                            </td>
                             <td class="value" width="50%">
-                                <color-picker :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', arguments[0])"></color-picker>
+                                <input type="checkbox" :checked="schemeContainer.scheme.style.itemMarkerToggled" @input="onSchemeStylePropertyChange('itemMarkerToggled', arguments[0].target.checked)"/>
                             </td>
                         </tr>
                     </tbody>

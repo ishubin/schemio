@@ -21,8 +21,9 @@ const defaultScheme = {
         backgroundColor:    'rgba(240, 240, 240, 1.0)',
         gridColor:          'rgba(128 ,128, 128, 0.2)',
         boundaryBoxColor:   'rgba(36, 182, 255, 1)',
-        itemMarkerColor:    'rgba(36, 182, 255, 1)',
         controlPointsColor: 'rgba(4,177,23, 1.0)',
+        itemMarkerColor:    'rgba(36, 182, 255, 1)',
+        itemMarkerToggled:  false
     }
 };
 

@@ -642,6 +642,7 @@ export default {
         },
 
         switchStateInteract() {
+            StoreUtils.setShowClickableMarkers(this.$store, this.schemeContainer.scheme.style.itemMarkerToggled);
             this.highlightItems([]);
             this.buildClickableItemMarkers();
             states.interact.schemeContainer = this.schemeContainer;
@@ -652,12 +653,14 @@ export default {
             this.prepareFrameAnimations();
             states[this.state].reset();
         },
+
         switchStateDragItem() {
             this.highlightItems([]);
             states[this.state].cancel();
             this.state = 'dragItem';
             states.dragItem.reset();
         },
+        
         switchStatePickElement(elementPickCallback) {
             this.highlightItems([]);
             this.state = 'pickElement';
