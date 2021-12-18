@@ -80,7 +80,7 @@ const store = new Vuex.Store({
 
         // toggles clickable item markers in view mode so that users can see
         // what they can click on the diagram and which elements are interactive
-        showClickableMarkers: true,
+        showClickableMarkers: false,
 
         // stores the state of the history in scheme editing
         history: {
