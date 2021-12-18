@@ -35,7 +35,7 @@
                             style="opacity: 0.5"
                             data-preview-ignore="true"/>
                     </g>
-                    <g data-preview-ignore="true">
+                    <g data-preview-ignore="true" v-if="showClickableMarkers">
                         <circle v-for="marker in clickableItemMarkers"
                             v-if="marker.visible"
                             class="clickable-item-marker"
@@ -1805,7 +1805,11 @@ export default {
 
         shouldShowDropMask() {
             return this.$store.getters.isDraggingItemCreation;
-        }
+        },
+
+        showClickableMarkers() {
+            return this.$store.getters.showClickableMarkers;
+        },
     },
     filters: {
         formatLinkTitle(link) {

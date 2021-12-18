@@ -2733,13 +2733,18 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     background-repeat: no-repeat;
 }
 .schemio-icon-valign-top {
-    background: url('/assets/images/icons/valign-top.svg')
+    background: url('/assets/images/icons/valign-top.svg') no-repeat;
 }
 .schemio-icon-valign-middle {
-    background: url('/assets/images/icons/valign-middle.svg')
+    background: url('/assets/images/icons/valign-middle.svg') no-repeat;
 }
 .schemio-icon-valign-bottom {
-    background: url('/assets/images/icons/valign-bottom.svg')
+    background: url('/assets/images/icons/valign-bottom.svg') no-repeat;
+}
+.schemio-icon-iterm-marker {
+    background: url('/assets/images/icons/item-marker.svg') no-repeat;
+    width: 20px;
+    height: 18px;
 }
 
 

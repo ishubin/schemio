@@ -52,6 +52,11 @@
                             </span>
                         </div>
                     </li>
+                    <li v-if="mode === 'view'">
+                        <span title="Toggle clickable items" class="toggle-button" :class="{toggled: showClickableMarkers}" @click="toggleClickableMarkers(!showClickableMarkers)">
+                            <i class="schemio-icon schemio-icon-iterm-marker"></i>
+                        </span>
+                    </li>
 
                 </ul>
             </div>
@@ -447,6 +452,10 @@ export default {
             StoreUtils.setShowPivot(this.$store, event.target.checked);
         },
 
+        toggleClickableMarkers(shown) {
+            StoreUtils.setShowClickableMarkers(this.$store, shown);
+        },
+
         onZoomOutClicked() {
             let selectedZoom = this.zoomOptions[0].value;
             let found = false;
@@ -622,6 +631,10 @@ export default {
 
         showPivot() {
             return this.$store.getters.showPivot;
+        },
+
+        showClickableMarkers() {
+            return this.$store.getters.showClickableMarkers;
         },
 
         firstSelectedCurveEditPoint() {

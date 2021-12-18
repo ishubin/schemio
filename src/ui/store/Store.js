@@ -77,6 +77,11 @@ const store = new Vuex.Store({
         autoRemount: true,
         showPivot: true,
 
+
+        // toggles clickable item markers in view mode so that users can see
+        // what they can click on the diagram and which elements are interactive
+        showClickableMarkers: true,
+
         // stores the state of the history in scheme editing
         history: {
             undoable: false,
@@ -151,6 +156,10 @@ const store = new Vuex.Store({
 
         SET_SHOW_PIVOT(state, show) {
             state.showPivot = show;
+        },
+
+        SET_SHOW_CLICKABLE_MARKERS(state, show) {
+            state.showClickableMarkers = show;
         },
 
         /* Curve Editing */ 
@@ -487,6 +496,10 @@ const store = new Vuex.Store({
             commit('SET_SHOW_PIVOT', show);
         },
 
+        setShowClickableMarkers({commit}, show) {
+            commit('SET_SHOW_CLICKABLE_MARKERS', show);
+        },
+
         proposeConnectorDestinationItems({commit}, payload) {
             commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
         },
@@ -553,6 +566,7 @@ const store = new Vuex.Store({
 
         autoRemount: state => state.autoRemount,
         showPivot: state => state.showPivot,
+        showClickableMarkers: state => state.showClickableMarkers,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
 

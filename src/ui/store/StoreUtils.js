@@ -82,6 +82,10 @@ export default {
         store.dispatch('setShowPivot', show);
     },
 
+    setShowClickableMarkers(store, show) {
+        store.dispatch('setShowClickableMarkers', show);
+    },
+
     proposeConnectorDestinationItems(store, connectorItemId, mx, my) {
         store.dispatch('proposeConnectorDestinationItems', {connectorItemId, mx, my});
     },
