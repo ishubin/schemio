@@ -51,6 +51,97 @@ function round(value) {
     return myMath.roundPrecise2(value);
 }
 
+const ANY   = -1,
+      UP    = 0,
+      DOWN  = 1,
+      LEFT  = 2,
+      RIGHT = 3;
+
+const directionInversions = [ DOWN, UP, RIGHT, LEFT ];
+
+function identifyDirection(x, y) {
+    if (x <= -0.5) {
+        return LEFT;
+    }
+    if (x >= 0.5) {
+        return RIGHT;
+    }
+    if (y <= -0.5) {
+        return UP;
+    }
+    if (y >= 0.5) {
+        return DOWN;
+    }
+}
+
+function invertDirection(direction) {
+    return directionInversions[direction];
+}
+
+function findNextPathWithDirection(x1, y1, previousDirection, x2, y2, preferedDirection) {
+    const xm = (x1 + x2) / 2;
+    const ym = (y1 + y2) / 2;
+
+    if (previousDirection === UP || previousDirection === DOWN) {
+        if (preferedDirection === UP || preferedDirection === DOWN) {
+            return { 
+                path: ` L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`,
+                lastDirection: y1 < y2 ? DOWN : UP
+            };
+        }
+        return { 
+            path: ` L ${x1} ${y2} L ${x2} ${y2}`,
+            lastDirection: x1 < x2 ? RIGHT : LEFT
+        };
+    } else {
+        if (preferedDirection === RIGHT || preferedDirection === LEFT) {
+            return { 
+                path: ` L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`,
+                lastDirection: x1 < x2 ? RIGHT : LEFT
+            };
+        }
+        return {
+            path: ` L ${x2} ${y1} L ${x2} ${y2}`,
+            lastDirection: y1 < y2 ? DOWN : UP
+        };
+    }
+}
+
+function computeStepPath(item) {
+    const points = item.shapeProps.points;
+
+    // identifying a required direction of first and last points
+    let firstPointDirection = UP;
+    let lastPointDirection = DOWN;
+
+    if (points[0].hasOwnProperty('bx')) {
+        firstPointDirection = identifyDirection(points[0].bx, points[0].by);
+    }
+
+    const lastPoint = points[points.length - 1];
+    if (lastPoint.hasOwnProperty('bx')) {
+        lastPointDirection = identifyDirection(lastPoint.bx, lastPoint.by);
+    }
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+
+    let currentDirection = firstPointDirection;
+    let currentPoint = points[0];
+
+    for (let i = 1; i < points.length - 1; i++) {
+        let pathConnection = findNextPathWithDirection(currentPoint.x, currentPoint.y, currentDirection, points[i].x, points[i].y, ANY);
+        path += pathConnection.path;
+        currentPoint = points[i];
+        currentDirection = pathConnection.lastDirection;
+    }
+
+    let pathConnection = findNextPathWithDirection(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection));
+    path += pathConnection.path;
+
+    return path;
+}
+
+
 function computeSmoothPath(item) {
     const points = item.shapeProps.points;
 
@@ -292,7 +383,8 @@ function computePath(item) {
     }
 
     if (item.shapeProps.smoothing === 'smooth') {
-        return computeSmoothPath(item);
+        // return computeSmoothPath(item);
+        return computeStepPath(item);
     }
 
     let path = '';
