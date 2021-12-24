@@ -51,7 +51,7 @@ function round(value) {
     return myMath.roundPrecise2(value);
 }
 
-const ANY   = -1,
+const ANY   = 4,
       UP    = 0,
       DOWN  = 1,
       LEFT  = 2,
@@ -78,33 +78,76 @@ function invertDirection(direction) {
     return directionInversions[direction];
 }
 
-function findNextPathWithDirection(x1, y1, previousDirection, x2, y2, preferedDirection) {
+const upDownMid = (x1, y1, x2, y2) => {
     const xm = (x1 + x2) / 2;
     const ym = (y1 + y2) / 2;
+    return { 
+        path: ` L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`,
+        lastDirection: y1 < y2 ? DOWN : UP
+    };
+}
 
-    if (previousDirection === UP || previousDirection === DOWN) {
-        if (preferedDirection === UP || preferedDirection === DOWN) {
-            return { 
-                path: ` L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`,
-                lastDirection: y1 < y2 ? DOWN : UP
-            };
-        }
-        return { 
-            path: ` L ${x1} ${y2} L ${x2} ${y2}`,
-            lastDirection: x1 < x2 ? RIGHT : LEFT
-        };
-    } else {
-        if (preferedDirection === RIGHT || preferedDirection === LEFT) {
-            return { 
-                path: ` L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`,
-                lastDirection: x1 < x2 ? RIGHT : LEFT
-            };
-        }
-        return {
-            path: ` L ${x2} ${y1} L ${x2} ${y2}`,
-            lastDirection: y1 < y2 ? DOWN : UP
-        };
+const upDown = (x1, y1, x2, y2) => {
+    return {
+        path: ` L ${x2} ${y1} L ${x2} ${y2}`,
+        lastDirection: y1 < y2 ? DOWN : UP
+    };
+};
+
+const leftRight = (x1, y1, x2, y2) => {
+    return { 
+        path: ` L ${x1} ${y2} L ${x2} ${y2}`,
+        lastDirection: x1 < x2 ? RIGHT : LEFT
     }
+};
+
+const leftRightMid = (x1, y1, x2, y2) => {
+    const xm = (x1 + x2) / 2;
+    const ym = (y1 + y2) / 2;
+    return { 
+        path: ` L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`,
+        lastDirection: x1 < x2 ? RIGHT : LEFT
+    };
+};
+
+const directionDecisions = new Map();
+function _d(previousDirection, preferedDirection, callback) {
+    directionDecisions.set(previousDirection * 10 + preferedDirection, callback);
+};
+function getDirectionDecision(previousDirection, preferedDirection) {
+    const idx = previousDirection * 10 + preferedDirection;
+    const callback = directionDecisions.get(idx);
+    if (callback) {
+        return callback;
+    }
+    return leftRight;
+}
+_d(UP, UP, leftRightMid);
+_d(UP, DOWN, upDownMid);
+_d(UP, LEFT, leftRight);
+_d(UP, RIGHT, leftRight);
+_d(UP, ANY, upDown);
+
+_d(DOWN, UP, upDownMid);
+_d(DOWN, DOWN, leftRightMid);
+_d(DOWN, LEFT, leftRight);
+_d(DOWN, RIGHT, leftRight);
+_d(DOWN, ANY, upDown);
+
+_d(RIGHT, UP, upDown);
+_d(RIGHT, DOWN, upDown);
+_d(RIGHT, LEFT, leftRightMid);
+_d(RIGHT, RIGHT, leftRightMid);
+_d(RIGHT, ANY, upDown);
+
+_d(LEFT, UP, upDown);
+_d(LEFT, DOWN, upDown);
+_d(LEFT, LEFT, leftRightMid);
+_d(LEFT, RIGHT, leftRightMid);
+_d(LEFT, ANY, upDown);
+
+function findNextPathWithDirection(x1, y1, previousDirection, x2, y2, preferedDirection) {
+    return getDirectionDecision(previousDirection, preferedDirection)(x1, y1, x2, y2);
 }
 
 function computeStepPath(item) {
