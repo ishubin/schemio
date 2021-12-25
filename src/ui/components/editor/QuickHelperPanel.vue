@@ -162,6 +162,11 @@
                             <img src="/assets/images/helper-panel/connector-smooth.svg"/>
                         </span>
                     </li>
+                    <li>
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Smooth" @click="emitShapePropChange('smoothing', 'choice', 'step')">
+                            <img src="/assets/images/helper-panel/connector-step.svg"/>
+                        </span>
+                    </li>
                 </ul>
             </div>
 

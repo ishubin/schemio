@@ -445,7 +445,8 @@ function computePath(item) {
     }
 
     if (item.shapeProps.smoothing === 'smooth') {
-        // return computeSmoothPath(item);
+        return computeSmoothPath(item);
+    } else if (item.shapeProps.smoothing === 'step') {
         return computeStepPath(item);
     }
 
