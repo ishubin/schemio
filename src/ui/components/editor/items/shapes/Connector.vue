@@ -51,11 +51,13 @@ function round(value) {
     return myMath.roundPrecise2(value);
 }
 
-const ANY   = 4,
-      UP    = 0,
-      DOWN  = 1,
-      LEFT  = 2,
-      RIGHT = 3;
+const UP         = 0,
+      DOWN       = 1,
+      LEFT       = 2,
+      RIGHT      = 3,
+      ANY        = 4,
+      VERTICAL   = 5,
+      HORIZONTAL = 6;
 
 const directionInversions = [ DOWN, UP, RIGHT, LEFT ];
 
@@ -74,12 +76,21 @@ function identifyDirection(x, y) {
     }
 }
 
+function directionType(direction) {
+    if (direction === RIGHT || direction === LEFT) {
+        return HORIZONTAL;
+    }
+    if (direction === UP || direction === DOWN) {
+        return VERTICAL;
+    }
+    return ANY;
+}
+
 function invertDirection(direction) {
     return directionInversions[direction];
 }
 
-const upDownMid = (x1, y1, x2, y2) => {
-    const xm = (x1 + x2) / 2;
+const lineV2V = (x1, y1, x2, y2) => {
     const ym = (y1 + y2) / 2;
     return { 
         path: ` L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`,
@@ -87,67 +98,54 @@ const upDownMid = (x1, y1, x2, y2) => {
     };
 }
 
-const upDown = (x1, y1, x2, y2) => {
+const lineH2V = (x1, y1, x2, y2) => {
     return {
         path: ` L ${x2} ${y1} L ${x2} ${y2}`,
         lastDirection: y1 < y2 ? DOWN : UP
     };
 };
 
-const leftRight = (x1, y1, x2, y2) => {
+const lineV2H = (x1, y1, x2, y2) => {
     return { 
         path: ` L ${x1} ${y2} L ${x2} ${y2}`,
         lastDirection: x1 < x2 ? RIGHT : LEFT
     }
 };
 
-const leftRightMid = (x1, y1, x2, y2) => {
+const lineH2H = (x1, y1, x2, y2) => {
     const xm = (x1 + x2) / 2;
-    const ym = (y1 + y2) / 2;
     return { 
         path: ` L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`,
         lastDirection: x1 < x2 ? RIGHT : LEFT
     };
 };
 
-const directionDecisions = new Map();
-function _d(previousDirection, preferedDirection, callback) {
-    directionDecisions.set(previousDirection * 10 + preferedDirection, callback);
-};
-function getDirectionDecision(previousDirection, preferedDirection) {
-    const idx = previousDirection * 10 + preferedDirection;
-    const callback = directionDecisions.get(idx);
-    if (callback) {
-        return callback;
+
+function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection) {
+    const restrictedDirection = invertDirection(previousDirection);
+    let possibleDirections = [
+        x2 > x1 ? RIGHT : LEFT,
+        y2 > y1 ? DOWN: UP
+    ];
+    if (possibleDirections[0] === restrictedDirection) {
+        possibleDirections = [possibleDirections[1], possibleDirections[0]];
     }
-    return leftRight;
-}
-_d(UP, UP, leftRightMid);
-_d(UP, DOWN, upDownMid);
-_d(UP, LEFT, leftRight);
-_d(UP, RIGHT, leftRight);
-_d(UP, ANY, upDown);
 
-_d(DOWN, UP, upDownMid);
-_d(DOWN, DOWN, leftRightMid);
-_d(DOWN, LEFT, leftRight);
-_d(DOWN, RIGHT, leftRight);
-_d(DOWN, ANY, upDown);
+    const firstDirectionType = directionType(possibleDirections[0]);
+    const preferedDirectionType = directionType(preferedDirection);
+    if (firstDirectionType === preferedDirectionType) {
+        if (firstDirectionType === VERTICAL) {
+            return lineV2V(x1, y1, x2, y2);
+        } else {
+            return lineH2H(x1, y1, x2, y2);
+        }
+    }
 
-_d(RIGHT, UP, upDown);
-_d(RIGHT, DOWN, upDown);
-_d(RIGHT, LEFT, leftRightMid);
-_d(RIGHT, RIGHT, leftRightMid);
-_d(RIGHT, ANY, upDown);
-
-_d(LEFT, UP, upDown);
-_d(LEFT, DOWN, upDown);
-_d(LEFT, LEFT, leftRightMid);
-_d(LEFT, RIGHT, leftRightMid);
-_d(LEFT, ANY, upDown);
-
-function findNextPathWithDirection(x1, y1, previousDirection, x2, y2, preferedDirection) {
-    return getDirectionDecision(previousDirection, preferedDirection)(x1, y1, x2, y2);
+    if (firstDirectionType === HORIZONTAL) {
+        return lineH2V(x1, y1, x2, y2);
+    } else {
+        return lineV2H(x1, y1, x2, y2);
+    }
 }
 
 function computeStepPath(item) {
@@ -172,13 +170,13 @@ function computeStepPath(item) {
     let currentPoint = points[0];
 
     for (let i = 1; i < points.length - 1; i++) {
-        let pathConnection = findNextPathWithDirection(currentPoint.x, currentPoint.y, currentDirection, points[i].x, points[i].y, ANY);
+        let pathConnection = findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, points[i].x, points[i].y, ANY);
         path += pathConnection.path;
         currentPoint = points[i];
         currentDirection = pathConnection.lastDirection;
     }
 
-    let pathConnection = findNextPathWithDirection(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection));
+    let pathConnection = findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection));
     path += pathConnection.path;
 
     return path;
