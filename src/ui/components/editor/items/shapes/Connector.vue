@@ -123,13 +123,28 @@ const lineH2H = (x1, y1, x2, y2) => {
 
 function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection) {
     const restrictedDirection = invertDirection(previousDirection);
-    let possibleDirections = [
-        x2 > x1 ? RIGHT : LEFT,
-        y2 > y1 ? DOWN: UP
-    ];
-    if (possibleDirections[0] === restrictedDirection) {
-        possibleDirections = [possibleDirections[1], possibleDirections[0]];
+    let possibleDirections = [];
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    if (!myMath.tooSmall(dx)) {
+        possibleDirections.push(x2 > x1 ? RIGHT : LEFT);
     }
+    if (!myMath.tooSmall(dy)) {
+        possibleDirections.push(y2 > y1 ? DOWN: UP);
+    }
+
+    if (possibleDirections.length === 2) {
+        if (possibleDirections[0] === restrictedDirection) {
+            possibleDirections = [possibleDirections[1], possibleDirections[0]];
+        } else if (preferedDirection === possibleDirections[0] && possibleDirections[1] !== restrictedDirection) {
+            possibleDirections = [possibleDirections[1], possibleDirections[0]];
+        } else if (preferedDirection === ANY && possibleDirections[1] === previousDirection) {
+            possibleDirections = [possibleDirections[1], possibleDirections[0]];
+        }
+    }
+
 
     const firstDirectionType = directionType(possibleDirections[0]);
     const preferedDirectionType = directionType(preferedDirection);
@@ -141,11 +156,17 @@ function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection)
         }
     }
 
+    let result = null;
     if (firstDirectionType === HORIZONTAL) {
-        return lineH2V(x1, y1, x2, y2);
+        result = lineH2V(x1, y1, x2, y2);
     } else {
-        return lineV2H(x1, y1, x2, y2);
+        result = lineV2H(x1, y1, x2, y2);
     }
+
+    if (possibleDirections.length === 1) {
+        result.lastDirection = possibleDirections[0];
+    }
+    return result;
 }
 
 function computeStepPath(item) {
