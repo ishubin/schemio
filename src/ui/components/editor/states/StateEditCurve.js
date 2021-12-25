@@ -162,9 +162,9 @@ export default class StateEditCurve extends State {
             t: 'L', x: this.round(secondPoint.x), y: this.round(secondPoint.y)
         }];
 
-        if (typeof closestPoint.bx != 'undefined') {
-            curveItem.shapeProps.points[0].bx = myMath.roundPrecise(closestPoint.bx, 4);
-            curveItem.shapeProps.points[0].by = myMath.roundPrecise(closestPoint.by, 4);
+        if (typeof closestPoint.nx != 'undefined') {
+            curveItem.shapeProps.points[0].bx = myMath.roundPrecise(closestPoint.nx, 4);
+            curveItem.shapeProps.points[0].by = myMath.roundPrecise(closestPoint.ny, 4);
         }
 
         this.item = curveItem;
@@ -172,6 +172,7 @@ export default class StateEditCurve extends State {
         this.addedToScheme = true;
         this.creatingNewPoints = true;
         this.updateCursor('crosshair');
+
         return this.item;
     }
 
