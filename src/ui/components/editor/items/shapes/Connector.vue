@@ -885,7 +885,7 @@ export default {
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
-            smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth'], name: 'Smoothing Type'},
+            smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step'], name: 'Smoothing Type'},
 
             fat               : {type: 'boolean',       value: false, name: 'Fat'},
             fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {fat: true}},

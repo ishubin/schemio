@@ -1740,6 +1740,7 @@ export default {
         state(newState) {
             this.$store.dispatch('setEditorStateName', newState);
             this.$emit('switched-state', states[newState]);
+            EventBus.emitEditorStateChanged(this.state);
         },
     },
     computed: {

@@ -24,6 +24,7 @@ const EventBus = new Vue({
 
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
+            EDITOR_STATE_CHANGED: 'editor-state-changed',
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
@@ -225,14 +226,21 @@ const EventBus = new Vue({
         emitComponentSchemeMounted(item) {
             this.$emit(EventBus.COMPONENT_SCHEME_MOUNTED, item);
         },
+
+        emitEditorStateChanged(stateName) {
+            this.$emit(EventBus.EDITOR_STATE_CHANGED, stateName);
+        }
     }
 });
 
 // Adding logging of all events in EventBus
 const _old$emit = EventBus.$emit;
+
 EventBus.$emit = (...args) => {
     log.infoEvent(args[0], args);
-    _old$emit.apply(EventBus, args);
+    if (_old$emit) {
+        _old$emit.apply(EventBus, args);
+    }
 };
 
 

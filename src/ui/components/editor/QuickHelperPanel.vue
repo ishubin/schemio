@@ -153,17 +153,17 @@
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
                     <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'linear'}" title="Linear" @click="emitShapePropChange('smoothing', 'choice', 'linear')">
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'linear'}" title="Linear" @click="setConnectorSmoothing('linear')">
                             <img src="/assets/images/helper-panel/connector-linear.svg"/>
                         </span>
                     </li>
                     <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'smooth'}" title="Smooth" @click="emitShapePropChange('smoothing', 'choice', 'smooth')">
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'smooth'}" title="Smooth" @click="setConnectorSmoothing('smooth')">
                             <img src="/assets/images/helper-panel/connector-smooth.svg"/>
                         </span>
                     </li>
                     <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Smooth" @click="emitShapePropChange('smoothing', 'choice', 'step')">
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Smooth" @click="setConnectorSmoothing('step')">
                             <img src="/assets/images/helper-panel/connector-step.svg"/>
                         </span>
                     </li>
@@ -274,12 +274,14 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
+        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
+        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     data() {
@@ -325,6 +327,8 @@ export default {
             curveSourceCap: 'empty',
             curveDestinationCap: 'empty',
 
+            currentConnectorSmoothing: 'smooth',
+
             itemSurround: {
                 shown: false,
                 padding: 20,
@@ -365,6 +369,31 @@ export default {
                     this.curveSourceCap = item.shapeProps.sourceCap;
                     this.curveDestinationCap = item.shapeProps.destinationCap;
                 }
+            }
+
+            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') {
+                this.currentConnectorSmoothing = this.firstSelectedItem.shapeProps.smoothing;
+            }
+        },
+
+        setConnectorSmoothing(smoothingType) {
+            this.currentConnectorSmoothing = smoothingType;
+            
+            if (this.isCreatingConnector()) {
+                this.$store.state.curveEditing.item.shapeProps.smoothing = smoothingType;
+                EventBus.emitItemChanged(this.$store.state.curveEditing.item.id);
+            } else {
+                this.emitShapePropChange('smoothing', 'choice', smoothingType);
+            }
+        },
+
+        isCreatingConnector() {
+            return this.$store.state.editorStateName === 'editCurve' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector';
+        },
+
+        onEditorStateChanged() {
+            if (this.isCreatingConnector()) {
+                this.currentConnectorSmoothing = this.$store.state.curveEditing.item.shapeProps.smoothing;
             }
         },
 
@@ -624,14 +653,8 @@ export default {
         },
 
         shouldShowConnectorControls() {
-            return this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector';
-        },
-
-        currentConnectorSmoothing() {
-            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') {
-                return this.firstSelectedItem.shapeProps.smoothing;
-            }
-            return '';
+            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector')
+            || (this.$store.state.editorStateName === 'editCurve' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector');
         },
 
         autoRemount() {
