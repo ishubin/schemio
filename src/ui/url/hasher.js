@@ -19,8 +19,10 @@ export function createHasher(mode) {
             return result;
         },
 
-        decodeURLHash() {
-            const urlHash = window.location.hash.substr(1);
+        decodeURLHash(urlHash) {
+            if (urlHash.startsWith('#')) {
+                urlHash = urlHash.substring(1);
+            }
 
             if (!urlHash) {
                 return {};

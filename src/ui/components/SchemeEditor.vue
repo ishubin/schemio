@@ -551,7 +551,7 @@ export default {
                 return;
             }
 
-            const pageParams = this.hasher.decodeURLHash();
+            const pageParams = this.hasher.decodeURLHash(window.location.hash);
             if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
                 this.mode = 'edit';
             } else {
@@ -581,7 +581,7 @@ export default {
 
         initOfflineMode() {
             // here the edit mode is default since user chose to edit offline
-            const pageParams = this.hasher.decodeURLHash();
+            const pageParams = this.hasher.decodeURLHash(window.location.hash);
             if (pageParams.m && pageParams.m === 'view') {
                 this.mode = 'view';
             } else {
