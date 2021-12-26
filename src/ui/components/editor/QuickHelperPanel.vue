@@ -163,7 +163,7 @@
                         </span>
                     </li>
                     <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Smooth" @click="setConnectorSmoothing('step')">
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Step" @click="setConnectorSmoothing('step')">
                             <img src="/assets/images/helper-panel/connector-step.svg"/>
                         </span>
                     </li>
