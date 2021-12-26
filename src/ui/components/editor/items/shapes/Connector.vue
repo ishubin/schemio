@@ -151,9 +151,13 @@ function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection)
     const preferedDirectionType = directionType(preferedDirection);
     if (firstDirectionType === preferedDirectionType || previousDirectionType === preferedDirectionType) {
         if (preferedDirectionType === VERTICAL) {
-            return lineV2V(x1, y1, x2, y2);
+            if ((y2 < y1 && previousDirection !== DOWN) || (y2 > y1 && previousDirection !== UP)) {
+                return lineV2V(x1, y1, x2, y2);
+            }
         } else {
-            return lineH2H(x1, y1, x2, y2);
+            if ((x2 < x1 && previousDirection !== RIGHT) || (x2 > x1 && previousDirection !== LEFT)) {
+                return lineH2H(x1, y1, x2, y2);
+            }
         }
     }
 
