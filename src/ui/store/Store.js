@@ -13,6 +13,8 @@ import myMath from '../myMath';
 
 Vue.use(Vuex);
 
+const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
+
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 function createCurvePointConverter(item) {
@@ -73,6 +75,8 @@ const store = new Vuex.Store({
             item: null,
             points: []
         },
+
+        defaultConnectorSmoothing: myStorage.get(DEFAULT_CONNECTOR_SMOOTHING, 'linear'),
 
         autoRemount: true,
         showPivot: true,
@@ -223,6 +227,11 @@ const store = new Vuex.Store({
         },
         SET_HISTORY_REDOABLE(state, isRedoable) {
             state.history.redoable = isRedoable;
+        },
+
+        SET_DEFAULT_CONNECTOR_SMOOTHING(state, smoothing) {
+            state.defaultConnectorSmoothing = smoothing;
+            myStorage.save(DEFAULT_CONNECTOR_SMOOTHING, smoothing);
         },
 
         SET_GRID_SNAP(state, enabled) {
@@ -441,6 +450,10 @@ const store = new Vuex.Store({
         
         setHistoryRedoable({commit}, isRedoable) {
             commit('SET_HISTORY_REDOABLE', isRedoable);
+        },
+
+        setDefaultConnectorSmoothing({commit}, smoothing) {
+            commit('SET_DEFAULT_CONNECTOR_SMOOTHING', smoothing);
         },
 
         setGridSnap({commit}, enabled) {

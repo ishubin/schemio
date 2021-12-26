@@ -378,6 +378,7 @@ export default {
 
         setConnectorSmoothing(smoothingType) {
             this.currentConnectorSmoothing = smoothingType;
+            StoreUtils.setDefaultConnectorSmoothing(this.$store, smoothingType);
             
             if (this.isCreatingConnector()) {
                 this.$store.state.curveEditing.item.shapeProps.smoothing = smoothingType;

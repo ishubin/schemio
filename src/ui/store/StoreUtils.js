@@ -112,5 +112,9 @@ export default {
 
     setAnimationEditorRecording(store, isRecording) {
         store.dispatch('setAnimationEditorRecording', isRecording);
+    },
+
+    setDefaultConnectorSmoothing(store, smoothing) {
+        store.dispatch('setDefaultConnectorSmoothing', smoothing);
     }
 }

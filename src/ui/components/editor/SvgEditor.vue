@@ -726,8 +726,9 @@ export default {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
             states.editCurve.reset();
-            const curveItem = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
-            this.setCurveEditItem(curveItem);
+            const connector = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
+            connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
+            this.setCurveEditItem(connector);
             this.state = 'editCurve';
         },
 
