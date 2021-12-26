@@ -524,7 +524,6 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
             return;
         }
 
-
         const shadowSvgPath = schemeContainer.getSvgOutlineOfItem(attachmentItem);
         if (!shadowSvgPath) {
             return;

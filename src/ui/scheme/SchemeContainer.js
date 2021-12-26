@@ -148,7 +148,11 @@ class ItemCache {
         if (entry && entry.revision === item.meta.revision) {
             return entry.value;
         }
-        
+
+        return this.forceUpdate(item);
+    }
+
+    forceUpdate(item) {
         const value = this.cacheMissFallback(item);
         this.itemPaths.set(item.id, {
             revision: item.meta.revision,
@@ -882,7 +886,10 @@ class SchemeContainer {
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
-            if (this.eventBus) this.eventBus.emitItemChanged(item.id);
+            if (this.eventBus) {
+                this.eventBus.emitItemChanged(item.id);
+            }
+            this.svgOutlinePathCache.forceUpdate(item);
         }
 
         // searching for items that depend on changed item
