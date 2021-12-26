@@ -146,7 +146,7 @@ function readjustItemArea(item, precision) {
     });
 
     const newPoints = [];
-    forEach(worldPoints, p => {
+    forEach(worldPoints, (p, idx) => {
         const itemPoint = {
             x: p.x - minX,
             y: p.y - minY,
@@ -159,6 +159,9 @@ function readjustItemArea(item, precision) {
         if (p.t === 'B') {
             itemPoint.x2 = p.p2.x - p.x;
             itemPoint.y2 = p.p2.y - p.y;
+        }
+        if (item.shapeProps.points[idx].break) {
+            itemPoint.break = true;
         }
         newPoints.push(itemPoint);
     });
