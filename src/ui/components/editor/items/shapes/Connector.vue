@@ -59,7 +59,7 @@ const UP         = 0,
       VERTICAL   = 5,
       HORIZONTAL = 6;
 
-const directionInversions = [ DOWN, UP, RIGHT, LEFT ];
+const directionInversions = [ DOWN, UP, RIGHT, LEFT, ANY ];
 
 function identifyDirection(x, y) {
     if (x <= -0.5) {
@@ -146,10 +146,11 @@ function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection)
     }
 
 
+    const previousDirectionType = directionType(previousDirection);
     const firstDirectionType = directionType(possibleDirections[0]);
     const preferedDirectionType = directionType(preferedDirection);
-    if (firstDirectionType === preferedDirectionType) {
-        if (firstDirectionType === VERTICAL) {
+    if (firstDirectionType === preferedDirectionType || previousDirectionType === preferedDirectionType) {
+        if (preferedDirectionType === VERTICAL) {
             return lineV2V(x1, y1, x2, y2);
         } else {
             return lineH2H(x1, y1, x2, y2);
@@ -174,7 +175,7 @@ function computeStepPath(item) {
 
     // identifying a required direction of first and last points
     let firstPointDirection = UP;
-    let lastPointDirection = DOWN;
+    let lastPointDirection = ANY;
 
     if (points[0].hasOwnProperty('bx')) {
         firstPointDirection = identifyDirection(points[0].bx, points[0].by);

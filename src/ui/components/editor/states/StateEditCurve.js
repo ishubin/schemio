@@ -976,6 +976,10 @@ export default class StateEditCurve extends State {
                 this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
         } else {
+            if (curvePoint.hasOwnProperty('bx')) {
+                delete curvePoint.bx;
+                delete curvePoint.by;
+            }
             // nothing to attach to so reseting highlights in case it was set previously
             this.eventBus.emitItemsHighlighted([]);
             if (isSource) {
