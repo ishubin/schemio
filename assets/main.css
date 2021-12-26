@@ -728,6 +728,7 @@ ul.pagination li a.current {
 #svg_plot .boundary-box-connector-starter {
     stroke: 'none';
     opacity: 0.6;
+    cursor: pointer;
 }
 #svg_plot .boundary-box-connector-starter:hover {
     opacity: 1;
