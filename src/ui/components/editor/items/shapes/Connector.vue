@@ -90,34 +90,50 @@ function invertDirection(direction) {
     return directionInversions[direction];
 }
 
-const lineV2V = (x1, y1, x2, y2) => {
-    const ym = (y1 + y2) / 2;
-    return { 
-        path: ` L ${x1} ${ym} L ${x2} ${ym} L ${x2} ${y2}`,
-        lastDirection: y1 < y2 ? DOWN : UP
+function stepV(y1, y2) {
+    return {
+        way: y2 > y1 ? DOWN: UP,
+        value: Math.abs(y2 - y1),
     };
 }
 
-const lineH2V = (x1, y1, x2, y2) => {
+function stepH(x1, x2) {
     return {
-        path: ` L ${x2} ${y1} L ${x2} ${y2}`,
-        lastDirection: y1 < y2 ? DOWN : UP
+        way: x2 > x1 ? RIGHT: LEFT,
+        value: Math.abs(x2 - x1),
     };
+}
+
+const lineV2V = (x1, y1, x2, y2) => {
+    const ym = (y1 + y2) / 2;
+    return [
+        stepV(y1, ym), 
+        stepH(x1, x2),
+        stepV(ym, y2), 
+    ];
+}
+
+const lineH2V = (x1, y1, x2, y2) => {
+    return [
+        stepH(x1, x2),
+        stepV(y1, y2)
+    ];
 };
 
 const lineV2H = (x1, y1, x2, y2) => {
-    return { 
-        path: ` L ${x1} ${y2} L ${x2} ${y2}`,
-        lastDirection: x1 < x2 ? RIGHT : LEFT
-    }
+    return [
+        stepV(y1, y2),
+        stepH(x1, x2)
+    ];
 };
 
 const lineH2H = (x1, y1, x2, y2) => {
     const xm = (x1 + x2) / 2;
-    return { 
-        path: ` L ${xm} ${y1} L ${xm} ${y2} L ${x2} ${y2}`,
-        lastDirection: x1 < x2 ? RIGHT : LEFT
-    };
+    return [
+        stepH(x1, xm),
+        stepV(y1, y2),
+        stepH(xm, x2)
+    ];
 };
 
 
@@ -161,17 +177,25 @@ function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection)
         }
     }
 
-    let result = null;
     if (firstDirectionType === HORIZONTAL) {
-        result = lineH2V(x1, y1, x2, y2);
+        return lineH2V(x1, y1, x2, y2);
     } else {
-        result = lineV2H(x1, y1, x2, y2);
+        return lineV2H(x1, y1, x2, y2);
+    }
+}
+
+function movePointWithStep(x, y, step) {
+    if (step.way === RIGHT) {
+        x = x + step.value;
+    } else if (step.way === LEFT) {
+        x = x - step.value;
+    } else if (step.way === UP) {
+        y = y - step.value;
+    } else if (step.way === DOWN) {
+        y = y + step.value;
     }
 
-    if (possibleDirections.length === 1) {
-        result.lastDirection = possibleDirections[0];
-    }
-    return result;
+    return {x, y};
 }
 
 function computeStepPath(item) {
@@ -190,21 +214,33 @@ function computeStepPath(item) {
         lastPointDirection = identifyDirection(lastPoint.bx, lastPoint.by);
     }
 
-    let path = `M ${points[0].x} ${points[0].y}`;
+    const pathSteps = [];
 
     let currentDirection = firstPointDirection;
     let currentPoint = points[0];
 
+    const applySteps = (steps) => {
+        forEach(steps, step => {
+            pathSteps.push(step);
+            currentPoint = movePointWithStep(currentPoint.x, currentPoint.y, step);
+        });
+        currentDirection = steps[steps.length - 1].way;
+    };
+
     for (let i = 1; i < points.length - 1; i++) {
-        let pathConnection = findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, points[i].x, points[i].y, ANY);
-        path += pathConnection.path;
-        currentPoint = points[i];
-        currentDirection = pathConnection.lastDirection;
+        applySteps(findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, points[i].x, points[i].y, ANY));
     }
 
-    let pathConnection = findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection));
-    path += pathConnection.path;
+    applySteps(findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection)));
 
+    let path = `M ${points[0].x} ${points[0].y}`;
+
+    currentPoint = points[0];
+    forEach(pathSteps, step => {
+        const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step);
+        path += ` L ${nextPoint.x} ${nextPoint.y}`;
+        currentPoint = nextPoint;
+    });
     return path;
 }
 
