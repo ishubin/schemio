@@ -152,19 +152,9 @@
             </div>
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
-                    <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'linear'}" title="Linear" @click="setConnectorSmoothing('linear')">
-                            <img src="/assets/images/helper-panel/connector-linear.svg"/>
-                        </span>
-                    </li>
-                    <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'smooth'}" title="Smooth" @click="setConnectorSmoothing('smooth')">
-                            <img src="/assets/images/helper-panel/connector-smooth.svg"/>
-                        </span>
-                    </li>
-                    <li>
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != 'step'}" title="Step" @click="setConnectorSmoothing('step')">
-                            <img src="/assets/images/helper-panel/connector-step.svg"/>
+                    <li v-for="connectorType in connectorTypes">
+                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
+                            <img :src="`/assets/images/helper-panel/connector-${connectorType}.svg`"/>
                         </span>
                     </li>
                 </ul>
@@ -300,6 +290,8 @@ export default {
             knownModes: ['view', 'edit'],
             searchKeyword: '',
             searchHighlights: [],
+
+            connectorTypes: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'],
 
             zoomOptions: [
                 {name: '10%', value: 10},

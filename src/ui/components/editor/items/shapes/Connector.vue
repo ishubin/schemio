@@ -59,6 +59,8 @@ const UP         = 0,
       VERTICAL   = 5,
       HORIZONTAL = 6;
 
+const directionStrings = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'ANY'];
+
 const directionInversions = [ DOWN, UP, RIGHT, LEFT, ANY ];
 
 function identifyDirection(x, y) {
@@ -74,6 +76,17 @@ function identifyDirection(x, y) {
     if (y >= 0.5) {
         return DOWN;
     }
+}
+
+const directionClockWiseTurns = [
+    [0, 0, -1, 1],
+    [0, 0, 1, -1],
+    [1, -1, 0, 0],
+    [-1, 1, 0, 0],
+];
+
+function isTurnClockWise(direction1, direction2) {
+    return directionClockWiseTurns[direction1][direction2] > 0;
 }
 
 function directionType(direction) {
@@ -184,21 +197,21 @@ function findWayToThePoint(x1, y1, previousDirection, x2, y2, preferedDirection)
     }
 }
 
-function movePointWithStep(x, y, step) {
-    if (step.way === RIGHT) {
-        x = x + step.value;
-    } else if (step.way === LEFT) {
-        x = x - step.value;
-    } else if (step.way === UP) {
-        y = y - step.value;
-    } else if (step.way === DOWN) {
-        y = y + step.value;
+function movePointWithStep(x, y, stepWay, stepValue) {
+    if (stepWay === RIGHT) {
+        x = x + stepValue;
+    } else if (stepWay === LEFT) {
+        x = x - stepValue;
+    } else if (stepWay === UP) {
+        y = y - stepValue;
+    } else if (stepWay === DOWN) {
+        y = y + stepValue;
     }
 
     return {x, y};
 }
 
-function computeStepPath(item) {
+function computeStepPath(item, useCut, roundCuts) {
     const points = item.shapeProps.points;
 
     // identifying a required direction of first and last points
@@ -222,7 +235,7 @@ function computeStepPath(item) {
     const applySteps = (steps) => {
         forEach(steps, step => {
             pathSteps.push(step);
-            currentPoint = movePointWithStep(currentPoint.x, currentPoint.y, step);
+            currentPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value);
         });
         currentDirection = steps[steps.length - 1].way;
     };
@@ -236,11 +249,47 @@ function computeStepPath(item) {
     let path = `M ${points[0].x} ${points[0].y}`;
 
     currentPoint = points[0];
-    forEach(pathSteps, step => {
-        const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step);
-        path += ` L ${nextPoint.x} ${nextPoint.y}`;
-        currentPoint = nextPoint;
-    });
+    if (!useCut) {
+        forEach(pathSteps, step => {
+            const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value);
+            path += ` L ${nextPoint.x} ${nextPoint.y}`;
+            currentPoint = nextPoint;
+        });
+        return path;
+    }
+
+    // using cuts
+
+    const maxStepCut = 20;
+    let previousCut = 0;
+
+    for (let i = 0; i < pathSteps.length - 1; i++) {
+        const step = pathSteps[i];
+        const nextStep = pathSteps[i + 1];
+        const minStepValue = Math.min(step.value, nextStep.value);
+        if (minStepValue > 1 && nextStep.way !== step.way) {
+            const cut = Math.min(maxStepCut, minStepValue / 2);
+            const nextPhantomPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value - previousCut);
+            const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value - cut - previousCut);
+            const cutExitPoint = movePointWithStep(nextPhantomPoint.x, nextPhantomPoint.y, nextStep.way, cut);
+            if (roundCuts) {
+                const sweepFlag = isTurnClockWise(step.way, nextStep.way) ? 1 : 0;
+                path += ` L ${nextPoint.x} ${nextPoint.y} A ${cut} ${cut} 0 0 ${sweepFlag} ${cutExitPoint.x} ${cutExitPoint.y}`;
+            } else {
+                path += ` L ${nextPoint.x} ${nextPoint.y} L ${cutExitPoint.x} ${cutExitPoint.y}`;
+            }
+            previousCut = cut;
+            currentPoint = cutExitPoint;
+        } else {
+            const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value - previousCut);
+            path += ` L ${nextPoint.x} ${nextPoint.y}`;
+            currentPoint = nextPoint;
+            previousCut = 0;
+        }
+    }
+    const step = pathSteps[pathSteps.length - 1];
+    const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value - previousCut);
+    path += ` L ${nextPoint.x} ${nextPoint.y}`;
     return path;
 }
 
@@ -488,7 +537,11 @@ function computePath(item) {
     if (item.shapeProps.smoothing === 'smooth') {
         return computeSmoothPath(item);
     } else if (item.shapeProps.smoothing === 'step') {
-        return computeStepPath(item);
+        return computeStepPath(item, false, false);
+    } else if (item.shapeProps.smoothing === 'step-cut') {
+        return computeStepPath(item, true, false);
+    } else if (item.shapeProps.smoothing === 'step-smooth') {
+        return computeStepPath(item, true, true);
     }
 
     let path = '';
@@ -925,7 +978,7 @@ export default {
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
-            smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step'], name: 'Smoothing Type'},
+            smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
 
             fat               : {type: 'boolean',       value: false, name: 'Fat'},
             fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {fat: true}},
