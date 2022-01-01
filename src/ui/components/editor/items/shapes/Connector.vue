@@ -259,8 +259,7 @@ function computeStepPath(item, useCut, roundCuts) {
     }
 
     // using cuts
-
-    const maxStepCut = 20;
+    const maxStepCut = Math.max(0, item.shapeProps.stepSize);
     let previousCut = 0;
 
     for (let i = 0; i < pathSteps.length - 1; i++) {
@@ -979,6 +978,7 @@ export default {
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
+            stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}},
 
             fat               : {type: 'boolean',       value: false, name: 'Fat'},
             fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {fat: true}},

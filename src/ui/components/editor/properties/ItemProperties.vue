@@ -332,7 +332,14 @@ export default {
             forEach(this.shapeComponent.args, (argConfig, argName) => {
                 if (argConfig.depends) {
                     forEach(argConfig.depends, (depArgValue, depArgName) => {
-                        const shown = this.item.shapeProps[depArgName] === depArgValue;
+                        let shown = false;
+                        if (Array.isArray(depArgValue)) {
+                            for (let i = 0; i < depArgValue.length && !shown; i++) {
+                                shown = this.item.shapeProps[depArgName] === depArgValue[i];
+                            }
+                        } else {
+                            shown = this.item.shapeProps[depArgName] === depArgValue;
+                        }
                         if (!this.shapePropsControlStates[argName]) {
                             this.shapePropsControlStates[argName] = {shown: shown};
                         } else {
