@@ -116,5 +116,9 @@ export default {
 
     setDefaultConnectorSmoothing(store, smoothing) {
         store.dispatch('setDefaultConnectorSmoothing', smoothing);
+    },
+
+    copyItemStyle(store, item) {
+        store.dispatch('copyItemStyle', item);
     }
 }

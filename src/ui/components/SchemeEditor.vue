@@ -64,6 +64,8 @@
                     @clicked-bring-to-front="bringSelectedItemsToFront()"
                     @clicked-bring-to-back="bringSelectedItemsToBack()"
                     @clicked-copy-selected-items="copySelectedItems()"
+                    @clicked-copy-item-style="copySelectedItemStyle()"
+                    @clicked-apply-copied-item-style="applyCopiedItemStyle()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
@@ -77,13 +79,6 @@
                     :offline="offlineMode"
                     :zoom="zoom"
                     @switched-state="onSvgEditorSwitchedState"
-                    @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
-                    @clicked-add-item-link="onClickedAddItemLink"
-                    @clicked-start-connecting="onClickedStartConnecting"
-                    @clicked-bring-to-front="bringSelectedItemsToFront()"
-                    @clicked-bring-to-back="bringSelectedItemsToBack()"
-                    @clicked-copy-selected-items="copySelectedItems()"
-                    @clicked-items-paste="pasteItemsFromClipboard()"
                     @svg-size-updated="onSvgSizeUpdated"
                     />
             </div>
@@ -282,7 +277,7 @@
 import utils from '../utils.js';
 import { Keys } from '../events';
 
-import {enrichItemWithDefaults} from '../scheme/Item';
+import {enrichItemWithDefaults, applyStyleFromAnotherItem} from '../scheme/Item';
 import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -871,6 +866,23 @@ export default {
         copySelectedItems() {
             const copyBuffer = this.schemeContainer.copySelectedItems();
             copyToClipboard(copyBuffer);
+        },
+
+        copySelectedItemStyle() {
+            const selectedItems = this.schemeContainer.getSelectedItems();
+            if (selectedItems.length > 0) {
+                StoreUtils.copyItemStyle(this.$store, selectedItems[0]);
+            }
+        },
+
+        applyCopiedItemStyle() {
+            if (this.$store.state.copiedStyleItem) {
+                forEach(this.schemeContainer.getSelectedItems(), item => {
+                    applyStyleFromAnotherItem(this.$store.state.copiedStyleItem, item);
+                    EventBus.emitItemChanged(item.id);
+                });
+                EventBus.emitSchemeChangeCommited();
+            }
         },
 
         pasteItemsFromClipboard() {

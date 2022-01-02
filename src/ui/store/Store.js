@@ -92,6 +92,9 @@ const store = new Vuex.Store({
             redoable: false
         },
 
+        // item which style should be copied to other items
+        copiedStyleItem: null,
+
         snap: {
             grid: myStorage.get('snap.grid', false),
             items: myStorage.get('snap.items', true),
@@ -402,6 +405,10 @@ const store = new Vuex.Store({
 
         SET_ANIMATION_EDITOR_RECORDING(state, isRecording) {
             state.animationEditor.isRecording = isRecording;
+        },
+
+        COPY_ITEM_STYLE(state, item) {
+            state.copiedStyleItem = utils.clone(item);
         }
     },
 
@@ -555,7 +562,11 @@ const store = new Vuex.Store({
 
         setAnimationEditorRecording({commit}, isRecording) {
             commit('SET_ANIMATION_EDITOR_RECORDING', isRecording);
-        }
+        },
+
+        copyItemStyle({commit}, item) {
+            commit('COPY_ITEM_STYLE', item);
+        },
     },
 
     getters: {

@@ -1150,6 +1150,18 @@ export default {
                 name: 'Copy',
                 clicked: () => {this.$emit('clicked-copy-selected-items', item);}
             }, {
+                name: 'Copy item style',
+                clicked: () => {this.$emit('clicked-copy-item-style', item);}
+            }]);
+
+            if (this.$store.state.copiedStyleItem) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Apply copied item style',
+                    clicked: () => {this.$emit('clicked-apply-copied-item-style', item);}
+                });
+            }
+
+            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
                 name: 'Delete',
                 clicked: this.deleteSelectedItems
             }, {

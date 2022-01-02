@@ -253,3 +253,36 @@ export function hasItemDescription(item) {
     */
     return item.description.trim().length > 8;
 }
+
+const _supportedStyleTypes = new Set([
+    'color', 'advanced-color', 'stroke-pattern', 'curve-cap', 'number'
+]);
+
+/**
+ * Applies item styling (shapeProps) to item based on the shapeProps of reference item
+ * It only applies simple props and does not change element selectors, curve-points etc.
+ * @param {Item} referenceItem 
+ * @param {Item} dstItem
+ */
+export function applyStyleFromAnotherItem(referenceItem, dstItem) {
+    const srcShape = Shape.find(referenceItem.shape);
+    if (!srcShape) {
+        return;
+    }
+    
+    const dstShape = Shape.find(dstItem.shape);
+    if (!dstShape) {
+        return;
+    }
+
+    forEach(referenceItem.shapeProps, (value, propName) => {
+        const propDescriptor = Shape.getShapePropDescriptor(srcShape, propName);
+        const dstPropDescriptor = Shape.getShapePropDescriptor(dstShape, propName);
+        if (propDescriptor && dstPropDescriptor
+            && propDescriptor.type === dstPropDescriptor.type
+            && _supportedStyleTypes.has(propDescriptor.type)
+            ) {
+            dstItem.shapeProps[propName] = utils.clone(value);
+        }
+    });
+}
