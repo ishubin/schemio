@@ -77,15 +77,18 @@ export default {
         let viewBoxWidth = this.width;
         let viewBoxHeight = this.height;
 
-        if (this.exportedItems.length === 1) {
-            const strokeSize = this.exportedItems[0].item.shapeProps.strokeSize;
-            if (!isNaN(strokeSize)) {
-                paddingTop = strokeSize;
-                paddingLeft = strokeSize;
-                viewBoxWidth += 2*strokeSize;
-                viewBoxHeight += 2*strokeSize;
+        let largestStrokeSize = 0;
+        forEach(this.exportedItems, item => {
+            if (!isNaN(item.item.shapeProps.strokeSize) && item.item.shapeProps.strokeSize > largestStrokeSize) {
+                largestStrokeSize = item.item.shapeProps.strokeSize;
             }
-        }
+        });
+
+        paddingTop = 2 * largestStrokeSize;
+        paddingLeft = 2 * largestStrokeSize;
+        viewBoxWidth += 2 * largestStrokeSize;
+        viewBoxHeight += 2 * largestStrokeSize;
+
         return {
             shouldExportBackground: false,
             paddingTop,
