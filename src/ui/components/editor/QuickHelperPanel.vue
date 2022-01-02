@@ -198,7 +198,7 @@
                             :checked="autoRemount"
                             :disabled="animationEditorIsRecording"
                             @change="onAutoRemountChange"/>
-                        <label for="chk-auto-remount">Auto mount</label>
+                        <label for="chk-auto-remount" title="Automatically mount items into other items">Auto mount</label>
                     </li>
                 </ul>
             </div>
@@ -209,7 +209,7 @@
                             id="chk-show-pivot"
                             :checked="showPivot"
                             @change="onShowPivotChange"/>
-                        <label for="chk-show-pivot">Pivot</label>
+                        <label for="chk-show-pivot" title="Show pivot point handler">Pivot</label>
                     </li>
                 </ul>
             </div>

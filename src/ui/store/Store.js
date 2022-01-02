@@ -79,7 +79,7 @@ const store = new Vuex.Store({
         defaultConnectorSmoothing: myStorage.get(DEFAULT_CONNECTOR_SMOOTHING, 'linear'),
 
         autoRemount: true,
-        showPivot: true,
+        showPivot: false,
 
 
         // toggles clickable item markers in view mode so that users can see
