@@ -501,7 +501,7 @@ export function fsListFilesRoute(config) {
                         const entry = {
                             kind: 'scheme',
                             id: schemeId,
-                            name: scheme.name,
+                            name: scheme.name || '',
                             path: entryPath.substring(0, idx),
                             modifiedTime: scheme.modifiedTime,
                         };

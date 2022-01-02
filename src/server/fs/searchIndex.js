@@ -44,15 +44,16 @@ class Index {
 let currentIndex = new Index();
 
 function _indexScheme(index, schemeId, scheme, fsPath) {
-    if (scheme.name) {
-        index.register(schemeId, {
-            id: schemeId,
-            fsPath,
-            name: scheme.name,
-            lowerName: scheme.name.toLowerCase(),
-            modifiedTime: scheme.modifiedTime
-        });
+    if (!scheme.name) {
+        scheme.name = '';
     }
+    index.register(schemeId, {
+        id: schemeId,
+        fsPath,
+        name: scheme.name,
+        lowerName: scheme.name.toLowerCase(),
+        modifiedTime: scheme.modifiedTime
+    });
 }
 
 function _unindexScheme(index, id) {
