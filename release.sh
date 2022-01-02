@@ -99,6 +99,10 @@ zip -9 -r "schemio-static-$NEW_VERSION.zip" $BIN_FOLDER_NAME
 cd $PROJECT_DIR
 
 
+echo_section "Building drive app for prod"
+npm run build-app-drive-prod
+
+
 echo_section "Building docker container"
 # changing package version to hardcoded value so that docker build does not rebuild all layers
 cat package.json | jq ".version=\"0.1.1\"" > tmp && mv tmp package.json
