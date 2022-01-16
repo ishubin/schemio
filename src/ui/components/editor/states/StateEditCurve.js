@@ -274,7 +274,7 @@ export default class StateEditCurve extends State {
         });
 
         // in case user tried to attach source to another item
-        this.handleEdgeCurvePointDrag(this.item.shapeProps.points[0], true);
+        this.handleEdgeCurvePointDrag(0, this.item.shapeProps.points[0], true);
         this.addedToScheme = true;
     }
 

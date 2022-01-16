@@ -381,32 +381,9 @@ export default {
             if (this.itemCreationDragged.startedDragging) {
                 return;
             }
-
-            const pageX = window.innerWidth / 2;
-            const pageY = window.innerHeight / 2;
-
-            const itemClone = utils.clone(item.item);
-            itemClone.area.w = 100;
-            itemClone.area.h = 60;
-
-            if (item.imageProperty) {
-                this.imageCreation.item  = itemClone;
-                this.itemCreationDragged.pageX = pageX / 2;
-                this.itemCreationDragged.pageY = pageY / 2;
-                this.imageCreation.popupShown = true;
-            } else if (item.item.shape === 'link') {
-                this.linkCreation.item = itemClone;
-                this.itemCreationDragged.pageX = pageX / 2;
-                this.itemCreationDragged.pageY = pageY / 2;
-                this.linkCreation.popupShown = true;
-            } else {
-                const newItem = itemClone;
-                newItem.id = shortid.generate();
-                newItem.name = this.makeUniqueName(item.name);
-                recentPropsChanges.applyItemProps(newItem);
-
-                EventBus.emitItemCreationDraggedToSvgEditor(newItem, pageX, pageY);
-            }
+            const clonedItem = utils.clone(item.item);
+            clonedItem.name = this.schemeContainer.generateUniqueName(item.name);
+            EventBus.$emit(EventBus.START_CREATING_ITEM, clonedItem);
         },
 
         linkSubmited(link) {

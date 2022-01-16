@@ -217,6 +217,7 @@ import '../../typedef';
 import {Keys} from '../../events';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems, hasItemDescription} from '../../scheme/Item';
+import StateCreateItem from './states/StateCreateItem.js';
 import StateInteract from './states/StateInteract.js';
 import StateDragItem from './states/StateDragItem.js';
 import StateDraw from './states/StateDraw.js';
@@ -266,6 +267,7 @@ const allDraggerEdges = [
 
 const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
+    createItem: new StateCreateItem(EventBus, store),
     editCurve: new StateEditCurve(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
@@ -303,6 +305,7 @@ export default {
             state.setEditor(this);
         })
 
+        EventBus.$on(EventBus.START_CREATING_ITEM, this.onSwitchStateCreateItem);
         EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$on(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
@@ -353,6 +356,7 @@ export default {
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
+        EventBus.$off(EventBus.START_CREATING_ITEM, this.onSwitchStateCreateItem);
         EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
         EventBus.$off(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
@@ -666,6 +670,25 @@ export default {
             this.state = 'pickElement';
             states.pickElement.reset();
             states.pickElement.setElementPickCallback(elementPickCallback);
+        },
+
+        onSwitchStateCreateItem(item) {
+            this.highlightItems([]);
+            states[this.state].cancel();
+            if (item.shape === 'curve' || item.shape === 'connector') {
+                item.shapeProps.points = [];
+                this.setCurveEditItem(item);
+                // making sure every new curve starts non-closed
+                if (item.shape === 'curve') {
+                    item.shapeProps.closed = false;
+                }
+                this.state = 'editCurve';
+                EventBus.emitCurveEdited(item);
+            } else {
+                this.state = 'createItem';
+            }
+            states[this.state].reset();
+            states[this.state].setItem(item);
         },
 
         onStartCurveEditing(item) {
@@ -1817,7 +1840,7 @@ export default {
             return this.$store.getters.verticalSnapper;
         },
         shouldShowStateHoverLayer() {
-            return this.state === 'draw';
+            return this.state === 'draw' || this.state === 'createItem';
         },
 
         shouldShowDropMask() {

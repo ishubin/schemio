@@ -12,6 +12,7 @@ const log = new Logger('EventBus');
 const EventBus = new Vue({
     data() {
         return {
+            START_CREATING_ITEM: 'start-creating-item',
             START_CONNECTING_ITEM: 'start-connecting-item',
             START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',
