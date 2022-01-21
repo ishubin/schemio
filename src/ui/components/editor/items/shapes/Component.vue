@@ -137,7 +137,11 @@ export default {
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
             strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID'},
+
+            kind                  : {type: 'choice', value: 'external', name: 'Kind', options: ['external', 'embedded'],  description: 'External - allows to fetch other documents and render them inside the component. Embedded - uses the items in the same document'},
+            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID', depends: {kind: 'external'}},
+            externalItem          : {type: 'element', name: 'Item', depends: {kind: 'embedded'}},
+
             autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded'},
             showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode'},
             buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill', depends: {showButton: true}},

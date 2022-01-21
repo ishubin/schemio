@@ -1367,7 +1367,7 @@ export default {
             this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
             .then(scheme => {
                 const componentSchemeContainer = new SchemeContainer(scheme);
-                this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
+                this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);
                 EventBus.emitItemChanged(item.id);
 

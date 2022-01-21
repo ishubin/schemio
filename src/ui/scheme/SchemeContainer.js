@@ -35,6 +35,8 @@ const minSpatialIndexDistance = 20;
 
 const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
 
+const IGNORE_PARENT = true;
+
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
     moved: true,
@@ -100,7 +102,7 @@ export function itemCompleteTransform(item) {
 }
 
 
-function visitItems(items, callback, transformMatrix, parentItem, ancestorIds) {
+function visitItems(items, callback, transformMatrix, parentItem, ancestorIds, isIndexable) {
     if (!items) {
         return;
     }
@@ -111,17 +113,24 @@ function visitItems(items, callback, transformMatrix, parentItem, ancestorIds) {
         ancestorIds = [];
     }
 
+    if (isIndexable === undefined) {
+        isIndexable = true;
+    }
+
     for (let i = 0; i < items.length; i++) {
         // this has to be done here as the item might not yet be fully enriched
         // also the app optimizes schemes on saving and removes fields with default values
         enrichObjectWithDefaults(items[i].area, defaultItemDefinition.area);
 
-        callback(items[i], transformMatrix, parentItem, ancestorIds);
+        callback(items[i], transformMatrix, parentItem, ancestorIds, isIndexable);
 
         const itemTransform = myMath.standardTransformWithArea(transformMatrix, items[i].area);
 
         if (items[i].childItems) {
-            visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]));
+            visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]), isIndexable);
+        }
+        if (items[i]._childItems) {
+            visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]), false);
         }
     }
 }
@@ -275,13 +284,39 @@ class SchemeContainer {
         this.pinSpatialIndex = new SpatialIndex();
         this.dependencyItemMap = {};
 
+        this.componentItems = [];
+
+        // index of items that are referenced by components
+        this.componentDependencyIndex = new Map();
+
         if (!this.scheme.items) {
             return;
         }
         
         this.reindexSpecifiedItems(this.scheme.items);
+        this.reindexComponents();
 
         log.timeEnd('reindexItems');
+    }
+
+
+    reindexComponents() {
+        forEach(this.componentItems, item => {
+            if (item.shapeProps.kind === 'embedded' && item.shapeProps.externalItem) {
+                const externalItem = this.findFirstElementBySelector(item.shapeProps.externalItem);
+                if (externalItem) {
+                    // perhaps it could also add all child items to the list
+                    if (!this.componentDependencyIndex.has(externalItem.id)) {
+                        this.componentDependencyIndex.set(externalItem.id, [item.id]);
+                    } else {
+                        const arr = this.componentDependencyIndex.get(externalItem.id);
+                        arr.push(item.id);
+                    }
+
+                    this.attachItemsToComponentItem(item, [externalItem], IGNORE_PARENT);
+                }
+            }
+        });
     }
 
     reindexChildItems(mainItem) {
@@ -289,6 +324,9 @@ class SchemeContainer {
 
         if (mainItem.childItems) {
             this.reindexSpecifiedItems(mainItem.childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
+        }
+        if (mainItem._childItems) {
+            this.reindexSpecifiedItems(mainItem._childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
         }
     }
 
@@ -305,8 +343,11 @@ class SchemeContainer {
 
         const newRevision = this.revision + 1;
 
-        visitItems(items, (item, transformMatrix, parentItem, ancestorIds) => {
-            this._itemArray.push(item);
+        visitItems(items, (item, transformMatrix, parentItem, ancestorIds, isIndexable) => {
+            if (isIndexable) {
+                this._itemArray.push(item);
+            }
+
             enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transformMatrix, parentItem, ancestorIds);
             if (item.groups) {
@@ -324,6 +365,9 @@ class SchemeContainer {
                     item.textSlots[textSlots[0].name].text = item.text;
                 }
                 delete item.text;
+            }
+            if (item.shape === 'component') {
+                this.componentItems.push(item);
             }
 
             // only storing top-level items 
@@ -366,8 +410,10 @@ class SchemeContainer {
                 });
             }
 
-            this.indexItemPins(item, shape);
-            this.indexItemOutlinePoints(item);
+            if (isIndexable) {
+                this.indexItemPins(item, shape);
+                this.indexItemOutlinePoints(item);
+            }
 
             this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
 
@@ -1991,8 +2037,14 @@ class SchemeContainer {
         return this.frameAnimations[itemId];
     }
 
-    attachSchemeToComponentItem(componentItem, scheme) {
-        const childItems = this.cloneItems(scheme.items);
+    attachItemsToComponentItem(componentItem, externalItems, ignoreParent) {
+        let childItems = null;
+        if (ignoreParent && externalItems.length > 0 && externalItems[0].childItems) {
+            childItems = this.cloneItems(externalItems[0].childItems);
+        }
+        else {
+            childItems = this.cloneItems(externalItems);
+        }
 
         const bBox = this.getBoundingBoxOfItems(childItems);
         forEach(childItems, item => {
@@ -2039,7 +2091,7 @@ class SchemeContainer {
 
         rectItem.childItems = childItems;
 
-        componentItem.childItems = [rectItem];
+        componentItem._childItems = [rectItem];
 
         this.reindexChildItems(componentItem);
     }

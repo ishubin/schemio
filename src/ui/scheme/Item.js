@@ -164,7 +164,10 @@ export const defaultItem = {
     textSlots: {},
     behavior: {
         events: []
-    }
+    },
+
+    // childItems: [], // used dynamically in case there are child items
+    // _childItems: [], // used dynamically by components and it stores items that were copied from the referrence item. This field is ignored when saving or exporting
 };
 
 const shapePropsDefaults = {};
