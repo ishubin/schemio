@@ -185,7 +185,7 @@ export default {
     data() {
         return {
             buttonHovered: false,
-            buttonShown: this.item.shapeProps.showButton && !(this.item.childItems && this.item.childItems.length > 0),
+            buttonShown: this.item.shapeProps.showButton && !(this.item._childItems && this.item._childItems.length > 0),
             isLoading: false,
             hideTextSlot: false,
             textStyle: this.createTextStyle()
@@ -198,7 +198,7 @@ export default {
             EventBus.emitComponentLoadRequested(this.item);
         },
         onItemChanged() {
-            if (this.item.childItems && this.item.childItems.length > 0) {
+            if (this.item._childItems && this.item._childItems.length > 0) {
                 this.buttonShown = false;
             }
             this.isLoading = false;

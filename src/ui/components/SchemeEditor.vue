@@ -1361,7 +1361,7 @@ export default {
         },
 
         onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.loadScheme) {
                 return;
             }
             this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
