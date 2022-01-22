@@ -130,7 +130,7 @@ function visitItems(items, callback, transformMatrix, parentItem, ancestorIds, i
             visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]), isIndexable);
         }
         if (items[i]._childItems) {
-            visitItems(items[i].childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]), false);
+            visitItems(items[i]._childItems, callback, itemTransform, items[i], ancestorIds.concat([items[i].id]), false);
         }
     }
 }
@@ -325,12 +325,12 @@ class SchemeContainer {
         if (mainItem.childItems) {
             this.reindexSpecifiedItems(mainItem.childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
         }
-        if (mainItem._childItems) {
-            this.reindexSpecifiedItems(mainItem._childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
-        }
     }
 
-    reindexSpecifiedItems(items, transformMatrix, parentItem, ancestorIds) {
+    reindexSpecifiedItems(items, transformMatrix, parentItem, ancestorIds, isIndexable) {
+        if (isIndexable === undefined) {
+            isIndexable = true;
+        }
         // stores element selectors with their dependants
         // this will be used once it has visited all items
         // so that it can finally start puting ids of existing items into dependencyItemMap
@@ -419,7 +419,7 @@ class SchemeContainer {
 
             // storing revision in item as it is used  in ItemCache to identify whether item outline was changed or not
             item.meta.revision = newRevision;
-        }, transformMatrix, parentItem, ancestorIds);
+        }, transformMatrix, parentItem, ancestorIds, isIndexable);
 
         this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         this.itemGroups = keys(this._itemGroupsToIds);
@@ -1513,7 +1513,7 @@ class SchemeContainer {
         return json;
     }
 
-    cloneItems(items) {
+    cloneItems(items, preserveOriginalNames) {
         const copiedItemIds = {};
         const copiedItems = [];
         forEach(items, item => {
@@ -1525,7 +1525,11 @@ class SchemeContainer {
                 const worldAngle = worldAngleOfItem(item);
 
                 const newItem = this.copyItem(item);
-                newItem.name = this.copyNameAndMakeUnique(item.name);
+                if (!preserveOriginalNames) {
+                    newItem.name = this.copyNameAndMakeUnique(item.name);
+                } else {
+                    newItem.name = item.name;
+                }
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
                 newItem.area.r = worldAngle;
@@ -2038,15 +2042,16 @@ class SchemeContainer {
     }
 
     attachItemsToComponentItem(componentItem, externalItems, ignoreParent) {
+        const preserveOriginalNames = true;
         let childItems = null;
         if (ignoreParent && externalItems.length > 0 && externalItems[0].childItems) {
-            childItems = this.cloneItems(externalItems[0].childItems);
+            childItems = this.cloneItems(externalItems[0].childItems, preserveOriginalNames);
         }
         else {
-            childItems = this.cloneItems(externalItems);
+            childItems = this.cloneItems(externalItems, preserveOriginalNames);
         }
 
-        const bBox = this.getBoundingBoxOfItems(childItems);
+        const bBox = this.getBoundingBoxOfItems(externalItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
             item.area.y -= bBox.y;
@@ -2089,11 +2094,13 @@ class SchemeContainer {
         rectItem.shapeProps.fill = {type: 'none'};
         rectItem.shapeProps.strokeSize = 0;
 
-        rectItem.childItems = childItems;
+        rectItem._childItems = childItems;
 
         componentItem._childItems = [rectItem];
 
-        this.reindexChildItems(componentItem);
+        const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
+        const nonIndexable = false;
+        this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
     }
 
     getEventBus() {
