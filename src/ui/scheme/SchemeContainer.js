@@ -201,6 +201,8 @@ class SchemeContainer {
         this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
+        this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the componented from the reference item
+
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
 
@@ -283,6 +285,7 @@ class SchemeContainer {
         this.spatialIndex = new SpatialIndex();
         this.pinSpatialIndex = new SpatialIndex();
         this.dependencyItemMap = {};
+        this.itemCloneIds = new Map();
 
         this.componentItems = [];
 
@@ -440,6 +443,23 @@ class SchemeContainer {
         });
         this.itemGroups = keys(this._itemGroupsToIds);
         this.itemGroups.sort();
+    }
+
+
+    indexSingleCloneItem(referenceItemId, clonedItemId) {
+        let set = null;
+        if (this.itemCloneIds.has(referenceItemId)) {
+            set = this.itemCloneIds.get(referenceItemId);
+        } else {
+            set = new Set();
+            this.itemCloneIds.set(referenceItemId, set);
+        }
+        
+        set.add(clonedItemId);
+    }
+
+    getItemCloneIds(referenceItemId) {
+        return this.itemCloneIds.get(referenceItemId);
     }
 
     calculateItemWorldArea(item) {
@@ -1513,7 +1533,7 @@ class SchemeContainer {
         return json;
     }
 
-    cloneItems(items, preserveOriginalNames) {
+    cloneItems(items, preserveOriginalNames, shouldIndexClones) {
         const copiedItemIds = {};
         const copiedItems = [];
         forEach(items, item => {
@@ -1543,6 +1563,10 @@ class SchemeContainer {
         forEach(copiedItems, copiedItem => {
             traverseItems(copiedItem, item => {
                 idOldToNewConversions.set(item.meta.oldId, item.id);
+
+                if (shouldIndexClones) {
+                    this.indexSingleCloneItem(item.meta.oldId, item.id);
+                }
             });
         });
 
@@ -2043,12 +2067,13 @@ class SchemeContainer {
 
     attachItemsToComponentItem(componentItem, externalItems, ignoreParent) {
         const preserveOriginalNames = true;
+        const shouldIndexClones = true;
         let childItems = null;
         if (ignoreParent && externalItems.length > 0 && externalItems[0].childItems) {
-            childItems = this.cloneItems(externalItems[0].childItems, preserveOriginalNames);
+            childItems = this.cloneItems(externalItems[0].childItems, preserveOriginalNames, shouldIndexClones);
         }
         else {
-            childItems = this.cloneItems(externalItems, preserveOriginalNames);
+            childItems = this.cloneItems(externalItems, preserveOriginalNames, shouldIndexClones);
         }
 
         const bBox = this.getBoundingBoxOfItems(externalItems);

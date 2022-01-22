@@ -1148,19 +1148,36 @@ export default {
         // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
+
+            // this is needed so that any changes applied to reference item gets immidiately reflected on all embedded component cloned items 
+            const setShapePropForItem = (item, name, value) => {
+                item.shapeProps[name] = value;
+                EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
+
+                const cloneIds = this.schemeContainer.getItemCloneIds(item.id);
+                if (cloneIds) {
+                    cloneIds.forEach(cloneId => {
+                        const clonedItem = this.schemeContainer.findItemById(cloneId);
+                        if (clonedItem) {
+                            setShapePropForItem(clonedItem, name, value);
+                        }
+                    });
+                }
+            };
+
             forEach(this.schemeContainer.selectedItems, item => {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     const propDescriptor = Shape.getShapePropDescriptor(shape, name);
                     if (propDescriptor && propDescriptor.type === type) {
-                        item.shapeProps[name] = utils.clone(value);
+                        setShapePropForItem(item, name, utils.clone(value));
 
                         if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
                             const fillPropName = name + 'Fill';
                             if (shape.argType(fillPropName) === 'color') {
                                 const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
                                 if (defaultFill) {
-                                    item.shapeProps[fillPropName] = defaultFill;
+                                    setShapePropForItem(item, fillPropName, defaultFill);
                                 }
                             }
                         }

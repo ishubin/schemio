@@ -594,8 +594,8 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
 
             const pinIndex = Math.round(-attachmentItemPosition - 1);
             const pinPoint = schemeContainer.getItemWorldPinPoint(attachmentItem, pinIndex);
-            const localPinPoint = schemeContainer.localPointOnItem(pinPoint.x, pinPoint.y, item)
             if (pinPoint) {
+                const localPinPoint = schemeContainer.localPointOnItem(pinPoint.x, pinPoint.y, item)
                 const newPoint = {
                     t: 'L',
                     x: localPinPoint.x,
