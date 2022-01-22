@@ -251,6 +251,8 @@ import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Compone
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
 
+const VISIT_NONINDEXABLE_ITEMS = true;
+
 const userEventBus = new UserEventBus();
 const behaviorCompiler = new Compiler();
 const allDraggerEdges = [
@@ -855,7 +857,7 @@ export default {
                             userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
                         })
                     }
-                });
+                }, VISIT_NONINDEXABLE_ITEMS);
             });
 
             forEach(itemsForInit, (val, itemId) => {
@@ -864,8 +866,8 @@ export default {
         },
 
         onComponentSchemeMounted(item) {
-            if (item.childItems) {
-                this.indexUserEventsInItems(item.childItems);
+            if (item._childItems) {
+                this.indexUserEventsInItems(item._childItems);
             }
             if (item.shape === 'component') {
                 userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);

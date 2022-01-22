@@ -225,11 +225,16 @@ export function enrichItemWithDefaultShapeProps(item) {
     }
 }
 
-export function traverseItems(rootItem, callback) {
+export function traverseItems(rootItem, callback, visitNonIndexableItems) {
     callback(rootItem);
     forEach(rootItem.childItems, item => {
-        traverseItems(item, callback);
+        traverseItems(item, callback, visitNonIndexableItems);
     });
+    if (visitNonIndexableItems && rootItem._childItems) {
+        forEach(rootItem._childItems, item => {
+            traverseItems(item, callback, visitNonIndexableItems);
+        });
+    }
 }
 
 export function createDefaultRectItem() {
