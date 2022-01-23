@@ -1147,6 +1147,9 @@ export default {
         },
 
         onRightClickedItem(item, mouseX, mouseY) {
+            const x = this.x_(mouseX);
+            const y = this.y_(mouseY);
+
             this.customContextMenu.menuOptions = [{
                 name: 'Bring to Front', 
                 clicked: () => {this.$emit('clicked-bring-to-front');}
@@ -1156,7 +1159,7 @@ export default {
             }, {
                 name: 'Connect',
                 iconClass: 'fas fa-network-wired',
-                clicked: () => {this.$emit('clicked-start-connecting', item, this.x_(mouseX), this.y_(mouseY), mouseX, mouseY);}
+                clicked: () => {this.$emit('clicked-start-connecting', item, x, y, mouseX, mouseY);}
             }, {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
@@ -1183,6 +1186,13 @@ export default {
                 this.customContextMenu.menuOptions.push({
                     name: 'Apply copied item style',
                     clicked: () => {this.$emit('clicked-apply-copied-item-style', item);}
+                });
+            }
+
+            if (this.schemeContainer.selectedItems.length < 2) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Create component from this item',
+                    clicked: () => {this.$emit('clicked-create-component-from-item', item);}
                 });
             }
 

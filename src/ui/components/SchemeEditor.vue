@@ -67,6 +67,7 @@
                     @clicked-copy-item-style="copySelectedItemStyle()"
                     @clicked-apply-copied-item-style="applyCopiedItemStyle()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
+                    @clicked-create-component-from-item="createComponentFromItem"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
                     />
@@ -282,7 +283,7 @@ import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldPointOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -873,6 +874,30 @@ export default {
             if (selectedItems.length > 0) {
                 StoreUtils.copyItemStyle(this.$store, selectedItems[0]);
             }
+        },
+
+        createComponentFromItem(refItem) {
+            const worldPoint = worldPointOnItem(0, refItem.area.h * 1.2, refItem);
+
+            const item = {
+                area: {
+                    x: worldPoint.x,
+                    y: worldPoint.y,
+                    w: refItem.area.w,
+                    h: refItem.area.h,
+                },
+                name: `Component[${refItem.name}]`,
+                shape: 'component',
+                shapeProps: {
+                    kind: 'embedded',
+                    referenceItem: '#' + refItem.id,
+                    autoZoom: false,
+                    showButton: false
+                }
+            };
+            enrichItemWithDefaults(item);
+
+            this.schemeContainer.addItem(item);
         },
 
         applyCopiedItemStyle() {

@@ -304,22 +304,24 @@ class SchemeContainer {
 
 
     reindexComponents() {
-        forEach(this.componentItems, item => {
-            if (item.shapeProps.kind === 'embedded' && item.shapeProps.externalItem) {
-                const externalItem = this.findFirstElementBySelector(item.shapeProps.externalItem);
-                if (externalItem) {
-                    // perhaps it could also add all child items to the list
-                    if (!this.componentDependencyIndex.has(externalItem.id)) {
-                        this.componentDependencyIndex.set(externalItem.id, [item.id]);
-                    } else {
-                        const arr = this.componentDependencyIndex.get(externalItem.id);
-                        arr.push(item.id);
-                    }
+        forEach(this.componentItems, item => this.reindexEmbeddedComponent(item));
+    }
 
-                    this.attachItemsToComponentItem(item, [externalItem], IGNORE_PARENT);
+    reindexEmbeddedComponent(item) {
+        if (item.shapeProps.kind === 'embedded' && item.shapeProps.referenceItem) {
+            const referenceItem = this.findFirstElementBySelector(item.shapeProps.referenceItem);
+            if (referenceItem) {
+                // perhaps it could also add all child items to the list
+                if (!this.componentDependencyIndex.has(referenceItem.id)) {
+                    this.componentDependencyIndex.set(referenceItem.id, [item.id]);
+                } else {
+                    const arr = this.componentDependencyIndex.get(referenceItem.id);
+                    arr.push(item.id);
                 }
+
+                this.attachItemsToComponentItem(item, [referenceItem], IGNORE_PARENT);
             }
-        });
+        }
     }
 
     reindexChildItems(mainItem) {
@@ -1290,6 +1292,9 @@ class SchemeContainer {
         this.enrichItem(item);
         this.scheme.items.push(item);
         this.reindexSpecifiedItems([item]);
+        if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+            this.reindexEmbeddedComponent(item);
+        }
         return item;
     }
 
@@ -2115,18 +2120,18 @@ class SchemeContainer {
         return this.frameAnimations[itemId];
     }
 
-    attachItemsToComponentItem(componentItem, externalItems, ignoreParent) {
+    attachItemsToComponentItem(componentItem, referenceItems, ignoreParent) {
         const preserveOriginalNames = true;
         const shouldIndexClones = true;
         let childItems = null;
-        if (ignoreParent && externalItems.length > 0 && externalItems[0].childItems) {
-            childItems = this.cloneItems(externalItems[0].childItems, preserveOriginalNames, shouldIndexClones);
+        if (ignoreParent && referenceItems.length > 0 && referenceItems[0].childItems) {
+            childItems = this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones);
         }
         else {
-            childItems = this.cloneItems(externalItems, preserveOriginalNames, shouldIndexClones);
+            childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
         }
 
-        const bBox = this.getBoundingBoxOfItems(externalItems);
+        const bBox = this.getBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
             item.area.y -= bBox.y;
