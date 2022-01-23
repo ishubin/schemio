@@ -194,7 +194,7 @@ class SchemeContainer {
         this.selectedItemsMap = {};
         this.activeBoundaryBox = null;
         this.itemMap = {};
-        this._itemArray = []; // stores all flatten items (all sub-items are stored as well)
+        this._itemArray = []; // stores all flatten items (all sub-items are stored as well). it only stores indexable items
         this.revision = 0;
         this.hudItems = []; //used for storing hud items that are supposed to be rendered in the viewport transform
         this.worldItems = []; // used for storing top-level items with default area
@@ -424,7 +424,10 @@ class SchemeContainer {
             item.meta.revision = newRevision;
         }, transformMatrix, parentItem, ancestorIds, isIndexable);
 
-        this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
+        if (isIndexable) {
+            this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
+        }
+
         this.itemGroups = keys(this._itemGroupsToIds);
         this.itemGroups.sort();
 
@@ -1214,6 +1217,7 @@ class SchemeContainer {
 
     deleteItem(item) {
         this._deleteItem(item);
+        //TODO refactor it so that it does have to run a full reindex
         this.reindexItems();
     }
 
@@ -1242,6 +1246,21 @@ class SchemeContainer {
         itemsArray.splice(index, 1);
     }
 
+    deleteNonIndexableItems(items) {
+        const itemSet = new Set();
+        forEach(items, item => itemSet.add(item.id));
+
+        for (let i = this.scheme.items.length - 1; i >= 0 && itemSet.size > 0; i--) {
+            const item = this.scheme.items[i];
+            if (itemSet.has(item.id)) {
+                delete this.itemMap[item.id];
+                this.worldItemAreas.delete(item.id);
+                itemSet.delete(item.id);
+                this.scheme.items.splice(i, 1);
+            }
+        }
+    }
+
     deleteSelectedItems() {
         if (this.selectedItems && this.selectedItems.length > 0) {
             forEach(this.selectedItems, item => {
@@ -1257,7 +1276,7 @@ class SchemeContainer {
         }
     }
 
-    addItem(item) {
+    enrichItem(item) {
         enrichItemWithDefaults(item);
         if (!item.hasOwnProperty('meta')) {
             item.meta = {}
@@ -1265,8 +1284,20 @@ class SchemeContainer {
         if (!item.id) {
             item.id = shortid.generate();
         }
+    }
+
+    addItem(item) {
+        this.enrichItem(item);
         this.scheme.items.push(item);
         this.reindexSpecifiedItems([item]);
+        return item;
+    }
+
+    addNonIndexableItem(item) {
+        this.enrichItem(item);
+        this.scheme.items.push(item);
+        const nonIndexable = false;
+        this.reindexSpecifiedItems([item], null, null, [], nonIndexable);
         return item;
     }
 
