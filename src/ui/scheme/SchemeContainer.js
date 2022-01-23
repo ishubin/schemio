@@ -1564,6 +1564,25 @@ class SchemeContainer {
         return json;
     }
 
+    /**
+     * this is needed so that any changes applied to reference item gets immidiately reflected on all embedded component cloned items 
+     * @param {*} item 
+     * @param {*} setter 
+     */
+    setPropertyForItem(item, setter) {
+        setter(item);
+
+        const cloneIds = this.getItemCloneIds(item.id);
+        if (cloneIds) {
+            cloneIds.forEach(cloneId => {
+                const clonedItem = this.findItemById(cloneId);
+                if (clonedItem) {
+                    this.setPropertyForItem(clonedItem, setter);
+                }
+            });
+        }
+    }
+
     cloneItems(items, preserveOriginalNames, shouldIndexClones) {
         const copiedItemIds = {};
         const copiedItems = [];
@@ -1705,7 +1724,7 @@ class SchemeContainer {
         };
 
         forEach(oldItem, (value, field) => {
-            if (field === 'childItems') {
+            if (field === 'childItems' || field === '_childItems') {
                 newItem[field] = map(value, childItem => this.copyItem(childItem));
             } else if (field !== 'id' && field !== 'meta') {
                 newItem[field] = utils.clone(value);

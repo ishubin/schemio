@@ -1149,28 +1149,15 @@ export default {
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
 
-            // this is needed so that any changes applied to reference item gets immidiately reflected on all embedded component cloned items 
-            const setShapePropForItem = (item, name, value) => {
-                item.shapeProps[name] = value;
-                EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
-
-                const cloneIds = this.schemeContainer.getItemCloneIds(item.id);
-                if (cloneIds) {
-                    cloneIds.forEach(cloneId => {
-                        const clonedItem = this.schemeContainer.findItemById(cloneId);
-                        if (clonedItem) {
-                            setShapePropForItem(clonedItem, name, value);
-                        }
-                    });
-                }
-            };
-
             forEach(this.schemeContainer.selectedItems, item => {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     const propDescriptor = Shape.getShapePropDescriptor(shape, name);
                     if (propDescriptor && propDescriptor.type === type) {
-                        setShapePropForItem(item, name, utils.clone(value));
+                        this.schemeContainer.setPropertyForItem(item, item => {
+                            item.shapeProps[name] = utils.clone(value);
+                            EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
+                        });
 
                         if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
                             const fillPropName = name + 'Fill';
@@ -1178,12 +1165,15 @@ export default {
                                 const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
                                 if (defaultFill) {
                                     setShapePropForItem(item, fillPropName, defaultFill);
+                                    this.schemeContainer.setPropertyForItem(item, item => {
+                                        item.shapeProps[fillPropName] = defaultFill;
+                                        EventBus.emitItemChanged(item.id, `shapeProps.${fillPropName}`);
+                                    });
                                 }
                             }
                         }
 
                         item.meta.revision += 1;
-                        EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
@@ -1203,8 +1193,10 @@ export default {
         onItemFieldChanged(name, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                item[name] = utils.clone(value);
-                EventBus.emitItemChanged(item.id);
+                this.schemeContainer.setPropertyForItem(item, item => {
+                    item[name] = utils.clone(value);
+                    EventBus.emitItemChanged(item.id, name);
+                });
                 itemIds += item.id;
             });
 
@@ -1217,9 +1209,11 @@ export default {
         onItemShapeChanged(shapeName) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                item.shape = shapeName;
-                enrichItemWithDefaults(item);
-                EventBus.emitItemChanged(item.id);
+                this.schemeContainer.setPropertyForItem(item, item => {
+                    item.shape = shapeName;
+                    enrichItemWithDefaults(item);
+                    EventBus.emitItemChanged(item.id, 'shape');
+                });
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
