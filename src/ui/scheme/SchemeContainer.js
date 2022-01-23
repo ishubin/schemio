@@ -205,6 +205,7 @@ class SchemeContainer {
 
         this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
         this.itemGroups = []; // stores groups from all items
+        this.framePlayers = []; // stores all frame players so that later it can prepare all animations
 
         this.spatialIndex = new SpatialIndex(); // used for indexing item path points
         this.pinSpatialIndex = new SpatialIndex(); // used for indexing item pins
@@ -286,6 +287,7 @@ class SchemeContainer {
         this.pinSpatialIndex = new SpatialIndex();
         this.dependencyItemMap = {};
         this.itemCloneIds = new Map();
+        this.framePlayers = [];
 
         this.componentItems = [];
 
@@ -373,6 +375,9 @@ class SchemeContainer {
             }
             if (item.shape === 'component') {
                 this.componentItems.push(item);
+            }
+            if (item.shape === 'frame_player') {
+                this.framePlayers.push(item);
             }
 
             // only storing top-level items 
@@ -2105,14 +2110,10 @@ class SchemeContainer {
 
     prepareFrameAnimationsForItems(items) {
         this.frameAnimations = {};
-        forEach(items, rootItem => {
-            traverseItems(rootItem, item => {
-                if (item.shape !== 'frame_player') {
-                    return;
-                }
-                const compiledAnimations = compileAnimations(item, this);
-                this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
-            });
+        //OPTIMIZE: instead of traversin all items we can collect frame players during reindexing of all items and then only iterate of that array
+        forEach(this.framePlayers, item => {
+            const compiledAnimations = compileAnimations(item, this);
+            this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);
         });
     }
 
