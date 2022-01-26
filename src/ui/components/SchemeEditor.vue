@@ -1202,6 +1202,11 @@ export default {
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
+
+                    if (item.shape === 'component' && name === 'referenceItem') {
+                        this.schemeContainer.reindexSpecifiedItems([item]);
+                        this.schemeContainer.reindexItems();
+                    }
                 }
             });
 

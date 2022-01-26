@@ -300,6 +300,7 @@ class SchemeContainer {
         
         this.reindexSpecifiedItems(this.scheme.items);
         this.reindexComponents();
+        this.fixComponentCyclicDependencies();
 
         log.timeEnd('reindexItems');
     }
@@ -313,17 +314,116 @@ class SchemeContainer {
         if (item.shapeProps.kind === 'embedded' && item.shapeProps.referenceItem) {
             const referenceItem = this.findFirstElementBySelector(item.shapeProps.referenceItem);
             if (referenceItem) {
-                // perhaps it could also add all child items to the list
-                if (!this.componentDependencyIndex.has(referenceItem.id)) {
-                    this.componentDependencyIndex.set(referenceItem.id, [item.id]);
-                } else {
-                    const arr = this.componentDependencyIndex.get(referenceItem.id);
-                    arr.push(item.id);
+                if (!this.componentDependencyIndex.has(item.id)) {
+                    this.componentDependencyIndex.set(item.id, new Set());
                 }
+                const set = this.componentDependencyIndex.get(item.id);
+                traverseItems(referenceItem, item => {
+                    set.add(item.id)
+                });
 
                 this.attachItemsToComponentItem(item, [referenceItem], IGNORE_PARENT);
             }
         }
+    }
+
+    fixComponentCyclicDependencies() {
+        this.componentDependencyIndex.forEach((dependencies, componentId) => {
+            const visitedIds = new Set();
+
+            const isCyclic = (id) => {
+                if (visitedIds.has(id)) {
+                    return true;
+                }
+                visitedIds.add(id);
+                let result = false;
+                if (this.componentDependencyIndex.has(id)) {
+                    const set = this.componentDependencyIndex.get(id)
+                    
+                    set.forEach(subId => {
+                        if (!result) {
+                            result = isCyclic(subId);
+                        }
+                    });
+                }
+                return result;
+            };
+
+            if (isCyclic(componentId)) {
+                // this is dirty code. We waste time on enriching components and only later check their dependecies 
+                // and clean up in case a cyclic dependency is detected
+                const item = this.findItemById(componentId);
+                if (item.shape === 'component') {
+                    item._childItems = [];
+                    //TODO find a way to render an error message about cyclic dependency. Perhaps with the help of 'meta' field
+                    item.meta.cyclicComponent = true;
+                }
+            }
+
+        });
+    }
+
+    attachItemsToComponentItem(componentItem, referenceItems, ignoreParent) {
+        const preserveOriginalNames = true;
+        const shouldIndexClones = true;
+        let childItems = null;
+        if (ignoreParent && referenceItems.length > 0 && referenceItems[0].childItems) {
+            childItems = this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones);
+        }
+        else {
+            childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
+        }
+
+        const bBox = this.getBoundingBoxOfItems(referenceItems);
+        forEach(childItems, item => {
+            item.area.x -= bBox.x;
+            item.area.y -= bBox.y;
+        });
+
+        let scale = 1.0, dx = 0, dy = 0;
+        const sx = componentItem.area.w / bBox.w;
+        const sy = componentItem.area.h / bBox.h;
+        let w = bBox.w;
+        let h = bBox.h;
+
+        if (bBox.w > 0 && bBox.h > 0) {
+            scale = Math.min(sx, sy, 1.0);
+            
+            if (sx > 1) {
+                dx = (componentItem.area.w - bBox.w) / 2;
+            } else if (sx > sy) {
+                dx = (componentItem.area.w - bBox.w * scale) / 2;
+                w = bBox.w / Math.max(0.00001, sx);
+            }
+
+            if (sy > 1) {
+                dy = (componentItem.area.h - bBox.h) / 2;
+            } else if (sx < sy) {
+                dy = (componentItem.area.h - bBox.h * scale) / 2;
+                h = bBox.h / Math.max(0.00001, sy);
+            }
+        }
+
+        const rectItem = createDefaultRectItem();
+        rectItem.id = shortid.generate();
+        rectItem.area.x = dx;
+        rectItem.area.y = dy;
+
+        rectItem.area.w = w;
+        rectItem.area.h = h;
+
+        rectItem.area.sx = scale;
+        rectItem.area.sy = scale;
+        rectItem.shapeProps.fill = {type: 'none'};
+        rectItem.shapeProps.strokeSize = 0;
+
+        rectItem._childItems = childItems;
+
+        componentItem._childItems = [rectItem];
+
+        const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
+        const nonIndexable = false;
+        this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
     }
 
     reindexChildItems(mainItem) {
@@ -2119,69 +2219,6 @@ class SchemeContainer {
 
     getFrameAnimation(itemId) {
         return this.frameAnimations[itemId];
-    }
-
-    attachItemsToComponentItem(componentItem, referenceItems, ignoreParent) {
-        const preserveOriginalNames = true;
-        const shouldIndexClones = true;
-        let childItems = null;
-        if (ignoreParent && referenceItems.length > 0 && referenceItems[0].childItems) {
-            childItems = this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones);
-        }
-        else {
-            childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
-        }
-
-        const bBox = this.getBoundingBoxOfItems(referenceItems);
-        forEach(childItems, item => {
-            item.area.x -= bBox.x;
-            item.area.y -= bBox.y;
-        });
-
-        let scale = 1.0, dx = 0, dy = 0;
-        const sx = componentItem.area.w / bBox.w;
-        const sy = componentItem.area.h / bBox.h;
-        let w = bBox.w;
-        let h = bBox.h;
-
-        if (bBox.w > 0 && bBox.h > 0) {
-            scale = Math.min(sx, sy, 1.0);
-            
-            if (sx > 1) {
-                dx = (componentItem.area.w - bBox.w) / 2;
-            } else if (sx > sy) {
-                dx = (componentItem.area.w - bBox.w * scale) / 2;
-                w = bBox.w / Math.max(0.00001, sx);
-            }
-
-            if (sy > 1) {
-                dy = (componentItem.area.h - bBox.h) / 2;
-            } else if (sx < sy) {
-                dy = (componentItem.area.h - bBox.h * scale) / 2;
-                h = bBox.h / Math.max(0.00001, sy);
-            }
-        }
-
-        const rectItem = createDefaultRectItem();
-        rectItem.id = shortid.generate();
-        rectItem.area.x = dx;
-        rectItem.area.y = dy;
-
-        rectItem.area.w = w;
-        rectItem.area.h = h;
-
-        rectItem.area.sx = scale;
-        rectItem.area.sy = scale;
-        rectItem.shapeProps.fill = {type: 'none'};
-        rectItem.shapeProps.strokeSize = 0;
-
-        rectItem._childItems = childItems;
-
-        componentItem._childItems = [rectItem];
-
-        const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
-        const nonIndexable = false;
-        this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
     }
 
     getEventBus() {
