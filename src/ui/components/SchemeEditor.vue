@@ -67,6 +67,7 @@
                     @clicked-copy-item-style="copySelectedItemStyle()"
                     @clicked-apply-copied-item-style="applyCopiedItemStyle()"
                     @clicked-items-paste="pasteItemsFromClipboard()"
+                    @clicked-create-component-from-item="createComponentFromItem"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
                     />
@@ -282,7 +283,7 @@ import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldPointOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -875,6 +876,30 @@ export default {
             }
         },
 
+        createComponentFromItem(refItem) {
+            const worldPoint = worldPointOnItem(0, refItem.area.h * 1.2, refItem);
+
+            const item = {
+                area: {
+                    x: worldPoint.x,
+                    y: worldPoint.y,
+                    w: refItem.area.w,
+                    h: refItem.area.h,
+                },
+                name: `Component[${refItem.name}]`,
+                shape: 'component',
+                shapeProps: {
+                    kind: 'embedded',
+                    referenceItem: '#' + refItem.id,
+                    autoZoom: false,
+                    showButton: false
+                }
+            };
+            enrichItemWithDefaults(item);
+
+            this.schemeContainer.addItem(item);
+        },
+
         applyCopiedItemStyle() {
             if (this.$store.state.copiedStyleItem) {
                 forEach(this.schemeContainer.getSelectedItems(), item => {
@@ -1148,27 +1173,39 @@ export default {
         // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
+
             forEach(this.schemeContainer.selectedItems, item => {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     const propDescriptor = Shape.getShapePropDescriptor(shape, name);
                     if (propDescriptor && propDescriptor.type === type) {
-                        item.shapeProps[name] = utils.clone(value);
+                        this.schemeContainer.setPropertyForItem(item, item => {
+                            item.shapeProps[name] = utils.clone(value);
+                            EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
+                        });
 
                         if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
                             const fillPropName = name + 'Fill';
                             if (shape.argType(fillPropName) === 'color') {
                                 const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
                                 if (defaultFill) {
-                                    item.shapeProps[fillPropName] = defaultFill;
+                                    setShapePropForItem(item, fillPropName, defaultFill);
+                                    this.schemeContainer.setPropertyForItem(item, item => {
+                                        item.shapeProps[fillPropName] = defaultFill;
+                                        EventBus.emitItemChanged(item.id, `shapeProps.${fillPropName}`);
+                                    });
                                 }
                             }
                         }
 
                         item.meta.revision += 1;
-                        EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
+                    }
+
+                    if (item.shape === 'component' && name === 'referenceItem') {
+                        this.schemeContainer.reindexSpecifiedItems([item]);
+                        this.schemeContainer.reindexItems();
                     }
                 }
             });
@@ -1186,8 +1223,10 @@ export default {
         onItemFieldChanged(name, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                item[name] = utils.clone(value);
-                EventBus.emitItemChanged(item.id);
+                this.schemeContainer.setPropertyForItem(item, item => {
+                    item[name] = utils.clone(value);
+                    EventBus.emitItemChanged(item.id, name);
+                });
                 itemIds += item.id;
             });
 
@@ -1200,9 +1239,11 @@ export default {
         onItemShapeChanged(shapeName) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                item.shape = shapeName;
-                enrichItemWithDefaults(item);
-                EventBus.emitItemChanged(item.id);
+                this.schemeContainer.setPropertyForItem(item, item => {
+                    item.shape = shapeName;
+                    enrichItemWithDefaults(item);
+                    EventBus.emitItemChanged(item.id, 'shape');
+                });
                 itemIds += item.id;
             });
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
@@ -1361,13 +1402,13 @@ export default {
         },
 
         onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.loadScheme) {
                 return;
             }
             this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
             .then(scheme => {
                 const componentSchemeContainer = new SchemeContainer(scheme);
-                this.interactiveSchemeContainer.attachSchemeToComponentItem(item, componentSchemeContainer.scheme);
+                this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);
                 EventBus.emitItemChanged(item.id);
 

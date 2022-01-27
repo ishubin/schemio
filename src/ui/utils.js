@@ -17,7 +17,7 @@ function sanitizeItem(oldItem) {
     forEach(oldItem, (value, field) => {
         if (field === 'childItems') {
             item[field] = map(value, sanitizeItem);
-        } else if (field !== 'meta') {
+        } else if (field !== 'meta' && field !== '_childItems') {
             item[field] = value;
         }
     });

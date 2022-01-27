@@ -80,7 +80,8 @@ class ItemRecycler {
 
 
     destroy() {
-        this.schemeContainer.deleteItems(this.items);
+        //TODO fix this. it forces to reindex all items and components which completely resets user behaviors and they stop working in component items
+        this.schemeContainer.deleteNonIndexableItems(this.items);
     }
 
     borrowItem(elementSelector) {
@@ -91,7 +92,7 @@ class ItemRecycler {
         const particleReferenceItem = this.schemeContainer.findFirstElementBySelector(elementSelector);
         if (particleReferenceItem) {
             const [clonedItem] = this.schemeContainer.cloneItems([particleReferenceItem]);
-            this.schemeContainer.addItem(clonedItem);
+            this.schemeContainer.addNonIndexableItem(clonedItem);
             this.items.push(clonedItem);
             return clonedItem;
         }

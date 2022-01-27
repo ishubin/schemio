@@ -864,8 +864,8 @@ export default {
         },
 
         onComponentSchemeMounted(item) {
-            if (item.childItems) {
-                this.indexUserEventsInItems(item.childItems);
+            if (item._childItems) {
+                this.indexUserEventsInItems(item._childItems);
             }
             if (item.shape === 'component') {
                 userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
@@ -1145,6 +1145,9 @@ export default {
         },
 
         onRightClickedItem(item, mouseX, mouseY) {
+            const x = this.x_(mouseX);
+            const y = this.y_(mouseY);
+
             this.customContextMenu.menuOptions = [{
                 name: 'Bring to Front', 
                 clicked: () => {this.$emit('clicked-bring-to-front');}
@@ -1154,7 +1157,7 @@ export default {
             }, {
                 name: 'Connect',
                 iconClass: 'fas fa-network-wired',
-                clicked: () => {this.$emit('clicked-start-connecting', item, this.x_(mouseX), this.y_(mouseY), mouseX, mouseY);}
+                clicked: () => {this.$emit('clicked-start-connecting', item, x, y, mouseX, mouseY);}
             }, {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
@@ -1181,6 +1184,13 @@ export default {
                 this.customContextMenu.menuOptions.push({
                     name: 'Apply copied item style',
                     clicked: () => {this.$emit('clicked-apply-copied-item-style', item);}
+                });
+            }
+
+            if (this.schemeContainer.selectedItems.length < 2) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Create component from this item',
+                    clicked: () => {this.$emit('clicked-create-component-from-item', item);}
                 });
             }
 
@@ -1421,22 +1431,16 @@ export default {
         /**
          * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
          */
-        calculateBoundingBoxOfAllSubItems(schemeContainer, item) {
+        calculateBoundingBoxOfAllSubItems(schemeContainer, parentItem) {
             const items = [];
-            const traverse = (item) => {
+            traverseItems(parentItem, item => {
                 if (item.visible && item.opacity > 0.0001) {
                     // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
                     if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
                         items.push(item);
                     }
-                    if (item.childItems) {
-                        forEach(item.childItems, childItem => {
-                            traverse(childItem);
-                        });
-                    }
                 }
-            };
-            traverse(item);
+            });
             return schemeContainer.getBoundingBoxOfItems(items)
         },
 

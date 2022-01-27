@@ -13,7 +13,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <g style="cursor: pointer;" v-if="buttonShown">
+        <g style="cursor: pointer;" v-if="buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
 
             <rect v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
@@ -43,6 +43,13 @@
                 @mouseover="onButtonMouseOver"
                 @mouseleave="onButtonMouseLeave"
                 />
+        </g>
+
+        <g v-if="item.meta && item.meta.cyclicComponent">
+            <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
+            <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
+                <div class="item-text-container" :style="cyclicWarningStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Cyclic dependency!</b></div>
+            </foreignObject>
         </g>
     </g>
 </template>
@@ -137,14 +144,18 @@ export default {
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
             strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID'},
-            autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded'},
-            showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode'},
-            buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill', depends: {showButton: true}},
-            buttonStrokeColor     : {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Button stroke color', depends: {showButton: true}},
-            buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill', depends: {showButton: true}},
-            buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true}},
-            buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true}},
+
+            kind                  : {type: 'choice', value: 'external', name: 'Kind', options: ['external', 'embedded'],  description: 'External - allows to fetch other documents and render them inside the component. Embedded - uses the items in the same document'},
+            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID', depends: {kind: 'external'}},
+            referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}},
+
+            autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded', depends: {kind: 'external'}},
+            showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode', depends: {kind: 'external'}},
+            buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill', depends: {showButton: true, kind: 'external'}},
+            buttonStrokeColor     : {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Button stroke color', depends: {showButton: true, kind: 'external'}},
+            buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill', depends: {showButton: true, kind: 'external'}},
+            buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true, kind: 'external'}},
+            buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}},
         },
 
         editorProps: {
@@ -181,7 +192,7 @@ export default {
     data() {
         return {
             buttonHovered: false,
-            buttonShown: this.item.shapeProps.showButton && !(this.item.childItems && this.item.childItems.length > 0),
+            buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !(this.item._childItems && this.item._childItems.length > 0),
             isLoading: false,
             hideTextSlot: false,
             textStyle: this.createTextStyle()
@@ -194,7 +205,7 @@ export default {
             EventBus.emitComponentLoadRequested(this.item);
         },
         onItemChanged() {
-            if (this.item.childItems && this.item.childItems.length > 0) {
+            if (this.item._childItems && this.item._childItems.length > 0) {
                 this.buttonShown = false;
             }
             this.isLoading = false;
@@ -263,6 +274,22 @@ export default {
                 text = this.item.textSlots.button.text;
             }
             return htmlSanitize(text);
+        },
+
+        cyclicWarningStyle() {
+            return {
+                color: 'rgb(255, 255, 255)',
+                'font-size': '14px',
+                'font-family': 'Arial, Helvetica, sans-serif',
+                padding: '10px',
+                'text-align': 'center',
+                'vertical-align': 'middle',
+                'white-space': 'normal',
+                display: 'table-cell',
+                'box-sizing': 'border-box',
+                width: `${this.item.area.w}px`,
+                height: `${this.item.area.h}px`,
+            };
         }
     }
 }

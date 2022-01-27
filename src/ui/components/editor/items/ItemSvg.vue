@@ -55,6 +55,20 @@
 
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
+
+        <g v-if="item._childItems && item.visible && mode === 'edit'"
+            :style="childrenLayerStyle"
+            >
+            <ItemSvg v-for="childItem in item._childItems"
+                v-if="childItem.visible"
+                :key="`${childItem.id}-${childItem.shape}`"
+                :item="childItem"
+                :mode="mode"
+                @custom-event="$emit('custom-event', arguments[0])"
+                @frame-animator="onFrameAnimatorEvent"
+                />
+        </g>
+
         <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
             class="svg-event-layer"
             data-preview-ignore="true"
@@ -83,6 +97,19 @@
             :style="childrenLayerStyle"
             >
             <ItemSvg v-for="childItem in item.childItems"
+                v-if="childItem.visible"
+                :key="`${childItem.id}-${childItem.shape}`"
+                :item="childItem"
+                :mode="mode"
+                @custom-event="$emit('custom-event', arguments[0])"
+                @frame-animator="onFrameAnimatorEvent"
+                />
+        </g>
+
+        <g v-if="item._childItems && item.visible && mode === 'view'"
+            :style="childrenLayerStyle"
+            >
+            <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"

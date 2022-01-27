@@ -164,7 +164,10 @@ export const defaultItem = {
     textSlots: {},
     behavior: {
         events: []
-    }
+    },
+
+    // childItems: [], // used dynamically in case there are child items
+    // _childItems: [], // used dynamically by components and it stores items that were copied from the referrence item. This field is ignored when saving or exporting
 };
 
 const shapePropsDefaults = {};
@@ -224,9 +227,16 @@ export function enrichItemWithDefaultShapeProps(item) {
 
 export function traverseItems(rootItem, callback) {
     callback(rootItem);
-    forEach(rootItem.childItems, item => {
-        traverseItems(item, callback);
-    });
+    if (rootItem.childItems) {
+        forEach(rootItem.childItems, item => {
+            traverseItems(item, callback);
+        });
+    }
+    if (rootItem._childItems) {
+        forEach(rootItem._childItems, item => {
+            traverseItems(item, callback);
+        });
+    }
 }
 
 export function createDefaultRectItem() {
