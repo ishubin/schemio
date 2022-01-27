@@ -45,7 +45,7 @@
                 />
         </g>
 
-        <g v-if="item.meta.cyclicComponent">
+        <g v-if="item.meta && item.meta.cyclicComponent">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
                 <div class="item-text-container" :style="cyclicWarningStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Cyclic dependency!</b></div>

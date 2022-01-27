@@ -251,8 +251,6 @@ import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Compone
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
 
-const VISIT_NONINDEXABLE_ITEMS = true;
-
 const userEventBus = new UserEventBus();
 const behaviorCompiler = new Compiler();
 const allDraggerEdges = [
@@ -857,7 +855,7 @@ export default {
                             userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
                         })
                     }
-                }, VISIT_NONINDEXABLE_ITEMS);
+                });
             });
 
             forEach(itemsForInit, (val, itemId) => {
@@ -1433,22 +1431,16 @@ export default {
         /**
          * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
          */
-        calculateBoundingBoxOfAllSubItems(schemeContainer, item) {
+        calculateBoundingBoxOfAllSubItems(schemeContainer, parentItem) {
             const items = [];
-            const traverse = (item) => {
+            traverseItems(parentItem, item => {
                 if (item.visible && item.opacity > 0.0001) {
                     // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
                     if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
                         items.push(item);
                     }
-                    if (item.childItems) {
-                        forEach(item.childItems, childItem => {
-                            traverse(childItem);
-                        });
-                    }
                 }
-            };
-            traverse(item);
+            });
             return schemeContainer.getBoundingBoxOfItems(items)
         },
 

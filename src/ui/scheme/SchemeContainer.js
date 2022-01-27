@@ -367,11 +367,21 @@ class SchemeContainer {
         const preserveOriginalNames = true;
         const shouldIndexClones = true;
         let childItems = null;
-        if (ignoreParent && referenceItems.length > 0 && referenceItems[0].childItems) {
-            childItems = this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones);
+        if (ignoreParent && referenceItems.length > 0) {
+            childItems = [];
+            if (referenceItems[0].childItems) {
+                childItems = childItems.concat(this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones));
+            }
+            if (referenceItems[0]._childItems) {
+                childItems = childItems.concat(this.cloneItems(referenceItems[0]._childItems, preserveOriginalNames, shouldIndexClones));
+            }
         }
         else {
             childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
+        }
+
+        if (!childItems) {
+            return;
         }
 
         const bBox = this.getBoundingBoxOfItems(referenceItems);
@@ -2210,7 +2220,7 @@ class SchemeContainer {
 
     prepareFrameAnimationsForItems(items) {
         this.frameAnimations = {};
-        //OPTIMIZE: instead of traversin all items we can collect frame players during reindexing of all items and then only iterate of that array
+        //OPTIMIZE: instead of traversing all items we can collect frame players during reindexing of all items and then only iterate of that array
         forEach(this.framePlayers, item => {
             const compiledAnimations = compileAnimations(item, this);
             this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);

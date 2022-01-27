@@ -225,14 +225,16 @@ export function enrichItemWithDefaultShapeProps(item) {
     }
 }
 
-export function traverseItems(rootItem, callback, visitNonIndexableItems) {
+export function traverseItems(rootItem, callback) {
     callback(rootItem);
-    forEach(rootItem.childItems, item => {
-        traverseItems(item, callback, visitNonIndexableItems);
-    });
-    if (visitNonIndexableItems && rootItem._childItems) {
+    if (rootItem.childItems) {
+        forEach(rootItem.childItems, item => {
+            traverseItems(item, callback);
+        });
+    }
+    if (rootItem._childItems) {
         forEach(rootItem._childItems, item => {
-            traverseItems(item, callback, visitNonIndexableItems);
+            traverseItems(item, callback);
         });
     }
 }
