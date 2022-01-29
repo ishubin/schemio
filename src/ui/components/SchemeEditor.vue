@@ -24,6 +24,7 @@
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
+            @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
@@ -1107,6 +1108,10 @@ export default {
 
         exportAsSVG() {
             EventBus.$emit(EventBus.EXPORT_SVG_REQUESTED);
+        },
+
+        exportAsPNG() {
+            EventBus.$emit(EventBus.EXPORT_PNG_REQUESTED);
         },
 
         onItemTextSlotEditTriggered(item, slotName) {

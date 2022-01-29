@@ -16,6 +16,7 @@
                             @export-json-requested="$emit('export-json-requested')"
                             @export-embedded-requested="$emit('export-embedded-requested')"
                             @export-svg-requested="$emit('export-svg-requested')"
+                            @export-png-requested="$emit('export-png-requested')"
                             @export-html-requested="$emit('export-html-requested')"
                             />
                     </li>
@@ -280,6 +281,7 @@ export default {
             {name: 'Import diagram',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
             {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
+            {name: 'Export as PNG',  event: 'export-png-requested', iconClass: 'fas fa-file-export'},
         ];
 
         if (this.$store.state.apiClient && this.$store.state.apiClient.getExportHTMLResources) {

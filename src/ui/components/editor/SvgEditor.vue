@@ -195,12 +195,13 @@
             @selected="onCustomContextMenuOptionSelected"
         />
 
-        <export-svg-modal v-if="exportSVGModal.shown"
-            :exported-items="exportSVGModal.exportedItems"
-            :width="exportSVGModal.width"
-            :height="exportSVGModal.height"
-            :background-color="exportSVGModal.backgroundColor"
-            @close="exportSVGModal.shown = false"/>
+        <export-picture-modal v-if="exportPictureModal.shown"
+            :exported-items="exportPictureModal.exportedItems"
+            :kind="exportPictureModal.kind"
+            :width="exportPictureModal.width"
+            :height="exportPictureModal.height"
+            :background-color="exportPictureModal.backgroundColor"
+            @close="exportPictureModal.shown = false"/>
     </div>
 </template>
 
@@ -242,7 +243,7 @@ import ValueAnimation from '../../animations/ValueAnimation';
 import Modal from '../Modal.vue';
 import Events from '../../userevents/Events';
 import StrokePattern from './items/StrokePattern';
-import ExportSVGModal from './ExportSVGModal.vue';
+import ExportPictureModal from './ExportPictureModal.vue';
 import { filterOutPreviewSvgElements } from '../../svgPreview';
 import store from '../../store/Store';
 import StoreUtils from '../../store/StoreUtils';
@@ -298,7 +299,7 @@ export default {
         useMouseWheel   : { default: true, type: Boolean}
     },
 
-    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal, 'export-svg-modal': ExportSVGModal},
+    components: {ItemSvg, ContextMenu, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal, ExportPictureModal},
     beforeMount() {
         forEach(states, state => {
             state.setSchemeContainer(this.schemeContainer);
@@ -331,6 +332,7 @@ export default {
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
+        EventBus.$on(EventBus.EXPORT_PNG_REQUESTED, this.onExportPNGRequested);
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
@@ -382,6 +384,7 @@ export default {
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
+        EventBus.$off(EventBus.EXPORT_PNG_REQUESTED, this.onExportPNGRequested);
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
@@ -431,7 +434,8 @@ export default {
 
             worldHighlightedItems: [ ],
 
-            exportSVGModal: {
+            exportPictureModal: {
+                kind: 'svg',
                 width: 100,
                 height: 100,
                 shown: false,
@@ -1201,8 +1205,11 @@ export default {
                 name: 'Surround items',
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
-                name: 'Export as SVG...',
+                name: 'Export as SVG ...',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
+            }, {
+                name: 'Export as PNG ...',
+                clicked: () => { this.exportSelectedItemsAsPNG(); }
             }]);
 
 
@@ -1307,8 +1314,13 @@ export default {
         },
 
         onExportSVGRequested() {
-            this.openExportSVGModal(this.schemeContainer, this.schemeContainer.scheme.items);
+            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'svg');
         },
+
+        onExportPNGRequested() {
+            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
+        },
+
 
         exportAsShape() {
             if (!this.schemeContainer.multiItemEditBox) {
@@ -1322,6 +1334,14 @@ export default {
         },
 
         exportSelectedItemsAsSVG() {
+            this.exportSelectedItemsAsPicture('svg');
+        },
+
+        exportSelectedItemsAsPNG() {
+            this.exportSelectedItemsAsPicture('png');
+        },
+
+        exportSelectedItemsAsPicture(kind) {
             if (!this.schemeContainer.multiItemEditBox) {
                 return;
             }
@@ -1347,10 +1367,10 @@ export default {
                 }
             });
 
-            this.openExportSVGModal(this.schemeContainer, items);
+            this.openExportPictureModal(this.schemeContainer, items, kind);
         },
 
-        openExportSVGModal(schemeContainer, items) {
+        openExportPictureModal(schemeContainer, items, kind) {
             if (!items || items.length === 0) {
                 StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
                 return;
@@ -1406,26 +1426,27 @@ export default {
                 exportedItems.push({item, html})
             });
 
-            this.exportSVGModal.exportedItems = exportedItems;
-            this.exportSVGModal.width = maxP.x - minP.x;
-            this.exportSVGModal.height = maxP.y - minP.y;
-            if (this.exportSVGModal.width > 5) {
-                this.exportSVGModal.width = Math.round(this.exportSVGModal.width);
+            this.exportPictureModal.exportedItems = exportedItems;
+            this.exportPictureModal.width = maxP.x - minP.x;
+            this.exportPictureModal.height = maxP.y - minP.y;
+            if (this.exportPictureModal.width > 5) {
+                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
             }
-            if (this.exportSVGModal.height > 5) {
-                this.exportSVGModal.height = Math.round(this.exportSVGModal.height);
+            if (this.exportPictureModal.height > 5) {
+                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
             }
 
-            // this check is needed when export straigt vertical or horizontal curve lines
+            // this check is needed when export straight vertical or horizontal curve lines
             // in such case area is defined with zero width or height and it makes SVG export confused
-            if (this.exportSVGModal.width < 0.001) {
-                this.exportSVGModal.width = 20;
+            if (this.exportPictureModal.width < 0.001) {
+                this.exportPictureModal.width = 20;
             }
-            if (this.exportSVGModal.height < 0.001) {
-                this.exportSVGModal.height = 20;
+            if (this.exportPictureModal.height < 0.001) {
+                this.exportPictureModal.height = 20;
             }
-            this.exportSVGModal.backgroundColor = schemeContainer.scheme.style.backgroundColor
-            this.exportSVGModal.shown = true;
+            this.exportPictureModal.backgroundColor = schemeContainer.scheme.style.backgroundColor;
+            this.exportPictureModal.kind = kind;
+            this.exportPictureModal.shown = true;
         },
 
         /**

@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <modal title="Export as SVG" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt">
+    <modal :title="title" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt">
         <table>
             <tbody>
                 <tr>
@@ -13,10 +13,10 @@
                         <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
                     </td>
                     <td>
-                        <number-textfield :value="viewBoxWidth" name="Width" @changed="viewBoxWidth = arguments[0]"/>
+                        <number-textfield :value="paddingRight" name="Width" @changed="paddingRight = arguments[0]"/>
                     </td>
                     <td>
-                        <number-textfield :value="viewBoxHeight" name="Height" @changed="viewBoxHeight = arguments[0]"/>
+                        <number-textfield :value="paddingBottom" name="Height" @changed="paddingBottom = arguments[0]"/>
                     </td>
                 </tr>
                 <tr>
@@ -65,6 +65,9 @@ export default {
         exportedItems  : { value: [], type: Array },
         width          : { value: 300, type: Number },
         height         : { value: 300, type: Number },
+
+        // kind can be either svg or png
+        kind           : { value: 'svg', type: String},
         backgroundColor: { value: 'rgba(255,255,255,1.0)', type: String}
     },
 
@@ -72,10 +75,6 @@ export default {
 
     data() {
         const svgHtml = map(this.exportedItems, e => e.html).join('\n');
-        let paddingTop = 0;
-        let paddingLeft = 0;
-        let viewBoxWidth = this.width;
-        let viewBoxHeight = this.height;
 
         let largestStrokeSize = 0;
         forEach(this.exportedItems, item => {
@@ -84,17 +83,26 @@ export default {
             }
         });
 
-        paddingTop = 2 * largestStrokeSize;
-        paddingLeft = 2 * largestStrokeSize;
-        viewBoxWidth += 2 * largestStrokeSize;
-        viewBoxHeight += 2 * largestStrokeSize;
+        const defaultPadding = Math.max(40, 2 * largestStrokeSize);
+        let paddingTop = defaultPadding;
+        let paddingLeft = defaultPadding;
+        let paddingRight = defaultPadding;
+        let paddingBottom = defaultPadding;
+
+        if (this.width < 60 || this.height < 60) {
+            paddingTop = 2 * largestStrokeSize;
+            paddingLeft = 2 * largestStrokeSize;
+            paddingRight = 2 * largestStrokeSize;
+            paddingBottom = 2 * largestStrokeSize;
+        }
 
         return {
             shouldExportBackground: false,
             paddingTop,
             paddingLeft,
-            viewBoxWidth,
-            viewBoxHeight,
+            paddingBottom,
+            paddingRight,
+            largestStrokeSize,
             placement: 'centered', // can be top-left, centered, stretched
             svgHtml: svgHtml,
             previewPadding: 20
@@ -112,27 +120,56 @@ export default {
                 }
             });
 
-            svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${this.viewBoxWidth} ${this.viewBoxHeight}`);
 
-            svgDom.removeAttribute('width');
-            svgDom.removeAttribute('height');
+            if (this.kind === 'svg') {
+                const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
+                const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
+                svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
+                svgDom.removeAttribute('width');
+                svgDom.removeAttribute('height');
+            } else {
+                const viewBoxWidth = this.width + 2 * this.largestStrokeSize;
+                const viewBoxHeight = this.height + 2 * this.largestStrokeSize;
+                svgDom.setAttribute('viewBox', `${-this.largestStrokeSize} ${-this.largestStrokeSize} ${viewBoxWidth} ${viewBoxHeight}`);
+                svgDom.setAttribute('width', `${viewBoxWidth}px`);
+                svgDom.setAttribute('height', `${viewBoxHeight}px`);
+            }
 
             const svgCode = svgDom.outerHTML;
-            const dataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
+            const svgDataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
 
+            if (this.kind === 'svg') {
+                this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
+            } else {
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
+                canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
+
+                const ctx = canvas.getContext('2d');
+                const img = new Image;
+
+                img.onload = () => {
+                    ctx.fillStyle = this.backgroundColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, this.paddingLeft, this.paddingTop);
+                    this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, canvas.toDataURL('image/png'));
+                };
+                img.src = svgDataUrl;
+            }
+        },
+
+        downloadViaLink(name, content) {
             const link = document.createElement('a');
             document.body.appendChild(link);
-
             try {
-                link.href = dataUrl;
-                link.download = `${this.exportedItems[0].item.name}.svg`;
+                link.href = content;
+                link.download = name;
                 link.click();
                 this.$emit('close');
             } catch(e) {
                 console.error(e);
             }
             setTimeout(() => document.body.removeChild(link), 100);
-
         }
     },
 
@@ -156,14 +193,30 @@ export default {
         },
 
         previewStrokeSize() {
-            const vw = this.viewBoxWidth + 2 * this.previewPadding + this.paddingLeft;
-            const vh = this.viewBoxHeight + 2 * this.previewPadding + this.paddingTop;
+            const vw = this.width + 2 * this.previewPadding + this.paddingLeft + this.paddingRight;
+            const vh = this.height + 2 * this.previewPadding + this.paddingTop + this.paddingBottom;
 
             if (Math.abs(vw) < 0.001 || Math.abs(vh) < 0.001) {
                 return 1;
             }
 
             return 2 * Math.max(Math.abs(vw/600), Math.abs(vh/380));
+        },
+
+        viewBoxWidth() {
+            return this.width + this.paddingRight;
+        },
+
+        viewBoxHeight() {
+            return this.height + this.paddingBottom;
+        },
+
+        title() {
+            if (this.kind === 'svg') {
+                return 'Export as SVG';
+            } else {
+                return 'Export as PNG';
+            }
         }
     }
 }
