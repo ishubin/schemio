@@ -270,7 +270,12 @@ class ItemParticleEffectAnimation extends Animation {
             if (maxLifeTime < 0.1) {
                 maxLifeTime = 1.0;
             }
-            const pathLength = this.totalPathLength * particle.lifeTime / maxLifeTime;
+            let pathLength = 0; 
+            if (this.args.backwards) {
+                pathLength = this.totalPathLength * Math.max(0, (1.0 - particle.lifeTime / maxLifeTime));
+            } else {
+                pathLength = this.totalPathLength * particle.lifeTime / maxLifeTime;
+            }
             const point = this.domItemPath.getPointAtLength(pathLength);
             let x = point.x;
             let y = point.y;
@@ -376,21 +381,22 @@ export default {
         ]},
         item              : {name: 'Item',              type: 'element', value: null, depends: {particleType: 'item'}},
         particlesCount    : {name: 'Particles',         type: 'number', value: 20},
-        particleSize      : {name: 'Particle Size',     type: 'number', value: 20},
+        particleSize      : {name: 'Particle size',     type: 'number', value: 20},
         color             : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
         speed             : {name: 'Speed',             type: 'number', value: 60, depends: {travelAlongPath: false}},
-        lifeTime          : {name: 'Life Time (sec)',   type: 'number', value: 2.0},
+        lifeTime          : {name: 'Life time (sec)',   type: 'number', value: 2.0},
         birthTime         : {name: 'Birth time (sec)',  type: 'number', value: 0.5, description: 'Time in which it should generate all particles'},
         growth            : {name: 'Growth to (%)',     type: 'number', value: 10},
         decline           : {name: 'Decline from (%)',  type: 'number', value: 90},
         fadeIn            : {name: 'Fade in (%)',       type: 'number', value: 5},
         fadeOut           : {name: 'Fade out (%)',      type: 'number', value: 95},
-        travelAlongPath   : {name: 'Travel Along Path', type: 'boolean',value: true, description: 'The particle emits in the beggining of the path and travels along the path'},
+        travelAlongPath   : {name: 'Travel along path', type: 'boolean',value: true, description: 'The particle emits in the beggining of the path and travels along the path'},
+        backwards         : {name: 'Travel backwards',  type: 'boolean',value: false, depends: {travelAlongPath: true}},
         adjustRotation    : {name: 'Adjust rotation',   type: 'boolean',value: true, description: 'Adjust rotation of particles to path', depends: {travelAlongPath: true}},
         rotationOffset    : {name: 'Rotation offset',   type: 'number', value: 0, description: 'Rotation angle offset', depends: {adjustRotation: true, travelAlongPath: true}},
-        travelFloatRadius : {name: 'Travel Float Radius',type: 'number', value: 5, depends: {travelAlongPath: true}},
-        travelFloatSpeed  : {name: 'Travel Float Speed',type: 'number', value: 10, depends: {travelAlongPath: true}},
-        inBackground      : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        travelFloatRadius : {name: 'Travel float radius',type: 'number', value: 5, depends: {travelAlongPath: true}},
+        travelFloatSpeed  : {name: 'Travel float speed',type: 'number', value: 10, depends: {travelAlongPath: true}},
+        inBackground      : {name: 'In background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
