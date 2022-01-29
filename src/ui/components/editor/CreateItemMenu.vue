@@ -187,11 +187,13 @@ export default {
 
             linkCreation: {
                 popupShown    : false,
-                item          : null
+                item          : null,
+                withMouse     : false
             },
             imageCreation: {
                 popupShown: false,
-                item: null
+                item      : null,
+                withMouse : false
             },
             previewItem: {
                 shown         : false,
@@ -383,7 +385,21 @@ export default {
             }
             const clonedItem = utils.clone(item.item);
             clonedItem.name = this.schemeContainer.generateUniqueName(item.name);
-            EventBus.$emit(EventBus.START_CREATING_ITEM, clonedItem);
+
+            if (item.item.shape === 'link') {
+                this.linkCreation.item = clonedItem;
+                this.linkCreation.withMouse = true;
+                this.linkCreation.popupShown = true;
+                return;
+            } else if (item.imageProperty) {
+                this.itemCreationDragged.imageProperty = item.imageProperty;
+                this.imageCreation.item = clonedItem;
+                this.imageCreation.withMouse = true;
+                this.imageCreation.popupShown = true;
+                return;
+            } else {
+                EventBus.$emit(EventBus.START_CREATING_ITEM, clonedItem);
+            }
         },
 
         linkSubmited(link) {
@@ -394,7 +410,11 @@ export default {
             item.textSlots.link.text = link.title;
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item);
-            EventBus.emitItemCreationDraggedToSvgEditor(item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
+            if (this.linkCreation.withMouse) {
+                EventBus.$emit(EventBus.START_CREATING_ITEM, item);
+            } else {
+                EventBus.emitItemCreationDraggedToSvgEditor(item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
+            }
         },
 
         onImageSubmited(imageUrl) {
@@ -407,20 +427,21 @@ export default {
             newItem.id = shortid.generate();
             newItem.area = { x: 0, y: 0, w: 100, h: 100};
             utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
-
-            img.onload = function () {
-                if (this.width > 1 && this.height > 1) {
-                    newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
-
+            
+            if (this.imageCreation.withMouse) {
+                EventBus.$emit(EventBus.START_CREATING_ITEM, newItem);
+            } else {
+                img.onload = function () {
+                    if (this.width > 1 && this.height > 1) {
+                        newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
+                        EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                    }
+                };
+                img.onerror = (err) => {
                     EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
-                }
-                that.imageCreation.popupShown = false;
-            };
-            img.onerror = (err) => {
-                EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
-                that.imageCreation.popupShown = false;
-            };
-            img.src = imageUrl;
+                };
+                img.src = imageUrl;
+            }
         },
 
         makeUniqueName(name) {
@@ -560,11 +581,13 @@ export default {
 
                 if (item.item.shape === 'link') {
                     that.linkCreation.item = itemClone;
+                    that.linkCreation.withMouse = false;
                     that.linkCreation.popupShown = true;
                     return;
                 } else if (item.imageProperty) {
                     that.itemCreationDragged.imageProperty = item.imageProperty;
                     that.imageCreation.item = itemClone;
+                    that.imageCreation.withMouse = false;
                     that.imageCreation.popupShown = true;
                     return;
                 }
