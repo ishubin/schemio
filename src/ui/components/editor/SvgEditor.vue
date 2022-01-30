@@ -120,11 +120,19 @@
                         />
                     </g>
 
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && !inPlaceTextEditor.shown"
+                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                         :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
                         :edit-box="schemeContainer.multiItemEditBox"
                         :zoom="schemeContainer.screenTransform.scale"
                         :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+
+                    <multi-item-edit-box  v-if="state === 'cropImage' && cropImage.editBox"
+                        :key="`crop-image-edit-box`"
+                        :edit-box="cropImage.editBox"
+                        kind="crop-image"
+                        :zoom="schemeContainer.screenTransform.scale"
+                        :boundaryBoxColor="schemeContainer.scheme.style.controlPointsColor"
                         :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
 
@@ -224,6 +232,7 @@ import StateDragItem from './states/StateDragItem.js';
 import StateDraw from './states/StateDraw.js';
 import StateEditCurve from './states/StateEditCurve.js';
 import StatePickElement from './states/StatePickElement.js';
+import StateCropImage from './states/StateCropImage.js';
 import EventBus from './EventBus.js';
 import MultiItemEditBox from './MultiItemEditBox.vue';
 import CurveEditBox from './CurveEditBox.vue';
@@ -272,6 +281,7 @@ const states = {
     editCurve: new StateEditCurve(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
+    cropImage: new StateCropImage(EventBus, store),
     draw: new StateDraw(EventBus, store),
 };
 
@@ -412,6 +422,11 @@ export default {
 
             // array of markers for items that are clickable
             clickableItemMarkers: [],
+
+            cropImage: {
+                editBox: null,
+                item: null
+            },
 
             customContextMenu: {
                 id: shortid.generate(),
@@ -1152,6 +1167,8 @@ export default {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
 
+            const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
+
             this.customContextMenu.menuOptions = [{
                 name: 'Bring to Front', 
                 clicked: () => {this.$emit('clicked-bring-to-front');}
@@ -1168,7 +1185,7 @@ export default {
                 clicked: () => {this.$emit('clicked-add-item-link', item);}
             }];
 
-            if (!this.offline) {
+            if (!this.offline && selectedOnlyOne) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Create diagram for this element...',
                     iconClass: 'far fa-file',
@@ -1178,6 +1195,7 @@ export default {
 
             this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
                 name: 'Copy',
+                iconsClass: 'fas fa-copy',
                 clicked: () => {this.$emit('clicked-copy-selected-items', item);}
             }, {
                 name: 'Copy item style',
@@ -1191,24 +1209,34 @@ export default {
                 });
             }
 
-            if (this.schemeContainer.selectedItems.length < 2) {
+            if (selectedOnlyOne) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Create component from this item',
                     clicked: () => {this.$emit('clicked-create-component-from-item', item);}
                 });
+                if (item.shape === 'image') {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Crop image',
+                        iconClass: 'fas fa-crop',
+                        clicked: () => this.startCroppingImage(item)
+                    });
+                }
             }
 
             this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
                 name: 'Delete',
+                iconClass: 'fas fa-trash',
                 clicked: this.deleteSelectedItems
             }, {
                 name: 'Surround items',
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
                 name: 'Export as SVG ...',
+                iconsClass: 'fas fa-file-export',
                 clicked: () => { this.exportSelectedItemsAsSVG(); }
             }, {
                 name: 'Export as PNG ...',
+                iconsClass: 'fas fa-file-export',
                 clicked: () => { this.exportSelectedItemsAsPNG(); }
             }]);
 
@@ -1244,9 +1272,8 @@ export default {
                 subOptions: alignSubOptions
             });
             
-
             
-            if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox) {
+            if (selectedOnlyOne) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Events',
                     subOptions: [{
@@ -1311,6 +1338,18 @@ export default {
                 });
             }
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+        },
+
+        startCroppingImage(item) {
+            this.highlightItems([]);
+            states[this.state].cancel();
+            this.state = 'cropImage';
+            
+            states.cropImage.reset();
+            this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
+            this.cropImage.item = item;
+            states.cropImage.setImageEditBox(this.cropImage.editBox);
+            states.cropImage.setImageItem(item);
         },
 
         onExportSVGRequested() {

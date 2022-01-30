@@ -4,7 +4,7 @@
 <template>
     <g data-preview-ignore="true">
         <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1">
+        <g v-if="editBox.items.length === 1 && kind === 'regular'">
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgItemCompleteTransform"
                >
@@ -54,7 +54,7 @@
                 :stroke="boundaryBoxColor"
                 style="opacity: 0.8;"/>
 
-            <ellipse class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular'" class="boundary-box-dragger"
                 data-type="multi-item-edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -63,7 +63,7 @@
                 :ry="5/safeZoom"
             />
 
-            <g v-if="editBox.items.length === 1">
+            <g v-if="editBox.items.length === 1 && kind === 'regular'">
                 <path class="boundary-box-connector-starter"
                     :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                     :data-connector-starter-item-id="editBox.items[0].id"
@@ -169,7 +169,7 @@
                 :height="draggerSize * 2 / safeZoom"
             />
 
-            <g class="boundary-box-pivot-dragger" v-if="showPivot">
+            <g class="boundary-box-pivot-dragger" v-if="showPivot && kind === 'regular'">
                 <line 
                     :x1="editBox.area.w * editBox.pivotPoint.x" 
                     :y1="editBox.area.h * editBox.pivotPoint.y - 10/safeZoom" 
@@ -216,7 +216,15 @@ function isItemConnector(items) {
 }
 
 export default {
-    props: ['editBox', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
+    props: {
+        editBox: {type: Object, required: true}, 
+        zoom: {type: Number},
+        boundaryBoxColor: {type: Object},
+        controlPointsColor: {type: Object},
+
+        // can be regular or crop-image
+        kind: {type: 'String', default: 'regular'},
+    },
 
     beforeMount() {
         // reseting selected connector if it was set previously

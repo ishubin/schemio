@@ -239,7 +239,7 @@ export default {
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             closed            : {type: 'boolean',       value: false, name: 'Closed path'},
-            points            : {type: 'curve-points',  value: [], name: 'Curve points'},
+            points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
             sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
