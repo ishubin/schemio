@@ -35,6 +35,9 @@ export default class StateCropImage extends State {
 
     setImageItem(item) {
         this.item = item;
+        this.originalItemCrop = utils.clone(item.shapeProps.crop);
+        this.originalItemArea = utils.clone(item.area);
+        this.origianlItemTransformMatrix = utils.clone(item.meta.transformMatrix);
     }
 
     setImageEditBox(editBox) {
@@ -92,18 +95,14 @@ export default class StateCropImage extends State {
         const wpRight = myMath.worldPointInArea(this.editBox.area.w, 0, this.editBox.area);
         const wpDown = myMath.worldPointInArea(0, this.editBox.area.h, this.editBox.area);
 
-        const localPoint = localPointOnItem(worldPoint.x, worldPoint.y, this.item);
-        const localPointRight = localPointOnItem(wpRight.x, wpRight.y, this.item);
-        const localPointDown = localPointOnItem(wpDown.x, wpDown.y, this.item);
+        const localPoint = myMath.localPointInArea(worldPoint.x, worldPoint.y, this.originalItemArea, this.origianlItemTransformMatrix);
+        const localPointRight = myMath.localPointInArea(wpRight.x, wpRight.y, this.originalItemArea, this.origianlItemTransformMatrix);
+        const localPointDown = myMath.localPointInArea(wpDown.x, wpDown.y, this.originalItemArea, this.origianlItemTransformMatrix);
 
-        if (!myMath.tooSmall(this.item.area.w)) {
-            this.item.shapeProps.crop.x = Math.max(0, localPoint.x / this.item.area.w);
-            this.item.shapeProps.crop.w = Math.max(0, (localPointRight.x - this.item.area.w) / this.item.area.w);
-        }
-        if (!myMath.tooSmall(this.item.area.h)) {
-            this.item.shapeProps.crop.y = Math.max(0, localPoint.y / this.item.area.h);
-            this.item.shapeProps.crop.h = Math.max(0, (localPointDown.y - this.item.area.h) / this.item.area.h);
-        }
+        const x0 = -this.originalItemCrop.x * this.originalItemArea.w;
+        const y0 = -this.originalItemCrop.y * this.originalItemArea.h;
+        const w0 = this.originalItemArea.w * (1 + this.originalItemCrop.x + this.originalItemCrop.w);
+        const h0 = this.originalItemArea.h * (1 + this.originalItemCrop.y + this.originalItemCrop.h);
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.editBox, IS_SOFT, {
             moved: false,
@@ -111,5 +110,14 @@ export default class StateCropImage extends State {
             resized: true,
             id: this.modificationContextId
         }, this.getUpdatePrecision());
+
+        if (!myMath.tooSmall(this.item.area.w)) {
+            this.item.shapeProps.crop.x = (localPoint.x - x0) / this.item.area.w;
+            this.item.shapeProps.crop.w = w0 / this.item.area.w - this.item.shapeProps.crop.x - 1;
+        }
+        if (!myMath.tooSmall(this.item.area.h)) {
+            this.item.shapeProps.crop.y = (localPoint.y - y0) / this.item.area.h;
+            this.item.shapeProps.crop.h = h0 / this.item.area.h - this.item.shapeProps.crop.y - 1;
+        }
     }
 }
