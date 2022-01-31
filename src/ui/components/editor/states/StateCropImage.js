@@ -48,7 +48,19 @@ export default class StateCropImage extends State {
         this.modificationContextId = shortid.generate();
         if (object.type === 'multi-item-edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.draggerEdges, x, y, mx, my);
+        } else {
+            this.cancel();
         }
+    }
+
+    cancel() {
+        this.submit();
+        super.cancel();
+    }
+
+    submit() {
+        this.schemeContainer.reindexItems();
+        this.schemeContainer.updateMultiItemEditBox();
     }
 
     initDragging(x, y, mx, my) {
@@ -92,12 +104,7 @@ export default class StateCropImage extends State {
         this.reset();
 
         const worldPoint = myMath.worldPointInArea(0, 0, this.editBox.area);
-        const wpRight = myMath.worldPointInArea(this.editBox.area.w, 0, this.editBox.area);
-        const wpDown = myMath.worldPointInArea(0, this.editBox.area.h, this.editBox.area);
-
         const localPoint = myMath.localPointInArea(worldPoint.x, worldPoint.y, this.originalItemArea, this.origianlItemTransformMatrix);
-        const localPointRight = myMath.localPointInArea(wpRight.x, wpRight.y, this.originalItemArea, this.origianlItemTransformMatrix);
-        const localPointDown = myMath.localPointInArea(wpDown.x, wpDown.y, this.originalItemArea, this.origianlItemTransformMatrix);
 
         const x0 = -this.originalItemCrop.x * this.originalItemArea.w;
         const y0 = -this.originalItemCrop.y * this.originalItemArea.h;
