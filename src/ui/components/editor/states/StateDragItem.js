@@ -762,104 +762,13 @@ export default class StateDragItem extends State {
     }
 
     dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
-        let nx = this.multiItemEditBox.area.x,
-            ny = this.multiItemEditBox.area.y,
-            nw = this.multiItemEditBox.area.w,
-            nh = this.multiItemEditBox.area.h,
-            dx = x - this.originalPoint.x,
-            dy = y - this.originalPoint.y;
-
-        let p0 = myMath.worldPointInArea(0, 0, this.multiItemEditBox.area);
-        let p1 = myMath.worldPointInArea(1, 0, this.multiItemEditBox.area);
-        let p2 = myMath.worldPointInArea(0, 1, this.multiItemEditBox.area);
-
-        const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
-        const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
-
-        StoreUtils.clearItemSnappers(this.store);
-        const snapEdge = (x1, y1, x2, y2, vector) => {
-            const p0 = myMath.worldPointInArea(x1, y1, this.multiItemEditBoxOriginalArea);
-            const p1 = myMath.worldPointInArea(x2, y2, this.multiItemEditBoxOriginalArea);
-            let snappingType = null;
-            if (myMath.sameFloatingValue(p0.x, p1.x)) {
-                snappingType = 'vertical';
-            } else if (myMath.sameFloatingValue(p0.y, p1.y)) {
-                snappingType = 'horizontal';
-            }
-
-            let projection = dx * vector.x + dy * vector.y;
-            if (snappingType) {
-                const snappingPoints = {};
-                snappingPoints[snappingType] = [p0];
-
-                // calculating the real absolute dx and dy of points
-                const newOffset = this.snapper.snapPoints(snappingPoints, this.multiItemEditBox.itemIds, projection * vector.x, projection * vector.y);
-                projection = newOffset.dx * vector.x + newOffset.dy * vector.y;
-            }
-            return projection
-        };
-
-
-        // dirty hack as dragging of top left edge is special
-        if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
-            const projectionBottom = snapEdge(0, 0, this.multiItemEditBoxOriginalArea.w, 0, bottomVector);
-            const projectionRight = snapEdge(0, 0, 0, this.multiItemEditBoxOriginalArea.h, rightVector);
-
-            nx = this.multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
-            ny = this.multiItemEditBoxOriginalArea.y + projectionRight * rightVector.y + projectionBottom * bottomVector.y;
-            nw = this.multiItemEditBoxOriginalArea.w - projectionRight;
-            nh = this.multiItemEditBoxOriginalArea.h - projectionBottom;
-            if (nh < 0) {
-                nh = 0;
-            }
-        } else {
-            forEach(draggerEdges, edge => {
-                if (edge === 'top') {
-                    const projection = snapEdge(0, 0, this.multiItemEditBoxOriginalArea.w, 0, bottomVector);
-                    nx = this.multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
-                    ny = this.multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
-                    nh = this.multiItemEditBoxOriginalArea.h - projection;
-                    if (nh < 0) {
-                        nh = 0;
-                    }
-                } else if (edge === 'bottom') {
-                    const projection = snapEdge(0, this.multiItemEditBoxOriginalArea.h, this.multiItemEditBoxOriginalArea.w, this.multiItemEditBoxOriginalArea.h, bottomVector);
-                    nh = this.multiItemEditBoxOriginalArea.h + projection;
-                    if (nh < 0) {
-                        nh = 0;
-                    }
-                } else if (edge === 'left') {
-                    const projection = snapEdge(0, 0, 0, this.multiItemEditBoxOriginalArea.h, rightVector);
-                    nx = this.multiItemEditBoxOriginalArea.x + projection * rightVector.x;
-                    ny = this.multiItemEditBoxOriginalArea.y + projection * rightVector.y;
-                    nw = this.multiItemEditBoxOriginalArea.w - projection;
-                    if (nw < 0) {
-                        nw = 0;
-                    }
-                } else if (edge === 'right') {
-                    const projection = snapEdge(this.multiItemEditBoxOriginalArea.w, 0, this.multiItemEditBoxOriginalArea.w, this.multiItemEditBoxOriginalArea.h, rightVector);
-                    nw = this.multiItemEditBoxOriginalArea.w + projection;
-                    if (nw < 0) {
-                        nw = 0;
-                    }
-                }
-            });
-        }
-        this.multiItemEditBox.area.x = nx;
-        this.multiItemEditBox.area.y = ny;
-        if (nw > 0) {
-            this.multiItemEditBox.area.w = nw;
-        }
-        if (nh > 0) {
-            this.multiItemEditBox.area.h = nh;
-        }
-
-        if (isMultiSelectKey(event)) {
-            const max = Math.max(this.multiItemEditBox.area.w, this.multiItemEditBox.area.h);
-            this.multiItemEditBox.area.w = max;
-            this.multiItemEditBox.area.h = max;
-        }
-
+        dragMultiItemEditBoxByDragger(
+            this.multiItemEditBox,
+            this.multiItemEditBoxOriginalArea,
+            this.originalPoint,
+            this.store,
+            this.snapper,
+            x, y, draggerEdges);
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             moved: false,
@@ -1168,5 +1077,113 @@ export default class StateDragItem extends State {
                 }
             }
         });
+    }
+}
+
+export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBoxOriginalArea, originalPoint, store, snapper, x, y, draggerEdges) {
+    let nx = multiItemEditBox.area.x,
+        ny = multiItemEditBox.area.y,
+        nw = multiItemEditBox.area.w,
+        nh = multiItemEditBox.area.h,
+        dx = x - originalPoint.x,
+        dy = y - originalPoint.y;
+
+    let p0 = myMath.worldPointInArea(0, 0, multiItemEditBox.area);
+    let p1 = myMath.worldPointInArea(1, 0, multiItemEditBox.area);
+    let p2 = myMath.worldPointInArea(0, 1, multiItemEditBox.area);
+
+    const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
+    const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
+
+    StoreUtils.clearItemSnappers(store);
+    const snapEdge = (x1, y1, x2, y2, vector) => {
+        const p0 = myMath.worldPointInArea(x1, y1, multiItemEditBoxOriginalArea);
+        const p1 = myMath.worldPointInArea(x2, y2, multiItemEditBoxOriginalArea);
+        let snappingType = null;
+        if (myMath.sameFloatingValue(p0.x, p1.x)) {
+            snappingType = 'vertical';
+        } else if (myMath.sameFloatingValue(p0.y, p1.y)) {
+            snappingType = 'horizontal';
+        }
+
+        let projection = dx * vector.x + dy * vector.y;
+        if (snappingType) {
+            const snappingPoints = {};
+            snappingPoints[snappingType] = [p0];
+
+            // calculating the real absolute dx and dy of points
+            let newOffset;
+            if (snapper) {
+                newOffset = snapper.snapPoints(snappingPoints, multiItemEditBox.itemIds, projection * vector.x, projection * vector.y);
+            } else {
+                newOffset = {
+                    dx: projection * vector.x,
+                    dy: projection * vector.y
+                };
+            }
+            projection = newOffset.dx * vector.x + newOffset.dy * vector.y;
+        }
+        return projection
+    };
+
+
+    // dirty hack as dragging of top left edge is special
+    if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
+        const projectionBottom = snapEdge(0, 0, multiItemEditBoxOriginalArea.w, 0, bottomVector);
+        const projectionRight = snapEdge(0, 0, 0, multiItemEditBoxOriginalArea.h, rightVector);
+
+        nx = multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
+        ny = multiItemEditBoxOriginalArea.y + projectionRight * rightVector.y + projectionBottom * bottomVector.y;
+        nw = multiItemEditBoxOriginalArea.w - projectionRight;
+        nh = multiItemEditBoxOriginalArea.h - projectionBottom;
+        if (nh < 0) {
+            nh = 0;
+        }
+    } else {
+        forEach(draggerEdges, edge => {
+            if (edge === 'top') {
+                const projection = snapEdge(0, 0, multiItemEditBoxOriginalArea.w, 0, bottomVector);
+                nx = multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
+                ny = multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
+                nh = multiItemEditBoxOriginalArea.h - projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+            } else if (edge === 'bottom') {
+                const projection = snapEdge(0, multiItemEditBoxOriginalArea.h, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, bottomVector);
+                nh = multiItemEditBoxOriginalArea.h + projection;
+                if (nh < 0) {
+                    nh = 0;
+                }
+            } else if (edge === 'left') {
+                const projection = snapEdge(0, 0, 0, multiItemEditBoxOriginalArea.h, rightVector);
+                nx = multiItemEditBoxOriginalArea.x + projection * rightVector.x;
+                ny = multiItemEditBoxOriginalArea.y + projection * rightVector.y;
+                nw = multiItemEditBoxOriginalArea.w - projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+            } else if (edge === 'right') {
+                const projection = snapEdge(multiItemEditBoxOriginalArea.w, 0, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, rightVector);
+                nw = multiItemEditBoxOriginalArea.w + projection;
+                if (nw < 0) {
+                    nw = 0;
+                }
+            }
+        });
+    }
+    multiItemEditBox.area.x = nx;
+    multiItemEditBox.area.y = ny;
+    if (nw > 0) {
+        multiItemEditBox.area.w = nw;
+    }
+    if (nh > 0) {
+        multiItemEditBox.area.h = nh;
+    }
+
+    if (isMultiSelectKey(event)) {
+        const max = Math.max(multiItemEditBox.area.w, multiItemEditBox.area.h);
+        multiItemEditBox.area.w = max;
+        multiItemEditBox.area.h = max;
     }
 }

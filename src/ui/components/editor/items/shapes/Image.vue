@@ -21,18 +21,31 @@
             :fill="svgFill"/>
 
         <g :transform="`translate(0 ${imageY})`">
+            
+
             <defs v-if="item.shapeProps.image">
+                <clipPath :id="`image-crop-clip-path-${item.id}`">
+                    <path 
+                        :d="`M 0 0  L ${item.area.w} 0   L ${item.area.w} ${item.area.h}  L 0 ${item.area.h} Z`" 
+                        :data-item-id="item.id"
+                        stroke-width="0px"
+                        stroke="rgba(255, 255, 255, 0)"
+                        fill="rgba(255, 255, 255, 0)" />
+                </clipPath>
+
                 <pattern :id="`image-fill-${item.id}`" patternUnits="userSpaceOnUse" :width="imageWidth" :height="imageHeight">
-                    <image :xlink:href="item.shapeProps.image" :x="0" :y="0" :width="imageWidth" :height="imageHeight" :preserveAspectRatio="imagePreserveAspectRatio"/>
+                    <image :xlink:href="item.shapeProps.image" :x="-item.shapeProps.crop.x * imageWidth" :y="-item.shapeProps.crop.y * imageHeight" :width="imageWidth * (1 + item.shapeProps.crop.x + item.shapeProps.crop.w)" :height="imageHeight * (1 + item.shapeProps.crop.y + item.shapeProps.crop.h)" :preserveAspectRatio="imagePreserveAspectRatio"/>
                 </pattern>
             </defs>
 
-            <rect v-if="item.shapeProps.image"
-                :x="0" :y="0"
-                :width="imageWidth" :height="imageHeight"
-                :stroke-width="item.shapeProps.strokeSize + 'px'"
-                :stroke="item.shapeProps.strokeColor"
-                :fill="`url(#image-fill-${item.id})`"/>
+            <g :style="{'clip-path': `url(#image-crop-clip-path-${item.id})`}">
+                <rect v-if="item.shapeProps.image"
+                    :x="0" :y="0"
+                    :width="imageWidth" :height="imageHeight"
+                    :stroke-width="item.shapeProps.strokeSize + 'px'"
+                    :stroke="item.shapeProps.strokeColor"
+                    :fill="`url(#image-fill-${item.id})`"/>
+            </g>
         </g>
     </g>
 </template>
@@ -89,6 +102,11 @@ export default {
             strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
             strokeSize  : {type: 'number', value: 0, name: 'Stroke size'},
             showTitle   : {type: 'boolean', value: false, name: 'Title'},
+            crop        : {type: 'crop-area', value: {x: 0, y: 0, w: 0, h: 0}, name: 'Crop', hidden: true},
+            // cropLeft    : {type: 'number', value: 0, name: 'Crop Left'},
+            // cropTop     : {type: 'number', value: 0, name: 'Crop Top'},
+            // cropRight   : {type: 'number', value: 0, name: 'Crop Right'},
+            // cropBottom  : {type: 'number', value: 0, name: 'Crop Bottom'},
             titleHeight : {type: 'number', value: 36, name: 'Title height', min: 0, depends: {showTitle: true}},
             titleFill   : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Title Background', depends: {showTitle: true}},
             fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Background', depends: {showTitle: true}},
