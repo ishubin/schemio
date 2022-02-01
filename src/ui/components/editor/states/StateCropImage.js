@@ -48,6 +48,9 @@ export default class StateCropImage extends State {
         this.modificationContextId = shortid.generate();
         if (object.type === 'multi-item-edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.draggerEdges, x, y, mx, my);
+
+        } else if (object.type === 'multi-item-edit-box-reset-image-crop-link'){
+            this.resetCrop();
         } else {
             this.cancel();
         }
@@ -126,5 +129,19 @@ export default class StateCropImage extends State {
             this.item.shapeProps.crop.y = (localPoint.y - y0) / this.item.area.h;
             this.item.shapeProps.crop.h = h0 / this.item.area.h - this.item.shapeProps.crop.y - 1;
         }
+    }
+
+    resetCrop() {
+        this.item.area.x -= this.item.shapeProps.crop.x * this.item.area.w;
+        this.item.area.y -= this.item.shapeProps.crop.y * this.item.area.h;
+
+        this.item.area.w = this.item.area.w * (1 + this.item.shapeProps.crop.x + this.item.shapeProps.crop.w);
+        this.item.area.h = this.item.area.h * (1 + this.item.shapeProps.crop.y + this.item.shapeProps.crop.h);
+        this.item.shapeProps.crop.x = 0;
+        this.item.shapeProps.crop.y = 0;
+        this.item.shapeProps.crop.w = 0;
+        this.item.shapeProps.crop.h = 0;
+
+        this.cancel();
     }
 }

@@ -714,7 +714,6 @@ ul.pagination li a.current {
     opacity: 0.5;
 }
 #svg_plot .boundary-box-dragger {
-    stroke: none;
     cursor: pointer;
 }
 #svg_plot .boundary-box-dragger:hover {

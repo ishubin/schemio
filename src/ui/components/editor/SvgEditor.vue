@@ -132,7 +132,7 @@
                         :edit-box="cropImage.editBox"
                         kind="crop-image"
                         :zoom="schemeContainer.screenTransform.scale"
-                        :boundaryBoxColor="schemeContainer.scheme.style.controlPointsColor"
+                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                         :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
 
@@ -263,17 +263,6 @@ const LINK_FONT_SYMBOL_SIZE = 10;
 
 const userEventBus = new UserEventBus();
 const behaviorCompiler = new Compiler();
-const allDraggerEdges = [
-    ['top', 'left'],
-    ['top'],
-    ['top', 'right'],
-    ['right'],
-    ['bottom', 'right'],
-    ['bottom'],
-    ['bottom', 'left'],
-    ['left']
-];
-
 
 const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
@@ -503,7 +492,10 @@ export default {
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
                     };
-                } else if (elementType === 'multi-item-edit-box' || elementType === 'multi-item-edit-box-rotational-dragger') {
+                } else if (elementType === 'multi-item-edit-box'
+                        || elementType === 'multi-item-edit-box-rotational-dragger'
+                        || elementType === 'multi-item-edit-box-edit-curve-link'
+                        || elementType === 'multi-item-edit-box-reset-image-crop-link') {
                     return {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBox
@@ -514,42 +506,13 @@ export default {
                         multiItemEditBox: this.schemeContainer.multiItemEditBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
-                } else if (elementType === 'multi-item-edit-box-pivot-dragger') {
-                    return {
-                        type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
-                    };
-                } else if (elementType === 'multi-item-edit-box-edit-curve-link') {
-                    return {
-                        type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
-                    };
                 }
 
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
                     return {
+                        type: 'item',
                         item: this.schemeContainer.findItemById(itemId)
-                    }
-                }
-
-                const draggerItemId = element.getAttribute('data-dragger-item-id');
-                if (draggerItemId) {
-                    const item = this.schemeContainer.findItemById(draggerItemId);
-                    if (element.getAttribute('data-dragger-type') === 'rotation') {
-                        return {
-                            rotationDragger: {
-                                item
-                            }
-                        };
-                    } else {
-
-                        return {
-                            dragger: {
-                                item,
-                                edges: allDraggerEdges[parseInt(element.getAttribute('data-dragger-index'))]
-                            }
-                        };
                     }
                 }
 
@@ -558,6 +521,7 @@ export default {
                     const item = this.schemeContainer.findItemById(connectorStarterItemId);
                     if (item) {
                         return {
+                            type: 'connection-starter',
                             connectorStarter: {
                                 item,
                                 point
@@ -570,6 +534,7 @@ export default {
                     const item = this.schemeContainer.findItemById(element.getAttribute('data-control-point-item-id'));
                     if (item) {
                         return {
+                            type: 'control-point',
                             controlPoint: {
                                 pointId: controlPointId,
                                 item
@@ -583,6 +548,7 @@ export default {
                     const item = this.schemeContainer.findItemById(textContainerElement.getAttribute('data-item-text-element-item-id'));
                     if (item) {
                         return {
+                            type: 'item-text-element',
                             itemTextElement: { item }
                         };
                     }
