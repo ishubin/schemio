@@ -59,6 +59,86 @@ import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
 
+function convertAllImagesToDataURL(domElement) {
+    const imageElements = collectAllImageNodes(domElement);
+
+    const promises = [];
+    forEach(imageElements, imageElement => {
+        promises.push(convertImageToDataURL(imageElement));
+    });
+
+    return Promise.all(promises).catch(err => {
+        console.error('Failed to convert some image to dataURL');
+    });
+}
+
+function convertImageToDataURL(imageElement) {
+    const imageUrl = imageElement.getAttribute('xlink:href');
+    return new Promise((resolve, reject) => {
+        const img = document.createElement('img');
+        img.setAttribute('crossorigin', 'anonymous');
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                const width = imageElement.getAttribute('width');
+                const height = imageElement.getAttribute('height');
+
+                canvas.width = width;
+                canvas.height = height;
+
+                let x = 0, y = 0, w = width, h = height;
+
+                if (imageElement.getAttribute('preserveAspectRatio') !== 'none' && img.width > 0 && img.height > 0) {
+                    const k = Math.min(width / img.width, height / img.height);
+                    x = width/2 - img.width/2 * k;
+                    y = height/2 - img.height/2 * k;
+                    w = img.width * k;
+                    h = img.height * k;
+                }
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, x, y, w, h);
+                const dataURL = canvas.toDataURL('image/png');
+                imageElement.setAttribute('xlink:href', dataURL);
+                resolve();
+            } catch(err) {
+                console.error('Could not convert image ' + imageURL + ' to dataURL', err);
+                reject();
+            }
+        };
+        img.onerror = () => {
+            reject();
+        };
+        img.src = imageUrl;
+    });
+}
+
+
+/**
+ * @param {SVGElement} svgElement
+ * @param {Map} map
+ * @returns {Array}
+ */
+function collectAllImageNodes(svgElement, arr) {
+    if (!arr) {
+        arr = [];
+    }
+
+    if (svgElement.tagName === 'image') {
+        const imageURL = svgElement.getAttribute('xlink:href');
+        if (imageURL && !imageURL.startsWith('data:')) {
+            arr.push(svgElement);
+        }
+    }
+
+    forEach(svgElement.childNodes, child => {
+        collectAllImageNodes(child, arr);
+    });
+    return arr;
+}
+
+
+
 export default {
     props: {
         // array of {item, html} elements
@@ -120,42 +200,44 @@ export default {
                 }
             });
 
+            convertAllImagesToDataURL(svgDom).then(() => {
+                if (this.kind === 'svg') {
+                    const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
+                    const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
+                    svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
+                    svgDom.removeAttribute('width');
+                    svgDom.removeAttribute('height');
+                } else {
+                    const viewBoxWidth = this.width + 2 * this.largestStrokeSize;
+                    const viewBoxHeight = this.height + 2 * this.largestStrokeSize;
+                    svgDom.setAttribute('viewBox', `${-this.largestStrokeSize} ${-this.largestStrokeSize} ${viewBoxWidth} ${viewBoxHeight}`);
+                    svgDom.setAttribute('width', `${viewBoxWidth}px`);
+                    svgDom.setAttribute('height', `${viewBoxHeight}px`);
+                }
 
-            if (this.kind === 'svg') {
-                const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
-                const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
-                svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
-                svgDom.removeAttribute('width');
-                svgDom.removeAttribute('height');
-            } else {
-                const viewBoxWidth = this.width + 2 * this.largestStrokeSize;
-                const viewBoxHeight = this.height + 2 * this.largestStrokeSize;
-                svgDom.setAttribute('viewBox', `${-this.largestStrokeSize} ${-this.largestStrokeSize} ${viewBoxWidth} ${viewBoxHeight}`);
-                svgDom.setAttribute('width', `${viewBoxWidth}px`);
-                svgDom.setAttribute('height', `${viewBoxHeight}px`);
-            }
+                const svgCode = svgDom.outerHTML;
+                const svgDataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
 
-            const svgCode = svgDom.outerHTML;
-            const svgDataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
+                if (this.kind === 'svg') {
+                    this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
+                } else {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
+                    canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
 
-            if (this.kind === 'svg') {
-                this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
-            } else {
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
-                canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image;
 
-                const ctx = canvas.getContext('2d');
-                const img = new Image;
+                    img.onload = () => {
+                        ctx.fillStyle = this.backgroundColor;
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, this.paddingLeft, this.paddingTop);
+                        this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, canvas.toDataURL('image/png'));
+                    };
+                    img.src = svgDataUrl;
+                }
+            });
 
-                img.onload = () => {
-                    ctx.fillStyle = this.backgroundColor;
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, this.paddingLeft, this.paddingTop);
-                    this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, canvas.toDataURL('image/png'));
-                };
-                img.src = svgDataUrl;
-            }
         },
 
         downloadViaLink(name, content) {
