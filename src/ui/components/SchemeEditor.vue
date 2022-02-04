@@ -703,8 +703,9 @@ export default {
         createSchemePreview() {
             if (this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
                 var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-                const svgCode = snapshotSvg('#svg_plot [data-type="scene-transform"]', area);
-                this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, svgCode);
+                snapshotSvg('#svg_plot [data-type="scene-transform"]', area).then(svgCode => {
+                    return this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, svgCode);
+                });
             }
         },
 

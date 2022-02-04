@@ -58,84 +58,7 @@ import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
-
-function convertAllImagesToDataURL(domElement) {
-    const imageElements = collectAllImageNodes(domElement);
-
-    const promises = [];
-    forEach(imageElements, imageElement => {
-        promises.push(convertImageToDataURL(imageElement));
-    });
-
-    return Promise.all(promises).catch(err => {
-        console.error('Failed to convert some image to dataURL');
-    });
-}
-
-function convertImageToDataURL(imageElement) {
-    const imageUrl = imageElement.getAttribute('xlink:href');
-    return new Promise((resolve, reject) => {
-        const img = document.createElement('img');
-        img.setAttribute('crossorigin', 'anonymous');
-        img.onload = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                const width = imageElement.getAttribute('width');
-                const height = imageElement.getAttribute('height');
-
-                canvas.width = width;
-                canvas.height = height;
-
-                let x = 0, y = 0, w = width, h = height;
-
-                if (imageElement.getAttribute('preserveAspectRatio') !== 'none' && img.width > 0 && img.height > 0) {
-                    const k = Math.min(width / img.width, height / img.height);
-                    x = width/2 - img.width/2 * k;
-                    y = height/2 - img.height/2 * k;
-                    w = img.width * k;
-                    h = img.height * k;
-                }
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, x, y, w, h);
-                const dataURL = canvas.toDataURL('image/png');
-                imageElement.setAttribute('xlink:href', dataURL);
-                resolve();
-            } catch(err) {
-                console.error('Could not convert image ' + imageURL + ' to dataURL', err);
-                reject();
-            }
-        };
-        img.onerror = () => {
-            reject();
-        };
-        img.src = imageUrl;
-    });
-}
-
-
-/**
- * @param {SVGElement} svgElement
- * @param {Map} map
- * @returns {Array}
- */
-function collectAllImageNodes(svgElement, arr) {
-    if (!arr) {
-        arr = [];
-    }
-
-    if (svgElement.tagName === 'image') {
-        const imageURL = svgElement.getAttribute('xlink:href');
-        if (imageURL && !imageURL.startsWith('data:')) {
-            arr.push(svgElement);
-        }
-    }
-
-    forEach(svgElement.childNodes, child => {
-        collectAllImageNodes(child, arr);
-    });
-    return arr;
-}
+import {rasterizeAllImagesToDataURL} from '../../svgPreview';
 
 
 
@@ -200,7 +123,11 @@ export default {
                 }
             });
 
-            convertAllImagesToDataURL(svgDom).then(() => {
+            rasterizeAllImagesToDataURL(svgDom)
+            .catch(err => {
+                console.error('Failed to rasterize some images', err);
+            })
+            .then(() => {
                 if (this.kind === 'svg') {
                     const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
                     const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
