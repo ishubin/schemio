@@ -862,6 +862,9 @@ export default {
                     this.historyUndo();
                 } else if (Keys.CTRL_SHIFT_Z === key) {
                     this.historyRedo();
+                } else if (Keys.CTRL_A === key) {
+                    this.schemeContainer.selectAllItems();
+                    EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
                 }
             }
         },

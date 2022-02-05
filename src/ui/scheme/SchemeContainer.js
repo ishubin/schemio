@@ -1486,6 +1486,10 @@ class SchemeContainer {
         this.updateMultiItemEditBox();
     }
 
+    selectAllItems() {
+        this.selectMultipleItems(this._itemArray);
+    }
+
     selectItemInclusive(item) {
         var isAlreadyIn = false;
         var i = 0;

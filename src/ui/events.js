@@ -7,6 +7,7 @@ import findKey from 'lodash/findKey';
 export const Keys = {
     ESCAPE: 'escape',
     DELETE: 'delete',
+    CTRL_A: 'ctrl-a',
     CTRL_C: 'ctrl-c',
     CTRL_V: 'ctrl-v',
     CTRL_S: 'ctrl-s',
@@ -24,6 +25,7 @@ export const Keys = {
 const keyMap = {};
 keyMap[Keys.ESCAPE] = event => event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
 keyMap[Keys.DELETE] = event => event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127;
+keyMap[Keys.CTRL_A] = event => event.key === 'a' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_S] = event => event.key === 's' && (event.metaKey || event.ctrlKey);
@@ -36,7 +38,6 @@ keyMap[Keys.DOWN] = event => event.key === 'ArrowDown';
 keyMap[Keys.SPACE] = event => event.key === ' ' || event.keyCode === 32;
 keyMap[Keys.MINUS] = event => event.key === '-' || event.keyCode === 189;
 keyMap[Keys.EQUALS] = event => event.key === '=' || event.keyCode === 187;
-
 /**
  * 
  * @param {MouseEvent} event 
