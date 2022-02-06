@@ -88,9 +88,6 @@ const EventBus = new Vue({
 
             ITEMS_HIGHLIGHTED: 'items-highlighted',
 
-            EXPORT_SVG_REQUESTED: 'export-svg-requested',
-            EXPORT_PNG_REQUESTED: 'export-png-requested',
-
             ITEM_SURROUND_CREATED: 'item-surround-created',
 
             BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',

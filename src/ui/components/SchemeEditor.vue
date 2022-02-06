@@ -1145,11 +1145,11 @@ export default {
         },
 
         exportAsSVG() {
-            EventBus.$emit(EventBus.EXPORT_SVG_REQUESTED);
+            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'svg');
         },
 
         exportAsPNG() {
-            EventBus.$emit(EventBus.EXPORT_PNG_REQUESTED);
+            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
         },
 
         onItemTextSlotEditTriggered(item, slotName) {

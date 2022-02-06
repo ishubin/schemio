@@ -305,8 +305,6 @@ export default {
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$on(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
-        EventBus.$on(EventBus.EXPORT_PNG_REQUESTED, this.onExportPNGRequested);
         EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
@@ -355,8 +353,6 @@ export default {
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$off(EventBus.EXPORT_SVG_REQUESTED, this.onExportSVGRequested);
-        EventBus.$off(EventBus.EXPORT_PNG_REQUESTED, this.onExportPNGRequested);
         EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
@@ -1098,15 +1094,6 @@ export default {
             states.cropImage.setImageEditBox(this.cropImage.editBox);
             states.cropImage.setImageItem(item);
         },
-
-        onExportSVGRequested() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'svg');
-        },
-
-        onExportPNGRequested() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
-        },
-
 
         exportAsShape() {
             if (!this.schemeContainer.multiItemEditBox) {
