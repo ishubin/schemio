@@ -104,7 +104,9 @@ const EventBus = new Vue({
             ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
 
             // triggered in case user clicked undo or redo and the scheme was reset to a new state
-            HISTORY_UNDONE: 'history-undone'
+            HISTORY_UNDONE: 'history-undone',
+
+            IMAGE_CROP_TRIGGERED: 'image-crop-triggered'
         };
     },
     methods: {

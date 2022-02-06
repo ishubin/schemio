@@ -59,16 +59,6 @@
                     :offline="offlineMode"
                     :zoom="zoom"
                     @switched-state="onSvgEditorSwitchedState"
-                    @clicked-create-child-scheme-to-item="startCreatingChildSchemeForItem"
-                    @clicked-add-item-link="onClickedAddItemLink"
-                    @clicked-start-connecting="onClickedStartConnecting"
-                    @clicked-bring-to-front="bringSelectedItemsToFront()"
-                    @clicked-bring-to-back="bringSelectedItemsToBack()"
-                    @clicked-copy-selected-items="copySelectedItems()"
-                    @clicked-copy-item-style="copySelectedItemStyle()"
-                    @clicked-apply-copied-item-style="applyCopiedItemStyle()"
-                    @clicked-items-paste="pasteItemsFromClipboard()"
-                    @clicked-create-component-from-item="createComponentFromItem"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
                     />
@@ -83,6 +73,16 @@
                     @switched-state="onSvgEditorSwitchedState"
                     @svg-size-updated="onSvgSizeUpdated"
                     />
+
+                <context-menu v-if="customContextMenu.show"
+                    :key="customContextMenu.id"
+                    :mouse-x="customContextMenu.mouseX"
+                    :mouse-y="customContextMenu.mouseY"
+                    :options="customContextMenu.menuOptions"
+                    @close="customContextMenu.show = false"
+                    @selected="onCustomContextMenuOptionSelected"
+                />
+
             </div>
 
             
@@ -271,20 +271,29 @@
                 </div>
             </div>
         </modal>
+
+        <export-picture-modal v-if="exportPictureModal.shown"
+            :exported-items="exportPictureModal.exportedItems"
+            :kind="exportPictureModal.kind"
+            :width="exportPictureModal.width"
+            :height="exportPictureModal.height"
+            :background-color="exportPictureModal.backgroundColor"
+            @close="exportPictureModal.shown = false"/>
     </div>
 
 </template>
 
 <script>
+import shortid from 'shortid';
 import utils from '../utils.js';
 import { Keys } from '../events';
 
-import {enrichItemWithDefaults, applyStyleFromAnotherItem} from '../scheme/Item';
+import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
 import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldPointOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -318,6 +327,10 @@ import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
 import { getCapDefaultFill } from './editor/items/shapes/ConnectorCaps.js';
+import ContextMenu from './editor/ContextMenu.vue';
+import StrokePattern from './editor/items/StrokePattern';
+import { filterOutPreviewSvgElements } from '../svgPreview';
+import ExportPictureModal from './editor/ExportPictureModal.vue';
 
 const defaultHistorySize = 30;
 let history = new History({size: defaultHistorySize});
@@ -389,7 +402,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel,
-        Comments,
+        Comments, ContextMenu, ExportPictureModal,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -426,6 +439,9 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+        EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
+        EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
@@ -442,6 +458,9 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+        EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
+        EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
     },
 
     mounted() {
@@ -477,6 +496,12 @@ export default {
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
+            customContextMenu: {
+                id: shortid.generate(),
+                show: false,
+                mouseX: 0, mouseY: 0,
+                menuOptions: []
+            },
 
             zoom: 100,
             mode: 'view',
@@ -537,6 +562,15 @@ export default {
 
             animatorPanel: {
                 framePlayer: null,
+            },
+
+            exportPictureModal: {
+                kind: 'svg',
+                width: 100,
+                height: 100,
+                shown: false,
+                exportedItems: [],
+                backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
         }
@@ -753,7 +787,7 @@ export default {
             this.addLinkPopup.shown = true;
         },
 
-        onClickedStartConnecting(sourceItem, x, y, mouseX, mouseY) {
+        onClickedStartConnecting(sourceItem, x, y) {
             const point = { x: 0, y: 0 };
             point.x = x;
             point.y = y;
@@ -1438,7 +1472,404 @@ export default {
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load scheme', 'scheme-component-load');
                 EventBus.emitComponentLoadFailed(item);
             });
-        }
+        },
+
+        onRightClickedItem(item, mouseX, mouseY) {
+            const x = this.x_(mouseX);
+            const y = this.y_(mouseY);
+
+            const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
+
+            this.customContextMenu.menuOptions = [{
+                name: 'Bring to Front', 
+                clicked: () => {this.bringSelectedItemsToFront();}
+            }, {
+                name: 'Bring to Back',
+                clicked: () => {this.bringSelectedItemsToBack();}
+            }, {
+                name: 'Connect',
+                iconClass: 'fas fa-network-wired',
+                clicked: () => {this.onClickedStartConnecting(item, x, y);}
+            }, {
+                name: 'Add link',
+                iconClass: 'fas fa-link',
+                clicked: () => {this.onClickedAddItemLink(item);}
+            }];
+
+            if (!this.offline && selectedOnlyOne) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Create diagram for this element...',
+                    iconClass: 'far fa-file',
+                    clicked: () => {this.startCreatingChildSchemeForItem(item); }
+                });
+            }
+
+            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+                name: 'Copy',
+                iconsClass: 'fas fa-copy',
+                clicked: () => {this.copySelectedItems(item);}
+            }, {
+                name: 'Copy item style',
+                clicked: () => {this.copySelectedItemStyle(item);}
+            }]);
+
+            if (this.$store.state.copiedStyleItem) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Apply copied item style',
+                    clicked: () => {this.applyCopiedItemStyle(item);}
+                });
+            }
+
+            if (selectedOnlyOne) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Create component from this item',
+                    clicked: () => {this.createComponentFromItem(item);}
+                });
+                if (item.shape === 'image') {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Crop image',
+                        iconClass: 'fas fa-crop',
+                        clicked: () => EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, item)
+                    });
+                }
+            }
+
+            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+                name: 'Delete',
+                iconClass: 'fas fa-trash',
+                clicked: () => {this.deleteSelectedItems();}
+            }, {
+                name: 'Surround items',
+                clicked: () => { this.surroundSelectedItems(); }
+            }, {
+                name: 'Export as SVG ...',
+                iconsClass: 'fas fa-file-export',
+                clicked: () => { this.exportSelectedItemsAsSVG(); }
+            }, {
+                name: 'Export as PNG ...',
+                iconsClass: 'fas fa-file-export',
+                clicked: () => { this.exportSelectedItemsAsPNG(); }
+            }]);
+
+
+            let items = [item];
+            if (this.schemeContainer.multiItemEditBox) {
+                items = this.schemeContainer.multiItemEditBox.items;
+            }
+            const alignSubOptions = [{
+                name: 'Horizontally in parent',
+                clicked: () => this.schemeContainer.alignItemsHorizontallyInParent(items)
+            }, {
+                name: 'Vertically in parent',
+                clicked: () => this.schemeContainer.alignItemsVerticallyInParent(items)
+            }, {
+                name: 'Centered in parent',
+                clicked: () => this.schemeContainer.alignItemsCenteredInParent(items)
+            }];
+
+            if (items.length > 1) {
+                alignSubOptions.push({
+                    name: 'All items horizontally',
+                    clicked: () => this.schemeContainer.alignItemsHorizontally(items)
+                });
+                alignSubOptions.push({
+                    name: 'All items vertically',
+                    clicked: () => this.schemeContainer.alignItemsVertically(items)
+                });
+            }
+
+            this.customContextMenu.menuOptions.push({
+                name: 'Align',
+                subOptions: alignSubOptions
+            });
+            
+            
+            if (selectedOnlyOne) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Events',
+                    subOptions: [{
+                        name: 'Init',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'init'); }
+                    }, {
+                        name: 'Clicked',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'clicked'); }
+                    }, {
+                        name: 'Mouse In',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'mousein'); }
+                    }, {
+                        name: 'Mouse Out',
+                        clicked: () => { this.addItemBehaviorEvent(item, 'mouseout'); }
+                    }]
+                });
+            }
+
+            if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Export as a shape...',
+                    clicked: () => { this.exportAsShape(); }
+                });
+            }
+
+            if (item.shape === 'curve') {
+                this.customContextMenu.menuOptions.push({
+                    name: 'Edit Curve',
+                    clicked: () => { EventBus.emitCurveEdited(item); }
+                });
+            }
+
+            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
+            this.customContextMenu.id = shortid.generate();
+            this.customContextMenu.show = true;
+        },
+
+        onRightClickedVoid(x, y, mouseX, mouseY) {
+            if (this.mode === 'edit') {
+                this.customContextMenu.menuOptions = [{
+                    name: 'Paste',
+                    clicked: () => {this.pasteItemsFromClipboard();}
+                }];
+                const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+                this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+                this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
+                this.customContextMenu.id = shortid.generate();
+                this.customContextMenu.show = true;
+            }
+        },
+
+        onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
+            this.customContextMenu.menuOptions = menuOptions;
+
+            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
+            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
+            this.customContextMenu.id = shortid.generate();
+            this.customContextMenu.show = true;
+        },
+
+        onCustomContextMenuOptionSelected(option) {
+            if (!option.subOptions) {
+                option.clicked();
+            }
+            this.customContextMenu.show = false;
+        },
+
+        addItemBehaviorEvent(item, eventName) {
+            const existingEvent = find(item.behavior.events, e => e.event === eventName);
+
+            if (!existingEvent) {
+                item.behavior.events.push({
+                    id: shortid.generate(),
+                    event: eventName,
+                    actions: [ ]
+                });
+            }
+            EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+        },
+
+        /**
+         * Used to generate a surrounding rect arround selected items.
+         * It also remounts the selected item to the new rect
+         */
+        surroundSelectedItems() {
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box !== null && box.items.length > 0) {
+                const padding = this.$store.state.itemSurround.padding;
+                const rect = utils.clone(defaultItem);
+                rect.name = 'Group';
+                rect.area = {
+                    x: box.area.x - padding,
+                    y: box.area.y - padding,
+                    w: box.area.w + padding * 2,
+                    h: box.area.h + padding * 2,
+                    r: box.area.r,
+                };
+                rect.shape = 'rect';
+                rect.shapeProps = {
+                    strokePattern: StrokePattern.DASHED,
+                    strokeSize: 2,
+                    fill: {type: 'none'},
+                };
+                rect.textSlots = {
+                    body: {
+                        halign: 'left',
+                        valign: 'top',
+                        text: '<i>Group...</i>'
+                    }
+                };
+                this.schemeContainer.addItem(rect);
+                this.schemeContainer.remountItemBeforeOtherItem(rect.id, box.items[0].id);
+
+                const remountedItemIds = {};
+
+                forEach(box.items, item => {
+                    let remountAllowed = true;
+                    // making sure we don't have to remount item if it's ancestor was already remounted
+                    if (item.meta && item.meta.ancestorIds) {
+                        for (let i = 0; i < item.meta.ancestorIds.length && remountAllowed; i++) {
+                            if (remountedItemIds[item.meta.ancestorIds[i]]) {
+                                remountAllowed = false;
+                            }
+                        }
+                    }
+                    if (remountAllowed) {
+                        if (rect.childItems && rect.childItems.length > 0) {
+                            // trying to preserve original order of items
+                            this.schemeContainer.remountItemAfterOtherItem(item.id, rect.childItems[rect.childItems.length - 1].id);
+                        } else {
+                            this.schemeContainer.remountItemInsideOtherItem(item.id, rect.id);
+                        }
+
+                        remountedItemIds[item.id] = 1;
+                    }
+                });
+                this.schemeContainer.selectItem(rect);
+                EventBus.emitItemSurroundCreated(rect, box.area, padding);
+            }
+        },
+
+        exportSelectedItemsAsSVG() {
+            this.exportSelectedItemsAsPicture('svg');
+        },
+
+        exportSelectedItemsAsPNG() {
+            this.exportSelectedItemsAsPicture('png');
+        },
+
+        exportSelectedItemsAsPicture(kind) {
+            if (!this.schemeContainer.multiItemEditBox) {
+                return;
+            }
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box.items.length === 0) {
+                return;
+            }
+
+            // picking all root selected items
+            // we don't want to double export selected items if their ancestors were already picked for export
+            const items = [];
+            const pickedItemIds = {};
+            forEach(box.items, item => {
+                let shouldExport = true;
+                for (let i = 0; i < item.meta.ancestorIds.length && shouldExport; i++) {
+                    if (pickedItemIds[item.meta.ancestorIds[i]]) {
+                        shouldExport = false;
+                    }
+                }
+                if (shouldExport) {
+                    items.push(item);
+                    pickedItemIds[item.id] = 1;
+                }
+            });
+
+            this.openExportPictureModal(this.schemeContainer, items, kind);
+        },
+
+        openExportPictureModal(schemeContainer, items, kind) {
+            if (!items || items.length === 0) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
+                return;
+            }
+            const exportedItems = [];
+            let minP = null;
+            let maxP = null;
+
+            const collectedItems = [];
+
+            forEach(items, item => {
+                if (item.visible && item.opacity > 0.0001) {
+                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
+                    if (domElement) {
+                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
+                        if (minP) {
+                            minP.x = Math.min(minP.x, itemBoundingBox.x);
+                            minP.y = Math.min(minP.y, itemBoundingBox.y);
+                        } else {
+                            minP = {
+                                x: itemBoundingBox.x,
+                                y: itemBoundingBox.y
+                            };
+                        }
+                        if (maxP) {
+                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
+                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
+                        } else {
+                            maxP = {
+                                x: itemBoundingBox.x + itemBoundingBox.w,
+                                y: itemBoundingBox.y + itemBoundingBox.h
+                            };
+                        }
+                        const itemDom = domElement.cloneNode(true);
+                        filterOutPreviewSvgElements(itemDom);
+                        collectedItems.push({
+                            item, itemDom
+                        });
+                    }
+                }
+            });
+
+            forEach(collectedItems, collectedItem => {
+                const item = collectedItem.item;
+                const itemDom = collectedItem.itemDom;
+                const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
+                const angle = worldAngleOfItem(item);
+                const x = worldPoint.x - minP.x;
+                const y = worldPoint.y - minP.y;
+
+                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
+                const html = itemDom.outerHTML;
+                exportedItems.push({item, html})
+            });
+
+            this.exportPictureModal.exportedItems = exportedItems;
+            this.exportPictureModal.width = maxP.x - minP.x;
+            this.exportPictureModal.height = maxP.y - minP.y;
+            if (this.exportPictureModal.width > 5) {
+                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
+            }
+            if (this.exportPictureModal.height > 5) {
+                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
+            }
+
+            // this check is needed when export straight vertical or horizontal curve lines
+            // in such case area is defined with zero width or height and it makes SVG export confused
+            if (this.exportPictureModal.width < 0.001) {
+                this.exportPictureModal.width = 20;
+            }
+            if (this.exportPictureModal.height < 0.001) {
+                this.exportPictureModal.height = 20;
+            }
+            this.exportPictureModal.backgroundColor = schemeContainer.scheme.style.backgroundColor;
+            this.exportPictureModal.kind = kind;
+            this.exportPictureModal.shown = true;
+        },
+
+        /**
+         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
+         */
+        calculateBoundingBoxOfAllSubItems(schemeContainer, parentItem) {
+            const items = [];
+            traverseItems(parentItem, item => {
+                if (item.visible && item.opacity > 0.0001) {
+                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
+                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
+                        items.push(item);
+                    }
+                }
+            });
+            return schemeContainer.getBoundingBoxOfItems(items)
+        },
+
+        deleteSelectedItems() {
+            this.schemeContainer.deleteSelectedItems();
+            EventBus.emitSchemeChangeCommited();
+        },
+
+        //calculates from screen to world
+        x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
+        y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
+        z_(v) { return v * this.schemeContainer.screenTransform.scale; },
     },
 
     filters: {
