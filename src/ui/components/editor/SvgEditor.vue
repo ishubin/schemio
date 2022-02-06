@@ -196,12 +196,10 @@
 </template>
 
 <script>
-import shortid from 'shortid';
 import map from 'lodash/map';
 import max from 'lodash/max';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
-import filter from 'lodash/filter';
 
 import '../../typedef';
 
@@ -923,29 +921,30 @@ export default {
         },
 
         onVoidDoubleClicked(x, y, mx, my) {
-            // this.schemeContain
-            const textItem = utils.clone(defaultItem);
-            textItem.name = this.schemeContainer.copyNameAndMakeUnique('Label');
-            textItem.textSlots = {
-                body: {
-                    text  : '',
-                    halign: 'left',
-                    valign: 'top',
-                    paddingLeft: 0,
-                    paddingRight: 0,
-                    paddingTop: 0,
-                    paddingBottom: 0
-                }
-            };
-            textItem.shape = 'none';
-            textItem.area = {x, y, w: 40, h: 40};
-            enrichItemWithDefaults(textItem);
-            this.schemeContainer.addItem(textItem);
-            this.$nextTick(() => {
-                EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
-                    x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
-                }, true);
-            });
+            if (this.mode === 'edit') {
+                const textItem = utils.clone(defaultItem);
+                textItem.name = this.schemeContainer.copyNameAndMakeUnique('Label');
+                textItem.textSlots = {
+                    body: {
+                        text  : '',
+                        halign: 'left',
+                        valign: 'top',
+                        paddingLeft: 0,
+                        paddingRight: 0,
+                        paddingTop: 0,
+                        paddingBottom: 0
+                    }
+                };
+                textItem.shape = 'none';
+                textItem.area = {x, y, w: 40, h: 40};
+                enrichItemWithDefaults(textItem);
+                this.schemeContainer.addItem(textItem);
+                this.$nextTick(() => {
+                    EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
+                        x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
+                    }, true);
+                });
+            }
         },
 
         removeDrawnLinks() {
@@ -1256,66 +1255,6 @@ export default {
         onDragLeave(event) {
             event.preventDefault();
             event.stopPropagation();
-        },
-        onDrop(event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile) {
-                return;
-            }
-
-            if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-                const files = filter(event.dataTransfer.files, file => file.type.indexOf('image/') === 0);
-
-                const x = this.x_(this.width / 2);
-                const y = this.y_(this.height / 2);
-
-                let chain = Promise.resolve(null);
-                forEach(files, (file, index) => {
-                    chain = chain.then(() => {
-                        const imageId = shortid.generate();
-                        this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: true, uploadFailed: false });
-
-                        return this.$store.state.apiClient.uploadFile(file)
-                            .then(imageUrl => {
-                                this.addUploadedImage(imageUrl, x + index * 20, y);
-
-                                this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: false, uploadFailed: false });
-                            })
-                            .catch(err => {
-                                this.$store.dispatch('updateImageUploadStatus', { imageId, uploading: false, uploadFailed: true });
-                                if (err.data && err.data.message) {
-                                    StoreUtils.addErrorSystemMessage(this.$store, err.data.message);
-                                }
-                            });
-                    });
-                })
-            }
-        },
-
-        addUploadedImage(imageUrl, x, y) {
-            const img = new Image();
-            const that = this;
-            img.onload = function() {
-                that.addUploadedImageWithSize(imageUrl, x, y, this.width, this.height);
-            }
-            img.onerror = function() {
-                that.addUploadedImageWithSize(imageUrl, x, y, 100, 100);
-            }
-            img.src = imageUrl;
-        },
-        addUploadedImageWithSize(imageUrl, x, y, w, h) {
-            const image = {
-                name: this.schemeContainer.copyNameAndMakeUnique('Image'),
-                area: {x, y, w, h, r: 0},
-                shape: 'image',
-                shapeProps: {
-                    image: imageUrl
-                }
-            };
-            this.schemeContainer.addItem(image);
-            EventBus.emitSchemeChangeCommited();
         },
 
         itemCreationDraggedToSvgEditor(item, pageX, pageY) {
