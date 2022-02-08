@@ -17,19 +17,12 @@ class State {
         this.schemeContainer = null;
         this.eventBus = eventBus;
         this.name = '';
-        this.editor = null;
         this.store = store;
 
     }
 
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;
-    }
-
-    // a hackish way of propagating events to SVGEditor component
-    // should find a better way
-    setEditor(editor) {
-        this.editor = editor;
     }
 
     reset() {}
@@ -117,7 +110,7 @@ class State {
         schemeContainer.screenTransform.x = sx;
         schemeContainer.screenTransform.y = sy;
 
-        this.editor.informUpdateOfScreenTransform(schemeContainer.screenTransform);
+        EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {
@@ -264,7 +257,8 @@ class State {
     }
 
     updateCursor(cursor) {
-        this.editor.cursor = cursor;
+        //TODO figure out how to update cursor. perhaps its state should be managed in store
+        // this.editor.cursor = cursor;
     }
 
     /**

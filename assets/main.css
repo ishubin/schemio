@@ -801,7 +801,7 @@ ul.pagination li a.current {
     display: inline-block;
 }
 
-#svg_plot .item-text-container p, .in-place-edit-editor-wrapper [contenteditable="true"] p {
+.item-text-container p, .in-place-edit-editor-wrapper [contenteditable="true"] p {
     min-height: var(--min-paragraph-height);
     margin-top: var(--paragraph-top-margin);
     margin-bottom: 0;
@@ -841,10 +841,10 @@ ul.pagination li a.current {
 /*****************************************/
 /* Hover state in create component state */
 /*****************************************/
-#svg_plot.state-createItem .state-hover-layer {
+.state-createItem #svg_plot .state-hover-layer {
     cursor: crosshair;
 }
-#svg_plot.state-draw, #svg_plot.state-draw .state-hover-layer {
+.state-draw #svg_plot, .state-draw #svg_plot .state-hover-layer {
     cursor: crosshair;
 }
 

@@ -4,6 +4,7 @@
 
 import Vue from 'vue';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
+import store from './store/Store';
 
 
 function objProperty(obj, field, defaultValue) {
@@ -18,6 +19,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
 
     new Vue({
         components: {StandaloneSchemeView},
+        store,
         data() {
             return {
                 scheme,

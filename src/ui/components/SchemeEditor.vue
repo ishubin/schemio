@@ -53,15 +53,51 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
+                    :class="['state-' + state]"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
-                    @switched-state="onSvgEditorSwitchedState"
+                    :stateLayerShown="state === 'draw' || state === 'createItem'"
+                    @mouse-wheel="mouseWheel"
+                    @mouse-move="mouseMove"
+                    @mouse-down="mouseDown"
+                    @mouse-up="mouseUp"
+                    @mouse-double-click="mouseDoubleClick"
                     @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
-                    />
+                    >
+                    <g slot="scene-transform">
+                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && state !== 'cropImage' && !inPlaceTextEditor.shown"
+                            :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
+                            :edit-box="schemeContainer.multiItemEditBox"
+                            :zoom="schemeContainer.screenTransform.scale"
+                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+
+                        <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
+                            :key="`crop-image-edit-box`"
+                            :edit-box="cropImage.editBox"
+                            kind="crop-image"
+                            :zoom="schemeContainer.screenTransform.scale"
+                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+
+                        <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta">
+                            <CurveEditBox 
+                                :key="`item-curve-edit-box-${curveEditItem.id}`"
+                                :item="curveEditItem"
+                                :zoom="schemeContainer.screenTransform.scale"
+                                :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
+                                :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
+                        </g>
+                    </g>
+
+                    <div slot="overlay">
+                        <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
+                    </div>
+                </SvgEditor>
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
@@ -70,8 +106,30 @@
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
-                    @switched-state="onSvgEditorSwitchedState"
+                    :userEventBus="userEventBus"
+                    @mouse-wheel="mouseWheel"
+                    @mouse-move="mouseMove"
+                    @mouse-down="mouseDown"
+                    @mouse-up="mouseUp"
+                    @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
+                    />
+
+                <!-- Item Text Editor -->
+                <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
+                    :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.slotName}`"
+                    :item="inPlaceTextEditor.item"
+                    :area="inPlaceTextEditor.area"
+                    :css-style="inPlaceTextEditor.style"
+                    :text="inPlaceTextEditor.text"
+                    :creating-new-item="inPlaceTextEditor.creatingNewItem"
+                    :scalingVector="inPlaceTextEditor.scalingVector"
+                    :zoom="schemeContainer.screenTransform.scale"
+                    @close="closeItemTextEditor"
+                    @updated="onInPlaceTextEditorUpdate"
+                    @item-renamed="onInPlaceTextEditorItemRenamed"
+                    @item-area-changed="onInPlaceTextEditorItemAreaChanged"
+                    @item-text-cleared="onInPlaceTextEditorItemTextCleared"
                     />
 
                 <context-menu v-if="customContextMenu.show"
@@ -128,7 +186,7 @@
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelRightExpanded">
-                    <ul v-if="textSlotEditted.item" class="tabs text-nonselectable">
+                    <ul v-if="inPlaceTextEditor.item" class="tabs text-nonselectable">
                         <li><span class="tab active">Text</span></li>
                     </ul>
                     <ul v-else-if="editorStateName === 'draw'" class="tabs text-nonselectable">
@@ -160,7 +218,7 @@
                         <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
                     </div>
                     <div v-else class="tabs-body">
-                        <div v-if="currentTab === 'Doc' && schemeContainer && !textSlotEditted.item">
+                        <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
@@ -168,7 +226,7 @@
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
 
-                        <div v-if="currentTab === 'Item' && !textSlotEditted.item">
+                        <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
                                     <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
@@ -196,10 +254,10 @@
                             <Comments :entityId="commentsEntityId" :comments="comments"/>
                         </div>
 
-                        <div v-if="textSlotEditted.item && mode === 'edit'">
-                            <text-slot-properties :item="textSlotEditted.item" :slot-name="textSlotEditted.slotName"
-                                @moved-to-slot="onTextSlotMoved(textSlotEditted.item, textSlotEditted.slotName, arguments[0]);"
-                                @property-changed="onInPlaceEditTextPropertyChanged(textSlotEditted.item, textSlotEditted.slotName, arguments[0], arguments[1])"
+                        <div v-if="inPlaceTextEditor.item && mode === 'edit'">
+                            <text-slot-properties :item="inPlaceTextEditor.item" :slot-name="inPlaceTextEditor.slotName"
+                                @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
+                                @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
                         <div v-else-if="mode === 'edit'">
@@ -286,14 +344,19 @@
 <script>
 import shortid from 'shortid';
 import utils from '../utils.js';
+import myMath from '../myMath';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
 import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
+import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
+import MultiItemEditBox from './editor/MultiItemEditBox.vue';
+import CurveEditBox from './editor/CurveEditBox.vue';
+import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -331,6 +394,29 @@ import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
 import { filterOutPreviewSvgElements } from '../svgPreview';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
+import StateCreateItem from './editor/states/StateCreateItem.js';
+import StateInteract from './editor/states/StateInteract.js';
+import StateDragItem from './editor/states/StateDragItem.js';
+import StateDraw from './editor/states/StateDraw.js';
+import StateEditCurve from './editor/states/StateEditCurve.js';
+import StatePickElement from './editor/states/StatePickElement.js';
+import StateCropImage from './editor/states/StateCropImage.js';
+import store from '../store/Store';
+import UserEventBus from '../userevents/UserEventBus.js';
+
+const userEventBus = new UserEventBus();
+
+const states = {
+    interact: new StateInteract(EventBus, store, userEventBus),
+    createItem: new StateCreateItem(EventBus, store),
+    editCurve: new StateEditCurve(EventBus, store),
+    dragItem: new StateDragItem(EventBus, store),
+    pickElement: new StatePickElement(EventBus, store),
+    cropImage: new StateCropImage(EventBus, store),
+    draw: new StateDraw(EventBus, store),
+};
+
+
 
 const defaultHistorySize = 30;
 let history = new History({size: defaultHistorySize});
@@ -398,11 +484,11 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel,
-        CreateNewSchemeModal, LinkEditPopup,
+        CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
-        Modal, ShapeExporterModal, FrameAnimatorPanel,
-        Comments, ContextMenu, ExportPictureModal,
+        Modal, ShapeExporterModal, FrameAnimatorPanel, CurveEditBox,
+        Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
@@ -428,6 +514,7 @@ export default {
         this.markSchemeAsUnmodified();
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
@@ -435,18 +522,32 @@ export default {
         EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
         EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
         EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+        EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
+        EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
+        EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
+        EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
+        EventBus.$on(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
+        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
+        EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
+        EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
+        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
+        EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
+        EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
+        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
+        EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
         EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
@@ -454,13 +555,26 @@ export default {
         EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
         EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
         EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
         EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
         EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+        EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
+        EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
+        EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
+        EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
+        EventBus.$off(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
+        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
+        EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
+        EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
+        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+        EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
+        EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
+        EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
+        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
     },
 
     mounted() {
@@ -472,6 +586,9 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file
             editorRevision: 0,
+
+            state: 'interact',
+            userEventBus,
 
             hasher: createHasher(this.$router ? this.$router.mode : 'history'),
 
@@ -486,6 +603,22 @@ export default {
             loadingStep: 'load', // can be "load", "img-preload"
             isSaving: false,
             schemeLoadErrorMessage: null,
+
+            cropImage: {
+                editBox: null,
+                item: null
+            },
+
+            inPlaceTextEditor: {
+                item: null,
+                slotName: '',
+                shown: false,
+                area: {x: 0, y: 0, w: 100, h: 100},
+                text: '',
+                creatingNewItem: false,
+                scalingVector: {x: 1, y: 1},
+                style: {}
+            },
 
 
             // a reference to an item that was clicked in view mode
@@ -528,11 +661,6 @@ export default {
                 shown: false,
                 x: 0,
                 y: 0
-            },
-
-            textSlotEditted: {
-                item: null,
-                slotName: null
             },
 
             // When an item is selected - we want to display additional tabs for it
@@ -639,6 +767,11 @@ export default {
         initScheme(scheme) {
             this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
+            forEach(states, state => {
+                state.setSchemeContainer(this.schemeContainer);
+            });
+
+
             history = new History({size: defaultHistorySize});
             history.commit(scheme);
             document._history = history;
@@ -676,8 +809,246 @@ export default {
             this.mode = mode;
             if (mode === 'view') {
                 this.sidePanelRightExpanded = false;
+                this.switchStateInteract();
             } else if (mode === 'edit') {
                 this.sidePanelRightExpanded = true;
+                this.switchStateDragItem();
+            }
+        },
+
+        onCancelCurrentState() {
+            if (this.mode === 'edit') {
+                this.state = 'dragItem';
+            } else {
+                this.state = 'interact';
+            }
+            states[this.state].reset();
+        },
+
+        switchStateDragItem() {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+            this.state = 'dragItem';
+            states.dragItem.reset();
+        },
+
+
+        switchStateInteract() {
+            EventBus.emitItemsHighlighted([]);
+            states.interact.schemeContainer = this.interactiveSchemeContainer;
+            states[this.state].cancel();
+            this.state = 'interact';
+            states[this.state].reset();
+        },
+
+        switchStatePickElement(elementPickCallback) {
+            EventBus.emitItemsHighlighted([]);
+            this.state = 'pickElement';
+            states.pickElement.reset();
+            states.pickElement.setElementPickCallback(elementPickCallback);
+        },
+
+
+        switchStateCreateItem(item) {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+            if (item.shape === 'curve' || item.shape === 'connector') {
+                item.shapeProps.points = [];
+                this.setCurveEditItem(item);
+                // making sure every new curve starts non-closed
+                if (item.shape === 'curve') {
+                    item.shapeProps.closed = false;
+                }
+                this.state = 'editCurve';
+                EventBus.emitCurveEdited(item);
+            } else {
+                this.state = 'createItem';
+            }
+            states[this.state].reset();
+            states[this.state].setItem(item);
+        },
+
+        setCurveEditItem(item) {
+            this.$store.dispatch('setCurveEditItem', item);
+        },
+        
+        onStartCurveEditing(item) {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+
+            item.shapeProps.points = [];
+            this.setCurveEditItem(item);
+            // making sure every new curve starts non-closed
+            if (item.shape === 'curve') {
+                item.shapeProps.closed = false;
+            }
+            this.state = 'editCurve';
+            EventBus.emitCurveEdited(item);
+
+            states[this.state].reset();
+            states[this.state].setItem(item);
+        },
+
+        switchStateDrawing() {
+            EventBus.emitItemsHighlighted([]);
+
+            states[this.state].cancel();
+            this.state = 'draw';
+            states.draw.reset();
+        },
+
+        switchStateSmartDrawing() {
+            EventBus.emitItemsHighlighted([]);
+
+            states[this.state].cancel();
+            this.state = 'draw';
+            states.draw.reset();
+            states.draw.initSmartDraw();
+        },
+
+        onStopDrawing() {
+            if (this.state === 'draw') {
+                states.draw.cancel();
+            }
+        },
+
+        onStartConnecting(sourceItem, worldPoint) {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+            let localPoint = null;
+            if (worldPoint) {
+                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
+            }
+            states.editCurve.reset();
+            const connector = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
+            connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
+            this.setCurveEditItem(connector);
+            this.state = 'editCurve';
+        },
+
+        onDrawColorPicked(color) {
+            if (this.state === 'draw') {
+                states.draw.pickColor(color);
+            }
+        },
+
+        onCurveEditRequested(item) {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+            this.state = 'editCurve';
+            states.editCurve.reset();
+            states.editCurve.setItem(item);
+            this.setCurveEditItem(item);
+        },
+
+        onCurveEditStopped() {
+            if (this.state === 'editCurve') {
+                states.editCurve.cancel();
+            }
+        },
+
+        startCroppingImage(item) {
+            EventBus.emitItemsHighlighted([]);
+            states[this.state].cancel();
+            this.state = 'cropImage';
+            
+            states.cropImage.reset();
+            this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
+            this.cropImage.item = item;
+            states.cropImage.setImageEditBox(this.cropImage.editBox);
+            states.cropImage.setImageItem(item);
+        },
+
+        onElementPickCanceled() {
+            if (this.state === 'pickElement') {
+                states.pickElement.cancel();
+            }
+        },
+
+        onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
+            // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
+            const itemTextSlot = item.textSlots[slotName];
+            const p0 = worldPointOnItem(area.x, area.y, item);
+            const p1 = worldPointOnItem(area.x + area.w, area.y, item);
+            const p2 = worldPointOnItem(area.x + area.w, area.y + area.h, item);
+            const p3 = worldPointOnItem(area.x, area.y + area.h, item);
+            const center = myMath.averagePoint(p0, p1, p2, p3);
+
+            const worldWidth = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
+            const worldHeight = myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y);
+
+            const scalingVector = worldScalingVectorOnItem(item);
+            const x = center.x - worldWidth / 2;
+            const y = center.y - worldHeight / 2;
+
+            this.inPlaceTextEditor.slotName = slotName;
+            this.inPlaceTextEditor.item = item;
+            this.inPlaceTextEditor.text = itemTextSlot.text;
+            this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
+            this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
+
+            // the following correction was calculated empirically and to be honest was done poorly
+            // I have no idea why it is needed, but for some reason in place text editor has
+            // an offset proportional to the scaling effect of the item
+            // Hopefully in future I can fix this differently
+            const scaleCorrectionX = 1 / Math.max(0.0000001, scalingVector.x);
+            const scaleCorrectionY = 1 / Math.max(0.0000001, scalingVector.y);
+
+            this.inPlaceTextEditor.area.x = this._x(x) - scaleCorrectionX;
+            this.inPlaceTextEditor.area.y = this._y(y) - scaleCorrectionY;
+            this.inPlaceTextEditor.area.w = this._z(worldWidth);
+            this.inPlaceTextEditor.area.h = this._z(worldHeight);
+            this.inPlaceTextEditor.shown = true;
+            this.inPlaceTextEditor.scalingVector = scalingVector;
+        },
+
+        onInPlaceTextEditorUpdate(text) {
+            if (this.inPlaceTextEditor.shown) {
+                this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName].text = text;
+            }
+        },
+
+        onInPlaceTextEditorItemAreaChanged(item, width, height) {
+            if (item.shape === 'none') {
+                item.area.w = width;
+                item.area.h = height;
+            }
+        },
+
+        onInPlaceTextEditorItemRenamed(item, name) {
+            item.name = name;
+        },
+
+        onInPlaceTextEditorItemTextCleared(item) {
+            if (!item.shape === 'none') {
+                return;
+            }
+            if (item.childItems && item.childItems.length > 0) {
+                return;   
+            }
+            this.schemeContainer.deleteItem(item);
+        },
+
+        closeItemTextEditor() {
+            if (this.inPlaceTextEditor.item) {
+                EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
+                EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                this.schemeContainer.reindexItems();
+            }
+            this.inPlaceTextEditor.shown = false;
+            this.inPlaceTextEditor.item = null;
+            this.inPlaceTextEditor.slotName = null;
+        },
+
+        updateInPlaceTextEditorStyle() {
+            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
+            this.inPlaceTextEditor.style = generateTextStyle(textSlot);
+        },
+
+        onAnyItemChanged(itemId) {
+            if (this.inPlaceTextEditor.item && this.inPlaceTextEditor.item.id === itemId) {
+                this.updateInPlaceTextEditorStyle();
             }
         },
 
@@ -899,7 +1270,18 @@ export default {
                 } else if (Keys.CTRL_A === key) {
                     this.schemeContainer.selectAllItems();
                     EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
+                } else if (Keys.DELETE === key) {
+                    if (this.state === 'editCurve') {
+                        states.editCurve.deleteSelectedPoints();
+                    } else if (this.state === 'dragItem') {
+                        this.deleteSelectedItems();
+                    }
                 }
+            }
+            if (key === Keys.ESCAPE) {
+                states[this.state].cancel();
+            } else {
+                states[this.state].keyPressed(key, keyOptions);
             }
         },
 
@@ -1152,16 +1534,6 @@ export default {
             this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
         },
 
-        onItemTextSlotEditTriggered(item, slotName) {
-            this.textSlotEditted.item = item;
-            this.textSlotEditted.slotName = slotName;
-        },
-
-        onItemTextSlotEditCanceled(item, slotName) {
-            this.textSlotEditted.item = null;
-            this.textSlotEditted.slotName = null;
-        },
-
         /**
          * Triggered when any item got selected or deselected
          */
@@ -1206,7 +1578,7 @@ export default {
             item.textSlots[anotherSlotName] = utils.clone(item.textSlots[slotName]);
             item.textSlots[slotName].text = '';
             EventBus.emitItemChanged(item.id, `textSlots.${anotherSlotName}`);
-            if (!this.textSlotEditted.item) {
+            if (!this.inPlaceTextEditor.item) {
                 this.currentTab = `Text: ${anotherSlotName}`;
             }
 
@@ -1418,11 +1790,13 @@ export default {
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
             AnimationRegistry.enableAnimations();
+            this.switchStateInteract();
         },
         
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
             AnimationRegistry.stopAllAnimations();
+            this.switchStateDragItem();
         },
 
         onDrawColorPicked(color) {
@@ -1866,6 +2240,34 @@ export default {
             EventBus.emitSchemeChangeCommited();
         },
 
+        onKeyUp(key, keyOptions) {
+            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
+                states[this.state].keyUp(key, keyOptions);
+            }
+        },
+
+        mouseWheel(x, y, mx, my, event) {
+            states[this.state].mouseWheel(x, y, mx, my, event);
+        },
+
+        mouseDown(worldX, worldY, screenX, screenY, object, event) {
+            states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+        },
+        mouseUp(worldX, worldY, screenX, screenY, object, event) {
+            states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+        },
+        mouseMove(worldX, worldY, screenX, screenY, object, event) {
+            states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+        },
+        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
+            states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+        },
+
+        //calculates from world to screen
+        _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
+        _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
+        _z(v) { return v * this.schemeContainer.screenTransform.scale; },
+
         //calculates from screen to world
         x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -1894,6 +2296,10 @@ export default {
             this.saveSchemeSettings();
         },
 
+        state(newState) {
+            this.$store.dispatch('setEditorStateName', newState);
+            EventBus.emitEditorStateChanged(this.state);
+        },
     },
 
     computed: {
@@ -1934,7 +2340,11 @@ export default {
 
         apiClient() {
             return this.$store.getters.apiClient;
-        }
+        },
+
+        curveEditItem() {
+            return this.$store.state.curveEditing.item;
+        },
     }
 }
 </script>

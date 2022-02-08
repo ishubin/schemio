@@ -5,7 +5,7 @@
 <template lang="html">
     <div id="svg-editor" class="svg-editor">
         <svg id="svg_plot" ref="svgDomElement"
-            :class="['mode-' + mode, 'state-' + state]"
+            :class="['mode-' + mode]"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
@@ -120,20 +120,8 @@
                         />
                     </g>
 
-                    <multi-item-edit-box  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && state !== 'cropImage' && !inPlaceTextEditor.shown"
-                        :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
-                        :edit-box="schemeContainer.multiItemEditBox"
-                        :zoom="schemeContainer.screenTransform.scale"
-                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
-                    <multi-item-edit-box  v-if="state === 'cropImage' && cropImage.editBox"
-                        :key="`crop-image-edit-box`"
-                        :edit-box="cropImage.editBox"
-                        kind="crop-image"
-                        :zoom="schemeContainer.screenTransform.scale"
-                        :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                        :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                    <slot name="scene-transform"></slot>
 
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -149,14 +137,6 @@
                 </g>
 
 
-                <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta" :transform="transformSvg">
-                    <curve-edit-box 
-                        :key="`item-curve-edit-box-${curveEditItem.id}`"
-                        :item="curveEditItem"
-                        :zoom="schemeContainer.screenTransform.scale"
-                        :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
-                        :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
-                </g>
 
                 <g v-if="multiSelectBox">
                     <rect class="multi-select-box"
@@ -170,28 +150,11 @@
                 <line v-if="horizontalSnapper" :x1="0" :y1="_y(horizontalSnapper.value)" :x2="width" :y2="_y(horizontalSnapper.value)" style="stroke: red; opacity: 0.4; stroke-width: 1px;"/>
                 <line v-if="verticalSnapper" :x1="_x(verticalSnapper.value)" :y1="0" :x2="_x(verticalSnapper.value)" :y2="height" style="stroke: red; opacity:0.4; stroke-width: 1px;"/>
 
-                <rect class="state-hover-layer" v-if="shouldShowStateHoverLayer"  x="0" y="0" :width="width" :height="height" fill="rgba(255, 255, 255, 0.0)"/>
+                <rect class="state-hover-layer" v-if="stateLayerShown"  x="0" y="0" :width="width" :height="height" fill="rgba(255, 255, 255, 0.0)"/>
             </g>
         </svg>
         
-        <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
-
-        <!-- Item Text Editor -->
-        <in-place-text-edit-box v-if="inPlaceTextEditor.shown"
-            :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.slotName}`"
-            :item="inPlaceTextEditor.item"
-            :area="inPlaceTextEditor.area"
-            :css-style="inPlaceTextEditor.style"
-            :text="inPlaceTextEditor.text"
-            :creating-new-item="inPlaceTextEditor.creatingNewItem"
-            :scalingVector="inPlaceTextEditor.scalingVector"
-            :zoom="schemeContainer.screenTransform.scale"
-            @close="closeItemTextEditor"
-            @updated="onInPlaceTextEditorUpdate"
-            @item-renamed="onInPlaceTextEditorItemRenamed"
-            @item-area-changed="onInPlaceTextEditorItemAreaChanged"
-            @item-text-cleared="onInPlaceTextEditorItemTextCleared"
-            />
+        <slot name="overlay"></slot>
     </div>
 </template>
 
@@ -203,53 +166,25 @@ import find from 'lodash/find';
 
 import '../../typedef';
 
-import {Keys} from '../../events';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems, hasItemDescription} from '../../scheme/Item';
-import StateCreateItem from './states/StateCreateItem.js';
-import StateInteract from './states/StateInteract.js';
-import StateDragItem from './states/StateDragItem.js';
-import StateDraw from './states/StateDraw.js';
-import StateEditCurve from './states/StateEditCurve.js';
-import StatePickElement from './states/StatePickElement.js';
-import StateCropImage from './states/StateCropImage.js';
 import EventBus from './EventBus.js';
-import MultiItemEditBox from './MultiItemEditBox.vue';
-import CurveEditBox from './CurveEditBox.vue';
 import ItemSvg from './items/ItemSvg.vue';
-import { generateTextStyle } from './text/ItemText';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
-import {itemCompleteTransform} from '../../scheme/SchemeContainer.js';
-import UserEventBus from '../../userevents/UserEventBus.js';
+import SchemeContainer, { itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import Compiler from '../../userevents/Compiler.js';
-import InPlaceTextEditBox from './InPlaceTextEditBox.vue';
 import Shape from './items/shapes/Shape';
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
-import Modal from '../Modal.vue';
 import Events from '../../userevents/Events';
-import store from '../../store/Store';
 import StoreUtils from '../../store/StoreUtils';
 import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
 
-const userEventBus = new UserEventBus();
 const behaviorCompiler = new Compiler();
-
-const states = {
-    interact: new StateInteract(EventBus, store, userEventBus),
-    createItem: new StateCreateItem(EventBus, store),
-    editCurve: new StateEditCurve(EventBus, store),
-    dragItem: new StateDragItem(EventBus, store),
-    pickElement: new StatePickElement(EventBus, store),
-    cropImage: new StateCropImage(EventBus, store),
-    draw: new StateDraw(EventBus, store),
-};
-
 
 /**
  * This variable is used for storing the last known position of mouse cursor
@@ -265,8 +200,10 @@ const lastMousePosition = {
 
 export default {
     props: {
-        offline  : { type: Boolean, default: false},
-        mode     : { type: String, default: 'edit' },
+        offline        : { type: Boolean, default: false},
+        mode           : { type: String, default: 'edit' },
+        stateLayerShown: { type: Boolean, default: false},
+        userEventBus   : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -274,40 +211,25 @@ export default {
         useMouseWheel   : { default: true, type: Boolean}
     },
 
-    components: {ItemSvg, MultiItemEditBox, CurveEditBox, InPlaceTextEditBox, Modal},
+    components: { ItemSvg },
     beforeMount() {
-        forEach(states, state => {
-            state.setSchemeContainer(this.schemeContainer);
-            state.setEditor(this);
-        })
+        if (this.mode === 'view') {
+            StoreUtils.setShowClickableMarkers(this.$store, this.schemeContainer.scheme.style.itemMarkerToggled);
+            this.buildClickableItemMarkers();
+            this.reindexUserEvents();
+            this.prepareFrameAnimations();
+        }
 
-        EventBus.$on(EventBus.START_CREATING_ITEM, this.onSwitchStateCreateItem);
-        EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$on(EventBus.START_DRAWING, this.onSwitchStateDrawing);
-        EventBus.$on(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
-        EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
-        EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
-        EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
     },
     mounted() {
         this.updateSvgSize();
@@ -319,43 +241,20 @@ export default {
                 svgElement.addEventListener('wheel', this.mouseWheel);
             }
         }
-
-        if (this.mode === 'edit') {
-            this.switchStateDragItem();
-        } else {
-            this.switchStateInteract();
-        }
     },
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
-        EventBus.$off(EventBus.START_CREATING_ITEM, this.onSwitchStateCreateItem);
-        EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$off(EventBus.START_DRAWING, this.onSwitchStateDrawing);
-        EventBus.$off(EventBus.START_SMART_DRAWING, this.onSwitchStateSmartDrawing);
-        EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
         EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.onElementPickRequested);
-        EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
-        EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -368,7 +267,6 @@ export default {
         return {
             mouseEventsEnabled: true,
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
-            state: 'interact',
 
             // the following two properties are going to be updated in mounted hook
             width: window.innerWidth,
@@ -379,23 +277,6 @@ export default {
 
             // array of markers for items that are clickable
             clickableItemMarkers: [],
-
-            cropImage: {
-                editBox: null,
-                item: null
-            },
-
-            inPlaceTextEditor: {
-                itemId: '',
-                item: null,
-                slotName: '',
-                shown: false,
-                area: {x: 0, y: 0, w: 100, h: 100},
-                text: '',
-                creatingNewItem: false,
-                scalingVector: {x: 1, y: 1},
-                style: {}
-            },
 
             worldHighlightedItems: [ ],
 
@@ -512,7 +393,7 @@ export default {
         mouseWheel(event) {
             var coords = this.mouseCoordsFromEvent(event);
             var p = this.toLocalPoint(coords.x, coords.y);
-            states[this.state].mouseWheel(p.x, p.y, coords.x, coords.y, event);
+            this.$emit('mouse-wheel', p.x, p.y, coords.x, coords.y, event);
         },
         mouseMove(event) {
             if (this.mouseEventsEnabled) {
@@ -521,7 +402,7 @@ export default {
                 lastMousePosition.x = coords.x;
                 lastMousePosition.y = coords.y;
 
-                states[this.state].mouseMove(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit('mouse-move', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDown(event) {
@@ -531,7 +412,7 @@ export default {
                 lastMousePosition.x = coords.x;
                 lastMousePosition.y = coords.y;
 
-                states[this.state].mouseDown(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit('mouse-down', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseUp(event) {
@@ -539,7 +420,7 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseUp(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit('mouse-up', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
         mouseDoubleClick(event) {
@@ -547,16 +428,8 @@ export default {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
 
-                states[this.state].mouseDoubleClick(p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit('mouse-double-click', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
-        },
-        onCancelCurrentState() {
-            if (this.mode === 'edit') {
-                this.state = 'dragItem';
-            } else {
-                this.state = 'interact';
-            }
-            states[this.state].reset();
         },
 
         buildClickableItemMarkers() {
@@ -580,131 +453,6 @@ export default {
             });
 
             this.clickableItemMarkers = markers;
-        },
-
-        switchStateInteract() {
-            StoreUtils.setShowClickableMarkers(this.$store, this.schemeContainer.scheme.style.itemMarkerToggled);
-            this.highlightItems([]);
-            this.buildClickableItemMarkers();
-            states.interact.schemeContainer = this.schemeContainer;
-            states[this.state].cancel();
-            this.state = 'interact';
-
-            this.reindexUserEvents();
-            this.prepareFrameAnimations();
-            states[this.state].reset();
-        },
-
-        switchStateDragItem() {
-            this.highlightItems([]);
-            states[this.state].cancel();
-            this.state = 'dragItem';
-            states.dragItem.reset();
-        },
-        
-        switchStatePickElement(elementPickCallback) {
-            this.highlightItems([]);
-            this.state = 'pickElement';
-            states.pickElement.reset();
-            states.pickElement.setElementPickCallback(elementPickCallback);
-        },
-
-        onSwitchStateCreateItem(item) {
-            this.highlightItems([]);
-            states[this.state].cancel();
-            if (item.shape === 'curve' || item.shape === 'connector') {
-                item.shapeProps.points = [];
-                this.setCurveEditItem(item);
-                // making sure every new curve starts non-closed
-                if (item.shape === 'curve') {
-                    item.shapeProps.closed = false;
-                }
-                this.state = 'editCurve';
-                EventBus.emitCurveEdited(item);
-            } else {
-                this.state = 'createItem';
-            }
-            states[this.state].reset();
-            states[this.state].setItem(item);
-        },
-
-        onStartCurveEditing(item) {
-            this.highlightItems([]);
-            states[this.state].cancel();
-
-            item.shapeProps.points = [];
-            this.setCurveEditItem(item);
-            // making sure every new curve starts non-closed
-            if (item.shape === 'curve') {
-                item.shapeProps.closed = false;
-            }
-            this.state = 'editCurve';
-            EventBus.emitCurveEdited(item);
-
-            states[this.state].reset();
-            states[this.state].setItem(item);
-        },
-
-        onSwitchStateDrawing() {
-            this.highlightItems([]);
-
-            states[this.state].cancel();
-            this.state = 'draw';
-            states.draw.reset();
-        },
-
-        onStopDrawing() {
-            if (this.state === 'draw') {
-                states.draw.cancel();
-            }
-        },
-
-        onDrawColorPicked(color) {
-            if (this.state === 'draw') {
-                states.draw.pickColor(color);
-            }
-        },
-
-        onSwitchStateSmartDrawing() {
-            this.highlightItems([]);
-
-            states[this.state].cancel();
-            this.state = 'draw';
-            states.draw.reset();
-            states.draw.initSmartDraw();
-        },
-
-        setCurveEditItem(item) {
-            this.$store.dispatch('setCurveEditItem', item);
-        },
-
-        onStartConnecting(sourceItem, worldPoint) {
-            this.highlightItems([]);
-            states[this.state].cancel();
-            let localPoint = null;
-            if (worldPoint) {
-                localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
-            }
-            states.editCurve.reset();
-            const connector = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
-            connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
-            this.setCurveEditItem(connector);
-            this.state = 'editCurve';
-        },
-
-        onCurveEditRequested(item) {
-            this.highlightItems([]);
-            states[this.state].cancel();
-            this.state = 'editCurve';
-            states.editCurve.reset();
-            states.editCurve.setItem(item);
-            this.setCurveEditItem(item);
-        },
-
-        onCurveEditStopped() {
-            if (this.state === 'editCurve') {
-                states.editCurve.cancel();
-            }
         },
 
         highlightItems(itemIds, options) {
@@ -772,8 +520,10 @@ export default {
         },
 
         reindexUserEvents() {
-            userEventBus.clear();
-            this.indexUserEventsInItems(this.schemeContainer.scheme.items);
+            if (this.userEventBus) {
+                this.userEventBus.clear();
+                this.indexUserEventsInItems(this.schemeContainer.scheme.items);
+            }
         },
 
         indexUserEventsInItems(items) {
@@ -789,14 +539,14 @@ export default {
                             if (event.event === Events.standardEvents.init.id) {
                                 itemsForInit[item.id] = 1;
                             }
-                            userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
+                            this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
                         })
                     }
                 });
             });
 
             forEach(itemsForInit, (val, itemId) => {
-                userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+                this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         },
 
@@ -804,14 +554,14 @@ export default {
             if (item._childItems) {
                 this.indexUserEventsInItems(item._childItems);
             }
-            if (item.shape === 'component') {
-                userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
+            if (item.shape === 'component' && this.userEventBus) {
+                this.userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
             }
         },
 
         onComponentLoadFailed(item) {
-            if (item.shape === 'component') {
-                userEventBus.emitItemEvent(item.id, COMPONENT_FAILED);
+            if (item.shape === 'component' && this.userEventBus) {
+                this.userEventBus.emitItemEvent(item.id, COMPONENT_FAILED);
             }
         },
 
@@ -852,35 +602,6 @@ export default {
                 event.preventDefault();
             }
             return false;
-        },
-
-        onKeyPress(key, keyOptions) {
-            if (key === Keys.ESCAPE) {
-                states[this.state].cancel();
-            } else if (key === Keys.DELETE && this.mode === 'edit') {
-                if (this.state === 'editCurve') {
-                    states.editCurve.deleteSelectedPoints();
-                } else if (this.state === 'dragItem') {
-                    this.deleteSelectedItems();
-                }
-            } else {
-                states[this.state].keyPressed(key, keyOptions);
-            }
-        },
-
-        onKeyUp(key, keyOptions) {
-            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
-                states[this.state].keyUp(key, keyOptions);
-            }
-        },
-
-        deleteSelectedItems() {
-            if (this.state === 'editCurve') {
-                states[this.state].cancel();
-            }
-            this.schemeContainer.deleteSelectedItems();
-            EventBus.emitSchemeChangeCommited();
-            this.$forceUpdate();
         },
 
         onShowItemLinks(item) {
@@ -1082,18 +803,6 @@ export default {
             };
         },
 
-        startCroppingImage(item) {
-            this.highlightItems([]);
-            states[this.state].cancel();
-            this.state = 'cropImage';
-            
-            states.cropImage.reset();
-            this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
-            this.cropImage.item = item;
-            states.cropImage.setImageEditBox(this.cropImage.editBox);
-            states.cropImage.setImageItem(item);
-        },
-
         exportAsShape() {
             if (!this.schemeContainer.multiItemEditBox) {
                 return;
@@ -1103,92 +812,6 @@ export default {
                 return;
             }
             this.$emit('shape-export-requested', box.items[0]);
-        },
-
-        onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
-            // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
-            const itemTextSlot = item.textSlots[slotName];
-            const p0 = worldPointOnItem(area.x, area.y, item);
-            const p1 = worldPointOnItem(area.x + area.w, area.y, item);
-            const p2 = worldPointOnItem(area.x + area.w, area.y + area.h, item);
-            const p3 = worldPointOnItem(area.x, area.y + area.h, item);
-            const center = myMath.averagePoint(p0, p1, p2, p3);
-
-            const worldWidth = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
-            const worldHeight = myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y);
-
-            const scalingVector = worldScalingVectorOnItem(item);
-            const x = center.x - worldWidth / 2;
-            const y = center.y - worldHeight / 2;
-
-            this.inPlaceTextEditor.itemId = item.id;
-            this.inPlaceTextEditor.slotName = slotName;
-            this.inPlaceTextEditor.item = item;
-            this.inPlaceTextEditor.text = itemTextSlot.text;
-            this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
-            this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
-
-            // the following correction was calculated empirically and to be honest was done poorly
-            // I have no idea why it is needed, but for some reason in place text editor has
-            // an offset proportional to the scaling effect of the item
-            // Hopefully in future I can fix this differently
-            const scaleCorrectionX = 1 / Math.max(0.0000001, scalingVector.x);
-            const scaleCorrectionY = 1 / Math.max(0.0000001, scalingVector.y);
-
-            this.inPlaceTextEditor.area.x = this._x(x) - scaleCorrectionX;
-            this.inPlaceTextEditor.area.y = this._y(y) - scaleCorrectionY;
-            this.inPlaceTextEditor.area.w = this._z(worldWidth);
-            this.inPlaceTextEditor.area.h = this._z(worldHeight);
-            this.inPlaceTextEditor.shown = true;
-            this.inPlaceTextEditor.scalingVector = scalingVector;
-        },
-
-        onInPlaceTextEditorUpdate(text) {
-            if (this.inPlaceTextEditor.shown) {
-                this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName].text = text;
-            }
-        },
-
-        onInPlaceTextEditorItemAreaChanged(item, width, height) {
-            if (item.shape === 'none') {
-                item.area.w = width;
-                item.area.h = height;
-            }
-        },
-
-        onInPlaceTextEditorItemRenamed(item, name) {
-            item.name = name;
-        },
-
-        onInPlaceTextEditorItemTextCleared(item) {
-            if (!item.shape === 'none') {
-                return;
-            }
-            if (item.childItems && item.childItems.length > 0) {
-                return;   
-            }
-            this.schemeContainer.deleteItem(item);
-        },
-
-        closeItemTextEditor() {
-            if (this.inPlaceTextEditor.item) {
-                EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
-                EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                this.schemeContainer.reindexItems();
-            }
-            this.inPlaceTextEditor.shown = false;
-        },
-
-        updateInPlaceTextEditorStyle() {
-            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
-            this.inPlaceTextEditor.style = generateTextStyle(textSlot);
-        },
-
-        onAnyItemChanged(itemId) {
-            if (this.inPlaceTextEditor.itemId === itemId) {
-                this.updateInPlaceTextEditorStyle();
-            }
         },
 
         onItemCustomEvent(event) {
@@ -1207,16 +830,8 @@ export default {
                 }
             }
 
-            userEventBus.emitItemEvent(event.itemId, event.eventName);
-        },
-
-        onElementPickRequested(elementPickCallback) {
-            this.switchStatePickElement(elementPickCallback);
-        },
-
-        onElementPickCanceled() {
-            if (this.state === 'pickElement') {
-                states.pickElement.cancel();
+            if (this.userEventBus) {
+                this.userEventBus.emitItemEvent(event.itemId, event.eventName);
             }
         },
 
@@ -1299,13 +914,6 @@ export default {
         z_(v) { return v * this.schemeContainer.screenTransform.scale; },
 
     },
-    watch: {
-        state(newState) {
-            this.$store.dispatch('setEditorStateName', newState);
-            this.$emit('switched-state', states[newState]);
-            EventBus.emitEditorStateChanged(this.state);
-        },
-    },
     computed: {
         safeZoom() {
             if (this.schemeContainer.screenTransform.scale > 0.00001) {
@@ -1354,9 +962,6 @@ export default {
             let y = Math.ceil(this.schemeContainer.screenTransform.y % zSnap) - zSnap;
             return `translate(${x} ${y})`;
         },
-        curveEditItem() {
-            return this.$store.state.curveEditing.item;
-        },
         multiSelectBox() {
             return this.$store.getters.multiSelectBox;
         },
@@ -1365,9 +970,6 @@ export default {
         },
         verticalSnapper() {
             return this.$store.getters.verticalSnapper;
-        },
-        shouldShowStateHoverLayer() {
-            return this.state === 'draw' || this.state === 'createItem';
         },
 
         shouldShowDropMask() {

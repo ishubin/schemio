@@ -21,7 +21,14 @@
                 :offset-y="offsetY"
                 :zoom="vZoom"
                 :use-mouse-wheel="useMouseWheel"
-                mode="view" />
+                mode="view" 
+                :userEventBus="userEventBus"
+                @mouse-wheel="mouseWheel"
+                @mouse-move="mouseMove"
+                @mouse-down="mouseDown"
+                @mouse-up="mouseUp"
+                @mouse-double-click="mouseDoubleClick"
+                />
 
             <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
@@ -42,6 +49,13 @@ import EventBus from '../components/editor/EventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
+import store from '../store/Store';
+import UserEventBus from '../userevents/UserEventBus';
+import StateInteract from '../components/editor/states/StateInteract';
+
+
+const userEventBus = new UserEventBus();
+const stateInteract = new StateInteract(EventBus, store, userEventBus);
 
 export default {
     props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
@@ -49,6 +63,9 @@ export default {
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
     beforeMount() {
+        stateInteract.schemeContainer = this.schemeContainer;
+        stateInteract.reset();
+
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
@@ -68,6 +85,7 @@ export default {
     data() {
         return {
             schemeContainer: new SchemeContainer(this.scheme, EventBus),
+            userEventBus,
             textZoom: "" + this.zoom,
             vZoom: this.zoom,
 
@@ -85,6 +103,26 @@ export default {
     },
 
     methods: {
+        mouseWheel(x, y, mx, my, event) {
+            stateInteract.mouseWheel(x, y, mx, my, event);
+        },
+
+        mouseDown(worldX, worldY, screenX, screenY, object, event) {
+            stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+        },
+
+        mouseUp(worldX, worldY, screenX, screenY, object, event) {
+            stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+        },
+
+        mouseMove(worldX, worldY, screenX, screenY, object, event) {
+            stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+        },
+
+        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
+            stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+        },
+
         onScreenTransformUpdated(screenTransform) {
             this.textZoom = '' + Math.round(screenTransform.scale * 10000) / 100;
         },
