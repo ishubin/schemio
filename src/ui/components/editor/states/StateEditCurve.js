@@ -926,9 +926,9 @@ export default class StateEditCurve extends State {
     }
 
     findClosestAttachmentPoint(x, y) {
-        let distanceThreshold = 0;
+        let distanceThreshold = 10;
         if (this.schemeContainer.screenTransform.scale > 0) {
-            distanceThreshold = 20 / this.schemeContainer.screenTransform.scale;
+            distanceThreshold = distanceThreshold / this.schemeContainer.screenTransform.scale;
         }
 
         const includeOnlyVisibleItems = true;
