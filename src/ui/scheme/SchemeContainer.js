@@ -101,6 +101,9 @@ export function itemCompleteTransform(item) {
     return myMath.standardTransformWithArea(parentTransform, item.area);
 }
 
+function updateItemRevision(item) {
+    item.meta.revision = ((item.meta.revision || 0) + 1) % 1000;
+}
 
 function visitItems(items, callback, transformMatrix, parentItem, ancestorIds, isIndexable) {
     if (!items) {
@@ -212,6 +215,8 @@ class SchemeContainer {
 
         // contains mapping of frame player id to its compiled animations
         this.framesAnimations = {};
+
+        this.outlinePointsCache = new Map(); // stores points of item outlines so that it doesn't have to recompute it for items that were not changed
 
         this.svgOutlinePathCache = new ItemCache((item) => {
             log.info('Computing shape outline for item', item.id, item.name);
@@ -536,9 +541,6 @@ class SchemeContainer {
             }
 
             this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
-
-            // storing revision in item as it is used  in ItemCache to identify whether item outline was changed or not
-            item.meta.revision = newRevision;
         }, transformMatrix, parentItem, ancestorIds, isIndexable);
 
         if (isIndexable) {
@@ -669,6 +671,36 @@ class SchemeContainer {
     }
 
     indexItemOutlinePoints(item) {
+        let pointsCache = this.outlinePointsCache.get(item.id);
+        if (!pointsCache) {
+            pointsCache = {
+                revision: -1,
+                points: []
+            };
+            this.outlinePointsCache.set(item.id, pointsCache);
+        }
+        
+        if (pointsCache.revision === item.meta.revision && pointsCache.points.length > 0) {
+            forEach(pointsCache.points, p => {
+                this.spatialIndex.addPoint(p[0], p[1], {
+                    itemId: item.id,
+                    pathDistance: p[2]
+                });
+            });
+            return;
+        }
+
+        pointsCache.revision = item.meta.revision;
+
+        const addPoint = (x, y, pathDistance) => {
+            pointsCache.points.push([x, y, pathDistance]);
+            this.spatialIndex.addPoint(x, y, {
+                itemId: item.id,
+                pathDistance
+            });
+        };
+
+
         const svgPath = this.getSvgOutlineOfItem(item);
         if (!svgPath) {
             return;
@@ -721,10 +753,7 @@ class SchemeContainer {
                 if (pathDistance >= 0) {
                     const point = svgPath.getPointAtLength(pathDistance);
                     const worldPoint = this.worldPointOnItem(point.x, point.y, item);
-                    this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
-                        itemId: item.id,
-                        pathDistance
-                    });
+                    addPoint(worldPoint.x, worldPoint.y, pathDistance)
                 }
             }
 
@@ -1072,6 +1101,7 @@ class SchemeContainer {
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
+            updateItemRevision(item);
             if (this.eventBus) {
                 this.eventBus.emitItemChanged(item.id);
             }
@@ -1334,7 +1364,7 @@ class SchemeContainer {
 
     deleteItem(item) {
         this._deleteItem(item);
-        //TODO refactor it so that it does have to run a full reindex
+        //TODO refactor it so that it does not have to run a full reindex
         this.reindexItems();
     }
 
@@ -1346,6 +1376,9 @@ class SchemeContainer {
     }
 
     _deleteItem(item) {
+        if (this.outlinePointsCache.has(item.id)) {
+            this.outlinePointsCache.delete(item.id);
+        }
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
             const parentItem = this.findItemById(item.meta.parentId);
@@ -1369,6 +1402,9 @@ class SchemeContainer {
 
         for (let i = this.scheme.items.length - 1; i >= 0 && itemSet.size > 0; i--) {
             const item = this.scheme.items[i];
+            if (this.outlinePointsCache.has(item.id)) {
+                this.outlinePointsCache.delete(item.id);
+            }
             if (itemSet.has(item.id)) {
                 delete this.itemMap[item.id];
                 this.worldItemAreas.delete(item.id);
@@ -1955,8 +1991,8 @@ class SchemeContainer {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
                 }
 
-                // changing item revision so that its shape will be recomputed
-                item.meta.revision += 1;
+                // changing item revision so that its shape gets recomputed
+                updateItemRevision(item);
 
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
                 if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
