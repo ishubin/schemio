@@ -167,6 +167,11 @@ function generateFilters(item) {
     };
 }
 
+function hasStrokeSizeProp(shape) {
+    const descriptor = Shape.getShapePropDescriptor(shape, 'strokeSize');
+    return descriptor && descriptor.type === 'number';
+}
+
 
 export default {
     name: 'ItemSvg',
@@ -209,6 +214,8 @@ export default {
 
             strokeDashArray       : '',
 
+            supportsStrokeSize    : hasStrokeSizeProp(shape),
+
             svgFilters            : [],
             filterUrl             : '',
             backgroundEffects     : [],
@@ -241,6 +248,7 @@ export default {
             this.oldShape = this.item.shape;
             const shape = Shape.find(shapeId);
             this.shapeType = shape.shapeType;
+            this.supportsStrokeSize = hasStrokeSizeProp(shape);
 
             if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
                 this.shouldDrawEventLayer = false;
@@ -337,7 +345,7 @@ export default {
 
     computed: {
         hoverPathStrokeWidth() {
-            if (this.item.shape === 'curve' || this.item.shape === 'connector') {
+            if (this.supportsStrokeSize) {
                 return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
             }
             return '0px';
