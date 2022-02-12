@@ -1815,13 +1815,35 @@ class SchemeContainer {
         this.deselectAllItems();
         
         const copiedItems = this.cloneItems(items);
+        const copiedIds = new Set();
+
         forEach(copiedItems, item => {
+            copiedIds.add(item.id);
             this.scheme.items.push(item);
         });
 
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
-        forEach(copiedItems, item => this.selectItem(item, true));
+        forEach(copiedItems, item => {
+            this.selectItem(item, true);
+
+            // the following code address issue: https://github.com/ishubin/schemio/issues/571
+            if (item.shape === 'connector') {
+                const isAttachedToCopiedItem = (itemSelector) => {
+                    if (itemSelector[0] === '#') {
+                        const itemId = itemSelector.substring(1);
+                        return copiedIds.has(itemId);
+                    }
+                    return true;
+                };
+                if (item.shapeProps.sourceItem && !isAttachedToCopiedItem(item.shapeProps.sourceItem)) {
+                    item.shapeProps.sourceItem = null;
+                }
+                if (item.shapeProps.destinationItem && !isAttachedToCopiedItem(item.shapeProps.destinationItem)) {
+                    item.shapeProps.destinationItem = null;
+                }
+            }
+        });
 
         //since all items are already selected, the relative multi item edit box should be centered on the specified center point
         if (this.multiItemEditBox) {
