@@ -73,7 +73,7 @@ const effects = {
                     kind: 'back',
                     html: $('g', {}, [
                         $('defs', {}, [
-                            $('filter', {id: filterId, x: '-50%', y: '-50%', width: '200%', height: '200%'}, [
+                            $('filter', {id: filterId, x: '-500%', y: '-500%', width: '2000%', height: '2000%'}, [
                                 $('feGaussianBlur', {
                                     in: 'SourceGraphic',
                                     stdDeviation: effectArgs.blur
@@ -142,7 +142,7 @@ const effects = {
                 kind: 'front',
                 html: $('g', {}, [
                     $('defs', {}, [
-                        $('filter', {id: filterId}, [
+                        $('filter', {id: filterId, x: '-500%', y: '-500%', width: '2000%', height: '2000%'}, [
                             $('feGaussianBlur', {
                                 in: 'SourceGraphic',
                                 stdDeviation: effectArgs.blur
