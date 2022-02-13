@@ -685,7 +685,8 @@ export default {
     standardTransformWithArea(parentTransform, area) {
         const rpx = area.w * area.px;
         const rpy = area.h * area.py;
-
+        
+        //TODO optimize this. When running in a large doc it generates too many objects because it creates all these intermediary arrays
         return this.multiplyMatrices(
             parentTransform,
             this.translationMatrix(area.x + rpx, area.y + rpy),

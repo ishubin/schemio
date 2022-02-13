@@ -542,6 +542,7 @@ export default {
         EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
         EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
+        EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
@@ -575,6 +576,7 @@ export default {
         EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
         EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
+        EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
     },
 
     mounted() {
@@ -2240,6 +2242,43 @@ export default {
             EventBus.emitSchemeChangeCommited();
         },
 
+        itemCreationDraggedToSvgEditor(item, pageX, pageY) {
+            const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
+            const p = this.toLocalPoint(coords.x, coords.y);
+            item.area.x = p.x;
+            item.area.y = p.y;
+
+            item.area.w = item.area.w / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+            item.area.h = item.area.h / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+
+            const worldWidth = item.area.w;
+            const worldHeight = item.area.h;
+
+            this.schemeContainer.addItem(item);
+
+            if (this.$store.state.autoRemount) {
+                const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item.area, x => x.id !== item.id);
+                if (proposedItemForMounting) {
+                    this.schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, proposedItemForMounting.id);
+                }
+            }
+
+            const sv = worldScalingVectorOnItem(item);
+
+            item.area.w = worldWidth / Math.max(0.0000001, sv.x);
+            item.area.h = worldHeight / Math.max(0.0000001, sv.y);
+
+            this.schemeContainer.selectItem(item);
+            EventBus.emitSchemeChangeCommited();
+        },
+
+        toLocalPoint(mouseX, mouseY) {
+            return {
+                x: (mouseX - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale,
+                y: (mouseY - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale
+            };
+        },
+
         onKeyUp(key, keyOptions) {
             if (key !== Keys.ESCAPE && key != Keys.DELETE) {
                 states[this.state].keyUp(key, keyOptions);
@@ -2261,6 +2300,17 @@ export default {
         },
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
             states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+        },
+
+        mouseCoordsFromPageCoords(pageX, pageY) {
+            var rect = document.getElementById('svg_plot').getBoundingClientRect(),
+                offsetX = pageX - rect.left,
+                offsetY  = pageY - rect.top;
+
+            return {
+                x: Math.round(offsetX),
+                y: Math.round(offsetY)
+            }
         },
 
         //calculates from world to screen

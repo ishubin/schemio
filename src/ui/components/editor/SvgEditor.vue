@@ -227,7 +227,6 @@ export default {
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
     },
@@ -252,7 +251,6 @@ export default {
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
 
@@ -870,36 +868,6 @@ export default {
         onDragLeave(event) {
             event.preventDefault();
             event.stopPropagation();
-        },
-
-        itemCreationDraggedToSvgEditor(item, pageX, pageY) {
-            const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
-            const p = this.toLocalPoint(coords.x, coords.y);
-            item.area.x = p.x;
-            item.area.y = p.y;
-
-            item.area.w = item.area.w / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
-            item.area.h = item.area.h / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
-
-            const worldWidth = item.area.w;
-            const worldHeight = item.area.h;
-
-            this.schemeContainer.addItem(item);
-
-            if (this.$store.state.autoRemount) {
-                const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item.area, x => x.id !== item.id);
-                if (proposedItemForMounting) {
-                    this.schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, proposedItemForMounting.id);
-                }
-            }
-
-            const sv = worldScalingVectorOnItem(item);
-
-            item.area.w = worldWidth / Math.max(0.0000001, sv.x);
-            item.area.h = worldHeight / Math.max(0.0000001, sv.y);
-
-            this.schemeContainer.selectItem(item);
-            EventBus.emitSchemeChangeCommited();
         },
 
         //calculates from world to screen
