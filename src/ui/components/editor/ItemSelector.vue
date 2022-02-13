@@ -150,6 +150,7 @@ export default {
 
     methods: {
         scrollToSelection() {
+            //TODO optimize this code. apparently when adding an item to a large doc this function takes up to 72 ms
             if (this.schemeContainer.selectedItems.length === 1) {
                 const itemId = this.schemeContainer.selectedItems[0].id;
                 const rowDoms = this.$refs[`row_${itemId}`];
