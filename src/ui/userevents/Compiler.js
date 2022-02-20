@@ -31,14 +31,27 @@ export default class Compiler {
                 if (action.element) {
                     const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
                     if (elements) {
-                        forEach(elements, element => {
-                            const knownFunc = knownFunctions.main[action.method];
-                            funcs.push({
-                                func: knownFunc,
-                                element,
-                                args: enrichFuncArgs(action.args, knownFunc)
-                            });
-                        });
+                        const knownFunc = knownFunctions.main[action.method];
+                        if (knownFunc) {
+                            const args = enrichFuncArgs(action.args, knownFunc);
+                            if (knownFunc.multiItem) {
+                                // Means that this function is always expected to get array of items and in cases when it is applied
+                                // to a group of items - it will only be invoked once with array of those items as a first argument
+                                funcs.push({
+                                    func: knownFunc,
+                                    element: elements,
+                                    args
+                                });
+                            } else {
+                                forEach(elements, element => {
+                                    funcs.push({
+                                        func: knownFunc,
+                                        element,
+                                        args
+                                    });
+                                });
+                            }
+                        }
                     }
                 }
             }

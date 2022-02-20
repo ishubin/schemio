@@ -23,6 +23,7 @@ import UntoggleFunction from './UntoggleFunction';
 import PlayFramesFunction from './PlayFramesFunction';
 import StopFramePlayerFunction from './StopFramePlayerFunction';
 import LoadComponentFunction from './LoadComponentFunction';
+import ToggleGroupFunction from './ToggleGroupFunction';
 
 export default {
     main: {
@@ -47,7 +48,8 @@ export default {
         sendEvent:          SendEventFunction,
         wait:               WaitFunction,
         toggle:             ToggleFunction,
-        untoggle:           UntoggleFunction
+        untoggle:           UntoggleFunction,
+        toggleGroup:        ToggleGroupFunction
     },
     scheme: {
     }
