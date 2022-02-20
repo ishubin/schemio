@@ -1606,7 +1606,6 @@ export default {
                             if (shape.argType(fillPropName) === 'color') {
                                 const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
                                 if (defaultFill) {
-                                    setShapePropForItem(item, fillPropName, defaultFill);
                                     this.schemeContainer.setPropertyForItem(item, item => {
                                         item.shapeProps[fillPropName] = defaultFill;
                                         EventBus.emitItemChanged(item.id, `shapeProps.${fillPropName}`);
