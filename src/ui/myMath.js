@@ -683,17 +683,38 @@ export default {
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
-        const rpx = area.w * area.px;
-        const rpy = area.h * area.py;
+        const xr = area.w * area.px;
+        const yr = area.h * area.py;
+        const cosa = Math.cos(area.r * Math.PI / 180);
+        const sina = Math.sin(area.r * Math.PI / 180);
         
-        //TODO optimize this. When running in a large doc it generates too many objects because it creates all these intermediary arrays
-        return this.multiplyMatrices(
-            parentTransform,
-            this.translationMatrix(area.x + rpx, area.y + rpy),
-            this.rotationMatrixInDegrees(area.r),
-            this.translationMatrix(- rpx, - rpy),
-            this.scaleMatrix(area.sx, area.sy)
-        );
+        /*
+        Originally the code below was used for calculation of standard transformation for area.
+        But it turned out to be inefficient on large scale due to all the calculations and generation of intermediary array objects
+        That inefficience caused a lot of time to be spent in GC
+        */
+        // return this.multiplyMatrices(
+        //     parentTransform,
+        //     this.translationMatrix(x + xr, y + yr),
+        //     this.rotationMatrixInDegrees(area.r),
+        //     this.translationMatrix(-xr, -yr),
+        //     this.scaleMatrix(area.sx, area.sy)
+        // );
+
+        /*
+        So the formulas below are derived from the matrix multiplication formula above
+        */
+
+        const s = [[0,0,0],[0,0,0],[0,0,0]];
+        const dx = area.x + xr * (1 - cosa) + yr*sina;
+        const dy = area.y + yr * (1 - cosa) - xr*sina;
+
+        for (let i = 0; i < 3; i++) {
+            s[i][0] = area.sx * (parentTransform[i][0]*cosa + parentTransform[i][1]*sina);
+            s[i][1] = area.sy * (parentTransform[i][1]*cosa - parentTransform[i][0]*sina);
+            s[i][2] = parentTransform[i][0] * dx + parentTransform[i][1] * dy + parentTransform[i][2];
+        }
+        return s;
     },
 
     /**
