@@ -389,7 +389,6 @@ import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
-import { getCapDefaultFill } from './editor/items/shapes/ConnectorCaps.js';
 import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
 import { filterOutPreviewSvgElements } from '../svgPreview';
@@ -1600,19 +1599,6 @@ export default {
                             item.shapeProps[name] = utils.clone(value);
                             EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
                         });
-
-                        if (type === 'curve-cap' && (item.shape === 'connector' || item.shape === 'curve')) {
-                            const fillPropName = name + 'Fill';
-                            if (shape.argType(fillPropName) === 'color') {
-                                const defaultFill = getCapDefaultFill(value, item.shapeProps.strokeColor);
-                                if (defaultFill) {
-                                    this.schemeContainer.setPropertyForItem(item, item => {
-                                        item.shapeProps[fillPropName] = defaultFill;
-                                        EventBus.emitItemChanged(item.id, `shapeProps.${fillPropName}`);
-                                    });
-                                }
-                            }
-                        }
 
                         item.meta.revision += 1;
                         itemIds += item.id;

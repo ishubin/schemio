@@ -17,7 +17,7 @@
                 :data-item-id="item.id"
                 :stroke="item.shapeProps.strokeColor"
                 :stroke-width="item.shapeProps.strokeSize"
-                :fill="cap.fill"
+                :fill="cap.hollow ? 'none' : item.shapeProps.strokeColor"
                 stroke-linejoin="round"
             />
         </g>
@@ -33,6 +33,7 @@ import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
+import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 
 const log = new Logger('Connector');
@@ -58,8 +59,6 @@ const UP         = 0,
       ANY        = 4,
       VERTICAL   = 5,
       HORIZONTAL = 6;
-
-const directionStrings = ['UP', 'DOWN', 'LEFT', 'RIGHT', 'ANY'];
 
 const directionInversions = [ DOWN, UP, RIGHT, LEFT, ANY ];
 
@@ -211,8 +210,9 @@ function movePointWithStep(x, y, stepWay, stepValue) {
     return {x, y};
 }
 
-function computeStepPath(item, useCut, roundCuts) {
-    const points = item.shapeProps.points;
+function computeStepPathAndCaps(item, useCut, roundCuts) {
+    const points = utils.clone(item.shapeProps.points);
+    const caps = [];
 
     // identifying a required direction of first and last points
     let firstPointDirection = UP;
@@ -225,6 +225,18 @@ function computeStepPath(item, useCut, roundCuts) {
     const lastPoint = points[points.length - 1];
     if (lastPoint.hasOwnProperty('bx')) {
         lastPointDirection = identifyDirection(lastPoint.bx, lastPoint.by);
+    }
+
+    if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
+        const wayPoint = movePointWithStep(0, 0, firstPointDirection, item.shapeProps.sourceCapSize);
+        const cap = computeCapByPosition(points[0].x, points[0].y, points[0].x + wayPoint.x, points[0].y + wayPoint.y, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
+        if (cap) {
+            if (!cap.prolongLine) {
+                points[0].x = cap.entryPoint.x;
+                points[0].y = cap.entryPoint.y;
+            }
+            caps.push(cap);
+        }
     }
 
     const pathSteps = [];
@@ -250,12 +262,24 @@ function computeStepPath(item, useCut, roundCuts) {
 
     currentPoint = points[0];
     if (!useCut) {
-        forEach(pathSteps, step => {
+        forEach(pathSteps, (step, i) => {
             const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value);
-            path += ` L ${nextPoint.x} ${nextPoint.y}`;
-            currentPoint = nextPoint;
+            let cap = null;
+            if (i === pathSteps.length - 1 && item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
+                cap = computeCapByPosition(nextPoint.x, nextPoint.y, currentPoint.x, currentPoint.y, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap);
+            }
+            if (cap) {
+                path += ` L ${cap.entryPoint.x} ${cap.entryPoint.y}`;
+                caps.push(cap);
+            } else {
+                path += ` L ${nextPoint.x} ${nextPoint.y}`;
+                currentPoint = nextPoint;
+            }
         });
-        return path;
+        return {
+            path,
+            caps
+        };
     }
 
     // using cuts
@@ -288,13 +312,71 @@ function computeStepPath(item, useCut, roundCuts) {
     }
     const step = pathSteps[pathSteps.length - 1];
     const nextPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value - previousCut);
-    path += ` L ${nextPoint.x} ${nextPoint.y}`;
-    return path;
+    let cap = null;
+    if (item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
+        cap = computeCapByPosition(nextPoint.x, nextPoint.y, currentPoint.x, currentPoint.y, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap);
+    }
+    if (cap) {
+        path += ` L ${cap.entryPoint.x} ${cap.entryPoint.y}`;
+        if (cap.prolongLine) {
+            path += ` L ${nextPoint.x} ${nextPoint.y}`;
+        }
+        caps.push(cap);
+    } else {
+        path += ` L ${nextPoint.x} ${nextPoint.y}`;
+    }
+    return {
+        path,
+        caps
+    };
 }
 
 
 function computeSmoothPath(item) {
-    const points = item.shapeProps.points;
+    const points = utils.clone(item.shapeProps.points);
+
+    if (points.length < 2) {
+        return {
+            path: null,
+            caps: []
+        };
+    }
+
+    let path = '';
+    const caps = [];
+    let firstCap = null;
+    let lastCap = null;
+    let previousPoint = null;
+
+    if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
+        let x2 = points[1].x, y2 = points[1].y;
+        if (typeof points[0].bx !== 'undefined') {
+            x2 = points[0].x + points[0].bx * item.shapeProps.sourceCapSize;
+            y2 = points[0].y + points[0].by * item.shapeProps.sourceCapSize;
+        }
+
+        firstCap = computeCapByPosition(points[0].x, points[0].y, x2, y2, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
+        if (firstCap) {
+            points[0].x = firstCap.entryPoint.x;
+            points[0].y = firstCap.entryPoint.y;
+            caps.push(firstCap);
+        }
+    }
+    if (item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
+        const id = points.length - 1;
+        let x2 = points[id - 1].x, y2 = points[id - 1].y;
+        if (typeof points[id].bx !== 'undefined') {
+            x2 = points[id].x + points[id].bx * item.shapeProps.destinationCapSize;
+            y2 = points[id].y + points[id].by * item.shapeProps.destinationCapSize;
+        }
+
+        lastCap = computeCapByPosition(points[id].x, points[id].y, x2, y2, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap, item.shapeProps.fill);
+        if (lastCap) {
+            points[id].x = lastCap.entryPoint.x;
+            points[id].y = lastCap.entryPoint.y;
+            caps.push(lastCap);
+        }
+    }
 
     // special situation, it is easier to handle it separately
     if (points.length === 2 && item.shapeProps.sourceItem && item.shapeProps.destinationItem
@@ -302,24 +384,36 @@ function computeSmoothPath(item) {
 
         const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
 
-        return `M ${round(points[0].x)} ${round(points[0].y)} `
-            +`C ${round(points[0].x + k * points[0].bx)} ${round(points[0].y + k * points[0].by)}`
-            + ` ${round(points[1].x + k * points[1].bx)}  ${round(points[1].y + k * points[1].by)}`
-            + ` ${round(points[1].x)} ${round(points[1].y)}`;
+        let path = '';
+
+        if (firstCap && firstCap.prolongLine) {
+            path = `M ${round(item.shapeProps.points[0].x)} ${round(item.shapeProps.points[0].y)} `
+                + `L ${round(points[0].x)} ${round(points[0].y)} `;
+        } else {
+            path =  `M ${round(points[0].x)} ${round(points[0].y)} `;
+        }
+
+        path += `C ${round(points[0].x + k * points[0].bx)} ${round(points[0].y + k * points[0].by)}`
+                + ` ${round(points[1].x + k * points[1].bx)}  ${round(points[1].y + k * points[1].by)}`
+                + ` ${round(points[1].x)} ${round(points[1].y)} `;
+
+        if (lastCap && lastCap.prolongLine) {
+            const p = item.shapeProps.points[item.shapeProps.points.length - 1];
+            path += `L ${round(p.x)} ${round(p.y)}`;
+        }
+
+        return { path, caps };
     }
 
-    let path = '';
-    let previousPoint = null;
-
     const vectors = [];
-    forEach(item.shapeProps.points, (point, i) => {
+    forEach(points, (point, i) => {
         let prevPoint = point;
         if (i > 0) {
-            prevPoint = item.shapeProps.points[i - 1];
+            prevPoint = points[i - 1];
         }
         let nextPoint = point;
-        if (i < item.shapeProps.points.length - 1) {
-            nextPoint = item.shapeProps.points[i + 1];
+        if (i < points.length - 1) {
+            nextPoint = points[i + 1];
         }
 
         let x = (nextPoint.x - prevPoint.x);
@@ -337,7 +431,12 @@ function computeSmoothPath(item) {
 
     forEach(points, (point, i) => {
         if (i === 0) {
-            path = `M ${round(point.x)} ${round(point.y)} `;
+            if (firstCap && firstCap.prolongLine) {
+                path = `M ${round(item.shapeProps.points[0].x)} ${round(item.shapeProps.points[0].y)} `
+                    + `L ${round(point.x)} ${round(point.y)} `;
+            } else {
+                path = `M ${round(point.x)} ${round(point.y)} `;
+            }
 
         } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.bx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
@@ -370,7 +469,12 @@ function computeSmoothPath(item) {
         }
         previousPoint = point;
     });
-    return path;
+
+    if (lastCap && lastCap.prolongLine) {
+        const p = item.shapeProps.points[item.shapeProps.points.length - 1];
+        path += `L ${p.x} ${p.y}`;
+    }
+    return { path, caps };
 }
 
 function computeFatPath(item) {
@@ -524,36 +628,97 @@ function computeFatPath(item) {
     return path;
 }
 
-function computePath(item) {
-    if (item.shapeProps.points.length < 2) {
-        return null;
-    }
-
-    if (item.shapeProps.fat) {
-        return computeFatPath(item);
-    }
-
-    if (item.shapeProps.smoothing === 'smooth') {
-        return computeSmoothPath(item);
-    } else if (item.shapeProps.smoothing === 'step') {
-        return computeStepPath(item, false, false);
-    } else if (item.shapeProps.smoothing === 'step-cut') {
-        return computeStepPath(item, true, false);
-    } else if (item.shapeProps.smoothing === 'step-smooth') {
-        return computeStepPath(item, true, true);
-    }
-
+function computeLinearPathAndCaps(item) {
     let path = '';
+    const caps = [];
     forEach(item.shapeProps.points, (point, i) => {
         if (i === 0) {
-            path = `M ${point.x} ${point.y} `;
+            let cap = null;
+            if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
+                const nextPoint = item.shapeProps.points[1];
+                cap = computeCapByPosition(point.x, point.y, nextPoint.x, nextPoint.y, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
+            } 
+            if (cap) {
+                if (cap.prolongLine) {
+                    path = `M ${point.x} ${point.y} L ${cap.entryPoint.x} ${cap.entryPoint.y} `;
+                } else {
+                    path = `M ${cap.entryPoint.x} ${cap.entryPoint.y} `;
+                }
+                caps.push(cap);
+            } else {
+                path = `M ${point.x} ${point.y} `;
+            }
+        } else if (i === item.shapeProps.points.length - 1) {
+            let cap = null;
+            if (item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
+                const prevPoint = item.shapeProps.points[i - 1];
+                cap = computeCapByPosition(point.x, point.y, prevPoint.x, prevPoint.y, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap);
+            } 
+            if (cap) {
+                path += `L ${cap.entryPoint.x} ${cap.entryPoint.y} `;
+                if (cap.prolongLine) {
+                    path += `L ${point.x} ${point.y} `;
+                }
+                caps.push(cap);
+            } else {
+                path += `L ${point.x} ${point.y} `;
+            }
         } else {
             path += ` L ${point.x} ${point.y} `;
         }
     });
 
-    return path;
+    return {
+        path,
+        caps
+    };
+}
+
+function computePathAndCaps(item) {
+    if (item.shapeProps.points.length < 2) {
+        return null;
+    }
+
+    if (item.shapeProps.fat) {
+        return {
+            path: computeFatPath(item),
+            caps: []
+        };
+    }
+
+    if (item.shapeProps.smoothing === 'smooth') {
+        return computeSmoothPath(item);
+    } else if (item.shapeProps.smoothing === 'step') {
+        return computeStepPathAndCaps(item, false, false);
+    } else if (item.shapeProps.smoothing === 'step-cut') {
+        return computeStepPathAndCaps(item, true, false);
+    } else if (item.shapeProps.smoothing === 'step-smooth') {
+        return computeStepPathAndCaps(item, true, true);
+    } else {
+        return computeLinearPathAndCaps(item);
+    }
 };
+
+function computeRawPath(item) {
+    const pathAndCaps = computePathAndCaps(item);
+    if (pathAndCaps) {
+        return pathAndCaps.path;
+    }
+    return null;
+}
+
+function computeCapByPosition(x1, y1, x2, y2, capSize, capType) {
+    if (capType !== 'empty') {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const squaredD = dx*dx + dy*dy;
+        if (squaredD > 0.0001) {
+            const d = Math.sqrt(squaredD);
+            return createConnectorCap(x1, y1, dx*capSize/d, dy*capSize/d, capType);
+        }
+    }
+    return null;
+}
 
 
 const DST_READJUST_CTX = Symbol('dstReadjustCtx');
@@ -804,7 +969,7 @@ export default {
 
         id: 'connector',
 
-        computePath,
+        computePath: computeRawPath,
         readjustItem,
         getSnappers,
 
@@ -840,9 +1005,8 @@ export default {
                 shapeProps: {
                     fat: false,
                     sourceCap: 'empty',
-                    destinationCap: 'triangle',
+                    destinationCap: 'triangle-h',
                     points: menuItemPoints,
-                    destinationCapFill: 'rgba(255, 255, 255, 1.0)'
                 }
             }
         }, {
@@ -876,11 +1040,9 @@ export default {
             item: {
                 shapeProps: {
                     fat: false,
-                    sourceCap: 'triangle',
-                    destinationCap: 'triangle',
+                    sourceCap: 'triangle-h',
+                    destinationCap: 'triangle-h',
                     points: menuItemPoints,
-                    sourceCapFill: 'rgba(255, 255, 255, 1.0)',
-                    destinationCapFill: 'rgba(255, 255, 255, 1.0)'
                 }
             }
         }, {
@@ -972,10 +1134,8 @@ export default {
             points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
             sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
-            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill', depends: {fat: false}},
             destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
-            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill', depends: {fat: false}},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
             stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}},
@@ -999,71 +1159,26 @@ export default {
     },
 
     data() {
-        const shapePath = computePath(this.item);
+        const pathAndCaps = computePathAndCaps(this.item);
         return {
-            shapePath: shapePath,
-            caps: this.computeCaps(shapePath),
+            shapePath: pathAndCaps? pathAndCaps.path : null,
+            caps: pathAndCaps? pathAndCaps.caps: null
         }
     },
 
     methods: {
         onItemChange() {
             log.info('onItemChange', this.item.id, this.item.name, this.item);
+            const pathAndCaps = computePathAndCaps(this.item);
 
-            this.shapePath = computePath(this.item);
-            this.caps = this.computeCaps(this.shapePath);
+            if (pathAndCaps) {
+                this.shapePath = pathAndCaps.path;
+                this.caps = pathAndCaps.caps;
+            }
+
             log.info('computed path and caps', this.item.id, this.item.name, this.shapePath, this.caps);
             this.$forceUpdate();
         },
-
-        computeCaps(svgPath) {
-            if (this.item.shapeProps.fat) {
-                return [];
-            }
-
-            const caps = [];
-
-            let sourceCap         = this.item.shapeProps.sourceCap || 'empty';
-            let destinationCap    = this.item.shapeProps.destinationCap || 'empty';
-
-            if (sourceCap === 'empty' && destinationCap === 'empty') {
-                return caps;
-            }
-
-            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shadowSvgPath.setAttribute('d', svgPath);
-
-            const totalLength = shadowSvgPath.getTotalLength();
-            if (totalLength < 3)  {
-                return caps;
-            }
-
-            let cap = this.computeCapByPosition(shadowSvgPath, 0, this.item.shapeProps.sourceCapSize, sourceCap, this.item.shapeProps.sourceCapFill);
-            if (cap) {
-                caps.push(cap);
-            }
-
-            cap = this.computeCapByPosition(shadowSvgPath, totalLength, totalLength - this.item.shapeProps.destinationCapSize, destinationCap, this.item.shapeProps.destinationCapFill);
-            if (cap) {
-                caps.push(cap);
-            }
-
-            return caps;
-        },
-
-        computeCapByPosition(shadowSvgPath, d1, d2, capType, capFill) {
-            if (capType !== 'empty') {
-                const p1 = shadowSvgPath.getPointAtLength(d1);
-                const p2 = shadowSvgPath.getPointAtLength(d2);
-
-                const squaredD = (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
-                if (squaredD > 0.01) {
-                    return createConnectorCap(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y, capType, capFill);
-                }
-            }
-            return null;
-        }
-
     },
 
     computed: {

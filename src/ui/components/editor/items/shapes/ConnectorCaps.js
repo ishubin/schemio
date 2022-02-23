@@ -5,13 +5,13 @@ import keys from 'lodash/keys';
 
 function standard(func) {
     return {
-        lightFill: false,
+        hollow: false,
         renderFunc: func
     };
 }
-function light(func) {
+function hollow(func) {
     return {
-        lightFill: true,
+        hollow: true,
         renderFunc: func
     };
 }
@@ -20,19 +20,19 @@ const allCaps = {
     'empty': null,
 
 
-    'triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
-    'triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
-    'triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+    'triangle':     standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 2, true)),
+    'triangle-1':   standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 1, true)),
+    'triangle-2':   standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 3, true)),
 
-    'arrow':        standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, false)),
-    'arrow-1':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, false)),
-    'arrow-2':      standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, false)),
+    'arrow':        standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 2, false)),
+    'arrow-1':      standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 1, false)),
+    'arrow-2':      standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 3, false)),
     
-    'triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 2, true)),
-    'triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 1, true)),
-    'triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 1, 3, true)),
+    'triangle-h':     hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 2, true)),
+    'triangle-h-1':   hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 1, true)),
+    'triangle-h-2':   hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 1, 3, true)),
 
-    'circle': standard((x, y, Vx, Vy, capFill) => {
+    'circle': standard((x, y, Vx, Vy) => {
         const squaredD = Vx * Vx + Vy * Vy;
         if (squaredD > 0.01) {
             let r = Math.sqrt(squaredD) / 2;
@@ -40,12 +40,13 @@ const allCaps = {
             const cy = y + Vy/2;
             return {
                 path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0`,
-                fill: capFill
+                hollow: false,
+                entryPoint: {x: x + Vx, y: y + Vy}
             };
         }
         return null;
     }),
-    'circle-cross': light((x, y, Vx, Vy, capFill) => {
+    'circle-cross': hollow((x, y, Vx, Vy) => {
         const squaredD = Vx * Vx + Vy * Vy;
 
         if (squaredD > 0.01) {
@@ -57,61 +58,51 @@ const allCaps = {
 
             return {
                 path: ` M ${cx - r}, ${cy} a ${r},${r} 0 1,0 ${r*2},0 a ${r},${r} 0 1,0 -${r*2},0 z M ${cx - d} ${cy - d} L ${cx + d} ${cy + d}  M ${cx + d} ${cy - d} L ${cx - d} ${cy + d}`,
-                fill: capFill
+                hollow: true,
+                entryPoint: {x: x + Vx, y: y + Vy}
             };
         }
         return null;
     }),
 
-    'double-arrow':  standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, false)),
-    'double-arrow-1':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, false)),
-    'double-arrow-2':standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, false)),
+    'double-arrow':  standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 2, false)),
+    'double-arrow-1':standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 1, false)),
+    'double-arrow-2':standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 3, false)),
 
+    'double-triangle':     standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 2, true)),
+    'double-triangle-1':   standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 1, true)),
+    'double-triangle-2':   standard((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 3, true)),
+    'double-triangle-h':     hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 2, true)),
+    'double-triangle-h-1':   hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 1, true)),
+    'double-triangle-h-2':   hollow((x, y, Vx, Vy) => createArrowCap(x, y, Vx, Vy, 2, 3, true)),
 
+    'diamond':      standard((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 0.5)),
+    'diamond-1':    standard((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 1)),
+    'diamond-2':    standard((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 1.5)),
+    'diamond-h':    hollow((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 0.5)),
+    'diamond-h-1':  hollow((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 1)),
+    'diamond-h-2':  hollow((x, y, Vx, Vy) => createDiamondCap(x, y, Vx, Vy, 1.5)),
 
-    'double-triangle':     standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, true)),
-    'double-triangle-1':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, true)),
-    'double-triangle-2':   standard((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, true)),
-    'double-triangle-l':     light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 2, true)),
-    'double-triangle-l-1':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 1, true)),
-    'double-triangle-l-2':   light((x, y, Vx, Vy, capFill) => createArrowCap(x, y, Vx, Vy, capFill, 2, 3, true)),
-
-    'diamond':      standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
-    'diamond-1':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
-    'diamond-2':    standard((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
-    'diamond-l':    light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 0.5)),
-    'diamond-l-1':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1)),
-    'diamond-l-2':  light((x, y, Vx, Vy, capFill) => createDiamondCap(x, y, Vx, Vy, capFill, 1.5)),
-
-    'line':        standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 1)),
-    'double-line': standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 2)),
-    'tripple-line':standard((x, y, Vx, Vy, capFill) => createLineCap(x, y, Vx, Vy, 3)),
+    'line':        standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 1)),
+    'double-line': standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 2)),
+    'tripple-line':standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 3)),
 };
 
 
 const _capTypes = keys(allCaps);
 
-export function getCapDefaultFill(capType, strokeColor) {
-    const cap = allCaps[capType];
-    if (cap) {
-        if (cap.lightFill) {
-            return '#ffffff';
-        }
-    }
-    if (strokeColor) {
-        return strokeColor;
-    }
-    return '#111111';
-}
-
 export function getCapTypes() {
     return _capTypes;
 }
 
-export function createConnectorCap(x, y, Vx, Vy, capType, capFill) {
+export function createConnectorCap(x, y, Vx, Vy, capType) {
     const cap = allCaps[capType];
     if (cap) {
-        return cap.renderFunc(x, y, Vx, Vy, capFill);
+        const result = cap.renderFunc(x, y, Vx, Vy);
+        if (cap.hollow) {
+            result.hollow = true;
+        }
+        return result;
     }
     return null;
 }
@@ -135,11 +126,13 @@ function createLineCap(x, y, Vx, Vy, numberOfLines) {
 
     return {
         path: path,
-        fill: 'none'
+        hollow: true,
+        prolongLine: true,
+        entryPoint: {x: x + Vx, y: y + Vy}
     };
 }
 
-function createArrowCap(x, y, Vx, Vy, capFill, numberOfArrows, ratio, close) {
+function createArrowCap(x, y, Vx, Vy, numberOfArrows, ratio, close) {
     let path = '';
 
     const Bx = Vy / (2*ratio);
@@ -162,11 +155,13 @@ function createArrowCap(x, y, Vx, Vy, capFill, numberOfArrows, ratio, close) {
     }
     return {
         path: path,
-        fill: close ? capFill : 'none'
+        hollow: !close,
+        prolongLine: !close,
+        entryPoint: {x: x + Vx, y: y + Vy}
     };
 }
 
-function createDiamondCap(x, y, Vx, Vy, capFill, ratio) {
+function createDiamondCap(x, y, Vx, Vy, ratio) {
     const Bx = ratio * Vy / 2;
     const By = -ratio * Vx / 2;
 
@@ -181,6 +176,7 @@ function createDiamondCap(x, y, Vx, Vy, capFill, ratio) {
 
     return {
         path: `M ${x} ${y} L ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} z`,
-        fill: capFill
+        hollow: false,
+        entryPoint: {x: x + Vx, y: y + Vy}
     };
 }
