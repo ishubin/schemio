@@ -1590,6 +1590,8 @@ export default {
         onItemShapePropChanged(name, type, value) {
             let itemIds = '';
 
+            let reindexingNeeded = false;
+
             forEach(this.schemeContainer.selectedItems, item => {
                 const shape = Shape.find(item.shape);
                 if (shape) {
@@ -1607,8 +1609,12 @@ export default {
 
                     if (item.shape === 'component' && name === 'referenceItem') {
                         this.schemeContainer.reindexSpecifiedItems([item]);
-                        this.schemeContainer.reindexItems();
+                        reindexingNeeded = true;
                     }
+                }
+
+                if (item.shape === 'connector' && name === 'smoothing') {
+                    reindexingNeeded = true;
                 }
             });
 
@@ -1620,6 +1626,9 @@ export default {
                 }
             }
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.shapeProps.${name}`);
+            if (reindexingNeeded) {
+                this.schemeContainer.reindexItems();
+            }
         },
 
         onItemFieldChanged(name, value) {
