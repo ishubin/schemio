@@ -89,16 +89,9 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
-                <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="showDeleteSchemeWarning = true">Delete Diagram</span>
+                <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="$emit('delete-diagram-requested')">Delete Diagram</span>
             </panel>
 
-            <modal v-if="showDeleteSchemeWarning" title="Delete diagram"
-                primaryButton="Delete"
-                @close="showDeleteSchemeWarning = false"
-                @primary-submit="deleteScheme()"
-                >
-                Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
-            </modal>
         </div>
     </div>
 </template>
@@ -106,7 +99,6 @@
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
 import EventBus from './EventBus.js';
-import Modal from '../Modal.vue';
 import RichTextEditor from '../RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
@@ -117,7 +109,7 @@ export default {
     props: {
         schemeContainer: { type: Object },
     },
-    components: {VueTagsInput, Modal, RichTextEditor, ColorPicker, Panel, Tooltip},
+    components: {VueTagsInput, RichTextEditor, ColorPicker, Panel, Tooltip},
     mounted() {
         if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
             this.$store.state.apiClient.getTags().then(tags => {
@@ -130,7 +122,6 @@ export default {
     data() {
         return {
             schemeTag: '',
-            projectLink: this.schemeContainer.scheme.projectLink,
             existingSchemeTags: [],
             showDeleteSchemeWarning: false,
 
@@ -153,12 +144,6 @@ export default {
 
         onPropertyChange(propertyName) {
             EventBus.emitSchemeChangeCommited(`scheme.${propertyName}`);
-        },
-
-        deleteScheme() {
-            this.$store.state.apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
-                window.location = this.projectLink;
-            });
         },
     },
 

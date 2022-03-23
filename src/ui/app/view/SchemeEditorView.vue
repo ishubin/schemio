@@ -141,7 +141,7 @@ export default {
         },
 
     
-        onNewSchemeSubmitted(scheme, callback) {
+        onNewSchemeSubmitted(scheme, callback, errorCallback) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (callback) {
                     if (this.$router && this.$router.mode === 'history') {
@@ -154,6 +154,9 @@ export default {
             .catch(err => {
                 console.error('Failed to create new diagram', err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to create new diagram');
+                if (errorCallback) {
+                    errorCallback();
+                }
             });
         }
     }

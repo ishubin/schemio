@@ -51,8 +51,8 @@ export default{
     },
 
     methods: {
-        onNewSchemeSubmitted(scheme, callback) {
-            this.$emit('new-scheme-submitted', scheme, callback);
+        onNewSchemeSubmitted(scheme, callback, errorCallback) {
+            this.$emit('new-scheme-submitted', scheme, callback, errorCallback);
         }
     }
 }

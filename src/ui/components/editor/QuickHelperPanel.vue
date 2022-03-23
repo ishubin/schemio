@@ -11,12 +11,7 @@
                             name=""
                             icon-class="fas fa-bars"
                             :options="menuDropdownOptions"
-                            @new-scheme-requested="$emit('new-scheme-requested')"
-                            @import-json-requested="$emit('import-json-requested')"
-                            @export-json-requested="$emit('export-json-requested')"
                             @export-embedded-requested="$emit('export-embedded-requested')"
-                            @export-svg-requested="$emit('export-svg-requested')"
-                            @export-png-requested="$emit('export-png-requested')"
                             @export-html-requested="$emit('export-html-requested')"
                             />
                     </li>
@@ -276,12 +271,16 @@ export default {
     },
 
     data() {
+        const eventCallback = (event) => {return () => {this.$emit(event)}};
+
         const defaultMenuDropDownOptions = [
-            {name: 'New diagram',     event: 'new-scheme-requested', iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
-            {name: 'Import diagram',  event: 'import-json-requested', iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
-            {name: 'Export as JSON', event: 'export-json-requested', iconClass: 'fas fa-file-export'},
-            {name: 'Export as SVG',  event: 'export-svg-requested', iconClass: 'fas fa-file-export'},
-            {name: 'Export as PNG',  event: 'export-png-requested', iconClass: 'fas fa-file-export'},
+            {name: 'New diagram',       callback: eventCallback('new-scheme-requested'),  iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
+            {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
+            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed},
+            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed},
+            {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
+            {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
+            {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},
         ];
 
         if (this.$store.state.apiClient && this.$store.state.apiClient.getExportHTMLResources) {

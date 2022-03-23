@@ -26,6 +26,8 @@
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
+            @duplicate-diagram-requested="showDuplicateDiagramModal()"
+            @delete-diagram-requested="showDeleteSchemeWarning = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @new-scheme-requested="onNewSchemeRequested"
@@ -221,7 +223,8 @@
                         <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.item">
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
-                                @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true" />
+                                @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
+                                @delete-diagram-requested="showDeleteSchemeWarning = true"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
@@ -286,7 +289,7 @@
             :description="newSchemePopup.description"
             :apiClient="apiClient"
             @close="newSchemePopup.show = false"
-            @scheme-submitted="openNewSchemePopupSchemeSubmitted"
+            @scheme-submitted="submitNewSchemeForCreation"
             ></create-new-scheme-modal>
 
 
@@ -316,6 +319,20 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
 
+        <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
+            <p>
+                Duplicate current diagram in a new file
+            </p>
+            <input type="text" class="textfield" placeholder="Name" v-model="duplicateDiagramModal.name"/>
+            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
+                {{duplicateDiagramModal.errorMessage}}
+            </div>
+        </modal>
+
+        <modal v-if="showDeleteSchemeWarning" title="Delete diagram" primaryButton="Delete" @close="showDeleteSchemeWarning = false" @primary-submit="deleteScheme()">
+            Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
+        </modal>
+
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -337,6 +354,7 @@
             :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
+
     </div>
 
 </template>
@@ -702,6 +720,13 @@ export default {
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
+            duplicateDiagramModal: {
+                shown: false,
+                name: '',
+                errorMessage: null
+            },
+
+            showDeleteSchemeWarning: false,
         }
     },
     methods: {
@@ -1181,28 +1206,32 @@ export default {
             this.newSchemePopup.show = true;
         },
 
-        openNewSchemePopupSchemeSubmitted(scheme) {
+        submitNewSchemeForCreation(scheme) {
             //TODO in case item is a component - it should set scheme id in the shape props instead
-            this.$emit('new-scheme-submitted', scheme, (createdScheme, publicLink) => {
-                if (publicLink) {
-                    const item = this.newSchemePopup.parentSchemeItem;
-                    if (item) {
-                        if (!item.links) {
-                            item.links = [];
+            const that = this;
+            return new Promise((resolve, reject) => {
+                that.$emit('new-scheme-submitted', scheme, (createdScheme, publicLink) => {
+                    if (publicLink) {
+                        const item = this.newSchemePopup.parentSchemeItem;
+                        if (item) {
+                            if (!item.links) {
+                                item.links = [];
+                            }
+                            item.links.push({
+                                title: `${createdScheme.name}`,
+                                url: publicLink,
+                                type: 'scheme'
+                            });
+                            EventBus.emitItemChanged(item.id, 'links');
                         }
-                        item.links.push({
-                            title: `${createdScheme.name}`,
-                            url: publicLink,
-                            type: 'scheme'
-                        });
-                        EventBus.emitItemChanged(item.id, 'links');
+
+                        window.open(publicLink, '_blank');
                     }
 
-                    window.open(publicLink, '_blank');
-                }
-
-                this.newSchemePopup.show = false;
-            })
+                    resolve();
+                    this.newSchemePopup.show = false;
+                }, reject);
+            });
         },
 
         onUpdateOffset(x, y) {
@@ -2305,6 +2334,41 @@ export default {
                 x: Math.round(offsetX),
                 y: Math.round(offsetY)
             }
+        },
+
+        deleteScheme() {
+            const projectLink = this.schemeContainer.scheme.projectLink;
+            this.$store.state.apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
+                if (projectLink) {
+                    window.location = projectLink;
+                } else {
+                    window.location = '/';
+                }
+            });
+        },
+
+        showDuplicateDiagramModal() {
+            this.duplicateDiagramModal.name = this.schemeContainer.scheme.name + ' Copy';
+            this.duplicateDiagramModal.errorMessage = null;
+            this.duplicateDiagramModal.shown = true;
+        },
+
+        duplicateDiagram() {
+            const name = this.duplicateDiagramModal.name.trim();
+            if (!name) {
+                this.duplicateDiagramModal.errorMessage = 'Name should not be empty';
+                return;
+            }
+
+            const scheme = utils.clone(this.schemeContainer.scheme);
+            scheme.id = null;
+            scheme.name = name;
+            this.submitNewSchemeForCreation(scheme).then(() => {
+                this.duplicateDiagramModal.shown = false;
+            })
+            .catch(err => {
+                this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
+            });
         },
 
         //calculates from world to screen
