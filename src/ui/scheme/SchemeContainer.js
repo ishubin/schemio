@@ -1329,7 +1329,7 @@ class SchemeContainer {
             leftPosition = shadowSvgPath.getTotalLength() - leftPosition;
         }
         const pointA = shadowSvgPath.getPointAtLength(leftPosition);
-        const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % shadowSvgPath.getTotalLength());
+        const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % Math.max(1, shadowSvgPath.getTotalLength()));
 
         let vx = pointB.x - pointA.x;
         let vy = pointB.y - pointA.y; 

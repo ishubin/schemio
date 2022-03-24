@@ -12,6 +12,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import EventBus from '../EventBus.js';
+import { ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -587,7 +588,6 @@ export default class StateEditCurve extends State {
         }
 
         if (object && object.type === 'curve-point') {
-            const allPoints = StoreUtils.getCurveEditPoints(this.store);
             // user might have clicked the deselected point or the single selected point.
             // In this case we need to reset everything and treat it as a single point context menu
 

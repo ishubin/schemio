@@ -471,7 +471,6 @@ function timeoutPromise(timeInMillis) {
 
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
-let currentState = null;
 
 const drawColorPallete = [
     "rgba(0, 0, 0, 1)",
@@ -1756,19 +1755,15 @@ export default {
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
-        onSvgEditorSwitchedState(state) {
-            currentState = state;
-        },
-
         convertCurvePointToSimple() {
-            if (currentState && currentState.name === 'editCurve') {
-                currentState.convertSelectedPointsToSimple();
+            if (this.state === 'editCurve') {
+                states[this.state].convertSelectedPointsToSimple();
             }
         },
 
         convertCurvePointToBeizer() {
-            if (currentState && currentState.name === 'editCurve') {
-                currentState.convertSelectedPointsToBeizer();
+            if (this.state === 'editCurve') {
+                states[this.state].convertSelectedPointsToBeizer();
             }
         },
 
@@ -1780,8 +1775,8 @@ export default {
          * Invoked when user selects an item from ConnectorDestinationProposal panel during creation of a connector
          */
         onConnectorDestinationItemSelected(item) {
-            if (currentState && currentState.name === 'editCurve') {
-                currentState.submitConnectorDestinationItem(item);
+            if (this.state === 'editCurve') {
+                states[this.state].submitConnectorDestinationItem(item);
             }
         },
 
