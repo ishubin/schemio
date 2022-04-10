@@ -26,8 +26,9 @@
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
+            @create-patch-requested="createPatchModalShown = true"
             @duplicate-diagram-requested="showDuplicateDiagramModal()"
-            @delete-diagram-requested="showDeleteSchemeWarning = true"
+            @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @new-scheme-requested="onNewSchemeRequested"
@@ -224,7 +225,7 @@
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
-                                @delete-diagram-requested="showDeleteSchemeWarning = true"/>
+                                @delete-diagram-requested="deleteSchemeWarningShown = true"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
@@ -329,9 +330,11 @@
             </div>
         </modal>
 
-        <modal v-if="showDeleteSchemeWarning" title="Delete diagram" primaryButton="Delete" @close="showDeleteSchemeWarning = false" @primary-submit="deleteScheme()">
+        <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
             Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
         </modal>
+
+        <CreatePatchModal v-if="createPatchModalShown" :scheme="schemeContainer.scheme" @close="createPatchModalShown = false"/>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -420,6 +423,7 @@ import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
+import CreatePatchModal from './CreatePatchModal.vue';
 
 const userEventBus = new UserEventBus();
 
@@ -508,6 +512,7 @@ export default {
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
+        CreatePatchModal
     },
 
     props: {
@@ -725,7 +730,8 @@ export default {
                 errorMessage: null
             },
 
-            showDeleteSchemeWarning: false,
+            deleteSchemeWarningShown: false,
+            createPatchModalShown: false
         }
     },
     methods: {

@@ -257,7 +257,7 @@ export function hasItemDescription(item) {
     /*
     This is very dirty but it is the simplest way to check if the item has a proper description
     If would only check for non-empty strings, then it would still show side panel 
-    even when description is an empty parahraph like "<p></p>"
+    even when description is an empty paragraph like "<p></p>"
     This happens when you use rich text editor and delete the entire description.
     Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
     */
