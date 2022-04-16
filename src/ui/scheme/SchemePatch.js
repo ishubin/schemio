@@ -216,30 +216,54 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
     const originSchemeIndex = indexScheme(originScheme);
     const modifiedSchemeIndex = indexScheme(modifiedScheme);
 
-    const itemDeletions = [];
-    const itemAdditions = [];
-    const itemRemounts = [];
-    const itemModifications = [];
-    
+
+    const scopedOperations = new Map();
+    const registerScopedOperation = (parentId, op) => {
+        if (!scopedOperations.has(parentId)) {
+            scopedOperations.set(parentId, []);
+        }
+        scopedOperations.get(parentId).push(op);
+    };
+
     // key - parentId, value = Array of added items in that parent scope
     const addedItemsInScope = new Map();
+
     // searching for added items
     modifiedSchemeIndex.forEach((itemEntry, itemId) => {
-        if (!originSchemeIndex.has(itemId)) {
+        const originEntry = originSchemeIndex.get(itemId);
+        if (!originEntry || originEntry.parentId !== itemEntry.parentId) {
 
             if (!addedItemsInScope.has(itemEntry.parentId)) {
                 addedItemsInScope.set(itemEntry.parentId, []);
             }
 
+            // faking that this item was added
+            // so that we can use it for sortOrder compensation later
             addedItemsInScope.get(itemEntry.parentId).push(itemEntry);
 
-            itemAdditions.push({
-                id: itemId,
-                op: 'add',
-                item: itemEntry.item,
-                parentId: itemEntry.parentId,
-                sortOrder: itemEntry.sortOrder
-            });
+            // but we don't want to report it as added item
+            if (!originEntry) {
+                registerScopedOperation(itemEntry.parentId, {
+                    id: itemId,
+                    op: 'add',
+                    item: itemEntry.item,
+                    parentId: itemEntry.parentId,
+                    sortOrder: itemEntry.sortOrder,
+                });
+            } else {
+                registerScopedOperation(itemEntry.parentId, {
+                    id: itemId,
+                    op: 'mount',
+                    parentId: itemEntry.parentId,
+                    sortOrder: itemEntry.sortOrder,
+                });
+                registerScopedOperation(originEntry.parentId, {
+                    id: itemId,
+                    op: 'demount',
+                    parentId: originEntry.parentId,
+                    sortOrder: originEntry.sortOrder,
+                });
+            }
         }
     });
 
@@ -259,33 +283,26 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
                     // also checking for field changes for items that were not removed
                     const fieldChanges = checkForFieldChanges(item, modEntry.item);
                     if (fieldChanges.length > 0) {
-                        itemModifications.push({
+                        registerScopedOperation(item.parentId, {
                             id     : item.id,
                             op     : 'modify',
                             changes: fieldChanges
-                        });
+                        })
                     }
-                } else {
-                    // this means that item was remounted inside a different parent
-                    itemModifications.push({
-                        id       : item.id,
-                        op       : 'remount',
-                        parentId : modEntry.parentId,
-                        sortOrder: modEntry.sortOrder
-                    });
                 }
             } else {
-                itemDeletions.push({
+                const originEntry = originSchemeIndex.get(item.id);
+                registerScopedOperation(originEntry.parentId, {
                     id: item.id,
                     op: 'delete',
+                    parentId: originEntry.parentId,
+                    sortOrder: originEntry.sortOrder,
                 });
             }
 
             if (item.childItems) {
                 scanThroughArrayOfItems(item.childItems, item.id);
             }
-
-            
         }
 
         // STEP 4 adding added items
@@ -338,7 +355,7 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
         // - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
         
         forEach(filteredEntries, entry => {
-            itemRemounts.push({
+            registerScopedOperation(entry.parentId, {
                 id       : entry.item.id,
                 op       : 'remount',
                 parentId : entry.newParentId,
@@ -348,12 +365,33 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
     };
 
     scanThroughArrayOfItems(originScheme.items, null);
+    
+    let operations = [];
 
+    scopedOperations.forEach(ops => {
+        ops.sort((a, b) => {
+            if (a.op === 'modify') {
+                return 2;
+            }
+            return a.sortOrder < b.sortOrder ? -1 : 1;
+        });
+
+        ops.forEach(op => {
+            if (op.op === 'demount')  {
+                delete op.sortOrder;
+            } else if (op.op === 'delete') {
+                delete op.sortOrder;
+                delete op.parentId;
+            }
+        })
+
+        operations = operations.concat(ops);
+    })
 
     return {
         version: '1',
         protocol: 'schemio/patch',
         doc: docFieldChanges,
-        items: itemDeletions.concat(itemAdditions, itemRemounts, itemModifications)
+        items: operations
     };
 }

@@ -197,9 +197,6 @@ describe('SpatialPatch', () => {
 
             doc: [],
             items: [{
-                id: 'qwe2',
-                op: 'delete'
-            },{
                 id: 'qwe5',
                 op: 'add',
                 parentId: null,
@@ -208,6 +205,9 @@ describe('SpatialPatch', () => {
                     id: 'qwe5',
                     name: 'item5'
                 }
+            }, {
+                id: 'qwe2',
+                op: 'delete'
             },{
                 id: 'qwe4',
                 op: 'remount',
@@ -260,7 +260,16 @@ describe('SpatialPatch', () => {
             protocol: 'schemio/patch',
 
             doc: [],
-            items: []
+            items: [{
+                id: 'sub3.2',
+                op: 'mount',
+                parentId: 'qwe1',
+                sortOrder: 1
+            }, {
+                id: 'sub3.2',
+                op: 'demount',
+                parentId: 'qwe3'
+            }]
         });
     });
 
