@@ -146,28 +146,28 @@ function valueEquals(value1, value2) {
 }
 
 function checkForFieldChanges(originItem, modItem) {
-    //TODO convert shape change - remove unused shapeProps
     //TODO convert text slots
-    
+
+
     const changes = [];
-    forEach(defaultItemFields, fieldName => {
-        if (!valueEquals(originItem[fieldName], modItem[fieldName])) {
+
+    const checkField = (fieldPathProvider, originProvider, modProvider) => {
+        if (!valueEquals(originProvider(), modProvider())) {
             changes.push({
-                path: [fieldName],
-                replace: utils.clone(modItem[fieldName])
+                path: fieldPathProvider(),
+                replace: utils.clone(modProvider())
             });
         }
+    };
+
+    forEach(defaultItemFields, fieldName => {
+        checkField(() => [fieldName], () => originItem[fieldName], () => modItem[fieldName]);
     });
 
     const shape = Shape.find(modItem.shape);
     if (shape) {
         forEach(Shape.getShapeArgs(shape), (arg, argName) => {
-            if (!valueEquals(originItem.shapeProps[argName], modItem.shapeProps[argName])) {
-                changes.push({
-                    path: ['shapeProps', argName],
-                    replace: utils.clone(modItem.shapeProps[argName])
-                });
-            }
+            checkField(() => ['shapeProps', argName], () => originItem.shapeProps[argName], () => modItem.shapeProps[argName])
         });
     }
 

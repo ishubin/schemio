@@ -36,7 +36,6 @@ const $ = {
 };
 
 describe('SpatialPatch', () => {
-    /*
     it('should regonize doc field changes', () => {
         
         const modifiedScheme = utils.clone(defaultScheme);
@@ -273,7 +272,6 @@ describe('SpatialPatch', () => {
             }]
         });
     });
-    */
 
     it('should recognize shapeProps change', () => {
         const patch = generateSchemePatch($.doc({
