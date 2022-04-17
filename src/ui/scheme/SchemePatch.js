@@ -131,19 +131,48 @@ const defaultItemFields = [
     'opacity',
     'selfOpacity',
     'visible',
-    'groups',
     'blendMode',
     'cursor',
     'shape',
     'clip',
     'effects',
-    // 'textSlots', // should be performed separately
     'interactionMode',
     'behavior',
 ];
 
 function valueEquals(value1, value2) {
     return JSON.stringify(value1) === JSON.stringify(value2);
+}
+
+function generateSetPatchOperations(originArr, modArr) {
+    //TODO implement tags and groups deduplication
+    // There is a potential problem that could be caused by duplicated value
+    // but, since for tags and groups it does not make sense to have duplicated values
+    // we can solve in a different way: just restrict adding duplicated tags and groups
+    // in a first place when editing items in the app
+    const ops = [];
+    const originSet = new Set();
+    const modSet = new Set();
+    forEach(originArr, value => originSet.add(value));
+    forEach(modArr, value => {
+        if (!originSet.has(value)) {
+            ops.push({
+                op: 'add',
+                value
+            });
+        }
+        modSet.add(value);
+    });
+
+    forEach(originArr, value => {
+        if (!modSet.has(value)) {
+            ops.push({
+                op: 'delete',
+                value
+            });
+        }
+    })
+    return ops;
 }
 
 function checkForFieldChanges(originItem, modItem) {
@@ -177,6 +206,19 @@ function checkForFieldChanges(originItem, modItem) {
             });
         });
     }
+
+    const setPatchCheck = (field) => {
+        const ops = generateSetPatchOperations(originItem[field], modItem[field]);
+        if (ops.length > 0) {
+            changes.push({
+                path: [field],
+                setPatch: ops
+            });
+        }
+    };
+
+    setPatchCheck('tags');
+    setPatchCheck('groups');
 
     return changes;
 }

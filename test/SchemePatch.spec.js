@@ -369,14 +369,84 @@ describe('SchemePatch', () => {
         });
     });
 
+    it('should regonize item tags changes', () => {
+        // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', tags: ['a', 'b', 'c', 'd']},
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', tags: ['a', 'g', 'd', 'c', 'e']},
+            ]
+        }));
 
-    //TODO test cases for shapeProps change
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+
+            doc: [],
+            items: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['tags'],
+                    setPatch: [ {
+                        op: 'add',
+                        value: 'g',
+                    }, {
+                        op: 'add',
+                        value: 'e',
+                    }, {
+                        op: 'delete',
+                        value: 'b'
+                    }]
+                }]
+            } ]
+        });
+    });
+
+    it('should regonize item groups changes', () => {
+        // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', groups: ['a', 'b', 'c', 'd']},
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', groups: ['a', 'g', 'd', 'c', 'e']},
+            ]
+        }));
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+
+            doc: [],
+            items: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['groups'],
+                    setPatch: [ {
+                        op: 'add',
+                        value: 'g',
+                    }, {
+                        op: 'add',
+                        value: 'e',
+                    }, {
+                        op: 'delete',
+                        value: 'b'
+                    }]
+                }]
+            } ]
+        });
+    });
 
 
-    //TODO test cases for textSlot modifications
-    //TODO test cases for shape change
-    
+
     //TODO test case for tags
+    //TODO test case for groups
     //TODO test case for behavior events
 
 });
