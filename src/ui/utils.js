@@ -66,11 +66,16 @@ function extendObject(originalObject, overrideObject) {
 /**
  * 
  * @param {object} obj 
- * @param {string} propertyPath - a dot separated path to a property inside a given object
+ * @param {string|Array} propertyPath - a dot separated path to a property inside a given object
  */
 function getObjectProperty(item, propertyPath) {
     if (item) {
-        const objectPath = propertyPath.split('.');
+        let objectPath = null;
+        if (Array.isArray(propertyPath)) {
+            objectPath = propertyPath;
+        } else {
+            objectPath = propertyPath.split('.');
+        }
         let field = item;
         let i = 0;
         while(i < objectPath.length) {

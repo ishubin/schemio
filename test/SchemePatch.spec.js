@@ -25,17 +25,15 @@ const defaultScheme = {
     }
 };
 
-const $ = {
-    item(item) {
-        return defaultifyItem(item);
-    },
+const defaultArea = {x: 0, y: 0, w: 100, h: 50, r: 100, px: 0.5, py: 0.5, sx: 1, sy: 1};
 
+const $ = {
     doc(doc) {
         return defaultifyScheme(doc);
     }
 };
 
-describe('SpatialPatch', () => {
+describe('SchemePatch', () => {
     it('should regonize doc field changes', () => {
         
         const modifiedScheme = utils.clone(defaultScheme);
@@ -67,12 +65,12 @@ describe('SpatialPatch', () => {
     it('should recognize item field changes', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'}]
         }), $.doc({
             items: [
-                { id: 'qwe1', name: 'item1-changed' },
-                { id: 'qwe2', name: 'item2' }]
+                { id: 'qwe1', name: 'item1-changed'},
+                { id: 'qwe2', name: 'item2'}]
         }));
 
         expect(patch).toStrictEqual({
@@ -95,14 +93,14 @@ describe('SpatialPatch', () => {
     it('should recognize sort order change. moving last item to head', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'},
+                { id: 'qwe3', name: 'item3'}]
         }), $.doc({
             items: [
-                { id: 'qwe3', name: 'item3' },
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' }]
+                { id: 'qwe3', name: 'item3'},
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'}]
         }));
 
         expect(patch).toStrictEqual({
@@ -123,13 +121,13 @@ describe('SpatialPatch', () => {
     it('should recognize deletion', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'},
+                { id: 'qwe3', name: 'item3'}]
         }), $.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe3', name: 'item3'}]
         }));
 
         expect(patch).toStrictEqual({
@@ -147,15 +145,15 @@ describe('SpatialPatch', () => {
     it('should recognize addition', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'},
+                { id: 'qwe3', name: 'item3'}]
         }), $.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' },
-                { id: 'qwe2.5', name: 'item2.5' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'},
+                { id: 'qwe2.5', name: 'item2.5'},
+                { id: 'qwe3', name: 'item3'}]
         }));
 
         expect(patch).toStrictEqual({
@@ -179,16 +177,16 @@ describe('SpatialPatch', () => {
     it('should recognize deletion, addition and order change', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe2', name: 'item2' },
-                { id: 'qwe3', name: 'item3' },
-                { id: 'qwe4', name: 'item4' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe2', name: 'item2'},
+                { id: 'qwe3', name: 'item3'},
+                { id: 'qwe4', name: 'item4'}]
         }), $.doc({
             items: [
-                { id: 'qwe1', name: 'item1' },
-                { id: 'qwe5', name: 'item5' },
-                { id: 'qwe4', name: 'item4' },
-                { id: 'qwe3', name: 'item3' }]
+                { id: 'qwe1', name: 'item1'},
+                { id: 'qwe5', name: 'item5'},
+                { id: 'qwe4', name: 'item4'},
+                { id: 'qwe3', name: 'item3'}]
         }));
 
         expect(patch).toStrictEqual({
@@ -228,7 +226,7 @@ describe('SpatialPatch', () => {
                         {id: 'sub1.3', name: 'sub1.3'},
                     ]
                 },
-                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe2', name: 'item2'},
                 { id: 'qwe3', name: 'item3',
                     childItems: [
                         {id: 'sub3.1', name: 'sub3.1'},
@@ -246,7 +244,7 @@ describe('SpatialPatch', () => {
                         {id: 'sub1.3', name: 'sub1.3'},
                     ]
                 },
-                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe2', name: 'item2'},
                 { id: 'qwe3', name: 'item3',
                     childItems: [
                         {id: 'sub3.1', name: 'sub3.1'},
@@ -276,13 +274,13 @@ describe('SpatialPatch', () => {
     it('should recognize shapeProps change', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                { id: 'qwe1', name: 'item1', shape: 'rect', shapeProps: {strokeColor: '#fff'} },
-                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {strokeColor: '#fff'} },
+                { id: 'qwe2', name: 'item2', area: defaultArea },
             ]
         }), $.doc({
             items: [
-                { id: 'qwe1', name: 'item1', shape: 'rect', shapeProps: {strokeColor: '#000'} },
-                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {strokeColor: '#000'} },
+                { id: 'qwe2', name: 'item2' , area: defaultArea},
             ]
         }));
 
@@ -302,10 +300,83 @@ describe('SpatialPatch', () => {
         });
     });
 
+    it('should recognize textSlot change', () => {
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {}, textSlots: {
+                    body: {
+                        text         : 'Hello world!',
+                        color        : 'rgba(0,0,0,1.0)',
+                        halign       : 'center',
+                        valign       : 'middle',
+                        fontSize     : 14,
+                        whiteSpace   : 'normal',
+                        font         : 'Arial',
+                        paddingLeft  : 10,
+                        paddingRight : 10,
+                        paddingTop   : 10,
+                        paddingBottom: 10
+                    },
+                    unknownTextSlot: {
+                        text: 'zxczxc' // this should not propagate to patch as it is not recognized by the Shape
+                    }
+                } },
+                { id: 'qwe2', name: 'item2' },
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {}, textSlots: {
+                    body: {
+                        text         : 'Goodbye world!',
+                        color        : 'rgba(0,0,0,1.0)',
+                        halign       : 'center',
+                        valign       : 'top',
+                        fontSize     : 16,
+                        whiteSpace   : 'normal',
+                        font         : 'Arial',
+                        paddingLeft  : 10,
+                        paddingRight : 10,
+                        paddingTop   : 10,
+                        paddingBottom: 10
+                    },
+                    unknownTextSlot: {
+                        text: 'Qweqe' // this should not propagate to patch as it is not recognized by the Shape
+                    }
+                } },
+                { id: 'qwe2', name: 'item2' },
+            ]
+        }));
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+
+            doc: [],
+            items: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['textSlots', 'body', 'text'],
+                    replace: 'Goodbye world!'
+                }, {
+                    path: ['textSlots', 'body', 'valign'],
+                    replace: 'top'
+                }, {
+                    path: ['textSlots', 'body', 'fontSize'],
+                    replace: 16
+                }]
+            }]
+        });
+    });
+
+
     //TODO test cases for shapeProps change
 
 
     //TODO test cases for textSlot modifications
     //TODO test cases for shape change
+    
+    //TODO test case for tags
+    //TODO test case for behavior events
 
 });

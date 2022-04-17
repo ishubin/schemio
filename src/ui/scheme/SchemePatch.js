@@ -3,6 +3,7 @@ import forEach from "lodash/forEach";
 import map from "lodash/map";
 import Shape from "../components/editor/items/shapes/Shape";
 import utils from "../utils";
+import { textSlotProperties } from "./Item";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //
@@ -146,28 +147,34 @@ function valueEquals(value1, value2) {
 }
 
 function checkForFieldChanges(originItem, modItem) {
-    //TODO convert text slots
-
-
     const changes = [];
 
-    const checkField = (fieldPathProvider, originProvider, modProvider) => {
-        if (!valueEquals(originProvider(), modProvider())) {
+    const checkField = (fieldPath) => {
+        const modValue = utils.getObjectProperty(modItem, fieldPath);
+        if (!valueEquals(utils.getObjectProperty(originItem, fieldPath), modValue)) {
             changes.push({
-                path: fieldPathProvider(),
-                replace: utils.clone(modProvider())
+                path: fieldPath,
+                replace: utils.clone(modValue)
             });
         }
     };
 
     forEach(defaultItemFields, fieldName => {
-        checkField(() => [fieldName], () => originItem[fieldName], () => modItem[fieldName]);
+        checkField([fieldName]);
     });
 
     const shape = Shape.find(modItem.shape);
     if (shape) {
         forEach(Shape.getShapeArgs(shape), (arg, argName) => {
-            checkField(() => ['shapeProps', argName], () => originItem.shapeProps[argName], () => modItem.shapeProps[argName])
+            checkField(['shapeProps', argName]);
+        });
+
+
+        forEach(shape.getTextSlots(modItem), textSlot => {
+            checkField(['textSlots', textSlot.name, 'text']);
+            forEach(textSlotProperties, prop => {
+                checkField(['textSlots', textSlot.name, prop.field]);
+            });
         });
     }
 
