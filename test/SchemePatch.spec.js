@@ -36,6 +36,7 @@ const $ = {
 };
 
 describe('SpatialPatch', () => {
+    /*
     it('should regonize doc field changes', () => {
         
         const modifiedScheme = utils.clone(defaultScheme);
@@ -67,12 +68,12 @@ describe('SpatialPatch', () => {
     it('should recognize item field changes', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1-changed' }),
-                $.item({ id: 'qwe2', name: 'item2' })]
+                { id: 'qwe1', name: 'item1-changed' },
+                { id: 'qwe2', name: 'item2' }]
         }));
 
         expect(patch).toStrictEqual({
@@ -95,14 +96,14 @@ describe('SpatialPatch', () => {
     it('should recognize sort order change. moving last item to head', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3' }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe3', name: 'item3' }),
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' })]
+                { id: 'qwe3', name: 'item3' },
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' }]
         }));
 
         expect(patch).toStrictEqual({
@@ -123,13 +124,13 @@ describe('SpatialPatch', () => {
     it('should recognize deletion', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3' }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe3', name: 'item3' }]
         }));
 
         expect(patch).toStrictEqual({
@@ -147,15 +148,15 @@ describe('SpatialPatch', () => {
     it('should recognize addition', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3' }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe2.5', name: 'item2.5' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe2.5', name: 'item2.5' },
+                { id: 'qwe3', name: 'item3' }]
         }));
 
         expect(patch).toStrictEqual({
@@ -179,16 +180,16 @@ describe('SpatialPatch', () => {
     it('should recognize deletion, addition and order change', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3' }),
-                $.item({ id: 'qwe4', name: 'item4' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3' },
+                { id: 'qwe4', name: 'item4' }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1' }),
-                $.item({ id: 'qwe5', name: 'item5' }),
-                $.item({ id: 'qwe4', name: 'item4' }),
-                $.item({ id: 'qwe3', name: 'item3' })]
+                { id: 'qwe1', name: 'item1' },
+                { id: 'qwe5', name: 'item5' },
+                { id: 'qwe4', name: 'item4' },
+                { id: 'qwe3', name: 'item3' }]
         }));
 
         expect(patch).toStrictEqual({
@@ -221,38 +222,38 @@ describe('SpatialPatch', () => {
     it('should recognize remounting to different parent', () => {
         const patch = generateSchemePatch($.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1',
+                { id: 'qwe1', name: 'item1',
                     childItems: [
-                        $.item({id: 'sub1.1', name: 'sub1.1'}),
-                        $.item({id: 'sub1.2', name: 'sub1.2'}),
-                        $.item({id: 'sub1.3', name: 'sub1.3'}),
+                        {id: 'sub1.1', name: 'sub1.1'},
+                        {id: 'sub1.2', name: 'sub1.2'},
+                        {id: 'sub1.3', name: 'sub1.3'},
                     ]
-                }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3',
+                },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3',
                     childItems: [
-                        $.item({id: 'sub3.1', name: 'sub3.1'}),
-                        $.item({id: 'sub3.2', name: 'sub3.2'}),
-                        $.item({id: 'sub3.3', name: 'sub3.3'}),
+                        {id: 'sub3.1', name: 'sub3.1'},
+                        {id: 'sub3.2', name: 'sub3.2'},
+                        {id: 'sub3.3', name: 'sub3.3'},
                     ]
-                })]
+                }]
         }), $.doc({
             items: [
-                $.item({ id: 'qwe1', name: 'item1',
+                { id: 'qwe1', name: 'item1',
                     childItems: [
-                        $.item({id: 'sub1.1', name: 'sub1.1'}),
-                        $.item({id: 'sub3.2', name: 'sub3.2'}),
-                        $.item({id: 'sub1.2', name: 'sub1.2'}),
-                        $.item({id: 'sub1.3', name: 'sub1.3'}),
+                        {id: 'sub1.1', name: 'sub1.1'},
+                        {id: 'sub3.2', name: 'sub3.2'},
+                        {id: 'sub1.2', name: 'sub1.2'},
+                        {id: 'sub1.3', name: 'sub1.3'},
                     ]
-                }),
-                $.item({ id: 'qwe2', name: 'item2' }),
-                $.item({ id: 'qwe3', name: 'item3',
+                },
+                { id: 'qwe2', name: 'item2' },
+                { id: 'qwe3', name: 'item3',
                     childItems: [
-                        $.item({id: 'sub3.1', name: 'sub3.1'}),
-                        $.item({id: 'sub3.3', name: 'sub3.3'}),
+                        {id: 'sub3.1', name: 'sub3.1'},
+                        {id: 'sub3.3', name: 'sub3.3'},
                     ]
-                })]
+                }]
         }));
 
         expect(patch).toStrictEqual({
@@ -272,15 +273,41 @@ describe('SpatialPatch', () => {
             }]
         });
     });
+    */
 
+    it('should recognize shapeProps change', () => {
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', shape: 'rect', shapeProps: {strokeColor: '#fff'} },
+                { id: 'qwe2', name: 'item2' },
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', shape: 'rect', shapeProps: {strokeColor: '#000'} },
+                { id: 'qwe2', name: 'item2' },
+            ]
+        }));
 
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
 
-    //TODO test case for remounting from item to another. This might screw up current implementation of algorithm as it will not register it as deletion and addition
+            doc: [],
+            items: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['shapeProps', 'strokeColor'],
+                    replace: '#000'
+                }]
+            }]
+        });
+    });
 
+    //TODO test cases for shapeProps change
 
 
     //TODO test cases for textSlot modifications
     //TODO test cases for shape change
-    //TODO test cases for shapeProps change
 
 });

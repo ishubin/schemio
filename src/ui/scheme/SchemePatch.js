@@ -148,8 +148,6 @@ function valueEquals(value1, value2) {
 function checkForFieldChanges(originItem, modItem) {
     //TODO convert shape change - remove unused shapeProps
     //TODO convert text slots
-    //TODO convert shapeProps change
-
     
     const changes = [];
     forEach(defaultItemFields, fieldName => {
@@ -162,8 +160,15 @@ function checkForFieldChanges(originItem, modItem) {
     });
 
     const shape = Shape.find(modItem.shape);
-    if (!shape) {
-        //TODO shapeProps
+    if (shape) {
+        forEach(Shape.getShapeArgs(shape), (arg, argName) => {
+            if (!valueEquals(originItem.shapeProps[argName], modItem.shapeProps[argName])) {
+                changes.push({
+                    path: ['shapeProps', argName],
+                    replace: utils.clone(modItem.shapeProps[argName])
+                });
+            }
+        });
     }
 
     return changes;
