@@ -493,6 +493,7 @@ describe('SchemePatch', () => {
                         { id: 'e1', event: 'click', actions: [] },
                         { id: 'e2', event: 'mousein', actions: [] },
                         { id: 'e3', event: 'mouseout', actions: [] },
+                        { id: 'e4', event: 'init', actions: [] },
                     ]
                 }},
             ]
@@ -502,7 +503,8 @@ describe('SchemePatch', () => {
                     events: [
                         { id: 'e3', event: 'mouseout', actions: [] },
                         { id: 'e2', event: 'mousein', actions: [] },
-                        { id: 'e4', event: 'custom event', actions: []}
+                        { id: 'e4', event: 'click', actions: [] },
+                        { id: 'e5', event: 'custom event', actions: []}
                     ]
                 }},
             ]
@@ -529,10 +531,18 @@ describe('SchemePatch', () => {
                             op: 'reorder',
                             sortOrder: 0
                         }, {
-                            id: 'e4',
+                            id: 'e5',
                             op: 'add',
-                            sortOrder: 2,
-                            value: { id: 'e4', event: 'custom event', actions: []}
+                            sortOrder: 3,
+                            value: { id: 'e5', event: 'custom event', actions: []}
+                        }, {
+                            id: 'e4',
+                            op: 'modify',
+                            changes: [{
+                                path: ['event'],
+                                op: 'replace',
+                                value: 'click'
+                            }]
                         }]
                     }]
                 } ]

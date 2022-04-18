@@ -174,13 +174,26 @@ function generateSetPatchOperations(originArr, modArr) {
     return ops;
 }
 
+function behaviorEventFieldChecker(originEvent, modEvent) {
+    const changes = [];
+
+    if (originEvent.event !== modEvent.event) {
+        changes.push({
+            path: ['event'],
+            op: 'replace',
+            value: modEvent.event
+        })
+    }
+    return changes;
+}
+
 function generateBehaviorEventsChanges(originEvents, modEvents) {
     const originIndex = indexIdArray(originEvents);
     const modIndex = indexIdArray(modEvents);
 
     return generateIdArrayPatch(originEvents, originIndex, modIndex, {
         isTree: false,
-        fieldChecker: () => {return []}
+        fieldChecker: behaviorEventFieldChecker
     });
 }
 
@@ -230,8 +243,6 @@ function checkForItemFieldChanges(originItem, modItem) {
 
     setPatchCheck('tags');
     setPatchCheck('groups');
-
-    //TODO generate behavior event index for origin and mod and generate changes
 
     let originItemBehaviorEvents = [];
     let modItemBehaviorEvents = [];
