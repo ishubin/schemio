@@ -7,6 +7,7 @@ import {getDefaultFont, getAllFonts} from './Fonts';
 import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
+import shortid from 'shortid';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -109,6 +110,18 @@ export const defaultItemDefinition = {
     shapeProps: {}
 };
 
+function fixBehaviorEvents(behavior) {
+    const idChecker = obj => {
+        if (!obj.id) {
+            obj.id = shortid.generate();
+        }
+    }
+    forEach(behavior.events, event => {
+        idChecker(event);
+
+        forEach(event.actions, idChecker);
+    });
+}
 
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
@@ -149,6 +162,8 @@ export function enrichItemWithDefaults(item) {
             }
         });
     }
+
+    fixBehaviorEvents(item.behavior);
 }
 
 
