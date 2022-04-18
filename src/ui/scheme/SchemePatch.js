@@ -174,6 +174,40 @@ function generateSetPatchOperations(originArr, modArr) {
     return ops;
 }
 
+
+function behaviorActionFieldChecker(originAction, modAction) {
+    const changes = [];
+
+    const checkField = (fieldPath) => {
+        const modValue = utils.getObjectProperty(modAction, fieldPath);
+        if (!valueEquals(utils.getObjectProperty(originAction, fieldPath), modValue)) {
+            changes.push({
+                path: fieldPath,
+                op: 'replace',
+                value: utils.clone(modValue)
+            });
+        }
+    };
+
+    checkField(['element']);
+    checkField(['method']);
+
+    forEach(modAction.args, (argValue, argName) => {
+        checkField(['args', argName]);
+    })
+    return changes;
+}
+
+function generateBehaviorActionsChanges(originActions, modActions) {
+    const originIndex = indexIdArray(originActions);
+    const modIndex = indexIdArray(modActions);
+
+    return generateIdArrayPatch(originActions, originIndex, modIndex, {
+        isTree: false,
+        fieldChecker: behaviorActionFieldChecker
+    });
+}
+
 function behaviorEventFieldChecker(originEvent, modEvent) {
     const changes = [];
 
@@ -183,6 +217,15 @@ function behaviorEventFieldChecker(originEvent, modEvent) {
             op: 'replace',
             value: modEvent.event
         })
+    }
+
+    const actionOps = generateBehaviorActionsChanges(originEvent.actions, modEvent.actions);
+    if (actionOps.length > 0) {
+        changes.push({
+            path: ['actions'],
+            op: 'idArrayPatch',
+            changes: actionOps
+        });
     }
     return changes;
 }

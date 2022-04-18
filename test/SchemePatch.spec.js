@@ -484,7 +484,7 @@ describe('SchemePatch', () => {
         });
     });
 
-    it('should recognize behavior events addition, deletion and reorder', () => {
+    it('should recognize behavior events addition, deletion, reorder and modification', () => {
         // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
         const patch = generateSchemePatch($.doc({
             items: [
@@ -550,9 +550,146 @@ describe('SchemePatch', () => {
         });
     });
 
+    it('should recognize behavior actions addition, deletion, reorder and modification', () => {
+        // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', behavior: {
+                    events: [
+                        { id: 'e1', event: 'click', actions: [{
+                            id: 'a1',
+                            element: 'self',
+                            method: 'blinkEffect',
+                            args: {
+                                fade: true,
+                                color: '#fff',
+                                inBackground: true
+                            }
+                        }, {
+                            id: 'a2',
+                            element: 'self',
+                            method: 'crawlEffect',
+                            args: {}
+                        }, {
+                            id: 'a3',
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'shapeProps.fill',
+                                value: {
+                                    type: 'solid',
+                                    color: 'rgba(225, 44, 44, 1)'
+                                }
+                            },
+                        }, {
+                            id: 'a4',
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'shapeProps.strokeColor',
+                                value: 'rgba(225, 44, 44, 1)'
+                            },
+                        }] },
+                    ]
+                }},
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', behavior: {
+                    events: [
+                        { id: 'e1', event: 'click', actions: [{
+                            id: 'a3',
+                            element: 'self',
+                            method: 'set',
+                            args: {
+                                field: 'shapeProps.fill',
+                                value: {
+                                    type: 'solid',
+                                    color: 'rgba(225, 44, 44, 1)'
+                                }
+                            },
+                        }, {
+                            id: 'a1',
+                            element: 'self',
+                            method: 'blinkEffect',
+                            args: {
+                                fade: true,
+                                color: '#fff',
+                                inBackground: true
+                            }
+                        }, {
+                            id: 'a4',
+                            element: 'asd',
+                            method: 'set',
+                            args: {
+                                field: 'shapeProps.strokeColor',
+                                value: '#000'
+                            },
+                        }, {
+                            id: 'a5',
+                            element: 'self',
+                            method: 'particleEffect',
+                            args: {}
+                        }] },
+                    ]
+                }},
+            ]
+        }));
 
-    //TODO test case for behavior events
-    //TODO test case for behavior field change events
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
 
-    //TODO test case for behavior event actions
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [ {
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['behavior', 'events'],
+                        op: ID_ARRAY_PATCH,
+                        changes: [ {
+                            id: 'e1',
+                            op: 'modify',
+                            changes: [{
+                                path: ['actions'],
+                                op: ID_ARRAY_PATCH,
+                                changes: [{
+                                    id: 'a3',
+                                    op: 'reorder',
+                                    sortOrder: 0
+                                }, {
+                                    id: 'a2',
+                                    op: 'delete'
+                                }, {
+                                    id: 'a5',
+                                    op: 'add',
+                                    sortOrder: 3,
+                                    value: {
+                                        id: 'a5',
+                                        element: 'self',
+                                        method: 'particleEffect',
+                                        args: {}
+                                    }
+                                }, {
+                                    id: 'a4',
+                                    op: 'modify',
+                                    changes: [{
+                                        path: ['element'],
+                                        op: 'replace',
+                                        value: 'asd'
+                                    }, {
+                                        path: ['args', 'value'],
+                                        op: 'replace',
+                                        value: '#000'
+                                    }]
+                                }]
+                            }]
+                        }]
+                    }]
+                } ]
+            }],
+        });
+    });
 });
