@@ -484,6 +484,63 @@ describe('SchemePatch', () => {
         });
     });
 
+    it('should recognize behavior events addition, deletion and reorder', () => {
+        // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', behavior: {
+                    events: [
+                        { id: 'e1', event: 'click', actions: [] },
+                        { id: 'e2', event: 'mousein', actions: [] },
+                        { id: 'e3', event: 'mouseout', actions: [] },
+                    ]
+                }},
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', behavior: {
+                    events: [
+                        { id: 'e3', event: 'mouseout', actions: [] },
+                        { id: 'e2', event: 'mousein', actions: [] },
+                        { id: 'e4', event: 'custom event', actions: []}
+                    ]
+                }},
+            ]
+        }));
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [ {
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['behavior', 'events'],
+                        op: ID_ARRAY_PATCH,
+                        changes: [ {
+                            id: 'e1',
+                            op: 'delete',
+                        }, {
+                            id: 'e3',
+                            op: 'reorder',
+                            sortOrder: 0
+                        }, {
+                            id: 'e4',
+                            op: 'add',
+                            sortOrder: 2,
+                            value: { id: 'e4', event: 'custom event', actions: []}
+                        }]
+                    }]
+                } ]
+            }],
+        });
+    });
+
+
     //TODO test case for behavior events
     //TODO test case for behavior field change events
 

@@ -137,7 +137,6 @@ const defaultItemFields = [
     'clip',
     'effects',
     'interactionMode',
-    'behavior',
 ];
 
 function valueEquals(value1, value2) {
@@ -175,7 +174,17 @@ function generateSetPatchOperations(originArr, modArr) {
     return ops;
 }
 
-function checkForFieldChanges(originItem, modItem) {
+function generateBehaviorEventsChanges(originEvents, modEvents) {
+    const originIndex = indexIdArray(originEvents);
+    const modIndex = indexIdArray(modEvents);
+
+    return generateIdArrayPatch(originEvents, originIndex, modIndex, {
+        isTree: false,
+        fieldChecker: () => {return []}
+    });
+}
+
+function checkForItemFieldChanges(originItem, modItem) {
     const changes = [];
 
     const checkField = (fieldPath) => {
@@ -222,18 +231,39 @@ function checkForFieldChanges(originItem, modItem) {
     setPatchCheck('tags');
     setPatchCheck('groups');
 
+    //TODO generate behavior event index for origin and mod and generate changes
+
+    let originItemBehaviorEvents = [];
+    let modItemBehaviorEvents = [];
+
+    if (originItem.behavior) {
+        originItemBehaviorEvents = originItem.behavior.events;
+    }
+    if (modItem.behavior){
+        modItemBehaviorEvents = modItem.behavior.events;
+    }
+    const behaviorEventsChanges = generateBehaviorEventsChanges(originItemBehaviorEvents, modItemBehaviorEvents);
+    
+    if (behaviorEventsChanges.length > 0) {
+        changes.push({
+            path: ['behavior', 'events'],
+            op: 'idArrayPatch',
+            changes: behaviorEventsChanges
+        });
+    }
+
     return changes;
 }
 
 /**
  * 
- * @param {Scheme} scheme 
+ * @param {Array} items 
  * @returns {Map}
  */
-function indexScheme(scheme) {
+function indexIdArray(items) {
     const index = new Map();
 
-    traverseItems(scheme.items, (item, parentItem, previousItem, sortOrder) => {
+    traverseItems(items, (item, parentItem, previousItem, sortOrder) => {
         let parentId = null;
         if (parentItem) {
             parentId = parentItem.id;
@@ -265,10 +295,10 @@ function fromJsonDiff(diffChanges) {
  * 
  * @param {Array} originItems 
  * @param {Map} originIndex 
- * @param {Array} modItems 
  * @param {Map} modIndex 
+ * @param {Object} options - function for generating field changes for items
  */
-function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) {
+function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
     const scopedOperations = new Map();
     const registerScopedOperation = (parentId, op) => {
         if (!scopedOperations.has(parentId)) {
@@ -333,13 +363,15 @@ function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) 
                     entries.push(itemEntry);
                     
                     // also checking for field changes for items that were not removed
-                    const fieldChanges = checkForFieldChanges(item, modEntry.item);
-                    if (fieldChanges.length > 0) {
-                        registerScopedOperation(item.parentId, {
-                            id     : item.id,
-                            op     : 'modify',
-                            changes: fieldChanges
-                        })
+                    if (options.fieldChecker) {
+                        const fieldChanges = options.fieldChecker(item, modEntry.item);
+                        if (fieldChanges.length > 0) {
+                            registerScopedOperation(item.parentId, {
+                                id     : item.id,
+                                op     : 'modify',
+                                changes: fieldChanges
+                            })
+                        }
                     }
                 }
             } else {
@@ -434,6 +466,10 @@ function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) 
                 delete op.sortOrder;
                 delete op.parentId;
             }
+
+            if (!options.isTree && op.hasOwnProperty('parentId')) {
+                delete op.parentId;
+            }
         })
 
         operations = operations.concat(ops);
@@ -445,10 +481,13 @@ function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) 
 export function generateSchemePatch(originScheme, modifiedScheme) {
     const ops = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
 
-    const originIndex = indexScheme(originScheme);
-    const modIndex = indexScheme(modifiedScheme);
+    const originIndex = indexIdArray(originScheme.items);
+    const modIndex = indexIdArray(modifiedScheme.items);
 
-    const itemOps = generatePatchOpsForItems(originScheme.items, originIndex, modifiedScheme.items, modIndex);
+    const itemOps = generateIdArrayPatch(originScheme.items, originIndex, modIndex, {
+        isTree: true,
+        fieldChecker: checkForItemFieldChanges
+    });
 
     if (itemOps.length > 0) {
         ops.push({
