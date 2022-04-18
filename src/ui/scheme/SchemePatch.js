@@ -99,7 +99,7 @@ import { textSlotProperties } from "./Item";
 // Result: only single record of moving item a7 to position 2
 
 
-const excludeFieldInScheme = new Set(['id', 'items', 'publicLink', 'modifiedTime']);
+const excludeFieldInScheme = new Set(['id', 'items', 'publicLink', 'modifiedTime', 'tags']);
 
 function schemeFieldCheck(path) {
     if (excludeFieldInScheme.has(path[0])) {
@@ -569,6 +569,14 @@ function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
 
 export function generateSchemePatch(originScheme, modifiedScheme) {
     const ops = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
+    const docTagsOps = generateSetPatchOperations(originScheme.tags, modifiedScheme.tags);
+        if (docTagsOps.length > 0) {
+            ops.push({
+                path: ['tags'],
+                op: 'setPatch',
+                changes: docTagsOps
+            });
+        }
 
     const originIndex = indexIdArray(originScheme.items);
     const modIndex = indexIdArray(modifiedScheme.items);

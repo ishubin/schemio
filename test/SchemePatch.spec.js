@@ -1,13 +1,12 @@
 import { generateSchemePatch } from '../src/ui/scheme/SchemePatch'
 import utils from '../src/ui/utils';
 import expect from 'expect';
-import { defaultifyItem } from '../src/ui/scheme/Item';
 import { defaultifyScheme } from '../src/ui/scheme/Scheme';
 
 const defaultScheme = {
     name: '',
     description: '',
-    tags: [],
+    tags: ['a', 'b', 'c', 'd'],
     categoryId: null,
     items: [],
     settings: {
@@ -43,6 +42,8 @@ describe('SchemePatch', () => {
         modifiedScheme.settings.screen.draggable = false;
         modifiedScheme.style.boundaryBoxColor = '#fff';
 
+        modifiedScheme.tags = ['a', 'd', 'c', 'e'];
+
         const patch = generateSchemePatch(defaultScheme, modifiedScheme);
         
         expect(patch).toStrictEqual({
@@ -61,6 +62,16 @@ describe('SchemePatch', () => {
                 path: ['style', 'boundaryBoxColor'],
                 op: 'replace',
                 value: '#fff'
+            }, {
+                path: ['tags'],
+                op: 'setPatch',
+                changes: [ {
+                    op: 'add',
+                    value: 'e',
+                }, {
+                    op: 'delete',
+                    value: 'b'
+                }]
             }],
         })
     });
@@ -764,6 +775,4 @@ describe('SchemePatch', () => {
         });
     });
 
-
-    //TODO test case for doc style settings
 });
