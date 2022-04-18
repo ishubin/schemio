@@ -692,4 +692,78 @@ describe('SchemePatch', () => {
             }],
         });
     });
+
+
+    it('should recognize item links addition, deletion, reorder and modification', () => {
+        // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
+        const patch = generateSchemePatch($.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', links: [
+                    { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
+                    { id: 'l2', title: 'Link 2', url: 'http://link-2', type: 'default' },
+                    { id: 'l3', title: 'Link 3', url: 'http://link-3', type: 'default' },
+                    { id: 'l4', title: 'Link 4', url: 'http://link-4', type: 'default' },
+                ]},
+            ]
+        }), $.doc({
+            items: [
+                { id: 'qwe1', name: 'item1', links: [
+                    { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
+                    { id: 'l4', title: 'Link 4', url: 'http://link-4', type: 'default' },
+                    { id: 'l3', title: 'Link 3 edited', url: 'http://link-3-edited', type: 'logs' },
+                    { id: 'l5', title: 'Link 5', url: 'http://link-5', type: 'default' },
+                ]},
+            ]
+        }));
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [ {
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['links'],
+                        op: ID_ARRAY_PATCH,
+                        changes: [ {
+                            id: 'l2',
+                            op: 'delete',
+                        }, {
+                            id: 'l4',
+                            op: 'reorder',
+                            sortOrder: 1
+                        }, {
+                            id: 'l5',
+                            op: 'add',
+                            sortOrder: 3,
+                            value: { id: 'l5', title: 'Link 5', url: 'http://link-5', type: 'default' }
+                        }, {
+                            id: 'l3',
+                            op: 'modify',
+                            changes: [{
+                                path: ['title'],
+                                op: 'replace',
+                                value: 'Link 3 edited'
+                            }, {
+                                path: ['url'],
+                                op: 'replace',
+                                value: 'http://link-3-edited'
+                            }, {
+                                path: ['type'],
+                                op: 'replace',
+                                value: 'logs'
+                            }]
+                        }]
+                    }]
+                } ]
+            }],
+        });
+    });
+
+
+    //TODO test case for doc style settings
 });

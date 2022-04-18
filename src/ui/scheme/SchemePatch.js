@@ -240,6 +240,32 @@ function generateBehaviorEventsChanges(originEvents, modEvents) {
     });
 }
 
+const linkFields = ['title', 'url', 'type'];
+function generateItemLinksChanges(originLinks, modLinks) {
+    const originIndex = indexIdArray(originLinks);
+    const modIndex = indexIdArray(modLinks);
+
+    if (!originLinks) {
+        originLinks = [];
+    }
+    return generateIdArrayPatch(originLinks, originIndex, modIndex, {
+        isTree: false,
+        fieldChecker(originLink, modLink) {
+            const changes = [];
+            forEach(linkFields, field => {
+                if (originLink[field] !== modLink[field]) {
+                    changes.push({
+                        path: [field],
+                        op: 'replace',
+                        value: utils.clone(modLink[field])
+                    });
+                }
+            })
+            return changes;
+        }
+    });
+}
+
 function checkForItemFieldChanges(originItem, modItem) {
     const changes = [];
 
@@ -303,6 +329,15 @@ function checkForItemFieldChanges(originItem, modItem) {
             path: ['behavior', 'events'],
             op: 'idArrayPatch',
             changes: behaviorEventsChanges
+        });
+    }
+
+    const linksChanges = generateItemLinksChanges(originItem.links, modItem.links);
+    if (linksChanges.length > 0) {
+        changes.push({
+            path: ['links'],
+            op: 'idArrayPatch',
+            changes: linksChanges
         });
     }
 

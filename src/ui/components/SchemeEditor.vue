@@ -1198,9 +1198,10 @@ export default {
 
         onItemLinkSubmit(link) {
             this.addLinkPopup.item.links.push({
+                id: shortid.generate(),
                 title: link.title,
                 url: link.url,
-                type: link.type
+                type: link.type,
             });
             EventBus.emitSchemeChangeCommited();
         },

@@ -110,16 +110,18 @@ export const defaultItemDefinition = {
     shapeProps: {}
 };
 
-function fixBehaviorEvents(behavior) {
-    const idChecker = obj => {
-        if (!obj.id) {
-            obj.id = shortid.generate();
-        }
+function idFixer(obj) {
+    if (!obj.id) {
+        obj.id = shortid.generate();
     }
-    forEach(behavior.events, event => {
-        idChecker(event);
+}
 
-        forEach(event.actions, idChecker);
+
+function fixBehaviorEvents(behavior) {
+    forEach(behavior.events, event => {
+        idFixer(event);
+
+        forEach(event.actions, idFixer);
     });
 }
 
@@ -164,6 +166,7 @@ export function enrichItemWithDefaults(item) {
     }
 
     fixBehaviorEvents(item.behavior);
+    forEach(item.links, idFixer);
 }
 
 
