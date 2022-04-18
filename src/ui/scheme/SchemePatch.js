@@ -238,9 +238,10 @@ function indexScheme(scheme) {
         }
 
         index.set(item.id, {
+            id: item.id,
             item,
             parentId,
-            previousItemId: previousItem ? previousItem.id : null,
+            previousId: previousItem ? previousItem.id : null,
             sortOrder,
         });
     });
@@ -257,20 +258,14 @@ function fromJsonDiff(diffChanges) {
     });
 }
 
-export function generateSchemePatch(originScheme, modifiedScheme) {
-    const docFieldChanges = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
-    // should spot item changes:
-    // - adding
-    // - deletion
-    // - reordering
-    // - remounting
-    // - field changes
-
-
-    const originSchemeIndex = indexScheme(originScheme);
-    const modifiedSchemeIndex = indexScheme(modifiedScheme);
-
-
+/**
+ * 
+ * @param {Array} originItems 
+ * @param {Map} originIndex 
+ * @param {Array} modItems 
+ * @param {Map} modIndex 
+ */
+function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) {
     const scopedOperations = new Map();
     const registerScopedOperation = (parentId, op) => {
         if (!scopedOperations.has(parentId)) {
@@ -283,8 +278,8 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
     const addedItemsInScope = new Map();
 
     // searching for added items
-    modifiedSchemeIndex.forEach((itemEntry, itemId) => {
-        const originEntry = originSchemeIndex.get(itemId);
+    modIndex.forEach((itemEntry, itemId) => {
+        const originEntry = originIndex.get(itemId);
         if (!originEntry || originEntry.parentId !== itemEntry.parentId) {
 
             if (!addedItemsInScope.has(itemEntry.parentId)) {
@@ -300,7 +295,7 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
                 registerScopedOperation(itemEntry.parentId, {
                     id: itemId,
                     op: 'add',
-                    item: itemEntry.item,
+                    value: itemEntry.item,
                     parentId: itemEntry.parentId,
                     sortOrder: itemEntry.sortOrder,
                 });
@@ -325,11 +320,11 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
         const entries = [];
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
-            const itemEntry = originSchemeIndex.get(item.id);
+            const itemEntry = originIndex.get(item.id);
 
             // ignoring all deleted items
-            if (modifiedSchemeIndex.has(item.id)) {
-                const modEntry = modifiedSchemeIndex.get(item.id);
+            if (modIndex.has(item.id)) {
+                const modEntry = modIndex.get(item.id);
 
                 if (modEntry.parentId === itemEntry.parentId) {
                     entries.push(itemEntry);
@@ -345,7 +340,7 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
                     }
                 }
             } else {
-                const originEntry = originSchemeIndex.get(item.id);
+                const originEntry = originIndex.get(item.id);
                 registerScopedOperation(originEntry.parentId, {
                     id: item.id,
                     op: 'delete',
@@ -375,20 +370,19 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
         for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
 
-            // resetting previousItemId and sortOrder since it was changed by simulating deletion and additions
+            // resetting previousId and sortOrder since it was changed by simulating deletion and additions
             if (i > 0) {
-                entry.previousItemId = entries[i-1].item.id;
+                entry.previousId = entries[i-1].item.id;
             } else {
-                entry.previousItemId = null;
+                entry.previousId = null;
             }
             entry.sortOrder = i;
 
-            const modifiedEntry     = modifiedSchemeIndex.get(entry.item.id);
-            entry.newPreviousItemId = modifiedEntry.previousItemId;
+            const modifiedEntry     = modIndex.get(entry.id);
             entry.newSortOrder      = modifiedEntry.sortOrder;
             entry.newParentId       = modifiedEntry.parentId;
 
-            if (entry.previousItemId !== entry.newPreviousItemId && entry.sortOrder != entry.newSortOrder || entry.parentId !== entry.newParentId) {
+            if (entry.previousId !== modifiedEntry.previousId && entry.sortOrder != entry.newSortOrder || entry.parentId !== entry.newParentId) {
                 filteredEntries.push(entry);
             }
         }
@@ -410,15 +404,15 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
         
         forEach(filteredEntries, entry => {
             registerScopedOperation(entry.parentId, {
-                id       : entry.item.id,
-                op       : 'remount',
+                id       : entry.id,
+                op       : 'reorder',
                 parentId : entry.newParentId,
                 sortOrder: entry.newSortOrder
             });
         });
     };
 
-    scanThroughArrayOfItems(originScheme.items, null);
+    scanThroughArrayOfItems(originItems, null);
     
     let operations = [];
 
@@ -441,6 +435,17 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
 
         operations = operations.concat(ops);
     })
+
+    return operations;
+}
+
+export function generateSchemePatch(originScheme, modifiedScheme) {
+    const docFieldChanges = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
+
+    const originIndex = indexScheme(originScheme);
+    const modIndex = indexScheme(modifiedScheme);
+
+    const operations = generatePatchOpsForItems(originScheme.items, originIndex, modifiedScheme.items, modIndex);
 
     return {
         version: '1',

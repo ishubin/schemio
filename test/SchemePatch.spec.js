@@ -110,7 +110,7 @@ describe('SchemePatch', () => {
             doc: [],
             items: [{
                 id: 'qwe3',
-                op: 'remount',
+                op: 'reorder',
                 parentId: null,
                 sortOrder: 0
             } ]
@@ -166,7 +166,7 @@ describe('SchemePatch', () => {
                 op: 'add',
                 parentId: null,
                 sortOrder: 2,
-                item: {
+                value: {
                     id: 'qwe2.5',
                     name: 'item2.5'
                 }
@@ -199,7 +199,7 @@ describe('SchemePatch', () => {
                 op: 'add',
                 parentId: null,
                 sortOrder: 1,
-                item: {
+                value: {
                     id: 'qwe5',
                     name: 'item5'
                 }
@@ -208,7 +208,7 @@ describe('SchemePatch', () => {
                 op: 'delete'
             },{
                 id: 'qwe4',
-                op: 'remount',
+                op: 'reorder',
                 parentId: null,
                 sortOrder: 2
             } ]
@@ -442,11 +442,7 @@ describe('SchemePatch', () => {
             } ]
         });
     });
-
-
-
-    //TODO test case for tags
-    //TODO test case for groups
+    
     //TODO test case for behavior events
 
 });
