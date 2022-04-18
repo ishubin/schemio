@@ -25,6 +25,8 @@ const defaultScheme = {
     }
 };
 
+const ID_ARRAY_PATCH = 'idArrayPatch';
+
 const defaultArea = {x: 0, y: 0, w: 100, h: 50, r: 100, px: 0.5, py: 0.5, sx: 1, sy: 1};
 
 const $ = {
@@ -34,7 +36,7 @@ const $ = {
 };
 
 describe('SchemePatch', () => {
-    it('should regonize doc field changes', () => {
+    it('should recognize doc field changes', () => {
         
         const modifiedScheme = utils.clone(defaultScheme);
         modifiedScheme.name = 'qwe';
@@ -47,17 +49,19 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [{
+            changes: [{
                 path: ['name'],
-                replace: 'qwe'
+                op: 'replace',
+                value: 'qwe'
             }, {
                 path: ['settings', 'screen', 'draggable'],
-                replace: false
+                op: 'replace',
+                value: false
             }, {
                 path: ['style', 'boundaryBoxColor'],
-                replace: '#fff'
+                op: 'replace',
+                value: '#fff'
             }],
-            items: []
         })
     });
 
@@ -77,15 +81,19 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe1',
-                op: 'modify',
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
                 changes: [{
-                    path: ['name'],
-                    replace: 'item1-changed'
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['name'],
+                        op: 'replace',
+                        value: 'item1-changed'
+                    }]
                 }]
-            } ]
+            }],
         });
     });
 
@@ -107,13 +115,16 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe3',
-                op: 'reorder',
-                parentId: null,
-                sortOrder: 0
-            } ]
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [{
+                    id: 'qwe3',
+                    op: 'reorder',
+                    parentId: null,
+                    sortOrder: 0
+                } ]
+            }],
         });
     });
 
@@ -134,11 +145,14 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe2',
-                op: 'delete',
-            } ]
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [{
+                    id: 'qwe2',
+                    op: 'delete',
+                } ]
+            }],
         });
     });
 
@@ -160,17 +174,20 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe2.5',
-                op: 'add',
-                parentId: null,
-                sortOrder: 2,
-                value: {
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [{
                     id: 'qwe2.5',
-                    name: 'item2.5'
-                }
-            } ]
+                    op: 'add',
+                    parentId: null,
+                    sortOrder: 2,
+                    value: {
+                        id: 'qwe2.5',
+                        name: 'item2.5'
+                    }
+                } ]
+            }],
         });
     });
 
@@ -193,25 +210,28 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe5',
-                op: 'add',
-                parentId: null,
-                sortOrder: 1,
-                value: {
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [{
                     id: 'qwe5',
-                    name: 'item5'
-                }
-            }, {
-                id: 'qwe2',
-                op: 'delete'
-            },{
-                id: 'qwe4',
-                op: 'reorder',
-                parentId: null,
-                sortOrder: 2
-            } ]
+                    op: 'add',
+                    parentId: null,
+                    sortOrder: 1,
+                    value: {
+                        id: 'qwe5',
+                        name: 'item5'
+                    }
+                }, {
+                    id: 'qwe2',
+                    op: 'delete'
+                },{
+                    id: 'qwe4',
+                    op: 'reorder',
+                    parentId: null,
+                    sortOrder: 2
+                } ]
+            }],
         });
     });
 
@@ -257,17 +277,20 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'sub3.2',
-                op: 'mount',
-                parentId: 'qwe1',
-                sortOrder: 1
-            }, {
-                id: 'sub3.2',
-                op: 'demount',
-                parentId: 'qwe3'
-            }]
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [{
+                    id: 'sub3.2',
+                    op: 'mount',
+                    parentId: 'qwe1',
+                    sortOrder: 1
+                }, {
+                    id: 'sub3.2',
+                    op: 'demount',
+                    parentId: 'qwe3'
+                }]
+            }],
         });
     });
 
@@ -288,15 +311,19 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe1',
-                op: 'modify',
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
                 changes: [{
-                    path: ['shapeProps', 'strokeColor'],
-                    replace: '#000'
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['shapeProps', 'strokeColor'],
+                        op: 'replace',
+                        value: '#000'
+                    }]
                 }]
-            }]
+            }],
         });
     });
 
@@ -351,25 +378,31 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe1',
-                op: 'modify',
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
                 changes: [{
-                    path: ['textSlots', 'body', 'text'],
-                    replace: 'Goodbye world!'
-                }, {
-                    path: ['textSlots', 'body', 'valign'],
-                    replace: 'top'
-                }, {
-                    path: ['textSlots', 'body', 'fontSize'],
-                    replace: 16
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['textSlots', 'body', 'text'],
+                        op: 'replace',
+                        value: 'Goodbye world!'
+                    }, {
+                        path: ['textSlots', 'body', 'valign'],
+                        op: 'replace',
+                        value: 'top'
+                    }, {
+                        path: ['textSlots', 'body', 'fontSize'],
+                        op: 'replace',
+                        value: 16
+                    }]
                 }]
-            }]
+            }],
         });
     });
 
-    it('should regonize item tags changes', () => {
+    it('should recognize item tags changes', () => {
         // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
         const patch = generateSchemePatch($.doc({
             items: [
@@ -385,28 +418,32 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe1',
-                op: 'modify',
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
                 changes: [{
-                    path: ['tags'],
-                    setPatch: [ {
-                        op: 'add',
-                        value: 'g',
-                    }, {
-                        op: 'add',
-                        value: 'e',
-                    }, {
-                        op: 'delete',
-                        value: 'b'
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['tags'],
+                        op: 'setPatch',
+                        changes: [ {
+                            op: 'add',
+                            value: 'g',
+                        }, {
+                            op: 'add',
+                            value: 'e',
+                        }, {
+                            op: 'delete',
+                            value: 'b'
+                        }]
                     }]
-                }]
-            } ]
+                } ]
+            }],
         });
     });
 
-    it('should regonize item groups changes', () => {
+    it('should recognize item groups changes', () => {
         // For tags and groups the order is irrelevant, so it should be treated like a patch in a Set
         const patch = generateSchemePatch($.doc({
             items: [
@@ -422,27 +459,33 @@ describe('SchemePatch', () => {
             version: '1',
             protocol: 'schemio/patch',
 
-            doc: [],
-            items: [{
-                id: 'qwe1',
-                op: 'modify',
-                changes: [{
-                    path: ['groups'],
-                    setPatch: [ {
-                        op: 'add',
-                        value: 'g',
-                    }, {
-                        op: 'add',
-                        value: 'e',
-                    }, {
-                        op: 'delete',
-                        value: 'b'
+            changes: [{
+                path: ['items'],
+                op: ID_ARRAY_PATCH,
+                changes: [ {
+                    id: 'qwe1',
+                    op: 'modify',
+                    changes: [{
+                        path: ['groups'],
+                        op: 'setPatch',
+                        changes: [ {
+                            op: 'add',
+                            value: 'g',
+                        }, {
+                            op: 'add',
+                            value: 'e',
+                        }, {
+                            op: 'delete',
+                            value: 'b'
+                        }]
                     }]
-                }]
-            } ]
+                } ]
+            }],
         });
     });
-    
-    //TODO test case for behavior events
 
+    //TODO test case for behavior events
+    //TODO test case for behavior field change events
+
+    //TODO test case for behavior event actions
 });

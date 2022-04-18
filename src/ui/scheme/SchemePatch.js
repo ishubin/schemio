@@ -183,7 +183,8 @@ function checkForFieldChanges(originItem, modItem) {
         if (!valueEquals(utils.getObjectProperty(originItem, fieldPath), modValue)) {
             changes.push({
                 path: fieldPath,
-                replace: utils.clone(modValue)
+                op: 'replace',
+                value: utils.clone(modValue)
             });
         }
     };
@@ -212,7 +213,8 @@ function checkForFieldChanges(originItem, modItem) {
         if (ops.length > 0) {
             changes.push({
                 path: [field],
-                setPatch: ops
+                op: 'setPatch',
+                changes: ops
             });
         }
     };
@@ -253,7 +255,8 @@ function fromJsonDiff(diffChanges) {
     return map(diffChanges.changes, c => {
         return {
             path: c.path,
-            replace: c.value
+            op: 'replace',
+            value: c.value
         };
     });
 }
@@ -440,17 +443,24 @@ function generatePatchOpsForItems(originItems, originIndex, modItems, modIndex) 
 }
 
 export function generateSchemePatch(originScheme, modifiedScheme) {
-    const docFieldChanges = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
+    const ops = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
 
     const originIndex = indexScheme(originScheme);
     const modIndex = indexScheme(modifiedScheme);
 
-    const operations = generatePatchOpsForItems(originScheme.items, originIndex, modifiedScheme.items, modIndex);
+    const itemOps = generatePatchOpsForItems(originScheme.items, originIndex, modifiedScheme.items, modIndex);
+
+    if (itemOps.length > 0) {
+        ops.push({
+            path: ['items'],
+            op: 'idArrayPatch',
+            changes: itemOps
+        });
+    }
 
     return {
         version: '1',
         protocol: 'schemio/patch',
-        doc: docFieldChanges,
-        items: operations
+        changes: ops
     };
 }
