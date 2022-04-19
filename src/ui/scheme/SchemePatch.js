@@ -600,3 +600,175 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
         changes: ops
     };
 }
+
+
+/**
+ * Applies a patch to an object
+ * @param {Object} origin 
+ * @param {Patch} patch 
+ */
+export function applyPatch(origin, patch) {
+    const modifiedObject = utils.clone(origin);
+    forEach(patch.changes, change => {
+        applyChange(modifiedObject, change);
+    });
+    return modifiedObject;
+}
+
+
+function applyChange(obj, change) {
+    switch(change.op) {
+        case 'replace':
+            utils.setObjectProperty(obj, change.path, change.value);
+            break;
+        case 'setPatch':
+            applySetPatch(obj, change);
+            break;
+        case 'idArrayPatch':
+            applyIdArrayPatch(obj, change);
+            break;
+    }
+}
+
+function applySetPatch(obj, setPatchChange) {
+    let arr = utils.getObjectProperty(obj, setPatchChange.path);
+    if (!Array.isArray(arr)) {
+        return;
+    }
+
+    const set = new Set(arr);
+    forEach(setPatchChange.changes, change => {
+        if (change.op === 'delete') {
+            set.delete(change.value);
+        } else if (change.op === 'add') {
+            set.add(change.value);
+        }
+    });
+
+    arr = [];
+    set.forEach(value => arr.push(value));
+    utils.setObjectProperty(obj, setPatchChange.path, arr);
+}
+
+
+function applyIdArrayPatch(obj, arrChange) {
+    const arr = utils.getObjectProperty(obj, arrChange.path);
+
+    if (!Array.isArray(arr)) {
+        arr = [];
+        utils.setObjectProperty(obj, arrChange.path, arr);
+    }
+
+    const itemMap = new Map();
+    traverseItems(arr, item => {
+        itemMap.set(item.id, item);
+    });
+
+    forEach(arrChange.changes, change => {
+        switch(change.op) {
+            case 'modify':
+                idArrayPatch.modify(itemMap, arr, change);
+                break;
+            case 'reorder':
+                idArrayPatch.reorder(itemMap, arr, change);
+                break;
+            case 'delete':
+                idArrayPatch.delete(itemMap, arr, change);
+                break;
+            case 'add':
+                idArrayPatch.add(itemMap, arr, change);
+                break;
+            case 'mount':
+                idArrayPatch.mount(itemMap, arr, change);
+                break;
+            case 'demount':
+                idArrayPatch.demount(itemMap, arr, change);
+                break;
+        }
+    });
+}
+const idArrayPatch = {
+    modify(itemMap, array, change) {
+        const item = itemMap.get(change.id);
+        if (item) {
+            forEach(change.changes, modChange => {
+                applyChange(item, modChange);
+            });
+        }
+    },
+
+    reorder(itemMap, array, change) {
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        if (!Array.isArray(parrentArray)) {
+            return;
+        }
+        
+        const foundIdx = idArrayPatch.findItemIndexInParrent(parrentArray, change.id);
+        if (foundIdx >= 0) {
+            const item = parrentArray[foundIdx];
+            parrentArray.splice(foundIdx, 1);
+
+            parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, item);
+        }
+    },
+
+    delete(itemMap, array, change) {
+        idArrayPatch.demount(itemMap, array, change);
+        itemMap.delete(change.id);
+    },
+
+    demount(itemMap, array, change) {
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        if (!Array.isArray(parrentArray)) {
+            return;
+        }
+        
+        const foundIdx = idArrayPatch.findItemIndexInParrent(parrentArray, change.id);
+        if (foundIdx >= 0) {
+            parrentArray.splice(foundIdx, 1);
+        }
+    },
+
+    mount(itemMap, array, change) {
+        if (!itemMap.has(change.id)) {
+            return;
+        }
+        const item = itemMap.get(change.id);
+
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        if (!Array.isArray(parrentArray)) {
+            return;
+        }
+        parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, item);
+    },
+
+    add(itemMap, array, change) {
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        if (!Array.isArray(parrentArray)) {
+            return;
+        }
+        parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, change.value);
+    },
+
+    findParentItem(itemMap, array, parentId) {
+        let parrentArray = array;
+        if (parentId) {
+            if (itemMap.has(parentId)) {
+                parrentArray = itemMap.get(parentId).childItems;
+            }
+        }
+
+        return parrentArray;
+    },
+
+    findItemIndexInParrent(parrentArray, id) {
+        let foundIdx = -1;
+        for (let i = 0; i < parrentArray.length && foundIdx < 0; i++) {
+            if (parrentArray[i].id === id) {
+                foundIdx = i;
+            }
+        }
+        return foundIdx;
+    }
+}
+

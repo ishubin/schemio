@@ -39,7 +39,7 @@ function createDocFieldChanges() {
     modifiedScheme.settings.screen.draggable = false;
     modifiedScheme.style.boundaryBoxColor = '#fff';
 
-    modifiedScheme.tags = ['a', 'd', 'c', 'e'];
+    modifiedScheme.tags = ['a', 'c', 'd', 'e'];
     return modifiedScheme;
 }
 
@@ -345,9 +345,6 @@ export const patchTestData = [{
                     paddingTop   : 10,
                     paddingBottom: 10
                 },
-                unknownTextSlot: {
-                    text: 'zxczxc' // this should not propagate to patch as it is not recognized by the Shape
-                }
             } },
             { id: 'qwe2', name: 'item2' },
         ]
@@ -368,9 +365,6 @@ export const patchTestData = [{
                     paddingTop   : 10,
                     paddingBottom: 10
                 },
-                unknownTextSlot: {
-                    text: 'Qweqe' // this should not propagate to patch as it is not recognized by the Shape
-                }
             } },
             { id: 'qwe2', name: 'item2' },
         ]
@@ -410,7 +404,7 @@ export const patchTestData = [{
     }),
     modified: $.doc({
         items: [
-            { id: 'qwe1', name: 'item1', tags: ['a', 'g', 'd', 'c', 'e']},
+            { id: 'qwe1', name: 'item1', tags: ['a', 'c', 'd', 'g', 'e']},
         ]
     }),
     patch: {
@@ -449,7 +443,7 @@ export const patchTestData = [{
     }),
     modified: $.doc({
         items: [
-            { id: 'qwe1', name: 'item1', groups: ['a', 'g', 'd', 'c', 'e']},
+            { id: 'qwe1', name: 'item1', groups: ['a', 'c', 'd', 'g', 'e']},
         ]
     }),
     patch: {
