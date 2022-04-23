@@ -417,6 +417,14 @@ export const patchTestData = [{
                 }]
             }]
         }],
+    },
+    stats: {
+        "document": { "fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 1, "items": [{"fields": ["shapeProps.strokeColor"], "id": "qwe1"}]}
+        }
     }
 }, {
     name: 'textSlot change',
@@ -485,6 +493,14 @@ export const patchTestData = [{
                 }]
             }]
         }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 3, "items": [{"fields": ["textSlots.body.text", "textSlots.body.valign", "textSlots.body.fontSize"], "id": "qwe1"}]}
+        }
     }
 }, {
     name: 'item tags changes',
@@ -524,6 +540,14 @@ export const patchTestData = [{
                 }]
             } ]
         }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 1, "items": [{"fields": ["tags"], "id": "qwe1"}]}
+        }
     }
 }, {
     name: 'item groups changes',
@@ -563,6 +587,14 @@ export const patchTestData = [{
                 }]
             } ]
         }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 1, "items": [{"fields": ["groups"], "id": "qwe1"}]}
+        }
     }
 }, {
     name: 'behavior events addition, deletion, reorder and modification',
@@ -627,6 +659,14 @@ export const patchTestData = [{
                 }]
             } ]
         }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 4, "items": [{"fields": ["behavior.events.e1", "behavior.events.e3", "behavior.events.e5", "behavior.events.e4.event"], "id": "qwe1"}]}
+        }
     }
 }, {
     name: 'behavior actions addition, deletion, reorder and modification',
@@ -768,7 +808,15 @@ export const patchTestData = [{
                 }]
             } ]
         }],
-    } 
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 5, "items": [{"fields": ["behavior.events.e1.actions.a3", "behavior.events.e1.actions.a2", "behavior.events.e1.actions.a5", "behavior.events.e1.actions.a4.element", "behavior.events.e1.actions.a4.args.value"], "id": "qwe1"}]}
+        }
+    }
 }, {
     name: 'item links addition, deletion, reorder and modification',
     origin: $.doc({
@@ -836,5 +884,13 @@ export const patchTestData = [{
                 }]
             } ]
         }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 6, "items": [{"fields": ["links.l2", "links.l4", "links.l5", "links.l3.title", "links.l3.url", "links.l3.type"], "id": "qwe1"}]}
+        }
     }
 }];
