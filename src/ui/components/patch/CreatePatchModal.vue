@@ -10,7 +10,7 @@
         </div>
         <div v-else>
             <div v-if="patch && originSchemeContainer">
-                <patch-details :originSchemeContainer="originSchemeContainer" :patch="patch"/>
+                <patch-details :originSchemeContainer="originSchemeContainer" :modifiedSchemeContainer="modifiedSchemeContainer" :patch="patch"/>
 
             </div>
             <div v-else-if="errorMessage" class="msg msg-error">
@@ -42,11 +42,12 @@ export default {
     
     data() {
         return {
-            schemeSearchModalShown: false,
-            patch                 : null,
-            isLoading             : false,
-            errorMessage          : null,
-            originScheme          : null,
+            schemeSearchModalShown : false,
+            patch                  : null,
+            isLoading              : false,
+            errorMessage           : null,
+            originSchemeContainer  : null,
+            modifiedSchemeContainer: new SchemeContainer(this.scheme)
         };
     },
 
