@@ -423,7 +423,7 @@ import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
-import CreatePatchModal from './CreatePatchModal.vue';
+import CreatePatchModal from './patch/CreatePatchModal.vue';
 
 const userEventBus = new UserEventBus();
 

@@ -74,6 +74,17 @@ export const patchTestData = [{
                 value: 'b'
             }]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 4,
+            fields: ['name', 'settings.screen.draggable', 'style.boundaryBoxColor', 'tags']
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 0, items: []},
+        }
     }
 }, {
     //TODO test for more field changes to make sure every field is covered
@@ -105,6 +116,22 @@ export const patchTestData = [{
                 }]
             }]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'qwe1',
+                fields: [
+                    'name'
+                ]
+            }]},
+        }
     }
 }, {
     name: 'sort order change. moving last item to head',
@@ -134,6 +161,20 @@ export const patchTestData = [{
                 sortOrder: 0
             } ]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'qwe3',
+                fields: [ ]
+            }]},
+        }
     }
 }, {
     name: 'item deletion',
@@ -160,6 +201,17 @@ export const patchTestData = [{
                 op: 'delete',
             } ]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 1, items: [ 'qwe2' ]},
+            modified: {count: 0, items: []},
+        }
     }
 }, {
     name: 'item addition',
@@ -194,6 +246,17 @@ export const patchTestData = [{
                 }
             } ]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 1, items: [ 'qwe2.5']},
+            deleted: {count: 0, items: []},
+            modified: {count: 0, items: []},
+        }
     }
 }, {
     name: 'item deletion, addition and order change',
@@ -237,6 +300,20 @@ export const patchTestData = [{
                 sortOrder: 2
             } ]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 1, items: ['qwe5']},
+            deleted: {count: 1, items: ['qwe2']},
+            modified: {count: 1, items: [{
+                id: 'qwe4',
+                fields: [ ]
+            }]},
+        }
     }
 }, {
     name: 'item remounting to different parent',
@@ -294,6 +371,20 @@ export const patchTestData = [{
                 parentId: 'qwe3'
             }]
         }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'sub3.2',
+                fields: [ ]
+            }]},
+        }
     }
 }, {
     name: 'item shapeProps change',

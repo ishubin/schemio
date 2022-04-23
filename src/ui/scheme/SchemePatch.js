@@ -139,8 +139,14 @@ const defaultItemFields = [
     'interactionMode',
 ];
 
+//TODO improve value comparison as this is a dirty hack. Instead it should check for deep equals
 function valueEquals(value1, value2) {
-    return JSON.stringify(value1) === JSON.stringify(value2);
+    const s1 = JSON.stringify(value1);
+    const s2 = JSON.stringify(value2);
+    if (s1 !== s2) {
+        console.log('NOT equal', {value1, value2, s1, s2});
+    }
+    return s1 === s2;
 }
 
 function generateSetPatchOperations(originArr, modArr) {
@@ -772,3 +778,96 @@ const idArrayPatch = {
     }
 }
 
+export function generatePatchStatistic(patch) {
+    const stats = {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {
+                count: 0,
+                items: [],
+            },
+            deleted: {
+                count: 0,
+                items: [],
+            },
+            modified: {
+                count: 0,
+                items: []
+            }
+        }
+    };
+
+    const modifiedItems = new Map();
+
+    const registeredItemFields = new Set();
+
+    const registerItemChange = (id, op, change, rootPath) => {
+        if (!rootPath) {
+            rootPath = [];
+        }
+
+        if (op === 'modified') {
+            if (change.changes && change.changes.length > 0) {
+                forEach(change.changes, subChange => {
+                    let path = rootPath;
+                    if (subChange.path) {
+                        path = path.concat(subChange.path);
+                    } else if (subChange.id) {
+                        path = path.concat(subChange.id);
+                    }
+                    registerItemChange(id, op, subChange, path);
+                })
+            } else {
+                const fieldPath = rootPath.join('.');
+                const fieldLookupKey = `${id}.${fieldPath}`;
+                if (!registeredItemFields.has(fieldLookupKey)) {
+                    registeredItemFields.add(fieldLookupKey);
+                    if (!modifiedItems.has(id)) {
+                        const itemEntry = {
+                            id,
+                            fields: []
+                        };
+                        modifiedItems.set(id, itemEntry);
+                        stats.items.modified.items.push(itemEntry);
+                    }
+                    if (fieldPath) {
+                        // in case it is a sort order change - it does not make sense to register it as a field
+                        modifiedItems.get(id).fields.push(fieldPath);
+                    }
+                    stats.items[op].count += 1;
+                }
+            }
+            
+            modifiedItems.get(id);
+        } else {
+            stats.items[op].count += 1;
+            stats.items[op].items.push(id);
+        }
+    };
+
+    forEach(patch.changes, change => {
+        if (change.path[0] === 'items') {
+            forEach(change.changes, itemChange => {
+                switch (itemChange.op) {
+                    case 'add':
+                        registerItemChange(itemChange.id, 'added');
+                        break;
+                    case 'delete':
+                        registerItemChange(itemChange.id, 'deleted');
+                        break;
+                    default:
+                        registerItemChange(itemChange.id, 'modified', itemChange)
+                        break;
+                }
+            });
+        } else {
+            stats.document.fieldChanges += 1;
+            stats.document.fields.push(change.path.join('.'));
+        }
+    });
+
+    return stats;
+}

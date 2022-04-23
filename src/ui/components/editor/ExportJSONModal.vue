@@ -21,6 +21,7 @@
 import Modal from '../Modal.vue';
 import { defaultifyScheme } from './../../scheme/Scheme';
 import utils from '../../utils';
+import { downloadContent } from '../../downloader';
 
 export default {
     props: ['scheme'],
@@ -44,20 +45,7 @@ export default {
         },
 
         saveAs(fileName, content) {
-            fileName = fileName.replace(/[^a-zA-Z0-9\-\_\.]/g, '-').replace(/\s/g, '-');
-            const dataUrl = `data:application/json;base64,${btoa(content)}`;
-
-            const link = document.createElement('a');
-            document.body.appendChild(link);
-
-            try {
-                link.href = dataUrl;
-                link.download = fileName;
-                link.click();
-            } catch(e) {
-                console.error(e);
-            }
-            setTimeout(() => document.body.removeChild(link), 100);
+            downloadContent(fileName, 'aplication/json', content)
         }
     }
 }

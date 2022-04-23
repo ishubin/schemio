@@ -1,4 +1,4 @@
-import { applyPatch, generateSchemePatch } from '../src/ui/scheme/SchemePatch'
+import { applyPatch, generatePatchStatistic, generateSchemePatch } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -21,3 +21,13 @@ describe('SchemePatch.applyPatch', () => {
         });
     });
 })
+
+
+describe('SchemePatch.generatePatchStatistic', () => {
+    forEach(patchTestData, testData => {
+        it(`should generate statistic for patch "${testData.name}"`, () => {
+            const stat = generatePatchStatistic(testData.patch);
+            expect(stat).toStrictEqual(testData.stats);
+        });
+    });
+});
