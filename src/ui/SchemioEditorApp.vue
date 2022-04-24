@@ -7,6 +7,7 @@
         <SchemeEditor v-if="patch.patchedScheme && patch.isToggled"
             key="patched-scheme"
             :scheme="patch.patchedScheme"
+            :patchIndex="patch.index"
             :editAllowed="editAllowed"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
@@ -19,6 +20,7 @@
             key="origin-scheme"
             :scheme="scheme"
             :editAllowed="editAllowed"
+            :patchIndex="patch.index"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
@@ -51,7 +53,7 @@ import {registerDebuggerInitiation} from './logger';
 import Debugger from './components/Debugger.vue';
 import SystemMessagePanel from './components/SystemMessagePanel.vue';
 import SchemeEditor from './components/SchemeEditor.vue';
-import { applyPatch } from './scheme/SchemePatch';
+import { applyPatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch';
 
 export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor},
@@ -75,6 +77,7 @@ export default{
         return {
             debuggerShown: false,
             patch: {
+                index: null,
                 patchedScheme: null,
                 isToggled: false
             }
@@ -89,6 +92,9 @@ export default{
         onPreviewPatchRequested(patch) {
             if (this.scheme && patch) {
                 const patchedScheme = applyPatch(this.scheme, patch);
+                const patchStats = generatePatchStatistic(patch);
+                this.patch.index = generatePatchIndex(patchStats);
+
                 this.patch.patchedScheme = patchedScheme;
                 this.patch.isToggled = true;
                 this.$forceUpdate();

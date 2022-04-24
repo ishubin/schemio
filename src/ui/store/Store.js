@@ -76,6 +76,14 @@ const store = new Vuex.Store({
             points: []
         },
 
+        patch: {
+            settings: {
+                additionsColor: 'rgba(90, 255, 90, 0.4)',
+                deletionsColor: 'rgba(255, 90, 90, 0.4)',
+                modificationsColor: 'rgba(90, 90, 255, 0.4)',
+            }
+        },
+
         defaultConnectorSmoothing: myStorage.get(DEFAULT_CONNECTOR_SMOOTHING, 'linear'),
 
         autoRemount: true,
@@ -607,6 +615,10 @@ const store = new Vuex.Store({
         animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
 
         animationEditorIsRecording: state => state.animationEditor.isRecording,
+
+        patchAdditionsColor: state => state.patch.settings.additionsColor,
+        patchDeletionsColor: state => state.patch.settings.deletionsColor,
+        patchModificationsColor: state => state.patch.settings.modificationsColor,
     }
 });
 

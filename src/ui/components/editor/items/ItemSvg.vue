@@ -63,6 +63,7 @@
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
+                :patchIndex="patchIndex"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
@@ -93,6 +94,16 @@
                     </clipPath>
         </defs>
 
+
+        <path v-if="itemSvgOutlinePath && patchOutline"
+            data-preview-ignore="true"
+            :d="itemSvgOutlinePath" 
+            :data-item-id="item.id"
+            :stroke-width="patchOutlineStrokeSize"
+            :stroke="patchOutline"
+            fill="none" />
+            </clipPath>
+
         <g v-if="item.childItems && item.visible"
             :style="childrenLayerStyle"
             >
@@ -100,6 +111,7 @@
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
+                :patchIndex="patchIndex"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
@@ -175,7 +187,7 @@ function hasStrokeSizeProp(shape) {
 
 export default {
     name: 'ItemSvg',
-    props: ['item', 'mode'],
+    props: ['item', 'mode', 'patchIndex'],
     components: {AdvancedFill},
 
     mounted() {
@@ -384,6 +396,28 @@ export default {
                 };
             }
             return {};
+        },
+
+        patchOutline() {
+            if (this.patchIndex) {
+                if (this.patchIndex.addedItems.has(this.item.id)) {
+                    return this.$store.getters.patchAdditionsColor;
+                }
+                if (this.patchIndex.deletedItems.has(this.item.id)) {
+                    return this.$store.getters.patchDeletionsColor;
+                }
+                if (this.patchIndex.modifiedItems.has(this.item.id)) {
+                    return this.$store.getters.patchModificationsColor;
+                }
+            }
+            return null;
+        },
+
+        patchOutlineStrokeSize() {
+            if (this.supportsStrokeSize) {
+                return (parseInt(this.item.shapeProps.strokeSize) + 10)  + 'px';
+            }
+            return '8px';
         }
     }
 }

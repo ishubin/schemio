@@ -60,6 +60,7 @@
                     :class="['state-' + state]"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
+                    :patchIndex="patchIndex"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -107,6 +108,7 @@
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :schemeContainer="interactiveSchemeContainer"
+                    :patchIndex="patchIndex"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -522,6 +524,7 @@ export default {
 
     props: {
         scheme           : {type: Object, default: null},
+        patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},

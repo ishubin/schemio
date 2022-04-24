@@ -25,6 +25,7 @@
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
+                            :patchIndex="patchIndex"
                             @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
@@ -72,6 +73,7 @@
                             v-if="item.visible"
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
+                            :patchIndex="patchIndex"
                             :mode="mode"
                             @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent"/>
@@ -105,6 +107,7 @@
                         <ItemSvg
                             :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
                             :item="item"
+                            :patchIndex="patchIndex"
                             :mode="mode"
                             />
                     </g>
@@ -204,6 +207,7 @@ export default {
         mode           : { type: String, default: 'edit' },
         stateLayerShown: { type: Boolean, default: false},
         userEventBus   : { type: Object, default: null},
+        patchIndex     : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },

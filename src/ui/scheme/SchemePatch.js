@@ -860,3 +860,25 @@ export function generatePatchStatistic(patch) {
 
     return stats;
 }
+
+
+export function generatePatchIndex(patchStats) {
+    const index = {
+        addedItems: new Set(),
+        deletedItems: new Set(),
+        modifiedItems: new Set(),
+        modifiedFields: new Set()
+    };
+
+    forEach(patchStats.items.added.items, itemId => index.addedItems.add(itemId));
+    forEach(patchStats.items.deleted.items, itemId => index.deletedItems.add(itemId));
+    forEach(patchStats.document.fields, field => index.modifiedFields.add(field));
+    forEach(patchStats.items.modified.items, itemEntry => {
+        index.modifiedItems.add(itemEntry.id);
+        forEach(itemEntry.fields, field => {
+            index.modifiedFields.add(`items.${itemEntry.id}.${field}`);
+        });
+    });
+
+    return index;
+}
