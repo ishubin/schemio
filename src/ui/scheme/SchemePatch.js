@@ -141,12 +141,7 @@ const defaultItemFields = [
 
 //TODO improve value comparison as this is a dirty hack. Instead it should check for deep equals
 function valueEquals(value1, value2) {
-    const s1 = JSON.stringify(value1);
-    const s2 = JSON.stringify(value2);
-    if (s1 !== s2) {
-        console.log('NOT equal', {value1, value2, s1, s2});
-    }
-    return s1 === s2;
+    return JSON.stringify(value1) === JSON.stringify(value2);
 }
 
 function generateSetPatchOperations(originArr, modArr) {

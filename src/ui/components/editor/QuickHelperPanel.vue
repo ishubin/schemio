@@ -279,6 +279,7 @@ export default {
             {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed},
             {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed},
             {name: 'Create patch',      callback: eventCallback('create-patch-requested'), iconClass: null},
+            {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: null},
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
             {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},

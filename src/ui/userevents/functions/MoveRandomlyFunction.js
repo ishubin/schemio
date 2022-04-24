@@ -66,8 +66,6 @@ class MoveRandomlyAnimation extends Animation {
             this.item.area.x = Math.pow(1 - t, 2) * this.point1.x  + 2 * (1 - t) * t * this.point2.x + t * t * this.point3.x;
             this.item.area.y = Math.pow(1 - t, 2) * this.point1.y  + 2 * (1 - t) * t * this.point2.y + t * t * this.point3.y;
 
-            // console.log('_t', this._t, 't', t, 'ix', this.item.area.x, 'iy', this.item.area.y, 'p1', this.point1.x, this.point1.x, 'p2', this.point2.x, this.point2.x, 'p3', this.point3.x, this.point3.x);
-
             this.schemeContainer.reindexItemTransforms(this.item);
             EventBus.emitItemChanged(this.item.id);
             return true;

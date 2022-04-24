@@ -3243,3 +3243,21 @@ ul.breadcrumbs li .breadcrumb-separator {
 @keyframes getWidth {
     100% { width: 100%; }
 }
+
+/********************* Patch *************************/
+.patch-menu-wrapper {
+    position: fixed;
+    top: 80px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.patch-menu-popup {
+    display: inline-block;
+    padding: 5px;
+    background: var(--faint-weak);
+    border-radius: var(--middle-border-radius);
+    box-shadow: 1px 1px 10px var(--shadow-color);
+}

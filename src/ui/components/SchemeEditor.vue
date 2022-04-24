@@ -27,6 +27,7 @@
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
             @create-patch-requested="createPatchModalShown = true"
+            @apply-patch-requested="triggerApplyPatchUpload"
             @duplicate-diagram-requested="showDuplicateDiagramModal()"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
@@ -312,6 +313,10 @@
 
         <div v-if="importSchemeFileShown" style="display: none">
             <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
+        </div>
+
+        <div v-if="loadPatchFileShown" style="display: none">
+            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
         </div>
 
         <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
@@ -700,6 +705,8 @@ export default {
                 sheme: null,
                 shown: false
             },
+
+            loadPatchFileShown: false,
 
             advancedBehaviorProperties: {
                 shown: false
@@ -1552,6 +1559,32 @@ export default {
                     this.importSchemeModal.shown = true;
                 } catch(err) {
                     alert('Not able to import scheme. Malformed json');
+                }
+            };
+
+            reader.readAsText(file);
+        },
+
+
+        triggerApplyPatchUpload() {
+            this.loadPatchFileShown = true;
+            this.$nextTick(() => {
+                this.$refs.loadPatchFileInput.click();
+            });
+        },
+
+        onLoadPatchFileInputChanged(fileEvent) {
+            const file = fileEvent.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                this.loadPatchFileShown = false;
+                try {
+                    const patch = JSON.parse(event.target.result);
+                    //TODO verify that it is correct patch file
+                    this.$emit('preview-patch-requested', patch);
+                } catch(err) {
+                    alert('Not able to load patch. Malformed json');
                 }
             };
 
