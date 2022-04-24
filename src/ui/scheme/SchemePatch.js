@@ -139,17 +139,11 @@ const defaultItemFields = [
     'interactionMode',
 ];
 
-//TODO improve value comparison as this is a dirty hack. Instead it should check for deep equals
 function valueEquals(value1, value2) {
-    return JSON.stringify(value1) === JSON.stringify(value2);
+    return utils.equals(value1, value2);
 }
 
 function generateSetPatchOperations(originArr, modArr) {
-    //TODO implement tags and groups deduplication
-    // There is a potential problem that could be caused by duplicated value
-    // but, since for tags and groups it does not make sense to have duplicated values
-    // we can solve in a different way: just restrict adding duplicated tags and groups
-    // in a first place when editing items in the app
     const ops = [];
     const originSet = new Set();
     const modSet = new Set();
