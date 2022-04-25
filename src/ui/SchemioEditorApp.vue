@@ -33,13 +33,16 @@
         <div v-if="scheme && patch.patchedScheme" class="patch-menu-wrapper">
             <div class="patch-menu-popup">
                 <div class="toggle-group">
-                    <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']"
-                        @click="patch.isToggled = false"
-                        >Origin</span>
-                    <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']"
-                        @click="patch.isToggled = true"
-                        >Modified</span>
+                    <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="patch.isToggled = false" >Origin</span>
+                    <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="patch.isToggled = true" >Modified</span>
                 </div>
+
+                <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
+                <label for="chk-patch-menu-toggle-diff-coloring">Highlight diff</label>
+
+                <color-picker :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="26px" hint="Additions"></color-picker>
+                <color-picker :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="26px" hint="Deletions"></color-picker>
+                <color-picker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="26px" hint="Modifications"></color-picker>
             </div>
         </div>
 
@@ -54,9 +57,10 @@ import Debugger from './components/Debugger.vue';
 import SystemMessagePanel from './components/SystemMessagePanel.vue';
 import SchemeEditor from './components/SchemeEditor.vue';
 import { applyPatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch';
+import ColorPicker from './components/editor/ColorPicker.vue';
 
 export default{
-    components: {Debugger, SystemMessagePanel, SchemeEditor},
+    components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker},
 
     props: {
         scheme           : {type: Object, default: () => null},
@@ -79,7 +83,7 @@ export default{
             patch: {
                 index: null,
                 patchedScheme: null,
-                isToggled: false
+                isToggled: false,
             }
         };
     },
@@ -99,7 +103,31 @@ export default{
                 this.patch.isToggled = true;
                 this.$forceUpdate();
             }
+        },
+
+        updatePatchDiffColoring(enabled) {
+            this.$store.dispatch('setPatchDiffColoringEnabled', enabled);
+        },
+
+        updatePatchDiffColor(changeType, color) {
+            this.$store.dispatch('updatePatchDiffColor', {changeType, color});
         }
+    },
+
+    computed: {
+        patchIsDiffColoringEnabled() {
+            return this.$store.getters.patchIsDiffColoringEnabled;
+        },
+
+        patchAdditionsColor() {
+            return this.$store.getters.patchAdditionsColor;
+        },
+        patchDeletionsColor() {
+            return this.$store.getters.patchDeletionsColor;
+        },
+        patchModificationsColor() {
+            return this.$store.getters.patchModificationsColor;
+        },
     }
 }
 </script>

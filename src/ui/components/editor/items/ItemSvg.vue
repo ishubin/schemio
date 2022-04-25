@@ -95,14 +95,13 @@
         </defs>
 
 
-        <path v-if="itemSvgOutlinePath && patchOutline"
+        <path v-if="itemSvgOutlinePath && patchOutline && patchIsDiffColoringEnabled"
             data-preview-ignore="true"
             :d="itemSvgOutlinePath" 
             :data-item-id="item.id"
             :stroke-width="patchOutlineStrokeSize"
             :stroke="patchOutline"
             fill="none" />
-            </clipPath>
 
         <g v-if="item.childItems && item.visible"
             :style="childrenLayerStyle"
@@ -411,6 +410,10 @@ export default {
                 }
             }
             return null;
+        },
+
+        patchIsDiffColoringEnabled() {
+            return this.$store.getters.patchIsDiffColoringEnabled;
         },
 
         patchOutlineStrokeSize() {

@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="color-picker" :style="{width: width, height: height}">
+    <div class="color-picker" :style="{width: width, height: height}" :title="hint">
         <div ref="toggleButton" class="color-picker-toggle-button" :class="{disabled: disabled}">
             <span class="color-picker-toggle-button-background"></span>
 
@@ -29,6 +29,7 @@ export default {
         height  : {type: String, default: '26px'},
         hollow  : {type: Boolean, default: false},
         disabled: {type: Boolean, default: false},
+        hint    : {type: String, default: ''}
     },
 
     components: {'color-picker': VueColor.Sketch},

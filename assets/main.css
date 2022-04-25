@@ -1032,6 +1032,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 .toggle-group {
     display: inline-block;
     padding: 0;
+    font-size: 0px;
 }
 .toggle-group > .toggle-button {
     color: var(--faint-strong);
