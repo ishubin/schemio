@@ -98,6 +98,65 @@ import { textSlotProperties } from "./Item";
 //
 // Result: only single record of moving item a7 to position 2
 
+//TODO item effects patching
+
+const PatchSchema = [{
+    name: 'items',
+    op: 'idArrayPatch',
+    childrenField: 'childItems',
+
+    fields: [{
+        names: [ 'area', 'name', 'description', 'opacity', 'selfOpacity', 'visible', 'blendMode', 'cursor', 'shape', 'clip', 'interactionMode', ],
+        op: 'replace'
+    }, {
+        name: 'shapeProps', op: 'modify', fields: [{ op: 'replace' }]
+    }, {
+        names: ['groups', 'tags'], op: 'setPatch'
+    }, {
+        name: 'textSlots',
+        op: 'modify',
+        fields: [{
+            op: 'modify',
+            fields: [{op: 'replace'}]
+        }]
+    }, {
+        name: 'behavior',
+        op: 'modify',
+        fields: [{
+            name: 'events',
+            op: 'idArrayPatch',
+            fields: [{
+                name: 'event', op: 'replace'
+            }, {
+                name: 'actions', op: 'idArrayPatch',
+                fields: [{
+                    names: ['element', 'method'], op: 'replace'
+                }, {
+                    name: 'args', op: 'modify', fields: [{op: 'replace'}]
+                }]
+            }]
+        }]
+    }, {
+        name: 'links', op: 'idArrayPatch', fields: [{ names: ['title', 'url', 'type'], op: 'replace' }]
+    }]
+}, {
+    names: ['name', 'description'],
+    op: 'replace'
+}, {
+    name: 'settings',
+    op: 'modify',
+    fields: [{
+        name: 'screen',
+        op: 'modify',
+        fields: [{op: 'replace'}]
+    }]
+}, {
+    name: 'style', op: 'modify', fields: [{op: 'replace'}]
+}, {
+    names: ['tags'],
+    op: 'setPatch'
+}];
+
 
 const excludeFieldInScheme = new Set(['id', 'items', 'publicLink', 'modifiedTime', 'tags']);
 
@@ -109,35 +168,20 @@ function schemeFieldCheck(path) {
 }
 
 
-function traverseItems(items, callback) {
-    _traverseItems(items, null, callback);
+function traverseItems(items, childrenField, callback) {
+    _traverseItems(items, childrenField, null, callback);
 }
-function _traverseItems(items, parentItem, callback) {
+function _traverseItems(items, childrenField, parentItem, callback) {
     let previousItem = null;
     forEach(items, (item, i) => {
         callback(item, parentItem, previousItem, i);
-        if (item.childItems) {
-            _traverseItems(item.childItems, item, callback);
+        if (childrenField && item[childrenField]) {
+            _traverseItems(item[childrenField], childrenField, item, callback);
         }
         previousItem = item;
     });
 }
 
-
-const defaultItemFields = [
-    'area',
-    'name',
-    'description',
-    'opacity',
-    'selfOpacity',
-    'visible',
-    'blendMode',
-    'cursor',
-    'shape',
-    'clip',
-    'effects',
-    'interactionMode',
-];
 
 function valueEquals(value1, value2) {
     return utils.equals(value1, value2);
@@ -170,184 +214,17 @@ function generateSetPatchOperations(originArr, modArr) {
 }
 
 
-function behaviorActionFieldChecker(originAction, modAction) {
-    const changes = [];
-
-    const checkField = (fieldPath) => {
-        const modValue = utils.getObjectProperty(modAction, fieldPath);
-        if (!valueEquals(utils.getObjectProperty(originAction, fieldPath), modValue)) {
-            changes.push({
-                path: fieldPath,
-                op: 'replace',
-                value: utils.clone(modValue)
-            });
-        }
-    };
-
-    checkField(['element']);
-    checkField(['method']);
-
-    forEach(modAction.args, (argValue, argName) => {
-        checkField(['args', argName]);
-    })
-    return changes;
-}
-
-function generateBehaviorActionsChanges(originActions, modActions) {
-    const originIndex = indexIdArray(originActions);
-    const modIndex = indexIdArray(modActions);
-
-    return generateIdArrayPatch(originActions, originIndex, modIndex, {
-        isTree: false,
-        fieldChecker: behaviorActionFieldChecker
-    });
-}
-
-function behaviorEventFieldChecker(originEvent, modEvent) {
-    const changes = [];
-
-    if (originEvent.event !== modEvent.event) {
-        changes.push({
-            path: ['event'],
-            op: 'replace',
-            value: modEvent.event
-        })
-    }
-
-    const actionOps = generateBehaviorActionsChanges(originEvent.actions, modEvent.actions);
-    if (actionOps.length > 0) {
-        changes.push({
-            path: ['actions'],
-            op: 'idArrayPatch',
-            changes: actionOps
-        });
-    }
-    return changes;
-}
-
-function generateBehaviorEventsChanges(originEvents, modEvents) {
-    const originIndex = indexIdArray(originEvents);
-    const modIndex = indexIdArray(modEvents);
-
-    return generateIdArrayPatch(originEvents, originIndex, modIndex, {
-        isTree: false,
-        fieldChecker: behaviorEventFieldChecker
-    });
-}
-
-const linkFields = ['title', 'url', 'type'];
-function generateItemLinksChanges(originLinks, modLinks) {
-    const originIndex = indexIdArray(originLinks);
-    const modIndex = indexIdArray(modLinks);
-
-    if (!originLinks) {
-        originLinks = [];
-    }
-    return generateIdArrayPatch(originLinks, originIndex, modIndex, {
-        isTree: false,
-        fieldChecker(originLink, modLink) {
-            const changes = [];
-            forEach(linkFields, field => {
-                if (originLink[field] !== modLink[field]) {
-                    changes.push({
-                        path: [field],
-                        op: 'replace',
-                        value: utils.clone(modLink[field])
-                    });
-                }
-            })
-            return changes;
-        }
-    });
-}
-
-function checkForItemFieldChanges(originItem, modItem) {
-    const changes = [];
-
-    const checkField = (fieldPath) => {
-        const modValue = utils.getObjectProperty(modItem, fieldPath);
-        if (!valueEquals(utils.getObjectProperty(originItem, fieldPath), modValue)) {
-            changes.push({
-                path: fieldPath,
-                op: 'replace',
-                value: utils.clone(modValue)
-            });
-        }
-    };
-
-    forEach(defaultItemFields, fieldName => {
-        checkField([fieldName]);
-    });
-
-    const shape = Shape.find(modItem.shape);
-    if (shape) {
-        forEach(Shape.getShapeArgs(shape), (arg, argName) => {
-            checkField(['shapeProps', argName]);
-        });
-
-
-        forEach(shape.getTextSlots(modItem), textSlot => {
-            checkField(['textSlots', textSlot.name, 'text']);
-            forEach(textSlotProperties, prop => {
-                checkField(['textSlots', textSlot.name, prop.field]);
-            });
-        });
-    }
-
-    const setPatchCheck = (field) => {
-        const ops = generateSetPatchOperations(originItem[field], modItem[field]);
-        if (ops.length > 0) {
-            changes.push({
-                path: [field],
-                op: 'setPatch',
-                changes: ops
-            });
-        }
-    };
-
-    setPatchCheck('tags');
-    setPatchCheck('groups');
-
-    let originItemBehaviorEvents = [];
-    let modItemBehaviorEvents = [];
-
-    if (originItem.behavior) {
-        originItemBehaviorEvents = originItem.behavior.events;
-    }
-    if (modItem.behavior){
-        modItemBehaviorEvents = modItem.behavior.events;
-    }
-    const behaviorEventsChanges = generateBehaviorEventsChanges(originItemBehaviorEvents, modItemBehaviorEvents);
-    
-    if (behaviorEventsChanges.length > 0) {
-        changes.push({
-            path: ['behavior', 'events'],
-            op: 'idArrayPatch',
-            changes: behaviorEventsChanges
-        });
-    }
-
-    const linksChanges = generateItemLinksChanges(originItem.links, modItem.links);
-    if (linksChanges.length > 0) {
-        changes.push({
-            path: ['links'],
-            op: 'idArrayPatch',
-            changes: linksChanges
-        });
-    }
-
-    return changes;
-}
 
 /**
  * 
  * @param {Array} items 
+ * @param {String} childrenField name of the field that is used to store nested objects of the same structure
  * @returns {Map}
  */
-function indexIdArray(items) {
+function indexIdArray(items, childrenField) {
     const index = new Map();
 
-    traverseItems(items, (item, parentItem, previousItem, sortOrder) => {
+    traverseItems(items, childrenField, (item, parentItem, previousItem, sortOrder) => {
         let parentId = null;
         if (parentItem) {
             parentId = parentItem.id;
@@ -378,11 +255,13 @@ function fromJsonDiff(diffChanges) {
 /**
  * 
  * @param {Array} originItems 
- * @param {Map} originIndex 
- * @param {Map} modIndex 
- * @param {Object} options - function for generating field changes for items
+ * @param {Array} modifiedItems 
+ * @param {Object} patchSchemaEntry
  */
-function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
+function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
+    const originIndex = indexIdArray(originItems, patchSchemaEntry.childrenField);
+    const modIndex = indexIdArray(modifiedItems, patchSchemaEntry.childrenField);
+
     const scopedOperations = new Map();
     const registerScopedOperation = (parentId, op) => {
         if (!scopedOperations.has(parentId)) {
@@ -447,15 +326,13 @@ function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
                     entries.push(itemEntry);
                     
                     // also checking for field changes for items that were not removed
-                    if (options.fieldChecker) {
-                        const fieldChanges = options.fieldChecker(item, modEntry.item);
-                        if (fieldChanges.length > 0) {
-                            registerScopedOperation(item.parentId, {
-                                id     : item.id,
-                                op     : 'modify',
-                                changes: fieldChanges
-                            })
-                        }
+                    const fieldChanges = _generatePatch(item, modEntry.item, patchSchemaEntry.fields, []);
+                    if (fieldChanges.length > 0) {
+                        registerScopedOperation(item.parentId, {
+                            id     : item.id,
+                            op     : 'modify',
+                            changes: fieldChanges
+                        })
                     }
                 }
             } else {
@@ -468,8 +345,8 @@ function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
                 });
             }
 
-            if (item.childItems) {
-                scanThroughArrayOfItems(item.childItems, item.id);
+            if (patchSchemaEntry.childrenField && item[patchSchemaEntry.childrenField]) {
+                scanThroughArrayOfItems(item[patchSchemaEntry.childrenField], item.id);
             }
         }
 
@@ -551,7 +428,7 @@ function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
                 delete op.parentId;
             }
 
-            if (!options.isTree && op.hasOwnProperty('parentId')) {
+            if (!patchSchemaEntry.childrenField && op.hasOwnProperty('parentId')) {
                 delete op.parentId;
             }
         })
@@ -562,38 +439,77 @@ function generateIdArrayPatch(originItems, originIndex, modIndex, options) {
     return operations;
 }
 
-export function generateSchemePatch(originScheme, modifiedScheme) {
-    const ops = fromJsonDiff(jsonDiff(originScheme, modifiedScheme, { fieldCheck: schemeFieldCheck }));
-    const docTagsOps = generateSetPatchOperations(originScheme.tags, modifiedScheme.tags);
-        if (docTagsOps.length > 0) {
-            ops.push({
-                path: ['tags'],
-                op: 'setPatch',
-                changes: docTagsOps
-            });
-        }
-
-    const originIndex = indexIdArray(originScheme.items);
-    const modIndex = indexIdArray(modifiedScheme.items);
-
-    const itemOps = generateIdArrayPatch(originScheme.items, originIndex, modIndex, {
-        isTree: true,
-        fieldChecker: checkForItemFieldChanges
-    });
-
-    if (itemOps.length > 0) {
-        ops.push({
-            path: ['items'],
-            op: 'idArrayPatch',
-            changes: itemOps
-        });
-    }
-
+function generatePatch(originObject, modifiedObject, patchSchema) {
     return {
         version: '1',
         protocol: 'schemio/patch',
-        changes: ops
+        changes: _generatePatch(originObject, modifiedObject, patchSchema, [])
     };
+}
+function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
+    let ops = [];
+    const fieldNames = new Set();
+    forEach(originObject, (value, name) => fieldNames.add(name));
+    forEach(modifiedObject, (value, name) => fieldNames.add(name));
+    
+    const fieldEntries = new Map();
+    let defaultFieldEntry = null;
+    forEach(patchSchema, schemaFieldEntry => {
+        if (schemaFieldEntry.name) {
+            fieldEntries.set(schemaFieldEntry.name, schemaFieldEntry);
+        } else if (schemaFieldEntry.names) {
+            forEach(schemaFieldEntry.names, name => fieldEntries.set(name, schemaFieldEntry));
+        } else if (!defaultFieldEntry) {
+            defaultFieldEntry = schemaFieldEntry;
+        }
+    });
+
+    fieldNames.forEach(field => {
+        let fieldEntry = null;
+        if (fieldEntries.has(field)) {
+            fieldEntry = fieldEntries.get(field);
+        } else {
+            fieldEntry = defaultFieldEntry;
+        }
+
+        if (fieldEntry) {
+            if (fieldEntry.op === 'replace') {
+                if (!valueEquals(originObject[field], modifiedObject[field])) {
+                    ops.push({
+                        path: fieldPath.concat([field]),
+                        op: 'replace',
+                        value: utils.clone(modifiedObject[field])
+                    })
+                }
+            } else if (fieldEntry.op === 'modify' && originObject[field] && modifiedObject[field]) {
+                ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldEntry.fields, fieldPath.concat([field])));
+            } else if (fieldEntry.op === 'setPatch') {
+                const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
+                if (changes && changes.length > 0) {
+                    ops.push({
+                        path: fieldPath.concat([field]),
+                        op: 'setPatch',
+                        changes: changes
+                    });
+                }
+            } else if (fieldEntry.op === 'idArrayPatch') {
+                const changes = generateIdArrayPatch(originObject[field], modifiedObject[field], fieldEntry);
+                if (changes && changes.length > 0) {
+                    ops.push({
+                        path: fieldPath.concat([field]),
+                        op: 'idArrayPatch',
+                        changes: changes
+                    });
+                }
+            }
+        }
+    });
+
+    return ops;
+}
+
+export function generateSchemePatch(originScheme, modifiedScheme) {
+    return generatePatch(originScheme, modifiedScheme, PatchSchema);
 }
 
 
@@ -655,7 +571,8 @@ function applyIdArrayPatch(obj, arrChange) {
     }
 
     const itemMap = new Map();
-    traverseItems(arr, item => {
+    //TODO figure out a way to get childrenField from patch schema instead of hard-coding 'childItems'
+    traverseItems(arr, 'childItems', item => {
         itemMap.set(item.id, item);
     });
 
@@ -749,6 +666,8 @@ const idArrayPatch = {
         let parrentArray = array;
         if (parentId) {
             if (itemMap.has(parentId)) {
+                // it should not use 'childItems' and it should rely on childrenField from patch schema
+                // but, since this is only used for items in the entire document, this is fine
                 parrentArray = itemMap.get(parentId).childItems;
             }
         }

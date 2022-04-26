@@ -56,14 +56,6 @@ export const patchTestData = [{
             op: 'replace',
             value: 'qwe'
         }, {
-            path: ['settings', 'screen', 'draggable'],
-            op: 'replace',
-            value: false
-        }, {
-            path: ['style', 'boundaryBoxColor'],
-            op: 'replace',
-            value: '#fff'
-        }, {
             path: ['tags'],
             op: 'setPatch',
             changes: [ {
@@ -73,12 +65,20 @@ export const patchTestData = [{
                 op: 'delete',
                 value: 'b'
             }]
+        }, {
+            path: ['settings', 'screen', 'draggable'],
+            op: 'replace',
+            value: false
+        }, {
+            path: ['style', 'boundaryBoxColor'],
+            op: 'replace',
+            value: '#fff'
         }],
     },
     stats: {
         document: {
             fieldChanges: 4,
-            fields: ['name', 'settings.screen.draggable', 'style.boundaryBoxColor', 'tags']
+            fields: ['name', 'tags', 'settings.screen.draggable', 'style.boundaryBoxColor']
         },
         items: {
             added: {count: 0, items: []},
