@@ -30,7 +30,7 @@ import utils from '../../utils';
 
 import PropertyInput from '../editor/properties/PropertyInput.vue';
 import Tooltip from '../Tooltip.vue';
-import {getEffectById} from './Effects';
+import {findEffect} from './Effects';
 
 export default {
     props: ['effectId', 'effectArgs', 'schemeContainer'],
@@ -38,7 +38,7 @@ export default {
     components: {PropertyInput, Tooltip},
 
     data() {
-        const effect = getEffectById(this.effectId);
+        const effect = findEffect(this.effectId);
 
         return {
             effectArgDefinitions: utils.clone(effect.args)

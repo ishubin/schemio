@@ -141,7 +141,7 @@ import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
-import { getEffectById } from '../../effects/Effects';
+import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
 
 function generateFilters(item) {
@@ -151,7 +151,7 @@ function generateFilters(item) {
     const foregroundEffects = [];
 
     forEach(item.effects, (itemEffect, idx) => {
-        const effect = getEffectById(itemEffect.id);
+        const effect = findEffect(itemEffect.effect);
         if (effect) {
             const generatedEffect = effect.applyEffect(item, idx, itemEffect.args);
 
