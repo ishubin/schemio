@@ -264,6 +264,12 @@ function fromJsonDiff(diffChanges) {
  * @param {Object} patchSchemaEntry
  */
 function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
+    if (!originItems) {
+        originItems = [];
+    }
+    if (!modifiedItems) {
+        modifiedItems = [];
+    }
     const originIndex = indexIdArray(originItems, patchSchemaEntry.childrenField);
     const modIndex = indexIdArray(modifiedItems, patchSchemaEntry.childrenField);
 
@@ -469,46 +475,46 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
         }
     });
 
-    fieldNames.forEach(field => {
-        let fieldEntry = null;
-        if (fieldEntries.has(field)) {
-            fieldEntry = fieldEntries.get(field);
-        } else {
-            fieldEntry = defaultFieldEntry;
-        }
-
-        if (fieldEntry) {
-            if (fieldEntry.op === 'replace') {
-                if (!valueEquals(originObject[field], modifiedObject[field])) {
-                    ops.push({
-                        path: fieldPath.concat([field]),
-                        op: 'replace',
-                        value: utils.clone(modifiedObject[field])
-                    })
-                }
-            } else if (fieldEntry.op === 'modify' && originObject[field] && modifiedObject[field]) {
-                ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldEntry.fields, fieldPath.concat([field])));
-            } else if (fieldEntry.op === 'setPatch') {
-                const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
-                if (changes && changes.length > 0) {
-                    ops.push({
-                        path: fieldPath.concat([field]),
-                        op: 'setPatch',
-                        changes: changes
-                    });
-                }
-            } else if (fieldEntry.op === 'idArrayPatch') {
-                const changes = generateIdArrayPatch(originObject[field], modifiedObject[field], fieldEntry);
-                if (changes && changes.length > 0) {
-                    ops.push({
-                        path: fieldPath.concat([field]),
-                        op: 'idArrayPatch',
-                        changes: changes
-                    });
-                }
+    const applyPatchForField = (fieldEntry, field) => {
+        if (fieldEntry.op === 'replace') {
+            if (!valueEquals(originObject[field], modifiedObject[field])) {
+                ops.push({
+                    path: fieldPath.concat([field]),
+                    op: 'replace',
+                    value: utils.clone(modifiedObject[field])
+                })
+            }
+        } else if (fieldEntry.op === 'modify' && originObject[field] && modifiedObject[field]) {
+            ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldEntry.fields, fieldPath.concat([field])));
+        } else if (fieldEntry.op === 'setPatch') {
+            const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
+            if (changes && changes.length > 0) {
+                ops.push({
+                    path: fieldPath.concat([field]),
+                    op: 'setPatch',
+                    changes: changes
+                });
+            }
+        } else if (fieldEntry.op === 'idArrayPatch') {
+            const changes = generateIdArrayPatch(originObject[field], modifiedObject[field], fieldEntry);
+            if (changes && changes.length > 0) {
+                ops.push({
+                    path: fieldPath.concat([field]),
+                    op: 'idArrayPatch',
+                    changes: changes
+                });
             }
         }
-    });
+        fieldNames.delete(field);
+    };
+
+    fieldEntries.forEach((entry, field) => applyPatchForField(entry, field));
+
+    if (defaultFieldEntry) {
+        fieldNames.forEach(field => {
+            applyPatchForField(defaultFieldEntry, field);
+        });
+    }
 
     return ops;
 }
