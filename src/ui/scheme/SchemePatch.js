@@ -98,8 +98,6 @@ import { textSlotProperties } from "./Item";
 //
 // Result: only single record of moving item a7 to position 2
 
-//TODO item effects patching
-
 const PatchSchema = [{
     name: 'items',
     op: 'idArrayPatch',
@@ -138,6 +136,14 @@ const PatchSchema = [{
         }]
     }, {
         name: 'links', op: 'idArrayPatch', fields: [{ names: ['title', 'url', 'type'], op: 'replace' }]
+    }, {
+        name: 'effects',
+        op: 'idArrayPatch',
+        fields: [{
+            names: ['effect', 'name'], op: 'replace'
+        }, {
+            name: 'args', op: 'modify', fields: [{op: 'replace'}]
+        }]
     }]
 }, {
     names: ['name', 'description'],
@@ -153,8 +159,7 @@ const PatchSchema = [{
 }, {
     name: 'style', op: 'modify', fields: [{op: 'replace'}]
 }, {
-    names: ['tags'],
-    op: 'setPatch'
+    name: 'tags', op: 'setPatch'
 }];
 
 

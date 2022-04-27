@@ -893,4 +893,84 @@ export const patchTestData = [{
             "modified": {"count": 6, "items": [{"fields": ["links.l2", "links.l4", "links.l5", "links.l3.title", "links.l3.url", "links.l3.type"], "id": "qwe1"}]}
         }
     }
+}, {
+    name: 'item effects addition, deletion, reorder and modification',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1', effects: [
+                { id: 'e1', effect: 'drop-shadow', name: 'Drop shadow 1', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
+                { id: 'e2', effect: 'glow', name: 'Glow', args: {color: 'red', blur: 10, opacity: 50} },
+                { id: 'e3', effect: 'drop-shadow', name: 'Drop shadow 3', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
+                { id: 'e4', effect: 'drop-shadow', name: 'Drop shadow 4', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
+            ]},
+        ]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1', effects: [
+                { id: 'e1', effect: 'drop-shadow', name: 'Drop shadow 1', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
+                { id: 'e4', effect: 'drop-shadow', name: 'Drop shadow 4', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
+                { id: 'e3', effect: 'drop-shadow', name: 'Drop shadow 3 edited', args: {color: 'blue', dx: -4, dy: 5, blur: 10, opacity: 50, inside: true} },
+                { id: 'e5', effect: 'blur', name: 'Blur', args: { size: 50} },
+            ]},
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: ID_ARRAY_PATCH,
+            changes: [ {
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['effects'],
+                    op: ID_ARRAY_PATCH,
+                    changes: [ {
+                        id: 'e2',
+                        op: 'delete',
+                    }, {
+                        id: 'e4',
+                        op: 'reorder',
+                        sortOrder: 1
+                    }, {
+                        id: 'e5',
+                        op: 'add',
+                        sortOrder: 3,
+                        value: { id: 'e5', effect: 'blur', name: 'Blur', args: { size: 50} }
+                    }, {
+                        id: 'e3',
+                        op: 'modify',
+                        changes: [{
+                            path: ['name'],
+                            op: 'replace',
+                            value: 'Drop shadow 3 edited'
+                        }, {
+                            path: ['args', 'color'],
+                            op: 'replace',
+                            value: 'blue'
+                        }, {
+                            path: ['args', 'dx'],
+                            op: 'replace',
+                            value: -4
+                        }, {
+                            path: ['args', 'inside'],
+                            op: 'replace',
+                            value: true
+                        }]
+                    }]
+                }]
+            } ]
+        }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 7, "items": [{"fields": ["effects.e2", "effects.e4", "effects.e5", "effects.e3.name", "effects.e3.args.color", "effects.e3.args.dx", "effects.e3.args.inside"], "id": "qwe1"}]}
+        }
+    }
 }];
