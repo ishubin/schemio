@@ -3263,11 +3263,17 @@ ul.breadcrumbs li .breadcrumb-separator {
 }
 
 .patch-menu-popup {
-    display: inline-block;
-    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 8px;
     background: var(--faint-weak);
     border-radius: var(--middle-border-radius);
     box-shadow: 1px 1px 10px var(--shadow-color);
+}
+.patch-menu-popup .toggle-button {
+    padding: 5px;
 }
 
 .patch-additions {
