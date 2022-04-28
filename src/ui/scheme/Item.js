@@ -47,6 +47,16 @@ export const textSlotProperties = [
     {field: 'paddingBottom', name: 'Padding Bottom', type: 'number'},
 ];
 
+export function prettyTextSlotProperty(propertyName) {
+    for (let i = 0; i < textSlotProperties.length; i++) {
+        if (textSlotProperties[i].field === propertyName) {
+            return textSlotProperties[i].name;
+        }
+    }
+    return propertyName;
+}
+
+
 
 const defaultTextSlotProps = {
     text         : '',

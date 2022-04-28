@@ -113,6 +113,13 @@ h5 {
     margin-bottom: 10px;
 }
 
+.clickable {
+    cursor: pointer;
+}
+.clickable:hover {
+    opacity: 0.8;
+}
+
 /******************* Middle content *********************/
 .middle-content {
     position: relative;
@@ -3261,4 +3268,32 @@ ul.breadcrumbs li .breadcrumb-separator {
     background: var(--faint-weak);
     border-radius: var(--middle-border-radius);
     box-shadow: 1px 1px 10px var(--shadow-color);
+}
+
+.patch-additions {
+    color: var(--complement-strong);
+}
+
+.patch-deletions {
+    color: var(--critic-strong);
+}
+
+.patch-modifications {
+    color: var(--accent-strong);
+}
+
+.patch-items-container {
+    padding-left: 20px;
+}
+
+ul.patch-field-list {
+    margin: 0;
+    padding-left: 20px;
+    padding-bottom: 10px;
+    list-style: none;
+}
+
+.patch-expander {
+    display: inline-block;
+    width: 10px;
 }
