@@ -1,9 +1,6 @@
-import { jsonDiff } from "../json-differ";
 import forEach from "lodash/forEach";
 import map from "lodash/map";
-import Shape from "../components/editor/items/shapes/Shape";
 import utils from "../utils";
-import { textSlotProperties } from "./Item";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //
@@ -100,7 +97,7 @@ import { textSlotProperties } from "./Item";
 
 const PatchSchema = [{
     name: 'items',
-    op: 'idArrayPatch',
+    op: 'patch-id-array',
     childrenField: 'childItems',
 
     fields: [{
@@ -109,7 +106,7 @@ const PatchSchema = [{
     }, {
         name: 'shapeProps', op: 'modify', fields: [{ op: 'replace' }]
     }, {
-        names: ['groups', 'tags'], op: 'setPatch'
+        names: ['groups', 'tags'], op: 'patch-set'
     }, {
         name: 'textSlots',
         op: 'modify',
@@ -122,11 +119,13 @@ const PatchSchema = [{
         op: 'modify',
         fields: [{
             name: 'events',
-            op: 'idArrayPatch',
+            op: 'patch-id-array',
+            childrenField: null,
             fields: [{
                 name: 'event', op: 'replace'
             }, {
-                name: 'actions', op: 'idArrayPatch',
+                name: 'actions', op: 'patch-id-array',
+                childrenField: null,
                 fields: [{
                     names: ['element', 'method'], op: 'replace'
                 }, {
@@ -135,10 +134,11 @@ const PatchSchema = [{
             }]
         }]
     }, {
-        name: 'links', op: 'idArrayPatch', fields: [{ names: ['title', 'url', 'type'], op: 'replace' }]
+        name: 'links', op: 'patch-id-array', childrenField: null, fields: [{ names: ['title', 'url', 'type'], op: 'replace' }]
     }, {
         name: 'effects',
-        op: 'idArrayPatch',
+        op: 'patch-id-array',
+        childrenField: null,
         fields: [{
             names: ['effect', 'name'], op: 'replace'
         }, {
@@ -159,18 +159,8 @@ const PatchSchema = [{
 }, {
     name: 'style', op: 'modify', fields: [{op: 'replace'}]
 }, {
-    name: 'tags', op: 'setPatch'
+    name: 'tags', op: 'patch-set'
 }];
-
-
-const excludeFieldInScheme = new Set(['id', 'items', 'publicLink', 'modifiedTime', 'tags']);
-
-function schemeFieldCheck(path) {
-    if (excludeFieldInScheme.has(path[0])) {
-        return false;
-    }
-    return true;
-}
 
 
 function traverseItems(items, childrenField, callback) {
@@ -245,16 +235,6 @@ function indexIdArray(items, childrenField) {
     });
 
     return index;
-}
-
-function fromJsonDiff(diffChanges) {
-    return map(diffChanges.changes, c => {
-        return {
-            path: c.path,
-            op: 'replace',
-            value: c.value
-        };
-    });
 }
 
 /**
@@ -486,21 +466,21 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
             }
         } else if (fieldEntry.op === 'modify' && originObject[field] && modifiedObject[field]) {
             ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldEntry.fields, fieldPath.concat([field])));
-        } else if (fieldEntry.op === 'setPatch') {
+        } else if (fieldEntry.op === 'patch-set') {
             const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
             if (changes && changes.length > 0) {
                 ops.push({
                     path: fieldPath.concat([field]),
-                    op: 'setPatch',
+                    op: 'patch-set',
                     changes: changes
                 });
             }
-        } else if (fieldEntry.op === 'idArrayPatch') {
+        } else if (fieldEntry.op === 'patch-id-array') {
             const changes = generateIdArrayPatch(originObject[field], modifiedObject[field], fieldEntry);
             if (changes && changes.length > 0) {
                 ops.push({
                     path: fieldPath.concat([field]),
-                    op: 'idArrayPatch',
+                    op: 'patch-id-array',
                     changes: changes
                 });
             }
@@ -543,10 +523,10 @@ function applyChange(obj, change) {
         case 'replace':
             utils.setObjectProperty(obj, change.path, change.value);
             break;
-        case 'setPatch':
+        case 'patch-set':
             applySetPatch(obj, change);
             break;
-        case 'idArrayPatch':
+        case 'patch-id-array':
             applyIdArrayPatch(obj, change);
             break;
     }

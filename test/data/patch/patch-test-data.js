@@ -23,7 +23,6 @@ const defaultScheme = {
     }
 };
 
-const ID_ARRAY_PATCH = 'idArrayPatch';
 
 const defaultArea = {x: 0, y: 0, w: 100, h: 50, r: 100, px: 0.5, py: 0.5, sx: 1, sy: 1};
 
@@ -65,7 +64,7 @@ export const patchTestData = [{
             value: '#fff'
         }, {
             path: ['tags'],
-            op: 'setPatch',
+            op: 'patch-set',
             changes: [ {
                 op: 'add',
                 value: 'e',
@@ -105,7 +104,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe1',
                 op: 'modify',
@@ -153,7 +152,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe3',
                 op: 'reorder',
@@ -195,7 +194,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe2',
                 op: 'delete',
@@ -234,7 +233,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe2.5',
                 op: 'add',
@@ -280,7 +279,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe5',
                 op: 'add',
@@ -359,7 +358,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'sub3.2',
                 op: 'mount',
@@ -406,7 +405,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe1',
                 op: 'modify',
@@ -474,7 +473,7 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe1',
                 op: 'modify',
@@ -520,13 +519,13 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [{
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['tags'],
-                    op: 'setPatch',
+                    op: 'patch-set',
                     changes: [ {
                         op: 'add',
                         value: 'g',
@@ -567,13 +566,13 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [ {
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['groups'],
-                    op: 'setPatch',
+                    op: 'patch-set',
                     changes: [ {
                         op: 'add',
                         value: 'g',
@@ -628,13 +627,13 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [ {
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['behavior', 'events'],
-                    op: ID_ARRAY_PATCH,
+                    op: 'patch-id-array',
                     changes: [ {
                         id: 'e1',
                         op: 'delete',
@@ -760,19 +759,19 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [ {
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['behavior', 'events'],
-                    op: ID_ARRAY_PATCH,
+                    op: 'patch-id-array',
                     changes: [ {
                         id: 'e1',
                         op: 'modify',
                         changes: [{
                             path: ['actions'],
-                            op: ID_ARRAY_PATCH,
+                            op: 'patch-id-array',
                             changes: [{
                                 id: 'a3',
                                 op: 'reorder',
@@ -845,13 +844,13 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [ {
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['links'],
-                    op: ID_ARRAY_PATCH,
+                    op: 'patch-id-array',
                     changes: [ {
                         id: 'l2',
                         op: 'delete',
@@ -921,13 +920,13 @@ export const patchTestData = [{
 
         changes: [{
             path: ['items'],
-            op: ID_ARRAY_PATCH,
+            op: 'patch-id-array',
             changes: [ {
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
                     path: ['effects'],
-                    op: ID_ARRAY_PATCH,
+                    op: 'patch-id-array',
                     changes: [ {
                         id: 'e2',
                         op: 'delete',
