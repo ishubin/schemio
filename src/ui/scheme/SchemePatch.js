@@ -888,3 +888,45 @@ export function generateStringPatch(origin, modified) {
         add: additions
     };
 }
+
+/**
+ * 
+ * @param {String} origin 
+ * @param {StringPatch} patch 
+ * @returns {String} modified string that is a result of applying specified string patch to the origin string
+ */
+export function applyStringPatch(origin, patch) {
+    let result = origin;
+
+    if (patch.delete.length > 0) {
+        const buffer = [];
+        let i = 0;
+        let j = 0;
+        while(i < origin.length && j < patch.delete.length) {
+            if (patch.delete[j][0] === i) {
+                i += patch.delete[j][1]-1;
+                j++;
+                if (j >= patch.delete.length) {
+                    break;
+                }
+            } else {
+                buffer.push(origin[i]);
+            }
+            i++;
+        }
+        result = buffer.join('');
+        if (i < origin.length) {
+            result += origin.substring(i+1);
+        }
+    }
+
+    if (patch.add.length > 0) {
+        forEach(patch.add, addition => {
+            const i = addition[0];
+            const value = addition[1];
+            result = result.substring(0, i) + value + result.substring(i);
+        });
+    }
+
+    return result;
+}
