@@ -972,4 +972,53 @@ export const patchTestData = [{
             "modified": {"count": 7, "items": [{"fields": ["effects.e2", "effects.e4", "effects.e5", "effects.e3.name", "effects.e3.args.color", "effects.e3.args.dx", "effects.e3.args.inside"], "id": "qwe1"}]}
         }
     }
+}, {
+    name: 'item description string patch',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', description: 'Hello world!'},
+        ]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', description: 'Hi my world'},
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['description'],
+                    op: 'patch-text',
+                    patch: {
+                        delete: [[1, 4], [11, 1]],
+                        add: [[1, 'i'], [3, 'my ']]
+                    }
+                }]
+            }]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'qwe1',
+                fields: [
+                    'description'
+                ]
+            }]},
+        }
+    }
 }];

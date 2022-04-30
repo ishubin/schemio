@@ -95,14 +95,17 @@ import utils from "../utils";
 //
 // Result: only single record of moving item a7 to position 2
 
+// TODO  change patch op for doc description, item text slot text to patch-text
 const PatchSchema = [{
     name: 'items',
     op: 'patch-id-array',
     childrenField: 'childItems',
 
     fields: [{
-        names: [ 'area', 'name', 'description', 'opacity', 'selfOpacity', 'visible', 'blendMode', 'cursor', 'shape', 'clip', 'interactionMode', ],
+        names: [ 'area', 'name', 'opacity', 'selfOpacity', 'visible', 'blendMode', 'cursor', 'shape', 'clip', 'interactionMode', ],
         op: 'replace'
+    }, {
+        name: 'description', op: 'patch-text'
     }, {
         name: 'shapeProps', op: 'modify', fields: [{ op: 'replace' }]
     }, {
@@ -146,8 +149,11 @@ const PatchSchema = [{
         }]
     }]
 }, {
-    names: ['name', 'description'],
+    name: 'name',
     op: 'replace'
+}, {
+    name: 'description',
+    op: 'patch-text'
 }, {
     name: 'settings',
     op: 'modify',
@@ -455,13 +461,21 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
         }
     });
 
-    const applyPatchForField = (fieldEntry, field) => {
+    const generatePatchForField = (fieldEntry, field) => {
         if (fieldEntry.op === 'replace') {
             if (!valueEquals(originObject[field], modifiedObject[field])) {
                 ops.push({
                     path: fieldPath.concat([field]),
                     op: 'replace',
                     value: utils.clone(modifiedObject[field])
+                })
+            }
+        } else if (fieldEntry.op === 'patch-text') {
+            if (!valueEquals(originObject[field], modifiedObject[field])) {
+                ops.push({
+                    path: fieldPath.concat([field]),
+                    op: 'patch-text',
+                    patch: generateStringPatch(originObject[field], modifiedObject[field])
                 })
             }
         } else if (fieldEntry.op === 'modify' && originObject[field] && modifiedObject[field]) {
@@ -488,11 +502,11 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
         fieldNames.delete(field);
     };
 
-    fieldEntries.forEach((entry, field) => applyPatchForField(entry, field));
+    fieldEntries.forEach((entry, field) => generatePatchForField(entry, field));
 
     if (defaultFieldEntry) {
         fieldNames.forEach(field => {
-            applyPatchForField(defaultFieldEntry, field);
+            generatePatchForField(defaultFieldEntry, field);
         });
     }
 
@@ -522,6 +536,10 @@ function applyChange(obj, change) {
     switch(change.op) {
         case 'replace':
             utils.setObjectProperty(obj, change.path, change.value);
+            break;
+        case 'patch-text':
+            const origin = utils.getObjectProperty(obj, change.path);
+            utils.setObjectProperty(obj, change.path, applyStringPatch(origin, change.patch));
             break;
         case 'patch-set':
             applySetPatch(obj, change);
