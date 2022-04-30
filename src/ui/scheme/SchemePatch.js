@@ -792,3 +792,99 @@ export function generatePatchIndex(patchStats) {
 
     return index;
 }
+
+
+/**
+ * 
+ * @param {String} s1 
+ * @param {String} s2 
+ * @param {Number} n 
+ * @param {Number} m 
+ * @param {Map} cache 
+ * @returns {String}
+ */
+function _lcs(s1, s2, i, j, cache) {
+    const cacheKey = `${i}-${j}`;
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+    }
+    if (i <0 || j < 0) {
+        return '';
+    } else if (s1[i] === s2[j]) {
+        const result = _lcs(s1, s2, i-1, j-1, cache) + s1[i];
+        cache.set(cacheKey, result);
+        return result;
+    } else {
+        const a = _lcs(s1, s2, i-1, j, cache);
+        cache.set(`${i-1}-${j}`, a);
+        const b = _lcs(s1, s2, i, j-1, cache);
+        cache.set(`${i}-${j-1}`, b);
+        if (a.length > b.length) {
+            return a;
+        }
+        return b;
+    }
+}
+
+/**
+ * Finds longest common subsequence in two strings
+ * @param {String} s1 
+ * @param {String} s2 
+ * @returns {String} Longest common subsequence in two strings
+ */
+export function stringLCS(s1, s2) {
+    return _lcs(s1, s2, s1.length-1, s2.length-1, new Map());
+}
+
+export function generateStringPatch(origin, modified) {
+    const lcs = stringLCS(origin, modified);
+
+    const deletions = [];
+
+    let currentOp = null;
+    let i = 0, j = 0;
+    while(i < origin.length && j < lcs.length) {
+        if (origin[i] !== lcs[j]) {
+            if (!currentOp) {
+                currentOp = [i, 1];
+                deletions.push(currentOp);
+            } else {
+                currentOp[1] += 1;
+            }
+        } else {
+            currentOp = null;
+            j++;
+        }
+
+        i++;
+    }
+    if (i < origin.length) {
+        deletions.push([i, origin.length - i]);
+    }
+
+    const additions = [];
+    i = 0;
+    j = 0;
+    while(i < modified.length && j <  lcs.length) {
+        if (modified[i] !== lcs[j]) {
+            if (!currentOp) {
+                currentOp = [i, modified[i]];
+                additions.push(currentOp);
+            } else {
+                currentOp[1] += modified[i];
+            }
+        } else {
+            currentOp = null;
+            j++;
+        }
+        i++;
+    }
+    if (i < modified.length) {
+        additions.push([i, modified.substr(i)]);
+    }
+
+    return {
+        delete: deletions,
+        add: additions
+    };
+}

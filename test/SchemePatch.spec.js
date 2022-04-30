@@ -1,4 +1,4 @@
-import { applyPatch, generatePatchStatistic, generateSchemePatch } from '../src/ui/scheme/SchemePatch'
+import { applyPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -28,6 +28,23 @@ describe('SchemePatch.generatePatchStatistic', () => {
         it(`should generate statistic for patch "${testData.name}"`, () => {
             const stat = generatePatchStatistic(testData.patch);
             expect(stat).toStrictEqual(testData.stats);
+        });
+    });
+});
+
+describe('SchemePatch.stringLCS', () => {
+    it('should generate longest common subsequence for strings', () => {
+        const lcs = stringLCS('Hello world!', 'Hi world ?');
+        expect(lcs).toEqual('H world');
+    });
+});
+
+describe('SchemePatch.generateStringPatch', () => {
+    it('should generate patch for string', () => {
+        const patch = generateStringPatch('Hello world!', 'Hi my world ?');
+        expect(patch).toStrictEqual({
+            delete: [[1, 4], [11, 1]], // the first number is start pos and the last number is the length of removed chars
+            add: [[1, 'i'], [3, 'my '], [11, ' ?']],
         });
     });
 });
