@@ -95,7 +95,6 @@ import utils from "../utils";
 //
 // Result: only single record of moving item a7 to position 2
 
-// TODO  change patch op for doc description, item text slot text to patch-text
 const PatchSchema = [{
     name: 'items',
     op: 'patch-id-array',
@@ -115,7 +114,12 @@ const PatchSchema = [{
         op: 'modify',
         fields: [{
             op: 'modify',
-            fields: [{op: 'replace'}]
+            fields: [{
+                name: 'text', op: 'patch-text'
+            }, {
+                // catching the rest of the text slot fields
+                op: 'replace'
+            }]
         }]
     }, {
         name: 'behavior',

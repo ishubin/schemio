@@ -479,8 +479,11 @@ export const patchTestData = [{
                 op: 'modify',
                 changes: [{
                     path: ['textSlots', 'body', 'text'],
-                    op: 'replace',
-                    value: 'Goodbye world!'
+                    op: 'patch-text',
+                    patch: {
+                        delete: [[0, 4]],
+                        add: [[0, 'G'], [2, 'odbye']]
+                    }
                 }, {
                     path: ['textSlots', 'body', 'valign'],
                     op: 'replace',
