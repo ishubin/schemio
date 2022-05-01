@@ -95,7 +95,7 @@ import utils from "../utils";
 //
 // Result: only single record of moving item a7 to position 2
 
-const PatchSchema = [{
+export const PatchSchema = [{
     name: 'items',
     op: 'patch-id-array',
     childrenField: 'childItems',
@@ -171,6 +171,63 @@ const PatchSchema = [{
 }, {
     name: 'tags', op: 'patch-set'
 }];
+
+
+class SchemaIndexNode {
+    constructor(name, fieldEntry) {
+        this.name = name;
+        this.fieldEntry = fieldEntry;
+        this.fields = new Map();
+        this.defaultField = null;
+    }
+
+    indexFieldEntry(name, fieldEntry) {
+        const childField = new SchemaIndexNode(name, fieldEntry);
+        if (name) {
+            this.fields.set(name, childField);
+        } else {
+            this.defaultField = childField;
+        }
+
+        if (fieldEntry.fields) {
+            childField.indexFieldEntries(fieldEntry.fields);
+        }
+    }
+
+    indexFieldEntries(fieldEntries) {
+        forEach(fieldEntries, fieldEntry => {
+            if (fieldEntry.names) {
+                forEach(fieldEntry.names, name => {
+                    this.indexFieldEntry(name, fieldEntry);
+                })
+            } else {
+                this.indexFieldEntry(fieldEntry.name, fieldEntry);
+            } 
+        });
+    }
+
+    findRelevantFieldEntry(path) {
+        if (path.length === 0) {
+            return this.fieldEntry;
+        }
+        if (path.length === 1 && this.name === path[0]) {
+            return this.fieldEntry;
+        }
+        if (this.fields.has(path[0])) {
+            return this.fields.get(path[0]).findRelevantFieldEntry(path.slice(1));
+        }
+        if (this.defaultField) {
+            return this.defaultField.findRelevantFieldEntry(path.slice(1));
+        }
+        return null;
+    }
+}
+
+function createSchemaIndex(schema) {
+    const rootNode = new SchemaIndexNode();
+    rootNode.indexFieldEntries(schema);
+    return rootNode;
+}
 
 
 function traverseItems(items, childrenField, callback) {
@@ -527,26 +584,31 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     return ops;
 }
 
+
 export function generateSchemePatch(originScheme, modifiedScheme) {
     return generatePatch(originScheme, modifiedScheme, PatchSchema);
 }
 
+export function applySchemePatch(origin, patch) {
+    return applyPatch(origin, patch, createSchemaIndex(PatchSchema));
+}
 
 /**
  * Applies a patch to an object
  * @param {Object} origin 
  * @param {Patch} patch 
+ * @param {SchemaIndex} schemaIndex
  */
-export function applyPatch(origin, patch) {
+export function applyPatch(origin, patch, schemaIndex) {
     const modifiedObject = utils.clone(origin);
     forEach(patch.changes, change => {
-        applyChange(modifiedObject, change);
+        applyChange(modifiedObject, change, [], schemaIndex);
     });
     return modifiedObject;
 }
 
 
-function applyChange(obj, change) {
+function applyChange(obj, change, rootPath, schemaIndex) {
     switch(change.op) {
         case 'replace':
             utils.setObjectProperty(obj, change.path, change.value);
@@ -559,7 +621,7 @@ function applyChange(obj, change) {
             applySetPatch(obj, change);
             break;
         case 'patch-id-array':
-            applyIdArrayPatch(obj, change);
+            applyIdArrayPatch(obj, change, rootPath.concat(change.path), schemaIndex);
             break;
     }
 }
@@ -585,7 +647,14 @@ function applySetPatch(obj, setPatchChange) {
 }
 
 
-function applyIdArrayPatch(obj, arrChange) {
+/**
+ * 
+ * @param {*} obj 
+ * @param {*} arrChange 
+ * @param {*} rootPath 
+ * @param {SchemaIndexNode} schemaIndex 
+ */
+function applyIdArrayPatch(obj, arrChange, rootPath, schemaIndex) {
     const arr = utils.getObjectProperty(obj, arrChange.path);
 
     if (!Array.isArray(arr)) {
@@ -593,47 +662,53 @@ function applyIdArrayPatch(obj, arrChange) {
         utils.setObjectProperty(obj, arrChange.path, arr);
     }
 
+    const fieldEntry = schemaIndex.findRelevantFieldEntry(rootPath);
+
+    let childrenField = null;
+    if (fieldEntry && fieldEntry.childrenField) {
+        childrenField = fieldEntry.childrenField;
+    }
+
     const itemMap = new Map();
-    //TODO figure out a way to get childrenField from patch schema instead of hard-coding 'childItems'
-    traverseItems(arr, 'childItems', item => {
+    traverseItems(arr, childrenField, item => {
         itemMap.set(item.id, item);
     });
 
     forEach(arrChange.changes, change => {
         switch(change.op) {
             case 'modify':
-                idArrayPatch.modify(itemMap, arr, change);
+                idArrayPatch.modify(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
             case 'reorder':
-                idArrayPatch.reorder(itemMap, arr, change);
+                idArrayPatch.reorder(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
             case 'delete':
-                idArrayPatch.delete(itemMap, arr, change);
+                idArrayPatch.delete(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
             case 'add':
-                idArrayPatch.add(itemMap, arr, change);
+                idArrayPatch.add(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
             case 'mount':
-                idArrayPatch.mount(itemMap, arr, change);
+                idArrayPatch.mount(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
             case 'demount':
-                idArrayPatch.demount(itemMap, arr, change);
+                idArrayPatch.demount(itemMap, arr, change, rootPath, schemaIndex, fieldEntry);
                 break;
         }
     });
 }
 const idArrayPatch = {
-    modify(itemMap, array, change) {
+    modify(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
         const item = itemMap.get(change.id);
         if (item) {
             forEach(change.changes, modChange => {
-                applyChange(item, modChange);
+                applyChange(item, modChange, rootPath, schemaIndex);
             });
         }
     },
 
-    reorder(itemMap, array, change) {
-        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+    reorder(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldEntry);
         if (!Array.isArray(parrentArray)) {
             return;
         }
@@ -647,13 +722,13 @@ const idArrayPatch = {
         }
     },
 
-    delete(itemMap, array, change) {
+    delete(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
         idArrayPatch.demount(itemMap, array, change);
         itemMap.delete(change.id);
     },
 
-    demount(itemMap, array, change) {
-        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+    demount(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldEntry);
         if (!Array.isArray(parrentArray)) {
             return;
         }
@@ -664,24 +739,24 @@ const idArrayPatch = {
         }
     },
 
-    mount(itemMap, array, change) {
+    mount(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
         if (!itemMap.has(change.id)) {
             return;
         }
         const item = itemMap.get(change.id);
 
-        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldEntry);
         if (!Array.isArray(parrentArray)) {
             return;
         }
         parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, item);
     },
 
-    add(itemMap, array, change) {
+    add(itemMap, array, change, rootPath, schemaIndex, fieldEntry) {
         let parrentArray = array;
 
         if (change.parentId) {
-            parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+            parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldEntry);
         }
         if (!Array.isArray(parrentArray)) {
             return;
@@ -690,21 +765,18 @@ const idArrayPatch = {
         parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, change.value);
     },
 
-    findParentItem(itemMap, array, parentId) {
-        let parrentArray = array;
+    findParentItem(itemMap, array, parentId, fieldEntry) {
         if (parentId) {
-            if (itemMap.has(parentId)) {
-                //TODO it should not use 'childItems' and it should rely on childrenField from patch schema
-                // but, since this is only used for items in the entire document, this is fine
+            if (fieldEntry && fieldEntry.childrenField && itemMap.has(parentId)) {
                 const parent = itemMap.get(parentId);
-                if (!parent.childItems) {
-                    parent.childItems = [];
+                if (!parent[fieldEntry.childrenField]) {
+                    parent[fieldEntry.childrenField] = [];
                 }
-                parrentArray = parent.childItems;
+                return parent[fieldEntry.childrenField];
             }
-        }
-
-        return parrentArray;
+            return null;
+        } 
+        return array;
     },
 
     findItemIndexInParrent(parrentArray, id) {

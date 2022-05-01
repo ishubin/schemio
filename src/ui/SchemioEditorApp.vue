@@ -68,7 +68,7 @@ import {registerDebuggerInitiation} from './logger';
 import Debugger from './components/Debugger.vue';
 import SystemMessagePanel from './components/SystemMessagePanel.vue';
 import SchemeEditor from './components/SchemeEditor.vue';
-import { applyPatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch';
+import { applySchemePatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch';
 import ColorPicker from './components/editor/ColorPicker.vue';
 import Modal from './components/Modal.vue';
 import PatchDetails from './components/patch/PatchDetails.vue';
@@ -121,7 +121,7 @@ export default{
                 this.patch.stats = generatePatchStatistic(patch);
                 this.patch.index = generatePatchIndex(this.patch.stats);
 
-                this.patch.patchedScheme = applyPatch(this.scheme, patch);
+                this.patch.patchedScheme = applySchemePatch(this.scheme, patch);
                 this.patch.isToggled = true;
                 this.patch.originSchemeContainer = new SchemeContainer(this.scheme);
                 this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme);

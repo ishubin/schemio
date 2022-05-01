@@ -1,4 +1,4 @@
-import { applyPatch, applyStringPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
+import { applySchemePatch, applyStringPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -13,10 +13,10 @@ describe('SchemePatch.generateSchemePatch', () => {
     });
 });
 
-describe('SchemePatch.applyPatch', () => {
+describe('SchemePatch.applySchemePatch', () => {
     forEach(patchTestData, testData => {
         it(`should apply patch with ${testData.name}`, () => {
-            const modifiedObject = applyPatch(testData.origin, testData.patch);
+            const modifiedObject = applySchemePatch(testData.origin, testData.patch);
             expect(modifiedObject).toStrictEqual(testData.modified);
         });
     });
