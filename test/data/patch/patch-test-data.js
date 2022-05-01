@@ -1024,4 +1024,69 @@ export const patchTestData = [{
             }]},
         }
     }
+}, {
+    name: 'adding new item with children',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1'},
+        ]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1'},
+            { id: 'qwe2', name: 'item2', childItems: [
+                { id: 'sub2.1', name: 'sub2.1' },
+                { id: 'sub2.2', name: 'sub2.2', childItems: [
+                    { id: 'sub2.2.1', name: 'sub2.2.1' },
+                ] },
+            ]},
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'qwe2',
+                op: 'add',
+                parentId: null,
+                sortOrder: 1,
+                value: {id: 'qwe2', name: 'item2'}
+            }, {
+                id: 'sub2.1',
+                op: 'add',
+                parentId: 'qwe2',
+                sortOrder: 0,
+                value: {id: 'sub2.1', name: 'sub2.1'}
+            }, {
+                id: 'sub2.2',
+                op: 'add',
+                parentId: 'qwe2',
+                sortOrder: 1,
+                value: {id: 'sub2.2', name: 'sub2.2'}
+            }, {
+                id: 'sub2.2.1',
+                op: 'add',
+                parentId: 'sub2.2',
+                sortOrder: 0,
+                value: {id: 'sub2.2.1', name: 'sub2.2.1'}
+            } ]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 4, items: [
+                'qwe2', 'sub2.1', 'sub2.2', 'sub2.2.1'
+            ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 0, items: []},
+        }
+    }
 }];

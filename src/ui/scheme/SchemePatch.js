@@ -271,6 +271,16 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         scopedOperations.get(parentId).push(op);
     };
 
+    const cloneWithoutChildren = (item) => {
+        const newItem = {};
+        for(let key in item) {
+            if (item.hasOwnProperty(key) && key !== patchSchemaEntry.childrenField) {
+                newItem[key] = item[key];
+            }
+        }
+        return newItem;
+    };
+
     // key - parentId, value = Array of added items in that parent scope
     const addedItemsInScope = new Map();
 
@@ -292,7 +302,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                 registerScopedOperation(itemEntry.parentId, {
                     id: itemId,
                     op: 'add',
-                    value: itemEntry.item,
+                    value: cloneWithoutChildren(itemEntry.item),
                     parentId: itemEntry.parentId,
                     sortOrder: itemEntry.sortOrder,
                 });
@@ -668,10 +678,15 @@ const idArrayPatch = {
     },
 
     add(itemMap, array, change) {
-        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        let parrentArray = array;
+
+        if (change.parentId) {
+            parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId)
+        }
         if (!Array.isArray(parrentArray)) {
             return;
         }
+        itemMap.set(change.id, change.value);
         parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, change.value);
     },
 
@@ -679,9 +694,13 @@ const idArrayPatch = {
         let parrentArray = array;
         if (parentId) {
             if (itemMap.has(parentId)) {
-                // it should not use 'childItems' and it should rely on childrenField from patch schema
+                //TODO it should not use 'childItems' and it should rely on childrenField from patch schema
                 // but, since this is only used for items in the entire document, this is fine
-                parrentArray = itemMap.get(parentId).childItems;
+                const parent = itemMap.get(parentId);
+                if (!parent.childItems) {
+                    parent.childItems = [];
+                }
+                parrentArray = parent.childItems;
             }
         }
 
