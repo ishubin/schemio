@@ -278,6 +278,8 @@ export default {
             {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
             {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed},
             {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed},
+            {name: 'Create patch',      callback: eventCallback('create-patch-requested'), iconClass: 'fas fa-file-export'},
+            {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: 'fas fa-file-import'},
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
             {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},

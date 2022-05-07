@@ -436,6 +436,7 @@ export default {
                 element = event.actions[event.actions.length - 1].element;
             }
             event.actions.push({
+                id: shortid.generate(),
                 element,
                 method: 'show',
                 args: mapValues(Functions.main.show.args, arg => arg.value)

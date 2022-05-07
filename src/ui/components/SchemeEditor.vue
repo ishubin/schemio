@@ -26,8 +26,10 @@
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
+            @create-patch-requested="createPatchModalShown = true"
+            @apply-patch-requested="triggerApplyPatchUpload"
             @duplicate-diagram-requested="showDuplicateDiagramModal()"
-            @delete-diagram-requested="showDeleteSchemeWarning = true"
+            @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @new-scheme-requested="onNewSchemeRequested"
@@ -58,6 +60,7 @@
                     :class="['state-' + state]"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
+                    :patchIndex="patchIndex"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -105,6 +108,7 @@
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :schemeContainer="interactiveSchemeContainer"
+                    :patchIndex="patchIndex"
                     :mode="mode"
                     :offline="offlineMode"
                     :zoom="zoom"
@@ -224,7 +228,7 @@
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
-                                @delete-diagram-requested="showDeleteSchemeWarning = true"/>
+                                @delete-diagram-requested="deleteSchemeWarningShown = true"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
@@ -313,6 +317,10 @@
             <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
         </div>
 
+        <div v-if="loadPatchFileShown" style="display: none">
+            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
+        </div>
+
         <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
             :scheme-container="schemeContainer"
         />
@@ -329,9 +337,11 @@
             </div>
         </modal>
 
-        <modal v-if="showDeleteSchemeWarning" title="Delete diagram" primaryButton="Delete" @close="showDeleteSchemeWarning = false" @primary-submit="deleteScheme()">
+        <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
             Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
         </modal>
+
+        <CreatePatchModal v-if="createPatchModalShown" :scheme="schemeContainer.scheme" @close="createPatchModalShown = false"/>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -420,6 +430,7 @@ import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
+import CreatePatchModal from './patch/CreatePatchModal.vue';
 
 const userEventBus = new UserEventBus();
 
@@ -508,10 +519,12 @@ export default {
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
+        CreatePatchModal
     },
 
     props: {
         scheme           : {type: Object, default: null},
+        patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
@@ -696,6 +709,8 @@ export default {
                 shown: false
             },
 
+            loadPatchFileShown: false,
+
             advancedBehaviorProperties: {
                 shown: false
             },
@@ -725,7 +740,8 @@ export default {
                 errorMessage: null
             },
 
-            showDeleteSchemeWarning: false,
+            deleteSchemeWarningShown: false,
+            createPatchModalShown: false
         }
     },
     methods: {
@@ -1192,9 +1208,10 @@ export default {
 
         onItemLinkSubmit(link) {
             this.addLinkPopup.item.links.push({
+                id: shortid.generate(),
                 title: link.title,
                 url: link.url,
-                type: link.type
+                type: link.type,
             });
             EventBus.emitSchemeChangeCommited();
         },
@@ -1545,6 +1562,32 @@ export default {
                     this.importSchemeModal.shown = true;
                 } catch(err) {
                     alert('Not able to import scheme. Malformed json');
+                }
+            };
+
+            reader.readAsText(file);
+        },
+
+
+        triggerApplyPatchUpload() {
+            this.loadPatchFileShown = true;
+            this.$nextTick(() => {
+                this.$refs.loadPatchFileInput.click();
+            });
+        },
+
+        onLoadPatchFileInputChanged(fileEvent) {
+            const file = fileEvent.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                this.loadPatchFileShown = false;
+                try {
+                    const patch = JSON.parse(event.target.result);
+                    //TODO verify that it is correct patch file
+                    this.$emit('preview-patch-requested', patch);
+                } catch(err) {
+                    alert('Not able to load patch. Malformed json');
                 }
             };
 

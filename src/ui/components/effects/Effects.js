@@ -249,7 +249,7 @@ export function getEffects() {
     return effects;
 }
 
-export function getEffectById(effectId) {
+export function findEffect(effectId) {
     return effects[effectId];
 }
 

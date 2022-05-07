@@ -34,8 +34,9 @@
 <script>
 import Modal from '../Modal.vue';
 import EffectEditor from './EffectEditor.vue';
-import { getEffectById, getEffects } from './Effects';
+import { findEffect, getEffects } from './Effects';
 import forEach from 'lodash/forEach';
+import shortid from 'shortid';
 
 function getKnownEffects() {
     const effects = [];
@@ -57,7 +58,7 @@ export default {
     },
 
     data() {
-        const effect = getEffectById(this.effectId);
+        const effect = findEffect(this.effectId);
 
         return {
             knownEffects: getKnownEffects(),
@@ -68,7 +69,8 @@ export default {
     methods: {
         addEffect() {
             this.$emit('effect-submited', {
-                id: this.effectId,
+                id: shortid.generate(),
+                effect: this.effectId,
                 name: this.effectName,
                 args: this.effectArgs
             });

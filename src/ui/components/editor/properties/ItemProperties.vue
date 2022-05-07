@@ -221,11 +221,11 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import EditEffectModal from '../../effects/EditEffectModal.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
 import StoreUtils from '../../../store/StoreUtils.js';
-import { getDefaultEffectId, getEffectById, generateEffectArgs } from '../../effects/Effects.js';
+import { getDefaultEffectId, findEffect, generateEffectArgs } from '../../effects/Effects.js';
 import PropertyInput from './PropertyInput.vue';
 import utils from '../../../utils.js';
 import myMath from '../../../myMath.js';
-
+import shortid from 'shortid';
 
 const ALL_TABS = [
     {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
@@ -423,10 +423,11 @@ export default {
 
         startAddingEffect() {
             const effectId = getDefaultEffectId();
-            const effect = getEffectById(effectId);
+            const effect = findEffect(effectId);
             this.editEffectModal.effectArgs = generateEffectArgs(effect);
             this.item.effects.push({
-                id: effectId,
+                id: shortid.generate(),
+                effect: effectId,
                 name: effect.name,
                 args: this.editEffectModal.effectArgs
             });
@@ -474,7 +475,7 @@ export default {
 
         openEditEffectModal(idx) {
             this.editEffectModal.currentEffectIndex = idx;
-            this.editEffectModal.effectId = this.item.effects[idx].id;
+            this.editEffectModal.effectId = this.item.effects[idx].effect;
             this.editEffectModal.isAdding = false;
             this.editEffectModal.shown = true;
             this.editEffectModal.effectArgs = this.item.effects[idx].args;
@@ -495,7 +496,7 @@ export default {
                 return;
             }
 
-            const effect = getEffectById(newEffectId);
+            const effect = findEffect(newEffectId);
             this.editEffectModal.effectArgs = generateEffectArgs(effect);
             this.editEffectModal.effectId = newEffectId;
             this.item.effects[this.editEffectModal.currentEffectIndex] = {

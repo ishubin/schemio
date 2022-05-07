@@ -7,6 +7,7 @@ import {getDefaultFont, getAllFonts} from './Fonts';
 import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
+import shortid from 'shortid';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -45,6 +46,16 @@ export const textSlotProperties = [
     {field: 'paddingTop', name: 'Padding Top', type: 'number'},
     {field: 'paddingBottom', name: 'Padding Bottom', type: 'number'},
 ];
+
+export function prettyTextSlotProperty(propertyName) {
+    for (let i = 0; i < textSlotProperties.length; i++) {
+        if (textSlotProperties[i].field === propertyName) {
+            return textSlotProperties[i].name;
+        }
+    }
+    return propertyName;
+}
+
 
 
 const defaultTextSlotProps = {
@@ -109,6 +120,20 @@ export const defaultItemDefinition = {
     shapeProps: {}
 };
 
+function idFixer(obj) {
+    if (!obj.id) {
+        obj.id = shortid.generate();
+    }
+}
+
+
+function fixBehaviorEvents(behavior) {
+    forEach(behavior.events, event => {
+        idFixer(event);
+
+        forEach(event.actions, idFixer);
+    });
+}
 
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
@@ -149,6 +174,9 @@ export function enrichItemWithDefaults(item) {
             }
         });
     }
+
+    fixBehaviorEvents(item.behavior);
+    forEach(item.links, idFixer);
 }
 
 
@@ -257,7 +285,7 @@ export function hasItemDescription(item) {
     /*
     This is very dirty but it is the simplest way to check if the item has a proper description
     If would only check for non-empty strings, then it would still show side panel 
-    even when description is an empty parahraph like "<p></p>"
+    even when description is an empty paragraph like "<p></p>"
     This happens when you use rich text editor and delete the entire description.
     Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
     */

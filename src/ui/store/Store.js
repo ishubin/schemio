@@ -76,6 +76,15 @@ const store = new Vuex.Store({
             points: []
         },
 
+        patch: {
+            settings: {
+                additionsColor: 'rgba(90, 255, 90, 0.4)',
+                deletionsColor: 'rgba(255, 90, 90, 0.4)',
+                modificationsColor: 'rgba(90, 90, 255, 0.4)',
+            },
+            diffColoringEnabled: true
+        },
+
         defaultConnectorSmoothing: myStorage.get(DEFAULT_CONNECTOR_SMOOTHING, 'linear'),
 
         autoRemount: true,
@@ -409,6 +418,21 @@ const store = new Vuex.Store({
 
         COPY_ITEM_STYLE(state, item) {
             state.copiedStyleItem = utils.clone(item);
+        },
+
+        SET_PATCH_DIFF_COLORING_ENABLED(state, enabled) {
+            state.patch.diffColoringEnabled = enabled;
+        },
+
+        UPDATE_PATCH_DIFF_COLOR(state, {changeType, color}) {
+            console.log('UPDATE_PATCH_DIFF_COLOR', changeType, color);
+            if (changeType === 'additions') {
+                state.patch.settings.additionsColor = color;
+            } else if (changeType === 'deletions') {
+                state.patch.settings.deletionsColor = color;
+            } else if (changeType === 'modifications') {
+                state.patch.settings.modificationsColor = color;
+            }
         }
     },
 
@@ -567,6 +591,14 @@ const store = new Vuex.Store({
         copyItemStyle({commit}, item) {
             commit('COPY_ITEM_STYLE', item);
         },
+    
+        setPatchDiffColoringEnabled({commit}, enabled) {
+            commit('SET_PATCH_DIFF_COLORING_ENABLED', enabled);
+        },
+
+        updatePatchDiffColor({commit}, {changeType, color}) {
+            commit('UPDATE_PATCH_DIFF_COLOR', {changeType, color});
+        }
     },
 
     getters: {
@@ -607,6 +639,11 @@ const store = new Vuex.Store({
         animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
 
         animationEditorIsRecording: state => state.animationEditor.isRecording,
+
+        patchAdditionsColor: state => state.patch.settings.additionsColor,
+        patchDeletionsColor: state => state.patch.settings.deletionsColor,
+        patchModificationsColor: state => state.patch.settings.modificationsColor,
+        patchIsDiffColoringEnabled: state => state.patch.diffColoringEnabled,
     }
 });
 

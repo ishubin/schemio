@@ -1,5 +1,6 @@
 import utils from '../src/ui/utils.js';
 import expect from 'expect';
+import forEach from 'lodash/forEach';
 
 
 describe('Utils.getOpbjectProperty', () => {
@@ -76,3 +77,37 @@ describe('Utils.sanitizeScheme', () => {
         });
     });
 });
+
+describe('Utils.equals', () => {
+    forEach([{
+        name: 'floating values should be equal', a: 2.3, b: 2.3, expected: true
+    }, {
+        name: 'floating values should not be equal', a: 2.3, b: 2.30001, expected: false
+    }, {
+        name: 'string values should be equal', a: 'abc', b: 'abc', expected: true
+    }, {
+        name: 'string values should not be equal', a: 'abcd', b: 'abc', expected: false
+    }, {
+        name: 'array values should be equal', a: ['a', 2.3], b: ['a', 2.3], expected: true
+    }, {
+        name: 'array values with different length should not be equal', a: ['a', 2.3], b: ['a', 2.3, 0], expected: false
+    }, {
+        name: 'array values with different values inside should not be equal', a: ['a', 2.301], b: ['a', 2.3], expected: false
+    }, {
+        name: 'objects should be equal', a: {user: {name: 'Patrick', age: 30}}, b: {user: {name: 'Patrick', age: 30}}, expected: true
+    }, {
+        name: 'objects should not be equal', a: {user: {name: 'Patrick', age: 30}}, b: {user: {name: 'Patrick', age: 31}}, expected: false
+    }, {
+        name: 'objects with extra key on the left should not be equal', a: {user: {name: 'Patrick', age: 30, surname: 'Conor'}}, b: {user: {name: 'Patrick', age: 30}}, expected: false
+    }, {
+        name: 'objects with extra key on the right should not be equal', a: {user: {name: 'Patrick', age: 30}}, b: {user: {name: 'Patrick', age: 30, surname: 'Conor'}}, expected: false
+    }, {
+        name: 'objects with arrays should be equal', a: {user: {name: 'Patrick', age: 30, labels: ['admin', 'dev']}}, b: {user: {name: 'Patrick', labels: ['admin', 'dev'], age: 30}}, expected: true
+    }, {
+        name: 'objects with arrays with different values should not be equal', a: {user: {name: 'Patrick', age: 30, labels: ['admin', 'developer']}}, b: {user: {name: 'Patrick', labels: ['admin', 'dev'], age: 30}}, expected: false
+    }], testData => {
+        it(`should test that: ${testData.name}`, () => {
+            expect(utils.equals(testData.a, testData.b)).toBe(testData.expected);
+        });
+    })
+})

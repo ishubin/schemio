@@ -66,11 +66,16 @@ function extendObject(originalObject, overrideObject) {
 /**
  * 
  * @param {object} obj 
- * @param {string} propertyPath - a dot separated path to a property inside a given object
+ * @param {string|Array} propertyPath - a dot separated path to a property inside a given object
  */
 function getObjectProperty(item, propertyPath) {
     if (item) {
-        const objectPath = propertyPath.split('.');
+        let objectPath = null;
+        if (Array.isArray(propertyPath)) {
+            objectPath = propertyPath;
+        } else {
+            objectPath = propertyPath.split('.');
+        }
         let field = item;
         let i = 0;
         while(i < objectPath.length) {
@@ -216,6 +221,49 @@ function forceDownload(fileName, contentType, content) {
 }
 
 
+/**
+ * Compares two objects for deep equality
+ * @param {*} v1 
+ * @param {*} v2 
+ */
+function equals(v1, v2) {
+    const t1 = typeof v1;
+    const t2 = typeof v2;
+    if (t1 !== t2) {
+        return false;
+    }
+
+    if (Array.isArray(v1)) {
+        if (v1.length !== v2.length) {
+            return false;
+        }
+        for (let i = 0; i < v1.length; i++) {
+            if (!equals(v1[i], v2[i])) {
+                return false;
+            }
+        }
+        return true;
+    } else if (t1 === 'object') {
+        for (let key in v1) {
+            if (v1.hasOwnProperty(key)) {
+                if (!equals(v1[key], v2[key])) {
+                    return false;
+                }
+            }
+        }
+
+        for (let key in v2) {
+            if (!v1.hasOwnProperty(key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    return v1 === v2;
+}
+
+
 export default {
     formatDateAndTime,
     clone,
@@ -228,5 +276,6 @@ export default {
     enumerateConstants,
     domHasParentNode,
     domFindAncestorByClassUntil,
-    forceDownload
+    forceDownload,
+    equals
 };

@@ -5,6 +5,7 @@ local-storage/
 uploads/
 dist/
 .DS_Store
+.vscode/
 *.swo
 *.swp
 public/public-images/

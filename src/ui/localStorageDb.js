@@ -115,7 +115,6 @@ export default class LocalStorageDb {
 
     clear() {
         let chain = Promise.resolve(null);
-        console.log(this.index);
         forEach(this.index, (x, id) => {
             chain = chain.then(() => this.delete(id));
         });
