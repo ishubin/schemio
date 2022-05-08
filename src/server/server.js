@@ -16,7 +16,7 @@ import {
     fsSaveStyle, fsSearchSchemes, fsUploadMediaFile 
 } from './fs/fs.js';
 
-import {fsExportStatic} from './fs/fsExporter';
+import {fsExportStatic, fsExportStatus} from './fs/fsExporter';
 
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
@@ -77,6 +77,7 @@ if (!config.viewOnlyMode) {
     app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
     app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
+    app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config));
 }
 
 app.get('/media/*', fsDownloadMediaFile(config));

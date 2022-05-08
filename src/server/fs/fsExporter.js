@@ -153,6 +153,8 @@ function startExporter(config) {
     const exporterIndexPath = path.join(exporterPath, 'fs.index.json');
 
     currentExporter = {
+        startedAt: new Date(),
+        finishedAt: null,
         entries: [],
         schemeIndex: {}
     };
@@ -231,6 +233,7 @@ function startExporter(config) {
     .then(copyStaticAssets(config))
     .then(() => {
         lastExporter = currentExporter;
+        lastExporter.finishedAt = new Date();
         currentExporter = null;
         fs.writeFile(exporterIndexPath, JSON.stringify(lastExporter));
         console.log('Exporter finished');
@@ -255,4 +258,25 @@ export function fsExportStatic(config) {
             message: 'Started exporter',
         });
     };
+}
+
+export function fsExportStatus(config) {
+    return (req, res) => {
+        if (currentExporter) {
+            res.json({
+                status: 'running',
+                startedAt: currentExporter.startedAt
+            });
+        } else if (lastExporter) {
+            res.json({
+                status: 'finished',
+                startedAt: lastExporter.startedAt,
+                finishedAt: lastExporter.finishedAt
+            });
+        } else {
+            res.json({
+                status: 'unknown'
+            })
+        }
+    }
 }
