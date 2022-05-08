@@ -211,7 +211,7 @@ function createStaticClient() {
         if (cachedIndex) {
             return Promise.resolve(cachedIndex);
         } else {
-            return axios.get(`fs.index.json?v=${currentTimestamp}`).then(unwrapAxios)
+            return axios.get(`data/fs.index.json?v=${currentTimestamp}`).then(unwrapAxios)
             .then(prepareIndex)
             .catch(err => {
                 console.error('Failed to build index', err);
@@ -244,7 +244,7 @@ function createStaticClient() {
                 if (!schemeEntry) {
                     throw new Error('Scheme was not found');
                 }
-                return axios.get(`${schemeEntry.path}?v=${encodeURIComponent(schemeEntry.modifiedTime)}`).then(unwrapAxios).then(scheme => {
+                return axios.get(`data/${schemeEntry.path}?v=${encodeURIComponent(schemeEntry.modifiedTime)}`).then(unwrapAxios).then(scheme => {
                     return [scheme, schemeEntry.path];
                 });
             })
