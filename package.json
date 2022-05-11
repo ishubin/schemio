@@ -7,6 +7,7 @@
     "start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build-standalone; npm run build-ui-static-app-dev; npm run build && node dist/server/server.js'",
     "light-start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
     "start-drive": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-drive-dev; npm run build && node dist/server/server-drive.js'",
+    "start-static": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-ui-static-app-dev; npm run build && node dist/server/server-static.js'",
     "build-playground": "babel src/server/server-playground.js -d dist/server",
     "start-playground": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; npm run build-playground && node dist/server/server-playground.js'",
     "build-app-dev": "webpack --config webpack.build.app.dev.js; cp dist/assets/schemio.app.js assets/",

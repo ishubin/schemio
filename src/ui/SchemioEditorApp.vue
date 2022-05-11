@@ -9,6 +9,7 @@
             :scheme="patch.patchedScheme"
             :patchIndex="patch.index"
             :editAllowed="editAllowed"
+            :isStaticEditor="isStaticEditor"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
@@ -17,9 +18,10 @@
             @preview-patch-requested="onPreviewPatchRequested"/>
 
         <SchemeEditor v-else
-            :key="`origin-scheme-${originKeyReloadHash}`"
+            :key="`origin-scheme`"
             :scheme="scheme"
             :editAllowed="editAllowed"
+            :isStaticEditor="isStaticEditor"
             :patchIndex="patch.index"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
@@ -73,7 +75,6 @@ import ColorPicker from './components/editor/ColorPicker.vue';
 import Modal from './components/Modal.vue';
 import PatchDetails from './components/patch/PatchDetails.vue';
 import SchemeContainer from './scheme/SchemeContainer';
-import shortid from 'shortid';
 
 export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker, Modal, PatchDetails},
@@ -81,6 +82,7 @@ export default{
     props: {
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
+        isStaticEditor   : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
@@ -106,7 +108,6 @@ export default{
                 modifiedSchemeContainer: null,
                 detailsModalShown      : false
             },
-            originKeyReloadHash: shortid.generate()
         };
     },
 
@@ -148,8 +149,7 @@ export default{
         },
 
         applyPatch() {
-            this.scheme = this.patch.patchedScheme;
-            this.originKeyReloadHash = shortid.generate();
+            this.$emit('patch-applied', this.patch.patchedScheme);
             this.cancelPatch();
         }
     },

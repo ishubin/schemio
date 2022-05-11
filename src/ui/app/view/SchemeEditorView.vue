@@ -34,18 +34,25 @@
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
         <SchemioEditorApp v-else-if="apiClientType === 'offline'"
+            key="offline-scheme"
             :scheme="null"
             :editAllowed="true"
+            :isStaticEditor="false"
             :userStylesEnabled="false"
             :projectArtEnabled="false"
         />
         <SchemioEditorApp v-else-if="scheme"
+            :key="`scheme-${originKeyReloadHash}`"
             :scheme="scheme"
             :editAllowed="editAllowed"
+            :isStaticEditor="isStaticEditor"
             :userStylesEnabled="userStylesEnabled"
             @new-scheme-submitted="onNewSchemeSubmitted"
+            @patch-applied="onPatchApplied"
             :projectArtEnabled="projectArtEnabled"
         />
+
+        <CreatePatchModal v-if="createPatchModalShown" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
     </div>
 </template>
 <script>
@@ -53,10 +60,14 @@ import { createApiClientForType } from '../apiClient';
 import SchemioEditorApp from '../../SchemioEditorApp.vue';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
+import CreatePatchModal from '../../components/patch/CreatePatchModal.vue';
+import utils from '../../utils';
+import EventBus from '../../components/editor/EventBus';
+import shortid from 'shortid';
 
 
 export default {
-    components: {SchemioEditorApp},
+    components: {SchemioEditorApp, CreatePatchModal},
 
     props: {
         apiClientType    : {type: String, default: 'fs'},
@@ -65,8 +76,13 @@ export default {
     },
 
     beforeMount() {
+        EventBus.$on(EventBus.SCHEME_PATCH_REQUESTED, this.onSchemePatchRequested);
+
         if (this.apiClientType !== 'offline') {
             this.isLoading = true;
+            if (this.apiClientType === 'static') {
+                this.isStaticEditor = true;
+            }
             createApiClientForType(this.apiClientType)
             .then(apiClient => {
                 this.$store.dispatch('setApiClient', apiClient);
@@ -78,7 +94,8 @@ export default {
                 this.path = schemeDetails.folderPath;
                 this.buildBreadcrumbs(schemeDetails.folderPath);
                 this.scheme = schemeDetails.scheme;
-                this.editAllowed = !schemeDetails.viewOnly && this.apiClientType !== 'static';
+                this.originScheme = utils.clone(schemeDetails.scheme);
+                this.editAllowed = !schemeDetails.viewOnly;
             })
             .catch(err => {
                 this.isLoading = false;
@@ -91,6 +108,9 @@ export default {
             });
         }
     },
+    beforeDestroy() {
+        EventBus.$off(EventBus.SCHEME_PATCH_REQUESTED, this.onSchemePatchRequested);
+    },
     data() {
         const schemeId = this.$route.params.schemeId;
 
@@ -99,11 +119,18 @@ export default {
             path: '',
             breadcrumbs: [],
             editAllowed: false,
+            isStaticEditor: false,
             scheme: null,
             apiClient: null,
             is404: false,
             errorMessage: null,
-            isLoading: false
+            isLoading: false,
+            
+            originScheme: null,
+            modifiedScheme: null,
+            createPatchModalShown: false,
+
+            originKeyReloadHash: shortid.generate()
         };
     },
 
@@ -158,6 +185,24 @@ export default {
                     errorCallback();
                 }
             });
+        },
+
+        onSchemePatchRequested(modifiedScheme) {
+            this.modifiedScheme = modifiedScheme;
+            this.createPatchModalShown = true;
+        },
+
+        onPatchApplied(patchedScheme) {
+            this.scheme = patchedScheme;
+            this.originKeyReloadHash = shortid.generate();
+        }
+    },
+    computed: {
+        originSchemeForPatch() {
+            if (this.apiClientType === 'static') {
+                return this.originScheme;
+            }
+            return null;
         }
     }
 }

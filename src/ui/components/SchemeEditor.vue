@@ -11,6 +11,7 @@
             :mode="mode"
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
+            :is-static-editor="isStaticEditor"
             :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
@@ -26,7 +27,6 @@
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
-            @create-patch-requested="createPatchModalShown = true"
             @apply-patch-requested="triggerApplyPatchUpload"
             @duplicate-diagram-requested="showDuplicateDiagramModal()"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
@@ -341,8 +341,6 @@
             Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
         </modal>
 
-        <CreatePatchModal v-if="createPatchModalShown" :scheme="schemeContainer.scheme" @close="createPatchModalShown = false"/>
-
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -430,7 +428,6 @@ import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
-import CreatePatchModal from './patch/CreatePatchModal.vue';
 
 const userEventBus = new UserEventBus();
 
@@ -519,13 +516,13 @@ export default {
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
-        CreatePatchModal
     },
 
     props: {
         scheme           : {type: Object, default: null},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
+        isStaticEditor : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
@@ -741,7 +738,6 @@ export default {
             },
 
             deleteSchemeWarningShown: false,
-            createPatchModalShown: false
         }
     },
     methods: {
@@ -1117,6 +1113,11 @@ export default {
 
         saveScheme() {
             if (this.offlineMode) {
+                return;
+            }
+
+            if (this.isStaticEditor) {
+                EventBus.emitSchemePatchRequested(this.schemeContainer.scheme);
                 return;
             }
 
