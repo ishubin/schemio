@@ -11,5 +11,7 @@ dist/
 public/public-images/
 assets/schemio.app.js
 assets/schemio.app.drive.js
+assets/schemio.app.static.js
 assets/schemio.js
 assets/schemio-standalone.js
+assets/index-static.html

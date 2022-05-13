@@ -294,11 +294,11 @@ export default {
     props: {
         editBox: {type: Object, required: true}, 
         zoom: {type: Number},
-        boundaryBoxColor: {type: Object},
-        controlPointsColor: {type: Object},
+        boundaryBoxColor: {type: String},
+        controlPointsColor: {type: String},
 
         // can be regular or crop-image
-        kind: {type: 'String', default: 'regular'},
+        kind: {type: String, default: 'regular'},
     },
 
     beforeMount() {

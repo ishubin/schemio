@@ -35,7 +35,7 @@ function exportMediaFile(config, mediaURL) {
     const relativeFilePath = mediaURL.substring(mediaPrefix.length);
 
     const absoluteFilePath = path.join(config.fs.rootPath, '.media', relativeFilePath);
-    const absoluteDstFilePath = path.join(config.fs.rootPath, '.exporter', 'media', relativeFilePath);
+    const absoluteDstFilePath = path.join(config.fs.rootPath, exporterFolder, 'data', 'media', relativeFilePath);
 
     return fs.stat(absoluteFilePath)
     .then(stat => {
@@ -118,11 +118,43 @@ function fixSchemeLinks(scheme) {
     return Promise.resolve(scheme);
 }
 
+const assetFiles = [
+    {file: 'index-static.html', src: 'index.html'},
+    {file: 'schemio.app.static.js'},
+    {file: 'main.css'},
+    {file: 'schemio-standalone.html'},
+    {file: 'schemio-standalone.js'},
+    {file: 'schemio-standalone.css'},
+    {file: 'css', isDir: true},
+    {file: 'images', isDir: true},
+    {file: 'art', isDir: true},
+    {file: 'webfonts', isDir: true},
+];
+
+function copyStaticAssets(config) {
+    return () => {
+        const exporterPath = path.join(config.fs.rootPath, exporterFolder);
+        return fs.ensureDir(path.join(exporterPath, 'assets')).then(() => {
+            return Promise.all(assetFiles.map(assetFile => {
+                const src = assetFile.src ? path.join(exporterPath, assetFile.src) : path.join(exporterPath, 'assets', assetFile.file);
+
+                if (assetFile.isDir) {
+                    return fs.copy(path.join('assets', assetFile.file), src, {recursive: true});
+                } else {
+                    return fs.copyFile(path.join('assets', assetFile.file), src);
+                }
+            }));
+        });
+    };
+}
+
 function startExporter(config) {
-    const exporterPath = path.join(config.fs.rootPath, exporterFolder);
+    const exporterPath = path.join(config.fs.rootPath, exporterFolder, 'data');
     const exporterIndexPath = path.join(exporterPath, 'fs.index.json');
 
     currentExporter = {
+        startedAt: new Date(),
+        finishedAt: null,
         entries: [],
         schemeIndex: {}
     };
@@ -197,10 +229,14 @@ function startExporter(config) {
                 .then(scheme => exportMediaForScheme(config, scheme, schemeId))
             }
         });
-    }).then(() => {
+    })
+    .then(copyStaticAssets(config))
+    .then(() => {
         lastExporter = currentExporter;
+        lastExporter.finishedAt = new Date();
         currentExporter = null;
         fs.writeFile(exporterIndexPath, JSON.stringify(lastExporter));
+        console.log('Exporter finished');
     }).catch(err => {
         console.error('Exporter failed', err);
     });
@@ -222,4 +258,25 @@ export function fsExportStatic(config) {
             message: 'Started exporter',
         });
     };
+}
+
+export function fsExportStatus(config) {
+    return (req, res) => {
+        if (currentExporter) {
+            res.json({
+                status: 'running',
+                startedAt: currentExporter.startedAt
+            });
+        } else if (lastExporter) {
+            res.json({
+                status: 'finished',
+                startedAt: lastExporter.startedAt,
+                finishedAt: lastExporter.finishedAt
+            });
+        } else {
+            res.json({
+                status: 'unknown'
+            })
+        }
+    }
 }

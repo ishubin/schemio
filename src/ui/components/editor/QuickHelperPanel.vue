@@ -247,6 +247,7 @@ export default {
         mode           : { type: String, required: true }, // "edit" or "view"
         zoom           : { type: Number, required: true },
         editAllowed    : { type: Boolean, default: false },
+        isStaticEditor : { type: Boolean, default: false},
         menuOptions    : { type: Array, default: []},
     },
 
@@ -274,11 +275,11 @@ export default {
         const eventCallback = (event) => {return () => {this.$emit(event)}};
 
         const defaultMenuDropDownOptions = [
-            {name: 'New diagram',       callback: eventCallback('new-scheme-requested'),  iconClass: 'fas fa-file', disabled: !this.editAllowed}, 
-            {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import', disabled: !this.editAllowed},
-            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed},
-            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed},
-            {name: 'Create patch',      callback: eventCallback('create-patch-requested'), iconClass: 'fas fa-file-export'},
+            {name: 'New diagram',       callback: eventCallback('new-scheme-requested'),  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isStaticEditor},
+            {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import'},
+            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
+            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
+            {name: 'Create patch',      callback: () => EventBus.emitSchemePatchRequested(this.schemeContainer.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
             {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: 'fas fa-file-import'},
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},

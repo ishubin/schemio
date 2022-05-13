@@ -103,7 +103,9 @@ const EventBus = new Vue({
             // triggered in case user clicked undo or redo and the scheme was reset to a new state
             HISTORY_UNDONE: 'history-undone',
 
-            IMAGE_CROP_TRIGGERED: 'image-crop-triggered'
+            IMAGE_CROP_TRIGGERED: 'image-crop-triggered',
+
+            SCHEME_PATCH_REQUESTED: 'scheme-patch-requested'
         };
     },
     methods: {
@@ -230,6 +232,10 @@ const EventBus = new Vue({
 
         emitEditorStateChanged(stateName) {
             this.$emit(EventBus.EDITOR_STATE_CHANGED, stateName);
+        },
+
+        emitSchemePatchRequested(scheme) {
+            this.$emit(EventBus.SCHEME_PATCH_REQUESTED, scheme);
         }
     }
 });

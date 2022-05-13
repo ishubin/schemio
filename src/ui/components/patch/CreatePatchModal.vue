@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <modal title="Create patch" @close="$emit('close')" primaryButton="Download" :primaryButtonDisabled="primaryButtonDisabled" @primary-submit="onDownloadPatch">
-        <span class="btn btn-primary" @click="schemeSearchModalShown = true">Choose base diagram</span>
+        <span class="btn btn-primary" v-if="!originScheme" @click="schemeSearchModalShown = true">Choose base diagram</span>
 
         <div v-if="isLoading" class="loader">
             <div class="loader-element"></div>
@@ -36,7 +36,7 @@ import SchemeContainer from '../../scheme/SchemeContainer';
 
 
 export default {
-    props: ['scheme'],
+    props: ['scheme', 'originScheme'],
 
     components: {Modal, SchemeSearchModal, PatchDetails},
     
@@ -49,6 +49,13 @@ export default {
             originSchemeContainer  : null,
             modifiedSchemeContainer: new SchemeContainer(this.scheme)
         };
+    },
+
+    beforeMount() {
+        if (this.originScheme) {
+            this.originSchemeContainer = new SchemeContainer(this.originScheme);
+            this.patch = generateSchemePatch(this.originSchemeContainer.scheme, this.scheme);
+        }
     },
 
     methods: {
