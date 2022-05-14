@@ -107,7 +107,7 @@
             :style="childrenLayerStyle"
             >
             <ItemSvg v-for="childItem in item.childItems"
-                v-if="childItem.visible"
+                v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
                 :patchIndex="patchIndex"
@@ -121,7 +121,7 @@
             :style="childrenLayerStyle"
             >
             <ItemSvg v-for="childItem in item._childItems"
-                v-if="childItem.visible"
+                v-if="childItem.visible && childItem.shape !== 'hud'"
                 :key="`${childItem.id}-${childItem.shape}`"
                 :item="childItem"
                 :mode="mode"

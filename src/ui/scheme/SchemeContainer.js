@@ -498,9 +498,9 @@ class SchemeContainer {
             // only storing top-level items 
             if (!parentItem) {
                 this.worldItems.push(item);
-                if (item.shape === 'hud') {
-                    this.hudItems.push(item);
-                }
+            }
+            if (item.shape === 'hud') {
+                this.hudItems.push(item);
             }
 
             if (item.id) {
