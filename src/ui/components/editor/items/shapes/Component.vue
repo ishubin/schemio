@@ -77,19 +77,11 @@ function calculateButtonArea(item) {
     const itemMaxWidth = item.area.w - 2 * minPadding;
     const itemMaxHeight = item.area.h - 2 * minPadding;
 
-    let w = Math.min(maxWidth, itemMaxWidth);
-    let h = Math.min(maxHeight, itemMaxHeight);
+    const w = Math.min(maxWidth, itemMaxWidth);
+    const h = Math.min(maxHeight, itemMaxHeight);
 
-    let x = minPadding;
-    let y = minPadding;
-
-    if (w < itemMaxWidth) {
-        x = (itemMaxWidth - w) / 2;
-    }
-
-    if (h < itemMaxHeight) {
-        y = (itemMaxHeight - h) / 2;
-    }
+    const x = (item.area.w - w) / 2;
+    const y = (item.area.h - h) / 2;
 
     return { x, y, w, h };
 }
