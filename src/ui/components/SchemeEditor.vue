@@ -1883,11 +1883,12 @@ export default {
         },
 
         onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.loadScheme) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
                 return;
             }
-            this.$store.state.apiClient.loadScheme(item.shapeProps.schemeId)
-            .then(scheme => {
+            this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
+            .then(schemeDetails => {
+                const scheme = schemeDetails.scheme;
                 const componentSchemeContainer = new SchemeContainer(scheme);
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);

@@ -104,10 +104,6 @@ function createApiClient() {
             return axios.delete(this._getSchemeUrl(schemeId)).then(unwrapAxios);
         },
 
-        loadScheme(schemeId) {
-            return this.getScheme(schemeId).then(schemeDetails => schemeDetails.scheme);
-        },
-
         findSchemes(filters) {
             let url = '/v1/fs/docs';
             let params = {};
