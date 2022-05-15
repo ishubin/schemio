@@ -100,7 +100,7 @@ cd $PROJECT_DIR
 
 
 echo_section "Building drive app for prod"
-npm run build-app-drive-prod
+./build-drive-app.sh
 
 
 echo_section "Building docker container"
