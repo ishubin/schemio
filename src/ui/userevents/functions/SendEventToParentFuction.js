@@ -12,8 +12,6 @@ It can be used for cross-component communication`,
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.meta && item.meta.parentId) {
-            const parent = schemeContainer.findItemById(item.meta.parentId);
-            console.log('Send to parent', args.event, parent);
             userEventBus.emitItemEvent(item.meta.parentId, args.event);
         }
         resultCallback();

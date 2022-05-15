@@ -421,6 +421,7 @@ class SchemeContainer {
 
         const rectItem = createDefaultRectItem();
         rectItem.id = shortid.generate();
+        rectItem.meta = {isComponentContainer: true};
         rectItem.area.x = dx;
         rectItem.area.y = dy;
 
@@ -453,8 +454,9 @@ class SchemeContainer {
                         event: behaviorEvent.event
                     }
                 }]
-            })
+            });
         });
+
 
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
         const nonIndexable = false;
