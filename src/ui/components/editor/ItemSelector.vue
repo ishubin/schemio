@@ -12,7 +12,7 @@
         <div class="item-selector-top-panel">
             <input class="textfield" v-model="searchKeyword" type="text" placeholder="Search"/>
         </div>
-        <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}">
+        <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
             <div v-for="(item, idx) in filteredItems"
                 class="item-selector-item-row-container"
                 :key="item.id"
@@ -193,6 +193,7 @@ export default {
             // Drag-and-drop is a complex thing as it involves too many bookkeeping and checking (we even have to keep track of scrolling)
             // So for now it will do, but it would be better to refactor it some day
 
+
             if (event.target) {
                 if (event.target.getAttribute('data-type') === 'item-name-edit-in-place'
                     || event.target.closest('.item-collapser')) {
@@ -221,6 +222,12 @@ export default {
 
             if (!this.schemeContainer.isItemSelected(item)) {
                 this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+            }
+
+
+            if (event.button === 2) {
+                EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
+                return;
             }
 
             const originalPageX = event.pageX;

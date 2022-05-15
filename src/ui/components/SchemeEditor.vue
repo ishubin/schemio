@@ -138,15 +138,6 @@
                     @item-text-cleared="onInPlaceTextEditorItemTextCleared"
                     />
 
-                <context-menu v-if="customContextMenu.show"
-                    :key="customContextMenu.id"
-                    :mouse-x="customContextMenu.mouseX"
-                    :mouse-y="customContextMenu.mouseY"
-                    :options="customContextMenu.menuOptions"
-                    @close="customContextMenu.show = false"
-                    @selected="onCustomContextMenuOptionSelected"
-                />
-
             </div>
 
             
@@ -280,6 +271,15 @@
                 </div>
             </div>
         </div>
+
+        <context-menu v-if="customContextMenu.show"
+            :key="customContextMenu.id"
+            :mouse-x="customContextMenu.mouseX"
+            :mouse-y="customContextMenu.mouseY"
+            :options="customContextMenu.menuOptions"
+            @close="customContextMenu.show = false"
+            @selected="onCustomContextMenuOptionSelected"
+        />
 
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
@@ -2056,9 +2056,9 @@ export default {
                 });
             }
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
-            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
-            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
+            // const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            this.customContextMenu.mouseX = mouseX + 5;
+            this.customContextMenu.mouseY = mouseY + 5;
             this.customContextMenu.id = shortid.generate();
             this.customContextMenu.show = true;
         },
