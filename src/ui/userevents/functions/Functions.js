@@ -24,6 +24,7 @@ import PlayFramesFunction from './PlayFramesFunction';
 import StopFramePlayerFunction from './StopFramePlayerFunction';
 import LoadComponentFunction from './LoadComponentFunction';
 import ToggleGroupFunction from './ToggleGroupFunction';
+import SendEventToParentFuction from './SendEventToParentFuction';
 
 export default {
     main: {
@@ -46,6 +47,7 @@ export default {
         stopFramePlayer:    StopFramePlayerFunction,
         stopAllAnimations:  StopAllAnimationsFunction,
         sendEvent:          SendEventFunction,
+        sendEventToParent:  SendEventToParentFuction,
         wait:               WaitFunction,
         toggle:             ToggleFunction,
         untoggle:           UntoggleFunction,
