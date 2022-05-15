@@ -437,27 +437,6 @@ class SchemeContainer {
 
         componentItem._childItems = [rectItem];
 
-        // retransmiting all events of the invisible item to its parent
-        // this is needed in case dynamic component wants to send event
-        // to its parent. This way component holder item can intercept
-        // these events.
-        rectItem.behavior = {events: []};
-        forEach(componentItem.behavior.events, behaviorEvent => {
-            rectItem.behavior.events.push({
-                id: shortid.generate(),
-                event: behaviorEvent.event,
-                actions: [{
-                    id: shortid.generate(),
-                    element: 'self',
-                    method: 'sendEventToParent',
-                    args: {
-                        event: behaviorEvent.event
-                    }
-                }]
-            });
-        });
-
-
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
         const nonIndexable = false;
         this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
