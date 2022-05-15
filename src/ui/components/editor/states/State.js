@@ -52,11 +52,13 @@ class State {
      */
     mouseWheel(x, y, mx, my, event) {
         if (event) {
+            // explanation to this check is here https://stackoverflow.com/a/62415754/2704008
+            const isTouchPad = event.wheelDeltaY ? event.wheelDeltaY === -3 * event.deltaY : event.deltaMode === 0
             if (event.deltaX !== 0 || event.deltaY !== 0) {
-                if (event.metaKey || event.ctrlKey || event.shiftKey) {
-                    this.zoomByWheel(mx, my, event.deltaY);
+                if (isTouchPad) {
+                    this.dragScreenOffset(event.deltaX, -event.deltaY);
                 } else {
-                    this.dragScreenOffset(event.deltaX, event.deltaY);
+                    this.zoomByWheel(mx, my, event.deltaY);
                 }
             }
         }

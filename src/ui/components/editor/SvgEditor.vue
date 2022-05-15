@@ -261,7 +261,7 @@ export default {
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
             if (svgElement) {
-                svgElement.removeEventListener('mousewheel', this.mouseWheel);
+                svgElement.removeEventListener('wheel', this.mouseWheel);
             }
         }
     },
