@@ -12,7 +12,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import EventBus from '../EventBus.js';
-import { ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
+import { ITEM_MODIFICATION_CONTEXT_ROTATED, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -1086,66 +1086,56 @@ export default class StateEditCurve extends State {
         if (this.item.shape !== 'connector') {
             return;
         }
+        item = utils.clone(item);
 
-        let shape = Shape.find(this.item.shape);
-        let path = shape.computeOutline(this.item);
-        let shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        shadowSvgPath.setAttribute('d', path);
+        if (item.shape === 'uml_actor') {
+            // uml_actor item looks ugly when stretched wide
+            item.area.w = 50;
+            item.area.h = 100;
+        } else {
+            item.area.w = 100;
+            item.area.h = 50;
+        }
 
-        const pathLength = shadowSvgPath.getTotalLength();
-        const p2 = shadowSvgPath.getPointAtLength(pathLength);
-        const p1 = shadowSvgPath.getPointAtLength(pathLength - 4);
-        //TODO calculate correct placement 
-        
-        const worldPoint2 = this.schemeContainer.worldPointOnItem(p2.x, p2.y, this.item);
-        const worldPoint1 = this.schemeContainer.worldPointOnItem(p1.x, p1.y, this.item);
 
-        const Vx = worldPoint2.x - worldPoint1.x;
-        const Vy = worldPoint2.y - worldPoint1.y;
+        const lp0 = this.item.shapeProps.points[this.item.shapeProps.points.length - 2];
+        const lp1 = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
+        const p0 = worldPointOnItem(lp0.x, lp0.y, this.item);
+        const p1 = worldPointOnItem(lp1.x, lp1.y, this.item);
+
+        const N = myMath.normalizedVector(p1.x - p0.x, p1.y - p0.y);
+
+        // this is a bit non-intuitive but this formula works in such a way
+        // that based on the normal we identify which side (width or height) of the item
+        // should take greater presense in calculation of the "r"
+        // so for normal [1, 0] it will only take width, for [0, 1] it will take height
+        // This gives us a better and consistent experience in the end
+        const r = (Math.abs(N.x) * item.area.w + Math.abs(N.y) * item.area.h) / 2;
+        let proposedPoint = {x: p1.x, y: p0.y};
+        if (N) {
+            proposedPoint.x = p1.x + N.x * r;
+            proposedPoint.y = p1.y + N.y * r;
+        }
+
+        item.area.x = proposedPoint.x - item.area.w / 2;
+        item.area.y = proposedPoint.y - item.area.h / 2;
+
 
         const destinationItem = this.schemeContainer.addItem(item);
 
-        if (item.shape !== 'uml_actor') {
-            // uml_actor item looks ugly when stretched wide
-            destinationItem.area.w = 100;
-            destinationItem.area.h = 50;
-        }
+        const closestPoint = this.schemeContainer.closestPointToItemOutline(destinationItem, p1, {});
+        const localPoint = localPointOnItem(closestPoint.x, closestPoint.y, this.item);
 
-        if (Math.abs(Vx) > Math.abs(Vy)) {
-            destinationItem.area.y = worldPoint2.y - destinationItem.area.h / 2;
-            if (Vx > 0) {
-                //should attach from left side
-                destinationItem.area.x = worldPoint2.x;
-            } else {
-                //should attach from right side
-                destinationItem.area.x = worldPoint2.x - destinationItem.area.w;
-            }
-        } else {
-            destinationItem.area.x = worldPoint2.x - destinationItem.area.w / 2;
-            if (Vy > 0) {
-                //should attach from top
-                destinationItem.area.y = worldPoint2.y;
-            } else {
-                //should attach from bottom
-                destinationItem.area.y = worldPoint2.y - destinationItem.area.h;
-            }
-        }
-
-
-        const localToDstItemPoint = this.schemeContainer.localPointOnItem(worldPoint2.x, worldPoint2.y, destinationItem);
-
-
-        shape = Shape.find(destinationItem.shape);
-        path = shape.computeOutline(destinationItem);
-        shadowSvgPath.setAttribute('d', path);
-        const closestPoint = myMath.closestPointOnPath(localToDstItemPoint.x, localToDstItemPoint.y, shadowSvgPath);
+        // modifying last point
+        lp1.x = localPoint.x;
+        lp1.y = localPoint.y;
 
         // this is a hack but have to do it as when user cancels state edit curve
         // it actually deletes the last point since it is considered as not submited
         this.item.shapeProps.points.push(utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]));
         
         this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
-        this.item.shapeProps.destinationItemPosition = closestPoint.distance;
+        this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
         this.item.name += destinationItem.name;
         this.cancel();
     }
