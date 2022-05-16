@@ -126,7 +126,9 @@ export default class StateEditCurve extends State {
             shape: 'connector',
             name: `${sourceItem.name} -> `,
             area: {x: 0, y: 0, w: 200, h: 200, r: 0},
-            shapeProps: { }
+            shapeProps: {
+                destinationCap: 'triangle'
+            }
         };
         enrichItemWithDefaults(curveItem);
         curveItem = this.schemeContainer.addItem(curveItem);
