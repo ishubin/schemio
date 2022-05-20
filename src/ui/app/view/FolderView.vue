@@ -245,7 +245,7 @@ export default {
         onSchemeSubmitted(scheme) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (this.$router.mode === 'history') {
-                    this.$router.push({path: `/docs/${createdScheme.id}#m:edit`});
+                    this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
                 } else {
                     this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
                 }

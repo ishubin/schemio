@@ -172,7 +172,7 @@ export default {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (callback) {
                     if (this.$router && this.$router.mode === 'history') {
-                        callback(createdScheme, `/docs/${createdScheme.id}#m:edit`);
+                        callback(createdScheme, `/docs/${createdScheme.id}#m=edit`);
                     } else {
                         callback(createdScheme, `#/docs/${createdScheme.id}?m=edit`);
                     }
