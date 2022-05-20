@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
@@ -37,12 +36,19 @@ const log = new Logger('Curve');
 
 
 function computePath(item) {
-    return computeCurvePath(item.shapeProps.points, item.shapeProps.closed);
+    let path = '';
+    item.shapeProps.paths.forEach(curvePath => {
+        const segmentPath = computeCurvePath(curvePath.points, curvePath.closed);
+        if (segmentPath) {
+            path += segmentPath + ' ';
+        }
+    });
+    return path;
 };
 
 
 /**
- * Takes points of the curve and simplifies them (tries to deletes as much points as possible)
+ * Takes points of the curve and simplifies them (tries to delete as many points as possible)
  * @property {Array} points - points of the curve 
  * @property {Number} epsilon - minimum distance of the points to keep (used in Ramer-Douglas-Peucker algorithm)
  * @returns {Array} simplified curve points 
@@ -59,7 +65,7 @@ export function simplifyCurvePoints(points, epsilon) {
     let currentCurvePoints = [];
     curves.push(currentCurvePoints);
 
-    forEach(points, (point, i) => {
+    points.forEach((point, i) => {
         if (point.break) {
             currentCurvePoints = [];
             curves.push(currentCurvePoints);
@@ -69,7 +75,7 @@ export function simplifyCurvePoints(points, epsilon) {
 
     let newPoints = [];
 
-    forEach(curves, (curvePoints, i) => {
+    curves.forEach((curvePoints, i) => {
         const simplifiedPoints = myMath.smoothCurvePoints(myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon));
 
         if (i > 0 && curvePoints.length > 0) {
@@ -99,73 +105,70 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
 }
 
 function readjustItemArea(item, precision) {
-    if (item.shapeProps.points.length < 1) {
+    const worldPoints = [];
+    item.shapeProps.paths.forEach((path, pathId) => {
+        path.points.forEach((point, pointId) => {
+            const p = worldPointOnItem(point.x, point.y, item);
+            p.t = point.t;
+
+            if (point.t === 'B' || point.t === 'A') {
+                const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
+                p.p1 = p1;
+            }
+            if (point.t === 'B') {
+                const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
+                p.p2 = p2;
+            }
+
+            worldPoints.push({pathId, pointId, point: p});
+        });
+    });
+
+    if (worldPoints.length < 1) {
         return;
     }
 
-    const worldPoints = [];
-
-    forEach(item.shapeProps.points, point => {
-        const p = worldPointOnItem(point.x, point.y, item);
-        p.t = point.t;
-
-        if (point.t === 'B' || point.t === 'A') {
-            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
-            p.p1 = p1;
-        }
-        if (point.t === 'B') {
-            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
-            p.p2 = p2;
-        }
-
-        worldPoints.push(p);
-    });
-
-    let minX = worldPoints[0].x,
-        minY = worldPoints[0].y,
-        maxX = worldPoints[0].x,
-        maxY = worldPoints[0].y;
+    let minX = worldPoints[0].point.x,
+        minY = worldPoints[0].point.y,
+        maxX = worldPoints[0].point.x,
+        maxY = worldPoints[0].point.y;
     
-    forEach(worldPoints, p => {
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y);
-        if (p.t === 'B' || p.t === 'A') {
-            minX = Math.min(minX, p.p1.x);
-            minY = Math.min(minY, p.p1.y);
-            maxX = Math.max(maxX, p.p1.x);
-            maxY = Math.max(maxY, p.p1.y);
+    worldPoints.forEach(p => {
+        minX = Math.min(minX, p.point.x);
+        minY = Math.min(minY, p.point.y);
+        maxX = Math.max(maxX, p.point.x);
+        maxY = Math.max(maxY, p.point.y);
+        if (p.point.t === 'B' || p.point.t === 'A') {
+            minX = Math.min(minX, p.point.p1.x);
+            minY = Math.min(minY, p.point.p1.y);
+            maxX = Math.max(maxX, p.point.p1.x);
+            maxY = Math.max(maxY, p.point.p1.y);
         }
-        if (p.t === 'B') {
-            minX = Math.min(minX, p.p2.x);
-            minY = Math.min(minY, p.p2.y);
-            maxX = Math.max(maxX, p.p2.x);
-            maxY = Math.max(maxY, p.p2.y);
+        if (p.point.t === 'B') {
+            minX = Math.min(minX, p.point.p2.x);
+            minY = Math.min(minY, p.point.p2.y);
+            maxX = Math.max(maxX, p.point.p2.x);
+            maxY = Math.max(maxY, p.point.p2.y);
         }
     });
 
-    const newPoints = [];
-    forEach(worldPoints, (p, idx) => {
+    worldPoints.forEach(p => {
         const itemPoint = {
-            x: p.x - minX,
-            y: p.y - minY,
-            t: p.t
+            x: p.point.x - minX,
+            y: p.point.y - minY,
+            t: p.point.t
         };
-        if (p.t === 'B' || p.t === 'A') {
-            itemPoint.x1 = p.p1.x - p.x;
-            itemPoint.y1 = p.p1.y - p.y;
+        if (p.point.t === 'B' || p.point.t === 'A') {
+            itemPoint.x1 = p.point.p1.x - p.point.x;
+            itemPoint.y1 = p.point.p1.y - p.point.y;
         }
-        if (p.t === 'B') {
-            itemPoint.x2 = p.p2.x - p.x;
-            itemPoint.y2 = p.p2.y - p.y;
+        if (p.point.t === 'B') {
+            itemPoint.x2 = p.point.p2.x - p.point.x;
+            itemPoint.y2 = p.point.p2.y - p.point.y;
         }
-        if (item.shapeProps.points[idx].break) {
-            itemPoint.break = true;
-        }
-        newPoints.push(itemPoint);
+
+        item.shapeProps.paths[p.pathId].points[p.pointId] = itemPoint;
     });
-    item.shapeProps.points = newPoints;
 
     item.area.r = 0;
     item.area.w = Math.max(0, maxX - minX);
@@ -183,18 +186,20 @@ function worldPointOnItem(x, y, item) {
 function getSnappers(item) {
     const snappers = [];
 
-    forEach(item.shapeProps.points, point => {
-        const worldPoint = worldPointOnItem(point.x, point.y, item);
+    item.shapeProps.paths.forEach(path => {
+        path.points.forEach(point => {
+            const worldPoint = worldPointOnItem(point.x, point.y, item);
 
-        snappers.push({
-            item,
-            snapperType: 'horizontal',
-            value: worldPoint.y
-        });
-        snappers.push({
-            item,
-            snapperType: 'vertical',
-            value: worldPoint.x
+            snappers.push({
+                item,
+                snapperType: 'horizontal',
+                value: worldPoint.y
+            });
+            snappers.push({
+                item,
+                snapperType: 'vertical',
+                value: worldPoint.x
+            });
         });
     });
     return snappers;
@@ -238,8 +243,8 @@ export default {
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-            closed            : {type: 'boolean',       value: false, name: 'Closed path'},
-            points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
+            // points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
+            paths             : {type: 'curve-paths',   value: [], name: 'Paths', hidden: true},
             sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},

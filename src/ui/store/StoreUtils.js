@@ -37,20 +37,20 @@ export default {
         // the following action will reset all the curve eidt points in store
         store.dispatch('setCurveEditItem', item);
     },
-    updateCurveEditPoint(store, item, pointId, point) {
-        store.dispatch('updateCurveEditPoint', {item, pointId, point });
+    updateCurveEditPoint(store, item, pathId, pointId, point) {
+        store.dispatch('updateCurveEditPoint', {item, pathId, pointId, point });
     },
-    toggleCurveEditPointSelection(store, pointId, inclusive) {
-        store.dispatch('toggleCurveEditPointSelection', { pointId, inclusive });
+    toggleCurveEditPointSelection(store, pathId, pointId, inclusive) {
+        store.dispatch('toggleCurveEditPointSelection', { pathId, pointId, inclusive });
     },
     resetCurveEditPointSelection(store) {
         store.dispatch('resetCurveEditPointSelection');
     },
-    selectCurveEditPoint(store, pointId, inclusive) {
-        store.dispatch('selectCurveEditPoint', { pointId, inclusive });
+    selectCurveEditPoint(store, pathId, pointId, inclusive) {
+        store.dispatch('selectCurveEditPoint', {pathId, pointId, inclusive });
     },
-    getCurveEditPoints(store) {
-        return store.state.curveEditing.points;
+    getCurveEditPaths(store) {
+        return store.state.curveEditing.paths;
     },
 
     setMultiSelectBox(store, box) {

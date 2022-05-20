@@ -97,17 +97,15 @@ export function computeCurvePath(points, closed) {
     if (points.length < 2) {
         return null;
     }
-    let path = 'M 0 0';
+    let path = '';
 
     let prevPoint = null;
 
     forEach(points, point => {
         if (!prevPoint) {
-            path = `M ${round(point.x)} ${round(point.y)} `;
-        } else if (!point.break) {
-            path += connectPoints(prevPoint, point);
-        } else {
             path += `M ${round(point.x)} ${round(point.y)} `;
+        } else  {
+            path += connectPoints(prevPoint, point);
         }
         prevPoint = point;
     });
@@ -152,6 +150,7 @@ function convertCurvePointsToItemScale(area, scale, points) {
 
 function createComputeOutlineFunc(shapeConfig) {
     return (item) => {
+        //TODO update custom shapes with curve paths
         if (shapeConfig.outlineCurve && shapeConfig.outlineCurve.points && shapeConfig.outlineCurve.points.length > 0) {
             const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, shapeConfig.outlineCurve.points);
             return computeCurvePath(points, shapeConfig.outlineCurve.closed);

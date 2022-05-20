@@ -457,7 +457,7 @@ export default {
                 name: this.makeUniqueName('Curve'),
                 shape: 'curve',
                 shapeProps: {
-                    points: []
+                    paths: []
                 }
             };
             enrichItemWithDefaults(item);

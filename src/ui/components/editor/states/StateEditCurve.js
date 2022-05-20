@@ -6,13 +6,9 @@ import State from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
-import {enrichItemWithDefaults} from '../../../scheme/Item';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
-import forEach from 'lodash/forEach';
-import filter from 'lodash/filter';
 import EventBus from '../EventBus.js';
-import { ITEM_MODIFICATION_CONTEXT_ROTATED, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -59,7 +55,7 @@ export default class StateEditCurve extends State {
         this.originalScreenOffset = {x: 0, y: 0};
 
         this.draggedObject = null;
-        this.originalCurvePoints = null;
+        this.originalCurvePaths = null;
 
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
@@ -81,7 +77,7 @@ export default class StateEditCurve extends State {
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
         this.draggedObject = null;
-        this.originalCurvePoints = null;
+        this.originalCurvePaths = null;
     }
 
     cancel() {
@@ -89,9 +85,9 @@ export default class StateEditCurve extends State {
         if (this.item) {
             if (this.creatingNewPoints) {
                 // deleting last point
-                this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
+                this.item.shapeProps.paths[0].points.splice(this.item.shapeProps.paths[0].points.length - 1 , 1);
 
-                if (this.item.shapeProps.points.length > 0) {
+                if (this.item.shapeProps.paths[0].points.length > 0) {
                     this.submitItem();
                 }
             } else {
@@ -112,172 +108,29 @@ export default class StateEditCurve extends State {
         }
     }
 
-    initConnectingFromSourceItem(sourceItem, localPoint) {
-        if (!localPoint) {
-            localPoint = {
-                x: this.round(sourceItem.area.w / 2),
-                y: this.round(sourceItem.area.h / 2)
-            };
-        }
-        
-        const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
-
-        let curveItem = {
-            shape: 'connector',
-            name: `${sourceItem.name} -> `,
-            area: {x: 0, y: 0, w: 200, h: 200, r: 0},
-            shapeProps: {
-                destinationCap: 'triangle'
-            }
-        };
-        enrichItemWithDefaults(curveItem);
-        curveItem = this.schemeContainer.addItem(curveItem);
-        curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
-
-        let parentItem = null;
-        if (sourceItem.meta.parentId) {
-            parentItem = this.schemeContainer.findItemById(sourceItem.meta.parentId);
-            if (parentItem) {
-                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(curveItem.id, parentItem.id);
-                curveItem.area.x = 0;
-                curveItem.area.y = 0;
-                curveItem.area.w = parentItem.area.w;
-                curveItem.area.h = parentItem.area.h;
-            }
-        }
-
-        const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
-        curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
-
-
-        let firstPoint = closestPoint;
-        let secondPoint = worldPoint;
-
-        // if item was remounted to some other item - we should recalculate its point from world to transform of its parent
-        if (parentItem) {
-            firstPoint = this.schemeContainer.localPointOnItem(closestPoint.x, closestPoint.y, parentItem);
-            secondPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
-        }
-
-        curveItem.shapeProps.points = [{
-            t: 'L', x: this.round(firstPoint.x), y: this.round(firstPoint.y)
-        }, {
-            t: 'L', x: this.round(secondPoint.x), y: this.round(secondPoint.y)
-        }];
-
-        if (typeof closestPoint.nx != 'undefined') {
-            curveItem.shapeProps.points[0].bx = myMath.roundPrecise(closestPoint.nx, 4);
-            curveItem.shapeProps.points[0].by = myMath.roundPrecise(closestPoint.ny, 4);
-        }
-
-        this.item = curveItem;
-        this.parentItem = parentItem;
-        this.addedToScheme = true;
-        this.creatingNewPoints = true;
-        this.updateCursor('crosshair');
-
-        return this.item;
-    }
-
-    /**
-     * 
-     * @param {Item} item 
-     * @param {Point} localPoint 
-     * @returns {ItemClosestPoint} - closest point in world transform
-     */
-    findAttachmentPointToItem(item, localPoint) {
-        const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, item);
-        const closestPoint = this.schemeContainer.closestPointToItemOutline(item, worldPoint, {
-            withNormal: true
-        });
-
-        const closestPin = this.findClosestItemPin(item, worldPoint);
-
-        if (closestPin) {
-            if (closestPoint) {
-                // should check which of these two is closer, but there is a catch
-                // Users would prefer for it to be pin always, but in some shapes there is only a single pin that is the center of the item
-                // In such cases it is best to stick to the point on path
-                // This is quite hacky but I don't see another better way for now
-                // The idea is to check the distance of pin to the center of the item. If it is very low, we will choose point on path instead
-
-                const centerPoint = this.schemeContainer.worldPointOnItem(item.area.w/2, item.area.h/2, item);
-                const distance = (closestPin.x - centerPoint.x)*(closestPin.x - centerPoint.x) + (closestPin.y - centerPoint.y)*(closestPin.y - centerPoint.y);
-                if (distance < 0.5) {
-                    return closestPoint;
-                }
-            }
-            closestPin.x = this.round(closestPin.x);
-            closestPin.y = this.round(closestPin.y);
-            return closestPin;
-        }
-
-        if (closestPoint) {
-            closestPoint.x = this.round(closestPoint.x);
-            closestPoint.y = this.round(closestPoint.y);
-            return closestPoint;
-        }
-
-        return {
-            x: this.round(item.area.w / 2),
-            y: this.round(item.area.h / 2)
-        };
-    }
-
-    findClosestItemPin(item, worldPoint) {
-        const shape = Shape.find(item.shape);
-        if (!shape) {
-            return null;
-        }
-
-        const pins = shape.getPins(item);
-
-        let foundPin = null;
-        let minDistance = 0;
-
-        forEach(pins, (pin, index) => {
-            const worldPinPoint = this.schemeContainer.worldPointOnItem(pin.x, pin.y, item);
-            const distance = (worldPinPoint.x - worldPoint.x)*(worldPinPoint.x - worldPoint.x) + (worldPinPoint.y - worldPoint.y)*(worldPinPoint.y - worldPoint.y);
-            if (!foundPin || minDistance > distance) {
-                minDistance = distance;
-                foundPin = {
-                    x: worldPinPoint.x,
-                    y: worldPinPoint.y,
-                    distanceOnPath: -index - 1 // converting it to netagive space on path field. hacky but it allows us to use only single field for this
-                };
-
-                if (pin.nx || pin.ny) {
-                    foundPin.nx = pin.nx;
-                    foundPin.ny = pin.ny;
-                }
-            }
-        });
-
-        return foundPin;
-    }
-
     initFirstClick(x, y) {
-        this.item.shapeProps.points = [];
+        this.item.shapeProps.paths = [{
+            closed: false,
+            points: []
+        }];
 
         this.schemeContainer.addItem(this.item);
 
         // snapping can only be performed once the item is added to the scheme
         // that is why we have to re-adjust curve points afterwards so that they are snapped
-        const snappedCurvePoint = this.snapCurvePoint(-1, x, y);
+        const snappedCurvePoint = this.snapCurvePoint(-1, -1, x, y);
 
-        this.item.shapeProps.points.push({
+        this.item.shapeProps.paths[0].points.push({
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
         });
-        this.item.shapeProps.points.push({
+        this.item.shapeProps.paths[0].points.push({
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
         });
 
-        // in case user tried to attach source to another item
-        this.handleEdgeCurvePointDrag(0, this.item.shapeProps.points[0], true);
         this.addedToScheme = true;
     }
 
@@ -338,59 +191,55 @@ export default class StateEditCurve extends State {
         if (!this.addedToScheme) {
             this.initFirstClick(x, y);
         } else if (this.creatingNewPoints) {
-            if (isEventRightClick(event) && this.item.shape === 'connector') {
-                this.proposeNewDestinationItemForConnector(this.item, mx, my);
-            } else {
-                let realX = x, realY = y;
-                if (this.parentItem) {
-                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                    realX = relativePoint.x;
-                    realY = relativePoint.y;
-                }
-                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, realX, realY);
+            let realX = x, realY = y;
+            if (this.parentItem) {
+                const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
+                realX = relativePoint.x;
+                realY = relativePoint.y;
+            }
+            const snappedCurvePoint = this.snapCurvePoint(0, this.item.shapeProps.paths[0].points.length - 1, realX, realY);
 
-                // checking if the curve was attached to another item
-                if (this.item.shapeProps.destinationItem) {
-                    if (this.item.shapeProps.sourceItem) {
-                        this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
-                    }
+            // checking if the curve was attached to another item
+            if (this.item.shapeProps.destinationItem) {
+                if (this.item.shapeProps.sourceItem) {
+                    this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
+                }
+                this.submitItem();
+                this.reset();
+                this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+                return;
+            }
+
+            const point = this.item.shapeProps.paths[0].points[this.item.shapeProps.paths[0].points.length - 1];
+
+
+            point.x = snappedCurvePoint.x;
+            point.y = snappedCurvePoint.y;
+
+            //checking whether curve got closed
+            if (this.item.shapeProps.paths[0].points.length > 2) {
+                if (this.shouldJoinClosedPoints) {
+                    // deleting last point
+                    this.item.shapeProps.paths[0].points.splice(this.item.shapeProps.paths[0].points.length - 1 , 1);
+                    this.item.shapeProps.paths[0].closed = true;
                     this.submitItem();
                     this.reset();
                     this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
-                    return;
                 }
-
-                const point = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
-
-
-                point.x = snappedCurvePoint.x;
-                point.y = snappedCurvePoint.y;
-
-                //checking whether curve got closed
-                if (this.item.shapeProps.points.length > 2) {
-                    if (this.shouldJoinClosedPoints) {
-                        //closing the curve
-                        this.item.shapeProps.closed = true;
-                        // deleting last point
-                        this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
-                        this.submitItem();
-                        this.reset();
-                        this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
-                    }
-                }
-                StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-                this.candidatePointSubmited = true;
             }
+            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+            this.candidatePointSubmited = true;
         } else {
             // editing existing curve
             if (isEventRightClick(event)) {
                 this.handleRightClick(x, y, mx, my, object);
             } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
-                this.originalCurvePoints = utils.clone(this.item.shapeProps.points);
+                this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
                 this.draggedObject = object;
 
-                if (!StoreUtils.getCurveEditPoints(this.store)[object.pointIndex].selected) {
-                    StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, isMultiSelectKey(event));
+                if (!StoreUtils.getCurveEditPaths(this.store)[object.pathIndex].points[object.pointIndex].selected) {
+                    StoreUtils.toggleCurveEditPointSelection(this.store, object.pathIndex, object.pointIndex, isMultiSelectKey(event));
+                    EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
                 }
             } else {
                 this.initMulitSelectBox(x, y, mx, my);
@@ -423,13 +272,9 @@ export default class StateEditCurve extends State {
 
         StoreUtils.clearItemSnappers(this.store);
 
-        if (!this.addedToScheme && this.creatingNewPoints && this.item.shape === 'connector') {
-            // Will try to search for source attachment
-            this.handleConnectorSourceMouseMove(x, y);
-
-        } else if (this.addedToScheme && this.creatingNewPoints) {
-            const pointIndex = this.item.shapeProps.points.length - 1;
-            const point = this.item.shapeProps.points[pointIndex];
+        if (this.addedToScheme && this.creatingNewPoints) {
+            const pointIndex = this.item.shapeProps.paths[0].points.length - 1;
+            const point = this.item.shapeProps.paths[0].points[pointIndex];
 
             if (this.candidatePointSubmited && this.item.shape !== 'connector') {
                 // convert last point to Beizer and drag its control points
@@ -448,7 +293,7 @@ export default class StateEditCurve extends State {
                     realX = relativePoint.x;
                     realY = relativePoint.y;
                 }
-                const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, realX, realY);
+                const snappedLocalCurvePoint = this.snapCurvePoint(0, pointIndex, realX, realY);
                 
                 point.x = this.round(snappedLocalCurvePoint.x);
                 point.y = this.round(snappedLocalCurvePoint.y);
@@ -456,11 +301,11 @@ export default class StateEditCurve extends State {
 
                 this.shouldJoinClosedPoints = false;
 
-                if (this.item.shapeProps.points.length > 2 && this.item.shape !== 'connector') {
+                if (this.item.shapeProps.paths[0].points.length > 2) {
                     // checking if the curve point was moved too close to first point,
                     // so that the placement of new points can be stopped and curve will become closed
                     // This needs to be checked in viewport (not in world transform)
-                    const p0 = this.item.shapeProps.points[0];
+                    const p0 = this.item.shapeProps.paths[0].points[0];
                     const dx = point.x - p0.x;
                     const dy = point.y - p0.y;
                     
@@ -475,12 +320,12 @@ export default class StateEditCurve extends State {
             }
             if (!this.shouldJoinClosedPoints) {
                 // what if we want to attach this point to another item
-                this.handleEdgeCurvePointDrag(pointIndex, point, false);
+                this.handleEdgeCurvePointDrag(0, pointIndex, point, false);
             }
             this.eventBus.emitItemChanged(this.item.id);
-            StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, point);
+            StoreUtils.updateCurveEditPoint(this.store, this.item, 0, pointIndex, point);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
-            this.handleCurvePointDrag(x, y, this.draggedObject.pointIndex);
+            this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         } else if (this.multiSelectBox) {
@@ -529,9 +374,9 @@ export default class StateEditCurve extends State {
                     realX = relativePoint.x;
                     realY = relativePoint.y;
                 }
-                const snappedLocalCurvePoint = this.snapCurvePoint(-1, realX, realY);
+                const snappedLocalCurvePoint = this.snapCurvePoint(-1, -1, realX, realY);
 
-                this.item.shapeProps.points.push({
+                this.item.shapeProps.paths[0].points.push({
                     x: this.round(snappedLocalCurvePoint.x),
                     y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
@@ -552,19 +397,21 @@ export default class StateEditCurve extends State {
         }
 
         this.draggedObject = null;
-        this.originalCurvePoints = null;
+        this.originalCurvePaths = null;
 
         StoreUtils.clearItemSnappers(this.store);
         this.softReset();
     }
 
-    convertSelectedPoints(callback) {
-        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
-        forEach(selectedPoints, point => callback(point));
-    }
-
     handleRightClick(x, y, mx, my, object) {
-        const selectedPoints = filter(StoreUtils.getCurveEditPoints(this.store), point => point.selected);
+        const selectedPoints = [];
+        StoreUtils.getCurveEditPaths(this.store).forEach(path => {
+            path.points.forEach(point => {
+                if (point.selected) {
+                    selectedPoints.push(point);
+                }
+            });
+        });
 
         let clickedOnSelectedPoint = false;
         for (let i = 0; i < selectedPoints.length && !clickedOnSelectedPoint; i++) {
@@ -577,13 +424,13 @@ export default class StateEditCurve extends State {
                 clicked: () => this.deleteSelectedPoints()
             }, {
                 name: 'Convert to beizer',
-                clicked: () => this.convertSelectedPoints(p => this.convertPointToBeizer(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.id))
             }, {
                 name: 'Convert to simple',
-                clicked: () => this.convertSelectedPoints(p => this.convertPointToSimple(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToSimple(p.id))
             }, {
                 name: 'Convert to arc',
-                clicked: () => this.convertSelectedPoints(p => this.convertPointToArc(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.id))
             }];
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
             return;
@@ -593,77 +440,114 @@ export default class StateEditCurve extends State {
             // user might have clicked the deselected point or the single selected point.
             // In this case we need to reset everything and treat it as a single point context menu
 
-            StoreUtils.selectCurveEditPoint(this.store, object.pointIndex, false);
+            StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, false);
+            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
 
-            const point = this.item.shapeProps.points[object.pointIndex];
+            const point = this.item.shapeProps.paths[object.pathIndex].points[object.pointIndex];
 
             let nextPoint = null;
-            if (object.pointIndex < this.item.shapeProps.points.length - 1) {
-                nextPoint = this.item.shapeProps.points[object.pointIndex + 1];
+            if (object.pointIndex < this.item.shapeProps.paths[object.pathIndex].points.length - 1) {
+                nextPoint = this.item.shapeProps.paths[object.pathIndex].points[object.pointIndex + 1];
+            }
+            let prevPoint = null;
+            if (object.pointIndex > 0) {
+                prevPoint = this.item.shapeProps.paths[object.pathIndex].points[object.pointIndex - 1];
             }
 
             const menuOptions = [{
                 name: 'Delete point',
-                clicked: () => this.deletePoint(object.pointIndex)
+                clicked: () => this.deletePoint(object.pathIndex, object.pointIndex)
             }];
 
-            if (point.break || (nextPoint && nextPoint.break)) {
-                menuOptions.push({
-                    name: 'Remove break',
-                    clicked: () => this.repairBreak(object.pointIndex)
-                });
-            } else if (object.pointIndex > 0 && object.pointIndex < this.item.shapeProps.points.length - 2){
+            if (! (prevPoint && prevPoint.break) && ! (nextPoint && nextPoint.break)){
                 menuOptions.push({
                     name: 'Break curve',
-                    clicked: () => this.breakCurve(object.pointIndex + 1)
+                    clicked: () => this.breakCurve(object.pathIndex, object.pointIndex)
                 });
             }
 
             if (point.t !== 'L') {
                 menuOptions.push({
                     name: 'Convert to simple point',
-                    clicked: () => this.convertPointToSimple(object.pointIndex)
+                    clicked: () => this.convertPointToSimple(object.pathIndex, object.pointIndex)
                 });
             }
             if (point.t !== 'B') {
                 menuOptions.push({
                     name: 'Convert to beizer point',
-                    clicked: () => this.convertPointToBeizer(object.pointIndex)
+                    clicked: () => this.convertPointToBeizer(object.pathIndex, object.pointIndex)
                 });
             }
 
             if (point.t !== 'A') {
                 menuOptions.push({
                     name: 'Convert to arc point',
-                    clicked: () => this.convertPointToArc(object.pointIndex)
+                    clicked: () => this.convertPointToArc(object.pathIndex, object.pointIndex)
                 });
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
         }
     }
 
-    breakCurve(pointIndex) {
-        this.item.shapeProps.points[pointIndex].break = true;
-        this.eventBus.emitItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.eventBus.emitSchemeChangeCommited();
-    }
-
-    repairBreak(pointIndex) {
-        if (this.item.shapeProps.points[pointIndex].break) {
-            this.item.shapeProps.points[pointIndex].break = false;
-        } else if (pointIndex < this.item.shapeProps.points.length - 1 && this.item.shapeProps.points[pointIndex + 1].break) {
-            this.item.shapeProps.points[pointIndex + 1].break = false;
+    breakCurve(pathIndex, pointIndex) {
+        const path = this.item.shapeProps.paths[pathIndex];
+        if (path.closed) {
+            this.breakClosedPath(path, pointIndex);
         } else {
-            return;
+            this.breakPathIntoTwo(path, pointIndex);
         }
+
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    deletePoint(pointIndex) {
-        this.item.shapeProps.points.splice(pointIndex, 1);
+    breakClosedPath(path, pointIndex) {
+        const points = [];
+        for (let j = 0; j < path.points.length; j++) {
+            const i = (j + pointIndex + 1) % path.points.length;
+            if (i !== pointIndex) {
+                points.push(path.points[i]);
+            }
+        }
+        path.closed = false;
+        path.points = points;
+    }
+
+    breakPathIntoTwo(path, pointIndex) {
+        if (pointIndex === 0) {
+            if (path.points.length < 3) {
+                return;
+            }
+            path.points.splice(0, 1);
+        } else if (pointIndex === 1) {
+            if (path.points.length < 4) {
+                return;
+            }
+            path.points.splice(0, 2);
+        } else if (pointIndex === path.points.length - 1) {
+            if (path.points.length < 3) {
+                return;
+            }
+            path.points.splice(pointIndex, 1);
+        } else if (pointIndex === path.points.length - 2) {
+            if (path.points.length < 4) {
+                return;
+            }
+            path.points.splice(pointIndex, 2);
+        } else {
+            const secondPath = {
+                closed: false,
+                points: path.points.splice(pointIndex+1, path.points.length - pointIndex - 1)
+            };
+            path.points.pop();
+            this.item.shapeProps.paths.push(secondPath);
+        }
+    }
+
+    deletePoint(pathIndex, pointIndex) {
+        this.item.shapeProps.paths[pathIndex].points.splice(pointIndex, 1);
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
@@ -671,17 +555,20 @@ export default class StateEditCurve extends State {
     }
 
     deleteSelectedPoints() {
-        const points = StoreUtils.getCurveEditPoints(this.store);
+        const paths = StoreUtils.getCurveEditPaths(this.store);
         
         const selectedIds = [];
-        forEach(points, p => {
-            if (p.selected) {
-                selectedIds.push(p.id);
-            }
+
+        paths.forEach((path, pathId) => {
+            path.points.forEach((point, pointId) => {
+                if (point.selected) {
+                    selectedIds.push({ pathId, pointId });
+                }
+            });
         });
 
-        forEach(selectedIds.sort().reverse(), pointIndex => {
-            this.item.shapeProps.points.splice(pointIndex, 1);
+        selectedIds.reverse().forEach(selection => {
+            this.item.shapeProps.paths[selection.pathId].points.splice(selection.pointId, 1);
         });
 
         this.eventBus.emitItemChanged(this.item.id);
@@ -703,15 +590,15 @@ export default class StateEditCurve extends State {
         const dx = localPoint.x - closestPoint.x;
         const dy = localPoint.y - closestPoint.y;
         const d = Math.sqrt(dx*dx + dy*dy);
-        if (d <= parseInt(this.item.shapeProps.strokeSize) + 1) {
-            const index = this.findClosestLineSegment(closestPoint.distance, this.item.shapeProps.points, this.shadowSvgPath);
-            this.item.shapeProps.points.splice(index + 1, 0, {
+        if (d <= parseInt(Math.max(0, this.item.shapeProps.strokeSize)) + 1) {
+            const {pathId, pointId} = this.findClosestLineSegment(closestPoint.distance, this.item.shapeProps.paths, this.shadowSvgPath);
+            this.item.shapeProps.paths[pathId].points.splice(pointId + 1, 0, {
                 x: closestPoint.x,
                 y: closestPoint.y,
                 t: 'L'
             });
-            if (this.item.shapeProps.points[index].t === 'B') {
-                this.convertPointToBeizer(index + 1);
+            if (this.item.shapeProps.paths[pathId].points[pointId].t === 'B') {
+                this.convertPointToBeizer(pathId, pointId + 1);
             }
             this.eventBus.emitItemChanged(this.item.id);
             this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
@@ -720,20 +607,20 @@ export default class StateEditCurve extends State {
         }
     }
 
-    findClosestLineSegment(distanceOnPath, points, svgPath) {
-        let i = points.length - 1;
-        while(i > 0) {
-            const closestPoint = myMath.closestPointOnPath(points[i].x, points[i].y, svgPath);
-            if (closestPoint.distance < distanceOnPath) {
-                return i;
+    findClosestLineSegment(distanceOnPath, paths, svgPath) {
+        for (let pathId = paths.length - 1; pathId >= 0; pathId--) {
+            for (let i = paths[pathId].points.length - 1; i >= 0; i--) {
+                const closestPoint = myMath.closestPointOnPath(paths[pathId].points[i].x, paths[pathId].points[i].y, svgPath);
+                if (closestPoint.distance < distanceOnPath) {
+                    return {pathId, pointId: i};
+                }
             }
-            i--;
         }
-        return 0;
+        return {pathId: 0, pointId: 0};
     }
 
-    convertPointToSimple(pointIndex) {
-        const point = this.item.shapeProps.points[pointIndex];
+    convertPointToSimple(pathId, pointIndex) {
+        const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         if (!point) {
             return;
         }
@@ -748,30 +635,30 @@ export default class StateEditCurve extends State {
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    convertPointToBeizer(pointIndex) {
-        const point = this.item.shapeProps.points[pointIndex];
+    convertPointToBeizer(pathId, pointIndex) {
+        const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         if (!point) {
             return;
         }
         
         let dx = 10, dy = 0;
-        if (this.item.shapeProps.points.length > 2) {
+        if (this.item.shapeProps.paths[pathId].points.length > 2) {
             // calculating dx and dy via previous and next points
             let prevPointId = pointIndex - 1;
             if (prevPointId < 0) {
-                prevPointId = this.item.shapeProps.points.length + prevPointId;
+                prevPointId = this.item.shapeProps.paths[pathId].points.length + prevPointId;
             }
             let nextPointId = pointIndex + 1;
-            if (nextPointId >= this.item.shapeProps.points.length - 1) {
-                nextPointId -= this.item.shapeProps.points.length - 1;
+            if (nextPointId >= this.item.shapeProps.paths[pathId].points.length - 1) {
+                nextPointId -= this.item.shapeProps.paths[pathId].points.length - 1;
             }
 
-            dx = (this.item.shapeProps.points[nextPointId].x - this.item.shapeProps.points[prevPointId].x) / 4;
-            dy = (this.item.shapeProps.points[nextPointId].y - this.item.shapeProps.points[prevPointId].y) / 4;
+            dx = (this.item.shapeProps.paths[pathId].points[nextPointId].x - this.item.shapeProps.paths[pathId].points[prevPointId].x) / 4;
+            dy = (this.item.shapeProps.paths[pathId].points[nextPointId].y - this.item.shapeProps.paths[pathId].points[prevPointId].y) / 4;
         }
 
         point.x1 = - dx;
@@ -781,11 +668,11 @@ export default class StateEditCurve extends State {
         point.t = 'B';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    convertPointToArc(pointIndex) {
+    convertPointToArc(pathId, pointIndex) {
         const point = this.item.shapeProps.points[pointIndex];
         let x1 = 10;
         let y1 = 10;
@@ -807,46 +694,49 @@ export default class StateEditCurve extends State {
         point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    handleCurvePointDrag(x, y, pointIndex) {
+    handleCurvePointDrag(x, y, pathIndex, pointIndex) {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.points[pointIndex];
+        const curvePoint = this.item.shapeProps.paths[pathIndex].points[pointIndex];
 
         const snappedLocalCurvePoint = this.snapCurvePoint(
+            pathIndex,
             pointIndex,
-            this.originalCurvePoints[pointIndex].x + localPoint.x - localOriginalPoint.x,
-            this.originalCurvePoints[pointIndex].y + localPoint.y - localOriginalPoint.y
+            this.originalCurvePaths[pathIndex].points[pointIndex].x + localPoint.x - localOriginalPoint.x,
+            this.originalCurvePaths[pathIndex].points[pointIndex].y + localPoint.y - localOriginalPoint.y
         );
 
         curvePoint.x = snappedLocalCurvePoint.x;
         curvePoint.y = snappedLocalCurvePoint.y;
 
-        const dx = curvePoint.x - this.originalCurvePoints[pointIndex].x;
-        const dy = curvePoint.y - this.originalCurvePoints[pointIndex].y;
+        const dx = curvePoint.x - this.originalCurvePaths[pathIndex].points[pointIndex].x;
+        const dy = curvePoint.y - this.originalCurvePaths[pathIndex].points[pointIndex].y;
 
         // dragging the rest of selected points
-        forEach(StoreUtils.getCurveEditPoints(this.store), storePoint => {
-            if (storePoint.selected && storePoint.id !== pointIndex) {
-                this.item.shapeProps.points[storePoint.id].x = this.originalCurvePoints[storePoint.id].x + dx;
-                this.item.shapeProps.points[storePoint.id].y = this.originalCurvePoints[storePoint.id].y + dy;
-                StoreUtils.updateCurveEditPoint(this.store, this.item, storePoint.id, this.item.shapeProps.points[storePoint.id]);
-            }
+        StoreUtils.getCurveEditPaths(this.store).forEach((path, _pathIndex) => {
+            path.points.forEach(storePoint => {
+                if (storePoint.selected && !(storePoint.id === pointIndex && pathIndex === _pathIndex)) {
+                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].x = this.originalCurvePaths[_pathIndex].points[storePoint.id].x + dx;
+                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].y = this.originalCurvePaths[_pathIndex].points[storePoint.id].y + dy;
+                    StoreUtils.updateCurveEditPoint(this.store, this.item, _pathIndex, storePoint.id, this.item.shapeProps.paths[_pathIndex].points[storePoint.id]);
+                }
+            });
         });
         
-        if (pointIndex === 0 || pointIndex === this.item.shapeProps.points.length - 1) {
-            this.handleEdgeCurvePointDrag(pointIndex, curvePoint, pointIndex === 0);
+        if (pointIndex === 0 || pointIndex === this.item.shapeProps.paths[pathIndex].points.length - 1) {
+            this.handleEdgeCurvePointDrag(pathIndex, pointIndex, curvePoint, pointIndex === 0);
         }
 
         this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
-    snapCurvePoint(pointId, localX, localY) {
+    snapCurvePoint(pathId, pointId, localX, localY) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
 
         let bestSnappedHorizontalProximity = 100000;
@@ -859,34 +749,35 @@ export default class StateEditCurve extends State {
 
         // first it should try to snap to its own curve points and only then to any other snappers of other items
         if (this.isSnappingToItemsEnabled()) {
-            forEach(this.item.shapeProps.points, (point, idx) => {
-                if (pointId === idx) {
-                    return;
-                }
+            this.item.shapeProps.paths.forEach((path, _pathIndex) => {
+                path.points.forEach((point, idx) => {
+                    if (pathId === _pathIndex && pointId === idx) {
+                        return;
+                    }
+                    const wp = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
 
-                const wp = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+                    let d = Math.abs(wp.y - worldCurvePoint.y);
+                    if (d < maxSnapProximity && d < bestSnappedHorizontalProximity) {
+                        bestSnappedHorizontalProximity = d;
+                        horizontalSnapper = {
+                            localValue: point.y,
+                            value: wp.y,
+                            item: this.item,
+                            snapperType: 'horizontal'
+                        };
+                    }
 
-                let d = Math.abs(wp.y - worldCurvePoint.y);
-                if (d < maxSnapProximity && d < bestSnappedHorizontalProximity) {
-                    bestSnappedHorizontalProximity = d;
-                    horizontalSnapper = {
-                        localValue: point.y,
-                        value: wp.y,
-                        item: this.item,
-                        snapperType: 'horizontal'
-                    };
-                }
-
-                d = Math.abs(wp.x - worldCurvePoint.x);
-                if (d < maxSnapProximity && d < bestSnappedVerticalProximity) {
-                    bestSnappedVerticalProximity = d;
-                    verticalSnapper = {
-                        localValue: point.x,
-                        value: wp.x,
-                        item: this.item,
-                        snapperType: 'vertical'
-                    };
-                }
+                    d = Math.abs(wp.x - worldCurvePoint.x);
+                    if (d < maxSnapProximity && d < bestSnappedVerticalProximity) {
+                        bestSnappedVerticalProximity = d;
+                        verticalSnapper = {
+                            localValue: point.x,
+                            value: wp.x,
+                            item: this.item,
+                            snapperType: 'vertical'
+                        };
+                    }
+                });
             });
         }
 
@@ -943,7 +834,7 @@ export default class StateEditCurve extends State {
      * @param {Point} curvePoint 
      * @param {Boolean} isSource 
      */
-    handleEdgeCurvePointDrag(pointIndex, curvePoint, isSource) {
+    handleEdgeCurvePointDrag(pathIndex, pointIndex, curvePoint, isSource) {
         if (this.item.shape !== 'connector') {
             // should not do anything since this is not a connecytor but a regular curve
             // regular curves should not be allowed to attach to other items
@@ -992,13 +883,13 @@ export default class StateEditCurve extends State {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, curvePoint);
     }
 
     handleCurveControlPointDrag(x, y, event) {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.points[this.draggedObject.pointIndex];
+        const curvePoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
         const index = this.draggedObject.controlPointIndex;
         const oppositeIndex = index === 1 ? 2: 1;
 
@@ -1007,8 +898,9 @@ export default class StateEditCurve extends State {
 
         const snappedLocalAbsoluteCurvePoint = this.snapCurvePoint(
             -1,
-            curvePoint.x + this.originalCurvePoints[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
-            curvePoint.y + this.originalCurvePoints[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
+            -1,
+            curvePoint.x + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
+            curvePoint.y + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
         );
 
         curvePoint[`x${index}`] = snappedLocalAbsoluteCurvePoint.x - curvePoint.x;
@@ -1019,17 +911,18 @@ export default class StateEditCurve extends State {
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pointIndex, curvePoint);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pathIndex, this.draggedObject.pointIndex, curvePoint);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
     submitItem() {
-        if (this.item.shapeProps.points.length < 2) {
-            this.schemeContainer.deleteItem(this.item);
-            this.schemeContainer.reindexItems();
-            this.reset();
-            return;
-        }
+        //TODO reimplement proper clean up when most points are deleted
+        // if (this.item.shapeProps.points.length < 2) {
+        //     this.schemeContainer.deleteItem(this.item);
+        //     this.schemeContainer.reindexItems();
+        //     this.reset();
+        //     return;
+        // }
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
@@ -1064,79 +957,21 @@ export default class StateEditCurve extends State {
 
         if (!inclusive) {
             StoreUtils.resetCurveEditPointSelection(this.store);
+            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
         }
 
-        forEach(this.item.shapeProps.points, (point, pointId) => {
-            const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
-            if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
-                StoreUtils.selectCurveEditPoint(this.store, pointId, true);
-            }
+        this.item.shapeProps.paths.forEach((path, pathId) => {
+            path.points.forEach((point, pointId) => {
+                const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+                if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
+                    StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
+                }
+            });
         });
+        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
     }
 
     proposeNewDestinationItemForConnector(item, mx, my) {
         StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my);
-    }
-
-    /**
-     * Invoked when user selects an item from ConnectorDestinationProposal panel
-     * @param {Item} dstItem 
-     */
-    submitConnectorDestinationItem(item) {
-        if (this.item.shape !== 'connector') {
-            return;
-        }
-        item = utils.clone(item);
-
-        if (item.shape === 'uml_actor') {
-            // uml_actor item looks ugly when stretched wide
-            item.area.w = 50;
-            item.area.h = 100;
-        } else {
-            item.area.w = 100;
-            item.area.h = 50;
-        }
-
-
-        const lp0 = this.item.shapeProps.points[this.item.shapeProps.points.length - 2];
-        const lp1 = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
-        const p0 = worldPointOnItem(lp0.x, lp0.y, this.item);
-        const p1 = worldPointOnItem(lp1.x, lp1.y, this.item);
-
-        const N = myMath.normalizedVector(p1.x - p0.x, p1.y - p0.y);
-
-        // this is a bit non-intuitive but this formula works in such a way
-        // that based on the normal we identify which side (width or height) of the item
-        // should take greater presense in calculation of the "r"
-        // so for normal [1, 0] it will only take width, for [0, 1] it will take height
-        // This gives us a better and consistent experience in the end
-        const r = (Math.abs(N.x) * item.area.w + Math.abs(N.y) * item.area.h) / 2;
-        let proposedPoint = {x: p1.x, y: p0.y};
-        if (N) {
-            proposedPoint.x = p1.x + N.x * r;
-            proposedPoint.y = p1.y + N.y * r;
-        }
-
-        item.area.x = proposedPoint.x - item.area.w / 2;
-        item.area.y = proposedPoint.y - item.area.h / 2;
-
-
-        const destinationItem = this.schemeContainer.addItem(item);
-
-        const closestPoint = this.schemeContainer.closestPointToItemOutline(destinationItem, p1, {});
-        const localPoint = localPointOnItem(closestPoint.x, closestPoint.y, this.item);
-
-        // modifying last point
-        lp1.x = localPoint.x;
-        lp1.y = localPoint.y;
-
-        // this is a hack but have to do it as when user cancels state edit curve
-        // it actually deletes the last point since it is considered as not submited
-        this.item.shapeProps.points.push(utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]));
-        
-        this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
-        this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
-        this.item.name += destinationItem.name;
-        this.cancel();
     }
 }

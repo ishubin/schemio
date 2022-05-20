@@ -319,12 +319,14 @@ export default {
                 if (elementType === 'curve-point') {
                     return {
                         type: elementType,
-                        pointIndex: parseInt(element.getAttribute('data-curve-point-index'))
+                        pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
+                        pathIndex: parseInt(element.getAttribute('data-curve-path-index'))
                     };
                 } else if (elementType === 'curve-control-point') {
                     return {
                         type: elementType,
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
+                        pathIndex: parseInt(element.getAttribute('data-curve-path-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
                     };
                 } else if (elementType === 'multi-item-edit-box'

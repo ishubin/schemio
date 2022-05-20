@@ -80,6 +80,7 @@ const EventBus = new Vue({
 
             CURVE_EDITED: 'curve-edited',
             CURVE_EDIT_STOPPED: 'curve-edit-stopped',
+            CURVE_EDIT_POINTS_UPDATED: 'curve-edit-points-updated',
 
 
             CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
