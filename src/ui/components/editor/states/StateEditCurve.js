@@ -405,33 +405,39 @@ export default class StateEditCurve extends State {
 
     handleRightClick(x, y, mx, my, object) {
         const selectedPoints = [];
-        StoreUtils.getCurveEditPaths(this.store).forEach(path => {
-            path.points.forEach(point => {
+        StoreUtils.getCurveEditPaths(this.store).forEach((path, pathId) => {
+            path.points.forEach((point, pointId) => {
                 if (point.selected) {
-                    selectedPoints.push(point);
+                    selectedPoints.push({pathId, pointId});
                 }
             });
         });
 
         let clickedOnSelectedPoint = false;
         for (let i = 0; i < selectedPoints.length && !clickedOnSelectedPoint; i++) {
-            clickedOnSelectedPoint = object.pointIndex === selectedPoints[i].id;
+            clickedOnSelectedPoint = object.pathIndex === selectedPoints[i].pathId && object.pointIndex === selectedPoints[i].pointId;
         }
         
         if (selectedPoints.length > 1 && clickedOnSelectedPoint) {
             const menuOptions = [{
                 name: 'Delete points',
-                clicked: () => this.deleteSelectedPoints()
+                clicked: () => this.deleteSelectedPoints(selectedPoints)
             }, {
                 name: 'Convert to beizer',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.pathId, p.pointId))
             }, {
                 name: 'Convert to simple',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToSimple(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToSimple(p.pathId, p.pointId))
             }, {
                 name: 'Convert to arc',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.id))
+                clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.pathId, p.pointId))
             }];
+            if (selectedPoints.length === 2) {
+                menuOptions.push({
+                    name: 'Merge points',
+                    clicked: () => this.mergePoints(selectedPoints[0], selectedPoints[1])
+                })
+            }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
             return;
         }
@@ -489,6 +495,40 @@ export default class StateEditCurve extends State {
         }
     }
 
+    mergePoints(pref1, pref2) {
+        if (pref1.pathId === pref2.pathId) {
+            this.mergePointsInSamePath(this.item.shapeProps.paths[pref1.pathId], pref1.pointId, pref2.pointId);
+        }
+    }
+
+    mergePointsInSamePath(path, p1id, p2id) {
+        if (path.closed) {
+            return;
+        }
+        const firstPointId = Math.min(p1id, p2id);
+        if (firstPointId !== 0) {
+            return;
+        }
+        const lastPointId = Math.max(p1id, p2id);
+        if (lastPointId !== path.points.length - 1) {
+            return;
+        }
+        const firstPoint = path.points[firstPointId];
+        const lastPoint = path.points[lastPointId];
+
+        const mx = (firstPoint.x + lastPoint.x) / 2;
+        const my = (firstPoint.y + lastPoint.y) / 2;
+        firstPoint.x = mx;
+        firstPoint.y = my;
+        path.points.pop();
+        path.closed = true;
+
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
     breakCurve(pathIndex, pointIndex) {
         const path = this.item.shapeProps.paths[pathIndex];
         if (path.closed) {
@@ -497,8 +537,8 @@ export default class StateEditCurve extends State {
             this.breakPathIntoTwo(path, pointIndex);
         }
 
-        this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
     }
@@ -554,20 +594,8 @@ export default class StateEditCurve extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    deleteSelectedPoints() {
-        const paths = StoreUtils.getCurveEditPaths(this.store);
-        
-        const selectedIds = [];
-
-        paths.forEach((path, pathId) => {
-            path.points.forEach((point, pointId) => {
-                if (point.selected) {
-                    selectedIds.push({ pathId, pointId });
-                }
-            });
-        });
-
-        selectedIds.reverse().forEach(selection => {
+    deleteSelectedPoints(pointReferences) {
+        pointReferences.reverse().forEach(selection => {
             this.item.shapeProps.paths[selection.pathId].points.splice(selection.pointId, 1);
         });
 
