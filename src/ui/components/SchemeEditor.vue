@@ -424,6 +424,7 @@ import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
 import StateEditCurve from './editor/states/StateEditCurve.js';
+import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
@@ -435,6 +436,7 @@ const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
     createItem: new StateCreateItem(EventBus, store),
     editCurve: new StateEditCurve(EventBus, store),
+    connecting: new StateConnecting(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
     cropImage: new StateCropImage(EventBus, store),
@@ -885,15 +887,15 @@ export default {
         switchStateCreateItem(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
-            if (item.shape === 'curve' || item.shape === 'connector') {
+            if (item.shape === 'curve') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
-                // making sure every new curve starts non-closed
-                if (item.shape === 'curve') {
-                    item.shapeProps.closed = false;
-                }
                 this.state = 'editCurve';
                 EventBus.emitCurveEdited(item);
+            } else if (item.shape === 'connector') {
+                item.shapeProps.points = [];
+                this.state = 'connecting';
+                states['connecting'].setItem(item);
             } else {
                 this.state = 'createItem';
             }
@@ -943,11 +945,10 @@ export default {
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
-            states.editCurve.reset();
-            const connector = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
+            states.connecting.reset();
+            const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
-            this.setCurveEditItem(connector);
-            this.state = 'editCurve';
+            this.state = 'connecting';
         },
 
         onDrawColorPicked(color) {

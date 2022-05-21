@@ -675,6 +675,7 @@ export default class StateEditCurve extends State {
     }
 
     insertPointAtCoords(x, y) {
+        //TODO refactor it, instead of guessing the clicked segment we can just build separate segments of path in curve edit box
         const shape = Shape.find(this.item.shape);
         if (!shape) {
             return;
