@@ -26,18 +26,18 @@ export default class StateDraw extends State {
         this.name = 'draw';
         this.item = null;
         this.isDrawing = false;
-        this.shouldBreakNextPoint = false;
         this.smartDrawing = false;
         this.smartCancelTimeout = 1000;
         this.smartCancelTimeoutId = null;
         this.strokeColor = null;
+        this.currentPathId = 0;
     }
 
     reset() {
         this.item = null;
         this.isDrawing = false;
-        this.shouldBreakNextPoint = false;
         this.smartDrawing = false;
+        this.currentPathId = 0;
     }
 
     initSmartDraw() {
@@ -52,19 +52,31 @@ export default class StateDraw extends State {
 
         if (!this.item) {
             this.initFirstClick(x, y);
-        } else if (this.item.shapeProps.points.length > 0) {
-            this.shouldBreakNextPoint = true;
+        } else {
+            this.item.shapeProps.paths.push({
+                closed: false,
+                points: [{
+                    x: this.round(x),
+                    y: this.round(y),
+                    t: 'L'
+                }]
+            });
+            this.currentPathId = this.item.shapeProps.paths.length - 1;
         }
         this.isDrawing = true;
         EventBus.emitItemChanged(this.item.id, 'shapeProps.points');
     }
 
     initFirstClick(x, y) {
+        this.currentPathId = 0;
         const item = {
             name: this.schemeContainer.generateUniqueName('Drawing'),
             shape: 'curve',
             shapeProps: {
-                points: [],
+                paths: [{
+                    closed: false,
+                    points: []
+                }],
                 strokeSize: 3,
                 closed: false,
                 fill: {type: 'none'}
@@ -79,7 +91,7 @@ export default class StateDraw extends State {
 
         this.item = item;
 
-        this.item.shapeProps.points.push({
+        this.item.shapeProps.paths[0].points.push({
             x: this.round(x),
             y: this.round(y),
             t: 'L'
@@ -95,7 +107,7 @@ export default class StateDraw extends State {
                 return;
             }
 
-            const lastPoint = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
+            const lastPoint = this.item.shapeProps.paths[this.currentPathId].points[this.item.shapeProps.paths[this.currentPathId].points.length - 1];
             const px = this.round(x);
             const py = this.round(y);
             if (!myMath.sameFloatingValue(px, lastPoint.x) || !myMath.sameFloatingValue(py, lastPoint.y) ) {
@@ -104,20 +116,16 @@ export default class StateDraw extends State {
                     y: py,
                     t: 'L'
                 };
-                if (this.shouldBreakNextPoint) {
-                    point.break = true;
-                    this.shouldBreakNextPoint = false;
-                }
-                this.item.shapeProps.points.push(point);
+                this.item.shapeProps.paths[this.currentPathId].points.push(point);
                 
-                EventBus.emitItemChanged(this.item.id, 'shapeProps.points');
+                EventBus.emitItemChanged(this.item.id, `shapeProps.paths`);
             }
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         this.isDrawing = false;
-        EventBus.emitItemChanged(this.item.id, 'shapeProps.points');
+        EventBus.emitItemChanged(this.item.id, 'shapeProps.paths');
 
         if (this.smartDrawing && !this.smartCancelTimeoutId) {
             this.smartCancelTimeoutId = setTimeout(() => {
@@ -154,13 +162,13 @@ export default class StateDraw extends State {
 
     submitDrawing() {
         if (this.item) {
-            if (this.item.shapeProps.points.length <= 1) {
-                this.schemeContainer.deleteItem(this.item);
-                this.schemeContainer.reindexItems();
-            } else if (this.smartDrawing) {
+            //TODO proper cleanup of all paths if they have less than two points
+            if (this.smartDrawing) {
                this.processSmartDrawing(); 
             } else {
-                this.item.shapeProps.points = simplifyCurvePoints(this.item.shapeProps.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+                this.item.shapeProps.paths.forEach(path => {
+                    path.points = simplifyCurvePoints(path.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+                });
 
                 this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
                 this.schemeContainer.reindexItems();
@@ -248,7 +256,7 @@ export default class StateDraw extends State {
                         curves[i - 1].points.push(p);
                     });
 
-                    //TODO instead of recalculating boundar box - we can optimize it by merging areas of the two merged curves, but I am too lazy right now :)
+                    //TODO instead of recalculating boundar box - we can optimize it by merging areas of the two merged curves
                     curves[i - 1].area = this.getCurveBoundaryBox(curves[i - 1].points);
                 }
             }
