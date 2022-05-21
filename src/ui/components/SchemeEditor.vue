@@ -559,10 +559,8 @@ export default {
         EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
         EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$on(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -593,10 +591,8 @@ export default {
         EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
         EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$off(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -932,15 +928,6 @@ export default {
             states[this.state].cancel();
             this.state = 'draw';
             states.draw.reset();
-        },
-
-        switchStateSmartDrawing() {
-            EventBus.emitItemsHighlighted([]);
-
-            states[this.state].cancel();
-            this.state = 'draw';
-            states.draw.reset();
-            states.draw.initSmartDraw();
         },
 
         onStopDrawing() {
@@ -1864,7 +1851,9 @@ export default {
         },
 
         onDrawColorPicked(color) {
-            EventBus.emitDrawColorPicked(color);
+            if (this.state === 'draw') {
+                states.draw.pickColor(color);
+            }
         },
 
         onSvgSizeUpdated({width, height}) {

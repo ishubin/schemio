@@ -16,7 +16,6 @@ const EventBus = new Vue({
             START_CONNECTING_ITEM: 'start-connecting-item',
             START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',
-            START_SMART_DRAWING: 'start-smart-drawing',
             STOP_DRAWING: 'stop-drawing',
 
             COMPONENT_LOAD_REQUESTED: 'component-load-requested',
@@ -95,9 +94,6 @@ const EventBus = new Vue({
 
             MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED: 'multi-item-edit-box-items-updated',
             MULTI_ITEM_EDIT_BOX_AREA_UPDATED: 'multi-item-edit-box-area-updated',
-
-            // emited when user is drawing and clicks a color option in a draw panel (side panel)
-            DRAW_COLOR_PICKED: 'draw-color-picked',
 
             ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
 
@@ -201,10 +197,6 @@ const EventBus = new Vue({
 
         emitItemSurroundCreated(item, boundingBox, padding) {
             this.$emit(EventBus.ITEM_SURROUND_CREATED, item, boundingBox, padding);
-        },
-
-        emitDrawColorPicked(color) {
-            this.$emit(EventBus.DRAW_COLOR_PICKED, color);
         },
 
         emitBringToViewAnimated(area) {

@@ -23,13 +23,6 @@
                     >
                     <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateSmartDrawing()" title="Smart Draw"
-                    @mouseover="showPreviewGif('smart-draw')"
-                    @mouseleave="stopPreviewGif('smart-draw')"
-                    >
-
-                    <img src="/assets/images/icons/smart-draw.svg" width="35" height="30"/>
-                </div>
             </div>
 
             <panel v-for="panel in filteredItemPanels" v-if="panel.items.length > 0" :name="panel.name">
@@ -153,7 +146,6 @@ import ItemSvg from './items/ItemSvg.vue';
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
     'draw': 'Allows to draw complex shapes with mouse. Once the drawing is submited - it will optimize its points so that you can easily edit it later',
-    'smart-draw': 'Identifies objects by the drawings. At this moment this feature is still experimental and is limited in the amount of shapes it is able to recognize',
 }
 
 const mouseOffset = 2;
@@ -466,10 +458,6 @@ export default {
 
         initiateDrawing(name) {
             EventBus.$emit(EventBus.START_DRAWING);
-        },
-
-        initiateSmartDrawing(name) {
-            EventBus.$emit(EventBus.START_SMART_DRAWING);
         },
 
         preventEvent(event) {
