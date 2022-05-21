@@ -498,18 +498,20 @@ export default class StateEditCurve extends State {
     mergePoints(pref1, pref2) {
         if (pref1.pathId === pref2.pathId) {
             this.mergePointsInSamePath(this.item.shapeProps.paths[pref1.pathId], pref1.pointId, pref2.pointId);
+        } else {
+            this.mergePointsOfTwoPaths(pref1.pathId, pref1.pointId, pref2.pathId, pref2.pointId);
         }
     }
 
-    mergePointsInSamePath(path, p1id, p2id) {
+    mergePointsInSamePath(path, pId1, pId2) {
         if (path.closed) {
             return;
         }
-        const firstPointId = Math.min(p1id, p2id);
+        const firstPointId = Math.min(pId1, pId2);
         if (firstPointId !== 0) {
             return;
         }
-        const lastPointId = Math.max(p1id, p2id);
+        const lastPointId = Math.max(pId1, pId2);
         if (lastPointId !== path.points.length - 1) {
             return;
         }
@@ -522,6 +524,60 @@ export default class StateEditCurve extends State {
         firstPoint.y = my;
         path.points.pop();
         path.closed = true;
+
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
+    mergePointsOfTwoPaths(pathId1, pId1, pathId2, pId2) {
+        const path1 = this.item.shapeProps.paths[pathId1];
+        const path2 = this.item.shapeProps.paths[pathId2];
+
+        if (path1.closed || path2.closed) {
+            return;
+        }
+
+        // checking that the specified points are edge points
+        if (!(pId1 === 0 || pId1 === path1.points.length - 1)) {
+            return;
+        }
+        if (!(pId2 === 0 || pId2 === path2.points.length - 1)) {
+            return;
+        }
+
+        const p1 = path1.points[pId1];
+        const p2 = path2.points[pId2];
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+
+        if (pId2 === 0) {
+            if (pId1 === 0) {
+                path1.points = path1.points.reverse();
+            }
+            path1.points.pop();
+            path2.points[0].x = mx;
+            path2.points[0].y = my;
+            path1.points = path1.points.concat(path2.points);
+            this.item.shapeProps.paths.splice(pathId2, 1);
+        } else if (pId1 === 0) {
+            if (pId2 === 0) {
+                path2.points = path2.points.reverse();
+            }
+            path2.points.pop();
+            path1.points[0].x = mx;
+            path1.points[0].y = my;
+            path2.points = path2.points.concat(path1.points);
+            this.item.shapeProps.paths.splice(pathId1, 1);
+        } else {
+            path2.points = path2.points.reverse();
+            path1.points.pop();
+            path2.points[0].x = mx;
+            path2.points[0].y = my;
+            path1.points = path1.points.concat(path2.points);
+            this.item.shapeProps.paths.splice(pathId2, 1);
+        }
 
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
