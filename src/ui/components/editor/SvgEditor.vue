@@ -316,7 +316,12 @@ export default {
         identifyElement(element, point) {
             if (element) {
                 const elementType = element.getAttribute('data-type');
-                if (elementType === 'curve-point') {
+                if (elementType === 'curve-path') {
+                    return {
+                        type: elementType,
+                        pathIndex: parseInt(element.getAttribute('data-curve-path-index'))
+                    };
+                } else if (elementType === 'curve-point') {
                     return {
                         type: elementType,
                         pointIndex: parseInt(element.getAttribute('data-curve-point-index')),

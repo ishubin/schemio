@@ -3,6 +3,14 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
+        <path v-for="path in pathSelectors"
+            data-type="curve-path"
+            :data-curve-path-index="path.id"
+            :d="path.path"
+            fill="none"
+            stroke="rgba(0,0,0,0.0)"
+            :stroke-width="`${strokeSize}px`"
+            />
         <g v-for="(path, pathId) in curvePaths">
             <g v-for="(point, pointId) in path.points" class="curve-control-points">
                 <g v-if="point.t === 'B'">
@@ -55,7 +63,10 @@
 </template>
 <script>
 import myMath from '../../myMath';
+import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import utils from '../../utils';
 import EventBus from './EventBus';
+import { computeCurvePath } from './items/shapes/StandardCurves';
 export default {
     props: ['item', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
     mounted() {
@@ -67,9 +78,33 @@ export default {
         EventBus.$off(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
     },
 
+    data() {
+        return {
+            pathSelectors: this.buildPathSelectors()
+        }
+    },
+
     methods: {
         onItemChanged() {
+            this.pathSelectors = this.buildPathSelectors();
             this.$forceUpdate();
+        },
+
+        buildPathSelectors() {
+            const paths = [];
+            this.item.shapeProps.paths.forEach((path, pathId) => {
+                paths.push({
+                    id: pathId,
+                    path: computeCurvePath(path.points.map(point => {
+                        const p = utils.clone(point);
+                        const worldPoint = worldPointOnItem(p.x, p.y, this.item);
+                        p.x = worldPoint.x;
+                        p.y = worldPoint.y;
+                        return p;
+                    }), path.closed)
+                });
+            });
+            return paths;
         },
 
         update() {
@@ -83,6 +118,10 @@ export default {
                 return this.zoom;
             }
             return 1.0;
+        },
+
+        strokeSize() {
+            return Math.max(1, this.item.shapeProps.strokeSize) + 2;
         },
 
         curvePaths() {
