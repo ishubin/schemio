@@ -66,6 +66,11 @@ export function localPointOnItem(x, y, item) {
     return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
+export function localPointOnItemToLocalPointOnOtherItem(x, y, srcItem, dstItem) {
+    const worldPoint = worldPointOnItem(x, y, srcItem);
+    return localPointOnItem(worldPoint.x, worldPoint.y, dstItem);
+}
+
 export function worldAngleOfItem(item) {
     const v = worldVectorOnItem(item.area.w, 0, item);
     return myMath.fullAngleForVector(v.x, v.y) * 180 / Math.PI;

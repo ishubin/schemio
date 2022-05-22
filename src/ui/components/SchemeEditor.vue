@@ -382,7 +382,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import CurveEditBox from './editor/CurveEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem, localPointOnItemToLocalPointOnOtherItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -1961,6 +1961,17 @@ export default {
                         clicked: () => EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, item)
                     });
                 }
+            } else {
+                let allCurves = true;
+                for (let i = 0; i < this.schemeContainer.multiItemEditBox.items.length && allCurves; i++) {
+                    allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'curve';
+                }
+                if (allCurves) {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Merge paths',
+                        clicked: () => this.mergeCurves(item, this.schemeContainer.multiItemEditBox.items)
+                    })
+                }
             }
 
             this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
@@ -2046,7 +2057,6 @@ export default {
                 });
             }
 
-            // const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
             this.customContextMenu.mouseX = mouseX + 5;
             this.customContextMenu.mouseY = mouseY + 5;
             this.customContextMenu.id = shortid.generate();
@@ -2095,6 +2105,43 @@ export default {
                 });
             }
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+        },
+
+        mergeCurves(mainItem, allItems) {
+            allItems.reverse();
+            for (let i = allItems.length - 1; i >= 0; i--) {
+                if (mainItem.id === allItems[i].id) {
+                    allItems.splice(i, 1);
+                } else {
+                    allItems[i].shapeProps.paths.forEach(path => {
+                        const newPath = {
+                            closed: path.closed,
+                            points: []
+                        };
+                        path.points.forEach(point => {
+                            const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
+                            p.t = point.t;
+                            if (point.hasOwnProperty('x1')) {
+                                // p.x1 = point.x1;
+                                // p.y1 = point.y1;
+                                const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
+                                p.x1 = p1.x - p.x;
+                                p.y1 = p1.y - p.y;
+                            }
+                            if (point.hasOwnProperty('x2')) {
+                                // p.x2 = point.x2;
+                                // p.y2 = point.y2;
+                                const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
+                                p.x2 = p2.x - p.x;
+                                p.y2 = p2.y - p.y;
+                            }
+                            newPath.points.push(p);
+                        });
+                        mainItem.shapeProps.paths.push(newPath);
+                    });
+                }
+            }
+            this.schemeContainer.deleteItems(allItems);
         },
 
         /**
