@@ -9,6 +9,7 @@ import Shape from '../items/shapes/Shape.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
+import { worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -480,7 +481,7 @@ export default class StateEditCurve extends State {
 
             if (! (prevPoint && prevPoint.break) && ! (nextPoint && nextPoint.break)){
                 menuOptions.push({
-                    name: 'Break curve',
+                    name: 'Break path',
                     clicked: () => this.breakCurve(object.pathIndex, object.pointIndex)
                 });
             }
@@ -505,7 +506,52 @@ export default class StateEditCurve extends State {
                 });
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+
+        } else if (object && object.type === 'curve-path') {
+            this.eventBus.emitCustomContextMenuRequested(mx, my, [{
+                name: 'Extract selected path',
+                clicked: () => this.extractPath(object.pathIndex)
+            }]);
         }
+    }
+
+    extractPath(pathId) {
+        if (this.item.shapeProps.paths.length < 2) {
+            return;
+        }
+        const path = this.item.shapeProps.paths[pathId];
+        const newItem = utils.clone(this.item);
+        delete newItem.id;
+        newItem.meta = {};
+        newItem.area = {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5};
+        newItem.name = this.item.name + ' segment';
+        newItem.description = '';
+        newItem.childItems = [];
+        newItem._childItems = [];
+        newItem.shapeProps.paths = [{
+            closed: path.closed,
+            points: path.points.map(point => {
+                const wp = worldPointOnItem(point.x, point.y, this.item);
+                wp.t = point.t;
+                if (point.hasOwnProperty('x1')) {
+                    const wp1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, this.item);
+                    wp.x1 = wp1.x - wp.x;
+                    wp.y1 = wp1.y - wp.y;
+                }
+                if (point.hasOwnProperty('x2')) {
+                    const wp2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, this.item);
+                    wp.x2 = wp2.x - wp.x;
+                    wp.y2 = wp2.y - wp.y;
+                }
+                return wp;
+            })
+        }];
+
+        this.item.shapeProps.paths.splice(pathId, 1);
+        this.cancel();
+        const item = this.schemeContainer.addItem(newItem);
+        this.schemeContainer.readjustItem(item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.schemeContainer.selectItem(item);
     }
 
     mergePoints(pref1, pref2) {
