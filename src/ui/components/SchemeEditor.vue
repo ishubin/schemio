@@ -430,6 +430,14 @@ import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 
+const IS_NOT_SOFT = false;
+const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
+    id: '',
+    moved: true,
+    rotated: false,
+    resized: false
+};
+
 const userEventBus = new UserEventBus();
 
 const states = {
@@ -2141,7 +2149,9 @@ export default {
                     });
                 }
             }
+            this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
+            this.schemeContainer.selectItem(mainItem);
         },
 
         /**
