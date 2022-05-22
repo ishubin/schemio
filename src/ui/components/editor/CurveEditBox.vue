@@ -9,7 +9,7 @@
             :data-curve-path-segment-index="segment.segmentId"
             :d="segment.path"
             fill="none"
-            stroke="rgba(255,0,0,1.0)"
+            stroke="rgba(0,0,0,0.0)"
             :stroke-width="`${strokeSize}px`"
             />
         <g v-for="(path, pathId) in curvePaths">
