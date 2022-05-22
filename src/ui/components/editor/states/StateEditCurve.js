@@ -817,11 +817,11 @@ export default class StateEditCurve extends State {
     }
 
     convertPointToArc(pathId, pointIndex) {
-        const point = this.item.shapeProps.points[pointIndex];
+        const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         let x1 = 10;
         let y1 = 10;
-        if (pointIndex <  this.item.shapeProps.points.length - 1) {
-            const nextPoint = this.item.shapeProps.points[pointIndex + 1];
+        if (pointIndex <  this.item.shapeProps.paths[pathId].points.length - 1) {
+            const nextPoint = this.item.shapeProps.paths[pathId].points[pointIndex + 1];
             const xm = (nextPoint.x + point.x) / 2;
             const ym = (nextPoint.y + point.y) / 2;
             const vx = xm - point.x;
@@ -838,7 +838,7 @@ export default class StateEditCurve extends State {
         point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.points[pointIndex]);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
     }
 
