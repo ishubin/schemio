@@ -509,8 +509,11 @@ export default class StateEditCurve extends State {
 
         } else if (object && object.type === 'curve-path') {
             this.eventBus.emitCustomContextMenuRequested(mx, my, [{
-                name: 'Extract selected path',
+                name: 'Extract path',
                 clicked: () => this.extractPath(object.pathIndex)
+            }, {
+                name: 'Invert path',
+                clicked: () => this.invertPath(object.pathIndex)
             }]);
         }
     }
@@ -552,6 +555,13 @@ export default class StateEditCurve extends State {
         const item = this.schemeContainer.addItem(newItem);
         this.schemeContainer.readjustItem(item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.selectItem(item);
+    }
+
+    invertPath(pathId) {
+        this.item.shapeProps.paths[pathId].points.reverse();
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     mergePoints(pref1, pref2) {
