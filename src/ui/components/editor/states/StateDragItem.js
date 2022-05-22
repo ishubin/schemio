@@ -588,6 +588,7 @@ export default class StateDragItem extends State {
     }
     
     handleDoubleClickOnConnector(item, x, y) {
+        //TODO refactor it to use path segments in order to identify clicked segment
         const shape = Shape.find(item.shape);
         if (!shape) {
             return;

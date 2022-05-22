@@ -9,7 +9,7 @@ import Shape from '../items/shapes/Shape.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
-import { worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -170,10 +170,9 @@ export default class StateEditCurve extends State {
         if (this.creatingNewPoints) {
             return;
         }
-        if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
-            return;
+        if (object && object.type === 'curve-path') {
+            this.insertPointAtCoords(x, y, object.pathIndex, object.segmentIndex);
         }
-        this.insertPointAtCoords(x, y);
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -736,35 +735,20 @@ export default class StateEditCurve extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    insertPointAtCoords(x, y) {
-        //TODO refactor it, instead of guessing the clicked segment we can just build separate segments of path in curve edit box
-        const shape = Shape.find(this.item.shape);
-        if (!shape) {
-            return;
+    insertPointAtCoords(x, y, pathId, segmentId) {
+        const p = localPointOnItem(x, y, this.item);
+        this.item.shapeProps.paths[pathId].points.splice(segmentId + 1, 0, {
+            x: p.x,
+            y: p.y,
+            t: 'L'
+        });
+        if (this.item.shapeProps.paths[pathId].points[segmentId].t === 'B') {
+            this.convertPointToBeizer(pathId, segmentId + 1);
         }
-        this.shadowSvgPath.setAttribute('d', shape.computeOutline(this.item));
-        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const closestPoint = myMath.closestPointOnPath(localPoint.x, localPoint.y, this.shadowSvgPath);
-
-        // checking how far away from the curve stroke has the user clicked
-        const dx = localPoint.x - closestPoint.x;
-        const dy = localPoint.y - closestPoint.y;
-        const d = Math.sqrt(dx*dx + dy*dy);
-        if (d <= parseInt(Math.max(0, this.item.shapeProps.strokeSize)) + 1) {
-            const {pathId, pointId} = this.findClosestLineSegment(closestPoint.distance, this.item.shapeProps.paths, this.shadowSvgPath);
-            this.item.shapeProps.paths[pathId].points.splice(pointId + 1, 0, {
-                x: closestPoint.x,
-                y: closestPoint.y,
-                t: 'L'
-            });
-            if (this.item.shapeProps.paths[pathId].points[pointId].t === 'B') {
-                this.convertPointToBeizer(pathId, pointId + 1);
-            }
-            this.eventBus.emitItemChanged(this.item.id);
-            this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-            this.eventBus.emitSchemeChangeCommited();
-        }
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
     }
 
     findClosestLineSegment(distanceOnPath, paths, svgPath) {

@@ -319,7 +319,8 @@ export default {
                 if (elementType === 'curve-path') {
                     return {
                         type: elementType,
-                        pathIndex: parseInt(element.getAttribute('data-curve-path-index'))
+                        pathIndex: parseInt(element.getAttribute('data-curve-path-index')),
+                        segmentIndex: parseInt(element.getAttribute('data-curve-path-segment-index')),
                     };
                 } else if (elementType === 'curve-point') {
                     return {
