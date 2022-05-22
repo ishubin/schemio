@@ -417,7 +417,7 @@ export default class StateEditCurve extends State {
         this.softReset();
     }
 
-    handleRightClick(x, y, mx, my, object) {
+    getSelectedPoints() {
         const selectedPoints = [];
         StoreUtils.getCurveEditPaths(this.store).forEach((path, pathId) => {
             path.points.forEach((point, pointId) => {
@@ -426,6 +426,11 @@ export default class StateEditCurve extends State {
                 }
             });
         });
+        return selectedPoints;
+    }
+
+    handleRightClick(x, y, mx, my, object) {
+        const selectedPoints = this.getSelectedPoints();
 
         let clickedOnSelectedPoint = false;
         for (let i = 0; i < selectedPoints.length && !clickedOnSelectedPoint; i++) {
@@ -435,7 +440,7 @@ export default class StateEditCurve extends State {
         if (selectedPoints.length > 1 && clickedOnSelectedPoint) {
             const menuOptions = [{
                 name: 'Delete points',
-                clicked: () => this.deleteSelectedPoints(selectedPoints)
+                clicked: () => this.deleteSelectedPoints()
             }, {
                 name: 'Convert to beizer',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.pathId, p.pointId))
@@ -719,8 +724,9 @@ export default class StateEditCurve extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    deleteSelectedPoints(pointReferences) {
-        pointReferences.reverse().forEach(selection => {
+    deleteSelectedPoints() {
+        const selectedPoints = this.getSelectedPoints();
+        selectedPoints.reverse().forEach(selection => {
             this.item.shapeProps.paths[selection.pathId].points.splice(selection.pointId, 1);
         });
 
