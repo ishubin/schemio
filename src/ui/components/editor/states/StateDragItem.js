@@ -636,7 +636,6 @@ export default class StateDragItem extends State {
     }
 
     findClosestLineSegment(distanceOnPath, points, svgPath) {
-        //TODO this function is a copy paste form StateEditCurve, it should be moved to myMath
         let i = points.length - 1;
         while(i > 0) {
             const closestPoint = myMath.closestPointOnPath(points[i].x, points[i].y, svgPath);

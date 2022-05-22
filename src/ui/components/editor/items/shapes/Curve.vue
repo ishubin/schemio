@@ -35,6 +35,11 @@ import { computeCurvePath } from './StandardCurves';
 const log = new Logger('Curve');
 
 
+function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+}
+
+
 function computePath(item) {
     let path = '';
     item.shapeProps.paths.forEach(curvePath => {
@@ -104,83 +109,69 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     return true;
 }
 
-function readjustItemArea(item, precision) {
-    const worldPoints = [];
-    item.shapeProps.paths.forEach((path, pathId) => {
-        path.points.forEach((point, pointId) => {
-            const p = worldPointOnItem(point.x, point.y, item);
-            p.t = point.t;
-
-            if (point.t === 'B' || point.t === 'A') {
-                const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
-                p.p1 = p1;
-            }
-            if (point.t === 'B') {
-                const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
-                p.p2 = p2;
-            }
-
-            worldPoints.push({pathId, pointId, point: p});
+function forAllPoints(item, callback) {
+    item.shapeProps.paths.forEach((path, pathIndex) => {
+        path.points.forEach((point, pointIndex) => {
+            callback(point, pathIndex, pointIndex);
         });
     });
-
-    if (worldPoints.length < 1) {
-        return;
-    }
-
-    let minX = worldPoints[0].point.x,
-        minY = worldPoints[0].point.y,
-        maxX = worldPoints[0].point.x,
-        maxY = worldPoints[0].point.y;
-    
-    worldPoints.forEach(p => {
-        minX = Math.min(minX, p.point.x);
-        minY = Math.min(minY, p.point.y);
-        maxX = Math.max(maxX, p.point.x);
-        maxY = Math.max(maxY, p.point.y);
-        if (p.point.t === 'B' || p.point.t === 'A') {
-            minX = Math.min(minX, p.point.p1.x);
-            minY = Math.min(minY, p.point.p1.y);
-            maxX = Math.max(maxX, p.point.p1.x);
-            maxY = Math.max(maxY, p.point.p1.y);
-        }
-        if (p.point.t === 'B') {
-            minX = Math.min(minX, p.point.p2.x);
-            minY = Math.min(minY, p.point.p2.y);
-            maxX = Math.max(maxX, p.point.p2.x);
-            maxY = Math.max(maxY, p.point.p2.y);
-        }
-    });
-
-    worldPoints.forEach(p => {
-        const itemPoint = {
-            x: p.point.x - minX,
-            y: p.point.y - minY,
-            t: p.point.t
-        };
-        if (p.point.t === 'B' || p.point.t === 'A') {
-            itemPoint.x1 = p.point.p1.x - p.point.x;
-            itemPoint.y1 = p.point.p1.y - p.point.y;
-        }
-        if (p.point.t === 'B') {
-            itemPoint.x2 = p.point.p2.x - p.point.x;
-            itemPoint.y2 = p.point.p2.y - p.point.y;
-        }
-
-        item.shapeProps.paths[p.pathId].points[p.pointId] = itemPoint;
-    });
-
-    item.area.r = 0;
-    item.area.w = Math.max(0, maxX - minX);
-    item.area.h = Math.max(0, maxY - minY);
-
-    const position = myMath.findTranslationMatchingWorldPoint(minX, minY, item.area, item.meta.transformMatrix);
-    item.area.x = position.x;
-    item.area.y = position.y;
 }
 
-function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+function readjustItemArea(item, precision) {
+    let bounds = null;
+
+    const updateBounds = (x, y) => {
+        bounds.x1 = Math.min(bounds.x1, x);
+        bounds.y1 = Math.min(bounds.y1, y);
+        bounds.x2 = Math.max(bounds.x2, x);
+        bounds.y2 = Math.max(bounds.y2, y);
+    };
+    forAllPoints(item, (p) => {
+        if (!bounds) {
+            bounds = {
+                x1: p.x,
+                y1: p.y,
+                x2: p.x,
+                y2: p.y
+            };
+        }
+        updateBounds(p.x, p.y);
+
+
+        if (p.t === 'B' || p.t === 'A') {
+            updateBounds(p.x + p.x1, p.y + p.y1);
+        }
+        if (p.t === 'B') {
+            updateBounds(p.x + p.x2, p.y + p.y2);
+        }
+    });
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        const itemPoint = {
+            x: p.x - bounds.x1,
+            y: p.y - bounds.y1,
+            t: p.t
+        };
+        if (p.t === 'B' || p.t === 'A') {
+            itemPoint.x1 = p.x1;
+            itemPoint.y1 = p.y1;
+        }
+        if (p.t === 'B') {
+            itemPoint.x2 = p.x2;
+            itemPoint.y2 = p.y2;
+        }
+
+        item.shapeProps.paths[pathIndex].points[pointIndex] = itemPoint;
+    });
+
+    const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
+
+    item.area.w = Math.max(0, bounds.x2 - bounds.x1);
+    item.area.h = Math.max(0, bounds.y2 - bounds.y1);
+
+    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, item.area, item.meta.transformMatrix);
+    item.area.x = position.x;
+    item.area.y = position.y;
 }
 
 function getSnappers(item) {
