@@ -742,7 +742,7 @@ ul.pagination li a.current {
 
 /*********** Curve **************************/
 
-[data-type='curve-path'], [data-type='curve-point'], [data-type='curve-control-point'] {
+[data-type='path-segment'], [data-type='path-point'], [data-type='curve-control-point'] {
     cursor: pointer;
 }
 .curve-control-points {

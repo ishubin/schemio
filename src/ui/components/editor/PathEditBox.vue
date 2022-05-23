@@ -4,9 +4,9 @@
 <template>
     <g>
         <path v-for="segment in pathSegments"
-            data-type="curve-path"
-            :data-curve-path-index="segment.pathId"
-            :data-curve-path-segment-index="segment.segmentId"
+            data-type="path-segment"
+            :data-path-index="segment.pathId"
+            :data-path-segment-index="segment.segmentId"
             :d="segment.path"
             fill="none"
             stroke="rgba(0,0,0,0.0)"
@@ -20,9 +20,9 @@
                 </g>
 
                 <circle 
-                    data-type="curve-point"
-                    :data-curve-point-index="pointId"
-                    :data-curve-path-index="pathId"
+                    data-type="path-point"
+                    :data-path-point-index="pointId"
+                    :data-path-index="pathId"
                     :cx="point.x" :cy="point.y"
                     :r="5/safeZoom"
                     :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
@@ -31,16 +31,16 @@
                 <g v-if="point.t === 'B'">
                     <path 
                         data-type="curve-control-point"
-                        :data-curve-point-index="pointId"
-                        :data-curve-path-index="pathId"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
                         data-curve-control-point-index="1"
                         :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
                         :d="`M ${5*(point.vx1 + point.vy1)/safeZoom} ${5*(point.vy1 - point.vx1)/safeZoom}  l ${-10*point.vx1/safeZoom} ${-10*point.vy1/safeZoom}  l ${-10*point.vy1/safeZoom} ${10*point.vx1/safeZoom} l ${10*point.vx1/safeZoom} ${10*point.vy1/safeZoom} z`"
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
                     <path 
                         data-type="curve-control-point"
-                        :data-curve-point-index="pointId"
-                        :data-curve-path-index="pathId"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
                         data-curve-control-point-index="2"
                         :transform="`translate(${point.x2+point.x} ${point.y2+point.y})`"
                         :d="`M ${5*(point.vx2 + point.vy2)/safeZoom} ${5*(point.vy2 - point.vx2)/safeZoom}  l ${-10*point.vx2/safeZoom} ${-10*point.vy2/safeZoom}  l ${-10*point.vy2/safeZoom} ${10*point.vx2/safeZoom} l ${10*point.vx2/safeZoom} ${10*point.vy2/safeZoom} z`"
@@ -50,8 +50,8 @@
                 <g v-if="point.t === 'A'">
                     <circle 
                         data-type="curve-control-point"
-                        :data-curve-point-index="pointId"
-                        :data-curve-path-index="pathId"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
                         data-curve-control-point-index="1"
                         :cx="point.x + point.x1" :cy="point.y + point.y1"
                         :r="5/safeZoom"

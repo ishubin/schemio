@@ -32,7 +32,7 @@ import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import { computeCurvePath } from './StandardCurves';
 
-const log = new Logger('Curve');
+const log = new Logger('Path');
 
 
 function worldPointOnItem(x, y, item) {
@@ -41,24 +41,24 @@ function worldPointOnItem(x, y, item) {
 
 
 function computePath(item) {
-    let path = '';
-    item.shapeProps.paths.forEach(curvePath => {
-        const segmentPath = computeCurvePath(curvePath.points, curvePath.closed);
+    let svgPath = '';
+    item.shapeProps.paths.forEach(path => {
+        const segmentPath = computeCurvePath(path.points, path.closed);
         if (segmentPath) {
-            path += segmentPath + ' ';
+            svgPath += segmentPath + ' ';
         }
     });
-    return path;
+    return svgPath;
 };
 
 
 /**
- * Takes points of the curve and simplifies them (tries to delete as many points as possible)
- * @property {Array} points - points of the curve 
+ * Takes points of the path and simplifies them (tries to delete as many points as possible)
+ * @property {Array} points - points of the path 
  * @property {Number} epsilon - minimum distance of the points to keep (used in Ramer-Douglas-Peucker algorithm)
- * @returns {Array} simplified curve points 
+ * @returns {Array} simplified path points 
  */
-export function simplifyCurvePoints(points, epsilon) {
+export function simplifyPathPoints(points, epsilon) {
     if (!epsilon) {
         epsilon = 5;
     }
@@ -67,21 +67,21 @@ export function simplifyCurvePoints(points, epsilon) {
 
     const curves = [];
 
-    let currentCurvePoints = [];
-    curves.push(currentCurvePoints);
+    let currentPathPoints = [];
+    curves.push(currentPathPoints);
 
     points.forEach((point, i) => {
         if (point.break) {
-            currentCurvePoints = [];
-            curves.push(currentCurvePoints);
+            currentPathPoints = [];
+            curves.push(currentPathPoints);
         }
-        currentCurvePoints.push(point);
+        currentPathPoints.push(point);
     });
 
     let newPoints = [];
 
     curves.forEach((curvePoints, i) => {
-        const simplifiedPoints = myMath.smoothCurvePoints(myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon));
+        const simplifiedPoints = myMath.smoothPathPoints(myMath.simplifyPathPointsUsingRDP(curvePoints, epsilon));
 
         if (i > 0 && curvePoints.length > 0) {
             curvePoints[0].break = true;
@@ -204,7 +204,7 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
-        id: 'curve',
+        id: 'path',
 
         menuItems: [],
 
@@ -217,7 +217,7 @@ export default {
         },
 
         /**
-         * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
+         * Disabling any text slots for path items. Otherwise users will be confused when they double click on it in edit mode.
          */ 
         getTextSlots() {
             return [];
@@ -234,12 +234,11 @@ export default {
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-            // points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
-            paths             : {type: 'curve-paths',   value: [], name: 'Paths', hidden: true},
-            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
+            paths             : {type: 'path-array',   value: [], name: 'Paths', hidden: true},
+            sourceCap         : {type: 'path-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
+            destinationCap    : {type: 'path-cap',     value: 'empty', name: 'Destination Cap'},
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         },

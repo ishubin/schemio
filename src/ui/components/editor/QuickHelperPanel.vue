@@ -124,25 +124,25 @@
                             @property-changed="onTextStylePropertyChange"
                             />
                     </li>
-                    <li v-if="shouldShowCurveCaps">
-                        <curve-cap-dropdown 
-                            :key="`qhp-curve-cap-source-${firstSelectedItem.meta.revision}`"
-                            :value="curveSourceCap"
+                    <li v-if="shouldShowPathCaps">
+                        <path-cap-dropdown 
+                            :key="`qhp-path-cap-source-${firstSelectedItem.meta.revision}`"
+                            :value="pathSourceCap"
                             :is-source="true"
                             :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
                             height="16px"
-                            @selected="emitShapePropChange('sourceCap', 'curve-cap', arguments[0])"/>
+                            @selected="emitShapePropChange('sourceCap', 'path-cap', arguments[0])"/>
                     </li>
-                    <li v-if="shouldShowCurveCaps">
-                        <curve-cap-dropdown 
-                            :key="`qhp-curve-cap-destination-${firstSelectedItem.meta.revision}`"
-                            :value="curveDestinationCap"
+                    <li v-if="shouldShowPathCaps">
+                        <path-cap-dropdown 
+                            :key="`qhp-path-cap-destination-${firstSelectedItem.meta.revision}`"
+                            :value="pathDestinationCap"
                             :is-source="false"
                             :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
                             height="16px"
-                            @selected="emitShapePropChange('destinationCap', 'curve-cap', arguments[0])"/>
+                            @selected="emitShapePropChange('destinationCap', 'path-cap', arguments[0])"/>
                     </li>
                 </ul>
             </div>
@@ -156,16 +156,16 @@
                 </ul>
             </div>
 
-            <div v-if="mode === 'edit' && shouldShowCurveHelpers" class="quick-helper-panel-section">
+            <div v-if="mode === 'edit' && shouldShowPathHelpers" class="quick-helper-panel-section">
                 <ul class="button-group">
-                    <li v-if="firstSelectedCurveEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-curve-points-to-simple')">
-                            <img src="/assets/images/helper-panel/curve-point-simple.svg"/>
+                    <li v-if="firstSelectedPathEditPoint">
+                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-path-points-to-simple')">
+                            <img src="/assets/images/helper-panel/path-point-simple.svg"/>
                         </span>
                     </li>
-                    <li v-if="firstSelectedCurveEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedCurveEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-curve-points-to-beizer')">
-                            <img src="/assets/images/helper-panel/curve-point-beizer.svg"/>
+                    <li v-if="firstSelectedPathEditPoint">
+                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-beizer')">
+                            <img src="/assets/images/helper-panel/path-point-beizer.svg"/>
                         </span>
                     </li>
                     <li>
@@ -233,7 +233,7 @@ import TextStyleControl from './TextStyleControl.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import ColorPicker from './ColorPicker.vue';
 import StrokePatternDropdown from './StrokePatternDropdown.vue';
-import CurveCapDropdown from './CurveCapDropdown.vue';
+import PathCapDropdown from './PathCapDropdown.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
@@ -253,7 +253,7 @@ export default {
 
     components: {
         AdvancedColorEditor, ColorPicker, StrokePatternDropdown,
-        CurveCapDropdown, NumberTextfield, MenuDropdown, Dropdown,
+        PathCapDropdown, NumberTextfield, MenuDropdown, Dropdown,
         StrokeControl, TextStyleControl
     },
 
@@ -320,8 +320,8 @@ export default {
             supportsFill: false,
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
 
-            curveSourceCap: 'empty',
-            curveDestinationCap: 'empty',
+            pathSourceCap: 'empty',
+            pathDestinationCap: 'empty',
 
             currentConnectorSmoothing: 'smooth',
 
@@ -361,9 +361,9 @@ export default {
                     this.supportsFill = false;
                 }
 
-                if (item.shape === 'connector') {
-                    this.curveSourceCap = item.shapeProps.sourceCap;
-                    this.curveDestinationCap = item.shapeProps.destinationCap;
+                if (item.shape === 'connector' || item.shape === 'path') {
+                    this.pathSourceCap = item.shapeProps.sourceCap;
+                    this.pathDestinationCap = item.shapeProps.destinationCap;
                 }
             }
 
@@ -412,10 +412,10 @@ export default {
         emitShapePropChange(name, type, value) {
             this.$emit('shape-prop-changed', name, type, value);
             if (name === 'sourceCap') {
-                this.curveSourceCap = value;
+                this.pathSourceCap = value;
             }
             else if (name === 'destinationCap') {
-                this.curveDestinationCap = value;
+                this.pathDestinationCap = value;
             }
         },
 
@@ -631,7 +631,7 @@ export default {
             return this.$store.state.editorStateName;
         },
 
-        shouldShowCurveHelpers() {
+        shouldShowPathHelpers() {
             return this.$store.state.editorStateName === 'editCurve';
         },
 
@@ -639,11 +639,11 @@ export default {
             return this.$store.state.editorStateName === 'draw';
         },
 
-        shouldShowCurveCaps() {
+        shouldShowPathCaps() {
             if (this.$store.state.editorStateName === 'editCurve') {
                 return true;
             }
-            if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'curve') {
+            if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'path')) {
                 return true;
             }
             return false;
@@ -666,7 +666,7 @@ export default {
             return this.$store.getters.showClickableMarkers;
         },
 
-        firstSelectedCurveEditPoint() {
+        firstSelectedPathEditPoint() {
             return this.$store.getters.firstSelectedCurveEditPoint;
         },
 

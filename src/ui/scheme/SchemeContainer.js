@@ -1993,7 +1993,7 @@ class SchemeContainer {
 
                 this.updateChildTransforms(item);
 
-                if (item.shape === 'curve') {
+                if (item.shape === 'path') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
                 }
 
@@ -2212,7 +2212,7 @@ class SchemeContainer {
                 r: item.area.r - area.r,
             };
 
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 // storing original points so that they can be readjusted in case the item is resized
                 itemData[item.id].originalCurvePaths = utils.clone(item.shapeProps.paths);
             }

@@ -170,7 +170,7 @@ export default class StateEditCurve extends State {
         if (this.creatingNewPoints) {
             return;
         }
-        if (object && object.type === 'curve-path') {
+        if (object && object.type === 'path-segment') {
             this.insertPointAtCoords(x, y, object.pathIndex, object.segmentIndex);
         }
     }
@@ -231,8 +231,8 @@ export default class StateEditCurve extends State {
         } else {
             // editing existing curve
             if (isEventRightClick(event)) {
-                this.handleRightClick(x, y, mx, my, object);
-            } else if (object && (object.type === 'curve-point' || object.type === 'curve-control-point')) {
+                this.handleRightClick(x, y, mx, my, object, event);
+            } else if (object && (object.type === 'path-point' || object.type === 'curve-control-point')) {
                 this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
                 this.draggedObject = object;
 
@@ -240,26 +240,28 @@ export default class StateEditCurve extends State {
                     StoreUtils.toggleCurveEditPointSelection(this.store, object.pathIndex, object.pointIndex, isMultiSelectKey(event));
                     EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
                 }
-            } else if (object && object.type === 'curve-path') {
+            } else if (object && object.type === 'path-segment') {
                 this.handlePathClick(object, event);
             } else {
                 this.initMulitSelectBox(x, y, mx, my);
             }
         }
     }
-
-
-    handlePathClick(object, event) {
+    
+    selectPath(object, event) {
         if (!isMultiSelectKey(event)) {
             StoreUtils.resetCurveEditPointSelection(this.store);
         }
         for (let i = 0; i < this.item.shapeProps.paths[object.pathIndex].points.length; i++) {
             StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, i, true);
         }
+        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+    }
+
+    handlePathClick(object, event) {
+        this.selectPath(object, event);
         this.draggedObject = object;
         this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
-        
-        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
     }
     
     createNameFromAttachedItems(sourceSelector, destinationSelector) {
@@ -335,9 +337,9 @@ export default class StateEditCurve extends State {
             }
             this.eventBus.emitItemChanged(this.item.id);
             StoreUtils.updateCurveEditPoint(this.store, this.item, 0, pointIndex, point);
-        } else if (this.draggedObject && this.draggedObject.type === 'curve-point') {
+        } else if (this.draggedObject && this.draggedObject.type === 'path-point') {
             this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'curve-path') {
+        } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
             this.handleCurvePathDrag(x, y, this.draggedObject.pathIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
@@ -396,7 +398,7 @@ export default class StateEditCurve extends State {
                 });
                 this.eventBus.emitItemChanged(this.item.id);
             }
-        } else if (!this.wasMouseMoved && object && object.type === 'curve-point') {
+        } else if (!this.wasMouseMoved && object && object.type === 'path-point') {
             // correcting for click on a point
             // it should clear selection of other points in case ctrl key was not pressed
             if (isMultiSelectKey(event)) {
@@ -428,7 +430,7 @@ export default class StateEditCurve extends State {
         return selectedPoints;
     }
 
-    handleRightClick(x, y, mx, my, object) {
+    handleRightClick(x, y, mx, my, object, event) {
         const selectedPoints = this.getSelectedPoints();
 
         let clickedOnSelectedPoint = false;
@@ -460,7 +462,7 @@ export default class StateEditCurve extends State {
             return;
         }
 
-        if (object && object.type === 'curve-point') {
+        if (object && object.type === 'path-point') {
             // user might have clicked the deselected point or the single selected point.
             // In this case we need to reset everything and treat it as a single point context menu
 
@@ -511,7 +513,8 @@ export default class StateEditCurve extends State {
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
 
-        } else if (object && object.type === 'curve-path') {
+        } else if (object && object.type === 'path-segment') {
+            this.selectPath(object, event);
             this.eventBus.emitCustomContextMenuRequested(mx, my, [{
                 name: 'Extract path',
                 clicked: () => this.extractPath(object.pathIndex)
@@ -520,6 +523,14 @@ export default class StateEditCurve extends State {
                 clicked: () => this.invertPath(object.pathIndex)
             }]);
         }
+    }
+
+    convertSelectedPointsToSimple() {
+        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToSimple(pathId, pointId));
+    }
+
+    convertSelectedPointsToBeizer() {
+        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToBeizer(pathId, pointId));
     }
 
     extractPath(pathId) {
@@ -563,6 +574,16 @@ export default class StateEditCurve extends State {
 
     invertPath(pathId) {
         this.item.shapeProps.paths[pathId].points.reverse();
+        this.item.shapeProps.paths[pathId].points.forEach(p => {
+            if (p.t === 'B') {
+                const xt = p.x1;
+                const yt = p.y1;
+                p.x1 = p.x2;
+                p.y1 = p.y2;
+                p.x2 = xt;
+                p.y2 = yt;
+            }
+        });
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();

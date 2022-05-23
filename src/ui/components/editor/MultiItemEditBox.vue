@@ -36,10 +36,10 @@
                     :fill="controlPointsColor"
                     :r="6/safeZoom"
                     />
-                <g v-if="!isItemConnector && editBox.items[0].shape === 'curve'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
+                <g v-if="!isItemConnector && editBox.items[0].shape === 'path'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
                     <foreignObject :x="0" :y="0" width="100" height="20">
                         <div>
-                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Curve</span>
+                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Path</span>
                         </div>
                     </foreignObject>
                 </g>
@@ -376,7 +376,7 @@ export default {
         shouldShowControlPoints() {
             if (this.editBox.items.length === 1) {
                 const item = this.editBox.items[0];
-                if (item.shape === 'curve') {
+                if (item.shape === 'path') {
                     return false;
                 }
                 return true;

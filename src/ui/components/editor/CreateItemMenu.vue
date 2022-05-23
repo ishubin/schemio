@@ -11,7 +11,7 @@
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
                     <img src="/assets/images/icons/select.svg" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateCurveCreation()" title="Create Curve"
+                <div class="item-container" @click="initiateCurveCreation()" title="Create Path"
                     @mouseover="showPreviewGif('create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
@@ -446,8 +446,8 @@ export default {
 
         initiateCurveCreation() {
             const item = {
-                name: this.makeUniqueName('Curve'),
-                shape: 'curve',
+                name: this.makeUniqueName('Path'),
+                shape: 'path',
                 shapeProps: {
                     paths: []
                 }

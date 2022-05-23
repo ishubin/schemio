@@ -95,7 +95,7 @@ function distanceFromPointToLine(x, y, {a, b, c}) {
     return Math.abs(a*x + b*y + c) / Math.sqrt(a*a + b*b);
 }
 
-function _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, idxEnd) {
+function _simplifyPathPointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     if (idxEnd - idxStart < 2) {
         return [points[idxStart], points[idxEnd]];
     }
@@ -117,8 +117,8 @@ function _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     if (furtherstDistance > epsilon) {
         // then we break it into smaller problems
 
-        const pointsA = _simplifyCurvePointsUsingRDP(points, epsilon, idxStart, furtherstPointIdx);
-        const pointsB = _simplifyCurvePointsUsingRDP(points, epsilon, furtherstPointIdx, idxEnd);
+        const pointsA = _simplifyPathPointsUsingRDP(points, epsilon, idxStart, furtherstPointIdx);
+        const pointsB = _simplifyPathPointsUsingRDP(points, epsilon, furtherstPointIdx, idxEnd);
 
         // since both arrays will have point at furtherstPointIdx included, we need to remove it
         pointsB.splice(0, 1);
@@ -549,12 +549,12 @@ export default {
      * @param {Number} epsilon minimum distance to the line in the RDP algorithm
      * @returns 
      */
-    simplifyCurvePointsUsingRDP(points, epsilon) {
-        return _simplifyCurvePointsUsingRDP(points, epsilon, 0, points.length - 1);
+    simplifyPathPointsUsingRDP(points, epsilon) {
+        return _simplifyPathPointsUsingRDP(points, epsilon, 0, points.length - 1);
     },
 
 
-    smoothCurvePoints(points) {
+    smoothPathPoints(points) {
         const maxSmoothingLength = 100;
         const maxSmoothingLengthSquared = maxSmoothingLength * maxSmoothingLength;
         const maxSmoothingAngle = 0.1;

@@ -5,7 +5,7 @@
 import myMath from '../../../myMath.js';
 import EventBus from '../EventBus.js';
 import State from './State.js';
-import {simplifyCurvePoints} from '../items/shapes/Curve.vue';
+import {simplifyPathPoints} from '../items/shapes/Path.vue';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -55,7 +55,7 @@ export default class StateDraw extends State {
         this.currentPathId = 0;
         const item = {
             name: this.schemeContainer.generateUniqueName('Drawing'),
-            shape: 'curve',
+            shape: 'path',
             shapeProps: {
                 paths: [{
                     closed: false,
@@ -139,7 +139,7 @@ export default class StateDraw extends State {
         if (this.item) {
             //TODO proper cleanup of all paths if they have less than two points
             this.item.shapeProps.paths.forEach(path => {
-                path.points = simplifyCurvePoints(path.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+                path.points = simplifyPathPoints(path.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
             });
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();

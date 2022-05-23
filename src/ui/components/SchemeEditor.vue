@@ -20,8 +20,8 @@
             @clicked-redo="historyRedo()"
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
-            @convert-curve-points-to-simple="convertCurvePointToSimple()"
-            @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
+            @convert-path-points-to-simple="convertCurvePointToSimple()"
+            @convert-path-points-to-beizer="convertCurvePointToBeizer()"
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
@@ -90,7 +90,7 @@
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
                         <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta">
-                            <CurveEditBox 
+                            <PathEditBox 
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
                                 :item="curveEditItem"
                                 :zoom="schemeContainer.screenTransform.scale"
@@ -379,7 +379,7 @@ import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import MultiItemEditBox from './editor/MultiItemEditBox.vue';
-import CurveEditBox from './editor/CurveEditBox.vue';
+import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
 import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem, localPointOnItemToLocalPointOnOtherItem } from '../scheme/SchemeContainer.js';
@@ -521,7 +521,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
-        Modal, ShapeExporterModal, FrameAnimatorPanel, CurveEditBox,
+        Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -895,7 +895,7 @@ export default {
         switchStateCreateItem(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 this.state = 'editCurve';
@@ -922,7 +922,7 @@ export default {
             item.shapeProps.points = [];
             this.setCurveEditItem(item);
             // making sure every new curve starts non-closed
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 item.shapeProps.closed = false;
             }
             this.state = 'editCurve';
@@ -1972,7 +1972,7 @@ export default {
             } else {
                 let allCurves = true;
                 for (let i = 0; i < this.schemeContainer.multiItemEditBox.items.length && allCurves; i++) {
-                    allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'curve';
+                    allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'path';
                 }
                 if (allCurves) {
                     this.customContextMenu.menuOptions.push({
@@ -2058,9 +2058,9 @@ export default {
                 });
             }
 
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 this.customContextMenu.menuOptions.push({
-                    name: 'Edit Curve',
+                    name: 'Edit Path',
                     clicked: () => { EventBus.emitCurveEdited(item); }
                 });
             }

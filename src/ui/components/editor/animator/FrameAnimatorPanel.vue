@@ -169,7 +169,7 @@ function jsonDiffItemWhitelistCallback(item) {
             return false;
         }
 
-        if ((item.shape === 'connector' || item.shape === 'curve') && path.length > 1 && path[0] === 'shapeProps') {
+        if ((item.shape === 'connector' || item.shape === 'path') && path.length > 1 && path[0] === 'shapeProps') {
             if (path[1] === 'points'
                 || path[1] === 'sourceItem'
                 || path[1] === 'destinationItem'

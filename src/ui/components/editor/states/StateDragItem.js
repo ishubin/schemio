@@ -256,7 +256,7 @@ export default class StateDragItem extends State {
             this.initPivotDrag(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
             if (object.multiItemEditBox.items.length > 0
-                && object.multiItemEditBox.items[0].shape === 'curve') {
+                && object.multiItemEditBox.items[0].shape === 'path') {
                 this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
             }
         } else if (isEventRightClick(event)) {
@@ -473,7 +473,7 @@ export default class StateDragItem extends State {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
                 this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-                if (item.shape === 'curve' || item.shape === 'connector') {
+                if (item.shape === 'path' || item.shape === 'connector') {
                     shouldUpdateMultiItemEditBox = true;
                 }
             });
@@ -571,7 +571,7 @@ export default class StateDragItem extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            if (object.item.shape === 'curve') {
+            if (object.item.shape === 'path') {
                 this.eventBus.emitCurveEdited(object.item);
             } else if (object.item.shape === 'connector') {
                 this.handleDoubleClickOnConnector(object.item, x, y);
