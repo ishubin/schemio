@@ -39,9 +39,9 @@ export default class StateEditCurve extends State {
         super(eventBus, store);
         this.name = 'editCurve';
         this.item = null;
-        this.parentItem = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
+        this.newPathShouldBeCreated = false;
         this.originalClickPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -64,9 +64,9 @@ export default class StateEditCurve extends State {
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
-        this.parentItem = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
+        this.currentNewPathId = 0;
         this.softReset();
     }
 
@@ -79,6 +79,7 @@ export default class StateEditCurve extends State {
         this.shouldJoinClosedPoints = false;
         this.draggedObject = null;
         this.originalCurvePaths = null;
+        this.newPathShouldBeCreated = false;
     }
 
     cancel() {
@@ -86,9 +87,9 @@ export default class StateEditCurve extends State {
         if (this.item) {
             if (this.creatingNewPoints) {
                 // deleting last point
-                this.item.shapeProps.paths[0].points.splice(this.item.shapeProps.paths[0].points.length - 1 , 1);
+                this.item.shapeProps.paths[this.currentNewPathId].points.splice(this.item.shapeProps.paths[this.currentNewPathId].points.length - 1 , 1);
 
-                if (this.item.shapeProps.paths[0].points.length > 0) {
+                if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 0) {
                     this.submitItem();
                 }
             } else {
@@ -110,29 +111,22 @@ export default class StateEditCurve extends State {
     }
 
     initFirstClick(x, y) {
-        this.item.shapeProps.paths = [{
-            closed: false,
-            points: []
-        }];
-
-        this.schemeContainer.addItem(this.item);
-
         // snapping can only be performed once the item is added to the scheme
         // that is why we have to re-adjust curve points afterwards so that they are snapped
-        const snappedCurvePoint = this.snapCurvePoint(-1, -1, x, y);
+        const localPoint = localPointOnItem(x, y, this.item);
+        const snappedCurvePoint = this.snapCurvePoint(this.currentNewPathId, 0, localPoint.x, localPoint.y);
 
-        this.item.shapeProps.paths[0].points.push({
+        this.item.shapeProps.paths[this.currentNewPathId].points.push({
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
         });
-        this.item.shapeProps.paths[0].points.push({
+        this.item.shapeProps.paths[this.currentNewPathId].points.push({
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
         });
 
-        this.addedToScheme = true;
     }
 
     initScreenDrag(mx, my) {
@@ -188,15 +182,26 @@ export default class StateEditCurve extends State {
         }
 
         if (!this.addedToScheme) {
+            this.item.shapeProps.paths = [{
+                closed: false,
+                points: []
+            }];
+            this.schemeContainer.addItem(this.item);
+            this.addedToScheme = true;
             this.initFirstClick(x, y);
+
+        } else if (this.creatingNewPoints && this.newPathShouldBeCreated) {
+            this.item.shapeProps.paths.push({
+                closed: false,
+                points: []
+            });
+            this.currentNewPathId = this.item.shapeProps.paths.length - 1;
+            this.initFirstClick(x, y);
+            this.newPathShouldBeCreated = false;
+
         } else if (this.creatingNewPoints) {
-            let realX = x, realY = y;
-            if (this.parentItem) {
-                const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                realX = relativePoint.x;
-                realY = relativePoint.y;
-            }
-            const snappedCurvePoint = this.snapCurvePoint(0, this.item.shapeProps.paths[0].points.length - 1, realX, realY);
+            const localPoint = localPointOnItem(x, y, this.item);
+            const snappedCurvePoint = this.snapCurvePoint(this.currentNewPathId, this.item.shapeProps.paths[this.currentNewPathId].points.length - 1, localPoint.x, localPoint.y);
 
             // checking if the curve was attached to another item
             if (this.item.shapeProps.destinationItem) {
@@ -209,18 +214,18 @@ export default class StateEditCurve extends State {
                 return;
             }
 
-            const point = this.item.shapeProps.paths[0].points[this.item.shapeProps.paths[0].points.length - 1];
+            const point = this.item.shapeProps.paths[this.currentNewPathId].points[this.item.shapeProps.paths[this.currentNewPathId].points.length - 1];
 
 
             point.x = snappedCurvePoint.x;
             point.y = snappedCurvePoint.y;
 
             //checking whether curve got closed
-            if (this.item.shapeProps.paths[0].points.length > 2) {
+            if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 2) {
                 if (this.shouldJoinClosedPoints) {
                     // deleting last point
-                    this.item.shapeProps.paths[0].points.splice(this.item.shapeProps.paths[0].points.length - 1 , 1);
-                    this.item.shapeProps.paths[0].closed = true;
+                    this.item.shapeProps.paths[this.currentNewPathId].points.splice(this.item.shapeProps.paths[this.currentNewPathId].points.length - 1 , 1);
+                    this.item.shapeProps.paths[this.currentNewPathId].closed = true;
                     this.submitItem();
                     this.reset();
                     this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
@@ -246,6 +251,11 @@ export default class StateEditCurve extends State {
                 this.initMulitSelectBox(x, y, mx, my);
             }
         }
+    }
+    
+    startCreatingNewPath() {
+        this.creatingNewPoints = true;
+        this.newPathShouldBeCreated = true;
     }
     
     selectPath(object, event) {
@@ -289,28 +299,28 @@ export default class StateEditCurve extends State {
 
         StoreUtils.clearItemSnappers(this.store);
 
-        if (this.addedToScheme && this.creatingNewPoints) {
-            const pointIndex = this.item.shapeProps.paths[0].points.length - 1;
-            const point = this.item.shapeProps.paths[0].points[pointIndex];
+        if (this.addedToScheme && this.creatingNewPoints && this.item.shapeProps.paths[this.currentNewPathId].points.length > 0) {
+            if (this.newPathShouldBeCreated) {
+                return;
+            }
 
-            if (this.candidatePointSubmited && this.item.shape !== 'connector') {
+            const pointIndex = this.item.shapeProps.paths[this.currentNewPathId].points.length - 1;
+            const point = this.item.shapeProps.paths[this.currentNewPathId].points[pointIndex];
+
+            const localMousePoint = localPointOnItem(x, y, this.item);
+
+            if (this.candidatePointSubmited) {
+                //TODO trigger beizer point conversion only after the mouse is dragged by a couple of points
                 // convert last point to Beizer and drag its control points
-                // but only in case this is a regular curve and not a connector
                 point.t = 'B';
-                point.x2 = this.round(x - point.x);
-                point.y2 = this.round(y - point.y);
+                point.x2 = this.round(localMousePoint.x - point.x);
+                point.y2 = this.round(localMousePoint.y - point.y);
 
                 point.x1 = -point.x2;
                 point.y1 = -point.y2;
             } else {
                 // drag last point
-                let realX = x, realY = y;
-                if (this.parentItem) {
-                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                    realX = relativePoint.x;
-                    realY = relativePoint.y;
-                }
-                const snappedLocalCurvePoint = this.snapCurvePoint(0, pointIndex, realX, realY);
+                const snappedLocalCurvePoint = this.snapCurvePoint(this.currentNewPathId, pointIndex, localMousePoint.x, localMousePoint.y);
                 
                 point.x = this.round(snappedLocalCurvePoint.x);
                 point.y = this.round(snappedLocalCurvePoint.y);
@@ -318,11 +328,11 @@ export default class StateEditCurve extends State {
 
                 this.shouldJoinClosedPoints = false;
 
-                if (this.item.shapeProps.paths[0].points.length > 2) {
+                if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 2) {
                     // checking if the curve point was moved too close to first point,
                     // so that the placement of new points can be stopped and curve will become closed
                     // This needs to be checked in viewport (not in world transform)
-                    const p0 = this.item.shapeProps.paths[0].points[0];
+                    const p0 = this.item.shapeProps.paths[this.currentNewPathId].points[0];
                     const dx = point.x - p0.x;
                     const dy = point.y - p0.y;
                     
@@ -383,15 +393,10 @@ export default class StateEditCurve extends State {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
 
-                let realX = x, realY = y;
-                if (this.parentItem) {
-                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                    realX = relativePoint.x;
-                    realY = relativePoint.y;
-                }
-                const snappedLocalCurvePoint = this.snapCurvePoint(-1, -1, realX, realY);
+                const localPoint = localPointOnItem(x, y, this.item);
+                const snappedLocalCurvePoint = this.snapCurvePoint(-1, -1, localPoint.x, localPoint.y);
 
-                this.item.shapeProps.paths[0].points.push({
+                this.item.shapeProps.paths[this.currentNewPathId].points.push({
                     x: this.round(snappedLocalCurvePoint.x),
                     y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
@@ -431,6 +436,13 @@ export default class StateEditCurve extends State {
     }
 
     handleRightClick(x, y, mx, my, object, event) {
+        if (object.type === 'void') {
+            this.eventBus.emitCustomContextMenuRequested(mx, my, [{
+                name: 'Add new path',
+                clicked: () => this.startCreatingNewPath()
+            }]);
+        }
+
         const selectedPoints = this.getSelectedPoints();
 
         let clickedOnSelectedPoint = false;
@@ -1047,13 +1059,6 @@ export default class StateEditCurve extends State {
 
     submitItem() {
         //TODO reimplement proper clean up when most points are deleted
-        // if (this.item.shapeProps.points.length < 2) {
-        //     this.schemeContainer.deleteItem(this.item);
-        //     this.schemeContainer.reindexItems();
-        //     this.reset();
-        //     return;
-        // }
-
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
         this.eventBus.emitItemChanged(this.item.id, 'area');

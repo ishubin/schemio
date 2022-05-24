@@ -1977,7 +1977,7 @@ export default {
                 if (allCurves) {
                     this.customContextMenu.menuOptions.push({
                         name: 'Merge paths',
-                        clicked: () => this.mergeCurves(item, this.schemeContainer.multiItemEditBox.items)
+                        clicked: () => this.mergeCurves(this.schemeContainer.multiItemEditBox.items)
                     })
                 }
             }
@@ -2115,43 +2115,41 @@ export default {
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
         },
 
-        mergeCurves(mainItem, allItems) {
-            allItems.reverse();
-            for (let i = allItems.length - 1; i >= 0; i--) {
-                if (mainItem.id === allItems[i].id) {
-                    allItems.splice(i, 1);
-                } else {
-                    allItems[i].shapeProps.paths.forEach(path => {
-                        const newPath = {
-                            closed: path.closed,
-                            points: []
-                        };
-                        path.points.forEach(point => {
-                            const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
-                            p.t = point.t;
-                            if (point.hasOwnProperty('x1')) {
-                                // p.x1 = point.x1;
-                                // p.y1 = point.y1;
-                                const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
-                                p.x1 = p1.x - p.x;
-                                p.y1 = p1.y - p.y;
-                            }
-                            if (point.hasOwnProperty('x2')) {
-                                // p.x2 = point.x2;
-                                // p.y2 = point.y2;
-                                const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
-                                p.x2 = p2.x - p.x;
-                                p.y2 = p2.y - p.y;
-                            }
-                            newPath.points.push(p);
-                        });
-                        mainItem.shapeProps.paths.push(newPath);
+        mergeCurves(allItems) {
+            allItems.sort((a, b) => {
+                return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
+            });
+
+            const mainItem = allItems.shift();
+
+            for (let i = 0; i < allItems.length; i++) {
+                allItems[i].shapeProps.paths.forEach(path => {
+                    const newPath = {
+                        closed: path.closed,
+                        points: []
+                    };
+                    path.points.forEach(point => {
+                        const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
+                        p.t = point.t;
+                        if (point.hasOwnProperty('x1')) {
+                            const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
+                            p.x1 = p1.x - p.x;
+                            p.y1 = p1.y - p.y;
+                        }
+                        if (point.hasOwnProperty('x2')) {
+                            const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
+                            p.x2 = p2.x - p.x;
+                            p.y2 = p2.y - p.y;
+                        }
+                        newPath.points.push(p);
                     });
-                }
+                    mainItem.shapeProps.paths.push(newPath);
+                });
             }
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
+            EventBus.emitSchemeChangeCommited();
         },
 
         /**
