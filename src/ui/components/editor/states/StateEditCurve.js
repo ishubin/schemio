@@ -49,6 +49,7 @@ export default class StateEditCurve extends State {
 
         // used to identify whether mouse was moved between mouseDown and mouseUp events
         this.wasMouseMoved = false;
+        this.mouseMoveOffset = 0;
 
         // used in order to drag screen when user holds spacebar
         this.shouldDragScreen = false;
@@ -74,6 +75,7 @@ export default class StateEditCurve extends State {
         this.shouldDragScreen = false;
         this.multiSelectBox = null;
         this.wasMouseMoved = false;
+        this.mouseMoveOffset = 0;
         this.startedDraggingScreen = false;
         this.candidatePointSubmited = false;
         this.shouldJoinClosedPoints = false;
@@ -170,6 +172,7 @@ export default class StateEditCurve extends State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        this.mouseMoveOffset = 0;
         this.originalClickPoint.x = x;
         this.originalClickPoint.y = y;
         this.originalClickPoint.mx = mx;
@@ -289,6 +292,7 @@ export default class StateEditCurve extends State {
         if (this.store.state.connectorProposedDestination.shown) {
             return;
         }
+        this.mouseMoveOffset = Math.max(Math.abs(mx - this.originalClickPoint.mx) + Math.abs(my - this.originalClickPoint.my));
 
         this.wasMouseMoved = true;
 
@@ -309,7 +313,7 @@ export default class StateEditCurve extends State {
 
             const localMousePoint = localPointOnItem(x, y, this.item);
 
-            if (this.candidatePointSubmited) {
+            if (this.candidatePointSubmited && this.mouseMoveOffset > 4) {
                 //TODO trigger beizer point conversion only after the mouse is dragged by a couple of points
                 // convert last point to Beizer and drag its control points
                 point.t = 'B';
@@ -318,7 +322,7 @@ export default class StateEditCurve extends State {
 
                 point.x1 = -point.x2;
                 point.y1 = -point.y2;
-            } else {
+            } else if (event.buttons === 0) {
                 // drag last point
                 const snappedLocalCurvePoint = this.snapCurvePoint(this.currentNewPathId, pointIndex, localMousePoint.x, localMousePoint.y);
                 
