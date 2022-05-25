@@ -13,10 +13,10 @@ class State {
      * @param {EventBus} EventBus 
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus, store) {
+    constructor(eventBus, store, name) {
         this.schemeContainer = null;
         this.eventBus = eventBus;
-        this.name = '';
+        this.name = name || '';
         this.store = store;
 
     }
