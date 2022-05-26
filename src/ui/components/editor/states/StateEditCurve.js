@@ -163,6 +163,7 @@ class CreatingPathState extends SubState {
     }
     
     mouseMove(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
         if (this.item.shapeProps.paths.length > this.pathId && this.item.shapeProps.paths[this.pathId].points.length > 0) {
             const pointId = this.item.shapeProps.paths[this.pathId].points.length - 1;
             const point = this.item.shapeProps.paths[this.pathId].points[pointId];
@@ -186,6 +187,7 @@ class CreatingPathState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
         this.mouseIsDown = false;
         if (this.shouldClosePath) {
             this.item.shapeProps.paths[this.pathId].closed = true;
@@ -225,6 +227,8 @@ class DragObjectState extends SubState {
             return;
         }
 
+        StoreUtils.clearItemSnappers(this.store);
+
         if (this.draggedObject && this.draggedObject.type === 'path-point') {
             this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
@@ -235,6 +239,7 @@ class DragObjectState extends SubState {
     }
     
     mouseUp(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
         this.migrateToPrev();
     }
 
@@ -543,27 +548,6 @@ export default class StateEditCurve extends State {
         this.item = null;
         this.subState = null;
         this.previousState = null;
-        this.addedToScheme = false;
-        this.creatingNewPoints = true;
-        this.newPathShouldBeCreated = false;
-        this.originalClickPoint = {x: 0, y: 0, mx: 0, my: 0};
-        this.candidatePointSubmited = false;
-        this.shouldJoinClosedPoints = false;
-        this.multiSelectBox = null;
-
-        // used to identify whether mouse was moved between mouseDown and mouseUp events
-        this.wasMouseMoved = false;
-        this.mouseMoveOffset = 0;
-
-        // used in order to drag screen when user holds spacebar
-        this.shouldDragScreen = false;
-        this.startedDraggingScreen = false;
-        this.originalScreenOffset = {x: 0, y: 0};
-
-        this.draggedObject = null;
-        this.originalCurvePaths = null;
-
-        this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
 
     migrateSubState(newSubState) {
@@ -581,24 +565,8 @@ export default class StateEditCurve extends State {
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
+        this.previousState = null;
         this.subState = new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event));
-        this.addedToScheme = false;
-        this.creatingNewPoints = true;
-        this.currentNewPathId = 0;
-        this.softReset();
-    }
-
-    softReset() {
-        this.shouldDragScreen = false;
-        this.multiSelectBox = null;
-        this.wasMouseMoved = false;
-        this.mouseMoveOffset = 0;
-        this.startedDraggingScreen = false;
-        this.candidatePointSubmited = false;
-        this.shouldJoinClosedPoints = false;
-        this.draggedObject = null;
-        this.originalCurvePaths = null;
-        this.newPathShouldBeCreated = false;
     }
 
     cancel() {
@@ -898,7 +866,6 @@ export default class StateEditCurve extends State {
         this.originalCurvePaths = null;
 
         StoreUtils.clearItemSnappers(this.store);
-        this.softReset();
     }
 
     getSelectedPoints() {
