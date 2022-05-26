@@ -409,6 +409,39 @@ class MultiSelectState extends SubState {
     }
 }
 
+
+class DragScreenState extends SubState {
+    constructor(parentState) {
+        super(parentState, 'drag-screen');
+        this.schemeContainer = parentState.schemeContainer;
+        this.originalClickPoint = null;
+        this.originalScreenOffset = null;
+    }
+
+    keyUp(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrateToPrev();
+        }
+    }
+
+    mouseDown(x, y, mx, my, object, event) {
+        this.originalClickPoint = {x, y, mx, my};
+        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.originalClickPoint && this.originalScreenOffset) {
+            this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
+            this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
+        }
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        this.originalClickPoint = null;
+    }
+}
+
+
 class IdleState extends SubState {
     constructor(parentState, contextMenuHandler) {
         super(parentState, 'idle');
@@ -420,6 +453,12 @@ class IdleState extends SubState {
     reset() {
         this.clickedObject = null;
         this.shouldSelectOnlyOne = false;
+    }
+
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrate(new DragScreenState(this.parentState));
+        }
     }
 
     mouseDoubleClick(x, y, mx, my, object, event) {
@@ -1405,12 +1444,4 @@ export default class StateEditCurve extends State {
         this.reset();
     }
 
-    dragScreen(x, y) {
-        this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + x - this.originalClickPoint.x);
-        this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + y - this.originalClickPoint.y);
-    }
-
-    proposeNewDestinationItemForConnector(item, mx, my) {
-        StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my);
-    }
 }
