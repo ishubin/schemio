@@ -536,8 +536,8 @@ export default class StateEditCurve extends State {
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
-        this.previousState = null;
         this.migrateSubState(new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event)));
+        this.resetPreviousSubStates();
     }
 
     cancel() {
@@ -645,7 +645,7 @@ export default class StateEditCurve extends State {
             if (! (prevPoint && prevPoint.break) && ! (nextPoint && nextPoint.break)){
                 menuOptions.push({
                     name: 'Break path',
-                    clicked: () => this.breakCurve(object.pathIndex, object.pointIndex)
+                    clicked: () => this.breakPath(object.pathIndex, object.pointIndex)
                 });
             }
 
@@ -841,7 +841,7 @@ export default class StateEditCurve extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    breakCurve(pathIndex, pointIndex) {
+    breakPath(pathIndex, pointIndex) {
         const path = this.item.shapeProps.paths[pathIndex];
         if (path.closed) {
             this.breakClosedPath(path, pointIndex);

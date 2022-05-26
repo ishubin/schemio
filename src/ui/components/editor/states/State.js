@@ -8,6 +8,8 @@ import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
 import forEach from 'lodash/forEach';
 
+const SUB_STATE_STACK_LIMIT = 10;
+
 class State {
     /**
      * @param {EventBus} EventBus 
@@ -20,23 +22,30 @@ class State {
         this.store = store;
 
         this.subState = null;
-        this.previousState = null;
+        this.previousSubStates = [];
     }
 
     migrateSubState(newSubState) {
-        this.previousState = this.subState;
+        if (this.subState) {
+            this.previousSubStates.push(this.subState);
+            if (this.previousSubStates.length > SUB_STATE_STACK_LIMIT) {
+                this.previousSubStates.shift();
+            }
+        }
         this.subState = newSubState;
         this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
     }
 
     migrateToPreviousSubState() {
-        if (this.previousState) {
-            this.subState = this.previousState;
-            this.previousState = null;
+        if (this.previousSubStates.length > 0) {
+            this.subState = this.previousSubStates.pop();
             this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
         }
     }
 
+    resetPreviousSubStates() {
+        this.previousSubStates = [];
+    }
 
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;
