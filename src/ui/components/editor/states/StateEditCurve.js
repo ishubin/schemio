@@ -25,6 +25,11 @@ function isEventRightClick(event) {
     return event.button === 2;
 }
 
+function isValidObject(object) {
+    return object && (object.type === 'path-point' || object.type === 'curve-control-point' || object.type === 'path-segment');
+}
+
+
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
  * @param {MouseEvent} event 
@@ -41,14 +46,11 @@ class SubState extends State {
     }
 
     migrate(newSubState) {
-        this.parentState.previousState = this.parentState.subState;
-        this.parentState.subState = newSubState;
+        this.parentState.migrateSubState(newSubState);
     }
 
     migrateToPrev() {
-        if (this.parentState.previousState) {
-            this.parentState.subState = this.parentState.previousState;
-        }
+        this.parentState.migrateToPreviousSubState();
     }
 
     cancel() {
@@ -206,7 +208,7 @@ class CreatingPathState extends SubState {
 
 class DragObjectState extends SubState {
     constructor(parentState, draggedObject, originalX, originalY) {
-        super(parentState, 'idle');
+        super(parentState, 'drag-object');
         this.draggedObject = draggedObject;
         this.item = parentState.item;
         this.schemeContainer = parentState.schemeContainer;
@@ -408,15 +410,22 @@ class MultiSelectState extends SubState {
 }
 
 class IdleState extends SubState {
-    constructor(parentState) {
+    constructor(parentState, contextMenuHandler) {
         super(parentState, 'idle');
         this.clickedObject = null;
         this.shouldSelectOnlyOne = false;
+        this.contextMenuHandler = contextMenuHandler;
     }
 
     reset() {
         this.clickedObject = null;
         this.shouldSelectOnlyOne = false;
+    }
+
+    mouseDoubleClick(x, y, mx, my, object, event) {
+        if (object && object.type === 'path-segment') {
+            this.parentState.insertPointAtCoords(x, y, object.pathIndex, object.segmentIndex);
+        }
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -429,7 +438,7 @@ class IdleState extends SubState {
         }
 
         if (isEventRightClick(event)) {
-            
+            this.contextMenuHandler(x, y, mx, my, object, event)
         } else {
             if (object) {
                 this.clickedObject = object;
@@ -455,7 +464,7 @@ class IdleState extends SubState {
             this.migrate(new DragObjectState(this.parentState, this.clickedObject, x, y));
             this.reset();
             return;
-        } else if (this.clickedObject && !this.isValidObject(this.clickedObject)) {
+        } else if (this.clickedObject && !isValidObject(this.clickedObject)) {
             this.reset();
             this.migrate(new MultiSelectState(this.parentState, x, y, mx, my));
             return;
@@ -471,14 +480,10 @@ class IdleState extends SubState {
                 StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, false);
                 EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
             }
-        } else if (this.clickedObject && !this.isValidObject(this.clickedObject)) {
+        } else if (this.clickedObject && !isValidObject(this.clickedObject)) {
             StoreUtils.resetCurveEditPointSelection(this.store);
         }
         this.reset();
-    }
-
-    isValidObject(object) {
-        return object && (object.type === 'path-point' || object.type === 'curve-control-point' || object.type === 'path-segment');
     }
 
     selectPath(object, isInclusive) {
@@ -522,10 +527,22 @@ export default class StateEditCurve extends State {
         this.shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
     }
 
+    migrateSubState(newSubState) {
+        this.previousState = this.subState;
+        this.subState = newSubState;
+    }
+
+    migrateToPreviousSubState() {
+        if (this.previousState) {
+            this.subState = this.previousState;
+            this.previousState = null;
+        }
+    }
+
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
-        this.subState = new IdleState(this);
+        this.subState = new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event));
         this.addedToScheme = false;
         this.creatingNewPoints = true;
         this.currentNewPathId = 0;
@@ -616,9 +633,6 @@ export default class StateEditCurve extends State {
         if (this.creatingNewPoints) {
             return;
         }
-        if (object && object.type === 'path-segment') {
-            this.insertPointAtCoords(x, y, object.pathIndex, object.segmentIndex);
-        }
     }
 
     mouseDown(x, y, mx, my, object, event) {
@@ -698,8 +712,9 @@ export default class StateEditCurve extends State {
     }
     
     startCreatingNewPath() {
-        this.creatingNewPoints = true;
-        this.newPathShouldBeCreated = true;
+        if (this.subState && this.subState.name === 'idle') {
+            this.migrateSubState(new CreatingPathState(this, this.item.shapeProps.paths.length));
+        }
     }
     
     mouseMove(x, y, mx, my, object, event) {
@@ -859,8 +874,8 @@ export default class StateEditCurve extends State {
         return selectedPoints;
     }
 
-    handleRightClick(x, y, mx, my, object, event) {
-        if (object.type === 'void') {
+    contextMenuHandler(x, y, mx, my, object, event) {
+        if (!isValidObject(object)) {
             this.eventBus.emitCustomContextMenuRequested(mx, my, [{
                 name: 'Add new path',
                 clicked: () => this.startCreatingNewPath()
@@ -950,7 +965,6 @@ export default class StateEditCurve extends State {
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
 
         } else if (object && object.type === 'path-segment') {
-            this.selectPath(object, event);
             this.eventBus.emitCustomContextMenuRequested(mx, my, [{
                 name: 'Extract path',
                 clicked: () => this.extractPath(object.pathIndex)
@@ -1206,18 +1220,6 @@ export default class StateEditCurve extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
-    }
-
-    findClosestLineSegment(distanceOnPath, paths, svgPath) {
-        for (let pathId = paths.length - 1; pathId >= 0; pathId--) {
-            for (let i = paths[pathId].points.length - 1; i >= 0; i--) {
-                const closestPoint = myMath.closestPointOnPath(paths[pathId].points[i].x, paths[pathId].points[i].y, svgPath);
-                if (closestPoint.distance < distanceOnPath) {
-                    return {pathId, pointId: i};
-                }
-            }
-        }
-        return {pathId: 0, pointId: 0};
     }
 
     convertPointToSimple(pathId, pointIndex) {
