@@ -41,7 +41,14 @@ class SubState extends State {
     }
 
     migrate(newSubState) {
+        this.parentState.previousState = this.parentState.subState;
         this.parentState.subState = newSubState;
+    }
+
+    migrateToPrev() {
+        if (this.parentState.previousState) {
+            this.parentState.subState = this.parentState.previousState;
+        }
     }
 
     cancel() {
@@ -198,12 +205,11 @@ class CreatingPathState extends SubState {
 }
 
 class DragObjectState extends SubState {
-    constructor(parentState, draggedObject, previousState, originalX, originalY) {
+    constructor(parentState, draggedObject, originalX, originalY) {
         super(parentState, 'idle');
         this.draggedObject = draggedObject;
         this.item = parentState.item;
         this.schemeContainer = parentState.schemeContainer;
-        this.previousState = previousState;
         this.originalClickPoint = {
             x: originalX,
             y: originalY
@@ -212,6 +218,11 @@ class DragObjectState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
         if (this.draggedObject && this.draggedObject.type === 'path-point') {
             this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
@@ -222,7 +233,7 @@ class DragObjectState extends SubState {
     }
     
     mouseUp(x, y, mx, my, object, event) {
-        this.migrate(this.previousState);
+        this.migrateToPrev();
     }
 
     snapCurvePoint(pathId, pointId, x, y) {
@@ -318,13 +329,92 @@ class DragObjectState extends SubState {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
-
 }
 
+class MultiSelectState extends SubState {
+    constructor(parentState, x, y, mx, my) {
+        super(parentState, 'multi-select');
+        this.clickedObject = null;
+        this.shouldSelectOnlyOne = false;
+        this.multiSelectBox = {x, y, w: 0, h: 0};
+        this.originalClickPoint = {x, y, mx, my};
+        this.item = parentState.item;
+        this.schemeContainer = parentState.schemeContainer;
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
+        if (x > this.originalClickPoint.x) {
+            this.multiSelectBox.x = this.originalClickPoint.x;
+            this.multiSelectBox.w = x - this.originalClickPoint.x;
+        } else {
+            this.multiSelectBox.x = x;
+            this.multiSelectBox.w = this.originalClickPoint.x - x;
+        }
+        if (y > this.originalClickPoint.y) {
+            this.multiSelectBox.y = this.originalClickPoint.y;
+            this.multiSelectBox.h = y - this.originalClickPoint.y;
+        } else {
+            this.multiSelectBox.y = y;
+            this.multiSelectBox.h = this.originalClickPoint.y - y;
+        }
+        StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
+    }
+    
+    mouseUp(x, y, mx, my, object, event) {
+        const inclusive = isMultiSelectKey(event);
+        this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
+        StoreUtils.setMultiSelectBox(this.store, null);
+        this.migrateToPrev();
+    }
+
+    selectByBoundaryBox(box, inclusive, mx, my) {
+        const viewportBox = {
+            x: this.originalClickPoint.mx,
+            y: this.originalClickPoint.my,
+            w: mx - this.originalClickPoint.mx,
+            h: my - this.originalClickPoint.my
+        };
+
+        // normalizing box
+        if (viewportBox.w < 0) {
+            viewportBox.x += viewportBox.w;
+            viewportBox.w = Math.abs(viewportBox.w);
+        }
+        if (viewportBox.h < 0) {
+            viewportBox.y += viewportBox.h;
+            viewportBox.h = Math.abs(viewportBox.h);
+        }
+
+        if (!inclusive) {
+            StoreUtils.resetCurveEditPointSelection(this.store);
+            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+        }
+
+        this.item.shapeProps.paths.forEach((path, pathId) => {
+            path.points.forEach((point, pointId) => {
+                const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
+                if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
+                    StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
+                }
+            });
+        });
+        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+    }
+}
 
 class IdleState extends SubState {
     constructor(parentState) {
         super(parentState, 'idle');
+        this.clickedObject = null;
+        this.shouldSelectOnlyOne = false;
+    }
+
+    reset() {
         this.clickedObject = null;
         this.shouldSelectOnlyOne = false;
     }
@@ -362,9 +452,13 @@ class IdleState extends SubState {
     mouseMove(x, y, mx, my, object, event) {
         if (this.clickedObject && 
             (this.clickedObject.type === 'path-point' || this.clickedObject.type === 'curve-control-point' || this.clickedObject.type === 'path-segment')) {
-            this.migrate(new DragObjectState(this.parentState, this.clickedObject, this, x, y));
-            this.clickedObject = false;
-            this.shouldSelectOnlyOne = false;
+            this.migrate(new DragObjectState(this.parentState, this.clickedObject, x, y));
+            this.reset();
+            return;
+        } else if (this.clickedObject && !this.isValidObject(this.clickedObject)) {
+            this.reset();
+            this.migrate(new MultiSelectState(this.parentState, x, y, mx, my));
+            return;
         }
     }
     
@@ -377,9 +471,14 @@ class IdleState extends SubState {
                 StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, false);
                 EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
             }
+        } else if (this.clickedObject && !this.isValidObject(this.clickedObject)) {
+            StoreUtils.resetCurveEditPointSelection(this.store);
         }
-        this.shouldSelectOnlyOne = false;
-        this.clickedObject = null;
+        this.reset();
+    }
+
+    isValidObject(object) {
+        return object && (object.type === 'path-point' || object.type === 'curve-control-point' || object.type === 'path-segment');
     }
 
     selectPath(object, isInclusive) {
@@ -399,6 +498,7 @@ export default class StateEditCurve extends State {
         this.name = 'editCurve';
         this.item = null;
         this.subState = null;
+        this.previousState = null;
         this.addedToScheme = false;
         this.creatingNewPoints = true;
         this.newPathShouldBeCreated = false;
@@ -1306,40 +1406,6 @@ export default class StateEditCurve extends State {
     dragScreen(x, y) {
         this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + x - this.originalClickPoint.x);
         this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + y - this.originalClickPoint.y);
-    }
-
-    selectByBoundaryBox(box, inclusive, mx, my) {
-        const viewportBox = {
-            x: this.originalClickPoint.mx,
-            y: this.originalClickPoint.my,
-            w: mx - this.originalClickPoint.mx,
-            h: my - this.originalClickPoint.my
-        };
-
-        // normalizing box
-        if (viewportBox.w < 0) {
-            viewportBox.x += viewportBox.w;
-            viewportBox.w = Math.abs(viewportBox.w);
-        }
-        if (viewportBox.h < 0) {
-            viewportBox.y += viewportBox.h;
-            viewportBox.h = Math.abs(viewportBox.h);
-        }
-
-        if (!inclusive) {
-            StoreUtils.resetCurveEditPointSelection(this.store);
-            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
-        }
-
-        this.item.shapeProps.paths.forEach((path, pathId) => {
-            path.points.forEach((point, pointId) => {
-                const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
-                if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
-                    StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
-                }
-            });
-        });
-        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
     }
 
     proposeNewDestinationItemForConnector(item, mx, my) {
