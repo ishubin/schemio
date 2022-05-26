@@ -265,13 +265,6 @@ export default class StateConnecting extends State {
         this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
-    initMulitSelectBox(x, y, mx, my) {
-        this.originalClickPoint.x = x;
-        this.originalClickPoint.y = y;
-        this.originalClickPoint.mx = mx;
-        this.originalClickPoint.my = my;
-    }
-
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE && !this.startedDraggingScreen) {
             this.shouldDragScreen = true;
