@@ -113,7 +113,6 @@ export default class StateDragItem extends State {
     }
 
     reset() {
-        this.updateCursor('default');
         this.reindexNeeded = false;
         this.wasDraggedEnough = false;
         this.startedDragging = false;
@@ -148,7 +147,6 @@ export default class StateDragItem extends State {
             this.dragItemsByKeyboard(0, delta);
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
-            this.updateCursor('grabbing');
         } else if (key === Keys.MINUS) {
             this.zoomOutByKey();
         } else if (key === Keys.EQUALS) {
@@ -159,7 +157,6 @@ export default class StateDragItem extends State {
     keyUp(key, keyOptions) {
         if (key === Keys.SPACE) {
             this.shouldDragScreen = false;
-            this.updateCursor('default');
         }
     }
 
@@ -234,7 +231,6 @@ export default class StateDragItem extends State {
         }
 
         if (this.shouldDragScreen) {
-            this.updateCursor('grabbing');
             this.initScreenDrag(mx, my);
         } else if (object.item) {
             if (isEventRightClick(event)) {

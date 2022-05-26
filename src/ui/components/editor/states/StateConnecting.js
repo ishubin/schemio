@@ -82,8 +82,6 @@ export default class StateConnecting extends State {
         if (this.schemeContainer.findItemById(item.id)) {
             this.addedToScheme = true;
             this.creatingNewPoints = false;
-        } else {
-            this.updateCursor('crosshair');
         }
     }
 
@@ -149,7 +147,6 @@ export default class StateConnecting extends State {
         this.parentItem = parentItem;
         this.addedToScheme = true;
         this.creatingNewPoints = true;
-        this.updateCursor('crosshair');
 
         return this.item;
     }
@@ -268,14 +265,12 @@ export default class StateConnecting extends State {
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE && !this.startedDraggingScreen) {
             this.shouldDragScreen = true;
-            this.updateCursor('grabbing');
         }
     }
 
     keyUp(key, keyOptions) {
         if (key === Keys.SPACE) {
             this.shouldDragScreen = false;
-            this.updateCursor('default');
         }
     }
 
@@ -286,7 +281,6 @@ export default class StateConnecting extends State {
         this.originalClickPoint.my = my;
 
         if (this.shouldDragScreen) {
-            this.updateCursor('grabbing');
             this.initScreenDrag(mx, my);
             return;
         }

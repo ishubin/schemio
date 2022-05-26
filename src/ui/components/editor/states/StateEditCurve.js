@@ -537,7 +537,7 @@ export default class StateEditCurve extends State {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
         this.previousState = null;
-        this.subState = new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event));
+        this.migrateSubState(new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event)));
     }
 
     cancel() {
@@ -545,8 +545,6 @@ export default class StateEditCurve extends State {
             this.subState.reset();
         }
         this.eventBus.emitItemsHighlighted([]);
-        //TODO delete item if there are no paths and no points
-
         if (this.item && this.item.id) {
             const paths = this.item.shapeProps.paths;
             for (let i = paths.length - 1; i >= 0; i--) {
@@ -1107,15 +1105,4 @@ export default class StateEditCurve extends State {
         const includeOnlyVisibleItems = true;
         return this.schemeContainer.findClosestPointToItems(x, y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
     }
-
-    submitItem() {
-        //TODO reimplement proper clean up when most points are deleted
-        this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.schemeContainer.reindexItems();
-        this.eventBus.emitItemChanged(this.item.id, 'area');
-        this.eventBus.emitSchemeChangeCommited();
-        this.schemeContainer.selectItem(this.item);
-        this.reset();
-    }
-
 }

@@ -19,7 +19,6 @@ export default class StateCreateItem extends State {
     reset() {
         this.item = null;
         this.addedToScheme = false;
-        this.updateCursor('default');
     }
 
     setItem(item) {
@@ -29,8 +28,6 @@ export default class StateCreateItem extends State {
         if (shape && shape.shapeEvents && shape.shapeEvents.beforeCreate) {
             shape.shapeEvents.beforeCreate(item);
         }
-
-        this.updateCursor('crosshair');
     }
 
     mouseDown(x, y, mx, my, object, event) {

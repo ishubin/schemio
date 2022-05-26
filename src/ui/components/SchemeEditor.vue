@@ -57,7 +57,7 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
-                    :class="['state-' + state]"
+                    :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
@@ -2538,6 +2538,10 @@ export default {
         curveEditItem() {
             return this.$store.state.curveEditing.item;
         },
+
+        editorSubStateName() {
+            return this.$store.getters.editorSubStateName;
+        }
     }
 }
 </script>

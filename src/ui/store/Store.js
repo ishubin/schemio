@@ -86,6 +86,7 @@ const store = new Vuex.Store({
         schemeModified: false,
 
         editorStateName: 'interact',
+        editorSubStateName: null,
 
         curveEditing: {
             // item whose curve is currently edited
@@ -285,6 +286,9 @@ const store = new Vuex.Store({
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
+        },
+        SET_EDITOR_SUB_STATE_NAME(state, stateName) {
+            state.editorSubStateName = stateName;
         },
         SET_ITEM_SURROUND_PADDING(state, padding) {
             state.itemSurround.padding = padding;
@@ -530,6 +534,10 @@ const store = new Vuex.Store({
         setEditorStateName({commit}, stateName) {
             commit('SET_EDITOR_STATE_NAME', stateName);
         },
+
+        setEditorSubStateName({commit}, stateName) {
+            commit('SET_EDITOR_SUB_STATE_NAME', stateName);
+        },
         
         setItemSurroundPadding({commit}, padding) {
             commit('SET_ITEM_SURROUND_PADDING', padding);
@@ -668,6 +676,7 @@ const store = new Vuex.Store({
         drawEpsilon: state => state.draw.epsilon,
 
         editorStateName: state => state.editorStateName,
+        editorSubStateName: state => state.editorSubStateName,
 
         animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
 

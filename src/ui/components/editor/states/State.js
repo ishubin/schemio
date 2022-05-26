@@ -26,12 +26,14 @@ class State {
     migrateSubState(newSubState) {
         this.previousState = this.subState;
         this.subState = newSubState;
+        this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
     }
 
     migrateToPreviousSubState() {
         if (this.previousState) {
             this.subState = this.previousState;
             this.previousState = null;
+            this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
         }
     }
 
@@ -287,11 +289,6 @@ class State {
             dx: snappedDx,
             dy: snappedDy
         };
-    }
-
-    updateCursor(cursor) {
-        //TODO figure out how to update cursor. perhaps its state should be managed in store
-        // this.editor.cursor = cursor;
     }
 
     /**

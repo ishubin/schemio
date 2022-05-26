@@ -740,15 +740,6 @@ ul.pagination li a.current {
     opacity: 1;
 }
 
-/*********** Curve **************************/
-
-[data-type='path-segment'], [data-type='path-point'], [data-type='curve-control-point'] {
-    cursor: pointer;
-}
-.curve-control-points {
-    opacity: 0.7;
-}
-
 
 /********** Item Cursor *******************/
 #svg_plot .item-cursor-pointer {
@@ -855,6 +846,25 @@ ul.pagination li a.current {
     cursor: crosshair;
 }
 
+
+.state-editCurve.sub-state-creating-path {
+    cursor: crosshair;
+}
+.state-editCurve.sub-state-drag-screen {
+    cursor: grab;
+}
+.state-editCurve.sub-state-drag-object {
+    cursor: grab;
+}
+
+.state-editCurve.sub-state-idle [data-type='path-segment'],
+.state-editCurve.sub-state-idle [data-type='path-point'],
+.state-editCurve.sub-state-idle [data-type='curve-control-point'] {
+    cursor: pointer;
+}
+.curve-control-points {
+    opacity: 0.7;
+}
 
 /***************************************/
 /* Export SVG Preview                  */
