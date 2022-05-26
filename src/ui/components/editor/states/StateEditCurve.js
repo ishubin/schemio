@@ -557,7 +557,24 @@ export default class StateEditCurve extends State {
             if (paths.length === 0) {
                 this.schemeContainer.deleteItem(this.item);
             } else {
+                const childWorldPositions = [];
+                this.item.childItems.forEach(childItem => {
+                    childWorldPositions.push(worldPointOnItem(0, 0, childItem));
+                });
+
                 this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+
+                const parentTransform = myMath.standardTransformWithArea(this.item.meta.transformMatrix, this.item.area);
+
+                // fixing child items positions as the parent item area has changed
+                this.item.childItems.forEach((childItem, i) => {
+                    const localPoint = myMath.findTranslationMatchingWorldPoint(childWorldPositions[i].x, childWorldPositions[i].y, childItem.area, parentTransform);
+                    if (localPoint) {
+                        childItem.area.x = localPoint.x;
+                        childItem.area.y = localPoint.y;
+                    }
+                });
+                this.schemeContainer.reindexItems();
             }
             this.schemeContainer.updateMultiItemEditBox();
         }
