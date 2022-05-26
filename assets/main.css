@@ -847,22 +847,22 @@ ul.pagination li a.current {
 }
 
 
-.state-editCurve.sub-state-creating-path * {
+.state-editPath.sub-state-creating-path * {
     cursor: crosshair !important;
 }
-.state-editCurve.sub-state-drag-screen * {
+.state-editPath.sub-state-drag-screen * {
     cursor: grab !important;
 }
-.state-editCurve.sub-state-drag-object * {
+.state-editPath.sub-state-drag-object * {
     cursor: grabbing !important;
 }
 
 [data-type='path-segment'],
 [data-type='path-point'],
-[data-type='curve-control-point'] {
+[data-type='path-control-point'] {
     cursor: pointer;
 }
-.curve-control-points {
+.path-control-points {
     opacity: 0.7;
 }
 

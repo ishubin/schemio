@@ -385,7 +385,7 @@ export default {
         },
 
         isCreatingConnector() {
-            return this.$store.state.editorStateName === 'editCurve' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector';
+            return this.$store.state.editorStateName === 'editPath' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector';
         },
 
         onEditorStateChanged() {
@@ -632,7 +632,7 @@ export default {
         },
 
         shouldShowPathHelpers() {
-            return this.$store.state.editorStateName === 'editCurve';
+            return this.$store.state.editorStateName === 'editPath';
         },
 
         shouldShowDrawHelpers() {
@@ -640,7 +640,7 @@ export default {
         },
 
         shouldShowPathCaps() {
-            if (this.$store.state.editorStateName === 'editCurve') {
+            if (this.$store.state.editorStateName === 'editPath') {
                 return true;
             }
             if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'path')) {
@@ -651,7 +651,7 @@ export default {
 
         shouldShowConnectorControls() {
             return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector')
-            || (this.$store.state.editorStateName === 'editCurve' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector');
+            || (this.$store.state.editorStateName === 'editPath' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector');
         },
 
         autoRemount() {

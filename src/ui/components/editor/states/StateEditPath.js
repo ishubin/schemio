@@ -27,7 +27,7 @@ function isEventRightClick(event) {
 }
 
 function isValidObject(object) {
-    return object && (object.type === 'path-point' || object.type === 'curve-control-point' || object.type === 'path-segment');
+    return object && (object.type === 'path-point' || object.type === 'path-control-point' || object.type === 'path-segment');
 }
 
 
@@ -218,7 +218,7 @@ class DragObjectState extends SubState {
             this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
         } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
             this.handleCurvePathDrag(x, y, this.draggedObject.pathIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
+        } else if (this.draggedObject && this.draggedObject.type === 'path-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         }
     }
@@ -472,7 +472,7 @@ class IdleState extends SubState {
             if (object) {
                 this.clickedObject = object;
             }
-            if (object && (object.type === 'path-point' || object.type === 'curve-control-point')) {
+            if (object && (object.type === 'path-point' || object.type === 'path-control-point')) {
                 if (!StoreUtils.getCurveEditPaths(this.store)[object.pathIndex].points[object.pointIndex].selected) {
                     StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, isMultiSelectKey(event));
                     EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
@@ -489,7 +489,7 @@ class IdleState extends SubState {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.clickedObject && 
-            (this.clickedObject.type === 'path-point' || this.clickedObject.type === 'curve-control-point' || this.clickedObject.type === 'path-segment')) {
+            (this.clickedObject.type === 'path-point' || this.clickedObject.type === 'path-control-point' || this.clickedObject.type === 'path-segment')) {
             this.migrate(new DragObjectState(this.parentState, this.clickedObject, x, y));
             this.reset();
             return;
@@ -526,10 +526,10 @@ class IdleState extends SubState {
     }
 }
 
-export default class StateEditCurve extends State {
+export default class StateEditPath extends State {
     constructor(eventBus, store) {
         super(eventBus, store);
-        this.name = 'editCurve';
+        this.name = 'editPath';
         this.item = null;
     }
 
@@ -558,22 +558,25 @@ export default class StateEditCurve extends State {
                 this.schemeContainer.deleteItem(this.item);
             } else {
                 const childWorldPositions = [];
-                this.item.childItems.forEach(childItem => {
-                    childWorldPositions.push(worldPointOnItem(0, 0, childItem));
-                });
-
+                if (this.item.childItems) {
+                    this.item.childItems.forEach(childItem => {
+                        childWorldPositions.push(worldPointOnItem(0, 0, childItem));
+                    });
+                }
                 this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-                const parentTransform = myMath.standardTransformWithArea(this.item.meta.transformMatrix, this.item.area);
+                if (this.item.childItems) {
+                    const parentTransform = myMath.standardTransformWithArea(this.item.meta.transformMatrix, this.item.area);
 
-                // fixing child items positions as the parent item area has changed
-                this.item.childItems.forEach((childItem, i) => {
-                    const localPoint = myMath.findTranslationMatchingWorldPoint(childWorldPositions[i].x, childWorldPositions[i].y, childItem.area, parentTransform);
-                    if (localPoint) {
-                        childItem.area.x = localPoint.x;
-                        childItem.area.y = localPoint.y;
-                    }
-                });
+                    // fixing child items positions as the parent item area has changed
+                    this.item.childItems.forEach((childItem, i) => {
+                        const localPoint = myMath.findTranslationMatchingWorldPoint(childWorldPositions[i].x, childWorldPositions[i].y, childItem.area, parentTransform);
+                        if (localPoint) {
+                            childItem.area.x = localPoint.x;
+                            childItem.area.y = localPoint.y;
+                        }
+                    });
+                }
                 this.schemeContainer.reindexItems();
             }
             this.schemeContainer.updateMultiItemEditBox();

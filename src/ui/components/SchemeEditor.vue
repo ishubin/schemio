@@ -74,7 +74,7 @@
                     @svg-size-updated="onSvgSizeUpdated"
                     >
                     <g slot="scene-transform">
-                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && state !== 'cropImage' && !inPlaceTextEditor.shown"
+                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
@@ -89,7 +89,7 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
-                        <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta">
+                        <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
                             <PathEditBox 
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
                                 :item="curveEditItem"
@@ -423,7 +423,7 @@ import StateCreateItem from './editor/states/StateCreateItem.js';
 import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
-import StateEditCurve from './editor/states/StateEditCurve.js';
+import StateEditPath from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
@@ -443,7 +443,7 @@ const userEventBus = new UserEventBus();
 const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
     createItem: new StateCreateItem(EventBus, store),
-    editCurve: new StateEditCurve(EventBus, store),
+    editPath: new StateEditPath(EventBus, store),
     connecting: new StateConnecting(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
@@ -898,7 +898,7 @@ export default {
             if (item.shape === 'path') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
-                this.state = 'editCurve';
+                this.state = 'editPath';
                 EventBus.emitCurveEdited(item);
             } else if (item.shape === 'connector') {
                 item.shapeProps.points = [];
@@ -925,7 +925,7 @@ export default {
             if (item.shape === 'path') {
                 item.shapeProps.closed = false;
             }
-            this.state = 'editCurve';
+            this.state = 'editPath';
             EventBus.emitCurveEdited(item);
 
             states[this.state].reset();
@@ -968,15 +968,15 @@ export default {
         onCurveEditRequested(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
-            this.state = 'editCurve';
-            states.editCurve.reset();
-            states.editCurve.setItem(item);
+            this.state = 'editPath';
+            states.editPath.reset();
+            states.editPath.setItem(item);
             this.setCurveEditItem(item);
         },
 
         onCurveEditStopped() {
-            if (this.state === 'editCurve') {
-                states.editCurve.cancel();
+            if (this.state === 'editPath') {
+                states.editPath.cancel();
             }
         },
 
@@ -1314,8 +1314,8 @@ export default {
                     this.schemeContainer.selectAllItems();
                     EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
                 } else if (Keys.DELETE === key) {
-                    if (this.state === 'editCurve') {
-                        states.editCurve.deleteSelectedPoints();
+                    if (this.state === 'editPath') {
+                        states.editPath.deleteSelectedPoints();
                     } else if (this.state === 'dragItem') {
                         this.deleteSelectedItems();
                     }
@@ -1452,7 +1452,7 @@ export default {
         },
 
         restoreCurveEditing() {
-            if (this.$store.state.editorStateName === 'editCurve') {
+            if (this.$store.state.editorStateName === 'editPath') {
                 const storeItem = this.$store.state.curveEditing.item;
                 if (!storeItem) {
                     return;
@@ -1463,7 +1463,7 @@ export default {
                     EventBus.$emit(EventBus.CURVE_EDITED, existingItem);
                 } else {
                     this.$store.dispatch('setCurveEditItem', null);
-                    if (this.$store.state.editorStateName === 'editCurve') {
+                    if (this.$store.state.editorStateName === 'editPath') {
                         EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
                     }
                 }
@@ -1796,13 +1796,13 @@ export default {
         },
 
         convertCurvePointToSimple() {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].convertSelectedPointsToSimple();
             }
         },
 
         convertCurvePointToBeizer() {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].convertSelectedPointsToBeizer();
             }
         },
@@ -1815,7 +1815,7 @@ export default {
          * Invoked when user selects an item from ConnectorDestinationProposal panel during creation of a connector
          */
         onConnectorDestinationItemSelected(item) {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].submitConnectorDestinationItem(item);
             }
         },

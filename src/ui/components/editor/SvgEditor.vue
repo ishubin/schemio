@@ -328,12 +328,12 @@ export default {
                         pointIndex: parseInt(element.getAttribute('data-path-point-index')),
                         pathIndex: parseInt(element.getAttribute('data-path-index'))
                     };
-                } else if (elementType === 'curve-control-point') {
+                } else if (elementType === 'path-control-point') {
                     return {
                         type: elementType,
                         pointIndex: parseInt(element.getAttribute('data-path-point-index')),
                         pathIndex: parseInt(element.getAttribute('data-path-index')),
-                        controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
+                        controlPointIndex: parseInt(element.getAttribute('data-path-control-point-index'))
                     };
                 } else if (elementType === 'multi-item-edit-box'
                         || elementType === 'multi-item-edit-box-rotational-dragger'
