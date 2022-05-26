@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
+import {SubState} from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
@@ -36,30 +37,6 @@ function isValidObject(object) {
  */
 function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
-}
-
-class SubState extends State {
-    constructor(parentState, name) {
-        super(parentState.eventBus, parentState.store, name);
-        this.schemeContainer = parentState.schemeContainer;
-        this.parentState = parentState;
-    }
-
-    migrate(newSubState) {
-        this.parentState.migrateSubState(newSubState);
-    }
-
-    migrateToPrev() {
-        this.parentState.migrateToPreviousSubState();
-    }
-
-    cancel() {
-        this.parentState.cancel();
-    }
-
-    getSchemeContainer() {
-        return this.parentState.schemeContainer;
-    }
 }
 
 const MOUSE_MOVE_THRESHOLD = 3;
@@ -546,20 +523,6 @@ export default class StateEditCurve extends State {
         super(eventBus, store);
         this.name = 'editCurve';
         this.item = null;
-        this.subState = null;
-        this.previousState = null;
-    }
-
-    migrateSubState(newSubState) {
-        this.previousState = this.subState;
-        this.subState = newSubState;
-    }
-
-    migrateToPreviousSubState() {
-        if (this.previousState) {
-            this.subState = this.previousState;
-            this.previousState = null;
-        }
     }
 
     reset() {
@@ -591,281 +554,6 @@ export default class StateEditCurve extends State {
 
     setItem(item) {
         this.item = item;
-        if (this.schemeContainer.findItemById(item.id)) {
-            this.addedToScheme = true;
-            this.creatingNewPoints = false;
-        } else {
-            this.updateCursor('crosshair');
-        }
-    }
-
-    initScreenDrag(mx, my) {
-        this.startedDraggingScreen = true;
-        this.originalClickPoint.x = mx;
-        this.originalClickPoint.y = my;
-        this.originalClickPoint.mx = mx;
-        this.originalClickPoint.my = my;
-        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
-    }
-
-    initMulitSelectBox(x, y, mx, my) {
-        this.originalClickPoint.x = x;
-        this.originalClickPoint.y = y;
-        this.originalClickPoint.mx = mx;
-        this.originalClickPoint.my = my;
-        this.multiSelectBox = {x, y, w: 0, h: 0};
-    }
-
-    keyPressed(key, keyOptions) {
-        this.subState.keyPressed(key, keyOptions);
-        return;
-        if (key === Keys.SPACE && !this.startedDraggingScreen) {
-            this.shouldDragScreen = true;
-            this.updateCursor('grabbing');
-        }
-    }
-
-    keyUp(key, keyOptions) {
-        this.subState.keyUp(key, keyOptions);
-        return;
-        if (key === Keys.SPACE) {
-            this.shouldDragScreen = false;
-            this.updateCursor('default');
-        }
-    }
-
-    mouseDoubleClick(x, y, mx, my, object, event) {
-        this.subState.mouseDoubleClick(x, y, mx, my, object, event);
-        return;
-        if (this.creatingNewPoints) {
-            return;
-        }
-    }
-
-    mouseDown(x, y, mx, my, object, event) {
-        this.subState.mouseDown(x, y, mx, my, object, event);
-        return;
-
-        this.mouseMoveOffset = 0;
-        this.originalClickPoint.x = x;
-        this.originalClickPoint.y = y;
-        this.originalClickPoint.mx = mx;
-        this.originalClickPoint.my = my;
-
-        if (this.shouldDragScreen) {
-            this.updateCursor('grabbing');
-            this.initScreenDrag(mx, my);
-            return;
-        }
-
-        if (!this.addedToScheme) {
-            this.item.shapeProps.paths = [{
-                closed: false,
-                points: []
-            }];
-            this.schemeContainer.addItem(this.item);
-            this.addedToScheme = true;
-            this.initFirstClick(x, y);
-
-        } else if (this.creatingNewPoints && this.newPathShouldBeCreated) {
-            this.item.shapeProps.paths.push({
-                closed: false,
-                points: []
-            });
-            this.currentNewPathId = this.item.shapeProps.paths.length - 1;
-            this.initFirstClick(x, y);
-            this.newPathShouldBeCreated = false;
-
-        } else if (this.creatingNewPoints) {
-            const localPoint = localPointOnItem(x, y, this.item);
-            const snappedCurvePoint = this.snapCurvePoint(this.currentNewPathId, this.item.shapeProps.paths[this.currentNewPathId].points.length - 1, localPoint.x, localPoint.y);
-
-            const point = this.item.shapeProps.paths[this.currentNewPathId].points[this.item.shapeProps.paths[this.currentNewPathId].points.length - 1];
-
-            point.x = snappedCurvePoint.x;
-            point.y = snappedCurvePoint.y;
-
-            //checking whether curve got closed
-            if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 2) {
-                if (this.shouldJoinClosedPoints) {
-                    // deleting last point
-                    this.item.shapeProps.paths[this.currentNewPathId].points.splice(this.item.shapeProps.paths[this.currentNewPathId].points.length - 1 , 1);
-                    this.item.shapeProps.paths[this.currentNewPathId].closed = true;
-                    this.submitItem();
-                    this.reset();
-                    this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
-                }
-            }
-            StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-            this.candidatePointSubmited = true;
-        } else {
-            // editing existing curve
-            if (isEventRightClick(event)) {
-                this.handleRightClick(x, y, mx, my, object, event);
-            } else if (object && (object.type === 'path-point' || object.type === 'curve-control-point')) {
-                this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
-                this.draggedObject = object;
-
-                if (!StoreUtils.getCurveEditPaths(this.store)[object.pathIndex].points[object.pointIndex].selected) {
-                    StoreUtils.toggleCurveEditPointSelection(this.store, object.pathIndex, object.pointIndex, isMultiSelectKey(event));
-                    EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
-                }
-            } else if (object && object.type === 'path-segment') {
-                this.handlePathClick(object, event);
-            } else {
-                this.initMulitSelectBox(x, y, mx, my);
-            }
-        }
-    }
-    
-    startCreatingNewPath() {
-        if (this.subState && this.subState.name === 'idle') {
-            this.migrateSubState(new CreatingPathState(this, this.item.shapeProps.paths.length));
-        }
-    }
-    
-    mouseMove(x, y, mx, my, object, event) {
-        this.subState.mouseMove(x, y, mx, my, object, event);
-        return;
-        // not handling any mouse movement if connector proposed destination panel is shown
-        if (this.store.state.connectorProposedDestination.shown) {
-            return;
-        }
-        this.mouseMoveOffset = Math.max(Math.abs(mx - this.originalClickPoint.mx) + Math.abs(my - this.originalClickPoint.my));
-
-        this.wasMouseMoved = true;
-
-        if (this.shouldDragScreen && this.startedDraggingScreen) {
-            this.dragScreen(mx, my);
-            return;
-        }
-
-        StoreUtils.clearItemSnappers(this.store);
-
-        if (this.addedToScheme && this.creatingNewPoints && this.item.shapeProps.paths[this.currentNewPathId].points.length > 0) {
-            if (this.newPathShouldBeCreated) {
-                return;
-            }
-
-            const pointIndex = this.item.shapeProps.paths[this.currentNewPathId].points.length - 1;
-            const point = this.item.shapeProps.paths[this.currentNewPathId].points[pointIndex];
-
-            const localMousePoint = localPointOnItem(x, y, this.item);
-
-            if (this.candidatePointSubmited && this.mouseMoveOffset > 4) {
-                //TODO trigger beizer point conversion only after the mouse is dragged by a couple of points
-                // convert last point to Beizer and drag its control points
-                point.t = 'B';
-                point.x2 = this.round(localMousePoint.x - point.x);
-                point.y2 = this.round(localMousePoint.y - point.y);
-
-                point.x1 = -point.x2;
-                point.y1 = -point.y2;
-            } else if (event.buttons === 0) {
-                // drag last point
-                const snappedLocalCurvePoint = this.snapCurvePoint(this.currentNewPathId, pointIndex, localMousePoint.x, localMousePoint.y);
-                
-                point.x = this.round(snappedLocalCurvePoint.x);
-                point.y = this.round(snappedLocalCurvePoint.y);
-
-
-                this.shouldJoinClosedPoints = false;
-
-                if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 2) {
-                    // checking if the curve point was moved too close to first point,
-                    // so that the placement of new points can be stopped and curve will become closed
-                    // This needs to be checked in viewport (not in world transform)
-                    const p0 = this.item.shapeProps.paths[this.currentNewPathId].points[0];
-                    const dx = point.x - p0.x;
-                    const dy = point.y - p0.y;
-                    
-                    if (Math.sqrt(dx * dx + dy * dy) * this.schemeContainer.screenTransform.scale <= 5) {
-                        point.x = p0.x;
-                        point.y = p0.y;
-                        if (!this.item.shapeProps.sourceItem) {
-                            this.shouldJoinClosedPoints = true;
-                        }
-                    }
-                }
-            }
-            this.eventBus.emitItemChanged(this.item.id);
-            StoreUtils.updateCurveEditPoint(this.store, this.item, 0, pointIndex, point);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-point') {
-            this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
-            this.handleCurvePathDrag(x, y, this.draggedObject.pathIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'curve-control-point') {
-            this.handleCurveControlPointDrag(x, y, event);
-        } else if (this.multiSelectBox) {
-            this.wasMouseMoved = true;
-            // checking user moved multi select box outside of svg editor and released the button there
-            if (event.buttons === 0) {
-                // in such case when user moves mouse back - it should finalize the multi select
-                // therefore we need to trigger mouseUp artificially
-                this.mouseUp(x, y, mx, my, object, event);
-            } else {
-                // otherwise keep moving multi select box
-                if (x > this.originalClickPoint.x) {
-                    this.multiSelectBox.x = this.originalClickPoint.x;
-                    this.multiSelectBox.w = x - this.originalClickPoint.x;
-                } else {
-                    this.multiSelectBox.x = x;
-                    this.multiSelectBox.w = this.originalClickPoint.x - x;
-                }
-                if (y > this.originalClickPoint.y) {
-                    this.multiSelectBox.y = this.originalClickPoint.y;
-                    this.multiSelectBox.h = y - this.originalClickPoint.y;
-                } else {
-                    this.multiSelectBox.y = y;
-                    this.multiSelectBox.h = this.originalClickPoint.y - y;
-                }
-                StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
-            }
-        }
-    }
-
-    mouseUp(x, y, mx, my, object, event) {
-        this.subState.mouseUp(x, y, mx, my, object, event);
-        return;
-
-        this.eventBus.emitItemsHighlighted([]);
-
-
-        if (this.multiSelectBox) {
-            const inclusive = isMultiSelectKey(event);
-            this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
-            StoreUtils.setMultiSelectBox(this.store, null);
-        } else if (this.addedToScheme && this.creatingNewPoints) {
-            if (this.candidatePointSubmited) {
-                this.candidatePointSubmited = false;
-
-                const localPoint = localPointOnItem(x, y, this.item);
-                const snappedLocalCurvePoint = this.snapCurvePoint(-1, -1, localPoint.x, localPoint.y);
-
-                this.item.shapeProps.paths[this.currentNewPathId].points.push({
-                    x: this.round(snappedLocalCurvePoint.x),
-                    y: this.round(snappedLocalCurvePoint.y),
-                    t: 'L'
-                });
-                this.eventBus.emitItemChanged(this.item.id);
-            }
-        } else if (!this.wasMouseMoved && object && object.type === 'path-point') {
-            // correcting for click on a point
-            // it should clear selection of other points in case ctrl key was not pressed
-            if (isMultiSelectKey(event)) {
-                StoreUtils.toggleCurveEditPointSelection(this.store, object.pointIndex, false);
-            }
-        }
-
-        // if something was dragged - the scheme change should be commited
-        if (this.draggedObject) {
-            this.eventBus.emitSchemeChangeCommited();
-        }
-
-        this.draggedObject = null;
-        this.originalCurvePaths = null;
-
-        StoreUtils.clearItemSnappers(this.store);
     }
 
     getSelectedPoints() {
@@ -1399,7 +1087,6 @@ export default class StateEditCurve extends State {
         const includeOnlyVisibleItems = true;
         return this.schemeContainer.findClosestPointToItems(x, y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
     }
-
 
     submitItem() {
         //TODO reimplement proper clean up when most points are deleted

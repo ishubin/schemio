@@ -19,7 +19,22 @@ class State {
         this.name = name || '';
         this.store = store;
 
+        this.subState = null;
+        this.previousState = null;
     }
+
+    migrateSubState(newSubState) {
+        this.previousState = this.subState;
+        this.subState = newSubState;
+    }
+
+    migrateToPreviousSubState() {
+        if (this.previousState) {
+            this.subState = this.previousState;
+            this.previousState = null;
+        }
+    }
+
 
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;
@@ -33,13 +48,29 @@ class State {
         this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE, this.name);
     }
 
-    keyPressed(key, keyOptions){}
-    keyUp(key, keyOptions){}
+    keyPressed(key, keyOptions) {
+        if (this.subState) this.subState.keyPressed(key, keyOptions);
+    }
 
-    mouseDown(worldX, worldY, screenX, screenY, object, event) {}
-    mouseUp(worldX, worldY, screenX, screenY, object, event) {}
-    mouseMove(worldX, worldY, screenX, screenY, object, event) {}
-    mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {}
+    keyUp(key, keyOptions) {
+        if (this.subState) this.subState.keyUp(key, keyOptions);
+    }
+
+    mouseDoubleClick(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseDoubleClick(x, y, mx, my, object, event);
+    }
+
+    mouseDown(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
+    }
+    
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseUp(x, y, mx, my, object, event);
+    }
 
 
     /**
@@ -279,6 +310,31 @@ class State {
 
     round(value) {
         return myMath.roundPrecise(value, this.getUpdatePrecision());
+    }
+}
+
+
+export class SubState extends State {
+    constructor(parentState, name) {
+        super(parentState.eventBus, parentState.store, name);
+        this.schemeContainer = parentState.schemeContainer;
+        this.parentState = parentState;
+    }
+
+    migrate(newSubState) {
+        this.parentState.migrateSubState(newSubState);
+    }
+
+    migrateToPrev() {
+        this.parentState.migrateToPreviousSubState();
+    }
+
+    cancel() {
+        this.parentState.cancel();
+    }
+
+    getSchemeContainer() {
+        return this.parentState.schemeContainer;
     }
 }
 
