@@ -183,6 +183,14 @@ class CreatingPathState extends SubState {
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
     }
+
+    reset() {
+        if (this.pathId < this.item.shapeProps.paths.length) {
+            if (this.item.shapeProps.paths[this.pathId].points.length > 0) {
+                this.item.shapeProps.paths[this.pathId].points.pop();
+            }
+        }
+    }
 }
 
 class DragObjectState extends SubState {
@@ -533,21 +541,27 @@ export default class StateEditCurve extends State {
     }
 
     cancel() {
+        if (this.subState) {
+            this.subState.reset();
+        }
         this.eventBus.emitItemsHighlighted([]);
         //TODO delete item if there are no paths and no points
 
-        if (this.item) {
-            if (this.creatingNewPoints) {
-                // deleting last point
-                this.item.shapeProps.paths[this.currentNewPathId].points.splice(this.item.shapeProps.paths[this.currentNewPathId].points.length - 1 , 1);
-
-                if (this.item.shapeProps.paths[this.currentNewPathId].points.length > 0) {
-                    this.submitItem();
+        if (this.item && this.item.id) {
+            const paths = this.item.shapeProps.paths;
+            for (let i = paths.length - 1; i >= 0; i--) {
+                const points = paths[i].points;
+                if (points.length < 2) {
+                    paths.splice(i, 1);
                 }
+            }
+            
+            if (paths.length === 0) {
+                this.schemeContainer.deleteItem(this.item);
             } else {
                 this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-                this.schemeContainer.updateMultiItemEditBox();
             }
+            this.schemeContainer.updateMultiItemEditBox();
         }
         super.cancel();
     }
@@ -666,6 +680,12 @@ export default class StateEditCurve extends State {
                 name: 'Invert path',
                 clicked: () => this.invertPath(object.pathIndex)
             }]);
+        }
+    }
+
+    startCreatingNewPath() {
+        if (this.subState && this.subState.name === 'idle') {
+            this.migrateSubState(new CreatingPathState(this, this.item.shapeProps.paths.length));
         }
     }
 
