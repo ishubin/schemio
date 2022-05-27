@@ -1102,20 +1102,6 @@ export default class StateEditPath extends State {
         };
     }
 
-    handleConnectorSourceMouseMove(x, y) {
-        const closestPointToItem = this.findClosestAttachmentPoint(x, y);
-
-        if (closestPointToItem) {
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
-            this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-            this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
-        } else {
-            this.eventBus.emitItemsHighlighted([]);
-            this.item.shapeProps.sourceItem = null;
-            this.item.shapeProps.sourceItemPosition = 0;
-        }
-    }
-
     findClosestAttachmentPoint(x, y) {
         let distanceThreshold = 10;
         if (this.schemeContainer.screenTransform.scale > 0) {
