@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
-import State from './State.js';
+import State, { SubState } from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
@@ -47,6 +47,308 @@ function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
 }
 
+
+function updateMultiItemEditBoxWorldPivot(multiItemEditBox) {
+    if (!multiItemEditBox) {
+        return;
+    }
+
+    multiItemEditBox.worldPivotPoint = myMath.worldPointInArea(
+        multiItemEditBox.pivotPoint.x * multiItemEditBox.area.w,
+        multiItemEditBox.pivotPoint.y * multiItemEditBox.area.h,
+        multiItemEditBox.area
+    );
+}
+
+class EditBoxState extends SubState {
+    constructor(parentState, name, multiItemEditBox, x, y, mx, my) {
+        super(parentState, name);
+        this.snapper = parentState.snapper;
+        this.originalPoint = { x, y, mx, my };
+        this.schemeContainer = parentState.schemeContainer;
+        this.multiItemEditBox = multiItemEditBox;
+        this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
+        this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        let items = [];
+        if (this.multiItemEditBox && this.multiItemEditBox.items) {
+            items = this.multiItemEditBox.items;
+        }
+        if (this.lastModifiedItem) {
+            items.push(this.lastModifiedItem);
+        }
+        
+        let shouldUpdateMultiItemEditBox = false;
+        forEach(items, item => {
+            // Now doing hard readjustment (this is needed for curve items so that they can update their area)
+            this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+
+            if (item.shape === 'path' || item.shape === 'connector') {
+                shouldUpdateMultiItemEditBox = true;
+            }
+        });
+        if (shouldUpdateMultiItemEditBox) {
+            this.schemeContainer.updateMultiItemEditBox();
+        }
+        this.schemeContainer.reindexItems();
+
+        this.migrateToPreviousSubState();
+    }
+
+    /**
+     * Creates a lines for box which will be used for snapping when draging this box.
+     * In case the box is rotated it will generate vertical and horizontal lines that are surrounding the box from the outside
+     * @param {*} box
+     * @returns {SnappingPoints} {vertical: [], horizontal: []}
+     */
+    generateBoxPointsForSnapping(box) {
+        const localPoints = [
+            [0, 0],
+            [box.area.w, 0],
+            [box.area.w, box.area.h],
+            [0, box.area.h],
+        ];
+
+        const minPoint = {x: 0, y: 0};
+        const maxPoint = {x: 0, y: 0};
+
+        forEach(localPoints, (localPoint, i) => {
+            const worldPoint = myMath.worldPointInArea(localPoint[0], localPoint[1], box.area);
+            if (i === 0) {
+                minPoint.x = worldPoint.x;
+                minPoint.y = worldPoint.y;
+                maxPoint.x = worldPoint.x;
+                maxPoint.y = worldPoint.y;
+            } else {
+                minPoint.x = Math.min(minPoint.x, worldPoint.x);
+                minPoint.y = Math.min(minPoint.y, worldPoint.y);
+                maxPoint.x = Math.max(maxPoint.x, worldPoint.x);
+                maxPoint.y = Math.max(maxPoint.y, worldPoint.y);
+            }
+        });
+
+        return {
+            vertical: [
+                {x: minPoint.x, y: minPoint.y}, //top edge
+                {x: maxPoint.x, y: maxPoint.y}, //bottom edge
+            ],
+            horizontal: [
+                {x: minPoint.x, y: minPoint.y}, //left edge
+                {x: maxPoint.x, y: maxPoint.y}, //right edge
+            ]
+        };
+    }
+}
+
+class RotateEditBoxState extends EditBoxState {
+    constructor(parentState, multiItemEditBox, x, y, mx, my) {
+        super(parentState, 'drag-edit-box', multiItemEditBox, x, y, mx, my);
+    }
+    
+    mouseMove(x, y, mx, my, object, event) {
+        const area = this.multiItemEditBoxOriginalArea;
+
+        const pivotPoint = myMath.worldPointInArea(area.w * this.multiItemEditBox.pivotPoint.x, area.h * this.multiItemEditBox.pivotPoint.y, area);
+        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, pivotPoint.x, pivotPoint.y, event);
+        const angle = angleDegrees * Math.PI / 180;
+
+        const np = myMath.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, pivotPoint.x, pivotPoint.y, angle);
+        this.multiItemEditBox.area.x = np.x;
+        this.multiItemEditBox.area.y = np.y;
+        this.multiItemEditBox.area.r = area.r + angleDegrees;
+
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
+            id: this.modificationContextId,
+            moved: false,
+            rotated: true,
+            resized: false
+        }, this.getUpdatePrecision());
+
+        this.reindexNeeded = true;
+        log.info('Rotated multi item edit box', this.multiItemEditBox);
+    }
+
+    /**
+     * Calculates the angle produced by a user when rotating around the center
+     * @param {Number} x - current mouse x
+     * @param {Number} y - current mouse y
+     * @param {Number} originalX - original mouse x where user has initiated a rotation
+     * @param {Number} originalY - original mouse x where user has initiated a rotation
+     * @param {Number} centerX - x point around which it should be rotating
+     * @param {Number} centerY - y point around which it should be rotating
+     * @param {MouseEvent} event - mouse event
+     * @returns {Number} - angle in degrees (0 - 360)
+     */
+    calculateRotatedAngle(x, y, originalX, originalY, centerX, centerY, event) {
+        const v1x = originalX - centerX;
+        const v1y = originalY - centerY;
+        const v2x = x - centerX;
+        const v2y = y - centerY;
+        const v1SquareLength = v1x * v1x + v1y * v1y;
+        const v2SquareLength = v2x * v2x + v2y * v2y;
+        
+        if (v1SquareLength < 0.0001 || v2SquareLength < 0.0001) {
+            return;
+        }
+
+        // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
+        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
+
+        const cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
+        let angle = direction * Math.acos(cosa);
+        let angleDegrees = angle * 180 / Math.PI;
+        
+        if (isNaN(angleDegrees)) {
+            return 0;
+        }
+        if (!isMultiSelectKey(event)) {
+            angleDegrees = Math.round(angleDegrees/ 5) * 5;
+        }
+
+        return angleDegrees;
+    }
+}
+
+class DragEditBoxState extends EditBoxState {
+    constructor(parentState, multiItemEditBox, x, y, mx, my) {
+        super(parentState, 'drag-edit-box', multiItemEditBox, x, y, mx, my);
+        this.proposedItemForMounting = null;
+        this.proposedToRemountToRoot = false;
+    }
+    
+    mouseMove(x, y, mx, my, object, event) {
+        if (!this.multiItemEditBox) {
+            this.migrateToPreviousSubState();
+            return;
+        }
+
+        const preSnapDx = x - this.originalPoint.x;
+        const preSnapDy = y - this.originalPoint.y;
+
+        StoreUtils.clearItemSnappers(this.store);
+        const snapResult = this.snapper.snapPoints(this.boxPointsForSnapping, this.multiItemEditBox.itemIds, preSnapDx, preSnapDy);
+
+        this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
+        this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+
+        // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
+        if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
+            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
+        }
+
+        // checking if it can fit into another item
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
+            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
+        } else {
+            this.proposedItemForMounting = null;
+        }
+
+        if (this.proposedItemForMounting) {
+            this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});
+            this.proposedToRemountToRoot = false;
+        } else {
+            this.eventBus.emitItemsHighlighted([]);
+            this.proposedToRemountToRoot = true;
+        }
+
+        updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
+            if (this.multiItemEditBox && this.proposedItemForMounting) {
+                // it should remount all items in multi item edit box into the new proposed parent
+                this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
+            } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
+                this.remountItems(this.multiItemEditBox.items);
+            }
+        }
+
+        super.mouseUp(x, y, mx, my, object, event);
+    }
+
+    remountItems(items, parentItem) {
+        const processedItemIds = new Set();
+        forEach(items, item => {
+            const parentWasAlreadyRemounted = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => processedItemIds.has(id)));
+            if (parentWasAlreadyRemounted) {
+                return;
+            }
+            processedItemIds.add(item.id);
+            if (parentItem) {
+                if (item.meta && item.meta.parentId !== parentItem.id) {
+                    this.schemeContainer.remountItemInsideOtherItem(item.id, parentItem.id);
+                }
+            } else {
+                // remount it to root only in case it has a parent
+                if (item.meta && item.meta.parentId && item.meta.ancestorIds) {
+                    const rootParent = this.schemeContainer.findItemById(item.meta.ancestorIds[0]);
+                    
+                    if (rootParent) {
+                        this.schemeContainer.remountItemAfterOtherItem(item.id, rootParent.id);
+                    } else {
+                        this.schemeContainer.remountItemToRoot(item.id);
+                    }
+                }
+            }
+        });
+    }
+}
+
+
+class IdleState extends SubState {
+    constructor(parentState) {
+        super(parentState, 'idle');
+        this.clickedObject = null;
+    }
+
+    reset() {
+        this.clickedObject = null;
+        this.schemeContainer = this.parentState.schemeContainer;
+    }
+    
+    mouseDown(x, y, mx, my, object, event) {
+        if (object && object.type !== 'void') {
+            this.clickedObject = object;
+
+            if (object.type === 'item') {
+                if (!this.schemeContainer.isItemSelected(object.item)) {
+                    this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
+                }
+            }
+        } else {
+            this.deselectAllItems();
+        }
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.clickedObject) { 
+            if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
+                this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
+                this.reset();
+                return;
+            } else if (this.clickedObject.type === 'multi-item-edit-box-rotational-dragger') {
+                this.migrate(new RotateEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
+                this.reset();
+                return;
+            }
+        }
+    }
+
+    mouseUp() {
+        this.clickedObject = null;
+    }
+
+    deselectAllItems() {
+        this.schemeContainer.deselectAllItems();
+        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
+    }
+}
+
 export default class StateDragItem extends State {
     /**
      * @param {EventBus} eventBus 
@@ -54,6 +356,10 @@ export default class StateDragItem extends State {
     constructor(eventBus, store) {
         super(eventBus, store);
         this.name = 'drag-item';
+
+        this.subState = null;
+
+
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.wasDraggedEnough = false;
         this.startedDragging = true;
@@ -113,6 +419,10 @@ export default class StateDragItem extends State {
     }
 
     reset() {
+        this.migrateSubState(new IdleState(this));
+
+
+
         this.reindexNeeded = false;
         this.wasDraggedEnough = false;
         this.startedDragging = false;
@@ -134,7 +444,7 @@ export default class StateDragItem extends State {
         this.proposedToRemountToRoot = false;
     }
 
-    keyPressed(key, keyOptions) {
+    _keyPressed(key, keyOptions) {
         var delta = keyOptions.ctrlCmdPressed ? 10: 1;
 
         if (Keys.LEFT === key) {
@@ -154,7 +464,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    keyUp(key, keyOptions) {
+    _keyUp(key, keyOptions) {
         if (key === Keys.SPACE) {
             this.shouldDragScreen = false;
         }
@@ -222,7 +532,7 @@ export default class StateDragItem extends State {
         this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
-    mouseDown(x, y, mx, my, object, event) {
+    _mouseDown(x, y, mx, my, object, event) {
         this.modificationContextId = shortid.generate();
         this.wasMouseMoved = false;
         
@@ -342,7 +652,7 @@ export default class StateDragItem extends State {
         }
     }
 
-    mouseMove(x, y, mx, my, object, event) {
+    _mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
 
             this.wasMouseMoved = true;
@@ -414,7 +724,7 @@ export default class StateDragItem extends State {
         return false;
     }
 
-    mouseUp(x, y, mx, my, object, event) {
+    _mouseUp(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
 
         // doing it just in case the highlighting was previously set
@@ -423,15 +733,6 @@ export default class StateDragItem extends State {
         if (this.shouldDragScreen) {
             // user probably finished dragging screen
             this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
-        }
-
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
-            if (this.multiItemEditBox && this.proposedItemForMounting) {
-                // it should remount all items in multi item edit box into the new proposed parent
-                this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
-            } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
-                this.remountItems(this.multiItemEditBox.items);
-            }
         }
 
         if (this.multiSelectBox) {
@@ -677,46 +978,6 @@ export default class StateDragItem extends State {
         return selectedTextSlot;
     }
 
-    dragMultiItemEditBox(x, y) {
-        if (!this.multiItemEditBox) {
-            return;
-        }
-
-        const preSnapDx = x - this.originalPoint.x;
-        const preSnapDy = y - this.originalPoint.y;
-
-        StoreUtils.clearItemSnappers(this.store);
-        const snapResult = this.snapper.snapPoints(this.boxPointsForSnapping, this.multiItemEditBox.itemIds, preSnapDx, preSnapDy);
-
-        this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
-        this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
-
-        // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
-        if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
-            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
-        }
-
-        // checking if it can fit into another item
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
-            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
-        } else {
-            this.proposedItemForMounting = [];
-        }
-
-        if (this.proposedItemForMounting) {
-            this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});
-            this.proposedToRemountToRoot = false;
-        } else {
-            this.eventBus.emitItemsHighlighted([]);
-            this.proposedToRemountToRoot = true;
-        }
-
-        this.updateMultiItemEditBoxWorldPivot();
-        this.reindexNeeded = true;
-    }
-
     dragMultiItemEditBoxPivot(x, y, event) {
         if (!this.multiItemEditBox) {
             return;
@@ -734,28 +995,6 @@ export default class StateDragItem extends State {
         this.updateMultiItemEditBoxWorldPivot();
     }
 
-    rotateMultiItemEditBox(x, y, mx, my, event) {
-        const area = this.multiItemEditBoxOriginalArea;
-
-        const pivotPoint = myMath.worldPointInArea(area.w * this.multiItemEditBox.pivotPoint.x, area.h * this.multiItemEditBox.pivotPoint.y, area);
-        const angleDegrees = this.calculateRotatedAngle(x, y, this.originalPoint.x, this.originalPoint.y, pivotPoint.x, pivotPoint.y, event);
-        const angle = angleDegrees * Math.PI / 180;
-
-        const np = myMath.calculateRotationOffsetForSameCenter(this.multiItemEditBoxOriginalArea.x, this.multiItemEditBoxOriginalArea.y, pivotPoint.x, pivotPoint.y, angle);
-        this.multiItemEditBox.area.x = np.x;
-        this.multiItemEditBox.area.y = np.y;
-        this.multiItemEditBox.area.r = area.r + angleDegrees;
-
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
-            id: this.modificationContextId,
-            moved: false,
-            rotated: true,
-            resized: false
-        }, this.getUpdatePrecision());
-
-        this.reindexNeeded = true;
-        log.info('Rotated multi item edit box', this.multiItemEditBox);
-    }
 
     dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
         dragMultiItemEditBoxByDragger(
@@ -781,18 +1020,6 @@ export default class StateDragItem extends State {
         this.updateMultiItemEditBoxWorldPivot();
         this.reindexNeeded = true;
         log.info('Resized multi item edit box', this.multiItemEditBox);
-    }
-
-    updateMultiItemEditBoxWorldPivot() {
-        if (!this.multiItemEditBox) {
-            return;
-        }
-
-        this.multiItemEditBox.worldPivotPoint = myMath.worldPointInArea(
-            this.multiItemEditBox.pivotPoint.x * this.multiItemEditBox.area.w,
-            this.multiItemEditBox.pivotPoint.y * this.multiItemEditBox.area.h,
-            this.multiItemEditBox.area
-        );
     }
 
     handleControlPointDrag(x, y) {
@@ -950,51 +1177,6 @@ export default class StateDragItem extends State {
         }
     }
 
-    /**
-     * Calculates the angle produced by a user when rotating around the center
-     * @param {Number} x - current mouse x
-     * @param {Number} y - current mouse y
-     * @param {Number} originalX - original mouse x where user has initiated a rotation
-     * @param {Number} originalY - original mouse x where user has initiated a rotation
-     * @param {Number} centerX - x point around which it should be rotating
-     * @param {Number} centerY - y point around which it should be rotating
-     * @param {MouseEvent} event - mouse event
-     * @returns {Number} - angle in degrees (0 - 360)
-     */
-    calculateRotatedAngle(x, y, originalX, originalY, centerX, centerY, event) {
-        const v1x = originalX - centerX;
-        const v1y = originalY - centerY;
-        const v2x = x - centerX;
-        const v2y = y - centerY;
-        const v1SquareLength = v1x * v1x + v1y * v1y;
-        const v2SquareLength = v2x * v2x + v2y * v2y;
-        
-        if (v1SquareLength < 0.0001 || v2SquareLength < 0.0001) {
-            return;
-        }
-
-        // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
-        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
-
-        const cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
-        let angle = direction * Math.acos(cosa);
-        let angleDegrees = angle * 180 / Math.PI;
-        
-        if (isNaN(angleDegrees)) {
-            return 0;
-        }
-        if (!isMultiSelectKey(event)) {
-            angleDegrees = Math.round(angleDegrees/ 5) * 5;
-        }
-
-        return angleDegrees;
-    }
-
-    deselectAllItems() {
-        this.schemeContainer.deselectAllItems();
-        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
-    }
-
     emitEventsForAllSelectedItems() {
         forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemSelected(item.id));
     }
@@ -1004,76 +1186,6 @@ export default class StateDragItem extends State {
         this.schemeContainer.screenTransform.y = Math.floor(this.originalOffset.y + y - this.originalPoint.y);
     }
 
-    /**
-     * Creates a lines for box which will be used for snapping when draging this box.
-     * In case the box is rotated it will generate vertical and horizontal lines that are surrounding the box from the outside
-     * @param {*} box
-     * @returns {SnappingPoints} {vertical: [], horizontal: []}
-     */
-    generateBoxPointsForSnapping(box) {
-        const localPoints = [
-            [0, 0],
-            [box.area.w, 0],
-            [box.area.w, box.area.h],
-            [0, box.area.h],
-        ];
-
-        const minPoint = {x: 0, y: 0};
-        const maxPoint = {x: 0, y: 0};
-
-        forEach(localPoints, (localPoint, i) => {
-            const worldPoint = myMath.worldPointInArea(localPoint[0], localPoint[1], box.area);
-            if (i === 0) {
-                minPoint.x = worldPoint.x;
-                minPoint.y = worldPoint.y;
-                maxPoint.x = worldPoint.x;
-                maxPoint.y = worldPoint.y;
-            } else {
-                minPoint.x = Math.min(minPoint.x, worldPoint.x);
-                minPoint.y = Math.min(minPoint.y, worldPoint.y);
-                maxPoint.x = Math.max(maxPoint.x, worldPoint.x);
-                maxPoint.y = Math.max(maxPoint.y, worldPoint.y);
-            }
-        });
-
-        return {
-            vertical: [
-                {x: minPoint.x, y: minPoint.y}, //top edge
-                {x: maxPoint.x, y: maxPoint.y}, //bottom edge
-            ],
-            horizontal: [
-                {x: minPoint.x, y: minPoint.y}, //left edge
-                {x: maxPoint.x, y: maxPoint.y}, //right edge
-            ]
-        };
-    }
-
-    remountItems(items, parentItem) {
-        const processedItemIds = new Set();
-        forEach(items, item => {
-            const parentWasAlreadyRemounted = (item.meta && item.meta.ancestorIds && find(item.meta.ancestorIds, id => processedItemIds.has(id)));
-            if (parentWasAlreadyRemounted) {
-                return;
-            }
-            processedItemIds.add(item.id);
-            if (parentItem) {
-                if (item.meta && item.meta.parentId !== parentItem.id) {
-                    this.schemeContainer.remountItemInsideOtherItem(item.id, parentItem.id);
-                }
-            } else {
-                // remount it to root only in case it has a parent
-                if (item.meta && item.meta.parentId && item.meta.ancestorIds) {
-                    const rootParent = this.schemeContainer.findItemById(item.meta.ancestorIds[0]);
-                    
-                    if (rootParent) {
-                        this.schemeContainer.remountItemAfterOtherItem(item.id, rootParent.id);
-                    } else {
-                        this.schemeContainer.remountItemToRoot(item.id);
-                    }
-                }
-            }
-        });
-    }
 }
 
 export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBoxOriginalArea, originalPoint, store, snapper, x, y, draggerEdges) {
@@ -1175,11 +1287,5 @@ export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBox
     }
     if (nh > 0) {
         multiItemEditBox.area.h = nh;
-    }
-
-    if (isMultiSelectKey(event)) {
-        const max = Math.max(multiItemEditBox.area.w, multiItemEditBox.area.h);
-        multiItemEditBox.area.w = max;
-        multiItemEditBox.area.h = max;
     }
 }

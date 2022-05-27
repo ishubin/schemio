@@ -331,7 +331,11 @@ export class SubState extends State {
         this.parentState.migrateSubState(newSubState);
     }
 
-    migrateToPrev() {
+    migrateSubState(newSubState) {
+        this.parentState.migrateSubState(newSubState);
+    }
+
+    migrateToPreviousSubState() {
         this.parentState.migrateToPreviousSubState();
     }
 

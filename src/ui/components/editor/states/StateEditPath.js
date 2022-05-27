@@ -225,7 +225,7 @@ class DragObjectState extends SubState {
     
     mouseUp(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
-        this.migrateToPrev();
+        this.migrateToPreviousSubState();
     }
 
     snapCurvePoint(pathId, pointId, x, y) {
@@ -361,7 +361,7 @@ class MultiSelectState extends SubState {
         const inclusive = isMultiSelectKey(event);
         this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
         StoreUtils.setMultiSelectBox(this.store, null);
-        this.migrateToPrev();
+        this.migrateToPreviousSubState();
     }
 
     selectByBoundaryBox(box, inclusive, mx, my) {
@@ -410,7 +410,7 @@ class DragScreenState extends SubState {
 
     keyUp(key, keyOptions) {
         if (key === Keys.SPACE) {
-            this.migrateToPrev();
+            this.migrateToPreviousSubState();
         }
     }
 
