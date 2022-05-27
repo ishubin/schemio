@@ -351,7 +351,7 @@ export default {
         },
 
         isArgumentHidden(argConfig) {
-            return argConfig.type === 'curve-points' || argConfig.type === 'animations' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true);
+            return argConfig.type === 'path-points' || argConfig.type === 'animations' || (argConfig.hasOwnProperty('hidden') && argConfig.hidden === true);
         },
 
         onStyleApplied(style) {

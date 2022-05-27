@@ -316,16 +316,24 @@ export default {
         identifyElement(element, point) {
             if (element) {
                 const elementType = element.getAttribute('data-type');
-                if (elementType === 'curve-point') {
+                if (elementType === 'path-segment') {
                     return {
                         type: elementType,
-                        pointIndex: parseInt(element.getAttribute('data-curve-point-index'))
+                        pathIndex: parseInt(element.getAttribute('data-path-index')),
+                        segmentIndex: parseInt(element.getAttribute('data-path-segment-index')),
                     };
-                } else if (elementType === 'curve-control-point') {
+                } else if (elementType === 'path-point') {
                     return {
                         type: elementType,
-                        pointIndex: parseInt(element.getAttribute('data-curve-point-index')),
-                        controlPointIndex: parseInt(element.getAttribute('data-curve-control-point-index'))
+                        pointIndex: parseInt(element.getAttribute('data-path-point-index')),
+                        pathIndex: parseInt(element.getAttribute('data-path-index'))
+                    };
+                } else if (elementType === 'path-control-point') {
+                    return {
+                        type: elementType,
+                        pointIndex: parseInt(element.getAttribute('data-path-point-index')),
+                        pathIndex: parseInt(element.getAttribute('data-path-index')),
+                        controlPointIndex: parseInt(element.getAttribute('data-path-control-point-index'))
                     };
                 } else if (elementType === 'multi-item-edit-box'
                         || elementType === 'multi-item-edit-box-rotational-dragger'
@@ -488,7 +496,7 @@ export default {
 
                 let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
                 let strokeSize = 6;
-                if (item.shape === 'curve') {
+                if (item.shape === 'path') {
                     strokeSize = item.shapeProps.strokeSize;
                     if (item.shapeProps.fill.type === 'none' && !item.shapeProps.closed) {
                         fill = 'none';

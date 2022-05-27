@@ -66,6 +66,11 @@ export function localPointOnItem(x, y, item) {
     return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
+export function localPointOnItemToLocalPointOnOtherItem(x, y, srcItem, dstItem) {
+    const worldPoint = worldPointOnItem(x, y, srcItem);
+    return localPointOnItem(worldPoint.x, worldPoint.y, dstItem);
+}
+
 export function worldAngleOfItem(item) {
     const v = worldVectorOnItem(item.area.w, 0, item);
     return myMath.fullAngleForVector(v.x, v.y) * 180 / Math.PI;
@@ -1988,7 +1993,7 @@ class SchemeContainer {
 
                 this.updateChildTransforms(item);
 
-                if (item.shape === 'curve') {
+                if (item.shape === 'path') {
                     this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
                 }
 
@@ -2006,29 +2011,31 @@ class SchemeContainer {
 
     readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {
         const originalArea = multiItemEditBox.itemData[item.id].originalArea;
-        const originalCurvePoints = multiItemEditBox.itemData[item.id].originalCurvePoints;
+        const originalCurvePaths = multiItemEditBox.itemData[item.id].originalCurvePaths;
 
-        if (!originalCurvePoints) {
+        if (!originalCurvePaths) {
             return;
         }
 
-        forEach(originalCurvePoints, (point, index) => {
-            if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].x = myMath.roundPrecise(point.x * item.area.w / originalArea.w, precision);
-            }
-            if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                item.shapeProps.points[index].y = myMath.roundPrecise(point.y * item.area.h / originalArea.h, precision);
-            }
-            if (point.t === 'B') {
+        originalCurvePaths.forEach((path, pathIndex) => {
+            path.points.forEach((point, pointIndex) => {
                 if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].x1 = myMath.roundPrecise(point.x1 * item.area.w / originalArea.w, precision);
-                    item.shapeProps.points[index].x2 = myMath.roundPrecise(point.x2 * item.area.w / originalArea.w, precision);
+                    item.shapeProps.paths[pathIndex].points[pointIndex].x = myMath.roundPrecise(point.x * item.area.w / originalArea.w, precision);
                 }
                 if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.points[index].y1 = myMath.roundPrecise(point.y1 * item.area.h / originalArea.h, precision);
-                    item.shapeProps.points[index].y2 = myMath.roundPrecise(point.y2 * item.area.h / originalArea.h, precision);
+                    item.shapeProps.paths[pathIndex].points[pointIndex].y = myMath.roundPrecise(point.y * item.area.h / originalArea.h, precision);
                 }
-            }
+                if (point.t === 'B') {
+                    if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
+                        item.shapeProps.paths[pathIndex].points[pointIndex].x1 = myMath.roundPrecise(point.x1 * item.area.w / originalArea.w, precision);
+                        item.shapeProps.paths[pathIndex].points[pointIndex].x2 = myMath.roundPrecise(point.x2 * item.area.w / originalArea.w, precision);
+                    }
+                    if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
+                        item.shapeProps.paths[pathIndex].points[pointIndex].y1 = myMath.roundPrecise(point.y1 * item.area.h / originalArea.h, precision);
+                        item.shapeProps.paths[pathIndex].points[pointIndex].y2 = myMath.roundPrecise(point.y2 * item.area.h / originalArea.h, precision);
+                    }
+                }
+            });
         });
     }
 
@@ -2205,9 +2212,9 @@ class SchemeContainer {
                 r: item.area.r - area.r,
             };
 
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 // storing original points so that they can be readjusted in case the item is resized
-                itemData[item.id].originalCurvePoints = utils.clone(item.shapeProps.points);
+                itemData[item.id].originalCurvePaths = utils.clone(item.shapeProps.paths);
             }
         });
 

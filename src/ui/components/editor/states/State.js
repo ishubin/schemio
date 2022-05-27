@@ -8,17 +8,43 @@ import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
 import forEach from 'lodash/forEach';
 
+const SUB_STATE_STACK_LIMIT = 10;
+
 class State {
     /**
      * @param {EventBus} EventBus 
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus, store) {
+    constructor(eventBus, store, name) {
         this.schemeContainer = null;
         this.eventBus = eventBus;
-        this.name = '';
+        this.name = name || '';
         this.store = store;
 
+        this.subState = null;
+        this.previousSubStates = [];
+    }
+
+    migrateSubState(newSubState) {
+        if (this.subState) {
+            this.previousSubStates.push(this.subState);
+            if (this.previousSubStates.length > SUB_STATE_STACK_LIMIT) {
+                this.previousSubStates.shift();
+            }
+        }
+        this.subState = newSubState;
+        this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+    }
+
+    migrateToPreviousSubState() {
+        if (this.previousSubStates.length > 0) {
+            this.subState = this.previousSubStates.pop();
+            this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+        }
+    }
+
+    resetPreviousSubStates() {
+        this.previousSubStates = [];
     }
 
     setSchemeContainer(schemeContainer) {
@@ -33,13 +59,29 @@ class State {
         this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE, this.name);
     }
 
-    keyPressed(key, keyOptions){}
-    keyUp(key, keyOptions){}
+    keyPressed(key, keyOptions) {
+        if (this.subState) this.subState.keyPressed(key, keyOptions);
+    }
 
-    mouseDown(worldX, worldY, screenX, screenY, object, event) {}
-    mouseUp(worldX, worldY, screenX, screenY, object, event) {}
-    mouseMove(worldX, worldY, screenX, screenY, object, event) {}
-    mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {}
+    keyUp(key, keyOptions) {
+        if (this.subState) this.subState.keyUp(key, keyOptions);
+    }
+
+    mouseDoubleClick(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseDoubleClick(x, y, mx, my, object, event);
+    }
+
+    mouseDown(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
+    }
+    
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        if (this.subState) this.subState.mouseUp(x, y, mx, my, object, event);
+    }
 
 
     /**
@@ -258,11 +300,6 @@ class State {
         };
     }
 
-    updateCursor(cursor) {
-        //TODO figure out how to update cursor. perhaps its state should be managed in store
-        // this.editor.cursor = cursor;
-    }
-
     /**
      * Based on zoom it calculates a precision with which we should round the updated value
      * This is needed to avoid issues with floating values calculation so that users don't get uggly values with many digits after point.
@@ -279,6 +316,31 @@ class State {
 
     round(value) {
         return myMath.roundPrecise(value, this.getUpdatePrecision());
+    }
+}
+
+
+export class SubState extends State {
+    constructor(parentState, name) {
+        super(parentState.eventBus, parentState.store, name);
+        this.schemeContainer = parentState.schemeContainer;
+        this.parentState = parentState;
+    }
+
+    migrate(newSubState) {
+        this.parentState.migrateSubState(newSubState);
+    }
+
+    migrateToPrev() {
+        this.parentState.migrateToPreviousSubState();
+    }
+
+    cancel() {
+        this.parentState.cancel();
+    }
+
+    getSchemeContainer() {
+        return this.parentState.schemeContainer;
     }
 }
 

@@ -20,8 +20,8 @@
             @clicked-redo="historyRedo()"
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
-            @convert-curve-points-to-simple="convertCurvePointToSimple()"
-            @convert-curve-points-to-beizer="convertCurvePointToBeizer()"
+            @convert-path-points-to-simple="convertCurvePointToSimple()"
+            @convert-path-points-to-beizer="convertCurvePointToBeizer()"
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
@@ -57,7 +57,7 @@
             <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
-                    :class="['state-' + state]"
+                    :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
@@ -74,7 +74,7 @@
                     @svg-size-updated="onSvgSizeUpdated"
                     >
                     <g slot="scene-transform">
-                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editCurve' && state !== 'cropImage' && !inPlaceTextEditor.shown"
+                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
@@ -89,8 +89,8 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
-                        <g v-if="state === 'editCurve' && curveEditItem && curveEditItem.meta">
-                            <CurveEditBox 
+                        <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
+                            <PathEditBox 
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
                                 :item="curveEditItem"
                                 :zoom="schemeContainer.screenTransform.scale"
@@ -379,10 +379,10 @@ import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import MultiItemEditBox from './editor/MultiItemEditBox.vue';
-import CurveEditBox from './editor/CurveEditBox.vue';
+import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem, localPointOnItemToLocalPointOnOtherItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -423,18 +423,28 @@ import StateCreateItem from './editor/states/StateCreateItem.js';
 import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
-import StateEditCurve from './editor/states/StateEditCurve.js';
+import StateEditPath from './editor/states/StateEditPath.js';
+import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
+
+const IS_NOT_SOFT = false;
+const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
+    id: '',
+    moved: true,
+    rotated: false,
+    resized: false
+};
 
 const userEventBus = new UserEventBus();
 
 const states = {
     interact: new StateInteract(EventBus, store, userEventBus),
     createItem: new StateCreateItem(EventBus, store),
-    editCurve: new StateEditCurve(EventBus, store),
+    editPath: new StateEditPath(EventBus, store),
+    connecting: new StateConnecting(EventBus, store),
     dragItem: new StateDragItem(EventBus, store),
     pickElement: new StatePickElement(EventBus, store),
     cropImage: new StateCropImage(EventBus, store),
@@ -511,7 +521,7 @@ export default {
         CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
-        Modal, ShapeExporterModal, FrameAnimatorPanel, CurveEditBox,
+        Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
@@ -559,10 +569,8 @@ export default {
         EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
         EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$on(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
         EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$on(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -593,10 +601,8 @@ export default {
         EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
         EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
         EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$off(EventBus.START_SMART_DRAWING, this.switchStateSmartDrawing);
         EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
         EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$off(EventBus.DRAW_COLOR_PICKED, this.onDrawColorPicked);
         EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
         EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
         EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -889,15 +895,15 @@ export default {
         switchStateCreateItem(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
-            if (item.shape === 'curve' || item.shape === 'connector') {
+            if (item.shape === 'path') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
-                // making sure every new curve starts non-closed
-                if (item.shape === 'curve') {
-                    item.shapeProps.closed = false;
-                }
-                this.state = 'editCurve';
+                this.state = 'editPath';
                 EventBus.emitCurveEdited(item);
+            } else if (item.shape === 'connector') {
+                item.shapeProps.points = [];
+                this.state = 'connecting';
+                states['connecting'].setItem(item);
             } else {
                 this.state = 'createItem';
             }
@@ -916,10 +922,10 @@ export default {
             item.shapeProps.points = [];
             this.setCurveEditItem(item);
             // making sure every new curve starts non-closed
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 item.shapeProps.closed = false;
             }
-            this.state = 'editCurve';
+            this.state = 'editPath';
             EventBus.emitCurveEdited(item);
 
             states[this.state].reset();
@@ -932,15 +938,6 @@ export default {
             states[this.state].cancel();
             this.state = 'draw';
             states.draw.reset();
-        },
-
-        switchStateSmartDrawing() {
-            EventBus.emitItemsHighlighted([]);
-
-            states[this.state].cancel();
-            this.state = 'draw';
-            states.draw.reset();
-            states.draw.initSmartDraw();
         },
 
         onStopDrawing() {
@@ -956,11 +953,10 @@ export default {
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
-            states.editCurve.reset();
-            const connector = states.editCurve.initConnectingFromSourceItem(sourceItem, localPoint);
+            states.connecting.reset();
+            const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
-            this.setCurveEditItem(connector);
-            this.state = 'editCurve';
+            this.state = 'connecting';
         },
 
         onDrawColorPicked(color) {
@@ -972,15 +968,15 @@ export default {
         onCurveEditRequested(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
-            this.state = 'editCurve';
-            states.editCurve.reset();
-            states.editCurve.setItem(item);
+            this.state = 'editPath';
+            states.editPath.reset();
+            states.editPath.setItem(item);
             this.setCurveEditItem(item);
         },
 
         onCurveEditStopped() {
-            if (this.state === 'editCurve') {
-                states.editCurve.cancel();
+            if (this.state === 'editPath') {
+                states.editPath.cancel();
             }
         },
 
@@ -1318,8 +1314,8 @@ export default {
                     this.schemeContainer.selectAllItems();
                     EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
                 } else if (Keys.DELETE === key) {
-                    if (this.state === 'editCurve') {
-                        states.editCurve.deleteSelectedPoints();
+                    if (this.state === 'editPath') {
+                        states.editPath.deleteSelectedPoints();
                     } else if (this.state === 'dragItem') {
                         this.deleteSelectedItems();
                     }
@@ -1456,7 +1452,7 @@ export default {
         },
 
         restoreCurveEditing() {
-            if (this.$store.state.editorStateName === 'editCurve') {
+            if (this.$store.state.editorStateName === 'editPath') {
                 const storeItem = this.$store.state.curveEditing.item;
                 if (!storeItem) {
                     return;
@@ -1467,7 +1463,7 @@ export default {
                     EventBus.$emit(EventBus.CURVE_EDITED, existingItem);
                 } else {
                     this.$store.dispatch('setCurveEditItem', null);
-                    if (this.$store.state.editorStateName === 'editCurve') {
+                    if (this.$store.state.editorStateName === 'editPath') {
                         EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
                     }
                 }
@@ -1800,13 +1796,13 @@ export default {
         },
 
         convertCurvePointToSimple() {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].convertSelectedPointsToSimple();
             }
         },
 
         convertCurvePointToBeizer() {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].convertSelectedPointsToBeizer();
             }
         },
@@ -1819,7 +1815,7 @@ export default {
          * Invoked when user selects an item from ConnectorDestinationProposal panel during creation of a connector
          */
         onConnectorDestinationItemSelected(item) {
-            if (this.state === 'editCurve') {
+            if (this.state === 'editPath') {
                 states[this.state].submitConnectorDestinationItem(item);
             }
         },
@@ -1864,7 +1860,9 @@ export default {
         },
 
         onDrawColorPicked(color) {
-            EventBus.emitDrawColorPicked(color);
+            if (this.state === 'draw') {
+                states.draw.pickColor(color);
+            }
         },
 
         onSvgSizeUpdated({width, height}) {
@@ -1971,6 +1969,17 @@ export default {
                         clicked: () => EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, item)
                     });
                 }
+            } else {
+                let allCurves = true;
+                for (let i = 0; i < this.schemeContainer.multiItemEditBox.items.length && allCurves; i++) {
+                    allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'path';
+                }
+                if (allCurves) {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Merge paths',
+                        clicked: () => this.mergeCurves(this.schemeContainer.multiItemEditBox.items)
+                    })
+                }
             }
 
             this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
@@ -2049,14 +2058,13 @@ export default {
                 });
             }
 
-            if (item.shape === 'curve') {
+            if (item.shape === 'path') {
                 this.customContextMenu.menuOptions.push({
-                    name: 'Edit Curve',
+                    name: 'Edit Path',
                     clicked: () => { EventBus.emitCurveEdited(item); }
                 });
             }
 
-            // const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
             this.customContextMenu.mouseX = mouseX + 5;
             this.customContextMenu.mouseY = mouseY + 5;
             this.customContextMenu.id = shortid.generate();
@@ -2105,6 +2113,43 @@ export default {
                 });
             }
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+        },
+
+        mergeCurves(allItems) {
+            allItems.sort((a, b) => {
+                return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
+            });
+
+            const mainItem = allItems.shift();
+
+            for (let i = 0; i < allItems.length; i++) {
+                allItems[i].shapeProps.paths.forEach(path => {
+                    const newPath = {
+                        closed: path.closed,
+                        points: []
+                    };
+                    path.points.forEach(point => {
+                        const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
+                        p.t = point.t;
+                        if (point.hasOwnProperty('x1')) {
+                            const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
+                            p.x1 = p1.x - p.x;
+                            p.y1 = p1.y - p.y;
+                        }
+                        if (point.hasOwnProperty('x2')) {
+                            const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
+                            p.x2 = p2.x - p.x;
+                            p.y2 = p2.y - p.y;
+                        }
+                        newPath.points.push(p);
+                    });
+                    mainItem.shapeProps.paths.push(newPath);
+                });
+            }
+            this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.deleteItems(allItems);
+            this.schemeContainer.selectItem(mainItem);
+            EventBus.emitSchemeChangeCommited();
         },
 
         /**
@@ -2493,6 +2538,10 @@ export default {
         curveEditItem() {
             return this.$store.state.curveEditing.item;
         },
+
+        editorSubStateName() {
+            return this.$store.getters.editorSubStateName;
+        }
     }
 }
 </script>

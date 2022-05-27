@@ -23,7 +23,6 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import EventBus from '../../EventBus';
@@ -33,21 +32,33 @@ import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import { computeCurvePath } from './StandardCurves';
 
-const log = new Logger('Curve');
+const log = new Logger('Path');
+
+
+function worldPointOnItem(x, y, item) {
+    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+}
 
 
 function computePath(item) {
-    return computeCurvePath(item.shapeProps.points, item.shapeProps.closed);
+    let svgPath = '';
+    item.shapeProps.paths.forEach(path => {
+        const segmentPath = computeCurvePath(path.points, path.closed);
+        if (segmentPath) {
+            svgPath += segmentPath + ' ';
+        }
+    });
+    return svgPath;
 };
 
 
 /**
- * Takes points of the curve and simplifies them (tries to deletes as much points as possible)
- * @property {Array} points - points of the curve 
+ * Takes points of the path and simplifies them (tries to delete as many points as possible)
+ * @property {Array} points - points of the path 
  * @property {Number} epsilon - minimum distance of the points to keep (used in Ramer-Douglas-Peucker algorithm)
- * @returns {Array} simplified curve points 
+ * @returns {Array} simplified path points 
  */
-export function simplifyCurvePoints(points, epsilon) {
+export function simplifyPathPoints(points, epsilon) {
     if (!epsilon) {
         epsilon = 5;
     }
@@ -56,21 +67,21 @@ export function simplifyCurvePoints(points, epsilon) {
 
     const curves = [];
 
-    let currentCurvePoints = [];
-    curves.push(currentCurvePoints);
+    let currentPathPoints = [];
+    curves.push(currentPathPoints);
 
-    forEach(points, (point, i) => {
+    points.forEach((point, i) => {
         if (point.break) {
-            currentCurvePoints = [];
-            curves.push(currentCurvePoints);
+            currentPathPoints = [];
+            curves.push(currentPathPoints);
         }
-        currentCurvePoints.push(point);
+        currentPathPoints.push(point);
     });
 
     let newPoints = [];
 
-    forEach(curves, (curvePoints, i) => {
-        const simplifiedPoints = myMath.smoothCurvePoints(myMath.simplifyCurvePointsUsingRDP(curvePoints, epsilon));
+    curves.forEach((curvePoints, i) => {
+        const simplifiedPoints = myMath.smoothPathPoints(myMath.simplifyPathPointsUsingRDP(curvePoints, epsilon));
 
         if (i > 0 && curvePoints.length > 0) {
             curvePoints[0].break = true;
@@ -98,103 +109,88 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     return true;
 }
 
-function readjustItemArea(item, precision) {
-    if (item.shapeProps.points.length < 1) {
-        return;
-    }
-
-    const worldPoints = [];
-
-    forEach(item.shapeProps.points, point => {
-        const p = worldPointOnItem(point.x, point.y, item);
-        p.t = point.t;
-
-        if (point.t === 'B' || point.t === 'A') {
-            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
-            p.p1 = p1;
-        }
-        if (point.t === 'B') {
-            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
-            p.p2 = p2;
-        }
-
-        worldPoints.push(p);
+function forAllPoints(item, callback) {
+    item.shapeProps.paths.forEach((path, pathIndex) => {
+        path.points.forEach((point, pointIndex) => {
+            callback(point, pathIndex, pointIndex);
+        });
     });
+}
 
-    let minX = worldPoints[0].x,
-        minY = worldPoints[0].y,
-        maxX = worldPoints[0].x,
-        maxY = worldPoints[0].y;
-    
-    forEach(worldPoints, p => {
-        minX = Math.min(minX, p.x);
-        minY = Math.min(minY, p.y);
-        maxX = Math.max(maxX, p.x);
-        maxY = Math.max(maxY, p.y);
+function readjustItemArea(item, precision) {
+    let bounds = null;
+
+    const updateBounds = (x, y) => {
+        bounds.x1 = Math.min(bounds.x1, x);
+        bounds.y1 = Math.min(bounds.y1, y);
+        bounds.x2 = Math.max(bounds.x2, x);
+        bounds.y2 = Math.max(bounds.y2, y);
+    };
+    forAllPoints(item, (p) => {
+        if (!bounds) {
+            bounds = {
+                x1: p.x,
+                y1: p.y,
+                x2: p.x,
+                y2: p.y
+            };
+        }
+        updateBounds(p.x, p.y);
+
+
         if (p.t === 'B' || p.t === 'A') {
-            minX = Math.min(minX, p.p1.x);
-            minY = Math.min(minY, p.p1.y);
-            maxX = Math.max(maxX, p.p1.x);
-            maxY = Math.max(maxY, p.p1.y);
+            updateBounds(p.x + p.x1, p.y + p.y1);
         }
         if (p.t === 'B') {
-            minX = Math.min(minX, p.p2.x);
-            minY = Math.min(minY, p.p2.y);
-            maxX = Math.max(maxX, p.p2.x);
-            maxY = Math.max(maxY, p.p2.y);
+            updateBounds(p.x + p.x2, p.y + p.y2);
         }
     });
 
-    const newPoints = [];
-    forEach(worldPoints, (p, idx) => {
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
         const itemPoint = {
-            x: p.x - minX,
-            y: p.y - minY,
+            x: p.x - bounds.x1,
+            y: p.y - bounds.y1,
             t: p.t
         };
         if (p.t === 'B' || p.t === 'A') {
-            itemPoint.x1 = p.p1.x - p.x;
-            itemPoint.y1 = p.p1.y - p.y;
+            itemPoint.x1 = p.x1;
+            itemPoint.y1 = p.y1;
         }
         if (p.t === 'B') {
-            itemPoint.x2 = p.p2.x - p.x;
-            itemPoint.y2 = p.p2.y - p.y;
+            itemPoint.x2 = p.x2;
+            itemPoint.y2 = p.y2;
         }
-        if (item.shapeProps.points[idx].break) {
-            itemPoint.break = true;
-        }
-        newPoints.push(itemPoint);
+
+        item.shapeProps.paths[pathIndex].points[pointIndex] = itemPoint;
     });
-    item.shapeProps.points = newPoints;
 
-    item.area.r = 0;
-    item.area.w = Math.max(0, maxX - minX);
-    item.area.h = Math.max(0, maxY - minY);
+    const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
 
-    const position = myMath.findTranslationMatchingWorldPoint(minX, minY, item.area, item.meta.transformMatrix);
+    item.area.w = Math.max(0, bounds.x2 - bounds.x1);
+    item.area.h = Math.max(0, bounds.y2 - bounds.y1);
+
+    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, item.area, item.meta.transformMatrix);
     item.area.x = position.x;
     item.area.y = position.y;
-}
-
-function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
 function getSnappers(item) {
     const snappers = [];
 
-    forEach(item.shapeProps.points, point => {
-        const worldPoint = worldPointOnItem(point.x, point.y, item);
+    item.shapeProps.paths.forEach(path => {
+        path.points.forEach(point => {
+            const worldPoint = worldPointOnItem(point.x, point.y, item);
 
-        snappers.push({
-            item,
-            snapperType: 'horizontal',
-            value: worldPoint.y
-        });
-        snappers.push({
-            item,
-            snapperType: 'vertical',
-            value: worldPoint.x
+            snappers.push({
+                item,
+                snapperType: 'horizontal',
+                value: worldPoint.y
+            });
+            snappers.push({
+                item,
+                snapperType: 'vertical',
+                value: worldPoint.x
+            });
         });
     });
     return snappers;
@@ -208,7 +204,7 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
-        id: 'curve',
+        id: 'path',
 
         menuItems: [],
 
@@ -221,7 +217,7 @@ export default {
         },
 
         /**
-         * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
+         * Disabling any text slots for path items. Otherwise users will be confused when they double click on it in edit mode.
          */ 
         getTextSlots() {
             return [];
@@ -238,12 +234,11 @@ export default {
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
-            closed            : {type: 'boolean',       value: false, name: 'Closed path'},
-            points            : {type: 'curve-points',  value: [], name: 'Curve points', hidden: true},
-            sourceCap         : {type: 'curve-cap',     value: 'empty', name: 'Source Cap'},
+            paths             : {type: 'path-array',   value: [], name: 'Paths', hidden: true},
+            sourceCap         : {type: 'path-cap',     value: 'empty', name: 'Source Cap'},
             sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
             sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-            destinationCap    : {type: 'curve-cap',     value: 'empty', name: 'Destination Cap'},
+            destinationCap    : {type: 'path-cap',     value: 'empty', name: 'Destination Cap'},
             destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
             destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         },

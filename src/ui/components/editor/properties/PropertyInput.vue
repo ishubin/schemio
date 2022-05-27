@@ -21,7 +21,7 @@
 
         <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
 
-        <CurveCapDropdown v-if="descriptor.type === 'curve-cap'"
+        <CurveCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
             :is-source="!leftOriented"
             :is-fat="isFatConnector"
@@ -55,7 +55,7 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
-import CurveCapDropdown from '../CurveCapDropdown.vue';
+import CurveCapDropdown from '../PathCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
 import SchemeSearchModal from '../SchemeSearchModal.vue';
 

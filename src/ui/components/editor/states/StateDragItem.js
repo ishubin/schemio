@@ -113,7 +113,6 @@ export default class StateDragItem extends State {
     }
 
     reset() {
-        this.updateCursor('default');
         this.reindexNeeded = false;
         this.wasDraggedEnough = false;
         this.startedDragging = false;
@@ -148,7 +147,6 @@ export default class StateDragItem extends State {
             this.dragItemsByKeyboard(0, delta);
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
-            this.updateCursor('grabbing');
         } else if (key === Keys.MINUS) {
             this.zoomOutByKey();
         } else if (key === Keys.EQUALS) {
@@ -159,7 +157,6 @@ export default class StateDragItem extends State {
     keyUp(key, keyOptions) {
         if (key === Keys.SPACE) {
             this.shouldDragScreen = false;
-            this.updateCursor('default');
         }
     }
 
@@ -234,7 +231,6 @@ export default class StateDragItem extends State {
         }
 
         if (this.shouldDragScreen) {
-            this.updateCursor('grabbing');
             this.initScreenDrag(mx, my);
         } else if (object.item) {
             if (isEventRightClick(event)) {
@@ -256,7 +252,7 @@ export default class StateDragItem extends State {
             this.initPivotDrag(object.multiItemEditBox, x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
             if (object.multiItemEditBox.items.length > 0
-                && object.multiItemEditBox.items[0].shape === 'curve') {
+                && object.multiItemEditBox.items[0].shape === 'path') {
                 this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
             }
         } else if (isEventRightClick(event)) {
@@ -473,7 +469,7 @@ export default class StateDragItem extends State {
                 // Now doing hard readjustment (this is needed for curve items so that they can update their area)
                 this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-                if (item.shape === 'curve' || item.shape === 'connector') {
+                if (item.shape === 'path' || item.shape === 'connector') {
                     shouldUpdateMultiItemEditBox = true;
                 }
             });
@@ -571,7 +567,7 @@ export default class StateDragItem extends State {
 
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            if (object.item.shape === 'curve') {
+            if (object.item.shape === 'path') {
                 this.eventBus.emitCurveEdited(object.item);
             } else if (object.item.shape === 'connector') {
                 this.handleDoubleClickOnConnector(object.item, x, y);
@@ -588,6 +584,7 @@ export default class StateDragItem extends State {
     }
     
     handleDoubleClickOnConnector(item, x, y) {
+        //TODO refactor it to use path segments in order to identify clicked segment
         const shape = Shape.find(item.shape);
         if (!shape) {
             return;
@@ -635,7 +632,6 @@ export default class StateDragItem extends State {
     }
 
     findClosestLineSegment(distanceOnPath, points, svgPath) {
-        //TODO this function is a copy paste form StateEditCurve, it should be moved to myMath
         let i = points.length - 1;
         while(i > 0) {
             const closestPoint = myMath.closestPointOnPath(points[i].x, points[i].y, svgPath);
@@ -857,7 +853,7 @@ export default class StateDragItem extends State {
     }
 
     handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
-        // this function implements the same logic as in StateEditCurve.handleEdgeCurvePointDrag
+        // this function implements the same logic as in StateEditPath.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
 

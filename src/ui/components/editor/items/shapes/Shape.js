@@ -14,7 +14,7 @@ const _shapes = [
     require('./NoneShape.js').default,
     require('./Ellipse.js').default,
     require('./NPoly.js').default,
-    require('./Curve.vue').default,
+    require('./Path.vue').default,
     require('./Connector.vue').default,
     require('./Bracket.js').default,
     require('./Image.vue').default,

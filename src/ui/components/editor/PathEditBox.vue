@@ -1,0 +1,153 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<template>
+    <g>
+        <path v-for="segment in pathSegments"
+            data-type="path-segment"
+            :data-path-index="segment.pathId"
+            :data-path-segment-index="segment.segmentId"
+            :d="segment.path"
+            fill="none"
+            stroke="rgba(0,0,0,0.0)"
+            :stroke-width="`${strokeSize}px`"
+            />
+        <g v-for="(path, pathId) in curvePaths">
+            <g v-for="(point, pointId) in path.points" class="path-control-points">
+                <g v-if="point.t === 'B'">
+                    <line :x1="point.x" :y1="point.y" :x2="point.x1+point.x" :y2="point.y1+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
+                    <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
+                </g>
+
+                <circle 
+                    data-type="path-point"
+                    :data-path-point-index="pointId"
+                    :data-path-index="pathId"
+                    :cx="point.x" :cy="point.y"
+                    :r="5/safeZoom"
+                    :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
+
+
+                <g v-if="point.t === 'B'">
+                    <path 
+                        data-type="path-control-point"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
+                        data-path-control-point-index="1"
+                        :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
+                        :d="`M ${5*(point.vx1 + point.vy1)/safeZoom} ${5*(point.vy1 - point.vx1)/safeZoom}  l ${-10*point.vx1/safeZoom} ${-10*point.vy1/safeZoom}  l ${-10*point.vy1/safeZoom} ${10*point.vx1/safeZoom} l ${10*point.vx1/safeZoom} ${10*point.vy1/safeZoom} z`"
+                        :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
+                    <path 
+                        data-type="path-control-point"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
+                        data-path-control-point-index="2"
+                        :transform="`translate(${point.x2+point.x} ${point.y2+point.y})`"
+                        :d="`M ${5*(point.vx2 + point.vy2)/safeZoom} ${5*(point.vy2 - point.vx2)/safeZoom}  l ${-10*point.vx2/safeZoom} ${-10*point.vy2/safeZoom}  l ${-10*point.vy2/safeZoom} ${10*point.vx2/safeZoom} l ${10*point.vx2/safeZoom} ${10*point.vy2/safeZoom} z`"
+                        :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
+                </g>
+
+                <g v-if="point.t === 'A'">
+                    <circle 
+                        data-type="path-control-point"
+                        :data-path-point-index="pointId"
+                        :data-path-index="pathId"
+                        data-path-control-point-index="1"
+                        :cx="point.x + point.x1" :cy="point.y + point.y1"
+                        :r="5/safeZoom"
+                        fill="rgba(255, 255, 255, 0.1)" :stroke="point.selected ? controlPointsColor : boundaryBoxColor" :stroke-width="3/safeZoom"/>
+                </g>
+            </g>
+        </g>
+        
+    </g>
+</template>
+<script>
+import myMath from '../../myMath';
+import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import EventBus from './EventBus';
+import { computeCurvePath } from './items/shapes/StandardCurves';
+
+function convertPathPointToWorld(p, item) {
+    const wp = worldPointOnItem(p.x, p.y, item);
+    wp.t = p.t;
+    if (p.hasOwnProperty('x1')) {
+        const p1 = worldPointOnItem(p.x + p.x1, p.y + p.y1, item);
+        wp.x1 = p1.x - wp.x;
+        wp.y1 = p1.y - wp.y;
+    }
+    if (p.hasOwnProperty('x2')) {
+        const p1 = worldPointOnItem(p.x + p.x2, p.y + p.y2, item);
+        wp.x2 = p1.x - wp.x;
+        wp.y2 = p1.y - wp.y;
+    }
+    return wp;
+}
+
+export default {
+    props: ['item', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
+    mounted() {
+        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$on(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
+    },
+    beforeDestroy() {
+        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EventBus.$off(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
+    },
+
+    data() {
+        return {
+            pathSegments: this.buildPathSegments()
+        }
+    },
+
+    methods: {
+        onItemChanged() {
+            this.pathSegments = this.buildPathSegments();
+            this.$forceUpdate();
+        },
+
+        buildPathSegments() {
+            const segments = [];
+            this.item.shapeProps.paths.forEach((path, pathId) => {
+                let ending = path.points.length - 1;
+                if (path.closed) {
+                    ending = path.points.length;
+                }
+                for (let i = 0; i < ending; i++) {
+                    const j = (i + 1) % path.points.length;
+                    const p1 = convertPathPointToWorld(path.points[i], this.item);
+                    const p2 = convertPathPointToWorld(path.points[j], this.item);
+                    segments.push({
+                        pathId,
+                        segmentId: i,
+                        path: computeCurvePath([p1, p2], false)
+                    });
+                }
+            });
+            return segments;
+        },
+
+        update() {
+            this.$forceUpdate();
+        }
+    },
+
+    computed: {
+        safeZoom() {
+            if (this.zoom > 0.00001) {
+                return this.zoom;
+            }
+            return 1.0;
+        },
+
+        strokeSize() {
+            return Math.max(1, this.item.shapeProps.strokeSize) + 2;
+        },
+
+        curvePaths() {
+            return this.$store.getters.curveEditPaths;
+        },
+    }
+}
+</script>

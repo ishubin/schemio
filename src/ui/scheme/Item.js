@@ -135,6 +135,22 @@ function fixBehaviorEvents(behavior) {
     });
 }
 
+/**
+ * This function is needed since curves were changed to support multiple paths in a single curve item
+ * Also the shape id changed from "curve" to "path"
+ * @param {*} item 
+ */
+function fixOldCurveItem(item) {
+    item.shape = 'path';
+    if (!Array.isArray(item.shapeProps.paths) && Array.isArray(item.shapeProps.points)) {
+        item.shapeProps.paths = [{
+            points: item.shapeProps.points,
+            closed: item.shapeProps.closed
+        }];
+        delete item.shapeProps.points;
+    }
+}
+
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
         item.textSlots = {};
@@ -142,6 +158,11 @@ export function enrichItemWithDefaults(item) {
 
     if (!item.shape) {
         item.shape = 'none';
+    }
+
+    // fixing old documents before curves were moved into multi-path shapes
+    if (item.shape === 'curve') {
+        fixOldCurveItem(item);
     }
 
     enrichObjectWithDefaults(item, defaultItemDefinition);
@@ -293,12 +314,12 @@ export function hasItemDescription(item) {
 }
 
 const _supportedStyleTypes = new Set([
-    'color', 'advanced-color', 'stroke-pattern', 'curve-cap', 'number'
+    'color', 'advanced-color', 'stroke-pattern', 'path-cap', 'number'
 ]);
 
 /**
  * Applies item styling (shapeProps) to item based on the shapeProps of reference item
- * It only applies simple props and does not change element selectors, curve-points etc.
+ * It only applies simple props and does not change element selectors, path-points etc.
  * @param {Item} referenceItem 
  * @param {Item} dstItem
  */

@@ -114,7 +114,7 @@ export function convertShapeToStandardCurves(rootItem) {
     traverseItems(rootItem, item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
-        if (item.shape === 'curve') {
+        if (item.shape === 'path') {
             if (item.tags && indexOf(item.tags, 'outline') >= 0) {
                 shapeConfig.outlineCurve = convertCurve(item, p0.x, p0.y, w, h);
             } else {

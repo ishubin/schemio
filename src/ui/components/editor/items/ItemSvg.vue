@@ -363,7 +363,7 @@ export default {
         },
 
         hoverPathFill() {
-            if (this.item.shape === 'curve') {
+            if (this.item.shape === 'path') {
                 if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
                     return 'none';
                 }

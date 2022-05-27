@@ -27,11 +27,13 @@ function createCurvePointConverter(item) {
         convertedPoint.x = p.x;
         convertedPoint.y = p.y;
 
-        if (point.t === 'B') {
+        if (point.t === 'B' || point.t === 'A') {
             const p1 = myMath.transformPoint(completeTransform, point.x + point.x1, point.y + point.y1);
-            const p2 = myMath.transformPoint(completeTransform, point.x + point.x2, point.y + point.y2);
             convertedPoint.x1 = p1.x - p.x;
             convertedPoint.y1 = p1.y - p.y;
+        }
+        if (point.t === 'B') {
+            const p2 = myMath.transformPoint(completeTransform, point.x + point.x2, point.y + point.y2);
             convertedPoint.x2 = p2.x - p.x;
             convertedPoint.y2 = p2.y - p.y;
         }
@@ -61,6 +63,21 @@ function enrichCurvePoint(point) {
 }
 
 
+function validatePointIds(pathId, pointId, curveEditing) {
+    return pathId >= 0 && pathId < curveEditing.paths.length
+        && pointId >= 0 && pointId < curveEditing.paths[pathId].points.length;
+}
+
+function findFirstSelectedCurveEditPoint(paths) {
+    for (let i = 0; i < paths.length; i++) {
+        for (let j = 0; j < paths[i].points.length; j++) {
+            if (paths[i].points[j].selected) {
+                return paths[i].points[j];
+            }
+        }
+    }
+    return null;
+}
 
 const store = new Vuex.Store({
     state: {
@@ -69,11 +86,13 @@ const store = new Vuex.Store({
         schemeModified: false,
 
         editorStateName: 'interact',
+        editorSubStateName: null,
 
         curveEditing: {
             // item whose curve is currently edited
             item: null,
-            points: []
+            paths: [],
+            firstSelectedPoint: null
         },
 
         patch: {
@@ -179,18 +198,18 @@ const store = new Vuex.Store({
         },
 
         /* Curve Editing */ 
-        SET_CURVE_EDIT_ITEM(state, {item, points}) {
+        SET_CURVE_EDIT_ITEM(state, {item, paths}) {
             state.curveEditing.item = item;
-            state.curveEditing.points.length = 0;
+            state.curveEditing.paths.length = 0;
             if (item) {
                 const pointConverter = createCurvePointConverter(item);
-                forEach(points, point => {
-                    state.curveEditing.points.push(pointConverter(point));
+                paths.forEach((path, pathId) => {
+                    state.curveEditing.paths[pathId] = {id: path.id, points: path.points.map(pointConverter)};
                 });
             }
         },
-        UPDATE_CURVE_EDIT_POINT(state, {item, pointId, point}) {
-            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+        UPDATE_CURVE_EDIT_POINT(state, {item, pathId, pointId, point}) {
+            if (!validatePointIds(pathId, pointId, state.curveEditing)) {
                 return;
             }
 
@@ -198,37 +217,48 @@ const store = new Vuex.Store({
             const convertedPoint = pointConverter(point);
 
             forEach(convertedPoint, (value, field) => {
-                state.curveEditing.points[pointId][field] = value;
-                enrichCurvePoint(state.curveEditing.points[pointId]);
+                state.curveEditing.paths[pathId].points[pointId][field] = value;
+                enrichCurvePoint(state.curveEditing.paths[pathId].points[pointId]);
             });
         },
-        TOGGLE_CURVE_EDIT_POINT_SELECTION(state, { pointId, inclusive }) {
-            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+        TOGGLE_CURVE_EDIT_POINT_SELECTION(state, { pathId, pointId, inclusive }) {
+            if (!validatePointIds(pathId, pointId, state.curveEditing)) {
                 return;
             }
             if (inclusive) {
-                state.curveEditing.points[pointId].selected = !state.curveEditing.points[pointId].selected;
+                state.curveEditing.paths[pathId].points[pointId].selected = !state.curveEditing.paths[pathId].points[pointId].selected;
+                state.curveEditing.firstSelectedPoint = findFirstSelectedCurveEditPoint(state.curveEditing.paths);
             } else {
-                forEach(state.curveEditing.points, (point, pId) => {
-                    point.selected = pId === pointId;
+                state.curveEditing.paths.forEach((path, _pathIndex) => {
+                    path.points.forEach((point, _pointIndex) => {
+                        point.selected = _pathIndex === pathId && _pointIndex === pointId;
+                    });
                 });
+                state.curveEditing.firstSelectedPoint = state.curveEditing.paths[pathId].points[pointId];
             }
         },
         RESET_CURVE_EDIT_POINT_SELECTION(state) {
-            forEach(state.curveEditing.points, point => {
-                point.selected = false;
+            state.curveEditing.paths.forEach(path => {
+                path.points.forEach(point => {
+                    point.selected = false;
+                });
             });
+            state.curveEditing.firstSelectedPoint = null;
         },
-        SELECT_CURVE_EDIT_POINT(state, { pointId, inclusive }) {
-            if (pointId < 0 || pointId >= state.curveEditing.points.length) {
+        SELECT_CURVE_EDIT_POINT(state, { pathId, pointId, inclusive }) {
+            if (!validatePointIds(pathId, pointId, state.curveEditing)) {
                 return;
             }
             if (inclusive) {
-                state.curveEditing.points[pointId].selected = true;
+                state.curveEditing.paths[pathId].points[pointId].selected = true;
+                state.curveEditing.firstSelectedPoint = findFirstSelectedCurveEditPoint(state.curveEditing.paths);
             } else {
-                forEach(state.curveEditing.points, (point, pId) => {
-                    point.selected = pId === pointId;
+                state.curveEditing.paths.forEach((path, _pathIndex) => {
+                    path.points.forEach((point, _pointIndex) => {
+                        point.selected = _pathIndex === pathId && _pointIndex === pointId;
+                    });
                 });
+                state.curveEditing.firstSelectedPoint = state.curveEditing.paths[pathId].points[pointId];
             }
         },
 
@@ -256,6 +286,9 @@ const store = new Vuex.Store({
         },
         SET_EDITOR_STATE_NAME(state, stateName) {
             state.editorStateName = stateName;
+        },
+        SET_EDITOR_SUB_STATE_NAME(state, stateName) {
+            state.editorSubStateName = stateName;
         },
         SET_ITEM_SURROUND_PADDING(state, padding) {
             state.itemSurround.padding = padding;
@@ -449,29 +482,33 @@ const store = new Vuex.Store({
         },
 
         setCurveEditItem({commit}, item) {
-            const points = [];
+            const paths = [];
             if (item) {
-                forEach(item.shapeProps.points, (point, pointId) => {
-                    const p = utils.clone(point);
-                    p.id = pointId;
-                    p.selected = false;
-                    enrichCurvePoint(p);
-                    points.push(p);
+                item.shapeProps.paths.forEach((path, pathId) => {
+                    const points = [];
+                    path.points.forEach((point, pointId) => {
+                        const p = utils.clone(point);
+                        p.id = pointId;
+                        p.selected = false;
+                        enrichCurvePoint(p);
+                        points.push(p);
+                    });
+                    paths.push({ id: pathId, points });
                 });
             }
-            commit('SET_CURVE_EDIT_ITEM', {item, points});
+            commit('SET_CURVE_EDIT_ITEM', {item, paths});
         },
-        updateCurveEditPoint({ commit }, { item, pointId, point }) {
-            commit('UPDATE_CURVE_EDIT_POINT', { item, pointId, point });
+        updateCurveEditPoint({ commit }, { item, pathId, pointId, point }) {
+            commit('UPDATE_CURVE_EDIT_POINT', { item, pathId, pointId, point });
         },
-        toggleCurveEditPointSelection({ commit }, { pointId, inclusive }) {
-            commit('TOGGLE_CURVE_EDIT_POINT_SELECTION', { pointId, inclusive });
+        toggleCurveEditPointSelection({ commit }, { pathId, pointId, inclusive }) {
+            commit('TOGGLE_CURVE_EDIT_POINT_SELECTION', { pathId, pointId, inclusive });
         },
         resetCurveEditPointSelection({ commit }) {
             commit('RESET_CURVE_EDIT_POINT_SELECTION');
         },
-        selectCurveEditPoint({ commit }, { pointId, inclusive }) {
-            commit('SELECT_CURVE_EDIT_POINT', { pointId, inclusive });
+        selectCurveEditPoint({ commit }, { pathId, pointId, inclusive }) {
+            commit('SELECT_CURVE_EDIT_POINT', { pathId, pointId, inclusive });
         },
 
         
@@ -496,6 +533,10 @@ const store = new Vuex.Store({
 
         setEditorStateName({commit}, stateName) {
             commit('SET_EDITOR_STATE_NAME', stateName);
+        },
+
+        setEditorSubStateName({commit}, stateName) {
+            commit('SET_EDITOR_SUB_STATE_NAME', stateName);
         },
         
         setItemSurroundPadding({commit}, padding) {
@@ -608,9 +649,9 @@ const store = new Vuex.Store({
         
         itemControlPointsList: state => state.itemControlPoints,
         
-        curveEditPoints: state => state.curveEditing.points,
+        curveEditPaths: state => state.curveEditing.paths,
 
-        firstSelectedCurveEditPoint: state => find(state.curveEditing.points, p => p.selected),
+        firstSelectedCurveEditPoint: state => state.curveEditing.firstSelectedPoint,
 
         multiSelectBox: state => state.multiSelectBox,
 
@@ -635,6 +676,7 @@ const store = new Vuex.Store({
         drawEpsilon: state => state.draw.epsilon,
 
         editorStateName: state => state.editorStateName,
+        editorSubStateName: state => state.editorSubStateName,
 
         animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
 
