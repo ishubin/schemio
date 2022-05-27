@@ -1101,14 +1101,4 @@ export default class StateEditPath extends State {
             y: this.round(localPoint.y),
         };
     }
-
-    findClosestAttachmentPoint(x, y) {
-        let distanceThreshold = 10;
-        if (this.schemeContainer.screenTransform.scale > 0) {
-            distanceThreshold = distanceThreshold / this.schemeContainer.screenTransform.scale;
-        }
-
-        const includeOnlyVisibleItems = true;
-        return this.schemeContainer.findClosestPointToItems(x, y, distanceThreshold, this.item.id, includeOnlyVisibleItems);
-    }
 }
