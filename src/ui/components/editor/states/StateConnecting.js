@@ -31,7 +31,7 @@ function isEventRightClick(event) {
 export default class StateConnecting extends State {
     constructor(eventBus, store) {
         super(eventBus, store);
-        this.name = 'conecting';
+        this.name = 'connecting';
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;
@@ -58,6 +58,7 @@ export default class StateConnecting extends State {
     }
 
     softReset() {
+
         this.shouldDragScreen = false;
         this.wasMouseMoved = false;
         this.startedDraggingScreen = false;
@@ -65,6 +66,7 @@ export default class StateConnecting extends State {
     }
 
     cancel() {
+        StoreUtils.setCurrentConnector(this.store, null);
         this.eventBus.emitItemsHighlighted([]);
         if (this.item) {
             // deleting last point
@@ -79,6 +81,7 @@ export default class StateConnecting extends State {
 
     setItem(item) {
         this.item = item;
+        StoreUtils.setCurrentConnector(this.store, item);
         if (this.schemeContainer.findItemById(item.id)) {
             this.addedToScheme = true;
             this.creatingNewPoints = false;
@@ -144,6 +147,8 @@ export default class StateConnecting extends State {
         }
 
         this.item = curveItem;
+
+        StoreUtils.setCurrentConnector(this.store, this.item);
         this.parentItem = parentItem;
         this.addedToScheme = true;
         this.creatingNewPoints = true;

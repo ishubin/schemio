@@ -377,20 +377,20 @@ export default {
             StoreUtils.setDefaultConnectorSmoothing(this.$store, smoothingType);
             
             if (this.isCreatingConnector()) {
-                this.$store.state.curveEditing.item.shapeProps.smoothing = smoothingType;
-                EventBus.emitItemChanged(this.$store.state.curveEditing.item.id);
+                this.$store.state.connecting.connectorItem.shapeProps.smoothing = smoothingType;
+                EventBus.emitItemChanged(this.$store.state.connecting.connectorItem.id);
             } else {
                 this.emitShapePropChange('smoothing', 'choice', smoothingType);
             }
         },
 
         isCreatingConnector() {
-            return this.$store.state.editorStateName === 'editPath' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector';
+            return this.$store.state.editorStateName === 'connecting' && this.$store.state.connecting.connectorItem;
         },
 
         onEditorStateChanged() {
             if (this.isCreatingConnector()) {
-                this.currentConnectorSmoothing = this.$store.state.curveEditing.item.shapeProps.smoothing;
+                this.currentConnectorSmoothing = this.$store.state.connecting.connectorItem.shapeProps.smoothing;
             }
         },
 
@@ -650,8 +650,7 @@ export default {
         },
 
         shouldShowConnectorControls() {
-            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector')
-            || (this.$store.state.editorStateName === 'editPath' && this.$store.state.curveEditing.item && this.$store.state.curveEditing.item.shape === 'connector');
+            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') || this.$store.state.editorStateName === 'connecting';
         },
 
         autoRemount() {

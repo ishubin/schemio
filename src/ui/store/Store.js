@@ -94,6 +94,11 @@ const store = new Vuex.Store({
             paths: [],
             firstSelectedPoint: null
         },
+        
+        // used in "connecting" state
+        connecting: {
+            connectorItem: null
+        },
 
         patch: {
             settings: {
@@ -466,6 +471,10 @@ const store = new Vuex.Store({
             } else if (changeType === 'modifications') {
                 state.patch.settings.modificationsColor = color;
             }
+        },
+
+        SET_CURRENT_CONNECTOR(state, {item}) {
+            state.connecting.connectorItem = item;
         }
     },
 
@@ -639,6 +648,10 @@ const store = new Vuex.Store({
 
         updatePatchDiffColor({commit}, {changeType, color}) {
             commit('UPDATE_PATCH_DIFF_COLOR', {changeType, color});
+        },
+
+        setCurrentConnector({commit}, item) {
+            commit('SET_CURRENT_CONNECTOR', {item});
         }
     },
 
