@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import {SubState} from './State.js';
+import {SubState, DragScreenState, MultiSelectState, isEventMiddleClick, isEventRightClick, isMultiSelectKey} from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
@@ -21,22 +21,8 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     resized: false
 };
 
-
-function isEventRightClick(event) {
-    return event.button === 2;
-}
-
 function isValidObject(object) {
     return object && (object.type === 'path-point' || object.type === 'path-control-point' || object.type === 'path-segment');
-}
-
-
-/**
- * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
- * @param {MouseEvent} event 
- */
-function isMultiSelectKey(event) {
-    return event.metaKey || event.ctrlKey || event.shiftKey;
 }
 
 const MOUSE_MOVE_THRESHOLD = 3;
@@ -323,114 +309,6 @@ class DragObjectState extends SubState {
     }
 }
 
-class MultiSelectState extends SubState {
-    constructor(parentState, x, y, mx, my) {
-        super(parentState, 'multi-select');
-        this.clickedObject = null;
-        this.shouldSelectOnlyOne = false;
-        this.multiSelectBox = {x, y, w: 0, h: 0};
-        this.originalClickPoint = {x, y, mx, my};
-        this.item = parentState.item;
-        this.schemeContainer = parentState.schemeContainer;
-    }
-
-    mouseMove(x, y, mx, my, object, event) {
-        if (event.buttons === 0) {
-            this.mouseUp(x, y, mx, my, object, event);
-            return;
-        }
-
-        if (x > this.originalClickPoint.x) {
-            this.multiSelectBox.x = this.originalClickPoint.x;
-            this.multiSelectBox.w = x - this.originalClickPoint.x;
-        } else {
-            this.multiSelectBox.x = x;
-            this.multiSelectBox.w = this.originalClickPoint.x - x;
-        }
-        if (y > this.originalClickPoint.y) {
-            this.multiSelectBox.y = this.originalClickPoint.y;
-            this.multiSelectBox.h = y - this.originalClickPoint.y;
-        } else {
-            this.multiSelectBox.y = y;
-            this.multiSelectBox.h = this.originalClickPoint.y - y;
-        }
-        StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
-    }
-    
-    mouseUp(x, y, mx, my, object, event) {
-        const inclusive = isMultiSelectKey(event);
-        this.selectByBoundaryBox(this.multiSelectBox, inclusive, mx, my);
-        StoreUtils.setMultiSelectBox(this.store, null);
-        this.migrateToPreviousSubState();
-    }
-
-    selectByBoundaryBox(box, inclusive, mx, my) {
-        const viewportBox = {
-            x: this.originalClickPoint.mx,
-            y: this.originalClickPoint.my,
-            w: mx - this.originalClickPoint.mx,
-            h: my - this.originalClickPoint.my
-        };
-
-        // normalizing box
-        if (viewportBox.w < 0) {
-            viewportBox.x += viewportBox.w;
-            viewportBox.w = Math.abs(viewportBox.w);
-        }
-        if (viewportBox.h < 0) {
-            viewportBox.y += viewportBox.h;
-            viewportBox.h = Math.abs(viewportBox.h);
-        }
-
-        if (!inclusive) {
-            StoreUtils.resetCurveEditPointSelection(this.store);
-            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
-        }
-
-        this.item.shapeProps.paths.forEach((path, pathId) => {
-            path.points.forEach((point, pointId) => {
-                const wolrdPoint = this.schemeContainer.worldPointOnItem(point.x, point.y, this.item);
-                if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
-                    StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
-                }
-            });
-        });
-        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
-    }
-}
-
-
-class DragScreenState extends SubState {
-    constructor(parentState) {
-        super(parentState, 'drag-screen');
-        this.schemeContainer = parentState.schemeContainer;
-        this.originalClickPoint = null;
-        this.originalScreenOffset = null;
-    }
-
-    keyUp(key, keyOptions) {
-        if (key === Keys.SPACE) {
-            this.migrateToPreviousSubState();
-        }
-    }
-
-    mouseDown(x, y, mx, my, object, event) {
-        this.originalClickPoint = {x, y, mx, my};
-        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
-    }
-
-    mouseMove(x, y, mx, my, object, event) {
-        if (this.originalClickPoint && this.originalScreenOffset) {
-            this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
-            this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
-        }
-    }
-
-    mouseUp(x, y, mx, my, object, event) {
-        this.originalClickPoint = null;
-    }
-}
-
 
 class IdleState extends SubState {
     constructor(parentState, contextMenuHandler) {
@@ -458,6 +336,11 @@ class IdleState extends SubState {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        if (isEventMiddleClick(event)) {
+            this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
+            return;
+        }
+
         if (!this.parentState.item.id) {
             this.getSchemeContainer().addItem(this.parentState.item);
             const newSubState = new CreatingPathState(this.parentState, 0);
@@ -495,9 +378,26 @@ class IdleState extends SubState {
             return;
         } else if (this.clickedObject && !isValidObject(this.clickedObject)) {
             this.reset();
-            this.migrate(new MultiSelectState(this.parentState, x, y, mx, my));
+            this.migrate(new MultiSelectState(this.parentState, x, y, mx, my, (box, inclusive) => this.selectByBoundaryBox(box, inclusive)));
             return;
         }
+    }
+
+    selectByBoundaryBox(box, inclusive) {
+        if (!inclusive) {
+            StoreUtils.resetCurveEditPointSelection(this.store);
+            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+        }
+
+        this.parentState.item.shapeProps.paths.forEach((path, pathId) => {
+            path.points.forEach((point, pointId) => {
+                const wolrdPoint = this.parentState.schemeContainer.worldPointOnItem(point.x, point.y, this.parentState.item);
+                if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
+                    StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
+                }
+            });
+        });
+        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
     }
     
     mouseUp(x, y, mx, my, object, event) {

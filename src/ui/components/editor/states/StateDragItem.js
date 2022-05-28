@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 
-import State, { SubState } from './State.js';
+import State, { DragScreenState, MultiSelectState, SubState } from './State.js';
 import Shape from '../items/shapes/Shape';
 import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
@@ -69,9 +69,11 @@ class EditBoxState extends SubState {
         this.multiItemEditBox = multiItemEditBox;
         this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
         this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
+        this.modificationContextId = shortid.generate();
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
         let items = [];
         if (this.multiItemEditBox && this.multiItemEditBox.items) {
             items = this.multiItemEditBox.items;
@@ -94,6 +96,7 @@ class EditBoxState extends SubState {
         }
         this.schemeContainer.reindexItems();
 
+        this.eventBus.emitSchemeChangeCommited();
         this.migrateToPreviousSubState();
     }
 
@@ -142,12 +145,273 @@ class EditBoxState extends SubState {
     }
 }
 
+class DragControlPointState extends SubState {
+    constructor(parentState, item, pointId, x, y, mx, my) {
+        super(parentState, 'resize-edit-box');
+        this.item = item;
+        this.pointId = pointId;
+        this.originalPoint = {x, y, mx, my};
+        this.schemeContainer = parentState.schemeContainer;
+        this.snapper = parentState.snapper;
+        this.controlPoint = this.findItemControlPoint(this.pointId);
+        if (this.controlPoint) {
+            this.controlPointOriginalX = this.controlPoint.x;
+            this.controlPointOriginalY = this.controlPoint.y;
+        } else {
+            this.migrateToPreviousSubState();
+        }
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+        this.handleControlPointDrag(x, y);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        this.eventBus.emitSchemeChangeCommited();
+        this.migrateToPreviousSubState();
+    }
+
+    findItemControlPoint(pointId) {
+        for(let i = 0; i < this.store.state.itemControlPoints.length; i++) {
+            const controlPoint = this.store.state.itemControlPoints[i];
+            if (controlPoint.id === pointId) {
+                return controlPoint.point;
+            }
+        }
+
+        return null;
+    }
+
+    handleControlPointDrag(x, y) {
+        StoreUtils.clearItemSnappers(this.store);
+
+        if (this.controlPoint) {
+            if (this.item.shape === 'connector' && (this.controlPoint.isEdgeStart || this.controlPoint.isEdgeEnd)) {
+                this.handleCurveConnectorEdgeControlPointDrag(x, y, this.controlPoint);
+            } else {
+                const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.item);
+                const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.item);
+                const dx          = localPoint2.x - localPoint.x;
+                const dy          = localPoint2.y - localPoint.y;
+
+                const shape = Shape.find(this.item.shape);
+
+                // using scaling vector as previously all control points were already corrected by scaling effect relatively to world (in StoreUtils)
+                const scalingVector = worldScalingVectorOnItem(this.item);
+                const svx = Math.max(0.0000001, scalingVector.x);
+                const svy = Math.max(0.0000001, scalingVector.y);
+
+                if (this.item.shape === 'connector') {
+                    this.handleConnectorPointDrag(this.pointId, dx, dy, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy);
+                } else {
+                    shape.controlPoints.handleDrag(this.item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this.snapper, this.schemeContainer);
+                }
+                
+                this.eventBus.emitItemChanged(this.item.id);
+                this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+
+                // updating all control points as they might affect one another
+                StoreUtils.setItemControlPoints(this.store, this.item);
+                this.reindexNeeded = true;
+                this.lastModifiedItem = this.item;
+            }
+        }
+    }
+
+    handleConnectorPointDrag(pointId, dx, dy, originalX, originalY) {
+        const point = this.item.shapeProps.points[pointId];
+        if (point) {
+            const worldPoint = this.schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, this.item);
+
+            const newOffset = this.snapPoints({
+                vertical: [worldPoint],
+                horizontal: [worldPoint],
+            }, new Set(), 0, 0);
+
+            const localPoint = this.schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, this.item);
+            point.x = localPoint.x;
+            point.y = localPoint.y;
+
+            // since this function can only be called if the connector is selected
+            // we should update connector path so that it can be rendered in multi item edit box
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.item.shape).computeOutline(this.item));
+        }
+    }
+
+    handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
+        // this function implements the same logic as in StateEditPath.handleEdgeCurvePointDrag
+        // but it also modifies a control point in the end
+        // so it is not that easy to share code
+
+        let distanceThreshold = 10;
+        if (this.schemeContainer.screenTransform.scale > 0) {
+            distanceThreshold = distanceThreshold / this.schemeContainer.screenTransform.scale;
+        }
+
+        const includeOnlyVisibleItems = true;
+
+        const curvePoint = this.item.shapeProps.points[this.pointId];
+        if (!curvePoint) {
+            return;
+        }
+        
+        let excludedIds = null
+        if (this.multiItemEditBox) {
+            excludedIds = this.multiItemEditBox.itemIds;
+        } else {
+            excludedIds = new Set();
+            excludedIds.add(this.item.id);
+        }
+
+        const snappedOffset = this.snapper.snapPoints({
+            horizontal: [{x, y}],
+            vertical: [{x, y}],
+        }, excludedIds, 0, 0);
+
+        const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+
+        // Not letting connectors attach to themselves
+        if (closestPointToItem && closestPointToItem.itemId !== this.item.id) {
+            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+
+            curvePoint.x = localCurvePoint.x;
+            curvePoint.y = localCurvePoint.y;
+
+            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            if (controlPoint.isEdgeStart) {
+                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            } else {
+                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+            }
+        } else {
+            const localPoint = this.schemeContainer.localPointOnItem(x + snappedOffset.dx, y + snappedOffset.dy, this.item);
+
+            curvePoint.x = localPoint.x;
+            curvePoint.y = localPoint.y;
+
+            // nothing to attach to so reseting highlights in case it was set previously
+            this.eventBus.emitItemsHighlighted([]);
+            if (controlPoint.isEdgeStart) {
+                this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationItemPosition = 0;
+            }
+        }
+
+        const shape = Shape.find(this.item.shape);
+        StoreUtils.setItemControlPoints(this.store, this.item);
+        
+        this.eventBus.emitItemChanged(this.item.id);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.reindexNeeded = true;
+        this.lastModifiedItem = this.item;
+
+        // since this function can only be called if the connector is selected
+        // we should update connector path so that it can be rendered in multi item edit box
+        StoreUtils.setSelectedConnectorPath(this.store, shape.computeOutline(this.item));
+    }
+}
+
+class DragPivotEditBoxState extends EditBoxState {
+    constructor(parentState, multiItemEditBox, x, y, mx, my) {
+        super(parentState, 'drag-pivot-edit-box', multiItemEditBox, x, y, mx, my);
+        this.oldPivotPoint = {
+            x: multiItemEditBox.pivotPoint.x,
+            y: multiItemEditBox.pivotPoint.y,
+        };
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
+        if (!this.multiItemEditBox) {
+            return;
+        }
+
+        if (this.multiItemEditBox.area.w === 0 || this.multiItemEditBox.area.h === 0) {
+            return;
+        }
+        const localPoint = myMath.localPointInArea(x, y, this.multiItemEditBox.area);
+        const localOriginalPoint = myMath.localPointInArea(this.originalPoint.x, this.originalPoint.y, this.multiItemEditBox.area);
+
+        this.multiItemEditBox.pivotPoint.x = myMath.clamp(this.oldPivotPoint.x + (localPoint.x - localOriginalPoint.x) / this.multiItemEditBox.area.w, 0, 1);
+        this.multiItemEditBox.pivotPoint.y = myMath.clamp(this.oldPivotPoint.y + (localPoint.y - localOriginalPoint.y) / this.multiItemEditBox.area.h, 0, 1);
+
+        updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        if (this.multiItemEditBox.items.length === 1) {
+            this.multiItemEditBox.items[0].area.px = this.multiItemEditBox.pivotPoint.x;
+            this.multiItemEditBox.items[0].area.py = this.multiItemEditBox.pivotPoint.y;
+            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+        }
+
+        super.mouseUp(x, y, mx, my, object, event);
+    }
+}
+
+class ResizeEditBoxState extends EditBoxState {
+    constructor(parentState, multiItemEditBox, draggerEdges, x, y, mx, my) {
+        super(parentState, 'resize-edit-box', multiItemEditBox, x, y, mx, my);
+        this.draggerEdges = draggerEdges
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
+
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
+        dragMultiItemEditBoxByDragger(
+            this.multiItemEditBox,
+            this.multiItemEditBoxOriginalArea,
+            this.originalPoint,
+            this.store,
+            this.snapper,
+            x, y, this.draggerEdges);
+
+        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
+            moved: false,
+            rotated: false,
+            resized: true,
+            id: this.modificationContextId
+        }, this.getUpdatePrecision());
+
+        if (this.multiItemEditBox.items.length === 1) {
+            // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points
+            // But setting it from scratch is safer
+            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
+        }
+        updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
+        this.reindexNeeded = true;
+    }
+}
+
+
 class RotateEditBoxState extends EditBoxState {
     constructor(parentState, multiItemEditBox, x, y, mx, my) {
-        super(parentState, 'drag-edit-box', multiItemEditBox, x, y, mx, my);
+        super(parentState, 'rotate-edit-box', multiItemEditBox, x, y, mx, my);
     }
     
     mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
         const area = this.multiItemEditBoxOriginalArea;
 
         const pivotPoint = myMath.worldPointInArea(area.w * this.multiItemEditBox.pivotPoint.x, area.h * this.multiItemEditBox.pivotPoint.y, area);
@@ -219,8 +483,15 @@ class DragEditBoxState extends EditBoxState {
     }
     
     mouseMove(x, y, mx, my, object, event) {
+        StoreUtils.clearItemSnappers(this.store);
+
         if (!this.multiItemEditBox) {
             this.migrateToPreviousSubState();
+            return;
+        }
+
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
             return;
         }
 
@@ -310,141 +581,13 @@ class IdleState extends SubState {
         this.clickedObject = null;
         this.schemeContainer = this.parentState.schemeContainer;
     }
-    
-    mouseDown(x, y, mx, my, object, event) {
-        if (object && object.type !== 'void') {
-            this.clickedObject = object;
 
-            if (object.type === 'item') {
-                if (!this.schemeContainer.isItemSelected(object.item)) {
-                    this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
-                }
-            }
-        } else {
-            this.deselectAllItems();
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrate(new DragScreenState(this.parentState));
+            return;
         }
-    }
 
-    mouseMove(x, y, mx, my, object, event) {
-        if (this.clickedObject) { 
-            if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
-                this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
-                this.reset();
-                return;
-            } else if (this.clickedObject.type === 'multi-item-edit-box-rotational-dragger') {
-                this.migrate(new RotateEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
-                this.reset();
-                return;
-            }
-        }
-    }
-
-    mouseUp() {
-        this.clickedObject = null;
-    }
-
-    deselectAllItems() {
-        this.schemeContainer.deselectAllItems();
-        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
-    }
-}
-
-export default class StateDragItem extends State {
-    /**
-     * @param {EventBus} eventBus 
-     */
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'drag-item';
-
-        this.subState = null;
-
-
-        this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
-        this.wasDraggedEnough = false;
-        this.startedDragging = true;
-        
-        //TODO either get rid of it or rename sourceItem to something more meaningful. This field is very confusing and it is used to often in this code
-        this.sourceItem = null; // used for item control points dragging
-        this.controlPoint = null; // stores coords for item control point
-
-        this.multiSelectBox = null;
-
-        /**
-         * @type SnappingPoints
-         */
-        this.boxPointsForSnapping = null;
-
-        this.isRotating = false;
-
-        this.isDraggingPivot = false;
-        this.oldPivotPoint = null;
-
-        // used to check whether the mouse moved between mouseDown and mouseUp events
-        this.wasMouseMoved = false;
-
-        // used in order to drag screen when user holds spacebar
-        this.shouldDragScreen = false;
-        this.originalOffset = {x: 0, y: 0};
-        this.reindexNeeded = false;
-        this.multiItemEditBox = null;
-        this.multiItemEditBoxOriginalArea = null;
-        // array of edge names. used to resize multi item edit box using its edge draggers
-        this.draggerEdges = null;
-
-        // used for tracking updates of control points (also when multi item edit box is not initialized, e.g. for connector)
-        this.lastModifiedItem = null;
-
-        // used in order to remount items in this item in case thier area fits
-        this.proposedItemForMounting = null;
-        
-        // flag that identifies whether items should be remounted to root. happens when they are dragged outside of their parent
-        this.proposedToRemountToRoot = false;
-
-        this.snapper = {
-            /**
-             * Checks snapping of item and returns new offset that should be applied to item
-             * 
-             * @param {SnappingPoints} points - points of an item by which it should snap it to other items
-             * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
-             * @param {Number} dx - pre-snap candidate offset on x axis
-             * @param {Number} dy - pre-snap candidate offset on y axis
-             * @returns {Offset} offset with dx and dy fields specifying how these points should be moved to be snapped
-             */
-            snapPoints: (points, excludeItemIds, dx, dy) => this.snapPoints(points, excludeItemIds, dx, dy)
-        };
-
-        // used in order to track the uniqueness of modification context from mouse down to mouse up events
-        this.modificationContextId = null;
-    }
-
-    reset() {
-        this.migrateSubState(new IdleState(this));
-
-
-
-        this.reindexNeeded = false;
-        this.wasDraggedEnough = false;
-        this.startedDragging = false;
-        this.shouldDragScreen = false;
-        this.draggerEdges = null;
-        this.isRotating = false;
-        this.isDraggingPivot = false;
-        this.oldPivotPoint = null;
-        this.sourceItem = null;
-        this.controlPoint = null;
-        this.multiSelectBox = null;
-        this.wasMouseMoved = false;
-        this.multiItemEditBox = null;
-        this.multiItemEditBoxOriginalArea = null;
-        this.boxPointsForSnapping = null;
-        this.modificationContextId = null;
-        this.lastModifiedItem = null;
-        this.proposedItemForMounting = null;
-        this.proposedToRemountToRoot = false;
-    }
-
-    _keyPressed(key, keyOptions) {
         var delta = keyOptions.ctrlCmdPressed ? 10: 1;
 
         if (Keys.LEFT === key) {
@@ -463,407 +606,42 @@ export default class StateDragItem extends State {
             this.zoomInByKey();
         }
     }
-
-    _keyUp(key, keyOptions) {
-        if (key === Keys.SPACE) {
-            this.shouldDragScreen = false;
-        }
-    }
-
-    initDragging(x, y, mx, my) {
-        this.originalPoint.x = x;
-        this.originalPoint.y = y;
-        this.originalPoint.mx = mx;
-        this.originalPoint.my = my;
-        this.wasDraggedEnough = false;
-        this.startedDragging = true;
-        this.wasMouseMoved = false;
-        this.reindexNeeded = false;
-        this.lastModifiedItem = null;
-    }
-
-    initDraggingMultiItemBox(multiItemEditBox, x, y, mx, my) {
-        this.initDragging(x, y, mx, my);
-        this.multiItemEditBox = multiItemEditBox;
-        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
-        this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
-        this.isRotating = false;
-    }
-
-    initMultiItemBoxRotation(multiItemEditBox, x, y, mx, my) {
-        this.initDragging(x, y, mx, my);
-        this.multiItemEditBox = multiItemEditBox;
-        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
-        this.isRotating = true;
-    }
-
-    initMultiItemBoxResize(multiItemEditBox, draggerEdges, x, y, mx, my) {
-        this.initDragging(x, y, mx, my);
-        this.multiItemEditBox = multiItemEditBox;
-        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
-        this.isRotating = false;
-        this.draggerEdges = draggerEdges;
-    }
-
-    initPivotDrag(multiItemEditBox, x, y, mx, my) {
-        this.initDragging(x, y, mx, my);
-        this.multiItemEditBox = multiItemEditBox;
-        this.initOriginalAreasForMultiItemEditBox(multiItemEditBox);
-        this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
-        this.isRotating = false;
-        this.isDraggingPivot = true;
-        this.oldPivotPoint = {
-            x: multiItemEditBox.pivotPoint.x,
-            y: multiItemEditBox.pivotPoint.y,
-        };
-    }
-
-    initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
-        this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
-    }
-
-    initScreenDrag(mx, my) {
-        this.wasDraggedEnough = false;
-        this.startedDragging = true;
-        this.originalPoint.x = mx;
-        this.originalPoint.y = my;
-        this.originalPoint.mx = mx;
-        this.originalPoint.my = my;
-        this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
-    }
-
-    _mouseDown(x, y, mx, my, object, event) {
-        this.modificationContextId = shortid.generate();
-        this.wasMouseMoved = false;
-        
+    
+    mouseDown(x, y, mx, my, object, event) {
         if (isEventMiddleClick(event)) {
-            this.shouldDragScreen = true;
+            this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
+            return;
         }
 
-        if (this.shouldDragScreen) {
-            this.initScreenDrag(mx, my);
-        } else if (object.item) {
-            if (isEventRightClick(event)) {
-                this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
-            } else {
-                this.handleItemLeftMouseDown(x, y, mx, my, object.item, event);
+        if (isEventRightClick(event)) {
+            this.handleRightClick(x, y, mx, my, object, event);
+            return;
+        }
+
+        if (object && object.type !== 'void') {
+            this.clickedObject = object;
+
+            if (object.type === 'item') {
+                if (!this.schemeContainer.isItemSelected(object.item)) {
+                    this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
+                }
+            } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
+                if (object.multiItemEditBox.items.length > 0
+                    && object.multiItemEditBox.items[0].shape === 'path') {
+                    this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
+                    return;
+                }
+            } else if (object.connectorStarter) {
+                EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
+                return;
             }
-        } else if (object.connectorStarter) {
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
-        } else if (object.controlPoint) {
-            this.initDraggingForControlPoint(object.controlPoint, x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box') {
-            this.initDraggingMultiItemBox(object.multiItemEditBox, x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
-            this.initMultiItemBoxRotation(object.multiItemEditBox, x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box-resize-dragger') {
-            this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box-pivot-dragger') {
-            this.initPivotDrag(object.multiItemEditBox, x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
-            if (object.multiItemEditBox.items.length > 0
-                && object.multiItemEditBox.items[0].shape === 'path') {
-                this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
-            }
-        } else if (isEventRightClick(event)) {
-            this.handleVoidRightClick(x, y, mx, my);
         } else {
-            //enabling multi select box only if user clicked in the empty area.
-            if (!object || object.type === 'void' || object.itemTextElement) {
-                this.initMulitSelectBox(x, y, mx, my);
-            }
-        }
-    }
-
-    findItemControlPoint(pointId) {
-        for(let i = 0; i < this.store.state.itemControlPoints.length; i++) {
-            const controlPoint = this.store.state.itemControlPoints[i];
-            if (controlPoint.id === pointId) {
-                return controlPoint.point;
-            }
-        }
-
-        return null;
-    }
-
-    initDraggingForControlPoint(controlPointDef, x, y, mx, my) {
-        const controlPoint = this.findItemControlPoint(controlPointDef.pointId);
-        if (controlPoint) {
-            this.reset();
-            this.originalPoint.x = x;
-            this.originalPoint.y = y;
-            this.originalPoint.mx = mx;
-            this.originalPoint.my = my;
-            this.startedDragging = true;
-            this.wasDraggedEnough = false;
-            this.sourceItem = controlPointDef.item;
-            this.controlPoint = {
-                id: controlPointDef.pointId,
-                originalX: controlPoint.x,
-                originalY: controlPoint.y,
-            }
-        }
-    }
-
-    handleVoidRightClick(x, y, mx, my) {
-        this.schemeContainer.deselectAllItems();
-        this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED, x, y, mx, my);
-    }
-
-    /**
-     * This function is tricky as there are a lot of various conditions for the mouse click event.
-     * 1. When clicked non-selected element without meta/ctrl key 
-     *      =>  it should only select that element and deselect any other
-     * 
-     * 2. When clicked already selected element 
-     *      =>  it should not do anything until the mouse is either released or moved.
-     *          Other selected elements should stay selected
-     * 
-     * 3. When clicked non-selected element with meta/ctrl key
-     *      =>  it should just select that element only without reseting selection for other elements
-     * 
-     * 4. When clicked selected element with meta/ctrl key
-     *      =>  it should just deselect this element without reseting selection for other elements
-     * 
-     * 
-     * @param {number} x 
-     * @param {number} y 
-     * @param {number} mx 
-     * @param {number} my 
-     * @param {SchemeItem} item 
-     * @param {MouseEvent} event 
-     */
-    handleItemLeftMouseDown(x, y, mx, my, item, event) {
-        // if the item is already selected it should not do anything. This way we can let user drag multiple items
-        if (!this.schemeContainer.isItemSelected(item)) {
-            this.schemeContainer.selectItem(item, isMultiSelectKey(event));
-        }
-        
-        if (this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.itemData[item.id]) {
-            this.initDraggingMultiItemBox(this.schemeContainer.multiItemEditBox, x, y, mx, my);
-        }
-    }
-
-    handleItemRightMouseDown(x, y, mx, my, item, event) {
-        this.eventBus.emitRightClickedItem(item, mx, my);
-
-        if (!this.schemeContainer.isItemSelected(item)) {
-            this.schemeContainer.selectItem(item, isMultiSelectKey(event));
-        }
-    }
-
-    _mouseMove(x, y, mx, my, object, event) {
-        if (this.startedDragging) {
-
-            this.wasMouseMoved = true;
-
-            if (this.shouldDragScreen) {
-                this.dragScreen(mx, my);
-            } else if (event.buttons === 0) {
-                // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
-                this.reset();
-            } else if (this.multiItemEditBox && !this.multiItemEditBox.locked) {
-                if (this.isRotating) {
-                    this.rotateMultiItemEditBox(x, y, mx, my, event);
-                } else if (this.draggerEdges) {
-                    this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
-                } else if (this.isDraggingPivot) {
-                    this.dragMultiItemEditBoxPivot(x, y, event);
-                } else {
-                    // doing this check since it is really easy to trigger item drag just by few pixels
-                    if (!this.draggedEnough(mx, my)) {
-                        return;
-                    }
-
-                    this.dragMultiItemEditBox(x, y);
-                }
-            } else {
-                if (this.controlPoint) {
-                    this.handleControlPointDrag(x, y);
-                }
-            }
-        } else if (this.multiSelectBox) {
-            // checking user moved multi select box outside of svg editor and released the button there
-            if (event.buttons === 0) {
-                // in such case when user moves mouse back - it should finalize the multi select
-                // therefore we need to trigger mouseUp artificially
-                this.mouseUp(x, y, mx, my, object, event);
-            } else {
-                // otherwise keep moving multi select box
-                this.wasMouseMoved = true;
-                if (x > this.originalPoint.x) {
-                    this.multiSelectBox.x = this.originalPoint.x;
-                    this.multiSelectBox.w = x - this.originalPoint.x;
-                } else {
-                    this.multiSelectBox.x = x;
-                    this.multiSelectBox.w = this.originalPoint.x - x;
-                }
-                if (y > this.originalPoint.y) {
-                    this.multiSelectBox.y = this.originalPoint.y;
-                    this.multiSelectBox.h = y - this.originalPoint.y;
-                } else {
-                    this.multiSelectBox.y = y;
-                    this.multiSelectBox.h = this.originalPoint.y - y;
-                }
-                StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
-            }
-        }
-    }
-
-    draggedEnough(mx, my) {
-        if (this.wasDraggedEnough) {
-            return true;
-        }
-
-        const offset = Math.abs(mx - this.originalPoint.mx) + Math.abs(my - this.originalPoint.my);
-        if (offset > 7) {
-            this.wasDraggedEnough = true;
-            return true;
-        }
-
-        return false;
-    }
-
-    _mouseUp(x, y, mx, my, object, event) {
-        StoreUtils.clearItemSnappers(this.store);
-
-        // doing it just in case the highlighting was previously set
-        this.eventBus.emitItemsHighlighted([]);
-
-        if (this.shouldDragScreen) {
-            // user probably finished dragging screen
-            this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
-        }
-
-        if (this.multiSelectBox) {
             if (!isMultiSelectKey(event)) {
                 this.deselectAllItems();
             }
-            this.selectByBoundaryBox(this.multiSelectBox, mx, my);
-            this.emitEventsForAllSelectedItems();
-            StoreUtils.setMultiSelectBox(this.store, null);
-
-        } else if (object.item && !this.wasMouseMoved) {
-            // when clicking right button - it should not deselected
-            // but when clicking left button and without movin a mouse - it should deselect other items
-            if (!isEventRightClick(event) && ! isMultiSelectKey(event)) {
-                // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
-                if (this.schemeContainer.selectedItems.length > 1 && this.schemeContainer.selectedItems[0].id !== object.item.id) {
-                    this.schemeContainer.selectItem(object.item, false);
-                }
-            }
-        } 
-        if (this.startedDragging && this.wasMouseMoved) {
-            this.eventBus.emitSchemeChangeCommited();
+            this.migrate(new MultiSelectState(this.parentState, x, y, mx, my, (box, inclusive) => this.selectByBoundaryBox(box, inclusive)));
+            return;
         }
-        if (this.reindexNeeded) {
-            let items = [];
-            if (this.multiItemEditBox && this.multiItemEditBox.items) {
-                items = this.multiItemEditBox.items;
-            }
-            if (this.lastModifiedItem) {
-                items.push(this.lastModifiedItem);
-            }
-            
-            let shouldUpdateMultiItemEditBox = false;
-            forEach(items, item => {
-                // Now doing hard readjustment (this is needed for curve items so that they can update their area)
-                this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-
-                if (item.shape === 'path' || item.shape === 'connector') {
-                    shouldUpdateMultiItemEditBox = true;
-                }
-            });
-            if (shouldUpdateMultiItemEditBox) {
-                this.schemeContainer.updateMultiItemEditBox();
-            }
-            this.schemeContainer.reindexItems();
-        }
-
-        if (this.multiItemEditBox && this.isDraggingPivot && this.multiItemEditBox.items.length === 1) {
-            this.multiItemEditBox.items[0].area.px = this.multiItemEditBox.pivotPoint.x;
-            this.multiItemEditBox.items[0].area.py = this.multiItemEditBox.pivotPoint.y;
-            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
-        }
-
-        // the code below is messy because it handles two conditions:
-        // 1) when user dragged control point of an item
-        // 2) when user dragged connector by its body and not by a control point
-        // in both cases we need to do the same thing: update control points in store 
-        // but in case user dragged control point of a connector - we also need to update selected connector path in store
-
-        let itemForControlPointsUpdate = null;
-        let connectorForPathRebuild = null;
-        if (this.sourceItem) {
-            itemForControlPointsUpdate = this.sourceItem;
-            if (this.sourceItem.shape === 'connector') {
-                connectorForPathRebuild = this.sourceItem;
-            }
-        }
-
-        if (this.multiItemEditBox && this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
-            itemForControlPointsUpdate = this.multiItemEditBox.items[0];
-            connectorForPathRebuild = this.multiItemEditBox.items[0];
-        }
-
-        if (itemForControlPointsUpdate) {
-            StoreUtils.setItemControlPoints(this.store, itemForControlPointsUpdate);
-        }
-        if (connectorForPathRebuild) {
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(connectorForPathRebuild));
-        }
-
-
-        this.reset();
-    }
-
-    /**
-     * Select items by multi select box. It uses different coords depending on item transform type
-     * @param {*} box 
-     * @param {*} mx mouse x in viewport
-     * @param {*} my mouse y in viewport
-     */
-    selectByBoundaryBox(box, mx, my) {
-        const viewportBox = {
-            x: this.originalPoint.mx,
-            y: this.originalPoint.my,
-            w: mx - this.originalPoint.mx,
-            h: my - this.originalPoint.my
-        };
-
-        // normalizing box
-        if (viewportBox.w < 0) {
-            viewportBox.x += viewportBox.w;
-            viewportBox.w = Math.abs(viewportBox.w);
-        }
-        if (viewportBox.h < 0) {
-            viewportBox.y += viewportBox.h;
-            viewportBox.h = Math.abs(viewportBox.h);
-        }
-
-        const selectedItems = [];
-
-        forEach(this.schemeContainer.getItems(), item => {
-            const points = [ 
-                {x: 0, y: 0}, 
-                {x: item.area.w, y: 0},
-                {x: item.area.w, y: item.area.h},
-                {x: 0, y: item.area.h},
-            ];
-
-            let isInArea = true;
-
-            for(let i = 0; i < points.length && isInArea; i++) {
-                const wolrdPoint = this.schemeContainer.worldPointOnItem(points[i].x, points[i].y, item);
-
-                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
-            }
-
-            if (isInArea) {
-                selectedItems.push(item);
-            }
-        });
-        this.schemeContainer.selectMultipleItems(selectedItems);
     }
 
     mouseDoubleClick(x, y, mx, my, object, event) {
@@ -884,6 +662,64 @@ export default class StateDragItem extends State {
         }
     }
     
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.clickedObject) { 
+            if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
+                this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
+                this.reset();
+                return;
+            } else if (this.clickedObject.type === 'multi-item-edit-box-rotational-dragger') {
+                this.migrate(new RotateEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
+                this.reset();
+                return;
+            } else if (this.clickedObject.type === 'multi-item-edit-box-resize-dragger') {
+                this.migrate(new ResizeEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, this.clickedObject.draggerEdges, x, y, mx, my));
+                this.reset();
+                return;
+            } else if (this.clickedObject.type === 'multi-item-edit-box-pivot-dragger') {
+                this.migrate(new DragPivotEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
+                this.reset();
+                return;
+            } else if (this.clickedObject.type === 'control-point') {
+                this.migrate(new DragControlPointState(this.parentState, this.clickedObject.controlPoint.item, this.clickedObject.controlPoint.pointId, x, y, mx, my));
+                this.reset();
+                return;
+            }
+
+        }
+    }
+
+    mouseUp() {
+        this.clickedObject = null;
+    }
+
+    handleRightClick(x, y, mx, my, object, event) {
+        if (object.type === 'item') {
+            if (!this.schemeContainer.isItemSelected(object.item)) {
+                this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
+            }
+            this.eventBus.emitRightClickedItem(object.item, mx, my);
+        } else if (object.type === 'void') {
+            this.schemeContainer.deselectAllItems();
+            this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED, x, y, mx, my);
+        }
+    }
+
+    deselectAllItems() {
+        this.schemeContainer.deselectAllItems();
+        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
+    }
+
+    dragItemsByKeyboard(dx, dy) {
+        const box = this.schemeContainer.multiItemEditBox;
+        if (box && !box.locked) {
+            box.area.x += dx;
+            box.area.y += dy;
+            this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+            this.schemeContainer.updateMultiItemEditBox();
+        }
+    }
+
     handleDoubleClickOnConnector(item, x, y) {
         //TODO refactor it to use path segments in order to identify clicked segment
         const shape = Shape.find(item.shape);
@@ -978,182 +814,255 @@ export default class StateDragItem extends State {
         return selectedTextSlot;
     }
 
-    dragMultiItemEditBoxPivot(x, y, event) {
-        if (!this.multiItemEditBox) {
-            return;
-        }
+    selectByBoundaryBox(box, inclusive) {
+        const selectedItems = [];
 
-        if (this.multiItemEditBox.area.w === 0 || this.multiItemEditBox.area.h === 0) {
-            return;
-        }
-        const localPoint = myMath.localPointInArea(x, y, this.multiItemEditBox.area);
-        const localOriginalPoint = myMath.localPointInArea(this.originalPoint.x, this.originalPoint.y, this.multiItemEditBox.area);
+        forEach(this.schemeContainer.getItems(), item => {
+            const points = [ 
+                {x: 0, y: 0}, 
+                {x: item.area.w, y: 0},
+                {x: item.area.w, y: item.area.h},
+                {x: 0, y: item.area.h},
+            ];
 
-        this.multiItemEditBox.pivotPoint.x = myMath.clamp(this.oldPivotPoint.x + (localPoint.x - localOriginalPoint.x) / this.multiItemEditBox.area.w, 0, 1);
-        this.multiItemEditBox.pivotPoint.y = myMath.clamp(this.oldPivotPoint.y + (localPoint.y - localOriginalPoint.y) / this.multiItemEditBox.area.h, 0, 1);
+            let isInArea = true;
 
-        this.updateMultiItemEditBoxWorldPivot();
+            for(let i = 0; i < points.length && isInArea; i++) {
+                const wolrdPoint = this.schemeContainer.worldPointOnItem(points[i].x, points[i].y, item);
+
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
+            }
+
+            if (isInArea) {
+                selectedItems.push(item);
+            }
+        });
+        this.schemeContainer.selectMultipleItems(selectedItems, inclusive);
     }
 
 
-    dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
-        dragMultiItemEditBoxByDragger(
-            this.multiItemEditBox,
-            this.multiItemEditBoxOriginalArea,
-            this.originalPoint,
-            this.store,
-            this.snapper,
-            x, y, draggerEdges);
+}
 
-        this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
-            moved: false,
-            rotated: false,
-            resized: true,
-            id: this.modificationContextId
-        }, this.getUpdatePrecision());
+export default class StateDragItem extends State {
+    /**
+     * @param {EventBus} eventBus 
+     */
+    constructor(eventBus, store) {
+        super(eventBus, store);
+        this.name = 'drag-item';
 
-        if (this.multiItemEditBox.items.length === 1) {
-            // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points
-            // But setting it from scratch is safer
-            StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
-        }
-        this.updateMultiItemEditBoxWorldPivot();
-        this.reindexNeeded = true;
-        log.info('Resized multi item edit box', this.multiItemEditBox);
+        this.subState = null;
+
+
+
+        this.multiSelectBox = null;
+
+        /**
+         * @type SnappingPoints
+         */
+        this.boxPointsForSnapping = null;
+
+        this.isRotating = false;
+
+        this.isDraggingPivot = false;
+        this.oldPivotPoint = null;
+
+        // used to check whether the mouse moved between mouseDown and mouseUp events
+        this.wasMouseMoved = false;
+
+        // used in order to drag screen when user holds spacebar
+        this.shouldDragScreen = false;
+        this.originalOffset = {x: 0, y: 0};
+        this.reindexNeeded = false;
+        this.multiItemEditBox = null;
+        this.multiItemEditBoxOriginalArea = null;
+        // array of edge names. used to resize multi item edit box using its edge draggers
+        this.draggerEdges = null;
+
+        // used for tracking updates of control points (also when multi item edit box is not initialized, e.g. for connector)
+        this.lastModifiedItem = null;
+
+        // used in order to remount items in this item in case thier area fits
+        this.proposedItemForMounting = null;
+        
+        // flag that identifies whether items should be remounted to root. happens when they are dragged outside of their parent
+        this.proposedToRemountToRoot = false;
+
+        this.snapper = {
+            /**
+             * Checks snapping of item and returns new offset that should be applied to item
+             * 
+             * @param {SnappingPoints} points - points of an item by which it should snap it to other items
+             * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
+             * @param {Number} dx - pre-snap candidate offset on x axis
+             * @param {Number} dy - pre-snap candidate offset on y axis
+             * @returns {Offset} offset with dx and dy fields specifying how these points should be moved to be snapped
+             */
+            snapPoints: (points, excludeItemIds, dx, dy) => this.snapPoints(points, excludeItemIds, dx, dy)
+        };
+
+        // used in order to track the uniqueness of modification context from mouse down to mouse up events
+        this.modificationContextId = null;
     }
 
-    handleControlPointDrag(x, y) {
+    reset() {
+        this.migrateSubState(new IdleState(this));
+    }
+
+
+    _mouseDown(x, y, mx, my, object, event) {
+        this.modificationContextId = shortid.generate();
+        this.wasMouseMoved = false;
+        
+        if (isEventMiddleClick(event)) {
+            this.shouldDragScreen = true;
+        }
+
+        if (object.item) {
+            if (isEventRightClick(event)) {
+                this.handleItemRightMouseDown(x, y, mx, my, object.item, event);
+            } else {
+                this.handleItemLeftMouseDown(x, y, mx, my, object.item, event);
+            }
+        } else if (object.connectorStarter) {
+            EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
+        } else if (object.controlPoint) {
+            this.initDraggingForControlPoint(object.controlPoint, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box') {
+            this.initDraggingMultiItemBox(object.multiItemEditBox, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-rotational-dragger') {
+            this.initMultiItemBoxRotation(object.multiItemEditBox, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-resize-dragger') {
+            this.initMultiItemBoxResize(object.multiItemEditBox, object.draggerEdges, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-pivot-dragger') {
+            this.initPivotDrag(object.multiItemEditBox, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
+            if (object.multiItemEditBox.items.length > 0
+                && object.multiItemEditBox.items[0].shape === 'path') {
+                this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
+            }
+        } else if (isEventRightClick(event)) {
+            this.handleVoidRightClick(x, y, mx, my);
+        }
+    }
+
+    _mouseMove(x, y, mx, my, object, event) {
+        if (this.startedDragging) {
+
+            this.wasMouseMoved = true;
+
+            if (this.shouldDragScreen) {
+                this.dragScreen(mx, my);
+            } else if (event.buttons === 0) {
+                // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
+                this.reset();
+            } else if (this.multiItemEditBox && !this.multiItemEditBox.locked) {
+                if (this.isRotating) {
+                    this.rotateMultiItemEditBox(x, y, mx, my, event);
+                } else if (this.draggerEdges) {
+                    this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
+                } else if (this.isDraggingPivot) {
+                    this.dragMultiItemEditBoxPivot(x, y, event);
+                } else {
+                    // doing this check since it is really easy to trigger item drag just by few pixels
+                    if (!this.draggedEnough(mx, my)) {
+                        return;
+                    }
+
+                    this.dragMultiItemEditBox(x, y);
+                }
+            } else {
+                if (this.controlPoint) {
+                    this.handleControlPointDrag(x, y);
+                }
+            }
+        } else if (this.multiSelectBox) {
+            // checking user moved multi select box outside of svg editor and released the button there
+            if (event.buttons === 0) {
+                // in such case when user moves mouse back - it should finalize the multi select
+                // therefore we need to trigger mouseUp artificially
+                this.mouseUp(x, y, mx, my, object, event);
+            } else {
+                // otherwise keep moving multi select box
+                this.wasMouseMoved = true;
+                if (x > this.originalPoint.x) {
+                    this.multiSelectBox.x = this.originalPoint.x;
+                    this.multiSelectBox.w = x - this.originalPoint.x;
+                } else {
+                    this.multiSelectBox.x = x;
+                    this.multiSelectBox.w = this.originalPoint.x - x;
+                }
+                if (y > this.originalPoint.y) {
+                    this.multiSelectBox.y = this.originalPoint.y;
+                    this.multiSelectBox.h = y - this.originalPoint.y;
+                } else {
+                    this.multiSelectBox.y = y;
+                    this.multiSelectBox.h = this.originalPoint.y - y;
+                }
+                StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
+            }
+        }
+    }
+
+    _mouseUp(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
 
-        const controlPoint = this.findItemControlPoint(this.controlPoint.id);
-        if (controlPoint) {
-            if (this.sourceItem.shape === 'connector' && (controlPoint.isEdgeStart || controlPoint.isEdgeEnd)) {
-                this.handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint);
-            } else {
-                const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.sourceItem);
-                const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.sourceItem);
-                const dx          = localPoint2.x - localPoint.x;
-                const dy          = localPoint2.y - localPoint.y;
+        // doing it just in case the highlighting was previously set
+        this.eventBus.emitItemsHighlighted([]);
 
-                const shape = Shape.find(this.sourceItem.shape);
+        if (this.shouldDragScreen) {
+            // user probably finished dragging screen
+            this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
+        }
 
-                // using scaling vector as previously all control points were already corrected by scaling effect relatively to world (in StoreUtils)
-                const scalingVector = worldScalingVectorOnItem(this.sourceItem);
-                const svx = Math.max(0.0000001, scalingVector.x);
-                const svy = Math.max(0.0000001, scalingVector.y);
+        if (this.multiSelectBox) {
+            if (!isMultiSelectKey(event)) {
+                this.deselectAllItems();
+            }
+            this.selectByBoundaryBox(this.multiSelectBox, mx, my);
+            this.emitEventsForAllSelectedItems();
+            StoreUtils.setMultiSelectBox(this.store, null);
 
-                if (this.sourceItem.shape === 'connector') {
-                    this.handleConnectorPointDrag(this.sourceItem, this.controlPoint.id, dx, dy, this.controlPoint.originalX / svx, this.controlPoint.originalY / svy);
-                } else {
-                    shape.controlPoints.handleDrag(this.sourceItem, this.controlPoint.id, this.controlPoint.originalX / svx, this.controlPoint.originalY / svy, dx, dy, this.snapper, this.schemeContainer);
+        } else if (object.item && !this.wasMouseMoved) {
+            // when clicking right button - it should not deselected
+            // but when clicking left button and without movin a mouse - it should deselect other items
+            if (!isEventRightClick(event) && ! isMultiSelectKey(event)) {
+                // forcing deselect of other items, since the mouse wasn't moved and ctrl/meta keys were not pressed
+                if (this.schemeContainer.selectedItems.length > 1 && this.schemeContainer.selectedItems[0].id !== object.item.id) {
+                    this.schemeContainer.selectItem(object.item, false);
                 }
-                
-                this.eventBus.emitItemChanged(this.sourceItem.id);
-                this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-
-                // updating all control points as they might affect one another
-                StoreUtils.setItemControlPoints(this.store, this.sourceItem);
-                this.reindexNeeded = true;
-                this.lastModifiedItem = this.sourceItem;
             }
-        }
-    }
+        } 
 
-    handleConnectorPointDrag(item, pointId, dx, dy, originalX, originalY) {
-        const point = item.shapeProps.points[pointId];
-        if (point) {
-            const worldPoint = this.schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
+        // the code below is messy because it handles two conditions:
+        // 1) when user dragged control point of an item
+        // 2) when user dragged connector by its body and not by a control point
+        // in both cases we need to do the same thing: update control points in store 
+        // but in case user dragged control point of a connector - we also need to update selected connector path in store
 
-            const newOffset = this.snapPoints({
-                vertical: [worldPoint],
-                horizontal: [worldPoint],
-            }, new Set(), 0, 0);
-
-            const localPoint = this.schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, item);
-            point.x = localPoint.x;
-            point.y = localPoint.y;
-
-            // since this function can only be called if the connector is selected
-            // we should update connector path so that it can be rendered in multi item edit box
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
-        }
-    }
-
-    handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
-        // this function implements the same logic as in StateEditPath.handleEdgeCurvePointDrag
-        // but it also modifies a control point in the end
-        // so it is not that easy to share code
-
-        let distanceThreshold = 10;
-        if (this.schemeContainer.screenTransform.scale > 0) {
-            distanceThreshold = distanceThreshold / this.schemeContainer.screenTransform.scale;
-        }
-
-        const includeOnlyVisibleItems = true;
-
-        const curvePoint = this.sourceItem.shapeProps.points[this.controlPoint.id];
-        if (!curvePoint) {
-            return;
-        }
-        
-        let excludedIds = null
-        if (this.multiItemEditBox) {
-            excludedIds = this.multiItemEditBox.itemIds;
-        } else {
-            excludedIds = new Set();
-            excludedIds.add(this.sourceItem.id);
-        }
-
-        const snappedOffset = this.snapper.snapPoints({
-            horizontal: [{x, y}],
-            vertical: [{x, y}],
-        }, excludedIds, 0, 0);
-
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.sourceItem.id, includeOnlyVisibleItems);
-
-        // Not letting connectors attach to themselves
-        if (closestPointToItem && closestPointToItem.itemId !== this.sourceItem.id) {
-            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.sourceItem);
-
-            curvePoint.x = localCurvePoint.x;
-            curvePoint.y = localCurvePoint.y;
-
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
-            if (controlPoint.isEdgeStart) {
-                this.sourceItem.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                this.sourceItem.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
-            } else {
-                this.sourceItem.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
-                this.sourceItem.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
-            }
-        } else {
-            const localPoint = this.schemeContainer.localPointOnItem(x + snappedOffset.dx, y + snappedOffset.dy, this.sourceItem);
-
-            curvePoint.x = localPoint.x;
-            curvePoint.y = localPoint.y;
-
-            // nothing to attach to so reseting highlights in case it was set previously
-            this.eventBus.emitItemsHighlighted([]);
-            if (controlPoint.isEdgeStart) {
-                this.sourceItem.shapeProps.sourceItem = null;
-                this.sourceItem.shapeProps.sourceItemPosition = 0;
-            } else {
-                this.sourceItem.shapeProps.destinationItem = null;
-                this.sourceItem.shapeProps.destinationItemPosition = 0;
+        let itemForControlPointsUpdate = null;
+        let connectorForPathRebuild = null;
+        if (this.sourceItem) {
+            itemForControlPointsUpdate = this.sourceItem;
+            if (this.sourceItem.shape === 'connector') {
+                connectorForPathRebuild = this.sourceItem;
             }
         }
 
-        const shape = Shape.find(this.sourceItem.shape);
-        StoreUtils.setItemControlPoints(this.store, this.sourceItem);
-        
-        this.eventBus.emitItemChanged(this.sourceItem.id);
-        this.schemeContainer.readjustItem(this.sourceItem.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.reindexNeeded = true;
-        this.lastModifiedItem = this.sourceItem;
+        if (this.multiItemEditBox && this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
+            itemForControlPointsUpdate = this.multiItemEditBox.items[0];
+            connectorForPathRebuild = this.multiItemEditBox.items[0];
+        }
 
-        // since this function can only be called if the connector is selected
-        // we should update connector path so that it can be rendered in multi item edit box
-        StoreUtils.setSelectedConnectorPath(this.store, shape.computeOutline(this.sourceItem));
+        if (itemForControlPointsUpdate) {
+            StoreUtils.setItemControlPoints(this.store, itemForControlPointsUpdate);
+        }
+        if (connectorForPathRebuild) {
+            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(connectorForPathRebuild));
+        }
+
+
+        this.reset();
     }
 
     initMulitSelectBox(x, y, mx, my) {
@@ -1162,19 +1071,6 @@ export default class StateDragItem extends State {
         this.originalPoint.mx = mx;
         this.originalPoint.my = my;
         this.multiSelectBox = {x, y, w: 0, h: 0};
-    }
-
-    dragItemsByKeyboard(dx, dy) {
-        // don't need to drag by keyboard if already started dragging by mouse
-        if (!this.startedDragging) {
-            const box = this.schemeContainer.multiItemEditBox;
-            if (box && !box.locked) {
-                box.area.x += dx;
-                box.area.y += dy;
-                this.schemeContainer.updateMultiItemEditBoxItems(box, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
-                this.schemeContainer.updateMultiItemEditBox();
-            }
-        }
     }
 
     emitEventsForAllSelectedItems() {
