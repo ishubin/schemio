@@ -7,8 +7,25 @@ import myMath from '../../../myMath';
 import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
 import forEach from 'lodash/forEach';
+import { Keys } from '../../../events';
 
 const SUB_STATE_STACK_LIMIT = 10;
+
+/**
+ * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
+ * @param {MouseEvent} event 
+ */
+export function isMultiSelectKey(event) {
+    return event.metaKey || event.ctrlKey || event.shiftKey;
+}
+
+export function isEventMiddleClick(event) {
+    return event.button === 1;
+}
+
+export function isEventRightClick(event) {
+    return event.button === 2;
+}
 
 class State {
     /**
@@ -331,7 +348,11 @@ export class SubState extends State {
         this.parentState.migrateSubState(newSubState);
     }
 
-    migrateToPrev() {
+    migrateSubState(newSubState) {
+        this.parentState.migrateSubState(newSubState);
+    }
+
+    migrateToPreviousSubState() {
         this.parentState.migrateToPreviousSubState();
     }
 
@@ -342,6 +363,80 @@ export class SubState extends State {
     getSchemeContainer() {
         return this.parentState.schemeContainer;
     }
+}
+
+export class DragScreenState extends SubState {
+    constructor(parentState, originalClickPoint) {
+        super(parentState, 'drag-screen');
+        this.schemeContainer = parentState.schemeContainer;
+        this.originalClickPoint = originalClickPoint;
+        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+    }
+
+    keyUp(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrateToPreviousSubState();
+        }
+    }
+    mouseDown(x, y, mx, my, object, event) {
+        this.originalClickPoint = {x, y, mx, my};
+        this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (this.originalClickPoint) {
+            this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
+            this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
+        }
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
+        this.migrateToPreviousSubState();
+    }
+}
+
+export class MultiSelectState extends SubState {
+    constructor(parentState, x, y, mx, my, selectorCallback) {
+        super(parentState, 'multi-select');
+        this.clickedObject = null;
+        this.shouldSelectOnlyOne = false;
+        this.multiSelectBox = {x, y, w: 0, h: 0};
+        this.originalClickPoint = {x, y, mx, my};
+        this.item = parentState.item;
+        this.schemeContainer = parentState.schemeContainer;
+        this.selectorCallback = selectorCallback;
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
+        if (x > this.originalClickPoint.x) {
+            this.multiSelectBox.x = this.originalClickPoint.x;
+            this.multiSelectBox.w = x - this.originalClickPoint.x;
+        } else {
+            this.multiSelectBox.x = x;
+            this.multiSelectBox.w = this.originalClickPoint.x - x;
+        }
+        if (y > this.originalClickPoint.y) {
+            this.multiSelectBox.y = this.originalClickPoint.y;
+            this.multiSelectBox.h = y - this.originalClickPoint.y;
+        } else {
+            this.multiSelectBox.y = y;
+            this.multiSelectBox.h = this.originalClickPoint.y - y;
+        }
+        StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
+    }
+    
+    mouseUp(x, y, mx, my, object, event) {
+        this.selectorCallback(this.multiSelectBox, isMultiSelectKey(event));
+        StoreUtils.setMultiSelectBox(this.store, null);
+        this.migrateToPreviousSubState();
+    }
+
 }
 
 export default State;
