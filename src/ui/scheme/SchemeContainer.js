@@ -1524,6 +1524,7 @@ class SchemeContainer {
         forEach(items, item => {
             this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
+            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
         });
         this.updateMultiItemEditBox();
     }
