@@ -855,6 +855,18 @@ export default class StateDragItem extends State {
         this.migrateSubState(new IdleState(this));
     }
 
+    mouseMove(x, y, mx, my, object, event) {
+        super.mouseMove(x, y, mx, my, object, event);
+
+        if (event.buttons === 0) {
+            StoreUtils.clearItemSnappers(this.store);
+        }
+    }
+    
+    mouseUp(x, y, mx, my, object, event) {
+        super.mouseUp(x, y, mx, my, object, event);
+        StoreUtils.clearItemSnappers(this.store);
+    }
 }
 
 export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBoxOriginalArea, originalPoint, store, snapper, x, y, draggerEdges) {

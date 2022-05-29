@@ -870,6 +870,7 @@ export default {
 
         switchStateDragItem() {
             EventBus.emitItemsHighlighted([]);
+            states.dragItem.schemeContainer = this.schemeContainer;
             states[this.state].cancel();
             this.state = 'dragItem';
             states.dragItem.reset();
@@ -886,9 +887,10 @@ export default {
 
         switchStatePickElement(elementPickCallback) {
             EventBus.emitItemsHighlighted([]);
-            this.state = 'pickElement';
             states.pickElement.reset();
+            states.pickElement.schemeContainer = this.schemeContainer;
             states.pickElement.setElementPickCallback(elementPickCallback);
+            this.state = 'pickElement';
         },
 
 
@@ -907,6 +909,7 @@ export default {
             } else {
                 this.state = 'createItem';
             }
+            states[this.state].schemeContainer = this.schemeContainer;
             states[this.state].reset();
             states[this.state].setItem(item);
         },
@@ -928,6 +931,7 @@ export default {
             this.state = 'editPath';
             EventBus.emitCurveEdited(item);
 
+            states[this.state].schemeContainer = this.schemeContainer;
             states[this.state].reset();
             states[this.state].setItem(item);
         },
@@ -937,6 +941,7 @@ export default {
 
             states[this.state].cancel();
             this.state = 'draw';
+            states.draw.schemeContainer = this.schemeContainer;
             states.draw.reset();
         },
 
@@ -953,6 +958,7 @@ export default {
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
+            states.connecting.schemeContainer = this.schemeContainer;
             states.connecting.reset();
             const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
@@ -985,6 +991,7 @@ export default {
             states[this.state].cancel();
             this.state = 'cropImage';
             
+            states[this.state].schemeContainer = this.schemeContainer;
             states.cropImage.reset();
             this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
             this.cropImage.item = item;
@@ -1531,6 +1538,8 @@ export default {
             newSchemeContainer.revision = this.schemeContainer.revision + 1;
             this.schemeContainer = newSchemeContainer;
             this.schemeContainer.reindexItems();
+            states[this.state].schemeContainer = this.schemeContainer;
+            states[this.state].reset();
             this.updateRevision();
             this.commitHistory();
             this.editorRevision++;
