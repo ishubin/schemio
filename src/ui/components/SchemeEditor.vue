@@ -1543,6 +1543,10 @@ export default {
             this.updateRevision();
             this.commitHistory();
             this.editorRevision++;
+
+            if (this.mode === 'view') {
+                this.switchToViewMode();
+            }
         },
 
         onImportSchemeJSONClicked() {
