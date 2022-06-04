@@ -4,7 +4,8 @@
             <ul class="button-group">
                 <li>
                     <div class="item-name">
-                        <input v-if="nameEdited" ref="nameInput" type="text" v-model="itemName" placeholder="Name..." @key.enter="nameEdited = false"/>
+                        <input v-if="nameEdited" ref="nameInput" type="text" v-model="itemName" placeholder="Name..." @keydown.enter="nameEdited = false" @blur="nameEdited = false
+                        "/>
                         <span v-else @click="triggerNameEdit">{{item.name}}</span>
                     </div>
                 </li>
@@ -42,6 +43,7 @@ import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import StrokeControl from './StrokeControl.vue';
 import EventBus from './EventBus';
 import Shape from './items/shapes/Shape';
+import myMath from '../../myMath';
 
 export default {
     props: ['x', 'y', 'item', 'schemeContainer'],
@@ -83,8 +85,9 @@ export default {
         },
 
         updatePosition() {
-            // const bbRect = this.$refs.floatingHelperPanel.getBoundingClientRect();
-            this.posX = this.x;
+            const bbRect = this.$refs.floatingHelperPanel.getBoundingClientRect();
+
+            this.posX = myMath.clamp(this.x - bbRect.width / 2, 10, window.innerWidth - 10);
             this.posY = this.y;
         },
 
