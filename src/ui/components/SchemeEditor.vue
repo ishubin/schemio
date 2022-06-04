@@ -101,6 +101,14 @@
 
                     <div slot="overlay">
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
+
+                        <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
+                            :key="`floating-helper-panel-${floatingHelperPanel.item.id}`"
+                            :x="floatingHelperPanel.x"
+                            :y="floatingHelperPanel.y"
+                            :item="floatingHelperPanel.item"
+                            :schemeContainer="schemeContainer"
+                            />
                     </div>
                 </SvgEditor>
 
@@ -414,6 +422,7 @@ import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
+import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
 import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
@@ -517,7 +526,7 @@ const drawColorPallete = [
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, QuickHelperPanel,
+        SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
         CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
@@ -577,6 +586,7 @@ export default {
         EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+        EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
     },
     beforeDestroy(){
         window.onbeforeunload = null;
@@ -609,6 +619,7 @@ export default {
         EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
         EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
         EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+        EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
     },
 
     mounted() {
@@ -744,6 +755,13 @@ export default {
             },
 
             deleteSchemeWarningShown: false,
+
+            floatingHelperPanel: {
+                shown: false,
+                item: null,
+                x: 0,
+                y: 0
+            }
         }
     },
     methods: {
@@ -883,6 +901,7 @@ export default {
             states[this.state].cancel();
             this.state = 'interact';
             states[this.state].reset();
+            this.updateFloatingHelperPanel();
         },
 
         switchStatePickElement(elementPickCallback) {
@@ -891,6 +910,7 @@ export default {
             states.pickElement.schemeContainer = this.schemeContainer;
             states.pickElement.setElementPickCallback(elementPickCallback);
             this.state = 'pickElement';
+            this.updateFloatingHelperPanel();
         },
 
 
@@ -912,6 +932,7 @@ export default {
             states[this.state].schemeContainer = this.schemeContainer;
             states[this.state].reset();
             states[this.state].setItem(item);
+            this.updateFloatingHelperPanel();
         },
 
         setCurveEditItem(item) {
@@ -934,6 +955,7 @@ export default {
             states[this.state].schemeContainer = this.schemeContainer;
             states[this.state].reset();
             states[this.state].setItem(item);
+            this.updateFloatingHelperPanel();
         },
 
         switchStateDrawing() {
@@ -943,12 +965,14 @@ export default {
             this.state = 'draw';
             states.draw.schemeContainer = this.schemeContainer;
             states.draw.reset();
+            this.updateFloatingHelperPanel();
         },
 
         onStopDrawing() {
             if (this.state === 'draw') {
                 states.draw.cancel();
             }
+            this.updateFloatingHelperPanel();
         },
 
         onStartConnecting(sourceItem, worldPoint) {
@@ -963,6 +987,7 @@ export default {
             const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
             this.state = 'connecting';
+            this.updateFloatingHelperPanel();
         },
 
         onDrawColorPicked(color) {
@@ -978,6 +1003,7 @@ export default {
             states.editPath.reset();
             states.editPath.setItem(item);
             this.setCurveEditItem(item);
+            this.updateFloatingHelperPanel();
         },
 
         onCurveEditStopped() {
@@ -997,6 +1023,7 @@ export default {
             this.cropImage.item = item;
             states.cropImage.setImageEditBox(this.cropImage.editBox);
             states.cropImage.setImageItem(item);
+            this.updateFloatingHelperPanel();
         },
 
         onElementPickCanceled() {
@@ -1040,6 +1067,7 @@ export default {
             this.inPlaceTextEditor.area.h = this._z(worldHeight);
             this.inPlaceTextEditor.shown = true;
             this.inPlaceTextEditor.scalingVector = scalingVector;
+            this.updateFloatingHelperPanel();
         },
 
         onInPlaceTextEditorUpdate(text) {
@@ -1529,6 +1557,9 @@ export default {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
             }
             this.initOffsetSave();
+            if (this.mode === 'edit') {
+                this.updateFloatingHelperPanel();
+            }
         },
 
         importScheme(scheme) {
@@ -1651,6 +1682,7 @@ export default {
                 this.itemTextSlotsAvailable.length = 0;
             }
 
+            this.updateFloatingHelperPanel();
         },
 
         onTextSlotMoved(item, slotName, anotherSlotName) {
@@ -2467,6 +2499,69 @@ export default {
             .catch(err => {
                 this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
             });
+        },
+
+        updateFloatingHelperPanel() {
+            if (this.state !== 'dragItem'
+                || !states.dragItem.shouldAllowFloatingHelperPanel()
+                || this.schemeContainer.selectedItems.length !== 1
+                || this.inPlaceTextEditor.shown) {
+                this.resetFloatingHelperPanel();
+                return;
+            }
+
+            const item = this.schemeContainer.selectedItems[0];
+
+            const worldPoints = [
+                worldPointOnItem(0, 0, item),
+                worldPointOnItem(item.area.w, 0, item),
+                worldPointOnItem(item.area.w, item.area.h, item),
+                worldPointOnItem(0,item.area.h, item),
+            ];
+            const min = {x: worldPoints[0].x, y: worldPoints[0].y};
+            const max = {x: worldPoints[0].x, y: worldPoints[0].y};
+            worldPoints.forEach(p => {
+                min.x = Math.min(min.x, p.x);
+                min.y = Math.min(min.y, p.y);
+                max.x = Math.max(max.x, p.x);
+                max.y = Math.max(max.y, p.y);
+            });
+
+            const topMargin = 115;
+            const bottomMargin = 60;
+            const panelExpectedHeight = 40;
+
+            const minScreen = {x: this._x(min.x), y: this._y(min.y) - topMargin};
+            const maxScreen = {x: this._x(max.x), y: this._y(max.y) + bottomMargin};
+            const midX = (minScreen.x + maxScreen.x)/2;
+
+            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+
+            if (midX < 0 || midX > svgRect.width) {
+                this.resetFloatingHelperPanel();
+                return;
+            }
+
+            let screenY = minScreen.y;
+            if (screenY < 5) {
+                screenY = maxScreen.y;
+            }
+            if (screenY < 5 || screenY > svgRect.height - panelExpectedHeight) {
+                this.resetFloatingHelperPanel();
+                return;
+            }
+
+            this.floatingHelperPanel.x = midX;
+            this.floatingHelperPanel.y = screenY;
+            this.floatingHelperPanel.item = item;
+            this.floatingHelperPanel.shown = true;
+        },
+
+        resetFloatingHelperPanel() {
+            if (this.floatingHelperPanel.shown) {
+                this.floatingHelperPanel.shown = false;
+                this.floatingHelperPanel.item = null;
+            }
         },
 
         //calculates from world to screen

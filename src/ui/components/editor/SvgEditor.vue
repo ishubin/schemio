@@ -338,7 +338,6 @@ export default {
                 } else if (elementType === 'multi-item-edit-box'
                         || elementType === 'multi-item-edit-box-rotational-dragger'
                         || elementType === 'multi-item-edit-box-pivot-dragger'
-                        || elementType === 'multi-item-edit-box-edit-curve-link'
                         || elementType === 'multi-item-edit-box-reset-image-crop-link') {
                     return {
                         type: elementType,

@@ -623,12 +623,6 @@ class IdleState extends SubState {
                 if (!this.schemeContainer.isItemSelected(object.item)) {
                     this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
                 }
-            } else if (object.type === 'multi-item-edit-box-edit-curve-link') {
-                if (object.multiItemEditBox.items.length > 0
-                    && object.multiItemEditBox.items[0].shape === 'path') {
-                    this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
-                    return;
-                }
             } else if (object.connectorStarter) {
                 EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
                 return;
@@ -837,8 +831,6 @@ class IdleState extends SubState {
         });
         this.schemeContainer.selectMultipleItems(selectedItems, inclusive);
     }
-
-
 }
 
 export default class StateDragItem extends State {
@@ -849,6 +841,16 @@ export default class StateDragItem extends State {
         super(eventBus, store);
         this.name = 'drag-item';
         this.subState = null;
+    }
+
+    migrateSubState(subState) {
+        super.migrateSubState(subState);
+        EventBus.emitFloatingHelperPanelUpdated();
+    }
+
+    migrateToPreviousSubState() {
+        super.migrateToPreviousSubState();
+        EventBus.emitFloatingHelperPanelUpdated();
     }
 
     reset() {
@@ -866,6 +868,10 @@ export default class StateDragItem extends State {
     mouseUp(x, y, mx, my, object, event) {
         super.mouseUp(x, y, mx, my, object, event);
         StoreUtils.clearItemSnappers(this.store);
+    }
+
+    shouldAllowFloatingHelperPanel() {
+        return this.subState && this.subState.name === 'idle';
     }
 }
 

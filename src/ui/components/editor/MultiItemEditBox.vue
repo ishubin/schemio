@@ -36,13 +36,6 @@
                     :fill="controlPointsColor"
                     :r="6/safeZoom"
                     />
-                <g v-if="!isItemConnector && editBox.items[0].shape === 'path'" :transform="`translate(${10/safeZoom}, ${- 20/safeZoom}) scale(${1/safeZoom})`">
-                    <foreignObject :x="0" :y="0" width="100" height="20">
-                        <div>
-                            <span class="link" data-type="multi-item-edit-box-edit-curve-link">Edit Path</span>
-                        </div>
-                    </foreignObject>
-                </g>
             </g>
         </g>
 

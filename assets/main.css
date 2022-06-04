@@ -3313,3 +3313,59 @@ ul.patch-field-list {
     display: inline-block;
     width: 10px;
 }
+
+
+/************ Floating Helper Panel ****************/
+.floating-helper-panel {
+    position: absolute;
+    display: flex;
+    background: var(--faint-weak-up);
+    box-shadow: 1px 1px 7px var(--shadow-color);
+    padding: 6px;
+    border-radius: var(--control-border-radius);
+}
+
+.floating-helper-panel-enter-active,
+.floating-helper-panel-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.floating-helper-panel-enter-from,
+.floating-helper-panel-leave-to {
+    opacity: 0;
+}
+.floating-helper-panel-enter-to, 
+.floating-helper-panel-leave-from {
+    opacity: 1.0;
+}
+
+.floating-helper-panel .item-name {
+    display: inline-block;
+    width: 130px;
+    height: 25px;
+    margin: 0;
+}
+.floating-helper-panel .item-name span {
+    display: block;
+    width: 130px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--base-strong-up-up);
+    padding: 2px;
+    margin: 0;
+    border: 1px solid var(--faint-strong-up);
+    border-radius: var(--control-border-radius);
+}
+.floating-helper-panel .item-name input[type='text'] {
+    display: block;
+    width: 130px;
+    height: 25px;
+    padding: 2px;
+    margin: 0;
+    font-size: 14px;
+    border: 1px solid var(--faint-strong);
+    border-radius: var(--control-border-radius);
+}
