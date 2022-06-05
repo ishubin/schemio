@@ -9,6 +9,11 @@
                         <span v-else @click="triggerNameEdit" :title="itemName">{{item.name}}</span>
                     </div>
                 </li>
+                <li>
+                    <span class="icon-button" @click="descriptionEditorShown = true" title="Description">
+                        <i class="fas fa-paragraph"></i>
+                    </span>
+                </li>
                 <li v-if="supportsFill">
                     <advanced-color-editor
                         :value="fillColor"
@@ -36,24 +41,47 @@
                     <span class="icon-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
                 </li>
             </ul>
+
+            <modal title="Description" v-if="descriptionEditorShown" @close="descriptionEditorShown = false">
+                <h5>Tags</h5>
+                <vue-tags-input v-model="itemTag"
+                    :tags="itemTags"
+                    :autocomplete-items="filteredItemTags"
+                    @tags-changed="onItemTagChange"
+                    ></vue-tags-input>
+
+                <h5>Description</h5>
+                <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+            </modal>
         </div>
     </transition>
 </template>
 
 <script>
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
+import RichTextEditor from '../RichTextEditor.vue';
 import StrokeControl from './StrokeControl.vue';
+import Modal from '../Modal.vue';
 import EventBus from './EventBus';
 import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
+import VueTagsInput from '@johmun/vue-tags-input';
 
 export default {
     props: ['x', 'y', 'item', 'schemeContainer'],
 
-    components: {AdvancedColorEditor, StrokeControl},
+    components: {AdvancedColorEditor, StrokeControl, Modal, RichTextEditor, VueTagsInput},
 
     mounted() {
         this.updatePosition();
+
+        if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
+            this.$store.state.apiClient.getTags().then(tags => {
+                this.existingItemTags = tags.map(tag => {
+                    return {text: tag};
+                });
+            });
+        }
     },
 
     data() {
@@ -77,13 +105,17 @@ export default {
             posX: this.x,
             posY: this.y,
             nameEdited: false,
-            itemName: this.item.name
-        }
+            itemName: this.item.name,
+            descriptionEditorShown: false,
+
+            itemTag: '',
+            existingItemTags: [],
+        };
     },
 
     methods: {
-        emitShapePropChange(name, type, value) {
-            this.$emit('shape-prop-changed', name, type, value);
+        onItemTagChange(newTags) {
+            this.item.tags = newTags.map(tag => tag.text);
         },
 
         updatePosition() {
@@ -99,6 +131,10 @@ export default {
 
         cropImage() {
             EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, this.item);
+        },
+
+        commitSchemeChange(propertyName) {
+            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyName}`);
         },
 
         updateShapeProp(name, value) {
@@ -133,6 +169,19 @@ export default {
             EventBus.emitItemChanged(this.item.id, 'name');
             EventBus.emitSchemeChangeCommited(`item.${this.item.id}.name`);
         }
-    }
+    },
+
+    computed: {
+        filteredItemTags() {
+            return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
+        },
+
+        itemTags() {
+            if (!Array.isArray(this.item.tags)) {
+                return [];
+            }
+            return this.item.tags.map(tag => {return {text: tag}});
+        }
+    },
 }
 </script>
