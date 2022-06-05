@@ -6,21 +6,16 @@
                     <div class="item-name">
                         <input v-if="nameEdited" ref="nameInput" type="text" v-model="itemName" placeholder="Name..." @keydown.enter="nameEdited = false" @blur="nameEdited = false
                         "/>
-                        <span v-else @click="triggerNameEdit">{{item.name}}</span>
+                        <span v-else @click="triggerNameEdit" :title="itemName">{{item.name}}</span>
                     </div>
-                </li>
-                <li v-if="item.shape === 'path'">
-                    <span class="btn btn-secondary btn-small" @click="editPath">Edit Path</span>
-                </li>
-                <li v-if="item.shape === 'image'">
-                    <span @click="cropImage" class="icon-button" title="Crop image"><i class="fas fa-crop"></i></span>
                 </li>
                 <li v-if="supportsFill">
                     <advanced-color-editor
                         :value="fillColor"
                         width="18px"
                         height="18px"
-                        @changed="updateShapeProp('fill', arguments[0])" />
+                        @changed="updateShapeProp('fill', arguments[0])" 
+                        title="Fill"/>
                 </li>
                 <li v-if="supportsStroke">
                     <StrokeControl
@@ -28,7 +23,14 @@
                         @color-changed="updateShapeProp('strokeColor', arguments[0])"
                         @size-changed="updateShapeProp('strokeSize', arguments[0])"
                         @pattern-changed="updateShapeProp('strokePattern', arguments[0])"
+                        title="Stroke"
                         />
+                </li>
+                <li v-if="item.shape === 'path'">
+                    <span class="icon-button" @click="editPath" title="Edit path"><img src="/assets/images/icons/create-curve.svg"/></span>
+                </li>
+                <li v-if="item.shape === 'image'">
+                    <span @click="cropImage" class="icon-button" title="Crop image"><i class="fas fa-crop"></i></span>
                 </li>
                 <li>
                     <span class="icon-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>

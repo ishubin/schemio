@@ -974,7 +974,7 @@ ul.button-group > li {
     display: table-cell;
     margin: 0;
     padding: 0 2px 0 2px;
-    vertical-align: top;
+    vertical-align: middle;
 }
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;
@@ -982,7 +982,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .icon-button {
     display: inline-block;
     text-align: center;
-    padding: 2px;
+    padding: 0;
     width: 24px;
     height: 20px;
     cursor: pointer;
@@ -3356,8 +3356,12 @@ ul.patch-field-list {
     color: var(--base-strong-up-up);
     padding: 2px;
     margin: 0;
-    border: 1px solid var(--faint-strong-up);
+    white-space: nowrap;
+    border: 1px solid var(--faint-weak);
     border-radius: var(--control-border-radius);
+}
+.floating-helper-panel .item-name span:hover {
+    background: var(--base-weak);
 }
 .floating-helper-panel .item-name input[type='text'] {
     display: block;
