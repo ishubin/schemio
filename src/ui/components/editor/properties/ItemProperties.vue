@@ -500,7 +500,8 @@ export default {
             this.editEffectModal.effectArgs = generateEffectArgs(effect);
             this.editEffectModal.effectId = newEffectId;
             this.item.effects[this.editEffectModal.currentEffectIndex] = {
-                id: newEffectId,
+                id: this.item.effects[this.editEffectModal.currentEffectIndex].id,
+                effect: newEffectId,
                 name: effect.name,
                 args: this.editEffectModal.effectArgs
             };
