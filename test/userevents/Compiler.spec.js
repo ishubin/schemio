@@ -60,7 +60,7 @@ describe('UserEvents Compiler', () => {
     });
 
 
-    it('should compile actions for item groups', () => {
+    it('should compile actions for item tags', () => {
         const compiler = new Compiler();
         const selfItem = {id: 'self-item-id'};
         const items = [{
@@ -75,9 +75,9 @@ describe('UserEvents Compiler', () => {
         }];
         const schemeContainer = {
             findElementsBySelector(selector, selfItem) {
-                if (selector === 'group: my-group') {
+                if (selector === 'tag: my-group') {
                     return [items[0], items[1]];
-                } else if (selector === 'group: another-group') {
+                } else if (selector === 'tag: another-group') {
                     return [items[2]];
                 }
                 return [];
@@ -85,11 +85,11 @@ describe('UserEvents Compiler', () => {
         };
 
         const action = compiler.compileActions(schemeContainer, selfItem, [{
-            element: 'group: my-group',
+            element: 'tag: my-group',
             method: 'set',
             args: { field: 'opacity', value: 0.5}
         }, {
-            element: 'group: another-group',
+            element: 'tag: another-group',
             method: 'set',
             args: { field: 'someField', value: 'blah'}
         }]);

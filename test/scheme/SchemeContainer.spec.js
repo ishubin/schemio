@@ -15,7 +15,7 @@ const schemeThreeLevel = {
         id: 'qwe',
         name: 'Parent item',
         shape: 'rect',
-        groups: ['group-1', 'group-2'],
+        tags: ['tag-1', 'tag-2'],
         area: {x: 10, y: 0, w: 100, h: 50},
         childItems: [{
             id: 'asd',
@@ -25,7 +25,7 @@ const schemeThreeLevel = {
             childItems: [{
                 area: {x: 60, y: 0, w: 60, h: 25},
                 id: 'zxc',
-                groups: ['group-1'],
+                tags: ['tag-1'],
                 name: 'child sub-item',
                 shape: 'ellipse'
             }]
@@ -108,15 +108,15 @@ describe('SchemeContainer', () => {
         });
     });
 
-    it('It should find items by group', () => {
+    it('It should find items by tag', () => {
         const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
         
-        let items = schemeContainer.findItemsByGroup('group-1');
+        let items = schemeContainer.findItemsByTag('tag-1');
         expect(items).toHaveLength(2);
         expect(items[0].id).toBe('qwe');
         expect(items[1].id).toBe('zxc');
 
-        items = schemeContainer.findItemsByGroup('group-2');
+        items = schemeContainer.findItemsByTag('tag-2');
         expect(items).toHaveLength(1);
         expect(items[0].id).toBe('qwe');
     });

@@ -36,20 +36,11 @@ import Shape from '../items/shapes/Shape';
 
 export default {
     props: {
-        'item': {type: Object}
+        item: {type: Object},
+        schemeContainer: {type: Object}
     },
 
     components: {VueTagsInput, Panel, RichTextEditor},
-
-    mounted() {
-        if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
-            this.$store.state.apiClient.getTags().then(tags => {
-                this.existingItemTags = map(tags, tag => {
-                    return {text: tag};
-                });
-            });
-        }
-    },
 
     data() {
         const shapeComponent = Shape.find(this.item.shape);
@@ -62,7 +53,7 @@ export default {
 
         return {
             itemTag: '',
-            existingItemTags: [],
+            existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
             shapeComponent: shapeComponent,
             descriptionType,
         };

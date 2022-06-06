@@ -552,53 +552,6 @@ export const patchTestData = [{
         }
     }
 }, {
-    name: 'item groups changes',
-    origin: $.doc({
-        items: [
-            { id: 'qwe1', name: 'item1', groups: ['a', 'b', 'c', 'd']},
-        ]
-    }),
-    modified: $.doc({
-        items: [
-            { id: 'qwe1', name: 'item1', groups: ['a', 'c', 'd', 'g', 'e']},
-        ]
-    }),
-    patch: {
-        version: '1',
-        protocol: 'schemio/patch',
-
-        changes: [{
-            path: ['items'],
-            op: 'patch-id-array',
-            changes: [ {
-                id: 'qwe1',
-                op: 'modify',
-                changes: [{
-                    path: ['groups'],
-                    op: 'patch-set',
-                    changes: [ {
-                        op: 'add',
-                        value: 'g',
-                    }, {
-                        op: 'add',
-                        value: 'e',
-                    }, {
-                        op: 'delete',
-                        value: 'b'
-                    }]
-                }]
-            } ]
-        }],
-    },
-    stats: {
-        "document": {"fieldChanges": 0, "fields": []},
-        "items": {
-            "added": {"count": 0, "items": []},
-            "deleted": {"count": 0, "items": []},
-            "modified": {"count": 1, "items": [{"fields": ["groups"], "id": "qwe1"}]}
-        }
-    }
-}, {
     name: 'behavior events addition, deletion, reorder and modification',
     origin: $.doc({
         items: [

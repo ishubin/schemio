@@ -3,11 +3,11 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div @dragend="onDragEnd">
-        <panel v-if="!extended" uid="behavior-groups" name="Groups">
-            <vue-tags-input v-model="itemGroup"
-                :tags="itemGroups"
-                :autocomplete-items="filteredItemGroupsSuggestions"
-                @tags-changed="onItemGroupsChange"
+        <panel v-if="!extended" uid="behavior-tags" name="Tags">
+            <vue-tags-input v-model="itemTag"
+                :tags="itemTags"
+                :autocomplete-items="filteredItemTagsSuggestions"
+                @tags-changed="onItemTagsChange"
                 ></vue-tags-input>
         </panel>
 
@@ -197,8 +197,8 @@ export default {
                 actionIndex: 0,
                 args: {}
             },
-            itemGroup: '',
-            existingItemGroups: map(this.schemeContainer.itemGroups, group => {return {text: group}}),
+            itemTag: '',
+            existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
 
             dragging: {
                 action: null,
@@ -220,8 +220,8 @@ export default {
             };
         },
 
-        onItemGroupsChange(newGroups) {
-            this.$emit('item-field-changed', 'groups', map(newGroups, group => group.text));
+        onItemTagsChange(newTags) {
+            this.$emit('item-field-changed', 'tags', map(newTags, tag => tag.text));
         },
 
         toggleBehaviorCollapse(eventIndex) {
@@ -718,11 +718,11 @@ export default {
     },
 
     computed: {
-        filteredItemGroupsSuggestions() {
-            return this.existingItemGroups.filter(i => new RegExp(this.itemGroup, 'i').test(i.text));
+        filteredItemTagsSuggestions() {
+            return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
         },
-        itemGroups() {
-            return map(this.item.groups, group => {return {text: group}});
+        itemTags() {
+            return map(this.item.tags, tag => {return {text: tag}});
         }
     }
 }

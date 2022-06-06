@@ -108,7 +108,7 @@ export const PatchSchema = [{
     }, {
         name: 'shapeProps', op: 'modify', fields: [{ op: 'replace' }]
     }, {
-        names: ['groups', 'tags'], op: 'patch-set'
+        names: ['tags'], op: 'patch-set'
     }, {
         name: 'textSlots',
         op: 'modify',

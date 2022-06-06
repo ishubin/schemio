@@ -103,7 +103,7 @@ export const defaultItemDefinition = {
     opacity: 100,
     selfOpacity: 100,
     visible: true,
-    groups: [],
+    tags: [],
     blendMode: 'normal',
     cursor: 'default',
     shape: 'none',

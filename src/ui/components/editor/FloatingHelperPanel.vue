@@ -75,6 +75,7 @@ import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
 import VueTagsInput from '@johmun/vue-tags-input';
 import { applyItemStyle } from './properties/ItemStyles';
+import map from 'lodash/map';
 
 export default {
     props: ['x', 'y', 'item', 'schemeContainer'],
@@ -86,14 +87,6 @@ export default {
 
     mounted() {
         this.updatePosition();
-
-        if (this.$store.state.apiClient && this.$store.state.apiClient.getTags) {
-            this.$store.state.apiClient.getTags().then(tags => {
-                this.existingItemTags = tags.map(tag => {
-                    return {text: tag};
-                });
-            });
-        }
     },
 
     data() {
@@ -121,7 +114,7 @@ export default {
             descriptionEditorShown: false,
 
             itemTag: '',
-            existingItemTags: [],
+            existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
 
             stylesPopup: {
                 shown: false,

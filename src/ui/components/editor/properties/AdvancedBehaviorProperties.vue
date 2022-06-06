@@ -12,7 +12,7 @@
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
                     :use-self="false"
-                    :allow-groups="false"
+                    :allow-tags="false"
                     none-label="Choose item..."
                     @selected="prependItemForElement(arguments[0])"
                     />
@@ -38,7 +38,7 @@
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
                     :use-self="false"
-                    :allow-groups="false"
+                    :allow-tags="false"
                     none-label="Choose item..."
                     @selected="appendItemForElement(arguments[0])"
                     />

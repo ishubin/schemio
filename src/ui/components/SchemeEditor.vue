@@ -1755,8 +1755,8 @@ export default {
                 itemIds += item.id;
             });
 
-            if (name === 'groups') {
-                this.schemeContainer.reindexGroups();
+            if (name === 'tags') {
+                this.schemeContainer.reindexTags();
             }
             EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
         },

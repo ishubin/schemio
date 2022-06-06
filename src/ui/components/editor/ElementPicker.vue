@@ -37,7 +37,7 @@ export default {
         useSelf:            {type: Boolean, default: true},
         noneLabel:          {type: String,  default: 'None'},
         allowNone:          {type: Boolean, default: false},
-        allowGroups:        {type: Boolean, default: true},
+        allowTags:          {type: Boolean, default: true},
         excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
         disabled:           {type: Boolean, default: false},
         inline:             {type: Boolean, default: false},
@@ -99,13 +99,13 @@ export default {
                 }
             });
 
-            if (this.allowGroups) {
-                forEach(this.schemeContainer.itemGroups, group => {
+            if (this.allowTags) {
+                forEach(this.schemeContainer.itemTags, tag => {
                     options.push({
                         iconClass: 'fas fa-cubes',
-                        name: group,
-                        id: group,
-                        type: 'item-group'
+                        name: tag,
+                        id: tag,
+                        type: 'item-tag'
                     });
                 });
             }
@@ -119,8 +119,8 @@ export default {
             } else {
                 if (option.type === 'item') {
                     this.$emit('selected', `#${option.id}`);
-                } else if (option.type === 'item-group') {
-                    this.$emit('selected', `group: ${option.id}`);
+                } else if (option.type === 'item-tag') {
+                    this.$emit('selected', `tag: ${option.id}`);
                 } else if (option.type === 'none') {
                     this.$emit('selected', null);
                 } else {
@@ -149,10 +149,10 @@ export default {
                     iconClass: ''
                 };
             }
-            if (this.element.startsWith('group:')) {
+            if (this.element.startsWith('tag:')) {
                 return {
                     name: this.element.substr(6).trim(),
-                    type: 'item-group',
+                    type: 'item-tag',
                     iconClass: 'fas fa-cubes'
                 };
             }

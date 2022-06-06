@@ -12,10 +12,10 @@ import '../../typedef';
 export default {
     name: 'Toggle in group',
 
-    description: 'Hides all other items of specified group on screen, leaving only the specified item visible',
+    description: 'Hides all other items of by specified tag, leaving only the specified item visible',
 
     args: { 
-        group: { name: 'Group', type: 'element', description: 'Group of items that will be hidden instead of the toggled item'},
+        group: { name: 'Tag', type: 'element', description: 'Tag representing a group of items that will be hidden instead of the toggled item'},
     },
 
     // Means that this function is always expected to get array of items and in cases when it is applied

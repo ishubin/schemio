@@ -211,8 +211,8 @@ class SchemeContainer {
 
         this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the componented from the reference item
 
-        this._itemGroupsToIds = {}; // used for quick access to item ids via item groups
-        this.itemGroups = []; // stores groups from all items
+        this._itemTagsToIds = {}; // used for quick access to item ids via item tags
+        this.itemTags = []; // stores tags from all items
         this.framePlayers = []; // stores all frame players so that later it can prepare all animations
 
         this.spatialIndex = new SpatialIndex(); // used for indexing item path points
@@ -289,7 +289,7 @@ class SchemeContainer {
         this.itemMap = {};
         this._itemArray = [];
         this.worldItems = [];
-        this._itemGroupsToIds = {};
+        this._itemTagsToIds = {};
         this.worldItemAreas = new Map();
         this.relativeSnappers.horizontal = [];
         this.relativeSnappers.vertical = [];
@@ -478,8 +478,8 @@ class SchemeContainer {
 
             enrichItemWithDefaults(item);
             this.enrichItemMeta(item, transformMatrix, parentItem, ancestorIds);
-            if (item.groups) {
-                this.indexItemGroups(item.id, item.groups);
+            if (item.tags) {
+                this.indexItemTags(item.id, item.tags);
             }
 
             if (parentItem && (parentItem.meta.isInHUD || parentItem.shape === 'hud')) {
@@ -553,24 +553,24 @@ class SchemeContainer {
             this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         }
 
-        this.itemGroups = keys(this._itemGroupsToIds);
-        this.itemGroups.sort();
+        this.itemTags = keys(this._itemTagsToIds);
+        this.itemTags.sort();
 
         this.revision = newRevision;
     }
 
 
-    // Iterates recursively through all items and reindexes item groups.
-    // These groups are going to be used in the element picker
-    reindexGroups() {
-        this._itemGroupsToIds = {};
+    // Iterates recursively through all items and reindexes item tags.
+    // These tags are going to be used in the element picker
+    reindexTags() {
+        this._itemTagsToIds = {};
         visitItems(this.scheme.items, (item, transformMatrix, parentItem, ancestorIds) => {
-            if (item.groups) {
-                this.indexItemGroups(item.id, item.groups);
+            if (item.tags) {
+                this.indexItemTags(item.id, item.tags);
             }
         });
-        this.itemGroups = keys(this._itemGroupsToIds);
-        this.itemGroups.sort();
+        this.itemTags = keys(this._itemTagsToIds);
+        this.itemTags.sort();
     }
 
 
@@ -812,12 +812,12 @@ class SchemeContainer {
         visitItems(item.childItems, callback, item.meta.transformMatrix, parentItem, item.meta.ancestorIds);
     }
 
-    indexItemGroups(itemId, groups) {
-        forEach(groups, group => {
-            if (!this._itemGroupsToIds.hasOwnProperty(group)) {
-                this._itemGroupsToIds[group] = [];
+    indexItemTags(itemId, tags) {
+        forEach(tags, tag => {
+            if (!this._itemTagsToIds.hasOwnProperty(tag)) {
+                this._itemTagsToIds[tag] = [];
             }
-            this._itemGroupsToIds[group].push(itemId);
+            this._itemTagsToIds[tag].push(itemId);
         })
     }
 
@@ -1646,8 +1646,8 @@ class SchemeContainer {
         return this.itemMap[itemId];
     }
 
-    findItemsByGroup(group) {
-        const itemIds = this._itemGroupsToIds[group];
+    findItemsByTag(tag) {
+        const itemIds = this._itemTagsToIds[tag];
         const items = [];
         if (itemIds) {
             forEach(itemIds, id => {
@@ -1688,8 +1688,8 @@ class SchemeContainer {
             const colonIndex = selector.indexOf(':');
             if (colonIndex > 0) {
                 const expression = selector.substring(0, colonIndex);
-                if (expression === 'group') {
-                    return this.findItemsByGroup(selector.substr(colonIndex + 1).trim());
+                if (expression === 'tag') {
+                    return this.findItemsByTag(selector.substr(colonIndex + 1).trim());
                 }
             }
         }
