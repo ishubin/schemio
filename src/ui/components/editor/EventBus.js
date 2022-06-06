@@ -102,7 +102,9 @@ const EventBus = new Vue({
 
             IMAGE_CROP_TRIGGERED: 'image-crop-triggered',
 
-            SCHEME_PATCH_REQUESTED: 'scheme-patch-requested'
+            SCHEME_PATCH_REQUESTED: 'scheme-patch-requested',
+
+            FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated'
         };
     },
     methods: {
@@ -229,6 +231,10 @@ const EventBus = new Vue({
 
         emitSchemePatchRequested(scheme) {
             this.$emit(EventBus.SCHEME_PATCH_REQUESTED, scheme);
+        },
+
+        emitFloatingHelperPanelUpdated() {
+            this.$emit(EventBus.FLOATING_HELPER_PANEL_UPDATED);
         }
     }
 });

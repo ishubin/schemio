@@ -613,6 +613,11 @@ ul.pagination li a.current {
 }
 
 
+.quick-helper-panel .dropdown-container .dropdown-click-area {
+    padding: 0;
+}
+
+
 .scheme-error-message {
     padding-top: 20px;
     max-width: 600px;
@@ -974,7 +979,7 @@ ul.button-group > li {
     display: table-cell;
     margin: 0;
     padding: 0 2px 0 2px;
-    vertical-align: top;
+    vertical-align: middle;
 }
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;
@@ -982,7 +987,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .icon-button {
     display: inline-block;
     text-align: center;
-    padding: 2px;
+    padding: 0;
     width: 24px;
     height: 20px;
     cursor: pointer;
@@ -995,6 +1000,11 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .icon-button:hover {
     background: var(--icon-button-hover-background);
+}
+
+.icon-button img {
+    max-width: 24px;
+    max-height: 20px;
 }
 ul.button-group.disabled > li > .icon-button:hover, 
 ul.button-group > li.disabled > .icon-button:hover,
@@ -2150,28 +2160,6 @@ pre.syntax-markup.syntax-theme-dark {
 }
 
 
-/******************* Styles Modal *********************/
-table.styles-args-table {
-    width: 100%;
-    margin: 0;
-    border-collapse: collapse;
-    font-size: 14px;
-    background: var(--base-weak);
-}
-
-table.styles-args-table td {
-    padding: 2px;
-}
-table.styles-args-table td.property-name {
-    padding-right: 10px;
-}
-table.styles-args-table td input.style-textfield {
-    border: none;
-    margin: 0;
-    width: 100%;
-    padding: 2px 4px;
-}
-
 /************** Shape Styles Preview ***************/
 ul.shape-styles-preview {
     list-style: none;
@@ -2198,7 +2186,6 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style {
 ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
     color: var(--critic-strong);
 }
-
 
 /*********************** System messages **************/
 .system-message-panel {
@@ -3312,4 +3299,74 @@ ul.patch-field-list {
 .patch-expander {
     display: inline-block;
     width: 10px;
+}
+
+
+/************ Floating Helper Panel ****************/
+.floating-helper-panel {
+    position: absolute;
+    display: flex;
+    background: var(--faint-weak-up);
+    box-shadow: 1px 1px 7px var(--shadow-color);
+    padding: 6px;
+    border-radius: var(--control-border-radius);
+}
+
+.floating-helper-panel-enter-active,
+.floating-helper-panel-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.floating-helper-panel-enter-from,
+.floating-helper-panel-leave-to {
+    opacity: 0;
+}
+.floating-helper-panel-enter-to, 
+.floating-helper-panel-leave-from {
+    opacity: 1.0;
+}
+
+.floating-helper-panel .item-name {
+    display: inline-block;
+    width: 130px;
+    height: 25px;
+    margin: 0;
+}
+.floating-helper-panel .item-name span {
+    display: block;
+    width: 130px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--base-strong-up-up);
+    padding: 2px;
+    margin: 0;
+    white-space: nowrap;
+    border: 1px solid var(--faint-weak);
+    border-radius: var(--control-border-radius);
+}
+.floating-helper-panel .item-name span:hover {
+    background: var(--base-weak);
+}
+.floating-helper-panel .item-name input[type='text'] {
+    display: block;
+    width: 130px;
+    height: 25px;
+    padding: 2px;
+    margin: 0;
+    font-size: 14px;
+    border: 1px solid var(--faint-strong);
+    border-radius: var(--control-border-radius);
+}
+
+.floating-helper-panel .styles-popup {
+    position: absolute;
+    width: 420px;
+    height: 150px;
+    overflow: auto;
+    padding: 5px;
+    background: var(--faint-weak);
+    box-shadow: 1px 1px 10px var(--shadow-color);
 }

@@ -131,7 +131,7 @@
                             :is-source="true"
                             :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
-                            height="16px"
+                            :height="15"
                             @selected="emitShapePropChange('sourceCap', 'path-cap', arguments[0])"/>
                     </li>
                     <li v-if="shouldShowPathCaps">
@@ -141,7 +141,7 @@
                             :is-source="false"
                             :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
                             width="16px"
-                            height="16px"
+                            :height="15"
                             @selected="emitShapePropChange('destinationCap', 'path-cap', arguments[0])"/>
                     </li>
                 </ul>
