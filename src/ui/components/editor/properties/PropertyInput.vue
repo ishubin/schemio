@@ -21,12 +21,12 @@
 
         <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
 
-        <CurveCapDropdown v-if="descriptor.type === 'path-cap'"
+        <PathCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
             :is-source="!leftOriented"
             :is-fat="isFatConnector"
             width="16px"
-            height="16px"
+            :height="16"
             :disabled="disabled"
             @selected="emitValue(arguments[0])"/>
 
@@ -55,7 +55,7 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import ColorPicker from '../ColorPicker.vue';
 import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
-import CurveCapDropdown from '../PathCapDropdown.vue';
+import PathCapDropdown from '../PathCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
 import SchemeSearchModal from '../SchemeSearchModal.vue';
 
@@ -67,12 +67,12 @@ export default {
         disabled       : {type: Boolean, default: false},
         leftOriented   : {type: Boolean, default: false},
         itemId         : {type: String, defalut: null, required: false},
-        shapeProps     : {type: Object, required: false} // this is an ugly way of propagating fat connectors into the CurveCapDropdown
+        shapeProps     : {type: Object, required: false} // this is an ugly way of propagating fat connectors into the PathCapDropdown
     },
 
     components: {
         NumberTextfield, ColorPicker, AdvancedColorEditor, StrokePatternDropdown,
-        CurveCapDropdown, ElementPicker, SchemeSearchModal
+        PathCapDropdown, ElementPicker, SchemeSearchModal
     },
 
     data() {

@@ -613,6 +613,11 @@ ul.pagination li a.current {
 }
 
 
+.quick-helper-panel .dropdown-container .dropdown-click-area {
+    padding: 0;
+}
+
+
 .scheme-error-message {
     padding-top: 20px;
     max-width: 600px;
@@ -995,6 +1000,11 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .icon-button:hover {
     background: var(--icon-button-hover-background);
+}
+
+.icon-button img {
+    max-width: 24px;
+    max-height: 20px;
 }
 ul.button-group.disabled > li > .icon-button:hover, 
 ul.button-group > li.disabled > .icon-button:hover,

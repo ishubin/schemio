@@ -67,7 +67,7 @@ export default {
         value: { type: String },
         isSource: { type: Boolean, default: false },
         width : {type: String, default: '30px'},
-        height: {type: String, default: '20px'},
+        height: {type: Number, default: 20},
         isFat: {type: Boolean, default: false},
     },
     components: {Dropdown},
@@ -98,7 +98,7 @@ export default {
             } else {
                 cap = createConnectorCap(30, 7, -12, 0, capType);
             }
-            return generateCapHtml(40, 20, 7, cap, this.isSource);
+            return generateCapHtml(40, this.height, 7, cap, this.isSource);
         }
     },
 
