@@ -151,6 +151,21 @@ function fixOldCurveItem(item) {
     }
 }
 
+/**
+ * Used for backwards compatibilty and it merges "groups" array with "tags"
+ */
+function fixOldGroups(item) {
+    if (Array.isArray(item.groups)) {
+        const tags = new Set(item.groups);
+        if (Array.isArray(item.tags)) {
+            item.tags.forEach(tag => tags.add(tag));
+        }
+        item.tags = Array.from(tags);
+
+        delete item.groups;
+    }
+}
+
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
         item.textSlots = {};
@@ -164,6 +179,8 @@ export function enrichItemWithDefaults(item) {
     if (item.shape === 'curve') {
         fixOldCurveItem(item);
     }
+
+    fixOldGroups(item);
 
     enrichObjectWithDefaults(item, defaultItemDefinition);
 
