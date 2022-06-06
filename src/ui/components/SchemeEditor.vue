@@ -438,6 +438,7 @@ import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
+import {applyItemStyle} from './editor/properties/ItemStyles';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -1776,23 +1777,7 @@ export default {
         onItemStyleApplied(style) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                const shape = Shape.find(item.shape);
-                if (shape && (shape.shapeType === 'standard' || (shape.args.fill && shape.args.fill.type === 'advanced-color' 
-                    && shape.args.strokeColor && shape.args.strokeColor.type === 'color')) 
-                    ) {
-                    item.shapeProps.fill = utils.clone(style.fill);
-                    item.shapeProps.strokeColor = utils.clone(style.strokeColor);
-                    if (style.textColor) {
-                        const textSlots = shape.getTextSlots(item);
-                        if (textSlots) {
-                            forEach(textSlots, textSlot => {
-                                if (item.textSlots[textSlot.name]) {
-                                    item.textSlots[textSlot.name].color = utils.clone(style.textColor);
-                                }
-                            });
-                        }
-                    }
-
+                if (applyItemStyle(item, style)) {
                     EventBus.emitItemChanged(item.id);
                     itemIds += item.id;
                 }

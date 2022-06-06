@@ -2150,28 +2150,6 @@ pre.syntax-markup.syntax-theme-dark {
 }
 
 
-/******************* Styles Modal *********************/
-table.styles-args-table {
-    width: 100%;
-    margin: 0;
-    border-collapse: collapse;
-    font-size: 14px;
-    background: var(--base-weak);
-}
-
-table.styles-args-table td {
-    padding: 2px;
-}
-table.styles-args-table td.property-name {
-    padding-right: 10px;
-}
-table.styles-args-table td input.style-textfield {
-    border: none;
-    margin: 0;
-    width: 100%;
-    padding: 2px 4px;
-}
-
 /************** Shape Styles Preview ***************/
 ul.shape-styles-preview {
     list-style: none;
@@ -2198,7 +2176,6 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style {
 ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
     color: var(--critic-strong);
 }
-
 
 /*********************** System messages **************/
 .system-message-panel {
@@ -3372,4 +3349,14 @@ ul.patch-field-list {
     font-size: 14px;
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
+}
+
+.floating-helper-panel .styles-popup {
+    position: absolute;
+    width: 420px;
+    height: 150px;
+    overflow: auto;
+    padding: 5px;
+    background: var(--faint-weak);
+    box-shadow: 1px 1px 10px var(--shadow-color);
 }

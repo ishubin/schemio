@@ -2,6 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import utils from "../../../utils";
+import Shape from "../items/shapes/Shape";
+import forEach from 'lodash/forEach';
+
 let scIiterator = 1;
 function _sc(fillColor, strokeColor, textColor) {
     return {
@@ -92,4 +96,32 @@ const gradientColors = {
     ]
 }
 
-export default [brightColors, lightColors, darkColors, gradientColors];
+export const defaultStyles = [brightColors, lightColors, darkColors, gradientColors];
+
+/**
+ * Applies given style to an item
+ * @param {*} item 
+ * @param {*} style 
+ * @returns true if a style was successfully applied, false - if item does not support styling
+ */
+export function applyItemStyle(item, style) {
+    const shape = Shape.find(item.shape);
+    if (shape && (shape.shapeType === 'standard' || (shape.args.fill && shape.args.fill.type === 'advanced-color' 
+        && shape.args.strokeColor && shape.args.strokeColor.type === 'color')) 
+        ) {
+        item.shapeProps.fill = utils.clone(style.fill);
+        item.shapeProps.strokeColor = utils.clone(style.strokeColor);
+        if (style.textColor) {
+            const textSlots = shape.getTextSlots(item);
+            if (textSlots) {
+                forEach(textSlots, textSlot => {
+                    if (item.textSlots[textSlot.name]) {
+                        item.textSlots[textSlot.name].color = utils.clone(style.textColor);
+                    }
+                });
+            }
+        }
+        return true;
+    }
+    return false;
+}

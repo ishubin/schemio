@@ -44,7 +44,7 @@ import map from 'lodash/map';
 import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
-import defaultStyles from './DefaultStyles';
+import {defaultStyles} from './ItemStyles';
 import StoreUtils from '../../../store/StoreUtils';
 
 

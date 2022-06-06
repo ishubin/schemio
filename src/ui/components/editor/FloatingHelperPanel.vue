@@ -14,7 +14,7 @@
                         <i class="fas fa-paragraph"></i>
                     </span>
                 </li>
-                <li v-if="supportsFill">
+                <li v-if="supportsFill && item.shape !== 'connector'">
                     <advanced-color-editor
                         :value="fillColor"
                         width="18px"
@@ -37,6 +37,9 @@
                 <li v-if="item.shape === 'image'">
                     <span @click="cropImage" class="icon-button" title="Crop image"><i class="fas fa-crop"></i></span>
                 </li>
+                <li v-if="supportsFill && item.shape !== 'connector'">
+                    <span class="icon-button" title="Styles" @click="toggleStylesPopup()"> <i class="fas fa-palette"></i> </span>
+                </li>
                 <li>
                     <span class="icon-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
                 </li>
@@ -50,9 +53,13 @@
                     @tags-changed="onItemTagChange"
                     ></vue-tags-input>
 
-                <h5>Description</h5>
-                <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                <h5>Description of "{{item.name}}"</h5>
+                <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
             </modal>
+
+            <div class="styles-popup" v-if="stylesPopup.shown" :style="{top: `${stylesPopup.y}px`, left: `${stylesPopup.x}px`}">
+                <styles-mini-palette @style-applied="applyItemStyle"/>
+            </div>
         </div>
     </transition>
 </template>
@@ -61,16 +68,21 @@
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import RichTextEditor from '../RichTextEditor.vue';
 import StrokeControl from './StrokeControl.vue';
+import StylesMiniPalette from './properties/StylesMiniPalette.vue';
 import Modal from '../Modal.vue';
 import EventBus from './EventBus';
 import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
 import VueTagsInput from '@johmun/vue-tags-input';
+import { applyItemStyle } from './properties/ItemStyles';
 
 export default {
     props: ['x', 'y', 'item', 'schemeContainer'],
 
-    components: {AdvancedColorEditor, StrokeControl, Modal, RichTextEditor, VueTagsInput},
+    components: {
+        AdvancedColorEditor, StrokeControl, Modal,
+        RichTextEditor, VueTagsInput, StylesMiniPalette
+    },
 
     mounted() {
         this.updatePosition();
@@ -110,6 +122,12 @@ export default {
 
             itemTag: '',
             existingItemTags: [],
+
+            stylesPopup: {
+                shown: false,
+                x: 0,
+                y: 0
+            }
         };
     },
 
@@ -154,6 +172,24 @@ export default {
                 this.$refs.nameInput.focus();
             });
         },
+
+        toggleStylesPopup() {
+            if (!this.stylesPopup.shown) {
+                this.stylesPopup.x = 0;
+                this.stylesPopup.y = 35;
+                this.stylesPopup.shown = true;
+            } else {
+                this.stylesPopup.shown = false;
+            }
+        },
+
+        applyItemStyle(style) {
+            if (applyItemStyle(this.item, style)) {
+                EventBus.emitItemChanged(this.item.id);
+                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.styles`);
+            }
+            this.stylesPopup.shown = false;
+        }
     },
 
     watch: {
