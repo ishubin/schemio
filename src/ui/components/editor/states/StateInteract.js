@@ -32,12 +32,14 @@ class StateInteract extends State {
         
         // used in order to track whether mousein or mouseout event can be produced
         this.currentHoveredItem = null;
+        this.hoveredItemIds = new Set();
         this.userEventBus = userEventBus;
     }
 
     reset() {
         this.initialClickPoint = null;
         this.startedDragging = false;
+        this.hoveredItemIds = new Set();
     }
 
     mouseDown(x, y, mx, my, object, event){
@@ -106,20 +108,52 @@ class StateInteract extends State {
     }
 
     handleItemHoverEvents(object) {
-        if (object && object.item) {
+        const sendItemEventById = (itemId, event) => {
+            const item = this.schemeContainer.findItemById(itemId);
+            if (item) {
+                this.emit(item, event);
+            }
+        };
+
+        if (object && object.type === 'item') {
             if (!this.currentHoveredItem) {
+                if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
+                    this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
+                    object.item.meta.ancestorIds.forEach(itemId => {
+                        sendItemEventById(MOUSE_IN);
+                    });
+                }
                 this.emit(object.item, MOUSE_IN);
                 this.currentHoveredItem = object.item;
+
             } else if (this.currentHoveredItem.id !== object.item.id) {
-                this.emit(this.currentHoveredItem, MOUSE_OUT);
-                this.emit(object.item, MOUSE_IN);
+                let allNewIds = new Set();
+                if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
+                    allNewIds = new Set(object.item.meta.ancestorIds);
+                }
+                allNewIds.add(object.item.id);
+
+                this.hoveredItemIds.forEach(itemId => {
+                    if (!allNewIds.has(itemId)) {
+                        this.hoveredItemIds.delete(itemId);
+                        sendItemEventById(itemId, MOUSE_OUT);
+                    }
+                });
+                
+                allNewIds.forEach(itemId => {
+                    if (!this.hoveredItemIds.has(itemId)) {
+                        this.hoveredItemIds.add(itemId);
+                        sendItemEventById(itemId, MOUSE_IN);
+                    }
+                });
                 this.currentHoveredItem = object.item;
             }
         } else {
-            if (this.currentHoveredItem) {
-                this.emit(this.currentHoveredItem, MOUSE_OUT);
-                this.currentHoveredItem = null;
-            }
+            this.hoveredItemIds.forEach(itemId => {
+                sendItemEventById(itemId, MOUSE_OUT);
+            });
+            this.hoveredItemIds.clear();
+            this.currentHoveredItem = null;
         }
     }
 
