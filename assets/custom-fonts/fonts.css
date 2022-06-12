@@ -1,0 +1,130 @@
+@font-face {
+    font-family: 'Alfa Slab One';
+    src: url('Alfa_Slab_One/AlfaSlabOne-Regular.eot');
+    src: url('Alfa_Slab_One/AlfaSlabOne-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Alfa_Slab_One/AlfaSlabOne-Regular.woff2') format('woff2'),
+        url('Alfa_Slab_One/AlfaSlabOne-Regular.woff') format('woff'),
+        url('Alfa_Slab_One/AlfaSlabOne-Regular.ttf') format('truetype'),
+        url('Alfa_Slab_One/AlfaSlabOne-Regular.svg#AlfaSlabOne-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Cherry Swash';
+    src: url('Cherry_Swash/CherrySwash-Bold.eot');
+    src: url('Cherry_Swash/CherrySwash-Bold.eot?#iefix') format('embedded-opentype'),
+        url('Cherry_Swash/CherrySwash-Bold.woff2') format('woff2'),
+        url('Cherry_Swash/CherrySwash-Bold.woff') format('woff'),
+        url('Cherry_Swash/CherrySwash-Bold.ttf') format('truetype'),
+        url('Cherry_Swash/CherrySwash-Bold.svg#CherrySwash-Bold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Caveat Brush';
+    src: url('Caveat_Brush/CaveatBrush-Regular.eot');
+    src: url('Caveat_Brush/CaveatBrush-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Caveat_Brush/CaveatBrush-Regular.woff2') format('woff2'),
+        url('Caveat_Brush/CaveatBrush-Regular.woff') format('woff'),
+        url('Caveat_Brush/CaveatBrush-Regular.ttf') format('truetype'),
+        url('Caveat_Brush/CaveatBrush-Regular.svg#CaveatBrush-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Heebo';
+    src: url('Heebo/Heebo-Regular.eot');
+    src: url('Heebo/Heebo-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Heebo/Heebo-Regular.woff2') format('woff2'),
+        url('Heebo/Heebo-Regular.woff') format('woff'),
+        url('Heebo/Heebo-Regular.ttf') format('truetype'),
+        url('Heebo/Heebo-Regular.svg#Heebo-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Carter One';
+    src: url('Carter_One/CarterOne.eot');
+    src: url('Carter_One/CarterOne.eot?#iefix') format('embedded-opentype'),
+        url('Carter_One/CarterOne.woff2') format('woff2'),
+        url('Carter_One/CarterOne.woff') format('woff'),
+        url('Carter_One/CarterOne.ttf') format('truetype'),
+        url('Carter_One/CarterOne.svg#CarterOne') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Permanent Marker';
+    src: url('Permanent_Marker/PermanentMarker-Regular.eot');
+    src: url('Permanent_Marker/PermanentMarker-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Permanent_Marker/PermanentMarker-Regular.woff2') format('woff2'),
+        url('Permanent_Marker/PermanentMarker-Regular.woff') format('woff'),
+        url('Permanent_Marker/PermanentMarker-Regular.ttf') format('truetype'),
+        url('Permanent_Marker/PermanentMarker-Regular.svg#PermanentMarker-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Josefin Sans';
+    src: url('Josefin_Sans/JosefinSans-ThinItalic.eot');
+    src: url('Josefin_Sans/JosefinSans-ThinItalic.eot?#iefix') format('embedded-opentype'),
+        url('Josefin_Sans/JosefinSans-ThinItalic.woff2') format('woff2'),
+        url('Josefin_Sans/JosefinSans-ThinItalic.woff') format('woff'),
+        url('Josefin_Sans/JosefinSans-ThinItalic.ttf') format('truetype'),
+        url('Josefin_Sans/JosefinSans-ThinItalic.svg#JosefinSans-ThinItalic') format('svg');
+    font-weight: 100;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Cherry Swash';
+    src: url('Cherry_Swash/CherrySwash-Regular.eot');
+    src: url('Cherry_Swash/CherrySwash-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Cherry_Swash/CherrySwash-Regular.woff2') format('woff2'),
+        url('Cherry_Swash/CherrySwash-Regular.woff') format('woff'),
+        url('Cherry_Swash/CherrySwash-Regular.ttf') format('truetype'),
+        url('Cherry_Swash/CherrySwash-Regular.svg#CherrySwash-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Josefin Sans';
+    src: url('Josefin_Sans/JosefinSans-Thin.eot');
+    src: url('Josefin_Sans/JosefinSans-Thin.eot?#iefix') format('embedded-opentype'),
+        url('Josefin_Sans/JosefinSans-Thin.woff2') format('woff2'),
+        url('Josefin_Sans/JosefinSans-Thin.woff') format('woff'),
+        url('Josefin_Sans/JosefinSans-Thin.ttf') format('truetype'),
+        url('Josefin_Sans/JosefinSans-Thin.svg#JosefinSans-Thin') format('svg');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Knewave';
+    src: url('Knewave/Knewave-Regular.eot');
+    src: url('Knewave/Knewave-Regular.eot?#iefix') format('embedded-opentype'),
+        url('Knewave/Knewave-Regular.woff2') format('woff2'),
+        url('Knewave/Knewave-Regular.woff') format('woff'),
+        url('Knewave/Knewave-Regular.ttf') format('truetype'),
+        url('Knewave/Knewave-Regular.svg#Knewave-Regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

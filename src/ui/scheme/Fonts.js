@@ -19,6 +19,16 @@ const FONTS_ENCODED = [
     '"Times New Roman", Times, serif',
     '"Trebuchet MS", Helvetica, sans-serif',
     'Verdana, Geneva, sans-serif',
+    'Alfa Slab One',
+    'Cherry Swash',
+    'Caveat Brush',
+    'Heebo',
+    'Carter One',
+    'Permanent Marker',
+    'Josefin Sans',
+    'Cherry Swash',
+    'Josefin Sans',
+    'Knewave'
 ];
 
 function loadFonts() {
