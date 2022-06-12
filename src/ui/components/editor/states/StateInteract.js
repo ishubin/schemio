@@ -123,6 +123,9 @@ class StateInteract extends State {
                         sendItemEventById(MOUSE_IN);
                     });
                 }
+                else {
+                    this.hoveredItemIds = new Set([object.item.id]);
+                }
                 this.emit(object.item, MOUSE_IN);
                 this.currentHoveredItem = object.item;
 
