@@ -120,10 +120,9 @@ class StateInteract extends State {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
                     object.item.meta.ancestorIds.forEach(itemId => {
-                        sendItemEventById(MOUSE_IN);
+                        sendItemEventById(itemId, MOUSE_IN);
                     });
-                }
-                else {
+                } else {
                     this.hoveredItemIds = new Set([object.item.id]);
                 }
                 this.emit(object.item, MOUSE_IN);
