@@ -538,6 +538,7 @@ class DragEditBoxState extends EditBoxState {
             }
         }
 
+        this.eventBus.emitItemsHighlighted([]);
         super.mouseUp(x, y, mx, my, object, event);
     }
 
