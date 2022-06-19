@@ -45,6 +45,8 @@
             <span class="btn btn-secondary" @click="toggleSchemeSearch()"><i class="fas fa-search"></i></span>
         </div>
 
+        <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue(arguments[0])"/>
+
        <scheme-search-modal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"></scheme-search-modal>
     </div>
     
@@ -58,6 +60,7 @@ import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import PathCapDropdown from '../PathCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
 import SchemeSearchModal from '../SchemeSearchModal.vue';
+import ColorMatrix from './ColorMatrix.vue';
 
 export default {
     props: {
@@ -72,7 +75,7 @@ export default {
 
     components: {
         NumberTextfield, ColorPicker, AdvancedColorEditor, StrokePatternDropdown,
-        PathCapDropdown, ElementPicker, SchemeSearchModal
+        PathCapDropdown, ElementPicker, SchemeSearchModal, ColorMatrix
     },
 
     data() {

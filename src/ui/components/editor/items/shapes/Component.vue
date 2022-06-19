@@ -13,7 +13,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <g style="cursor: pointer;" v-if="buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
+        <g style="cursor: pointer;" v-if="!(isLoading && item.shapeProps.showProgressBar) && buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
 
             <rect v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
@@ -45,6 +45,10 @@
                 />
         </g>
 
+        <foreignObject v-if="isLoading && item.shapeProps.showProgressBar && progressBar.w > 0 && progressBar.h > 0" :x="progressBar.x" :y="progressBar.y" :width="progressBar.w" :height="progressBar.h" >
+            <div class="progress-bar" :style="progressBarStyle"></div>
+        </foreignObject>
+
         <g v-if="item.meta && item.meta.cyclicComponent">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
@@ -70,9 +74,7 @@ const computePath = (item) => {
     return `M ${W} ${H}  L 0 ${H}   L 0 ${0}   L ${W} 0  L ${W} ${H} Z`;
 };
 
-function calculateButtonArea(item) {
-    const maxWidth = 180;
-    const maxHeight = 40;
+function calculateButtonArea(item, maxWidth, maxHeight) {
     const minPadding = 5;
     const itemMaxWidth = item.area.w - 2 * minPadding;
     const itemMaxHeight = item.area.h - 2 * minPadding;
@@ -125,7 +127,7 @@ export default {
         getTextSlots(item) {
             return [{
                 name: 'button',
-                area: calculateButtonArea(item)
+                area: calculateButtonArea(item, 180, 40)
             }];
         },
 
@@ -148,6 +150,9 @@ export default {
             buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill', depends: {showButton: true, kind: 'external'}},
             buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true, kind: 'external'}},
             buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}},
+            showProgressBar       : {type: 'boolean', value: true, name: 'Should progress bar'},
+            progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1'},
+            progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2'},
         },
 
         editorProps: {
@@ -173,12 +178,18 @@ export default {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onAnyComponentLoadRequested);
+        EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onAnyComponentLoadFailed);
+        EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onAnyComponentMounted);
     },
 
     beforeDestroy() {
         EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onAnyComponentLoadRequested);
+        EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onAnyComponentLoadFailed);
+        EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onAnyComponentMounted);
     },
 
     data() {
@@ -208,7 +219,7 @@ export default {
             let style = {};
             if (this.item.textSlots && this.item.textSlots.button) {
                 style = generateTextStyle(this.item.textSlots.button);
-                const textArea = calculateButtonArea(this.item);
+                const textArea = calculateButtonArea(this.item, 180, 40);
                 style.width = `${textArea.w}px`;
                 style.height = `${textArea.h}px`;
             }
@@ -232,6 +243,21 @@ export default {
             this.buttonHovered = false;
             this.$forceUpdate();
         },
+        onAnyComponentLoadRequested(item) {
+            if (this.item.id === item.id) {
+                this.isLoading = true;
+            }
+        },
+        onAnyComponentLoadFailed(item) {
+            if (this.item.id === item.id) {
+                this.isLoading = false;
+            }
+        },
+        onAnyComponentMounted(item) {
+            if (this.item.id === item.id) {
+                this.isLoading = false;
+            }
+        }
     },
 
     computed: {
@@ -254,7 +280,7 @@ export default {
         },
 
         buttonArea() {
-            return calculateButtonArea(this.item);
+            return calculateButtonArea(this.item, 180, 40);
         },
 
         sanitizedButtonText() {
@@ -282,6 +308,20 @@ export default {
                 width: `${this.item.area.w}px`,
                 height: `${this.item.area.h}px`,
             };
+        },
+
+        progressBar() {
+            return calculateButtonArea(this.item, 180, 10);
+        },
+
+        progressBarStyle() {
+            return {
+                background: `linear-gradient(90deg, ${this.item.shapeProps.progressColor1} 0%, ${this.item.shapeProps.progressColor2} 25%, ${this.item.shapeProps.progressColor2} 50%, ${this.item.shapeProps.progressColor1} 75%) 0% 0% / 60% 100%`,
+            };
+        },
+
+        progressBarHeight() {
+            return Math.min(20, this.item.area.h);
         }
     }
 }

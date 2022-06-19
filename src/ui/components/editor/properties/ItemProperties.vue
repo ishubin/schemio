@@ -37,7 +37,7 @@
             <ul class="effects-list" v-else>
                 <li v-for="(effect, effectIndex) in item.effects">
 
-                    <div class="effect-name">{{effect.name | prettyEffectName}}</div>
+                    <div class="effect-name" @click="openEditEffectModal(effectIndex)">{{effect.name | prettyEffectName}}</div>
 
                     <div class="effect-right-panel">
                         <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">

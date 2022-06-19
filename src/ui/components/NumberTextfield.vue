@@ -36,13 +36,16 @@ function numberToText(value) {
 
 export default {
     props: {
-        value   : [Number, String, Object],
-        format  : {type: String, default: 'float'},
-        name    : {type: String, default: null},
-        icon    : {type: String, default: null},
-        min     : {type: Number, default: null},
-        max     : {type: Number, default: null},
-        disabled: {type: Boolean, default: false},
+        value                : [Number, String, Object],
+        format               : {type: String, default: 'float'},
+        name                 : {type: String, default: null},
+        icon                 : {type: String, default: null},
+        min                  : {type: Number, default: null},
+        max                  : {type: Number, default: null},
+        disabled             : {type: Boolean, default: false},
+        incrementSpeed       : {type: Number, default: 1},
+        incrementMaxSpeed    : {type: Number, default: 50},
+        incrementAcceleration: {type: Number, default: 0.15}
     },
 
     mounted() {
@@ -70,9 +73,9 @@ export default {
             autoIncrementInitDelay: 300,
             autoIncrementDelay: 50,
             autoIncrementIntervalId: -1,
-            autoIncrementSpeed: 1,
-            autoIncrementMaxSpeed: 50,
-            autoIncrementAcceleration: 0.15,
+            autoIncrementSpeed: this.incrementSpeed,
+            autoIncrementMaxSpeed: this.incrementMaxSpeed,
+            autoIncrementAcceleration: this.incrementAcceleration,
             isUserTyping: true
         }
     },
@@ -175,7 +178,7 @@ export default {
         },
 
         initAutoIncrement() {
-            this.autoIncrementSpeed = 1;
+            this.autoIncrementSpeed = this.incrementSpeed;
             this.number = this.textToNumber(this.text);
 
             this.autoIncrementIntervalId = setInterval(() => {

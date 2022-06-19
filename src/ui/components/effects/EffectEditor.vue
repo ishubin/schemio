@@ -6,11 +6,11 @@
         <table class="properties-table">
             <tbody>
                 <tr v-for="(arg, argName) in effectArgDefinitions">
-                    <td class="label" width="50%">
+                    <td class="label" width="50%"  v-if="arg.type !== 'color-matrix'">
                         {{arg.name}}
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                     </td>
-                    <td class="value" width="50%">
+                    <td class="value" width="50%" :colspan="arg.type === 'color-matrix' ? 2 : 1">
                         <PropertyInput
                             :descriptor="arg"
                             :value="effectArgs[argName]"
