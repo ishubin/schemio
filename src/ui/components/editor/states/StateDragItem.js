@@ -170,6 +170,7 @@ class DragControlPointState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         this.eventBus.emitSchemeChangeCommited();
+        this.eventBus.emitItemsHighlighted([]);
         this.migrateToPreviousSubState();
     }
 
