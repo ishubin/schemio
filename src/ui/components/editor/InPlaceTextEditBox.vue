@@ -117,7 +117,7 @@ export default {
                         }
                         this.$emit('item-renamed', this.item, name);
 
-                        this.$emit('item-area-changed', this.item, rect.width, rect.height);
+                        this.$emit('item-area-changed', this.item, rect.width + 2, rect.height + 2);
                     }
                 } else {
                     this.$emit('item-text-cleared', this.item);
