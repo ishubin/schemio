@@ -188,7 +188,13 @@ function hasStrokeSizeProp(shape) {
 
 export default {
     name: 'ItemSvg',
-    props: ['item', 'mode', 'patchIndex'],
+    props: {
+        item                : {type: Object},
+        mode                : {type: String},
+        patchIndex          : {type: Object, default: null},
+        mode                : { type: String, default: 'edit' },
+        textSelectionEnabled: {type: Boolean, default: false},
+    },
     components: {AdvancedFill},
 
     mounted() {
@@ -263,7 +269,7 @@ export default {
             this.shapeType = shape.shapeType;
             this.supportsStrokeSize = hasStrokeSizeProp(shape);
 
-            if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view') {
+            if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view' || (this.mode === 'view' && this.textSelectionEnabled)) {
                 this.shouldDrawEventLayer = false;
             }
             if (shape.vueComponent) {

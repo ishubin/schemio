@@ -5,7 +5,7 @@
 <template lang="html">
     <div id="svg-editor" class="svg-editor">
         <svg id="svg_plot" ref="svgDomElement"
-            :class="['mode-' + mode]"
+            :class="cssClass"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
             @mousedown="mouseDown"
@@ -25,6 +25,7 @@
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :mode="mode"
+                            :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent" />
@@ -203,11 +204,12 @@ const lastMousePosition = {
 
 export default {
     props: {
-        offline        : { type: Boolean, default: false},
-        mode           : { type: String, default: 'edit' },
-        stateLayerShown: { type: Boolean, default: false},
-        userEventBus   : { type: Object, default: null},
-        patchIndex     : { type: Object, default: null},
+        offline             : { type: Boolean, default: false},
+        mode                : { type: String, default: 'edit' },
+        textSelectionEnabled: {type: Boolean, default: false},
+        stateLayerShown     : { type: Boolean, default: false},
+        userEventBus        : { type: Object, default: null},
+        patchIndex          : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -267,7 +269,7 @@ export default {
     },
     data() {
         return {
-            mouseEventsEnabled: true,
+            mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
 
             // the following two properties are going to be updated in mounted hook
@@ -895,6 +897,13 @@ export default {
 
     },
     computed: {
+        cssClass() {
+            const css = ['mode-' + this.mode];
+            if (!(this.mode === 'view' && this.textSelectionEnabled)) {
+                css.push('no-text-select');
+            }
+            return css;
+        },
         safeZoom() {
             if (this.schemeContainer.screenTransform.scale > 0.00001) {
                 return this.schemeContainer.screenTransform.scale;

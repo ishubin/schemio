@@ -58,6 +58,11 @@
                             <i class="schemio-icon schemio-icon-iterm-marker"></i>
                         </span>
                     </li>
+                    <li>
+                        <span title="Toggle text selection" class="toggle-button" :class="{toggled: textSelectionEnabled}" @click="toggleTextSelection">
+                            <i class="fa-solid fa-i-cursor"></i>
+                        </span>
+                    </li>
                 </ul>
             </div>
 
@@ -243,12 +248,13 @@ import StoreUtils from '../../store/StoreUtils';
 export default {
     props: {
         /** @type {SchemeContainer} */
-        schemeContainer: { type: Object, required: true },
-        mode           : { type: String, required: true }, // "edit" or "view"
-        zoom           : { type: Number, required: true },
-        editAllowed    : { type: Boolean, default: false },
-        isStaticEditor : { type: Boolean, default: false},
-        menuOptions    : { type: Array, default: []},
+        schemeContainer     : { type: Object, required: true },
+        mode                : { type: String, required: true },    // "edit" or "view"
+        textSelectionEnabled: {type: Boolean, default: false},
+        zoom                : { type: Number, required: true },
+        editAllowed         : { type: Boolean, default: false },
+        isStaticEditor      : { type: Boolean, default: false},
+        menuOptions         : { type: Array, default: []},
     },
 
     components: {
@@ -567,6 +573,10 @@ export default {
 
         onDrawEpsilonChanged(value) {
             this.$store.dispatch('updateDrawEpsilon', value);
+        },
+
+        toggleTextSelection() {
+            this.$emit('text-selection-changed', !this.textSelectionEnabled);
         }
     },
 

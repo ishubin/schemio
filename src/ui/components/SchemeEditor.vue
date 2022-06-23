@@ -9,6 +9,7 @@
             v-if="currentSchemeContainer"
             :scheme-container="currentSchemeContainer"
             :mode="mode"
+            :textSelectionEnabled="textSelectionEnabled"
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
             :is-static-editor="isStaticEditor"
@@ -34,6 +35,7 @@
             @zoomed-to-items="zoomToItems"
             @new-scheme-requested="onNewSchemeRequested"
             @mode-changed="toggleMode"
+            @text-selection-changed="onTextSelectionForViewChanged"
             >
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
@@ -114,10 +116,11 @@
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
-                    :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
+                    :key="`${schemeContainer.scheme.id}-view-${textSelectionEnabled}-${editorRevision}`"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
+                    :textSelectionEnabled="textSelectionEnabled"
                     :offline="offlineMode"
                     :zoom="zoom"
                     :userEventBus="userEventBus"
@@ -127,7 +130,15 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
-                    />
+                    >
+
+                    <div slot="overlay">
+                        <div v-if="mode === 'view' && textSelectionEnabled" class="editor-top-hint-label">
+                            You can select any text, but you cannot interact with items
+                            <span class="btn btn-primary" @click="textSelectionEnabled = false">Cancel</span>
+                        </div>
+                    </div>
+                </SvgEditor>
 
                 <!-- Item Text Editor -->
                 <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
@@ -684,6 +695,7 @@ export default {
 
             zoom: 100,
             mode: 'view',
+            textSelectionEnabled: false,
 
             addLinkPopup: {
                 item: null,
@@ -876,6 +888,10 @@ export default {
                 this.sidePanelRightExpanded = true;
                 this.switchStateDragItem();
             }
+        },
+
+        onTextSelectionForViewChanged(textSelectionEnabled) {
+            this.textSelectionEnabled = textSelectionEnabled;
         },
 
         onCancelCurrentState() {
