@@ -470,7 +470,7 @@ export default class StateEditPath extends State {
 
                     // fixing child items positions as the parent item area has changed
                     this.item.childItems.forEach((childItem, i) => {
-                        const localPoint = myMath.findTranslationMatchingWorldPoint(childWorldPositions[i].x, childWorldPositions[i].y, childItem.area, parentTransform);
+                        const localPoint = myMath.findTranslationMatchingWorldPoint(childWorldPositions[i].x, childWorldPositions[i].y, 0, 0, childItem.area, parentTransform);
                         if (localPoint) {
                             childItem.area.x = localPoint.x;
                             childItem.area.y = localPoint.y;

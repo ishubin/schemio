@@ -778,33 +778,31 @@ export default {
 
 
     /**
-     * Calculates local translation for specified area so that its top left corner 
-     * would match world point
+     * Calculates local translation for specified area so that its point in local transform
+     * would match world point after transformation. Basically this function tells you how to move the item
+     * so that its given local point matches world point after transformation.
      * 
      * @param {Number} x - x part of world point
      * @param {Number} y - y part of world point
+     * @param {Number} x0 - x part of local point
+     * @param {Number} y0 - y part of local point
      * @param {Area} area 
      * @param {Array} parentTransform 
      * @returns {Point} - can be null. Point in the local transform of area with which its top left corner would match specified world point
      */
-    findTranslationMatchingWorldPoint(x, y, area, parentTransform) {
+    findTranslationMatchingWorldPoint(x, y, x0, y0, area, parentTransform) {
         // Here we have to do some reversed computation to figure out which translation matrix should be used in the area
-        // so that its top left corner matches specified point in world.
-        // (this is used to reflect changes in multi-item edit box)
+        // so that its local point (x0, y0) matches specified point in world.
         // We do it like this:
-        // We take a point at (0, 0) which represents top left corner in the item and try to match it to the
-        // representative projected point in multi-item edit box in the world transform
-        // In other words: edit box stores projection of topLeft corner relatively to itself.
-        // So if we project that corner to the real world - we would get a point where it is supposed to be after 
-        // all modifications made to the edit box. Lets call this point Pw.
-        // Then we know how to calculate local point of top left corner P0 which is in (0, 0) inside item area
-        // We just need to apply standard transformation together with parent transform.
+        // We bring the full matrix formula of world transformation of local point (P0) into world (Pw).
+        // However in this formula we already know world point (Pw)
+        // But the translation matrix is unknown (At). And that is actually what this function is supposed to calculate
         // Based on this we can write the following equation:
         //
         //      Pw = Ap * At * Ac1 * Ar * Ac2 * As * P0
         //
         // where
-        //      Pw  - top left corner in world transform
+        //      Pw  - world point
         //      Ap  - parent item transform matrix
         //      At  - translation matrix. This is unknown in the equation
         //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy). 
@@ -812,7 +810,7 @@ export default {
         //      Ar  - rotation matrix. Rotates item by its area.r value
         //      Ac2 - translation matrix for items pivot point. It moves item back by (-rpx, -rpy)
         //      As  - scale matrix
-        //      P0  - top left corner is just a 1-column matrix representing point in (0, 0)
+        //      P0  - local point
         //
         // We can move Ap to the left if we inverse it. Lets also group all matrices
         // on the right between At and P0 and call it just matrix A
@@ -829,20 +827,20 @@ export default {
         //
         // in the equation above only At is unknown so lets expand all multiplications of all matrices
         //
-        //      | B11  B12  B13 |   | Xw |     | 1  0  Xt |   | A11  A12  A13 |   | 0 |
-        //      | B21  B22  B23 | * | Yw |  =  | 0  1  Yt | * | A21  A22  A23 | * | 0 |
-        //      | B31  B32  B33 | * | 1  |     | 0  0  1  |   | A31  A32  A33 |   | 1 |
+        //      | B11  B12  B13 |   | Xw |     | 1  0  Xt |   | A11  A12  A13 |   | Xo |
+        //      | B21  B22  B23 | * | Yw |  =  | 0  1  Yt | * | A21  A22  A23 | * | Yo |
+        //      | B31  B32  B33 |   | 1  |     | 0  0  1  |   | A31  A32  A33 |   |  1 |
         //
-        // if we multiple all matrices we will find out that
+        // if we multiply all matrices we will find out that
         //
-        //      | B11*Xw + B12*Yw + B13 |   | A13 + A33*Xt |
-        //      | B21*Xw + B22*Yw + B23 | = | A23 + A33*Yt |
-        //      |    B31 + B32 + B33    |   |     A33      |
+        //      | B11*Xw + B12*Yw + B13 |   | Xt*(Xo*A31 + Yo*A32 + A33) + Xo*A11 + Yo*A12 + A13 |
+        //      | B21*Xw + B22*Yw + B23 | = | Yt*(Xo*A31 + Yo*A32 + A33) + Xo*A21 + Yo*A22 + A23 |
+        //      |    B31 + B32 + B33    |   |              Xo*A31 + Yo*A32 + A33                 |
         //
         // from the above equation we can take out the relevant parts and finally get our complete formula
         //
-        //      Xt = (B11*Xw + B12*Yw + B13 - A13) / A33
-        //      Yt = (B21*Xw + B22*Yw + B23 - A23) / A33
+        //      Xt = (B11*Xw + B12*Yw + B13 - Xo*A11 - Yo*A12 - A13) / (Xo*A31 + Yo*A32 + A33)
+        //      Yt = (B21*Xw + B22*Yw + B23 - Xo*A21 - Yo*A22 - A23) / (Xo*A31 + Yo*A32 + A33)
 
         let parentInversedTransform = this.identityMatrix();
         if (parentTransform) {
@@ -861,10 +859,15 @@ export default {
                 this.scaleMatrix(area.sx, area.sy)
             );
 
-            if (!this.tooSmall(A[2][2])) {
+            const d = x0 * A[2][0] + y0 * A[2][1] + A[2][2];
+
+            if (!this.tooSmall(d)) {
+                const Xc = x0 * A[0][0] + y0 * A[0][1] + A[0][2];
+                const Yc = x0 * A[1][0] + y0 * A[1][1] + A[1][2];
+
                 return {
-                    x: (B[0][0] * x + B[0][1] * y + B[0][2] - A[0][2]) / A[2][2],
-                    y: (B[1][0] * x + B[1][1] * y + B[1][2] - A[1][2]) / A[2][2]
+                    x: (B[0][0] * x + B[0][1] * y + B[0][2] - Xc) / d,
+                    y: (B[1][0] * x + B[1][1] * y + B[1][2] - Yc) / d
                 };
             }
         }

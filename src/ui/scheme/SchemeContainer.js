@@ -86,6 +86,24 @@ export function worldVectorOnItem(x, y, item) {
 }
 
 /**
+ * converts worlds coords to local point in the transform of the parent of the item
+ * In case item has no parents - it returns the world coords
+ * @param {*} x world position x
+ * @param {*} y world position y
+ * @param {*} item 
+ */
+export function relativePointForItem(x, y, item) {
+    if (item.meta.parentId) {
+        const parentItem = this.findItemById(item.meta.parentId);
+        if (parentItem) {
+            return this.localPointOnItem(x, y, parentItem);
+        }
+    }
+
+    return {x, y};
+}
+
+/**
  * Calculates scaling effect of the item relative to the world
  * This is needed for proper computation of control points for scaled items
  * @param {Item} item 
@@ -877,14 +895,7 @@ class SchemeContainer {
      * @param {*} item 
      */
     relativePointForItem(x, y, item) {
-        if (item.meta.parentId) {
-            const parentItem = this.findItemById(item.meta.parentId);
-            if (parentItem) {
-                return this.localPointOnItem(x, y, parentItem);
-            }
-        }
-
-        return {x, y};
+        return relativePointForItem(x, y, item);
     }
     
     /**
@@ -1223,7 +1234,7 @@ class SchemeContainer {
 
         item.area.r += previousParentWorldAngle - otherItemWorldAngle;
 
-        const newLocalPoint = myMath.findTranslationMatchingWorldPoint(topLeftWorldPoint.x, topLeftWorldPoint.y, item.area, newParentTransform);
+        const newLocalPoint = myMath.findTranslationMatchingWorldPoint(topLeftWorldPoint.x, topLeftWorldPoint.y, 0, 0, item.area, newParentTransform);
         if (newLocalPoint) {
             item.area.x = newLocalPoint.x;
             item.area.y = newLocalPoint.y;
@@ -1976,7 +1987,7 @@ class SchemeContainer {
 
                 const worldTopLeft = projectBack(itemProjection.topLeft);
 
-                const newPoint = myMath.findTranslationMatchingWorldPoint(worldTopLeft.x, worldTopLeft.y, item.area, parentTransform);
+                const newPoint = myMath.findTranslationMatchingWorldPoint(worldTopLeft.x, worldTopLeft.y, 0, 0, item.area, parentTransform);
 
                 if (newPoint) {
                     item.area.x = newPoint.x;

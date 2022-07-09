@@ -169,7 +169,7 @@ function readjustItemArea(item, precision) {
     item.area.w = Math.max(0, bounds.x2 - bounds.x1);
     item.area.h = Math.max(0, bounds.y2 - bounds.y1);
 
-    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, item.area, item.meta.transformMatrix);
+    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, 0, 0, item.area, item.meta.transformMatrix);
     item.area.x = position.x;
     item.area.y = position.y;
 }
