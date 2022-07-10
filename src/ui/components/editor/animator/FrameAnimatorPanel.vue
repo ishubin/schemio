@@ -1024,7 +1024,7 @@ export default {
             const track = this.framesMatrix[trackIdx];
 
             this.selectedFrameControl.value = value;
-            if (track.kind === 'item' || track.kind === 'scheme') {
+            if (track.kind === 'item' || track.kind === 'scheme' || track.kind === 'function') {
                 const animationIdx = this.findAnimationIndexForTrack(track);
                 if (animationIdx < 0) {
                     return;
@@ -1050,6 +1050,8 @@ export default {
                     }
                 } else if (animation.kind === 'scheme') {
                     utils.setObjectProperty(this.schemeContainer.scheme, animation.property, value);
+                } else if (animation.kind === 'function') {
+                    this.selectFrame(frame);
                 }
 
                 EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
