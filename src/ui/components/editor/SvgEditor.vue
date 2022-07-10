@@ -900,7 +900,7 @@ export default {
         cssClass() {
             const css = ['mode-' + this.mode];
             if (!(this.mode === 'view' && this.textSelectionEnabled)) {
-                css.push('no-text-select');
+                css.push('text-nonselectable');
             }
             return css;
         },
