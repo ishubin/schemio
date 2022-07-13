@@ -98,18 +98,19 @@
                                 </div>
                             </td>
                             <td v-for="(frame, frameIdx) in track.frames"
-                                class="frame"
+                                class="frame frame-droppable-area"
+                                :data-track-idx="trackIdx"
+                                :data-frame-idx="frameIdx"
                                 :class="{active: !frame.blank, current: frame.frame === currentFrame, 'drop-candidate': frameDrag.source.trackIdx === trackIdx && frameDrag.destination.frameIdx === frameIdx}"
                                 :title="`${track.property}, frame: ${frame.frame}, interpolation: ${frame.kind}, value: ${frame.value}`"
                                 draggable="true"
-                                @click="selectTrackAndFrame(trackIdx, frameIdx)"
                                 @dblclick="onFrameDoubleClick(trackIdx, frameIdx)"
-                                @dragstart="onMatrixDragStart(trackIdx, frameIdx)"
-                                @dragenter="onMatrixDragEnter(trackIdx, frameIdx)"
-                                @dragend="onMatrixDragEnd(trackIdx, frameIdx)"
+                                @dragstart="preventEvent"
+                                @drag="preventEvent"
+                                @mousedown="onMatrixFrameMouseDown(trackIdx, frameIdx, $event)"
                                 @contextmenu="onFrameRightClick($event, trackIdx, frameIdx)"
                                 >
-                                <span class="active-frame" v-if="!frame.blank"><i class="fas fa-circle"></i></span>
+                                <span class="active-frame" v-if="!frame.blank && !(frameDrag.on && trackIdx === frameDrag.source.trackIdx && frameIdx === frameDrag.source.frameIdx)"><i class="fas fa-circle"></i></span>
                             </td>
                         </tr>
                         <tr>
@@ -120,6 +121,9 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div ref="frameDragPreview" class="frame-drag-preview" :class="{'is-dragging': frameDrag.on}">
+            <span class="active-frame" v-if="!frameDrag.source.blank"><i class="fas fa-circle"></i></span>
         </div>
 
         <ContextMenu v-if="frameContextMenu.shown"
@@ -146,6 +150,7 @@
 import SchemeContainer from '../../../scheme/SchemeContainer';
 import ContextMenu from '../ContextMenu.vue';
 import utils from '../../../utils';
+import {dragAndDropBuilder} from '../../../dragndrop';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
@@ -330,7 +335,9 @@ export default {
             selectedTrackIdx: -1,
 
             frameDrag: {
+                on: false,
                 source: {
+                    blank: true,
                     trackIdx: -1,
                     frameIdx: -1
                 },
@@ -734,21 +741,53 @@ export default {
             return -1;
         },
 
-        onMatrixDragStart(trackIdx, frameIdx) {
-            this.frameDrag.source.trackIdx = trackIdx;
-            this.frameDrag.source.frameIdx = frameIdx;
-            this.frameDrag.destination.frameIdx = -1;
+        preventEvent(event) {
+            event.preventDefault();
+            event.stopPropagation();
         },
 
-        onMatrixDragEnd(trackIdx, frameIdx) {
-            const srcTrackIdx = this.frameDrag.source.trackIdx;
-            const srcFrameIdx = this.frameDrag.source.frameIdx;
-            const dstFrameIdx = this.frameDrag.destination.frameIdx;
+        onMatrixFrameMouseDown(trackIdx, frameIdx, event) {
+            const sourceTrack = this.framesMatrix[trackIdx];
+            const sourceFrame = sourceTrack.frames[frameIdx];
 
-            this.frameDrag.destination.frameIdx = -1;
-            this.frameDrag.source.trackIdx = -1;
-            this.frameDrag.source.frameIdx = -1;
+            dragAndDropBuilder(event)
+            .withDraggedElement(this.$refs.frameDragPreview)
+            .withDroppableClass('frame-droppable-area')
+            .onSimpleClick(() => {
+                this.selectTrackAndFrame(trackIdx, frameIdx);
+            })
+            .onDragStart(() => {
+                this.frameDrag.on = true;
+                this.frameDrag.source.blank = sourceFrame.blank;
+                this.frameDrag.source.trackIdx = trackIdx;
+                this.frameDrag.source.frameIdx = frameIdx;
+            })
+            .onDragOver((event, frameElement) => {
+                const droppableTrackIdx = parseInt(frameElement.getAttribute('data-track-idx'));
+                const droppableFrameIdx = parseInt(frameElement.getAttribute('data-frame-idx'));
+                if (droppableTrackIdx === this.frameDrag.source.trackIdx) {
+                    this.frameDrag.destination.frameIdx = droppableFrameIdx;
+                } else {
+                    this.frameDrag.destination.frameIdx = -1;
+                }
+            })
+            .onDrop((event, frameElement) => {
+                const droppableTrackIdx = parseInt(frameElement.getAttribute('data-track-idx'));
+                const droppableFrameIdx = parseInt(frameElement.getAttribute('data-frame-idx'));
+                if (droppableTrackIdx === this.frameDrag.source.trackIdx) {
+                    this.onMatrixDragEnd(this.frameDrag.source.trackIdx, this.frameDrag.source.frameIdx, droppableFrameIdx);
+                }
+            })
+            .onDone((event) => {
+                this.frameDrag.on = false;
+                this.frameDrag.source.trackIdx = -1;
+                this.frameDrag.source.frameIdx = -1;
+                this.frameDrag.destination.frameIdx = -1;
+            })
+            .build();
+        },
 
+        onMatrixDragEnd(srcTrackIdx, srcFrameIdx, dstFrameIdx) {
             if (dstFrameIdx === srcFrameIdx || dstFrameIdx < 0) {
                 return;
             }
@@ -832,14 +871,6 @@ export default {
             }
 
             this.updateFramesMatrix();
-        },
-
-        onMatrixDragEnter(trackIdx, frameIdx) {
-            if (trackIdx === this.frameDrag.source.trackIdx) {
-                this.frameDrag.destination.frameIdx = frameIdx;
-            } else {
-                this.frameDrag.destination.frameIdx = -1;
-            }
         },
 
         playAnimations() {
