@@ -88,6 +88,7 @@ export function dragAndDropBuilder(originalEvent) {
                         this.draggedElement.style.left = `${event.pageX + 4}px`;
                         this.draggedElement.style.top = `${event.pageY + 4}px`;
                     }
+                    this.callbacks.onDrag(event);
                     withDroppableElement(event , element => this.callbacks.onDragOver(event, element));
                 } else {
                     if (pixelsMoved > pixelMoveThreshold) {

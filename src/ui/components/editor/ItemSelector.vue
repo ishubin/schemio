@@ -14,7 +14,7 @@
         </div>
         <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
             <div v-for="(item, idx) in filteredItems"
-                class="item-selector-item-row-container"
+                class="item-selector-item-row-container item-droppable-area"
                 :key="item.id"
                 :ref="`row_${item.id}`"
                 :data-item-id="item.id"
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && !dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length + (dragging.dropInside ? 1:0)) * 25 + 15}px`}">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
                     <div class="item">
                         <div class="item-name">
                             <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
@@ -91,6 +91,7 @@ import filter from 'lodash/filter';
 import EventBus from './EventBus';
 import utils from '../../utils';
 import myMath from '../../myMath';
+import { dragAndDropBuilder } from '../../dragndrop';
 
 
 const mouseOffset = 2;
@@ -136,6 +137,7 @@ export default {
                 startedDragging: false,
                 pageX: 0,
                 pageY: 0,
+                padding: 0,
             },
             nameEdit: {
                 itemId: null,
@@ -193,7 +195,6 @@ export default {
             // Drag-and-drop is a complex thing as it involves too many bookkeeping and checking (we even have to keep track of scrolling)
             // So for now it will do, but it would be better to refactor it some day
 
-
             if (event.target) {
                 if (event.target.getAttribute('data-type') === 'item-name-edit-in-place'
                     || event.target.closest('.item-collapser')) {
@@ -201,34 +202,122 @@ export default {
                 }
             }
 
-            if (event.shiftKey && this.lastClickedItem) {
-                //checking if last clicked item was not deleted
-                const lastClickedItem = this.schemeContainer.findItemById(this.lastClickedItem.id);
-                if (lastClickedItem) {
-                    this.selectItemsVertically(lastClickedItem, item);
-                    this.lastClickedItem = item;
+            dragAndDropBuilder(event)
+            .withDraggedElement(this.$refs.itemDragger)
+            .withDroppableClass('item-droppable-area')
+
+            .onDragStart(event => {
+                this.dragging.item = item;
+                this.dragging.previewItemName = item.name;
+                this.dragging.startedDragging = true;
+                this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
+                    return !this.schemeContainer.isItemSelected(itemForFilter) && indexOf(itemForFilter.meta.ancestorIds, this.dragging.item.id) < 0;
+                });
+            })
+
+            .onSimpleClick(() => {
+                if (event.shiftKey && this.lastClickedItem) {
+                    //checking if last clicked item was not deleted
+                    const lastClickedItem = this.schemeContainer.findItemById(this.lastClickedItem.id);
+                    if (lastClickedItem) {
+                        this.selectItemsVertically(lastClickedItem, item);
+                        this.lastClickedItem = item;
+                        return;
+                    }
+                    else {
+                        this.lastClickedItem = null;
+                    }
+                }
+                this.lastClickedItem = item;
+
+                // canceling in-place name edit
+                if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
+                    this.nameEdit.itemId = null;
+                }
+
+                if (!event.shiftKey) {
+                    this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+                }
+
+                if (event.button === 2) {
+                    EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
+                }
+            })
+            
+            .onDrag(event => {
+                this.dragging.pageX = event.pageX;
+                this.dragging.pageY = event.pageY;
+            })
+
+            .onDragOver((event, element) => {
+                const overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
+                if (!this.dragging.item || this.dragging.item.id === overItem.id) {
+                    this.dragging.readyToDrop = false;
                     return;
                 }
-                else {
-                    this.lastClickedItem = null;
+
+                //checking whether the dragged item is dragged over other selected items
+                if (this.schemeContainer.isItemSelected(overItem)) {
+                    return;
                 }
-            }
-            this.lastClickedItem = item;
 
-            // canceling in-place name edit
-            if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
-                this.nameEdit.itemId = null;
-            }
+                //checking whether the dragged item is one of ancestors of destination item
+                if (overItem.meta && overItem.meta.ancestorIds) {
+                    if (indexOf(overItem.meta.ancestorIds, this.dragging.item.id) >= 0) {
+                        this.dragging.readyToDrop = false;
+                        return;
+                    }
+                }
 
-            if (!this.schemeContainer.isItemSelected(item)) {
-                this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
-            }
+                const bbox = element.getBoundingClientRect();
 
+                const xDiff = this.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
 
-            if (event.button === 2) {
-                EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
-                return;
-            }
+                this.dragging.destinationId = overItem.id;
+                this.dragging.dropInside = xDiff > 35;
+
+                if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
+                    const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
+                    this.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
+                }
+
+                let dropAbove = false;
+                const index = parseInt(element.getAttribute('data-index'))
+                if (index === 0) {
+                    dropAbove = event.clientY < bbox.top + bbox.height/2;
+                }
+
+                this.dragging.dropAbove = dropAbove;
+                this.dragging.readyToDrop = true;
+                this.dragging.padding = (overItem.meta.ancestorIds.length + (this.dragging.dropInside ? 1:0)) * 25 + 15;
+
+            })
+
+            .onDone(event => {
+                this.dragging.startedDragging = false;
+                if (this.dragging.readyToDrop && this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
+                    if (this.dragging.dropAbove) {
+                        forEach(this.schemeContainer.selectedItems, item => {
+                            this.schemeContainer.remountItemBeforeOtherItem(item.id, this.dragging.destinationId);
+                        });
+                    } else if (this.dragging.dropInside) {
+                        forEach(this.schemeContainer.selectedItems, item => {
+                            this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
+                        });
+                    } else {
+                        forEach(this.schemeContainer.selectedItems, item => {
+                            this.schemeContainer.remountItemAfterOtherItem(item.id, this.dragging.destinationId);
+                        });
+                    }
+                }
+                this.dragging.item = null;
+                this.dragging.destinationId = null;
+                this.filteredItems = this.filterItemsByKeyword(this.searchKeyword);
+            })
+            .build();
+
+            return;
+
 
             const originalPageX = event.pageX;
             const originalPageY = event.pageY;
@@ -238,15 +327,6 @@ export default {
             this.dragging.item = null;
             this.dragging.startedDragging = false;
             const that = this;
-
-            function initiateDragging() {
-                that.dragging.item = item;
-                that.dragging.previewItemName = item.name;
-                that.dragging.startedDragging = true;
-                that.filteredItems = filter(that.filterItemsByKeyword(that.searchKeyword), itemForFilter => {
-                    return !that.schemeContainer.isItemSelected(itemForFilter) && indexOf(itemForFilter.meta.ancestorIds, that.dragging.item.id) < 0;
-                });
-            }
 
             const itemSelectorDom = this.$refs.itemSelectorContainer;
             const scrollMargin = 20;
@@ -306,47 +386,6 @@ export default {
             }
 
             function dragOverItem(event, overItem, domItem) {
-                if (!that.dragging.item || that.dragging.item.id === overItem.id) {
-                    that.dragging.readyToDrop = false;
-                    return;
-                }
-
-                //checking whether the dragged item is dragged over other selected items
-                if (that.schemeContainer.isItemSelected(overItem)) {
-                    return;
-                }
-
-                //checking whether the dragged item is one of ancestors of destination item
-                if (overItem.meta && overItem.meta.ancestorIds) {
-                    if (indexOf(overItem.meta.ancestorIds, that.dragging.item.id) >= 0) {
-                        that.dragging.readyToDrop = false;
-                        return;
-                    }
-                }
-
-                const bbox = domItem.getBoundingClientRect();
-
-                const xDiff = that.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
-
-                that.dragging.destinationId = overItem.id;
-                that.dragging.dropInside = xDiff > 35;
-
-                if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
-                    const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
-                    that.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
-                }
-
-                if (Array.isArray(domItem)) {
-                    domItem = domItem[0];
-                }
-                let dropAbove = false;
-                const index = parseInt(domItem.getAttribute('data-index'))
-                if (index === 0) {
-                    dropAbove = event.clientY < bbox.top + bbox.height/2;
-                }
-
-                that.dragging.dropAbove = dropAbove;
-                that.dragging.readyToDrop = true;
             }
 
             function onMouseMove(event) {
@@ -358,21 +397,6 @@ export default {
             }
 
             function onMouseUp() {
-                if (that.dragging.readyToDrop && that.dragging.item && that.dragging.destinationId && that.dragging.item.id !== that.dragging.destinationId) {
-                    if (that.dragging.dropAbove) {
-                        forEach(that.schemeContainer.selectedItems, item => {
-                            that.schemeContainer.remountItemBeforeOtherItem(item.id, that.dragging.destinationId);
-                        });
-                    } else if (that.dragging.dropInside) {
-                        forEach(that.schemeContainer.selectedItems, item => {
-                            that.schemeContainer.remountItemInsideOtherItem(item.id, that.dragging.destinationId);
-                        });
-                    } else {
-                        forEach(that.schemeContainer.selectedItems, item => {
-                            that.schemeContainer.remountItemAfterOtherItem(item.id, that.dragging.destinationId);
-                        });
-                    }
-                }
                 reset();
             }
 
