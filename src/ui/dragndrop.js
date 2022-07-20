@@ -6,6 +6,7 @@ export function dragAndDropBuilder(originalEvent) {
         originalPageY: originalEvent.pageY,
         draggedElement: null,
         droppableClass: null,
+        scrollableElemet: null,
 
         callbacks: {
             onDrag: () => {},
@@ -14,6 +15,11 @@ export function dragAndDropBuilder(originalEvent) {
             onDragStart: () => {},
             onSimpleClick: () => {},
             onDone: () => {}
+        },
+
+        withScrollableElement(element) {
+            this.scrollableElemet = element;
+            return this;
         },
 
         withDraggedElement(draggedElement) {
@@ -75,6 +81,26 @@ export function dragAndDropBuilder(originalEvent) {
                 }
             };
 
+            const scrollMargin = 20;
+            let scrollIntervalId = null;
+            let lastScrollingStep = 0;
+            const startScrolling = (scrollStep) => {
+                if (!scrollIntervalId || lastScrollingStep !== scrollStep) {
+                    stopScrolling();
+                    lastScrollingStep = scrollStep;
+                    scrollIntervalId = setInterval(() => {
+                        this.scrollableElemet.scrollTop += scrollStep;
+                    }, 10);
+                }
+            };
+            const stopScrolling = () => {
+                if (scrollIntervalId) {
+                    clearInterval(scrollIntervalId);
+                    scrollIntervalId = null;
+                    lastScrollingStep = 0;
+                }
+            }
+
             const onMouseMove = (event) => {
                 if (event.buttons === 0) {
                     reset(event);
@@ -90,6 +116,18 @@ export function dragAndDropBuilder(originalEvent) {
                     }
                     this.callbacks.onDrag(event);
                     withDroppableElement(event , element => this.callbacks.onDragOver(event, element));
+
+                    if (this.scrollableElemet) {
+                        const rootBbox = this.scrollableElemet.getBoundingClientRect();
+                        if (rootBbox.bottom - event.pageY < scrollMargin) {
+                            startScrolling(2);
+                        } else if (rootBbox.top - event.pageY > -scrollMargin) {
+                            startScrolling(-2);
+                        } else {
+                            stopScrolling();
+                        }
+                    }
+
                 } else {
                     if (pixelsMoved > pixelMoveThreshold) {
                         startedDragging = true;

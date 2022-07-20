@@ -231,6 +231,7 @@ export default {
             dragAndDropBuilder(event)
             .withDraggedElement(this.$refs.itemDragger)
             .withDroppableClass('item-droppable-area')
+            .withScrollableElement(this.$refs.itemSelectorContainer)
 
             .onDragStart(event => {
                 this.dragging.items = [].concat(this.schemeContainer.selectedItems);
