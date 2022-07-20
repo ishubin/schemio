@@ -86,16 +86,12 @@
 
 <script>
 import forEach from 'lodash/forEach';
-import indexOf from 'lodash/indexOf';
 import filter from 'lodash/filter';
 import EventBus from './EventBus';
-import utils from '../../utils';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';
 
-
-const mouseOffset = 2;
 
 function visitItems(items, parentItem, callback) {
     if (items) {
@@ -285,8 +281,25 @@ export default {
             })
 
             .onDragOver((event, element) => {
-                const overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
                 const bbox = element.getBoundingClientRect();
+                let overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
+                let dropAbove = event.clientY < bbox.top + bbox.height/2;
+
+                if (dropAbove) {
+                    // searching for previous item in item selector
+                    // this is needed for better user experience
+
+                    let idx = 0;
+                    let found = false;
+                    for (; idx < this.filteredItems.length && !found; idx++) {
+                        if (this.filteredItems[idx].id === overItem.id && idx > 0) {
+                            found = true;
+                            overItem = this.filteredItems[idx - 1];
+                            dropAbove = false;
+                        }
+                    }
+                }
+
                 const xDiff = this.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
 
                 this.dragging.destinationId = overItem.id;
@@ -297,7 +310,6 @@ export default {
                     this.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
                 }
 
-                const dropAbove = event.clientY < bbox.top + bbox.height/2;
 
                 this.dragging.dropAbove = dropAbove;
                 this.dragging.readyToDrop = true;
