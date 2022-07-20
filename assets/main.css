@@ -2142,7 +2142,15 @@ ul.button-group > li.disabled > .icon-button:hover,
     width: 250px;
     border: 1px solid var(--faint-strong);
 }
-
+.item-selector .item-selector-drag-preview .preview-0 {
+    opacity: 1.0;
+}
+.item-selector .item-selector-drag-preview .preview-1 {
+    opacity: 0.6;
+}
+.item-selector .item-selector-drag-preview .preview-2 {
+    opacity: 0.3;
+}
 /****************** Language Markup ***************/
 pre.syntax-markup {
     padding: 30px 10px 10px 10px;

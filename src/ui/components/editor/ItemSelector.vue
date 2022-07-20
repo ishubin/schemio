@@ -20,7 +20,7 @@
                 :data-item-id="item.id"
                 :data-index="idx"
                 >
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
                     <div class="item">
                         <div class="item-name">
                             <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.item && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
                     <div class="item">
                         <div class="item-name">
                             <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
@@ -76,9 +76,9 @@
         </div>
 
 
-        <div ref="itemDragger" style="position: fixed; white-space:nowrap;" :style="{display: dragging.item && dragging.startedDragging ? 'inline-block' : 'none' }">
-            <div v-if="dragging.item">
-                <span><i class="fas fa-cube"></i> {{dragging.item.name}}</span>
+        <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
+            <div v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
+                <span :class="`preview-${itemIdx}`"><i class="fas fa-cube"></i> {{item.name}}</span>
             </div>
         </div>
     </div>
@@ -92,6 +92,7 @@ import EventBus from './EventBus';
 import utils from '../../utils';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
+import { traverseItems } from '../../scheme/Item';
 
 
 const mouseOffset = 2;
@@ -125,8 +126,9 @@ export default {
         return {
             searchKeyword: '',
             dragging: {
-                // the item that is dragged,
-                item: null,
+                // the items that are dragged,
+                items: [],
+
                 // the item to which the dragged item is supposed to be dropped
                 destinationId: null,
                 dropInside: false,
@@ -191,15 +193,39 @@ export default {
         },
 
         onItemMouseDown(item, event) {
-            // This function is too large. I know, it sucks. But it was easier to manage all the dragging and dropping inside this function.
-            // Drag-and-drop is a complex thing as it involves too many bookkeeping and checking (we even have to keep track of scrolling)
-            // So for now it will do, but it would be better to refactor it some day
-
             if (event.target) {
                 if (event.target.getAttribute('data-type') === 'item-name-edit-in-place'
                     || event.target.closest('.item-collapser')) {
                     return true;
                 }
+            }
+            const originalEvent = event;
+
+            if (event.shiftKey && this.lastClickedItem) {
+                //checking if last clicked item was not deleted
+                const lastClickedItem = this.schemeContainer.findItemById(this.lastClickedItem.id);
+                if (lastClickedItem) {
+                    this.selectItemsVertically(lastClickedItem, item);
+                    this.lastClickedItem = item;
+                    return;
+                }
+                else {
+                    this.lastClickedItem = null;
+                }
+            }
+            this.lastClickedItem = item;
+
+            // canceling in-place name edit
+            if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
+                this.nameEdit.itemId = null;
+            }
+
+            if (!event.shiftKey && !this.schemeContainer.isItemSelected(item)) {
+                this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+            }
+
+            if (event.button === 2) {
+                EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
             }
 
             dragAndDropBuilder(event)
@@ -207,43 +233,51 @@ export default {
             .withDroppableClass('item-droppable-area')
 
             .onDragStart(event => {
-                this.dragging.item = item;
+                this.dragging.items = [].concat(this.schemeContainer.selectedItems);
+                const draggedItemIds = new Set();
+
+                let found = false
+                for (let i = 0; i < this.dragging.items.length && !found; i++) {
+                    if (this.dragging.items[i].id === item.id) {
+                        found = true;
+                    }
+                }
+                if (!found) {
+                    this.dragging.items.unshift(item);
+                }
+
+                this.dragging.items.forEach(draggedItem => {
+                    traverseItems(draggedItem, item => {
+                        draggedItemIds.add(item.id);
+                    });
+                });
+
+
+                // checking whether ancestor items are already dragged, then we don't need to reattach it's child on drop
+                const finalDraggedItems = [];
+                this.dragging.items.forEach(item => {
+                    let ancestorMatch = false;
+                    for (let i = 0; i < item.meta.ancestorIds.length && !ancestorMatch; i++) {
+                        if (draggedItemIds.has(item.meta.ancestorIds[i])) {
+                            ancestorMatch = true;
+                        }
+                    }
+                    if (!ancestorMatch) {
+                        finalDraggedItems.push(item);
+                    }
+                });
+
+                this.dragging.items = finalDraggedItems;
+
                 this.dragging.previewItemName = item.name;
                 this.dragging.startedDragging = true;
                 this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
-                    return !this.schemeContainer.isItemSelected(itemForFilter) && indexOf(itemForFilter.meta.ancestorIds, this.dragging.item.id) < 0;
+                    return !draggedItemIds.has(itemForFilter.id);
                 });
+
+                this.$forceUpdate();
             })
 
-            .onSimpleClick(() => {
-                if (event.shiftKey && this.lastClickedItem) {
-                    //checking if last clicked item was not deleted
-                    const lastClickedItem = this.schemeContainer.findItemById(this.lastClickedItem.id);
-                    if (lastClickedItem) {
-                        this.selectItemsVertically(lastClickedItem, item);
-                        this.lastClickedItem = item;
-                        return;
-                    }
-                    else {
-                        this.lastClickedItem = null;
-                    }
-                }
-                this.lastClickedItem = item;
-
-                // canceling in-place name edit
-                if (this.nameEdit.itemId &&  this.nameEdit.itemId !== item.id) {
-                    this.nameEdit.itemId = null;
-                }
-
-                if (!event.shiftKey) {
-                    this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
-                }
-
-                if (event.button === 2) {
-                    EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
-                }
-            })
-            
             .onDrag(event => {
                 this.dragging.pageX = event.pageX;
                 this.dragging.pageY = event.pageY;
@@ -251,26 +285,7 @@ export default {
 
             .onDragOver((event, element) => {
                 const overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
-                if (!this.dragging.item || this.dragging.item.id === overItem.id) {
-                    this.dragging.readyToDrop = false;
-                    return;
-                }
-
-                //checking whether the dragged item is dragged over other selected items
-                if (this.schemeContainer.isItemSelected(overItem)) {
-                    return;
-                }
-
-                //checking whether the dragged item is one of ancestors of destination item
-                if (overItem.meta && overItem.meta.ancestorIds) {
-                    if (indexOf(overItem.meta.ancestorIds, this.dragging.item.id) >= 0) {
-                        this.dragging.readyToDrop = false;
-                        return;
-                    }
-                }
-
                 const bbox = element.getBoundingClientRect();
-
                 const xDiff = this.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
 
                 this.dragging.destinationId = overItem.id;
@@ -281,139 +296,52 @@ export default {
                     this.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
                 }
 
-                let dropAbove = false;
-                const index = parseInt(element.getAttribute('data-index'))
-                if (index === 0) {
-                    dropAbove = event.clientY < bbox.top + bbox.height/2;
-                }
+                const dropAbove = event.clientY < bbox.top + bbox.height/2;
 
                 this.dragging.dropAbove = dropAbove;
                 this.dragging.readyToDrop = true;
                 this.dragging.padding = (overItem.meta.ancestorIds.length + (this.dragging.dropInside ? 1:0)) * 25 + 15;
-
             })
 
-            .onDone(event => {
-                this.dragging.startedDragging = false;
-                if (this.dragging.readyToDrop && this.dragging.item && this.dragging.destinationId && this.dragging.item.id !== this.dragging.destinationId) {
-                    if (this.dragging.dropAbove) {
-                        forEach(this.schemeContainer.selectedItems, item => {
-                            this.schemeContainer.remountItemBeforeOtherItem(item.id, this.dragging.destinationId);
-                        });
-                    } else if (this.dragging.dropInside) {
-                        forEach(this.schemeContainer.selectedItems, item => {
-                            this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
-                        });
-                    } else {
-                        forEach(this.schemeContainer.selectedItems, item => {
-                            this.schemeContainer.remountItemAfterOtherItem(item.id, this.dragging.destinationId);
-                        });
-                    }
+            .onDone(() => {
+                if (!this.dragging.startedDragging && !originalEvent.shiftKey) {
+                    // should deselect the rest of items as it was just a simple click
+                    this.schemeContainer.selectItem(item, originalEvent.metaKey || originalEvent.ctrlKey);
                 }
-                this.dragging.item = null;
+
+                this.dragging.startedDragging = false;
+                if (this.dragging.readyToDrop && this.dragging.items.length > 0 && this.dragging.destinationId) {
+                    let handler = null;
+                    if (this.dragging.dropAbove) {
+                        handler = (item) => {
+                            this.schemeContainer.remountItemBeforeOtherItem(item.id, this.dragging.destinationId);
+                        };
+                    } else if (this.dragging.dropInside) {
+                        handler = (item) => {
+                            this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
+                        };
+                    } else {
+                        handler = (item) => {
+                            this.schemeContainer.remountItemAfterOtherItem(item.id, this.dragging.destinationId);
+                        };
+                    }
+
+                    let draggingItems = this.dragging.items;
+                    if (!this.dragging.dropAbove) {
+                        draggingItems = draggingItems.reverse();
+                    }
+
+                    forEach(draggingItems, (item) => {
+                        if (item.id !== this.dragging.destinationId) {
+                            handler(item);
+                        }
+                    });
+                }
+                this.dragging.items = [];
                 this.dragging.destinationId = null;
                 this.filteredItems = this.filterItemsByKeyword(this.searchKeyword);
             })
             .build();
-
-            return;
-
-
-            const originalPageX = event.pageX;
-            const originalPageY = event.pageY;
-            const itemDragger = this.$refs.itemDragger;
-            let pixelsMoved = 0;
-
-            this.dragging.item = null;
-            this.dragging.startedDragging = false;
-            const that = this;
-
-            const itemSelectorDom = this.$refs.itemSelectorContainer;
-            const scrollMargin = 20;
-
-            let scrollIntervalId = null;
-            let lastScrollingStep = 0;
-            function startScrolling(scrollStep) {
-                if (!scrollIntervalId || lastScrollingStep !== scrollStep) {
-                    stopScrolling();
-                    lastScrollingStep = scrollStep;
-                    scrollIntervalId = setInterval(() => {
-                        itemSelectorDom.scrollTop += scrollStep;
-                    }, 10);
-                }
-            }
-
-            function stopScrolling() {
-                if (scrollIntervalId) {
-                    clearInterval(scrollIntervalId);
-                    scrollIntervalId = null;
-                    lastScrollingStep = 0;
-                }
-            }
-
-            function moveAt(event, pageX, pageY) {
-                const rootBbox = itemSelectorDom.getBoundingClientRect();
-                if (rootBbox.bottom - pageY < scrollMargin) {
-                    startScrolling(2);
-                } else if (rootBbox.top - pageY > -scrollMargin) {
-                    startScrolling(-2);
-                } else {
-                    stopScrolling();
-                }
-                
-                pixelsMoved += Math.abs(pageX - originalPageX) + Math.abs(pageY - originalPageY);
-
-                if (!that.dragging.startedDragging && pixelsMoved > 10) {
-                    initiateDragging();
-                }
-                itemDragger.style.left = `${pageX + mouseOffset}px`;
-                itemDragger.style.top = `${pageY + mouseOffset}px`;
-                that.dragging.pageX = pageX;
-                that.dragging.pageY = pageY;
-
-
-                const itemRowElement = utils.domFindAncestorByClassUntil(event.target, 'item-selector-item-row-container', element => element.classList.contains('item-selector-items'))
-                if (itemRowElement) {
-                    const itemId = itemRowElement.getAttribute('data-item-id');
-                    const overItem = that.schemeContainer.findItemById(itemId);
-                    if (overItem) {
-                        dragOverItem(event, overItem, itemRowElement);
-                    }
-                } else {
-                    that.dragging.readyToDrop = false;
-                    that.dragging.destinationId = null;
-                }
-            }
-
-            function dragOverItem(event, overItem, domItem) {
-            }
-
-            function onMouseMove(event) {
-                if (event.buttons === 0) {
-                    reset();
-                    return;
-                }
-                moveAt(event, event.pageX, event.pageY);
-            }
-
-            function onMouseUp() {
-                reset();
-            }
-
-
-            function reset() {
-                stopScrolling();
-
-                that.dragging.startedDragging = false;
-                that.dragging.item = null;
-                that.dragging.destinationId = null;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                that.filteredItems = that.filterItemsByKeyword(that.searchKeyword);
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
         },
 
         onItemDoubleClicked(item) {
