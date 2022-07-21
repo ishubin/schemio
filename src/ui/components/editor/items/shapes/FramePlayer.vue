@@ -3,13 +3,18 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
-        <g v-for="(button,buttonIndex) in buttons">
+        <g v-for="(button,buttonIndex) in buttons" 
+            @click="onClickedButton(buttonIndex)"
+            @mouseover="onMouseOverButton(buttonIndex)"
+            @mouseout="onMouseOutButton(buttonIndex)"
+            >
             <circle 
                 :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
                 :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
-                :fill="item.shapeProps.fillColor"
+                :fill="button.fillColor"
                 :stroke="item.shapeProps.strokeColor"
+                style="-webkit-transition: fill 200ms linear; -ms-transition: fill 200ms linear; transition: fill 200ms linear;"
                 stroke-width="1"/>
 
             <foreignObject 
@@ -26,7 +31,6 @@
                 :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
                 :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
-                @click="onClickedButton(buttonIndex)"
                 fill="rgba(255, 255, 255, 0)"
                 stroke="rgba(255, 255, 255, 0)"
                 stroke-width="1"
@@ -95,6 +99,7 @@ export default {
             totalFrames    : {type: 'number', value: 5, name: 'Total frames'},
             fps            : {type: 'number', value: 1, name: 'Frames per second'},
             fillColor      : {type: 'color', value: 'rgba(220, 220, 220, 1.0)', name: 'Fill color'},
+            hoverFillColor : {type: 'color', value: 'rgba(190, 190, 190, 1.0)', name: 'Hover fill color'},
             strokeColor    : {type: 'color', value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             animations     : {type: 'animations', value: [], name: 'Animations', hidden: true},
             functions      : {type: 'animation-functions', value: {}, name: 'Animation Functions', hidden: true},
@@ -156,7 +161,11 @@ export default {
                 iconPlaying: 'fas fa-fast-forward',
                 click: () => {this.onClickFastRight()}
             }]);
-        }
+        };
+
+        buttons.forEach(button => {
+            button.fillColor = this.item.shapeProps.fillColor;
+        });
 
         return {
             currentFrame: 1,
@@ -288,7 +297,21 @@ export default {
                 item: this.item,
                 frame: this.currentFrame
             });
-        }
+        },
+
+        onMouseOverButton(idx) {
+            forEach(this.buttons, (button, i) => {
+                if (i === idx) {
+                    button.fillColor = this.item.shapeProps.hoverFillColor;
+                } else {
+                    button.fillColor = this.item.shapeProps.fillColor;
+                }
+            });
+        },
+
+        onMouseOutButton(idx) {
+            this.buttons[idx].fillColor = this.item.shapeProps.fillColor;
+        },
     },
 
     computed: {
