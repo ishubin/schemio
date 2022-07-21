@@ -150,11 +150,11 @@ export default {
             }].concat(buttons).concat([{
                 icon: 'fas fa-step-forward',
                 iconPlaying: 'fas fa-step-forward',
-                click: () => {this.onClickedRight()}
+                click: () => {this.onClickPlayToNext()}
             }, {
                 icon: 'fas fa-fast-forward',
                 iconPlaying: 'fas fa-fast-forward',
-                click: () => {this.onClickedToEnd()}
+                click: () => {this.onClickFastRight()}
             }]);
         }
 
@@ -189,12 +189,17 @@ export default {
             }
         },
 
-        onClickedToEnd() {
-            const lastSection = this.sectionsByNumber.get(this.totalSections);
-            if (lastSection) {
-                this.currentFrame = lastSection.frame;
-                this.currentSection = lastSection;
-                this.emitCurrentFrameEvent();
+        onClickFastRight() {
+            if (this.currentSection) {
+                const nextSection = this.sectionsByNumber.get(this.currentSection.number + 1);
+                if (nextSection) {
+                    const nextFrame = nextSection.frame;
+                    if (nextFrame >= 0) {
+                        this.currentFrame = nextFrame;
+                        this.currentSection = nextSection;
+                        this.emitCurrentFrameEvent();
+                    }
+                }
             }
         },
 
@@ -212,17 +217,35 @@ export default {
             }
         },
 
-        onClickedRight() {
+        onClickPlayToNext() {
             if (this.currentSection) {
+                let stopFrame = -1;
+
                 const nextSection = this.sectionsByNumber.get(this.currentSection.number + 1);
                 if (nextSection) {
                     const nextFrame = nextSection.frame;
                     if (nextFrame <= this.item.shapeProps.totalFrames) {
-                        this.currentFrame = nextFrame;
-                        this.currentSection = nextSection;
-                        this.emitCurrentFrameEvent();
+                        stopFrame = nextFrame;
                     }
                 }
+
+                this.$emit('frame-animator', {
+                    operation: 'play',
+                    item: this.item,
+                    frame: this.currentFrame,
+                    stopFrame: stopFrame,
+                    callbacks: {
+                        onFrame: (frame) => {
+                            this.currentFrame = frame;
+                            if (frame <= this.sectionsMapping.length && frame > 0) {
+                                this.currentSection = this.sectionsMapping[frame - 1];
+                            }
+                        },
+                        onFinish: () => {
+                            this.isPlaying = false;
+                        }
+                    }
+                });
             }
         },
 

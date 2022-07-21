@@ -597,6 +597,11 @@ export default {
             if (args.operation === 'play') {
                 frameAnimation.setCallbacks(args.callbacks);
                 frameAnimation.setFrame(args.frame);
+                if (args.stopFrame) {
+                    frameAnimation.setStopFrame(args.stopFrame);
+                } else {
+                    frameAnimation.setStopFrame(-1);
+                }
                 AnimationRegistry.play(frameAnimation, itemId);
 
             } else if (args.operation === 'setFrame') {

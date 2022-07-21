@@ -360,11 +360,16 @@ export class FrameAnimation extends Animation {
         this.compiledAnimations = compiledAnimations;
         this.onFrame = null;
         this.onFinish = null;
+        this.stopFrame = -1;
     }
 
     setFrame(frame) {
         this.startFrame = frame;
         this.currentFrame = Math.floor(frame) - 1;
+    }
+
+    setStopFrame(stopFrame) {
+        this.stopFrame = stopFrame;
     }
 
     init() {
@@ -387,6 +392,14 @@ export class FrameAnimation extends Animation {
             if (this.onFrame) {
                 this.onFrame(this.currentFrame);
             }
+        }
+
+        const floorFrame = Math.floor(frame);
+        const reachedStopFrame = this.stopFrame > 0 && floorFrame === this.stopFrame;
+        if (reachedStopFrame) {
+            this.onFrame(this.stopFrame);
+            this.toggleFrame(this.stopFrame);
+            return false;
         }
         
         this.toggleFrame(frame);
