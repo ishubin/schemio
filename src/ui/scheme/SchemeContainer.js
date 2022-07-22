@@ -2297,12 +2297,11 @@ class SchemeContainer {
         // This function is needed because animations for frame player can be triggered from two places:
         // a) by clicking play button
         // b) by calling "Play Frames" function in behavior actions
-        this.prepareFrameAnimationsForItems(this.scheme.items);
+        this.prepareFrameAnimationsForItems();
     }
 
-    prepareFrameAnimationsForItems(items) {
+    prepareFrameAnimationsForItems() {
         this.frameAnimations = {};
-        //OPTIMIZE: instead of traversing all items we can collect frame players during reindexing of all items and then only iterate of that array
         forEach(this.framePlayers, item => {
             const compiledAnimations = compileAnimations(item, this);
             this.frameAnimations[item.id] = new FrameAnimation(item.shapeProps.fps, item.shapeProps.totalFrames, compiledAnimations);

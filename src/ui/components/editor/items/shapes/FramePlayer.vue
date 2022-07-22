@@ -49,6 +49,7 @@
 
 <script>
 import forEach from 'lodash/forEach';
+import EventBus from '../../EventBus';
 
 export default {
     props: ['item'],
@@ -105,6 +106,10 @@ export default {
             functions      : {type: 'animation-functions', value: {}, name: 'Animation Functions', hidden: true},
             sections       : {type: 'animation-sections', value: [], name: 'Sections', hidden: true},
         },
+    },
+
+    beforeMount() {
+        EventBus.emitFramePlayerPrepared(this.item, this.createFrameCallbacks());
     },
     
     data() {
@@ -226,6 +231,20 @@ export default {
             }
         },
 
+        createFrameCallbacks() {
+            return {
+                onFrame: (frame) => {
+                    this.currentFrame = frame;
+                    if (frame <= this.sectionsMapping.length && frame > 0) {
+                        this.currentSection = this.sectionsMapping[frame - 1];
+                    }
+                },
+                onFinish: () => {
+                    this.isPlaying = false;
+                }
+            };
+        },
+
         onClickPlayToNext() {
             if (this.currentSection) {
                 let stopFrame = -1;
@@ -243,17 +262,7 @@ export default {
                     item: this.item,
                     frame: this.currentFrame,
                     stopFrame: stopFrame,
-                    callbacks: {
-                        onFrame: (frame) => {
-                            this.currentFrame = frame;
-                            if (frame <= this.sectionsMapping.length && frame > 0) {
-                                this.currentSection = this.sectionsMapping[frame - 1];
-                            }
-                        },
-                        onFinish: () => {
-                            this.isPlaying = false;
-                        }
-                    }
+                    callbacks: this.createFrameCallbacks()
                 });
             }
         },
@@ -271,17 +280,7 @@ export default {
                     operation: 'play', 
                     item: this.item,
                     frame: startingFrame,
-                    callbacks: {
-                        onFrame: (frame) => {
-                            this.currentFrame = frame;
-                            if (frame <= this.sectionsMapping.length && frame > 0) {
-                                this.currentSection = this.sectionsMapping[frame - 1];
-                            }
-                        },
-                        onFinish: () => {
-                            this.isPlaying = false;
-                        }
-                    }
+                    callbacks: this.createFrameCallbacks()
                 });
             } else {
                 this.$emit('frame-animator', {

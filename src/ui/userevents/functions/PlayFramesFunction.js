@@ -12,7 +12,9 @@ export default {
     supportedShapes: ['frame_player'],
 
     args: {
-        startFrame: {type: 'number', value: 1, min: 1, name: 'Starting Frame'}
+        startFrame: {type: 'number', value: 1, min: 1, name: 'Starting frame'},
+        partial   : {type: 'boolean', value: false, name: 'Play partial', description: 'Play only until specified stop frame'},
+        stopFrame : {type: 'number', value: 1, min: 1, name: 'Stop frame', depends: {partial: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
@@ -27,6 +29,11 @@ export default {
         }
 
         frameAnimation.setFrame(args.startFrame);
+        if (args.partial) {
+            frameAnimation.setStopFrame(args.stopFrame);
+        } else {
+            frameAnimation.setStopFrame(-1);
+        }
         AnimationRegistry.play(frameAnimation, item.id);
         resultCallback();
     }

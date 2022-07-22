@@ -104,7 +104,10 @@ const EventBus = new Vue({
 
             SCHEME_PATCH_REQUESTED: 'scheme-patch-requested',
 
-            FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated'
+            FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated',
+
+            // used for each frame_player item to initialize it's callbacks for its own frame animation
+            FRAME_PLAYER_PREPARED: 'frame-player-prepared'
         };
     },
     methods: {
@@ -235,7 +238,11 @@ const EventBus = new Vue({
 
         emitFloatingHelperPanelUpdated() {
             this.$emit(EventBus.FLOATING_HELPER_PANEL_UPDATED);
-        }
+        },
+
+        emitFramePlayerPrepared(framePlayerItem, frameCallbacks) {
+            this.$emit(EventBus.FRAME_PLAYER_PREPARED, framePlayerItem, frameCallbacks);
+        },
     }
 });
 

@@ -1935,7 +1935,7 @@ export default {
                 const scheme = schemeDetails.scheme;
                 const componentSchemeContainer = new SchemeContainer(scheme);
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
-                this.interactiveSchemeContainer.prepareFrameAnimationsForItems(item.childItems);
+                this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
                 EventBus.emitItemChanged(item.id);
 
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {

@@ -235,6 +235,7 @@ export default {
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
+        EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
     },
     mounted() {
         this.updateSvgSize();
@@ -259,6 +260,7 @@ export default {
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
+        EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -582,6 +584,19 @@ export default {
          */
         prepareFrameAnimations() {
             this.schemeContainer.prepareFrameAnimations();
+        },
+
+        onFramePlayerPrepared(item, frameCallbacks) {
+            if (this.mode !== 'view') {
+                return;
+            }
+
+            const frameAnimation = this.schemeContainer.getFrameAnimation(item.id);
+            if (!frameAnimation) {
+                return;
+            }
+
+            frameAnimation.setCallbacks(frameCallbacks);
         },
 
         onFrameAnimatorEvent(args) {
