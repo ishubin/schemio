@@ -28,6 +28,8 @@ const knownProperties = new Map([
     ['area.w',      {type: NUMBER}],
     ['area.h',      {type: NUMBER}],
     ['area.r',      {type: NUMBER}],
+    ['area.sx',     {type: NUMBER}],
+    ['area.sy',     {type: NUMBER}],
     ['opacity',     {type: NUMBER}],
     ['selfOpacity', {type: NUMBER}],
     ['visible',     {type: BOOLEAN}],
