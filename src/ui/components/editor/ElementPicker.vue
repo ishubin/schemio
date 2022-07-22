@@ -151,7 +151,7 @@ export default {
             }
             if (this.element.startsWith('tag:')) {
                 return {
-                    name: this.element.substr(6).trim(),
+                    name: this.element.substr(5).trim(),
                     type: 'item-tag',
                     iconClass: 'fas fa-cubes'
                 };
