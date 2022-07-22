@@ -247,6 +247,12 @@ export default {
                 svgElement.addEventListener('wheel', this.mouseWheel);
             }
         }
+
+        if (this.mode === 'view') {
+            forEach(this.itemsForInit, (val, itemId) => {
+                this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+            });
+        }
     },
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
@@ -280,6 +286,9 @@ export default {
 
             selectedItemLinks: [],
             lastHoveredItem: null,
+
+            // ids of items that have subscribed for Init event
+            itemsForInit: {},
 
             // array of markers for items that are clickable
             clickableItemMarkers: [],
@@ -536,14 +545,16 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items);
+                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit);
             }
         },
 
-        indexUserEventsInItems(items) {
-            // ids of items that have subscribed for Init event
-            const itemsForInit = {};
-
+        /**
+         * 
+         * @param {Array} items 
+         * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
+         */
+        indexUserEventsInItems(items, itemsForInit) {
             forEach(items, rootItem => {
                 traverseItems(rootItem, item => {
                     if (item.behavior && item.behavior.events) {
@@ -558,15 +569,15 @@ export default {
                     }
                 });
             });
-
-            forEach(itemsForInit, (val, itemId) => {
-                this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
-            });
         },
 
         onComponentSchemeMounted(item) {
             if (item._childItems) {
-                this.indexUserEventsInItems(item._childItems);
+                const componentItemsForInit = {};
+                this.indexUserEventsInItems(item._childItems, componentItemsForInit);
+                forEach(componentItemsForInit, (val, itemId) => {
+                    this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+                });
             }
             if (item.shape === 'component' && this.userEventBus) {
                 this.userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);

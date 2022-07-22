@@ -1669,6 +1669,7 @@ export default {
          */
         onItemSelectionUpdated() {
             if (this.schemeContainer.selectedItems.length > 0) {
+                this.currentTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
                 const shape = Shape.find(item.shape);
                 if (!shape) {
