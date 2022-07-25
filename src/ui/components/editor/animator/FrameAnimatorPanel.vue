@@ -422,12 +422,15 @@ export default {
         selectTrackAndFrame(trackIdx, frameIdx) {
             this.selectedTrackIdx = trackIdx;
             const track = this.framesMatrix[trackIdx];
-            this.selectFrame(track.frames[frameIdx].frame)
             this.selectFrameControl(trackIdx, frameIdx);
+            this.selectFrame(track.frames[frameIdx].frame)
         },
 
         selectFrameControl(trackIdx, frameIdx) {
             const track = this.framesMatrix[trackIdx];
+            if (!track.frames) {
+                return;
+            }
             const frame = track.frames[frameIdx];
 
             this.selectedFrameControl.propertyDescriptor = track.propertyDescriptor;
