@@ -411,6 +411,7 @@ export default {
         toggleItemVisibility(item) {
             item.visible = !item.visible;
             EventBus.emitItemChanged(item.id, 'visible');
+            EventBus.emitSchemeChangeCommited(`item.${item.id}.visible`);
             this.$forceUpdate();
         },
 

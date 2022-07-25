@@ -2444,7 +2444,6 @@ table.frame-animator-matrix th:first-child .btn {
     min-width: 25px;
 }
 table.frame-animator-matrix th, table.frame-animator-matrix td.frame-animator-property {
-    background: var(--faint-weak);
     color: var(--base-strong-up);
 }
 table.frame-animator-matrix th {
@@ -2496,10 +2495,10 @@ table.frame-animator-matrix th.current {
     color: var(--base-weak);
 }
 table.frame-animator-matrix td.current {
-    background: var(--accent-weak);
+    background: var(--faint-strong-up);
 }
 table.frame-animator-matrix tbody tr.selected-track td.current {
-    background: var(--accent-weak-down);
+    background: var(--faint-strong-down);
 }
 
 table.frame-animator-matrix td.frame {

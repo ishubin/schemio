@@ -72,7 +72,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(track, trackIdx) in framesMatrix" :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function'}">
+                        <tr v-for="(track, trackIdx) in framesMatrix" 
+                            :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function'}"
+                            :style="{'background-color': track.color}"
+                            >
                             <td class="frame-animator-property" :class="['frame-animator-property-'+track.kind]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
                                 <div v-if="track.kind === 'item'">
                                     <span v-if="track.itemName">{{track.itemName}}</span>
@@ -166,6 +169,23 @@ import myMath from '../../../myMath';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
+
+
+
+function calculateTrackColor(kind, id, property) {
+    let hue = Math.abs(utils.hashString(kind + id)) % 360; 
+    const propertyHash = Math.abs(utils.hashString(property));
+    const hueJitter = propertyHash % 20 - 10;
+    hue = (hue + hueJitter) % 360;
+
+    const saturationRange = [20, 70];
+    const lightnessRange = [87, 97];
+
+    const s = propertyHash % (saturationRange[1] - saturationRange[0]) + saturationRange[0];
+    const l = propertyHash % (lightnessRange[1] - lightnessRange[0]) + lightnessRange[0];
+
+    return `hsl(${hue}, ${s}%, ${l}%)`;
+}
 
 
 function jsonDiffItemWhitelistCallback(item) {
@@ -511,10 +531,11 @@ export default {
                     kind    : animation.kind,
                     id      : animation.id,
                     property: animation.property,
+                    color   : calculateTrackColor(animation.kind, animation.id, animation.property),
                     propertyDescriptor,
                     itemName,
                     frames,
-                }
+                };
                 matrix.push(track);
             });
 

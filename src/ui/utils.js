@@ -263,6 +263,22 @@ function equals(v1, v2) {
     return v1 === v2;
 }
 
+function hashString(text) {
+    let hash = 0;
+
+    if (text.length == 0) {
+        return hash;
+    }
+
+    for (let i = 0; i < text.length; i++) {
+        let symbol = text.charCodeAt(i);
+        hash = ((hash << 5) - hash) + symbol;
+        hash = hash & hash;
+    }
+
+    return hash;
+}
+
 
 export default {
     formatDateAndTime,
@@ -277,5 +293,6 @@ export default {
     domHasParentNode,
     domFindAncestorByClassUntil,
     forceDownload,
-    equals
+    equals,
+    hashString
 };
