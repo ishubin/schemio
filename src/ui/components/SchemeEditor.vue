@@ -161,7 +161,7 @@
 
             
             <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)" class="bottom-panel">
-                <div class="side-panel-filler-left"></div>
+                <div class="side-panel-filler-left" v-if="sidePanelLeftExpanded"></div>
                 <div class="bottom-panel-content">
                     <FrameAnimatorPanel
                         v-if="animationEditorCurrentFramePlayer"
@@ -181,7 +181,7 @@
                         @animation-editor-opened="onAnimatiorEditorOpened"
                         />
                 </div>
-                <div class="side-panel-filler-right"></div>
+                <div class="side-panel-filler-right" v-if="sidePanelRightExpanded"></div>
             </div>
 
             <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
