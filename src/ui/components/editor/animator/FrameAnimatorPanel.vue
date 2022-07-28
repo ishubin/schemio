@@ -120,6 +120,7 @@
                                     <i v-else-if="frame.icon === 'opacity-low'" class="fa-solid fa-circle-half-stroke"></i>
                                     <i v-else class="fas fa-circle"></i>
                                 </div>
+                                <div v-else class="empty-frame-number">{{frame.frame}}</div>
                             </td>
                         </tr>
                         <tr>

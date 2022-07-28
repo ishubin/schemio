@@ -2534,6 +2534,10 @@ table.frame-animator-matrix td.frame .active-frame {
     font-size: 12px;
     opacity: 0.5;
 }
+table.frame-animator-matrix td.frame .empty-frame-number {
+    font-size: 10px;
+    opacity: 0.2;
+}
 table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--critic-weak-down);
 }
