@@ -113,7 +113,13 @@
                                 @mousedown="onMatrixFrameMouseDown(trackIdx, frameIdx, $event)"
                                 @contextmenu="onFrameRightClick($event, trackIdx, frameIdx)"
                                 >
-                                <span class="active-frame" v-if="!frame.blank && !(frameDrag.on && trackIdx === frameDrag.source.trackIdx && frameIdx === frameDrag.source.frameIdx)"><i class="fas fa-circle"></i></span>
+                                <div class="active-frame" v-if="!frame.blank && !(frameDrag.on && trackIdx === frameDrag.source.trackIdx && frameIdx === frameDrag.source.frameIdx)">
+                                    <i v-if="frame.icon === 'visibility-true'" class="fas fa-lightbulb"></i>
+                                    <i v-else-if="frame.icon === 'visibility-false'" class="far fa-lightbulb"></i>
+                                    <i v-else-if="frame.icon === 'opacity-none'" class="fa-regular fa-circle"></i>
+                                    <i v-else-if="frame.icon === 'opacity-low'" class="fa-solid fa-circle-half-stroke"></i>
+                                    <i v-else class="fas fa-circle"></i>
+                                </div>
                             </td>
                         </tr>
                         <tr>
@@ -469,7 +475,7 @@ export default {
             }
         },
 
-        fillMatrixFrames(originFrames) {
+        fillMatrixFrames(originFrames, valueType) {
             const matrixFrames = [];
 
             originFrames.sort((a, b) => a.frame - b.frame);
@@ -495,7 +501,9 @@ export default {
                 if (!prevFrame || prevFrame.frame !== f.frame) {
                     // protect from duplicate frames
                     if (f.frame <= totalFrames) {
-                        matrixFrames.push(f);
+                        const activeFrame = utils.clone(f);
+                        this.enrichFrameWithIcon(activeFrame, valueType);
+                        matrixFrames.push(activeFrame);
                     }
                 }
                 prevFrame = f;
@@ -504,6 +512,20 @@ export default {
                 addBlankFrames(totalFrames - matrixFrames.length);
             }
             return matrixFrames;
+        },
+
+        enrichFrameWithIcon(frame, valueType) {
+            if (valueType === 'visibility') {
+                frame.icon = 'visibility-' + frame.value;
+            } else if (valueType === 'opacity') {
+                if (frame.value <= 25) {
+                    frame.icon = 'opacity-none';
+                } else if (frame.value < 75) {
+                    frame.icon = 'opacity-low';
+                } else {
+                    frame.icon = 'opacity-high';
+                }
+            }
         },
 
         buildFramesMatrix() {
@@ -516,19 +538,30 @@ export default {
                     // skipping animation tracks as they are going to be built in another function
                     return;
                 }
-                const frames = this.fillMatrixFrames(animation.frames);
 
                 let itemName = null;
                 let propertyDescriptor = null;
+                let valueType = null;
+
                 if (animation.kind === 'item') {
                     const item = this.schemeContainer.findItemById(animation.id);
                     if (item) {
                         itemName = item.name;
                         propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
+
+                        if (animation.property === 'visible') {
+                            valueType = 'visibility';
+                        } else if (animation.property === 'opacity' || animation.property === 'selfOpacity') {
+                            valueType = 'opacity';
+                        } else if (propertyDescriptor) {
+                            valueType = propertyDescriptor.type;
+                        }
                     }
                 } else if (animation.kind === 'scheme') {
                     propertyDescriptor = findSchemePropertyDescriptor(animation.property);
                 }
+
+                const frames = this.fillMatrixFrames(animation.frames, valueType);
 
                 const track = {
                     kind    : animation.kind,
@@ -536,6 +569,7 @@ export default {
                     property: animation.property,
                     color   : calculateTrackColor(animation.kind, animation.id, animation.property),
                     propertyDescriptor,
+                    valueType,
                     itemName,
                     frames,
                 };
@@ -572,7 +606,7 @@ export default {
             if (!sections) {
                 sections = [];
             }
-            const frames = this.fillMatrixFrames(sections);
+            const frames = this.fillMatrixFrames(sections, 'section');
 
             return {
                 kind: 'sections',
@@ -608,7 +642,7 @@ export default {
                             kind    : 'function',
                             id      : id,
                             property: animation.property,
-                            frames  : this.fillMatrixFrames(animation.frames),
+                            frames  : this.fillMatrixFrames(animation.frames, 'number'),
                             propertyDescriptor,
                         });
                     }
@@ -1107,6 +1141,10 @@ export default {
                     utils.setObjectProperty(this.schemeContainer.scheme, animation.property, value);
                 } else if (animation.kind === 'function') {
                     this.selectFrame(frame);
+                }
+
+                if (track.valueType) {
+                    this.enrichFrameWithIcon(this.framesMatrix[trackIdx].frames[frame - 1], track.valueType);
                 }
 
                 EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
