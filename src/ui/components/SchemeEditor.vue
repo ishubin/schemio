@@ -160,28 +160,34 @@
             </div>
 
             
-            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)" class="bottom-panel">
-                <div class="side-panel-filler-left" v-if="sidePanelLeftExpanded"></div>
-                <div class="bottom-panel-content">
-                    <FrameAnimatorPanel
-                        v-if="animationEditorCurrentFramePlayer"
-                        :key="animationEditorCurrentFramePlayer.id"
-                        :schemeContainer="schemeContainer"
-                        :framePlayer="animationEditorCurrentFramePlayer"
-                        :light="false"
-                        @close="closeAnimatorEditor"
-                        />
+            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)"
+                class="bottom-panel"
+                :style="{height: animationEditorCurrentFramePlayer ? `${bottomPanelHeight}px`: null}"
+                >
+                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="animationEditorCurrentFramePlayer"></div>
+                <div class="bottom-panel-body">
+                    <div class="side-panel-filler-left" v-if="sidePanelLeftExpanded"></div>
+                    <div class="bottom-panel-content">
+                        <FrameAnimatorPanel
+                            v-if="animationEditorCurrentFramePlayer"
+                            :key="animationEditorCurrentFramePlayer.id"
+                            :schemeContainer="schemeContainer"
+                            :framePlayer="animationEditorCurrentFramePlayer"
+                            :light="false"
+                            @close="closeAnimatorEditor"
+                            />
 
-                    <FrameAnimatorPanel
-                        v-else-if="animatorPanel.framePlayer"
-                        :key="animatorPanel.framePlayer.id"
-                        :schemeContainer="schemeContainer"
-                        :framePlayer="animatorPanel.framePlayer"
-                        :light="true"
-                        @animation-editor-opened="onAnimatiorEditorOpened"
-                        />
+                        <FrameAnimatorPanel
+                            v-else-if="animatorPanel.framePlayer"
+                            :key="animatorPanel.framePlayer.id"
+                            :schemeContainer="schemeContainer"
+                            :framePlayer="animatorPanel.framePlayer"
+                            :light="true"
+                            @animation-editor-opened="onAnimatiorEditorOpened"
+                            />
+                    </div>
+                    <div class="side-panel-filler-right" v-if="sidePanelRightExpanded"></div>
                 </div>
-                <div class="side-panel-filler-right" v-if="sidePanelRightExpanded"></div>
             </div>
 
             <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
@@ -389,6 +395,7 @@
 <script>
 import shortid from 'shortid';
 import utils from '../utils.js';
+import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys } from '../events';
 
@@ -774,7 +781,9 @@ export default {
                 item: null,
                 x: 0,
                 y: 0
-            }
+            },
+
+            bottomPanelHeight: 300
         }
     },
     methods: {
@@ -2566,6 +2575,14 @@ export default {
             }
         },
 
+        onBottomPanelMouseDown(originalEvent) {
+            dragAndDropBuilder(originalEvent)
+            .onDrag(event => {
+                this.bottomPanelHeight = myMath.clamp(window.innerHeight - event.pageY, 100, window.innerHeight - 100);
+            })
+            .build();
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -2651,7 +2668,7 @@ export default {
 
         editorSubStateName() {
             return this.$store.getters.editorSubStateName;
-        }
+        },
     }
 }
 </script>

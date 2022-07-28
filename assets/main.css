@@ -18,6 +18,7 @@
     --base-weak: #fff;
 
     --faint-weak-down: #dddddd;
+    --faint-weak-down-down: #cccccc;
     --faint-weak: #eeeeee;
     --faint-weak-up: #f0f0f0;
 
@@ -1145,7 +1146,23 @@ ul.button-group > li.disabled > .icon-button:hover,
     min-height: 30px;
     background: var(--faint-weak-up);
     box-shadow: 0 0 10px var(--shadow-color);
+    width: 100%;
     display: flex;
+    flex-direction: column;
+}
+.scheme-editor-view .bottom-panel .bottom-panel-dragger {
+    cursor: pointer;
+    height: 7px;
+    background: var(--faint-weak-down);
+    border-bottom: 1px solid var(--faint-weak);
+    user-select: none;
+}
+.scheme-editor-view .bottom-panel .bottom-panel-dragger:hover {
+    background: var(--faint-weak-down-down);
+}
+.scheme-editor-view .bottom-panel .bottom-panel-body {
+    display: flex;
+    flex: 1;
     width: 100%;
 }
 .scheme-editor-view .bottom-panel .side-panel-filler-left {
@@ -2363,12 +2380,21 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 
 
 /************************ Frame Animator *************************/
+.frame-animator-panel {
+    height: 100%;
+}
 .frame-animator-panel .frame-animator-light {
     padding: 5px;
 }
 .frame-animator-panel .frame-animator-light .frame-animator-title {
     font-weight: bold;
     margin-left: 10px;
+}
+.frame-animator-panel .frame-animator-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 .frame-animator-panel .frame-animator-header {
     position: relative;
@@ -2418,7 +2444,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 .frame-animator-panel .frame-animator-canvas {
     position: relative;
     overflow: scroll;
-    height: 200px;
+    flex: 1;
     min-height: 50px;
 }
 table.frame-animator-matrix {
