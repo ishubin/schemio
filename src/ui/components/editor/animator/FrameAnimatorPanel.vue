@@ -913,16 +913,16 @@ export default {
                         animation.frames[frameIdx].frame = dstFrameIdx + 1;
                     } else {
                         // deleting destination frame and changing the frame number on the source
-                        const srcFrameIdx = findFrameIdx(animation, sourceFrame.frame);
-                        if (srcFrameIdx < 0) {
+                        const srcOriginFrameIdx = findFrameIdx(animation, sourceFrame.frame);
+                        if (srcOriginFrameIdx < 0) {
                             return;
                         }
-                        const dstFrameIdx = findFrameIdx(animation, destinationFrame.frame);
-                        if (dstFrameIdx < 0) {
+                        const dstOriginFrameIdx = findFrameIdx(animation, destinationFrame.frame);
+                        if (dstOriginFrameIdx < 0) {
                             return;
                         }
-                        animation.frames[srcFrameIdx].frame = dstFrameIdx + 1;
-                        animation.frames.splice(dstFrameIdx, 1);
+                        animation.frames[srcOriginFrameIdx].frame = dstFrameIdx + 1;
+                        animation.frames.splice(dstOriginFrameIdx, 1);
                     }
                     animation.frames.sort((a, b) => a.frame - b.frame);
                 }
