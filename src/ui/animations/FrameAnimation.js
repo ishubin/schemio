@@ -399,7 +399,9 @@ export class FrameAnimation extends Animation {
         const floorFrame = Math.floor(frame);
         const reachedStopFrame = this.stopFrame > 0 && floorFrame === this.stopFrame;
         if (reachedStopFrame) {
-            this.onFrame(this.stopFrame);
+            if (this.onFrame) {
+                this.onFrame(this.stopFrame);
+            }
             this.toggleFrame(this.stopFrame);
             return false;
         }
