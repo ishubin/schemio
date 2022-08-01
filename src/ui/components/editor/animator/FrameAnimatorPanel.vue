@@ -57,10 +57,10 @@
                 </div>
             </div>
 
-            <div class="frame-animator-canvas">
+            <div ref="frameAnimatorCanvas" class="frame-animator-canvas">
                 <table class="frame-animator-matrix">
                     <thead>
-                        <tr>
+                        <tr :class="{'drop-below': trackDrag.on && trackDrag.dropHead}">
                             <th> </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
@@ -73,14 +73,19 @@
                     </thead>
                     <tbody>
                         <tr v-for="(track, trackIdx) in framesMatrix" 
-                            :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function'}"
+                            class="track-droppable-area"
+                            :data-track-index="trackIdx"
+                            :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function', 'drop-below': trackDrag.on && !trackDrag.dropHead && trackIdx === trackDrag.dstTrackIdx}"
                             :style="{'background-color': track.color}"
                             >
-                            <td class="frame-animator-property" :class="['frame-animator-property-'+track.kind]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1">
+                            <td class="frame-animator-property"
+                                @mousedown="onTrackLabelMouseDown(trackIdx, $event)"
+                                :class="['frame-animator-property-'+track.kind, track.kind === 'item' || track.kind === 'function-header'? 'draggable': null]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1"
+                                >
                                 <div v-if="track.kind === 'item'">
-                                    <span v-if="track.itemName">{{track.itemName}}</span>
-                                    <span v-else>Deleted item</span>
-                                    {{track.property}}
+                                    <span v-if="track.itemName" class="frame-item-name">{{track.itemName}}</span>
+                                    <span v-else class="frame-item-name">Deleted item</span>
+                                    <span class="frame-item-property">{{track.property}}</span>
                                 </div>
                                 <div v-else-if="track.kind === 'sections'">
                                     <i class="fas fa-paragraph"></i> Sections
@@ -134,6 +139,10 @@
         </div>
         <div ref="frameDragPreview" class="frame-drag-preview" :class="{'is-dragging': frameDrag.on}">
             <span class="active-frame" v-if="!frameDrag.source.blank"><i class="fas fa-circle"></i></span>
+        </div>
+
+        <div ref="trackDragPreview" class="track-drag-preview" :class="{'is-dragging': trackDrag.on}">
+            {{trackDrag.text}}
         </div>
 
         <ContextMenu v-if="frameContextMenu.shown"
@@ -371,6 +380,18 @@ export default {
                 destination: {
                     frameIdx: -1
                 }
+            },
+
+            trackDrag: {
+                on: false,
+                srcAnimationId: null,
+                srcTrackIdx: -1,
+                kind: null,
+                text: 'Drag it',
+                dstTrackIdx: -1,
+                dstFuncId: null,
+                dstFuncDropBefore: false,
+                dropHead: false
             },
 
             frameContextMenu: {
@@ -1335,6 +1356,143 @@ export default {
                 this.totalFrames = this.framePlayer.shapeProps.totalFrames;
                 this.updateFramesMatrix();
             }
+        },
+
+        onTrackLabelMouseDown(trackIdx, originalEvent) {
+            const track = this.framesMatrix[trackIdx];
+            if (track.kind === 'sections' || track.kind === 'function') {
+                return;
+            };
+
+            const handleDragOverAndDrop = (event, trackElement) => {
+                const dstTrackIdx = parseInt(trackElement.getAttribute('data-track-index'));
+                const dstTrack = this.framesMatrix[dstTrackIdx];
+
+                if (this.trackDrag.kind === 'item') {
+                    if (dstTrack.kind !== this.trackDrag.kind) {
+                        this.trackDrag.dstTrackIdx = -1;
+                        return;
+                    }
+
+                    const rect = trackElement.getBoundingClientRect();
+                    const dropAbove = event.pageY < rect.top + rect.height / 2;
+                    this.trackDrag.dstTrackIdx = dstTrackIdx;
+                    this.trackDrag.dropHead = false;
+
+                    if (dropAbove) {
+                        if (dstTrackIdx > 0) {
+                            this.trackDrag.dstTrackIdx = dstTrackIdx - 1;
+                        } else {
+                            this.trackDrag.dropHead = true;
+                        }
+                    }
+                } else if (this.trackDrag.kind === 'function-header') {
+                    this.trackDrag.dropHead = false;
+                    if (dstTrack.kind === 'function-header' && dstTrack.id !== track.id) {
+                        this.trackDrag.dstTrackIdx = dstTrackIdx - 1;
+                        this.trackDrag.dstFuncId = dstTrack.id;
+                        this.trackDrag.dstFuncDropBefore = true;
+
+                    } else if (dstTrack.kind === 'function' && dstTrack.id !== track.id) {
+                        this.trackDrag.dstFuncId = dstTrack.id;
+                        this.trackDrag.dstFuncDropBefore = false;
+                        let found = false;
+                        let i = dstTrackIdx + 1;
+                        for (; i < this.framesMatrix.length && !found; i++) {
+                            if (this.framesMatrix[i].kind === 'function-header') {
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            this.trackDrag.dstTrackIdx = i - 2;
+                        } else {
+                            this.trackDrag.dstTrackIdx = this.framesMatrix.length - 1;
+                        }
+                    } else {
+                        this.trackDrag.dstTrackIdx = -1;
+                        this.trackDrag.dstFuncId = null;
+                    }
+                }
+            };
+
+
+            dragAndDropBuilder(originalEvent)
+            .withScrollableElement(this.$refs.frameAnimatorCanvas)
+            .withDraggedElement(this.$refs.trackDragPreview)
+            .withDroppableClass('track-droppable-area')
+            .onDragStart(() => {
+                this.trackDrag.srcTrackIdx = trackIdx;
+                this.trackDrag.kind = track.kind;
+                this.trackDrag.dstFuncId = null;
+                this.trackDrag.on = true;
+                if (track.kind === 'item') {
+                    this.trackDrag.text = track.itemName + ' ' + track.property;
+                } else if (track.kind === 'function-header') {
+                    this.trackDrag.text = track.name;
+                }
+            })
+            .onDragOver(handleDragOverAndDrop)
+            .onDrop((event, trackElement) => {
+                handleDragOverAndDrop(event, trackElement);
+                if (track.kind === 'item') {
+                    if (this.trackDrag.dstTrackIdx < 0) {
+                        return;
+                    }
+                    const dstTrack = this.framesMatrix[this.trackDrag.dstTrackIdx];
+
+                    const originalAnimationIdx = this.findAnimationIndexForTrack(track);
+                    let dstAnimationIdx = this.findAnimationIndexForTrack(dstTrack);
+                    if (originalAnimationIdx >= 0 && dstAnimationIdx >= 0) {
+                        const deletedAnimations = this.framePlayer.shapeProps.animations.splice(originalAnimationIdx, 1);
+                        if (!this.trackDrag.dropHead) {
+                            dstAnimationIdx += 1;
+                        }
+                        this.framePlayer.shapeProps.animations.splice(dstAnimationIdx, 0, deletedAnimations[0]);
+
+                        this.updateFramesMatrix();
+                        this.$forceUpdate();
+                    }
+                } else if (track.kind === 'function-header') {
+                    if (!this.trackDrag.dstFuncId) {
+                        return;
+                    }
+
+                    const funcIds = [];
+                    let dropIdx = -1;
+                    forEach(this.framePlayer.shapeProps.functions, (func, funcId) => {
+                        if (track.id !== funcId) {
+                            funcIds.push(funcId);
+                        }
+                        if (this.trackDrag.dstFuncId === funcId) {
+                            if (this.trackDrag.dstFuncDropBefore) {
+                                dropIdx = funcIds.length - 1;
+                            } else {
+                                dropIdx = funcIds.length;
+                            }
+                        }
+
+                    });
+
+                    if (dropIdx < 0) {
+                        return;
+                    }
+
+                    funcIds.splice(dropIdx, 0, track.id);
+
+                    const newFuncs = {};
+                    funcIds.forEach(id => {
+                        newFuncs[id] = this.framePlayer.shapeProps.functions[id];
+                    });
+
+                    this.framePlayer.shapeProps.functions = newFuncs;
+                    this.updateFramesMatrix();
+                    this.$forceUpdate();
+                }
+            })
+            .onDone(() => {
+                this.trackDrag.on = false;
+            })
+            .build();
         }
     },
 }

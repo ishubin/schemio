@@ -137,6 +137,7 @@ export function dragAndDropBuilder(originalEvent) {
             };
 
             const onMouseUp = (event) => {
+                stopScrolling();
                 try {
                     if (startedDragging) {
                         withDroppableElement(event , element => this.callbacks.onDrop(event, element));

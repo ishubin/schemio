@@ -115,6 +115,10 @@ h5 {
     margin-bottom: 10px;
 }
 
+.draggable {
+    cursor: grab;
+}
+
 .clickable {
     cursor: pointer;
 }
@@ -2492,6 +2496,12 @@ table.frame-animator-matrix tr.track-missing td.frame {
     color: var(--critic-strong);
     text-decoration: line-through;
 }
+table.frame-animator-matrix td.frame-animator-property .frame-item-name {
+    font-weight: bold;
+}
+table.frame-animator-matrix td.frame-animator-property .frame-item-property {
+    font-style: italic;
+}
 table.frame-animator-matrix td.frame-animator-property .frame-property-operations {
     position: absolute;
     display: none;
@@ -2541,6 +2551,10 @@ table.frame-animator-matrix td.frame .empty-frame-number {
 table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--critic-weak-down);
 }
+table.frame-animator-matrix thead tr.drop-below th,
+table.frame-animator-matrix tbody tr.drop-below td {
+    border-bottom: 1px solid var(--accent-strong);
+}
 
 .frame-animator-panel .frame-drag-preview {
     position: fixed;
@@ -2554,10 +2568,25 @@ table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--faint-weak);
     text-align: center;
 }
-
 .frame-animator-panel .frame-drag-preview.is-dragging {
     display: block;
 }
+
+.frame-animator-panel .track-drag-preview {
+    position: fixed;
+    display: none;
+    height: 23px;
+    padding: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    color: var(--base-strong-up);
+    border: 1px solid var(--faint-weak-down);
+    background: var(--faint-weak);
+}
+.frame-animator-panel .track-drag-preview.is-dragging {
+    display: inline-block;
+}
+
 
 ul.toggle-menu {
     display: inline;
