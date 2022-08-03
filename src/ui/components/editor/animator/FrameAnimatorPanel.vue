@@ -993,7 +993,13 @@ export default {
             event.preventDefault();
             const track = this.framesMatrix[trackIdx];
             const frame = track.frames[frameIdx];
-            const options = [];
+            const options = [{
+                name: 'Insert empty frames',
+                iconClass: 'fa-solid fa-plus',
+                clicked: () => {
+                    this.insertEmptyFramesAtFrame(frameIdx + 1);
+                }
+            }];
 
             if (this.framePlayer.shapeProps.totalFrames > 1) {
                 options.push({
@@ -1100,6 +1106,29 @@ export default {
             });
 
             this.framePlayer.shapeProps.totalFrames -= 1;
+            this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+            this.updateFramesMatrix();
+            EventBus.emitSchemeChangeCommited();
+        },
+
+        insertEmptyFramesAtFrame(frameNumber) {
+            // this code simulates insertion of empty frames.
+            // since we don't really store empty frames in shapeProps
+            // we just need to increase frames that are >= than given frame number
+            const insertEmptyFrame = (frames) => {
+                for (let i = 0; i < frames.length; i++) {
+                    if (frames[i].frame >= frameNumber) {
+                        frames[i].frame += 1;
+                    }
+                }
+            };
+
+            insertEmptyFrame(this.framePlayer.shapeProps.sections);
+            this.framePlayer.shapeProps.animations.forEach(animation => {
+                insertEmptyFrame(animation.frames);
+            });
+
+            this.framePlayer.shapeProps.totalFrames += 1;
             this.totalFrames = this.framePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
             EventBus.emitSchemeChangeCommited();
