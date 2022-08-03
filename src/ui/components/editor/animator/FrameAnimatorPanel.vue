@@ -995,6 +995,16 @@ export default {
             const frame = track.frames[frameIdx];
             const options = [];
 
+            if (this.framePlayer.shapeProps.totalFrames > 1) {
+                options.push({
+                    name: 'Delete frame for all tracks',
+                    iconClass: 'fas fa-trash',
+                    clicked: () => {
+                        this.deleteFrames(frameIdx + 1);
+                    }
+                });
+            }
+
             if (track.kind !== 'function') {
                 options.push({
                     name: 'Record current value',
@@ -1006,8 +1016,8 @@ export default {
             }
             if (!frame.blank) {
                 options.push({
-                    name: 'Delete Frame',
-                    iconClass: 'fas fa-trash',
+                    name: 'Clear frame',
+                    iconClass: 'fa-solid fa-broom',
                     clicked: () => {
                         if (track.kind === 'sections') {
                             const sections = this.framePlayer.shapeProps.sections;
@@ -1071,6 +1081,28 @@ export default {
             this.frameContextMenu.mouseX = event.pageX;
             this.frameContextMenu.mouseY = event.pageY;
             this.frameContextMenu.shown = true;
+        },
+
+        deleteFrames(frameNumber) {
+            const deleteFrame = (frames) => {
+                for (let i = frames.length - 1; i >= 0; i -= 1) {
+                    if (frames[i].frame > frameNumber) {
+                        frames[i].frame -= 1;
+                    } else if (frames[i].frame === frameNumber) {
+                        frames.splice(i, 1);
+                    }
+                }
+            };
+
+            deleteFrame(this.framePlayer.shapeProps.sections);
+            this.framePlayer.shapeProps.animations.forEach(animation => {
+                deleteFrame(animation.frames);
+            });
+
+            this.framePlayer.shapeProps.totalFrames -= 1;
+            this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+            this.updateFramesMatrix();
+            EventBus.emitSchemeChangeCommited();
         },
 
         onContextMenuOptionClick(option) {
