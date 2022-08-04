@@ -384,6 +384,11 @@ export class DragScreenState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
+
         if (this.originalClickPoint) {
             this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
             this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
