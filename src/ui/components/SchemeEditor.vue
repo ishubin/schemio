@@ -437,6 +437,7 @@ import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
 import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
@@ -1220,20 +1221,22 @@ export default {
             if (this.mode === 'edit') {
                 if (this.schemeContainer.selectedItems.length > 0) {
                     this.zoomToItems(this.schemeContainer.selectedItems);
-                    return;
+                } else {
+                    this.zoomToItems(this.schemeContainer.getItems());
                 }
+            } else if (this.mode === 'view') {
+                // Doing a reindex only in view mode, since the state of items could have been changed
+                // due to 'init' events in items behavior.
+                this.interactiveSchemeContainer.reindexItems();
+                this.zoomToItems(this.interactiveSchemeContainer.getItems());
             }
-
-            this.zoomToItems(this.schemeContainer.getItems());
         },
 
         zoomToItems(items) {
-            let area = null;
-            if (items.length > 0) {
-                area = this.calculateZoomingAreaForItems(items);
-            } else {
-                area = this.calculateZoomingAreaForItems(this.schemeContainer.getItems());
+            if (items.length === 0) {
+                return;
             }
+            const area = this.calculateZoomingAreaForItems(items);
             if (area) {
                 EventBus.emitBringToViewAnimated(area);
             }
@@ -1242,14 +1245,18 @@ export default {
         calculateZoomingAreaForItems(items) {
             if (this.mode === 'view') {
                 //filtering HUD items out as they are always shown in the viewport  in view mode
-                items = this.schemeContainer.filterNonHUDItems(items);
+                items = this.interactiveSchemeContainer.filterNonHUDItems(items);
             }
 
             if (!items || items.length === 0) {
-                return;
+                return null;
             }
 
-            return this.schemeContainer.getBoundingBoxOfItems(items);
+            const filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
+            if (!filteredItems) {
+                return null;
+            }
+            return this.schemeContainer.getBoundingBoxOfItems(filteredItems);
         },
 
         onClickedAddItemLink(item) {
