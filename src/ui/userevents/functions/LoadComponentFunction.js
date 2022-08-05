@@ -5,25 +5,31 @@
 export default {
     name: 'Load component',
 
-    description: 'Triggers loading of component. Applicaple to "component" shapes only',
+    description: 'Triggers loading of component. Applicable to "component" shapes only',
     args: { },
 
     supportedShapes: ['component'],
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        if (!item || !item.shape === 'component') {
-            resultCallback();
-            return;
-        }
+        // Have to use this setTimeout trick to make sure that any previous changes to the item get rendered first
+        // e.g. it is common to hide component and show it right before loading it.
+        // when component item is hidden its vue component does is not yet loaded and does not register handlers in EventBus
+        // If user wants the progress bar to be shown in the component which was previously hidden, this is the only way to go
+        setTimeout(() => {
+            if (!item || !item.shape === 'component') {
+                resultCallback();
+                return;
+            }
 
-        const eventBus = schemeContainer.getEventBus();
-        if (!eventBus) {
-            resultCallback();
-            return;
-        }
+            const eventBus = schemeContainer.getEventBus();
+            if (!eventBus) {
+                resultCallback();
+                return;
+            }
 
-        eventBus.emitComponentLoadRequested(item);
-        resultCallback();
+            eventBus.emitComponentLoadRequested(item);
+            resultCallback();
+        });
     }
 };
 
