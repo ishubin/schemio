@@ -1252,9 +1252,12 @@ export default {
                 return null;
             }
 
-            const filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
-            if (!filteredItems) {
-                return null;
+            let filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
+
+            if (filteredItems.length === 0 && items.length > 0) {
+                // this check is needed because in edit mode a user might select an item that is not visible
+                // (e.g. in item selector componnent) and click 'zoom to it'
+                filteredItems = items;
             }
             return this.schemeContainer.getBoundingBoxOfItems(filteredItems);
         },
@@ -1946,6 +1949,9 @@ export default {
         onComponentLoadRequested(item) {
             if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
                 return;
+            }
+            if (item._childItems && item._childItems.length > 0) {
+                item._childItems = [];
             }
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
             .then(schemeDetails => {
