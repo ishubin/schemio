@@ -2172,6 +2172,18 @@ ul.button-group > li.disabled > .icon-button:hover,
 .item-selector .item-selector-drag-preview .preview-2 {
     opacity: 0.3;
 }
+
+.item-selector .item-selector-resize-dragger {
+    cursor: pointer;
+    height: 7px;
+    background: var(--faint-weak-down);
+    border-bottom: 1px solid var(--faint-weak);
+    user-select: none;
+}
+.item-selector .item-selector-resize-dragger:hover {
+    background: var(--faint-weak-down-down);
+}
+
 /****************** Language Markup ***************/
 pre.syntax-markup {
     padding: 30px 10px 10px 10px;

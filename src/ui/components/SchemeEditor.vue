@@ -252,7 +252,7 @@
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
-                                    <item-selector :scheme-container="schemeContainer" :max-height="200" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
+                                    <item-selector :scheme-container="schemeContainer" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
                                 </panel>
 
                                 <item-properties v-if="schemeContainer.selectedItems.length > 0"

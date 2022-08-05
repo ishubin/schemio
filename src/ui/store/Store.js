@@ -4,7 +4,6 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import forEach from 'lodash/forEach';
-import find from 'lodash/find';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';

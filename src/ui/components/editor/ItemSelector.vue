@@ -12,7 +12,7 @@
         <div class="item-selector-top-panel">
             <input class="textfield" v-model="searchKeyword" type="text" placeholder="Search"/>
         </div>
-        <div ref="itemSelectorContainer" class="item-selector-items" :style="{'max-height': `${maxHeight}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
+        <div ref="itemSelectorContainer" class="item-selector-items" :style="{'height': `${height}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
             <div v-for="(item, idx) in filteredItems"
                 class="item-selector-item-row-container item-droppable-area"
                 :key="item.id"
@@ -81,6 +81,8 @@
                 <span :class="`preview-${itemIdx}`"><i class="fas fa-cube"></i> {{item.name}}</span>
             </div>
         </div>
+
+        <div class="item-selector-resize-dragger" @mousedown="onItemSelectorResizeDraggerMouseDown"> </div>
     </div>
 </template>
 
@@ -91,6 +93,9 @@ import EventBus from './EventBus';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';
+import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage';
+
+const settingsStorage = createSettingStorageFromLocalStorage('item-selector', 5);
 
 
 function visitItems(items, parentItem, callback) {
@@ -105,7 +110,7 @@ function visitItems(items, parentItem, callback) {
 }
 
 export default {
-    props: ['schemeContainer', 'maxHeight', 'minHeight'],
+    props: ['schemeContainer', 'minHeight'],
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
@@ -119,8 +124,10 @@ export default {
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
     },
     data() {
+        const height = parseInt(settingsStorage.get('height', 0));
         return {
             searchKeyword: '',
+            height: myMath.clamp(height, this.minHeight, 1000),
             dragging: {
                 // the items that are dragged,
                 items: [],
@@ -433,6 +440,20 @@ export default {
         filterItemsByKeyword(keyword) {
             const loweredKeyword = keyword.toLowerCase();
             return filter(this.schemeContainer.getItems(), item => (item.name || '').toLowerCase().indexOf(loweredKeyword) >= 0);
+        },
+
+        onItemSelectorResizeDraggerMouseDown(originalEvent) {
+            dragAndDropBuilder(originalEvent)
+            .onDrag(event => {
+                const rect = this.$refs.itemSelectorContainer.getBoundingClientRect();
+
+                const overflow = event.pageY - rect.bottom;
+
+                const newHeight = myMath.clamp(this.height + overflow, this.minHeight, window.innerHeight - 140);
+                this.height = newHeight;
+                settingsStorage.save('height', this.height);
+            })
+            .build();
         }
     },
 
