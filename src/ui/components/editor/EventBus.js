@@ -107,7 +107,9 @@ const EventBus = new Vue({
             FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated',
 
             // used for each frame_player item to initialize it's callbacks for its own frame animation
-            FRAME_PLAYER_PREPARED: 'frame-player-prepared'
+            FRAME_PLAYER_PREPARED: 'frame-player-prepared',
+
+            CLICKABLE_MARKERS_TOGGLED: 'clickable-markers-toggled'
         };
     },
     methods: {

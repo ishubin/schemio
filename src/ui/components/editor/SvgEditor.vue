@@ -236,6 +236,7 @@ export default {
         EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
         EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
+        EventBus.$on(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
     },
     mounted() {
         this.updateSvgSize();
@@ -267,6 +268,7 @@ export default {
         EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
         EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
         EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
+        EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -458,24 +460,42 @@ export default {
         buildClickableItemMarkers() {
             const markers = [];
 
-            forEach(this.schemeContainer.worldItems, worldItem => {
-                traverseItems(worldItem, item => {
-                    const hasItemLinks = item.links && item.links.length > 0;
-                    const hasItemClickEvents = find(item.behavior.events, event => event.event === Events.standardEvents.clicked.id);
-                    
-                    if (hasItemDescription(item) || hasItemLinks || hasItemClickEvents) {
-                        const box = this.schemeContainer.getBoundingBoxOfItems([item]);
-                        markers.push({
-                            x: box.x + box.w,
-                            y: box.y,
-                            itemId: item.id,
-                            visible: item.meta.calculatedVisibility
-                        });
+            const traverseVisibleItems = (itemArray, callback) => {
+                if (!itemArray || !Array.isArray(itemArray)) {
+                    return;
+                }
+                itemArray.forEach(item => {
+                    if (item.visible && item.opacity > 0 && item.selfOpacity > 0) {
+                        callback(item);
+
+                        traverseVisibleItems(item.childItems, callback);
+                        traverseVisibleItems(item._childItems, callback);
                     }
                 });
-            });
+            };
 
+            traverseVisibleItems(this.schemeContainer.worldItems, item => {
+                const hasItemLinks = item.links && item.links.length > 0;
+                const hasItemClickEvents = find(item.behavior.events, event => event.event === Events.standardEvents.clicked.id);
+
+                if (hasItemDescription(item) || hasItemLinks || hasItemClickEvents) {
+                    const box = this.schemeContainer.getBoundingBoxOfItems([item]);
+                    markers.push({
+                        x: box.x + box.w,
+                        y: box.y,
+                        itemId: item.id,
+                        visible: true
+                    });
+                }
+            });
             this.clickableItemMarkers = markers;
+        },
+
+        updateClickableMarkers() {
+            if (this.mode === 'view') {
+                this.buildClickableItemMarkers();
+                this.$forceUpdate();
+            }
         },
 
         highlightItems(itemIds, options) {
