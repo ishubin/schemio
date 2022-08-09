@@ -28,6 +28,7 @@
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
+            @export-link-requested="exportAsLink"
             @apply-patch-requested="triggerApplyPatchUpload"
             @duplicate-diagram-requested="showDuplicateDiagramModal()"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
@@ -309,6 +310,8 @@
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
         <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
+        <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="schemeContainer.scheme" @close="exportAsLinkModalShown = false"/>
+
         <import-scheme-modal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importScheme"/>
@@ -431,6 +434,7 @@ import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
+import ExportAsLinkModal from './editor/ExportAsLinkModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import ImportSchemeModal from './editor/ImportSchemeModal.vue';
 import Modal from './Modal.vue';
@@ -555,6 +559,7 @@ export default {
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
         'import-scheme-modal': ImportSchemeModal,
+        'export-as-link-modal': ExportAsLinkModal
     },
 
     props: {
@@ -734,6 +739,7 @@ export default {
 
             exportHTMLModalShown: false,
             exportJSONModalShown: false,
+            exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
                 item: null
@@ -1683,6 +1689,10 @@ export default {
             this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
         },
 
+        exportAsLink() {
+            this.exportAsLinkModalShown = true;
+        },
+
         /**
          * Triggered when any item got selected or deselected
          */
@@ -2615,9 +2625,10 @@ export default {
 
     watch: {
         mode(value) {
-            this.hasher.changeURLHash({
-                m: value
-            });
+            const pageParams = this.hasher.decodeURLHash(window.location.hash);
+            pageParams.m = value;
+            this.hasher.changeURLHash(pageParams);
+
             if (value === 'view') {
                 this.switchToViewMode();
             } else {

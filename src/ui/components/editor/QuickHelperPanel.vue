@@ -290,6 +290,7 @@ export default {
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
             {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},
+            {name: 'Export as link',    callback: eventCallback('export-link-requested'), iconClass: 'fas fa-file-export'},
         ];
 
         if (this.$store.state.apiClient && this.$store.state.apiClient.getExportHTMLResources) {

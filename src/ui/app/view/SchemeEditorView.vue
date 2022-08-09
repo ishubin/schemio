@@ -34,8 +34,8 @@
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
         <SchemioEditorApp v-else-if="apiClientType === 'offline'"
-            key="offline-scheme"
-            :scheme="null"
+            :key="scheme ? 'offline-scheme' : 'offline-scheme-empty'"
+            :scheme="scheme"
             :editAllowed="true"
             :isStaticEditor="false"
             :userStylesEnabled="false"
@@ -64,6 +64,8 @@ import CreatePatchModal from '../../components/patch/CreatePatchModal.vue';
 import utils from '../../utils';
 import EventBus from '../../components/editor/EventBus';
 import shortid from 'shortid';
+import { createHasher } from '../../url/hasher';
+import JSZip from 'jszip';
 
 
 export default {
@@ -106,6 +108,8 @@ export default {
                     this.errorMessage = 'Oops, something went wrong';
                 }
             });
+        } else {
+            this.loadSchemeFromLink();
         }
     },
     beforeDestroy() {
@@ -195,6 +199,32 @@ export default {
         onPatchApplied(patchedScheme) {
             this.scheme = patchedScheme;
             this.originKeyReloadHash = shortid.generate();
+        },
+
+        loadSchemeFromLink() {
+            const mode = this.$router ? this.$router.mode : 'history';
+            const chars = {'.': '+', '_': '/', '-': '='};
+
+            const pageParams = createHasher(mode).decodeURLHash(window.location.hash);
+
+            if (pageParams.doc) {
+                const content = pageParams.doc.replace(/[\._\-]/g, m => chars[m]);
+                JSZip.loadAsync(content, {base64: true})
+                .then(zip => {
+                    if (zip.files['doc.json']) {
+                        return zip.files['doc.json'].async('text');
+                    } else {
+                        throw new Error('Missing doc.json file');
+                    }
+                })
+                .then(text => {
+                    this.scheme = JSON.parse(text)
+                })
+                .catch(err => {
+                    console.log(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load document from URL', 'link-loader');
+                });
+            }
         }
     },
     computed: {

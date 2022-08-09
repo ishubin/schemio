@@ -38,7 +38,13 @@ export default {
                 zip.file('index.html', resources.html);
                 zip.file('schemio-standalone.js', resources.js);
 
-                zip.generateAsync({type: 'base64'})
+                zip.generateAsync({
+                    type: 'base64',
+                    compression: 'DEFLATE',
+                    compressionOptions: {
+                        level: 9
+                    }
+                })
                 .then(content => {
                     this.saveAs('scheme.zip', content);
                     this.$emit('close');
