@@ -66,10 +66,10 @@ const defaultTextSlotProps = {
     fontSize     : 14,
     whiteSpace   : 'normal',
     font         : getDefaultFont(),
-    paddingLeft  : 10,
-    paddingRight : 10,
-    paddingTop   : 10,
-    paddingBottom: 10
+    paddingLeft  : 0,
+    paddingRight : 0,
+    paddingTop   : 0,
+    paddingBottom: 0
 };
 
 
