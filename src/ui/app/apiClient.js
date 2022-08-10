@@ -623,6 +623,12 @@ function createGoogleDriveClient() {
     });
 }
 
+function createOfflineApiClient() {
+    return {
+        getExportHTMLResources
+    };
+}
+
 
 export function createApiClientForType(apiClientType) {
     if (apiClientType === 'fs') {
@@ -631,6 +637,8 @@ export function createApiClientForType(apiClientType) {
         return Promise.resolve(createStaticClient());
     } else if (apiClientType === 'drive') {
         return createGoogleDriveClient();
+    } else if (apiClientType === 'offline') {
+        return Promise.resolve(createOfflineApiClient());
     } else {
         return Promise.reject(new Error('Unknown api client type: ' + apiClientType));
     }

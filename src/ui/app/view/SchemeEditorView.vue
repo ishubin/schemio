@@ -80,17 +80,25 @@ export default {
     beforeMount() {
         EventBus.$on(EventBus.SCHEME_PATCH_REQUESTED, this.onSchemePatchRequested);
 
-        if (this.apiClientType !== 'offline') {
-            this.isLoading = true;
-            if (this.apiClientType === 'static') {
-                this.isStaticEditor = true;
-            }
-            createApiClientForType(this.apiClientType)
-            .then(apiClient => {
-                this.$store.dispatch('setApiClient', apiClient);
-                this.apiClient = apiClient;
-                return apiClient.getScheme(this.schemeId);
-            })
+        this.isLoading = true;
+        if (this.apiClientType === 'static') {
+            this.isStaticEditor = true;
+        }
+
+        let chain = createApiClientForType(this.apiClientType)
+        .then(apiClient => {
+            this.$store.dispatch('setApiClient', apiClient);
+            this.apiClient = apiClient;
+            return apiClient;
+        });
+
+        if (this.apiClientType === 'offline') {
+            chain = chain.then(apiClient => {
+                this.loadSchemeFromLink();
+                this.isLoading = false;
+            });
+        } else {
+            chain = chain.then(apiClient => apiClient.getScheme(this.schemeId))
             .then(schemeDetails => {
                 this.isLoading = false;
                 this.path = schemeDetails.folderPath;
@@ -98,19 +106,18 @@ export default {
                 this.scheme = schemeDetails.scheme;
                 this.originScheme = utils.clone(schemeDetails.scheme);
                 this.editAllowed = !schemeDetails.viewOnly;
-            })
-            .catch(err => {
-                this.isLoading = false;
-                if (err.response && err.response.status === 404) {
-                    this.is404 = true;
-                } else {
-                    console.error(err);
-                    this.errorMessage = 'Oops, something went wrong';
-                }
             });
-        } else {
-            this.loadSchemeFromLink();
         }
+
+        chain.catch(err => {
+            this.isLoading = false;
+            if (err.response && err.response.status === 404) {
+                this.is404 = true;
+            } else {
+                console.error(err);
+                this.errorMessage = 'Oops, something went wrong';
+            }
+        });
     },
     beforeDestroy() {
         EventBus.$off(EventBus.SCHEME_PATCH_REQUESTED, this.onSchemePatchRequested);

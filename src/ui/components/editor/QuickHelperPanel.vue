@@ -291,11 +291,8 @@ export default {
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
             {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},
             {name: 'Export as link',    callback: eventCallback('export-link-requested'), iconClass: 'fas fa-file-export'},
+            {name: 'Export as HTML',    callback: eventCallback('export-html-requested'), iconClass: 'fas fa-file-export'}
         ];
-
-        if (this.$store.state.apiClient && this.$store.state.apiClient.getExportHTMLResources) {
-            defaultMenuDropDownOptions.push({name: 'Export as HTML', event: 'export-html-requested', iconClass: 'fas fa-file-export'});
-        }
 
         return {
             knownModes: ['view', 'edit'],
