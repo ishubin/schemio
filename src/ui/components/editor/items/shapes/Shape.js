@@ -152,6 +152,9 @@ function enrichShape(shapeComponent, shapeName) {
     if (shapeConfig.args) {
         forEach(shapeConfig.args, (arg, argName) => {
             args[argName] = utils.clone(arg);
+            if (arg.onUpdate) {
+                args[argName].onUpdate = arg.onUpdate;
+            }
         });
     }
 
@@ -168,7 +171,8 @@ function enrichShape(shapeComponent, shapeName) {
         controlPoints           : shapeConfig.controlPoints || null,
         getPins                 : shapeConfig.getPins || defaultGetPins,
         shapeEvents             : {
-            beforeCreate        : shapeConfig.beforeCreate
+            beforeCreate        : shapeConfig.beforeCreate,
+            mounted             : shapeConfig.mounted
         },
 
         // used for generating item snapers which are used for snapping dragged item to other items

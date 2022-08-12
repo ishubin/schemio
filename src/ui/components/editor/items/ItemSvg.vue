@@ -41,8 +41,12 @@
 
             <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
                 <foreignObject
+                    ref="textSlots"
+                    :data-text-slot-name="slot.name"
+                    :id="`item-text-slot-${item.id}-${slot.name}`"
                     :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
                     <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+                        :class="slot.cssClass"
                         :style="slot.style"
                         :data-item-id="item.id"
                         >
@@ -202,6 +206,13 @@ export default {
         EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+
+        const shape = Shape.find(this.item.shape);
+        if (shape.shapeEvents.mounted) {
+            shape.shapeEvents.mounted(this.item, {
+                textSlots: this.$refs.textSlots
+            });
+        }
     },
 
     beforeDestroy() {
@@ -339,6 +350,9 @@ export default {
                 if (itemTextSlot) {
                     slot.text = itemTextSlot.text || '';
                     slot.sanitizedText = htmlSanitize(slot.text);
+                    if (!slot.cssClass) {
+                        slot.cssClass = '';
+                    }
                     slot.style = generateTextStyle(itemTextSlot);
                     slot.style.width = `${slot.area.w}px`;
                     slot.style.height = `${slot.area.h}px`;
@@ -349,7 +363,7 @@ export default {
             return filteredSlots;
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area) {
+        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
             if (item.id === this.item.id) {
                 this.hiddenTextSlotName = slotName;
             }

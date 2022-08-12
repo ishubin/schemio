@@ -311,13 +311,14 @@ export default {
         },
 
         onShapePropChange(name, type, value) {
-            // handling onInput shape arg callback (used in swim lane item)
+            // handling onUpdate shape arg callback (used in swim lane item)
             const shape = Shape.find(this.item.shape);
             if (shape && shape.args[name]) {
                 const argConfig = shape.args[name];
-                if (argConfig.onInput) {
+                if (argConfig.onUpdate) {
                     const previousValue = this.item.shapeProps[name];
-                    argConfig.onInput(this.item, value, previousValue);
+                    this.item.shapeProps[name] = value;
+                    argConfig.onUpdate(this.item, value, previousValue);
                 }
             }
 

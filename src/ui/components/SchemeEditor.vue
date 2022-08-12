@@ -148,6 +148,7 @@
                     :area="inPlaceTextEditor.area"
                     :css-style="inPlaceTextEditor.style"
                     :text="inPlaceTextEditor.text"
+                    :markup-disabled="inPlaceTextEditor.markupDisabled"
                     :creating-new-item="inPlaceTextEditor.creatingNewItem"
                     :scalingVector="inPlaceTextEditor.scalingVector"
                     :zoom="schemeContainer.screenTransform.scale"
@@ -682,6 +683,7 @@ export default {
             inPlaceTextEditor: {
                 item: null,
                 slotName: '',
+                markupDisabled: false,
                 shown: false,
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
@@ -1065,7 +1067,7 @@ export default {
             }
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
+        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
             const itemTextSlot = item.textSlots[slotName];
             const p0 = worldPointOnItem(area.x, area.y, item);
@@ -1084,6 +1086,7 @@ export default {
             this.inPlaceTextEditor.slotName = slotName;
             this.inPlaceTextEditor.item = item;
             this.inPlaceTextEditor.text = itemTextSlot.text;
+            this.inPlaceTextEditor.markupDisabled = markupDisabled;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
@@ -1139,6 +1142,7 @@ export default {
             }
             this.inPlaceTextEditor.shown = false;
             this.inPlaceTextEditor.item = null;
+            this.inPlaceTextEditor.markupDisabled = false;
             this.inPlaceTextEditor.slotName = null;
         },
 
