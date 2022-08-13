@@ -26,7 +26,7 @@ export default class StateCreateItem extends State {
 
         const shape = Shape.find(item.shape);
         if (shape && shape.shapeEvents && shape.shapeEvents.beforeCreate) {
-            shape.shapeEvents.beforeCreate(item);
+            shape.shapeEvents.beforeCreate(this.store, item);
         }
     }
 

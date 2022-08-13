@@ -37,6 +37,8 @@ export default {
                 zip.file('schemio-standalone.css', resources.css);
                 zip.file('index.html', resources.html);
                 zip.file('schemio-standalone.js', resources.js);
+                zip.file('syntax-highlight-worker.js', resources.syntaxHighlightWorker);
+                zip.file('syntax-highlight.css', resources.syntaxHighlightCSS);
 
                 zip.generateAsync({
                     type: 'base64',

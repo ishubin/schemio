@@ -139,7 +139,7 @@ function getTextSlots(item) {
 }
 
 
-function onColumnNumberUpdate(item, columns, previousColumns) {
+function onColumnNumberUpdate($store, item, columns, previousColumns) {
     const columnWidths = [];
     let totalColumnSum = 0;
     let W = swimLaneWidth(item);
@@ -248,7 +248,7 @@ export default {
         getTextSlots,
 
         // triggered when user initiates creation of this item
-        beforeCreate(item) {
+        beforeCreate(store, item) {
             const columns = myMath.clamp(item.shapeProps.columns, 1, 12);
             const columnRatio = 100 / columns;
 

@@ -31,7 +31,7 @@ const computePath = (item) => {
 const darkBackground = 'rgba(40, 40, 40, 1.0)';
 const lightBackground = 'rgba(240, 240, 240, 1.0)';
 
-function onThemeUpdate(item, value, previousValue) {
+function onThemeUpdate($store, item, value, previousValue) {
     if (value === 'dark') {
         item.shapeProps.fill = {type: 'solid', color: darkBackground};
         item.textSlots.title.color = 'rgba(245, 245, 245, 1.0)';
@@ -44,19 +44,23 @@ function onThemeUpdate(item, value, previousValue) {
     EventBus.emitItemChanged(item.id);
 }
 
-function onLangUpdate(item, value, previousValue) {
+function onLangUpdate($store, item, value, previousValue) {
     const foreignObject = document.getElementById(`item-text-slot-${item.id}-body`);
     if (foreignObject) {
-        highlightItemTextSlot(item, foreignObject);
+        highlightItemTextSlot($store, item, foreignObject);
     }
 }
 
-function highlightItemTextSlot(item, foreignObject) {
+function highlightItemTextSlot($store, item, foreignObject) {
     const language = langMapping[item.shapeProps.lang];
     if (!language) {
         return;
     }
-    const worker = new Worker('/assets/code-highlight-worker.js');
+    let assetsPath = $store.state.assetsPath;
+    if (assetsPath === '/') {
+        assetsPath = '';
+    }
+    const worker = new Worker(`${assetsPath}/syntax-highlight-worker.js`);
     worker.onmessage = (event) => {
         const itemTextElement = foreignObject.querySelector('.item-text-element');
         if (itemTextElement) {
@@ -179,11 +183,11 @@ export default {
             headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0},
         },
 
-        mounted(item, elements) {
+        mounted($store, item, elements) {
             if (Array.isArray(elements.textSlots)) {
                 elements.textSlots.forEach(foreignObject => {
                     if (foreignObject.getAttribute('data-text-slot-name') === 'body') {
-                        highlightItemTextSlot(item, foreignObject);
+                        highlightItemTextSlot($store, item, foreignObject);
                     }
                 });
             }

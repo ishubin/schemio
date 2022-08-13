@@ -209,7 +209,7 @@ export default {
 
         const shape = Shape.find(this.item.shape);
         if (shape.shapeEvents.mounted) {
-            shape.shapeEvents.mounted(this.item, {
+            shape.shapeEvents.mounted(this.$store, this.item, {
                 textSlots: this.$refs.textSlots
             });
         }

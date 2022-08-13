@@ -318,7 +318,7 @@ export default {
                 if (argConfig.onUpdate) {
                     const previousValue = this.item.shapeProps[name];
                     this.item.shapeProps[name] = value;
-                    argConfig.onUpdate(this.item, value, previousValue);
+                    argConfig.onUpdate(this.$store, this.item, value, previousValue);
                 }
             }
 
