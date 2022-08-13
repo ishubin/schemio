@@ -168,10 +168,11 @@ const EventBus = new Vue({
          * @param {Item} item 
          * @param {string} slotName 
          * @param {Area} area - Area of a text slot and not of an item
+         * @param {Boolean} markupDisabled - true if HTML markup is disabled. This means that a simple textarea is going to be used for text editing
          * @param {Boolean} creatingNewItem - true if it is triggered for a new item (e.g. double clicking void)
          */
-        emitItemTextSlotEditTriggered(item, slotName, area, creatingNewItem) {
-            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, area, creatingNewItem);
+        emitItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
+            this.$emit(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, item, slotName, area, markupDisabled, creatingNewItem);
         },
 
         emitItemTextSlotEditCanceled(item, slotName) {

@@ -1,0 +1,26 @@
+/****************** Language Markup ***************/
+
+.syntax-theme-dark .hljs-strong,.syntax-theme-dark .hljs-emphasis{color:#a8a8a2}
+.syntax-theme-dark .hljs-bullet,.syntax-theme-dark .hljs-quote,.syntax-theme-dark .hljs-link,.syntax-theme-dark .hljs-number,.syntax-theme-dark .hljs-regexp,.syntax-theme-dark .hljs-literal{color:#6896ba}
+.syntax-theme-dark .hljs-code,.syntax-theme-dark .hljs-selector-class{color:#a6e22e}
+.syntax-theme-dark .hljs-emphasis{font-style:italic}
+.syntax-theme-dark .hljs-keyword,.syntax-theme-dark .hljs-selector-tag,.syntax-theme-dark .hljs-section,.syntax-theme-dark .hljs-attribute,.syntax-theme-dark .hljs-name,.syntax-theme-dark .hljs-variable{color:#cb7832}
+.syntax-theme-dark .hljs-params{color:#bdc791}
+.syntax-theme-dark .hljs-string{color:#5a8840}
+.syntax-theme-dark .hljs-subst,.syntax-theme-dark .hljs-type,.syntax-theme-dark .hljs-built_in,.syntax-theme-dark .hljs-builtin-name,.syntax-theme-dark .hljs-symbol,.syntax-theme-dark .hljs-selector-id,.syntax-theme-dark .hljs-selector-attr,
+.syntax-theme-dark .hljs-selector-pseudo,.syntax-theme-dark .hljs-template-tag,.syntax-theme-dark .hljs-template-variable,.syntax-theme-dark .hljs-addition{color:#e0c46c}
+.syntax-theme-dark .hljs-comment,.syntax-theme-dark .hljs-deletion,.syntax-theme-dark .hljs-meta{color:#7f7f7f}
+
+
+.syntax-theme-light .hljs-comment,.syntax-theme-light .hljs-quote {color:#655f6d}
+.syntax-theme-light .hljs-variable,.syntax-theme-light .hljs-template-variable,.syntax-theme-light .hljs-attribute,.syntax-theme-light .hljs-tag,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-regexp,.syntax-theme-light .hljs-link,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-selector-id,.syntax-theme-light .hljs-selector-class{color:#be4678}
+.syntax-theme-light .hljs-number,.syntax-theme-light .hljs-meta,.syntax-theme-light .hljs-built_in,.syntax-theme-light .hljs-builtin-name,.syntax-theme-light .hljs-literal,.syntax-theme-light .hljs-type,.syntax-theme-light .hljs-params{color:#aa573c}
+.syntax-theme-light .hljs-string,.syntax-theme-light .hljs-symbol,.syntax-theme-light .hljs-bullet{color:#2a9292}
+.syntax-theme-light .hljs-title,.syntax-theme-light .hljs-section{color:#576ddb}
+.syntax-theme-light .hljs-keyword,.syntax-theme-light .hljs-selector-tag{color:#955ae7}
+.syntax-theme-light .hljs-deletion,.syntax-theme-light .hljs-addition{color:#19171c;display:inline-block;width:100%}
+.syntax-theme-light .hljs-deletion{background-color:#be4678}
+.syntax-theme-light .hljs-addition{background-color:#2a9292}
+.syntax-theme-light .hljs-emphasis{font-style:italic}
+.syntax-theme-light .hljs-strong{font-weight:bold}
+

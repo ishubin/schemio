@@ -811,6 +811,12 @@ ul.pagination li a.current {
     padding: 0;
 }
 
+textarea.in-place-text-editor {
+    border: none;
+    background: none;
+    outline: none;
+}
+
 /*************** Item marker ********************/
 
 .clickable-item-marker {
@@ -2183,18 +2189,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 .item-selector .item-selector-resize-dragger:hover {
     background: var(--faint-weak-down-down);
 }
-
-/****************** Language Markup ***************/
-pre.syntax-markup {
-    padding: 30px 10px 10px 10px;
-}
-pre.syntax-markup code {
-    padding: 0 !important;
-}
-pre.syntax-markup.syntax-theme-dark {
-    color: var(--faint-strong-up);
-}
-
 
 /************** Shape Styles Preview ***************/
 ul.shape-styles-preview {

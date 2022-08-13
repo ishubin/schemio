@@ -111,7 +111,7 @@ export default {
         onItemChanged() {
             this.linkStyle = this.createLinkStyle();
         },
-        onItemTextSlotEditTriggered(item, slotName, area) {
+        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
             if (item.id === this.item.id) {
                 this.hideTextSlot = true;
             }

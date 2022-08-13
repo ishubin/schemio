@@ -2,10 +2,13 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="in-place-edit-editor-wrapper"
-        :style="cssStyle2"
-        >
-        <div ref="editor" v-if="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
+    <div class="in-place-edit-editor-wrapper" :style="cssStyle2">
+        <textarea v-if="markupDisabled" ref="textarea" class="in-place-text-editor" data-type="item-in-place-text-editor"
+            :value="text"
+            :style="editorCssStyle"
+            @keydown="onTextareaKeyDown"
+            @input="onTextareaInput"></textarea>
+        <div v-else-if="editor" ref="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
         </div>
     </div>
@@ -25,7 +28,16 @@ import {
 
 
 export default {
-    props: ['item', 'area', 'text', 'cssStyle', 'zoom', 'creatingNewItem', 'scalingVector'],
+    props: {
+        item           : {type: Object},
+        area           : {type: Object},
+        text           : {type: String},
+        cssStyle       : {type: Object},
+        zoom           : {type: Number},
+        creatingNewItem: {type: Boolean},
+        scalingVector  : {type: Number},
+        markupDisabled : {type: Boolean, default: false}
+    },
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
@@ -41,6 +53,12 @@ export default {
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
     },
 
+    mounted() {
+        if (this.markupDisabled) {
+            this.$refs.textarea.focus();
+        }
+    },
+
     data() {
 
         return {
@@ -51,8 +69,10 @@ export default {
 
     methods: {
         init() {
-            this.editor = this.createEditor(this.text);
-            EventBus.emitItemInPlaceTextEditorCreated(this.editor);
+            if (!this.markupDisabled) {
+                this.editor = this.createEditor(this.text);
+                EventBus.emitItemInPlaceTextEditorCreated(this.editor);
+            }
         },
 
         generateStyle(cssStyle) {
@@ -78,8 +98,7 @@ export default {
                 autoFocus: true,
                 content: '',
                 onUpdate: (event) => {
-                    const content = event.getHTML();
-                    this.$emit('updated', content);
+                    this.$emit('updated', event.getHTML());
                 }
             });
             editor.setContent(this.text, true, {preserveWhitespace: true})
@@ -96,6 +115,22 @@ export default {
             if (identifyKeyPress(event) === Keys.ESCAPE) {
                 this.closeEditBox();
             }
+        },
+
+        onTextareaKeyDown(event) {
+            if (event.key == 'Tab') {
+                event.preventDefault();
+                const target = event.target;
+                const start = target.selectionStart;
+                const end = target.selectionEnd;
+                target.value = target.value.substring(0, start) + '    ' + target.value.substring(end);
+                target.selectionStart = target.selectionEnd = start + 4;
+                this.$emit('updated', event.target.value);
+            }
+        },
+
+        onTextareaInput(event) {
+            this.$emit('updated', event.target.value);
         },
         
         closeEditBox() {

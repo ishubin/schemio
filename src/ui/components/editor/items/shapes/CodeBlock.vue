@@ -18,6 +18,7 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
+import EventBus from '../../EventBus';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -26,6 +27,92 @@ const computePath = (item) => {
 
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
+
+const darkBackground = 'rgba(40, 40, 40, 1.0)';
+const lightBackground = 'rgba(240, 240, 240, 1.0)';
+
+function onThemeUpdate($store, item, value, previousValue) {
+    if (value === 'dark') {
+        item.shapeProps.fill = {type: 'solid', color: darkBackground};
+        item.textSlots.title.color = 'rgba(245, 245, 245, 1.0)';
+        item.textSlots.body.color = 'rgba(245, 245, 245, 1.0)';
+    } else {
+        item.shapeProps.fill = {type: 'solid', color: lightBackground};
+        item.textSlots.title.color = 'rgba(0, 0, 0, 1.0)';
+        item.textSlots.body.color = 'rgba(0, 0, 0, 1.0)';
+    }
+    EventBus.emitItemChanged(item.id);
+}
+
+function onLangUpdate($store, item, value, previousValue) {
+    const foreignObject = document.getElementById(`item-text-slot-${item.id}-body`);
+    if (foreignObject) {
+        highlightItemTextSlot($store, item, foreignObject);
+    }
+}
+
+function highlightItemTextSlot($store, item, foreignObject) {
+    const language = langMapping[item.shapeProps.lang];
+    if (!language) {
+        return;
+    }
+    let assetsPath = $store.state.assetsPath;
+    if (assetsPath === '/') {
+        assetsPath = '';
+    }
+    const worker = new Worker(`${assetsPath}/syntax-highlight-worker.js`);
+    worker.onmessage = (event) => {
+        const itemTextElement = foreignObject.querySelector('.item-text-element');
+        if (itemTextElement) {
+            itemTextElement.innerHTML = event.data;
+        }
+    };
+    const code = document.createElement('code');
+    code.appendChild(document.createTextNode(item.textSlots.body.text));
+    worker.postMessage({text: code.innerText, lang: language});
+}
+
+const langMapping = {
+    'Bash': 'bash',
+    'C': 'c',
+    'C++': 'cpp',
+    'C#': 'csharp',
+    'CSS': 'css',
+    'Diff': 'diff',
+    'GO': 'go',
+    'GraphQL': 'graphql',
+    'Ini': 'ini',
+    'Java': 'java',
+    'JavaScript': 'javascript',
+    'JSON': 'json',
+    'Kotlin': 'kotlin',
+    'Less': 'less',
+    'Lua': 'lua',
+    'Makefile': 'makefile',
+    'Markdown': 'markdown',
+    'Objective C': 'objectivec',
+    'Perl': 'perl',
+    'PHP': 'php',
+    'PHP Template': 'php-template',
+    'Text': 'plaintext',
+    'Python': 'python',
+    'Python REPL': 'python-repl',
+    'R': 'r',
+    'Ruby': 'ruby',
+    'Rust': 'rust',
+    'SCSS': 'scss',
+    'Shell': 'shell',
+    'SQL': 'sql',
+    'Swift': 'swift',
+    'TypeScript': 'typescript',
+    'VB.NET': 'vbnet',
+    'WebAssembly': 'wasm',
+    'XML': 'xml',
+    'YAML': 'yaml'
+};
+
+const allLanguages = Object.keys(langMapping);
+
 
 export default {
     props: ['item'],
@@ -46,25 +133,23 @@ export default {
                         text: '<b>Code</b>',
                         halign: 'center',
                         valign: 'middle',
-                        padding: {
-                            top: 4,
-                            left: 10,
-                            right: 10,
-                            bottom: 4
-                        }
+                        color: 'rgba(245, 245, 245, 1.0)',
+                        paddingTop: 4,
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        paddingBottom: 4
                     },
                     body: {
                         font: 'Courier New',
                         text: '',
+                        color: 'rgba(245, 245, 245, 1.0)',
                         halign: 'left',
                         valign: 'top',
                         whiteSpace: 'pre-wrap',
-                        padding: {
-                            top: 10,
-                            left: 10,
-                            right: 10,
-                            bottom: 10
-                        }
+                        paddingTop: 10,
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        paddingBottom: 10
                     }
                 }
             },
@@ -78,20 +163,35 @@ export default {
 
         getTextSlots(item) {
             return [{
-                name: "title", area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
+                name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
             }, {
-                name: "body", area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(1, item.area.h - item.shapeProps.headerHeight)}
+                name: 'body',
+                markupDisabled: true,
+                cssClass: `syntax-theme-${item.shapeProps.theme}`,
+                area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(1, item.area.h - item.shapeProps.headerHeight)}
             }];
         },
 
         editorProps: {},
         args: {
-            fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Fill'},
+            theme       : {type: 'choice', value: 'dark', options: ['dark', 'light'], name: 'Theme', onUpdate: onThemeUpdate },
+            lang        : {type: 'choice', value: 'Text', options: allLanguages, name: 'Language', onUpdate: onLangUpdate},
+            fill        : {type: 'advanced-color', value: {type: 'solid', color: darkBackground}, name: 'Fill'},
             strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
             strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
             cornerRadius: {type: 'number', value: 4, name: 'Corner radius'},
-            headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0}
+            headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0},
         },
+
+        mounted($store, item, elements) {
+            if (Array.isArray(elements.textSlots)) {
+                elements.textSlots.forEach(foreignObject => {
+                    if (foreignObject.getAttribute('data-text-slot-name') === 'body') {
+                        highlightItemTextSlot($store, item, foreignObject);
+                    }
+                });
+            }
+        }
     },
 
     computed: {

@@ -1,4 +1,5 @@
 const { VueLoaderPlugin } = require('vue-loader');
+const webpack = require('webpack');
 const path = require('path');
 module.exports = {
     // This is the "main" file which should include all other modules
@@ -40,6 +41,9 @@ module.exports = {
         ]
     },
     plugins: [
-        new VueLoaderPlugin()
+        new VueLoaderPlugin(),
+        new webpack.DefinePlugin({
+            __BUILD_VERSION__: new Date().getTime(),
+        })
     ]
 };

@@ -15,16 +15,21 @@ function getGlobalArt() {
 
 
 function getExportHTMLResources() {
+    const version = __BUILD_VERSION__;
     return Promise.all([
-        axios.get('/assets/schemio-standalone.css'),
-        axios.get('/assets/schemio-standalone.html'),
-        axios.get('/assets/schemio-standalone.js')
+        axios.get(`/assets/schemio-standalone.css?v=${version}`),
+        axios.get(`/assets/schemio-standalone.html?v=${version}`),
+        axios.get(`/assets/schemio-standalone.js?v=${version}`),
+        axios.get(`/assets/syntax-highlight-worker.js?v=${version}`),
+        axios.get(`/assets/syntax-highlight.css?v=${version}`)
     ]).then(values => {
-        const css  = values[0].data;
+        const css = values[0].data;
         const html = values[1].data;
-        const js   = values[2].data;
+        const js = values[2].data;
+        const syntaxHighlightWorker = values[3].data;
+        const syntaxHighlightCSS = values[4].data;
         return {
-            css, html, js
+            css, html, js, syntaxHighlightWorker, syntaxHighlightCSS
         };
     })
 }

@@ -63,6 +63,7 @@ export default {
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
     beforeMount() {
+        this.$store.dispatch('setAssetsPath', '/');
         stateInteract.schemeContainer = this.schemeContainer;
         stateInteract.reset();
 

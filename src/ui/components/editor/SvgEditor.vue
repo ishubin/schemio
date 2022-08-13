@@ -726,7 +726,7 @@ export default {
                 this.$nextTick(() => {
                     EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
                         x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
-                    }, true);
+                    }, false, true);
                 });
             }
         },

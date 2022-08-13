@@ -80,6 +80,8 @@ function findFirstSelectedCurveEditPoint(paths) {
 
 const store = new Vuex.Store({
     state: {
+        assetsPath: '/assets',
+
         apiClient: null,
 
         schemeModified: false,
@@ -181,6 +183,10 @@ const store = new Vuex.Store({
         }
     },
     mutations: {
+        SET_ASSESTS_PATH(state, path) {
+            state.assetsPath = path;
+        },
+
         SET_API_CLIENT(state, apiClient) {
             state.apiClient = apiClient
         },
@@ -478,6 +484,10 @@ const store = new Vuex.Store({
     },
 
     actions: {
+        setAssetsPath({commit}, path) {
+            commit('SET_ASSESTS_PATH', path);
+        },
+
         setApiClient({commit}, apiClient) {
             commit('SET_API_CLIENT', apiClient);
         },

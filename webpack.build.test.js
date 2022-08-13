@@ -44,6 +44,9 @@ module.exports = {
         new webpack.IgnorePlugin({
             resourceRegExp: /canvas/, 
             contextRegExp: /jsdom$/
+        }),
+        new webpack.DefinePlugin({
+            __BUILD_VERSION__: new Date().getTime(),
         })
     ],
     target: 'node'
