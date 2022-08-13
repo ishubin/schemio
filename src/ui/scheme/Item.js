@@ -194,6 +194,8 @@ export function enrichItemWithDefaults(item) {
     forEach(shape.args, (arg, argName) => {
         if (!item.shapeProps.hasOwnProperty(argName)) {
             item.shapeProps[argName] = utils.clone(arg.value);
+        } else if (typeof item.shapeProps[argName] === 'object') {
+            enrichObjectWithDefaults(item.shapeProps[argName], shape.args[argName].value);
         }
     });
 
