@@ -2928,6 +2928,9 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     left: 8px;
     top: 8px;
 }
+.header .modal-container a, .header .modal-container .link {
+    color: var(--accent-strong);
+}
 
 .header .scheme-title {
     position: relative;
@@ -3009,6 +3012,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     color: var(--accent-strong);
     display: block;
     padding: 5px 10px;
+    white-space: nowrap;
 }
 .header .current-user .user-profile-menu .link:hover {
     background: var(--accent-strong);
@@ -3526,6 +3530,12 @@ ul.patch-field-list {
     display: block;
     height: 100%;
     animation: progress-animation 30s linear infinite;
+}
+.progress-bar.progress-bar-default {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--accent-strong-down) 0%, var(--accent-faint-up) 25%, var(--accent-faint-up) 50%, var(--accent-strong-down) 75%) 0% 0% / 60% 100%;
+    height: 5px;
 }
 
 @keyframes progress-animation {

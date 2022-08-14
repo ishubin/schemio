@@ -6,6 +6,7 @@ import { walk } from "./walk";
 import fs from 'fs-extra';
 import path from 'path'
 import forEach from 'lodash/forEach';
+import archiver from 'archiver';
 
 
 let currentExporter = null;
@@ -231,15 +232,47 @@ function startExporter(config) {
         });
     })
     .then(copyStaticAssets(config))
-    .then(() => {
+    .then(archiveExportedDocs(config))
+    .then((archiveVersion) => {
         lastExporter = currentExporter;
         lastExporter.finishedAt = new Date();
+        lastExporter.archiveVersion = archiveVersion;
         currentExporter = null;
         fs.writeFile(exporterIndexPath, JSON.stringify(lastExporter));
         console.log('Exporter finished');
     }).catch(err => {
         console.error('Exporter failed', err);
     });
+}
+
+function createArchiveName(version) {
+    return `schemio-export-${version}.zip`;
+}
+
+function archiveExportedDocs(config) {
+    return () => {
+        return new Promise((resolve, reject) => {
+            const version = new Date().getTime();
+            const folderPath = path.join(config.fs.rootPath, exporterFolder);
+            const archivePath = path.join(config.fs.rootPath, createArchiveName(version));
+            const output = fs.createWriteStream(archivePath);
+            const archive = archiver('zip', {
+                zlib: { level: 9 }
+            });
+
+            output.on('close', () => {
+                resolve(version);
+            });
+
+            output.on('error', (err) => {
+                reject(err);
+            });
+
+            archive.pipe(output);
+            archive.directory(folderPath, false);
+            archive.finalize();
+        });
+    }
 }
 
 export function fsExportStatic(config) {
@@ -271,7 +304,8 @@ export function fsExportStatus(config) {
             res.json({
                 status: 'finished',
                 startedAt: lastExporter.startedAt,
-                finishedAt: lastExporter.finishedAt
+                finishedAt: lastExporter.finishedAt,
+                archiveVersion: lastExporter.archiveVersion
             });
         } else {
             res.json({
@@ -279,4 +313,22 @@ export function fsExportStatus(config) {
             })
         }
     }
+}
+
+export function fsExportDownloadArchive(config) {
+    return (req, res) => {
+        const version = parseInt(req.params.archiveVersion);
+        const archivePath = path.join(config.fs.rootPath, createArchiveName(version));
+
+        fs.stat(archivePath).then(stat => {
+            if (!stat.isFile()) {
+                throw new Error('Not a file');
+            }
+            res.download(archivePath);
+        })
+        .catch(err => {
+            res.status(404);
+            res.send('Not found');
+        })
+    };
 }

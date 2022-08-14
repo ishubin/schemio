@@ -112,6 +112,7 @@ export default {
             this.isLoading = true;
             createApiClientForType(this.apiClientType)
             .then(apiClient => {
+                this.$store.dispatch('setApiClient', apiClient);
                 this.apiClient = apiClient;
                 const params = {
                     query: this.query,

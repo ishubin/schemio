@@ -10,9 +10,43 @@
             <div class="header-middle-section">
                 <slot name="middle-section"></slot>
             </div>
+            <div class="right-section">
+                <div class="current-user">
+                    <div class="user-profile">
+                        <span class="user-name">Admin</span>
+                    </div>
+                    <ul class="user-profile-menu">
+                        <li v-if="staticExportAllowed">
+                            <span class="link" @click="staticExportModalShown = true">Export all diagrams</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <div class="header-loader-container">
             <slot name="loader"></slot>
         </div>
+
+        <StaticExportModal v-if="staticExportModalShown" @close="staticExportModalShown = false"/>
     </div>
 </template>
+
+<script>
+import StaticExportModal from './StaticExportModal.vue';
+
+export default {
+    components: {StaticExportModal},
+
+    data() {
+        return {
+            staticExportModalShown: false
+        };
+    },
+
+    computed: {
+        staticExportAllowed() {
+            return this.$store.getters.staticExportAllowed;
+        }
+    }
+}
+</script>
