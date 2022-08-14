@@ -708,6 +708,14 @@ const store = new Vuex.Store({
         patchDeletionsColor: state => state.patch.settings.deletionsColor,
         patchModificationsColor: state => state.patch.settings.modificationsColor,
         patchIsDiffColoringEnabled: state => state.patch.diffColoringEnabled,
+
+
+        staticExportAllowed: state => {
+            if (state.apiClient && state.apiClient.submitStaticExport) {
+                return true;
+            }
+            return false;
+        }
     }
 });
 

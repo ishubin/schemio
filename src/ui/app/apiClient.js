@@ -164,7 +164,15 @@ function createApiClient() {
         /**
          * Returns static resources (html, css, js) for scheme exporting
          */
-        getExportHTMLResources
+        getExportHTMLResources,
+
+        submitStaticExport() {
+            return axios.post('/v1/static-export/start').then(unwrapAxios);
+        },
+
+        getStaticExportStatus() {
+            return axios.get('/v1/static-export/status').then(unwrapAxios);
+        }
     };
 }
 

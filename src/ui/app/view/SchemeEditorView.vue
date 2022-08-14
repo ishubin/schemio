@@ -38,6 +38,7 @@
             :scheme="scheme"
             :editAllowed="true"
             :isStaticEditor="false"
+            :isOfflineEditor="true"
             :userStylesEnabled="false"
             :projectArtEnabled="false"
         />
