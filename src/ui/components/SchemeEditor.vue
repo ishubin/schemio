@@ -13,6 +13,7 @@
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
             :is-static-editor="isStaticEditor"
+            :is-offline-editor="isOfflineEditor"
             :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
@@ -567,7 +568,8 @@ export default {
         scheme           : {type: Object, default: null},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
-        isStaticEditor : { type: Boolean, default: false},
+        isStaticEditor   : { type: Boolean, default: false},
+        isOfflineEditor  : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},

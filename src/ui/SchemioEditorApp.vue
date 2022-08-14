@@ -10,6 +10,7 @@
             :patchIndex="patch.index"
             :editAllowed="editAllowed"
             :isStaticEditor="isStaticEditor"
+            :isOfflineEditor="isOfflineEditor"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
@@ -22,6 +23,7 @@
             :scheme="scheme"
             :editAllowed="editAllowed"
             :isStaticEditor="isStaticEditor"
+            :isOfflineEditor="isOfflineEditor"
             :patchIndex="patch.index"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
@@ -83,6 +85,7 @@ export default{
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
         isStaticEditor   : { type: Boolean, default: false},
+        isOfflineEditor  : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
