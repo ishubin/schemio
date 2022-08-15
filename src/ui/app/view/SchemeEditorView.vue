@@ -45,7 +45,7 @@
         <SchemioEditorApp v-else-if="scheme"
             :key="`scheme-${originKeyReloadHash}`"
             :scheme="scheme"
-            :editAllowed="editAllowed"
+            :editAllowed="shouldAllowEdit"
             :isStaticEditor="isStaticEditor"
             :userStylesEnabled="userStylesEnabled"
             @new-scheme-submitted="onNewSchemeSubmitted"
@@ -74,6 +74,7 @@ export default {
 
     props: {
         apiClientType    : {type: String, default: 'fs'},
+        editAllowed      : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: true},
         projectArtEnabled: {type: Boolean, default: true},
     },
@@ -106,7 +107,9 @@ export default {
                 this.buildBreadcrumbs(schemeDetails.folderPath);
                 this.scheme = schemeDetails.scheme;
                 this.originScheme = utils.clone(schemeDetails.scheme);
-                this.editAllowed = !schemeDetails.viewOnly;
+                if (schemeDetails.viewOnly) {
+                    this.shouldAllowEdit = false;
+                }
             });
         }
 
@@ -130,7 +133,7 @@ export default {
             schemeId: schemeId,
             path: '',
             breadcrumbs: [],
-            editAllowed: false,
+            shouldAllowEdit: this.editAllowed,
             isStaticEditor: false,
             scheme: null,
             apiClient: null,

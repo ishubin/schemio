@@ -16,35 +16,43 @@ import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
 
-Vue.use(VueRouter);
-applyVueFilters(Vue);
+window.createSchemioStaticApp = function (options) {
+    let editAllowed = false;
+    if (options) {
+        if (options.hasOwnProperty('editAllowed')) {
+            editAllowed = options.editAllowed;
+        }
+    }
 
-Vue.component('schemio-header', Header);
-Vue.component('schemio-footer', Footer);
+    Vue.use(VueRouter);
+    applyVueFilters(Vue);
 
-function route(name, path, component, props) {
-    return { name, path, component, props };
+    Vue.component('schemio-header', Header);
+    Vue.component('schemio-footer', Footer);
+
+    function route(name, path, component, props) {
+        return { name, path, component, props };
+    }
+
+
+    const routes = [
+        route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'static', editAllowed}),
+        route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
+        route('AboutView',              '/about',            AboutView),
+        route('NotFoundView',           '/not-found',        NotFoundView),
+        route('HomeView',               '/',                 FolderView, {apiClientType: 'static'}),
+        route('FolderView',             '/f/*',              FolderView, {apiClientType: 'static', toolbarShown: false}),
+        { path: '*', redirect: '/not-found'}
+    ];
+
+
+    const router = new VueRouter({
+        routes: routes,
+    });
+
+
+    new Vue(Vue.util.extend({
+        router,
+        store,
+    }, App)).$mount('#app');
 }
-
-
-const routes = [
-    route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'static'}),
-    route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
-    route('AboutView',              '/about',            AboutView),
-    route('NotFoundView',           '/not-found',        NotFoundView),
-    route('HomeView',               '/',                 FolderView, {apiClientType: 'static'}),
-    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'static', toolbarShown: false}),
-    { path: '*', redirect: '/not-found'}
-];
-
-
-const router = new VueRouter({
-    routes: routes,
-});
-
-
-new Vue(Vue.util.extend({
-    router,
-    store,
-}, App)).$mount('#app');
-
