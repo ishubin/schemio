@@ -10,7 +10,7 @@
             <div class="header-middle-section">
                 <slot name="middle-section"></slot>
             </div>
-            <div class="right-section">
+            <div v-if="staticExportAllowed" class="right-section">
                 <div class="current-user">
                     <div class="user-profile">
                         <span class="user-name">Admin</span>
