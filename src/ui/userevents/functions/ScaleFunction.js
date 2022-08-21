@@ -5,6 +5,8 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
+import myMath from '../../myMath';
+import utils from '../../utils';
 
 
 
@@ -16,16 +18,12 @@ class ScaleAnimation extends Animation {
         this.schemeContainer = schemeContainer;
         this.resultCallback = resultCallback;
         this.elapsedTime = 0.0;
-        this.originalArea = {
-            x: item.area.x,
-            y: item.area.y,
-            w: item.area.w,
-            h: item.area.h
-        };
+        this.originalArea = utils.clone(item.area);
         this.destinationScale = {
-            w: parseFloat(args.width),
-            h: parseFloat(args.height),
+            sx: parseFloat(args.scaleX),
+            sy: parseFloat(args.scaleY),
         };
+
     }
 
     init() {
@@ -45,8 +43,15 @@ class ScaleAnimation extends Animation {
                 convertedT = 1.0;
             }
 
-            this.item.area.w = this.originalArea.w * (1.0 - convertedT) + this.destinationScale.w * convertedT;
-            this.item.area.h = this.originalArea.h * (1.0 - convertedT) + this.destinationScale.h * convertedT;
+            this.item.area.sx = this.originalArea.sx * (1.0 - convertedT) + this.destinationScale.sx * convertedT;
+            this.item.area.sy = this.originalArea.sy * (1.0 - convertedT) + this.destinationScale.sy * convertedT;
+
+            const wp = myMath.worldPointInArea(this.originalArea.w * this.originalArea.px, this.originalArea.h * this.originalArea.py, this.originalArea, this.item.meta.transformMatrix);
+            const p = myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w * this.item.area.px, this.item.area.h * this.item.area.py, this.item.area, this.item.meta.transformMatrix);
+            if (p) {
+                this.item.area.x = p.x;
+                this.item.area.y = p.y;
+            }
 
 
             EventBus.emitItemChanged(this.item.id);
@@ -54,8 +59,8 @@ class ScaleAnimation extends Animation {
 
             return proceed;
         } else {
-            this.item.area.w = this.destinationScale.w;
-            this.item.area.h = this.destinationScale.h;
+            this.item.area.sx = this.destinationScale.sx;
+            this.item.area.sy = this.destinationScale.sy;
             EventBus.emitItemChanged(this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
         }
@@ -77,9 +82,9 @@ export default {
     description: 'Changes width and height of the item',
 
     args: {
-        width           : {name: 'Width',             type: 'number', value: 100},
-        height          : {name: 'Height',            type: 'number', value: 100},
-        animate         : {name: 'Animate',           type: 'boolean',value: false},
+        scaleX          : {name: 'Scale X',           type: 'number', value: 1.5},
+        scaleY          : {name: 'Scale Y',           type: 'number', value: 1.5},
+        animate         : {name: 'Animate',           type: 'boolean',value: true},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
         movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
@@ -94,8 +99,8 @@ export default {
                 }
                 return;
             } else {
-                item.area.w = parseFloat(args.width);
-                item.area.h = parseFloat(args.height);
+                item.area.sx = parseFloat(args.scaleX);
+                item.area.sy = parseFloat(args.scaleY);
                 EventBus.emitItemChanged(item.id);
                 schemeContainer.reindexItemTransforms(item);
             }

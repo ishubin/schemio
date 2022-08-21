@@ -788,7 +788,7 @@ export default {
      * @param {Number} y0 - y part of local point
      * @param {Area} area 
      * @param {Array} parentTransform 
-     * @returns {Point} - can be null. Point in the local transform of area with which its top left corner would match specified world point
+     * @returns {Point} - can be null. Point in the local transform of area with which it would match specified world point
      */
     findTranslationMatchingWorldPoint(x, y, x0, y0, area, parentTransform) {
         // Here we have to do some reversed computation to figure out which translation matrix should be used in the area
