@@ -101,6 +101,10 @@ h5 {
     margin-bottom: 7px;
 }
 
+code {
+    white-space: pre;
+}
+
 .text-nonselectable {
     -moz-user-select: none;
     -webkit-user-select: none;
