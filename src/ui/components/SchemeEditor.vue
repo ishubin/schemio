@@ -1504,8 +1504,12 @@ export default {
             this.updateHistoryState();
         },
 
+        historyEditAllowed() {
+            return this.state === 'dragItem';
+        },
+
         historyUndo() {
-            if (history.undoable()) {
+            if (history.undoable() && this.historyEditAllowed()) {
                 const scheme = history.undo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
@@ -1520,7 +1524,7 @@ export default {
         },
 
         historyRedo() {
-            if (history.redoable()) {
+            if (history.redoable() && this.historyEditAllowed()) {
                 const scheme = history.redo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
