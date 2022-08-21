@@ -118,6 +118,9 @@ export default {
                 if (textSlots && textSlots.length > 0) {
                     const slotName = textSlots[0].name;
                     if (this.item.textSlots && this.item.textSlots[slotName]) {
+                        if (this.item.textSlots[slotName].font) {
+                            font = this.item.textSlots[slotName].font;
+                        }
                         if (this.item.textSlots[slotName].color) {
                             textColor = this.item.textSlots[slotName].color;
                         }
