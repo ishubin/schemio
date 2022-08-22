@@ -38,7 +38,9 @@ export default class StateCreateItem extends State {
 
         this.originalPoint = {x: x + newOffset.dx, y: y + newOffset.dy};
         this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
-        this.schemeContainer.addItem(this.item);
+        this.item.area.w = 0;
+        this.item.area.h = 0;
+        this.schemeContainer.addNonIndexableItem(this.item);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.item.area);
     }

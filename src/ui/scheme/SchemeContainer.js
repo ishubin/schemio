@@ -697,7 +697,6 @@ class SchemeContainer {
     indexItemOutlinePoints(item) {
         let pointsCache = this.outlinePointsCache.get(item.id);
         if (!pointsCache) {
-            //TODO Why is it here? because of this it does not add newly placed item outline to the index
             pointsCache = {
                 revision: -1,
                 points: []
