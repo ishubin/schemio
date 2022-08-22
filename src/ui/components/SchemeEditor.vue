@@ -74,7 +74,6 @@
                     @mouse-down="mouseDown"
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
-                    @shape-export-requested="openShapeExporterForItem"
                     @svg-size-updated="onSvgSizeUpdated"
                     >
                     <g slot="scene-transform">
@@ -1471,8 +1470,15 @@ export default {
             })
         },
 
-        openShapeExporterForItem(item) {
-            this.exportShapeModal.item = item;
+        openShapeExporterForItem() {
+            if (!this.schemeContainer.multiItemEditBox) {
+                return;
+            }
+            const box = this.schemeContainer.multiItemEditBox;
+            if (box.items.length === 0 || box.items.length > 1) {
+                return;
+            }
+            this.exportShapeModal.item = box.items[0];
             this.exportShapeModal.shown = true;
         },
 
@@ -2143,7 +2149,7 @@ export default {
             if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Export as a shape...',
-                    clicked: () => { this.exportAsShape(); }
+                    clicked: () => { this.openShapeExporterForItem(); }
                 });
             }
 

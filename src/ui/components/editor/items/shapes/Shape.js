@@ -206,33 +206,9 @@ function registerShape(shape) {
     }
 
     shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
-    make(shape.shapeConfig.id);
 }
 
 forEach(_shapes, registerShape);
-
-/**
- * Generates a component and returns it's name
- * @param {string} encodedShape - an encoded JSON that represents a shape or a name of a in-built shape: e.g. 'rect', 'ellipse'
- */
-//TODO remove this function and change all callers of it
-function make(encodedShape) {
-    if (shapeRegistry[encodedShape]) {
-        const shape = shapeRegistry[encodedShape];
-
-        if (!shape.vueComponent && !shape.vueComponentName) {
-            const componentName = `${encodedShape}-shape-svg-component`;
-            Vue.component(componentName, {
-                props: ['item'],
-                template: shape.template
-            })
-            shape.vueComponentName = componentName;
-        }
-        return shape;
-    } else {
-        throw new Error('Custom shapes are not yet supported');
-    }
-}
 
 function getShapePropDescriptor(shape, propName) {
     if (shape.shapeType === 'standard') {
@@ -277,7 +253,6 @@ function getShapeArgs(shape) {
 
 
 export default {
-    make,
     getShapeIds() {
         return keys(shapeRegistry);
     },

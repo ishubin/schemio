@@ -866,17 +866,6 @@ export default {
             };
         },
 
-        exportAsShape() {
-            if (!this.schemeContainer.multiItemEditBox) {
-                return;
-            }
-            const box = this.schemeContainer.multiItemEditBox;
-            if (box.items.length === 0 || box.items.length > 1) {
-                return;
-            }
-            this.$emit('shape-export-requested', box.items[0]);
-        },
-
         onItemCustomEvent(event) {
             if (event.eventName === 'clicked') {
                 // handling links and toolip/side-panel appearance 

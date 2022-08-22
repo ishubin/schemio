@@ -27,31 +27,36 @@ export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
  * @param {*} h - height of root item
  */
 function convertCurve(item, x0, y0, w, h) {
-    const points = map(item.shapeProps.points, point => {
+    const paths = map(item.shapeProps.paths, path => {
+        const points = map(path.points, point => {
+            const worldPoint = worldPointOnItem(point.x, point.y, item);
 
-        const worldPoint = worldPointOnItem(point.x, point.y, item);
-
-        const x = myMath.roundPrecise2(100*(worldPoint.x - x0)/w);
-        const y = myMath.roundPrecise2(100*(worldPoint.y - y0)/h);
-        if (point.t === 'B') {
-            return {
-                t: 'B',
-                x, y,
-                x1: myMath.roundPrecise2(100*point.x1/w),
-                y1: myMath.roundPrecise2(100*point.y1/h),
-                x2: myMath.roundPrecise2(100*point.x2/w),
-                y2: myMath.roundPrecise2(100*point.y2/h),
-            };
-        } else if (point.t === 'A') {
-            return {
-                t: 'A',
-                x, y,
-                x1: myMath.roundPrecise2(100*point.x1/w),
-                y1: myMath.roundPrecise2(100*point.y1/h),
-            };
-        } else {
-            return { t: 'L', x, y };
-        }
+            const x = myMath.roundPrecise2(100*(worldPoint.x - x0)/w);
+            const y = myMath.roundPrecise2(100*(worldPoint.y - y0)/h);
+            if (point.t === 'B') {
+                return {
+                    t: 'B',
+                    x, y,
+                    x1: myMath.roundPrecise2(100*point.x1/w),
+                    y1: myMath.roundPrecise2(100*point.y1/h),
+                    x2: myMath.roundPrecise2(100*point.x2/w),
+                    y2: myMath.roundPrecise2(100*point.y2/h),
+                };
+            } else if (point.t === 'A') {
+                return {
+                    t: 'A',
+                    x, y,
+                    x1: myMath.roundPrecise2(100*point.x1/w),
+                    y1: myMath.roundPrecise2(100*point.y1/h),
+                };
+            } else {
+                return { t: 'L', x, y };
+            }
+        });
+        return {
+            points,
+            closed: path.closed
+        };
     });
     
     let fillArg = 'fill';
@@ -65,10 +70,9 @@ function convertCurve(item, x0, y0, w, h) {
         fillArg = getTagValueByPrefixKey(item.tags, 'fill-arg=', fillArg);
     }
 
-
     return {
-        points,
-        closed: item.shapeProps.closed,
+        type: 'path',
+        paths,
         fillArg, // can be 'none', 'fill', 'strokeColor' or any other args name that is of type 'advanced-color' or 'color'
         strokeSize: item.shapeProps.strokeSize, // this will be used as a multiplier for the user defined strokeSize argument. If set to 0 - that means there is no stroke
     };
@@ -90,13 +94,8 @@ export function convertShapeToStandardCurves(rootItem) {
         scale: 100, // specifies the scale of the points so that they are correctly converted
         pins: [],
         textSlots: [],
-        curves: [],
-        outlineCurve: {
-            points: [],
-            closed: true,
-            fillArg: 'none',
-            strokeSize: 1
-        },
+        items: [],
+        outlines: []
     };
 
     const w = rootItem.area.w;
@@ -116,9 +115,9 @@ export function convertShapeToStandardCurves(rootItem) {
 
         if (item.shape === 'path') {
             if (item.tags && indexOf(item.tags, 'outline') >= 0) {
-                shapeConfig.outlineCurve = convertCurve(item, p0.x, p0.y, w, h);
+                shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h).paths);
             } else {
-                shapeConfig.curves.push(convertCurve(item, p0.x, p0.y, w, h));
+                shapeConfig.items.push(convertCurve(item, p0.x, p0.y, w, h));
             }
         } else if (indexOf(item.tags, 'pin') >= 0) {
             const center = worldPointOnItem(item.area.w/2, item.area.h/2, item);

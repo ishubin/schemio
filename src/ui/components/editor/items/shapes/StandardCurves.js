@@ -150,10 +150,14 @@ function convertCurvePointsToItemScale(area, scale, points) {
 
 function createComputeOutlineFunc(shapeConfig) {
     return (item) => {
-        //TODO update custom shapes with curve paths
-        if (shapeConfig.outlineCurve && shapeConfig.outlineCurve.points && shapeConfig.outlineCurve.points.length > 0) {
-            const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, shapeConfig.outlineCurve.points);
-            return computeCurvePath(points, shapeConfig.outlineCurve.closed);
+        if (shapeConfig.outlines) {
+            let svgPath = '';
+
+            forEach(shapeConfig.outlines, outlinePath => {
+                const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, outlinePath.points);
+                svgPath += computeCurvePath(points, outlinePath.closed) + ' ';
+            });
+            return svgPath;
         } else {
             const w = item.area.w;
             const h = item.area.h;
@@ -162,15 +166,21 @@ function createComputeOutlineFunc(shapeConfig) {
     };
 }
 
-export function convertCurveForRender(item, shapeConfig, curveDef) {
-    const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, curveDef.points);
+function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
+    let svgPath = '';
+    forEach(itemDef.paths, pathDef => {
+        const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, pathDef.points);
+        const svgSegmentPath = computeCurvePath(points, pathDef.closed);
+        svgPath += svgSegmentPath + ' ';
+    });
+
     let fill = 'none';
-    if (curveDef.fillArg === 'fill') {
+    if (itemDef.fillArg === 'fill') {
         fill = AdvancedFill.computeStandardFill(item);
-    } else if (curveDef.fillArg === 'none') {
+    } else if (itemDef.fillArg === 'none') {
         fill = 'none';
-    } else if (curveDef.fillArg) {
-        const otherFill = item.shapeProps[curveDef.fillArg];
+    } else if (itemDef.fillArg) {
+        const otherFill = item.shapeProps[itemDef.fillArg];
         // for now advanced-color is not supported
         if (typeof otherFill === 'string') {
             fill = otherFill;
@@ -178,17 +188,33 @@ export function convertCurveForRender(item, shapeConfig, curveDef) {
     }
     
     return {
-        path: computeCurvePath(points, curveDef.closed),
+        path: svgPath,
         fill,
         strokeColor: item.shapeProps.strokeColor,
-        strokeSize: myMath.roundPrecise2(item.shapeProps.strokeSize * curveDef.strokeSize)
+        strokeSize: myMath.roundPrecise2(item.shapeProps.strokeSize * itemDef.strokeSize)
     };
+}
+
+export function convertRawShapeForRender(item, shapeConfig, itemDef) {
+    if (itemDef.type === 'path') {
+        return convertRawPathShapeForRender(item, shapeConfig, itemDef);
+    } else {
+        console.error('Uknown raw shape type: ' + itemDef.type);
+        return null;
+    }
 }
 
 function createComputeCurvesFunc(shapeConfig) {
     return (item) => {
-        if (shapeConfig.curves) {
-            return map(shapeConfig.curves, curve => convertCurveForRender(item, shapeConfig, curve));
+        if (shapeConfig.items) {
+            const computedPaths = [];
+            forEach(shapeConfig.items, itemDef => {
+                const p = convertRawShapeForRender(item, shapeConfig, itemDef)
+                if (p) {
+                    computedPaths.push(p);
+                }
+            });
+            return computedPaths;
         }
         return [];
     }

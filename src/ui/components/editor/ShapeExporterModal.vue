@@ -42,7 +42,7 @@ import Modal from '../Modal.vue';
 import forEach from 'lodash/forEach';
 import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
 import utils from '../../utils';
-import { convertCurveForRender } from './items/shapes/StandardCurves';
+import { convertRawShapeForRender } from './items/shapes/StandardCurves';
 
 function buildSvgPreview(shapeDef) {
     const w = 42;
@@ -56,9 +56,13 @@ function buildSvgPreview(shapeDef) {
         shapeProps: {}
     };
 
-    forEach(shapeDef.shapeConfig.curves, curveDef => {
-        const curve = convertCurveForRender(fakeItem, shapeDef.shapeConfig, curveDef);
-        svg += `<path d="${curve.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
+    forEach(shapeDef.shapeConfig.items, itemDef => {
+        if (itemDef.type === 'path') {
+            const path = convertRawShapeForRender(fakeItem, shapeDef.shapeConfig, itemDef);
+            if (path) {
+                svg += `<path d="${path.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
+            }
+        }
     });
 
     svg += '</g></svg>';
