@@ -44,9 +44,18 @@ import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/sh
 import utils from '../../utils';
 import { convertRawShapeForRender } from './items/shapes/StandardCurves';
 
-function buildSvgPreview(shapeDef) {
-    const w = 42;
-    const h = 32;
+function createWidthAndHeight(w, h, widthToHeightRatio) {
+    if (widthToHeightRatio > 0) {
+        h = w / widthToHeightRatio;
+    } else if (widthToHeightRatio < 0) {
+        w = h * widthToHeightRatio;
+    }
+    return {w, h};
+}
+
+function buildSvgPreview(shapeDef, widthToHeightRatio) {
+    const { w, h } = createWidthAndHeight(42, 32, widthToHeightRatio);
+
     const padding = 3;
     let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" width="${w}px" height="${h}px">`;
     svg += `<g transform="translate(${padding}, ${padding})">`;
@@ -80,9 +89,13 @@ export default {
         let convertedShape = null;
         let svgPreview = null;
         let svgPreviewBase64 = '';
+        let widthToHeightRatio = 1;
+        if (this.item.area.w > 0 && this.item.area.h > 0) {
+            widthToHeightRatio = this.item.area.w / this.item.area.h;
+        }
         try {
             convertedShape = convertShapeToStandardCurves(this.item);
-            svgPreview = buildSvgPreview(convertedShape);
+            svgPreview = buildSvgPreview(convertedShape, widthToHeightRatio);
             svgPreviewBase64 = btoa(svgPreview);
             primaryButton = 'Export';
         } catch(e) {
@@ -98,7 +111,8 @@ export default {
             primaryButton,
             convertedShape,
             svgPreview,
-            svgPreviewBase64
+            svgPreviewBase64,
+            widthToHeightRatio
         };
     },
 
@@ -109,10 +123,16 @@ export default {
             }
             const shapeDef = utils.clone(this.convertedShape);
 
+
+            const creationSize = createWidthAndHeight(80, 80, this.widthToHeightRatio);
+            const previewSize = createWidthAndHeight(150, 150, this.widthToHeightRatio);
+
             shapeDef.shapeConfig.menuItems = [{
                 group: this.shapeGroup,
                 name: this.shapeName,
-                iconUrl: `data:image/svg+xml;base64,${this.svgPreviewBase64}`
+                iconUrl: `data:image/svg+xml;base64,${this.svgPreviewBase64}`,
+                size: creationSize,
+                previewArea: {x: 0, y: 0, w: previewSize.w, h: previewSize.h, r: 0},
             }];
 
             shapeDef.shapeConfig.id = this.shapeId;
