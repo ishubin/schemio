@@ -312,6 +312,9 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     padding: 10px 15px 10px 15px;
     font-size: 20px;
 }
+.btn.btn-block {
+    display: block;
+}
 .btn.btn-primary, .btn.btn-primary.disabled:hover {
     background: var(--accent-strong);
     color: var(--base-weak);
@@ -1529,6 +1532,13 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .create-item-menu .preview-item .preview-item-description {
     font-size: 12px;
+}
+.create-item-menu .section {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.create-item-menu .btn.btn-block {
+    text-align: center;
 }
 
 /*************** File upload **********************/
@@ -3549,4 +3559,58 @@ ul.patch-field-list {
     100% {
         background-position: 6000%
     }
+}
+
+
+/*******************************************/
+
+.external-shapes {
+    display: flex;
+    flex-direction: row;
+}
+.external-shapes .external-shapes-list {
+    flex: 1;
+    background: var(--base-weak);
+}
+.external-shapes .external-shape-preview {
+    padding: 10px;
+    height: 100%;
+    flex: 1;
+    min-height: 400px;
+    height: 100%;
+	display: flex;
+    flex-direction: column;
+}
+.external-shapes .external-shape-preview .title {
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 20px;
+}
+.external-shapes .external-shape-preview .preview {
+    flex: 1;
+}
+.external-shapes .external-shape-preview .buttons {
+    padding-top: 10px;
+}
+.external-shapes .external-shape-preview .preview img {
+    max-width: 90%;
+    max-height: 100%;
+    height: 300px;
+}
+.external-shapes .external-shapes-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.external-shapes .external-shapes-list ul li {
+    padding: 7px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--faint-weak);
+}
+.external-shapes .external-shapes-list ul li.selected {
+    background: var(--faint-strong-up);
+}
+.external-shapes .external-shapes-list ul li:hover {
+    background: var(--faint-strong-up-up);
 }

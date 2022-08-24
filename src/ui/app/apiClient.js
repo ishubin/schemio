@@ -14,6 +14,12 @@ function getGlobalArt() {
 }
 
 
+function getExternalShapes() {
+    const version = new Date().getTime();
+    return axios.get(`/assets/shapes/shapes.json?v=${version}`).then(unwrapAxios);
+}
+
+
 function getExportHTMLResources() {
     const version = __BUILD_VERSION__;
     return Promise.all([
@@ -172,7 +178,9 @@ function createApiClient() {
 
         getStaticExportStatus() {
             return axios.get('/v1/static-export/status').then(unwrapAxios);
-        }
+        },
+
+        getExternalShapes
     };
 }
 
@@ -276,7 +284,8 @@ function createStaticClient() {
         },
 
         getExportHTMLResources,
-        getGlobalArt
+        getGlobalArt,
+        getExternalShapes
     };
 }
 
@@ -627,7 +636,8 @@ function createGoogleDriveClient() {
 
             },
             getExportHTMLResources,
-            getGlobalArt
+            getGlobalArt,
+            getExternalShapes
         };
     })
     .catch(err => {
@@ -638,7 +648,8 @@ function createGoogleDriveClient() {
 
 function createOfflineApiClient() {
     return {
-        getExportHTMLResources
+        getExportHTMLResources,
+        getExternalShapes
     };
 }
 

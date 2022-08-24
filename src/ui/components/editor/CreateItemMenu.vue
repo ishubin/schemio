@@ -43,6 +43,28 @@
                 </div>
             </panel>
 
+            <panel v-for="panel in extraShapeGroups" :name="panel.name">
+                <div class="item-menu">
+                    <div v-for="item in panel.items"
+                        class="item-container"
+                        :title="item.name"
+                        @mouseleave="stopPreviewItem(item)"
+                        @mouseover="showExtraShapePreviewItem(item, item.id)"
+                        @mousedown="onItemMouseDown($event, item)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        >
+
+                        <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
+                        <svg v-else-if="item.iconSVG" width="42px" height="32px" v-html="item.iconSVG"></svg>
+                    </div>
+                </div>
+            </panel>
+
+            <div class="section">
+                <span class="btn btn-secondary btn-block" @click="extraShapesModal.shown = true">More shapes &#8230;</span>
+            </div>
+
             <panel v-if="projectArtEnabled" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
@@ -89,6 +111,8 @@
         <modal title="Error" v-if="errorMessage" @close="errorMessage = null">
             {{errorMessage}}
         </modal>
+
+        <ExtraShapesModal v-if="extraShapesModal.shown" @close="extraShapesModal.shown = false"/>
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
@@ -142,6 +166,7 @@ import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps, defaultItem} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
+import ExtraShapesModal from './ExtraShapesModal.vue';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -156,7 +181,7 @@ export default {
         projectArtEnabled: {type: Boolean, default: true},
     },
 
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
+    components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
         this.reloadArt();
@@ -202,6 +227,10 @@ export default {
                 pageX: 0,
                 pageY: 0,
                 imageProperty: null
+            },
+
+            extraShapesModal: {
+                shown: false
             }
         }
     },
@@ -294,6 +323,7 @@ export default {
             }
             return menuEntry;
         },
+
         reloadArt() {
             this.artPacks = [];
             if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
@@ -317,6 +347,14 @@ export default {
                     this.filterArtPacks();
                 });
             }
+        },
+
+        showExtraShapePreviewItem(menuEntry, shapeId) {
+            if (!menuEntry.item) {
+                const shape = Shape.find(shapeId);
+                this.prepareItemForMenu(menuEntry, shape, shapeId);
+            }
+            this.showPreviewItem(menuEntry);
         },
 
         showPreviewItem(item) {
@@ -588,7 +626,7 @@ export default {
 
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-        }
+        },
     },
 
     watch: {
@@ -611,6 +649,10 @@ export default {
                 return this.previewItem.item.item.area.h + this.previewItem.item.item.area.y + 10;
             }
             return 150;
+        },
+
+        extraShapeGroups() {
+            return this.$store.getters.extraShapeGroups;
         }
     }
 }
