@@ -246,6 +246,7 @@
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
+                                @export-all-shapes="openExportAllShapesModal"
                                 @delete-diagram-requested="deleteSchemeWarningShown = true"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
@@ -354,7 +355,7 @@
             :scheme-container="schemeContainer"
         />
 
-        <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
+        <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
         <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
             <p>
@@ -745,7 +746,7 @@ export default {
             exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
-                item: null
+                scheme: null
             },
             importSchemeFileShown: false,
             importSchemeModal: {
@@ -1470,18 +1471,6 @@ export default {
             })
         },
 
-        openShapeExporterForItem() {
-            if (!this.schemeContainer.multiItemEditBox) {
-                return;
-            }
-            const box = this.schemeContainer.multiItemEditBox;
-            if (box.items.length === 0 || box.items.length > 1) {
-                return;
-            }
-            this.exportShapeModal.item = box.items[0];
-            this.exportShapeModal.shown = true;
-        },
-
         onBrowseClose() {
             if (this.$store.getters.schemeModified) {
                 return 'The changes were not saved';
@@ -2146,13 +2135,6 @@ export default {
                 });
             }
 
-            if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
-                this.customContextMenu.menuOptions.push({
-                    name: 'Export as a shape...',
-                    clicked: () => { this.openShapeExporterForItem(); }
-                });
-            }
-
             if (item.shape === 'path') {
                 this.customContextMenu.menuOptions.push({
                     name: 'Edit Path',
@@ -2621,6 +2603,12 @@ export default {
             })
             .build();
         },
+
+        openExportAllShapesModal() {
+            this.exportShapeModal.scheme = this.schemeContainer.scheme;
+            this.exportShapeModal.shown = true;
+        },
+
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },

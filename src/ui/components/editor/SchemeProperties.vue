@@ -89,6 +89,7 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
+                <span v-if="supportsShapeExport" class="btn btn-secondary" @click="$emit('export-all-shapes')">Export Shapes</span>
                 <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="$emit('delete-diagram-requested')">Delete Diagram</span>
             </panel>
 
@@ -103,6 +104,7 @@ import RichTextEditor from '../RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
+import indexOf from 'lodash/indexOf';
 import Tooltip from '../Tooltip.vue';
 
 export default {
@@ -158,6 +160,11 @@ export default {
         supportsSchemeDeletion() {
             return this.$store.state.apiClient && this.$store.state.apiClient.deleteScheme;
         },
+
+        supportsShapeExport() {
+            const idxOf = indexOf(this.schemeContainer.scheme.tags, 'schemio-extra-shapes');
+            return idxOf >= 0;
+        }
     },
 
     watch: {

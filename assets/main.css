@@ -2303,15 +2303,20 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
 
 
 /******************** Shape Exporter Modal ********************/
-.shape-exporter-modal-body .shape-exporter-preview-container {
-    display: flex;
-    justify-content: space-evenly;
+.shape-exporter-modal-body {
+    max-height: 500px;
+    overflow: auto;
 }
-.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon {
-    text-align: center;
+.shape-exporter-modal-body .shape-exporter-shapes table {
+    margin-top: 10px;
+    border-collapse: collapse;
+    background: var(--base-weak);
+    width: 100%;
 }
-.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon h5 {
-    text-align: center;
+.shape-exporter-modal-body .shape-exporter-shapes table th,
+.shape-exporter-modal-body .shape-exporter-shapes table td {
+    border: 1px solid var(--faint-strong-up);
+    padding: 5px 10px;
 }
 
 /************************** Consent banner ********************/

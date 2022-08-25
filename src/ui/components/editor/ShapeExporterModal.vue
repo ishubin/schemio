@@ -2,36 +2,35 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <modal title="Shape Exporter" :primary-button="primaryButton" @primary-submit="exportShape" @close="$emit('close')">
+    <modal title="Shape Exporter" :primary-button="primaryButton" @primary-submit="exportShapeGroup" @close="$emit('close')">
         <div class="shape-exporter-modal-body">
-            <div v-if="errorMessage" class="msg msg-error">
-                {{errorMessage}}
-            </div>
-            <div v-else>
-                <h4>Shape ID</h4>
-                <input class="textfield" type="text" v-model="shapeId"/>
-                <h4>Shape Name</h4>
-                <input class="textfield" type="text" v-model="shapeName"/>
-                <h4>Shape Group</h4>
-                <input class="textfield" type="text" v-model="shapeGroup"/>
-
-                <div v-if="svgPreview">
-                    <h4>Shape Icon Preview</h4>
-                    <div class="shape-exporter-preview-container">
-                        <div class="shape-exporter-preview-icon">
-                            <h5>1x</h5>
-                            <img width="42px" height="32px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
-                        </div>
-                        <div class="shape-exporter-preview-icon">
-                            <h5>2x</h5>
-                            <img width="84px" height="64px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
-                        </div>
-                        <div class="shape-exporter-preview-icon">
-                            <h5>3x</h5>
-                            <img width="126px" height="96px" :src="`data:image/svg+xml;base64,${svgPreviewBase64}`"/>
-                        </div>
-                    </div>
+            <div class="shape-exporter-settings">
+                <div v-if="errorMessage" class="msg msg-error">
+                    {{errorMessage}}
                 </div>
+                <div v-if="shapeGroup">
+                    <h4>{{shapeGroup.group}}</h4>
+                </div>
+            </div>
+            <div class="shape-exporter-shapes">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Preview</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="shape in shapeGroup.shapes">
+                            <td>{{shape.shapeConfig.id}}</td>
+                            <td>{{shape.name}}</td>
+                            <td>
+                                <img width="52px" height="42px" :src="shape.shapeConfig.menuItems[0].iconUrl"/>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>                
             </div>
         </div>
     </modal>
@@ -78,67 +77,93 @@ function buildSvgPreview(shapeDef, widthToHeightRatio) {
     return svg;
 }
 
+
+function generateShapeConfigForItem(item, shapeGroupName) {
+    const shapeId = getTagValueByPrefixKey(item.tags, 'shape-id=');
+    if (item.shape !== 'dummy' && !shapeId) {
+        return null;
+    }
+
+    let widthToHeightRatio = 1;
+    if (item.area.w > 0 && item.area.h > 0) {
+        widthToHeightRatio = item.area.w / item.area.h;
+    }
+    const convertedShape = convertShapeToStandardCurves(item);
+    const svgPreview = buildSvgPreview(convertedShape, widthToHeightRatio);
+    const svgPreviewBase64 = btoa(svgPreview);
+    const creationSize = createWidthAndHeight(80, 80, widthToHeightRatio);
+    const previewSize = createWidthAndHeight(150, 150, widthToHeightRatio);
+
+    return {
+        name: item.name,
+        shapeConfig: {
+            ...convertedShape.shapeConfig,
+            id: shapeId,
+            menuItems: [{
+                group: shapeGroupName,
+                name: item.name,
+                iconUrl: `data:image/svg+xml;base64,${svgPreviewBase64}`,
+                size: creationSize,
+                previewArea: {x: 0, y: 0, w: previewSize.w, h: previewSize.h, r: 0},
+            }]
+        }
+    };
+}
+
+function generateShapeGroupFromScheme(scheme) {
+    const shapeGroupName = getTagValueByPrefixKey(scheme.tags, 'shape-group=', scheme.name);
+    const shapeGroup = {
+        group: shapeGroupName,
+        shapes: []
+    };
+
+    if (Array.isArray(scheme.items)) {
+        scheme.items.forEach(item => {
+            const shapeConfig = generateShapeConfigForItem(item, shapeGroupName);
+            if (shapeConfig) {
+                shapeGroup.shapes.push(shapeConfig);
+            }
+        });
+    }
+
+    return shapeGroup;
+}
+
 export default {
-    props: ['item'],
+    props: ['scheme'],
 
     components: {Modal},
 
     data() {
+        let shapeGroup = null;
         let errorMessage = null;
-        let primaryButton = null;
-        let convertedShape = null;
-        let svgPreview = null;
-        let svgPreviewBase64 = '';
-        let widthToHeightRatio = 1;
-        if (this.item.area.w > 0 && this.item.area.h > 0) {
-            widthToHeightRatio = this.item.area.w / this.item.area.h;
-        }
         try {
-            convertedShape = convertShapeToStandardCurves(this.item);
-            svgPreview = buildSvgPreview(convertedShape, widthToHeightRatio);
-            svgPreviewBase64 = btoa(svgPreview);
-            primaryButton = 'Export';
-        } catch(e) {
-            console.error(e);
-            errorMessage = 'Failed to generate shape: ' + e.message;
+            shapeGroup = generateShapeGroupFromScheme(this.scheme);
+        } catch(err) {
+            console.error(err);
+            errorMessage = 'Failed to generate shape group';
+            return null;
         }
 
         return {
-            shapeId: getTagValueByPrefixKey(this.item.tags, 'shape-id=', `custom-${this.item.name.toLowerCase()}`),
-            shapeGroup: getTagValueByPrefixKey(this.item.tags, 'shape-group=', 'Ungrouped'),
-            shapeName: this.item.name,
+            shapeGroup,
             errorMessage,
-            primaryButton,
-            convertedShape,
-            svgPreview,
-            svgPreviewBase64,
-            widthToHeightRatio
         };
     },
 
     methods: {
-        exportShape() {
-            if (!this.convertedShape) {
-                return;
+        exportShapeGroup() {
+            if (this.shapeGroup) {
+                const fileName = this.shapeGroup.group.toLocaleLowerCase().replaceAll(/[^a-z0-9]/gi, '-');
+                utils.forceDownload(`${fileName}.json`, 'application/json', JSON.stringify(this.shapeGroup));
             }
-            const shapeDef = utils.clone(this.convertedShape);
-
-
-            const creationSize = createWidthAndHeight(80, 80, this.widthToHeightRatio);
-            const previewSize = createWidthAndHeight(150, 150, this.widthToHeightRatio);
-
-            shapeDef.shapeConfig.menuItems = [{
-                group: this.shapeGroup,
-                name: this.shapeName,
-                iconUrl: `data:image/svg+xml;base64,${this.svgPreviewBase64}`,
-                size: creationSize,
-                previewArea: {x: 0, y: 0, w: previewSize.w, h: previewSize.h, r: 0},
-            }];
-
-            shapeDef.shapeConfig.id = this.shapeId;
-            utils.forceDownload(`${this.shapeId}.shape.json`, 'application/json', JSON.stringify(shapeDef));
         },
+    },
 
+    computed: {
+        primaryButton() {
+            return this.shapeGroup ? 'Export': null;
+        }
     }
 }
 </script>
