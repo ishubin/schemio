@@ -8,8 +8,10 @@
                 <div v-if="errorMessage" class="msg msg-error">
                     {{errorMessage}}
                 </div>
+
                 <div v-if="shapeGroup">
                     <h4>{{shapeGroup.group}}</h4>
+                    <img :src="shapeGroup.preview" alt=""/>
                 </div>
             </div>
             <div class="shape-exporter-shapes">
@@ -44,23 +46,19 @@ import utils from '../../utils';
 import { convertRawShapeForRender } from './items/shapes/StandardCurves';
 
 function createWidthAndHeight(w, h, widthToHeightRatio) {
-    if (widthToHeightRatio > 0) {
+    if (widthToHeightRatio > 1) {
         h = w / widthToHeightRatio;
-    } else if (widthToHeightRatio < 0) {
+    } else if (widthToHeightRatio < 1) {
         w = h * widthToHeightRatio;
     }
     return {w, h};
 }
 
-function buildSvgPreview(shapeDef, widthToHeightRatio) {
-    const { w, h } = createWidthAndHeight(42, 32, widthToHeightRatio);
-
-    const padding = 3;
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" width="${w}px" height="${h}px">`;
-    svg += `<g transform="translate(${padding}, ${padding})">`;
+function generateItemSVGLayer(shapeDef, x, y, w, h) {
+    let svg = `<g transform="translate(${x}, ${y})">`;
 
     const fakeItem = {
-        area: {x: 0, y: 0, w: w-2*padding, h: h-2*padding},
+        area: {x: 0, y: 0, w, h},
         shapeProps: {}
     };
 
@@ -72,8 +70,15 @@ function buildSvgPreview(shapeDef, widthToHeightRatio) {
             }
         }
     });
+    return svg + '</g>';
+}
 
-    svg += '</g></svg>';
+function buildSvgPreview(shapeDef, widthToHeightRatio) {
+    const { w, h } = createWidthAndHeight(42, 32, widthToHeightRatio);
+    const padding = 3;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 ${w} ${h}" xml:space="preserve" width="${w}px" height="${h}px">`;
+    svg += generateItemSVGLayer(shapeDef, padding, padding, w - 2*padding, h - 2*padding);
+    svg += '</svg>';
     return svg;
 }
 
@@ -96,6 +101,7 @@ function generateShapeConfigForItem(item, shapeGroupName) {
 
     return {
         name: item.name,
+        widthToHeightRatio,
         shapeConfig: {
             ...convertedShape.shapeConfig,
             id: shapeId,
@@ -110,11 +116,45 @@ function generateShapeConfigForItem(item, shapeGroupName) {
     };
 }
 
+function generateShapeGroupPreview(shapeGroup) {
+    const maxRows = 8;
+    const maxColumns = 10;
+    let row = 0;
+    let col = 0;
+
+    let svg = '';
+    const width = 80;
+    const height = 80;
+    const margin = 20;
+
+    for (let i = 0; i < shapeGroup.shapes.length && row < maxRows; i++) {
+        const {w,h} = createWidthAndHeight(width, height, shapeGroup.shapes[i].widthToHeightRatio);
+
+        const x = width/2 + (width + margin) * col - w/2;
+        const y = height/2 + (height + margin) * row - h/2;
+
+        svg += generateItemSVGLayer(shapeGroup.shapes[i], x, y, w, h);
+        col += 1;
+        if (col >= maxColumns) {
+            col = 0;
+            row += 1;
+        }
+    }
+
+    const totalCols = Math.min(shapeGroup.shapes.length, maxColumns);
+    const totalRows = Math.min(row + 1, maxRows);
+    const svgWidth = totalCols * (width + margin) + 10;
+    const svgHeight = totalRows * (height + margin) + 10;
+    return 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="-10 -10 ${svgWidth+10} ${svgHeight+10}" xml:space="preserve" width="${svgWidth+20}px" height="${svgHeight+20}px">${svg}</svg>`);
+}
+
+
 function generateShapeGroupFromScheme(scheme) {
     const shapeGroupName = getTagValueByPrefixKey(scheme.tags, 'shape-group=', scheme.name);
     const shapeGroup = {
         group: shapeGroupName,
-        shapes: []
+        shapes: [],
+        preview: null
     };
 
     if (Array.isArray(scheme.items)) {
@@ -125,7 +165,9 @@ function generateShapeGroupFromScheme(scheme) {
             }
         });
     }
+    shapeGroup.preview = generateShapeGroupPreview(shapeGroup);
 
+    shapeGroup.shapes.forEach(shape => delete shape.widthToHeightRatio);
     return shapeGroup;
 }
 
