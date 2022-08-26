@@ -174,6 +174,53 @@ function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
         svgPath += svgSegmentPath + ' ';
     });
 
+    return svgPath;
+}
+
+function projectPointToItemArea(x, y, item) {
+    return {
+        x: x * item.area.w,
+        y: y * item.area.h
+    };
+}
+
+function convertRawEllipseShapeForRender(item, shapeConfig, itemDef) {
+    const {p0, pw, ph} = itemDef.projection;
+
+    const pLeftX = (ph.x - p0.x) / 2 + p0.x;
+    const pLeftY = (ph.y - p0.y) / 2 + p0.y;
+    const pRightX  = (ph.x - p0.x) / 2 + pw.x;
+    const pRightY  = (ph.y - p0.y) / 2 + pw.y;
+
+    const Pl = projectPointToItemArea(pLeftX, pLeftY, item);
+    const Pr = projectPointToItemArea(pRightX, pRightY, item);
+
+    const Po = projectPointToItemArea(p0.x, p0.y, item);
+    const Pw = projectPointToItemArea(pw.x, pw.y, item);
+    const Ph = projectPointToItemArea(ph.x, ph.y, item);
+
+    const rx = Math.sqrt((Pw.x - Po.x) * (Pw.x - Po.x) + (Pw.y - Po.y) * (Pw.y - Po.y)) / 2;
+    const ry = Math.sqrt((Ph.x - Po.x) * (Ph.x - Po.x) + (Ph.y - Po.y) * (Ph.y - Po.y)) / 2;
+    return `M ${Pl.x} ${Pl.y} A ${rx} ${ry} 0 1 1 ${Pr.x} ${Pr.y}  A ${rx} ${ry} 0 1 1 ${Pl.x} ${Pl.y} Z`;
+}
+
+function convertRawShapeToSvgPath(item, shapeConfig, itemDef) {
+    if (itemDef.type === 'path') {
+        return convertRawPathShapeForRender(item, shapeConfig, itemDef);
+    } else if (itemDef.type === 'ellipse') {
+        return convertRawEllipseShapeForRender(item, shapeConfig, itemDef);
+    } else {
+        console.error('Uknown raw shape type: ' + itemDef.type);
+        return null;
+    }
+}
+
+export function convertRawShapeForRender(item, shapeConfig, itemDef) {
+    const svgPath = convertRawShapeToSvgPath(item, shapeConfig, itemDef);
+    if (!svgPath) {
+        return null;
+    }
+
     let fill = 'none';
     if (itemDef.fillArg === 'fill') {
         fill = AdvancedFill.computeStandardFill(item);
@@ -193,15 +240,6 @@ function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
         strokeColor: item.shapeProps.strokeColor,
         strokeSize: myMath.roundPrecise2(item.shapeProps.strokeSize * itemDef.strokeSize)
     };
-}
-
-export function convertRawShapeForRender(item, shapeConfig, itemDef) {
-    if (itemDef.type === 'path') {
-        return convertRawPathShapeForRender(item, shapeConfig, itemDef);
-    } else {
-        console.error('Uknown raw shape type: ' + itemDef.type);
-        return null;
-    }
 }
 
 function createComputeCurvesFunc(shapeConfig) {

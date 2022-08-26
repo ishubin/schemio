@@ -58,7 +58,15 @@ function convertCurve(item, x0, y0, w, h) {
             closed: path.closed
         };
     });
-    
+
+    return enrichShapeItemWithArgs(item, {
+        type: 'path',
+        paths
+    });
+
+}
+
+function enrichShapeItemWithArgs(item, shapeConfig) {
     let fillArg = 'fill';
     if (item.shapeProps.fill.type === 'none') {
         fillArg = 'none';
@@ -71,11 +79,42 @@ function convertCurve(item, x0, y0, w, h) {
     }
 
     return {
-        type: 'path',
-        paths,
+        ...shapeConfig,
         fillArg, // can be 'none', 'fill', 'strokeColor' or any other args name that is of type 'advanced-color' or 'color'
         strokeSize: item.shapeProps.strokeSize, // this will be used as a multiplier for the user defined strokeSize argument. If set to 0 - that means there is no stroke
     };
+}
+
+function convertPrimitive(item, x0, y0, w, h) {
+    const p0 = worldPointOnItem(0, 0, item);
+    const pw = worldPointOnItem(item.area.w, 0, item);
+    const ph = worldPointOnItem(0, item.area.h, item);
+
+
+    const projectPoint = (x, y) => {
+        return {
+            x: (x - x0) / w,
+            y: (y - y0) / h,
+        }
+    };
+    
+    const itemData = enrichShapeItemWithArgs(item, {
+        type: item.shape,
+        projection: {
+            p0: projectPoint(p0.x, p0.y),
+            pw: projectPoint(pw.x, pw.y),
+            ph: projectPoint(ph.x, ph.y),
+        }
+    });
+
+    if (item.shape === 'rect') {
+        itemData.cornerRadius = item.shapeProps.cornerRadius;
+    }
+    return itemData;
+}
+
+function isSupportedPrimitive(shape) {
+    return shape === 'ellipse' || shape === 'rect';
 }
 
 /**
@@ -113,7 +152,9 @@ export function convertShapeToStandardCurves(rootItem) {
     traverseItems(rootItem, item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
-        if (item.shape === 'path') {
+        if (isSupportedPrimitive(item.shape)) {
+            shapeConfig.items.push(convertPrimitive(item, p0.x, p0.y, w, h));
+        } else if (item.shape === 'path') {
             if (item.tags && indexOf(item.tags, 'outline') >= 0) {
                 shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h).paths);
             } else {

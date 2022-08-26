@@ -63,11 +63,9 @@ function generateItemSVGLayer(shapeDef, x, y, w, h) {
     };
 
     forEach(shapeDef.shapeConfig.items, itemDef => {
-        if (itemDef.type === 'path') {
-            const path = convertRawShapeForRender(fakeItem, shapeDef.shapeConfig, itemDef);
-            if (path) {
-                svg += `<path d="${path.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
-            }
+        const path = convertRawShapeForRender(fakeItem, shapeDef.shapeConfig, itemDef);
+        if (path) {
+            svg += `<path d="${path.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
         }
     });
     return svg + '</g>';
