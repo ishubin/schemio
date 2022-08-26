@@ -153,9 +153,11 @@ function createComputeOutlineFunc(shapeConfig) {
         if (shapeConfig.outlines) {
             let svgPath = '';
 
-            forEach(shapeConfig.outlines, outlinePath => {
-                const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, outlinePath.points);
-                svgPath += computeCurvePath(points, outlinePath.closed) + ' ';
+            forEach(shapeConfig.outlines, outlineDef => {
+                const outlinePath = convertRawShapeToSvgPath(item, shapeConfig, outlineDef);
+                if (outlinePath) {
+                    svgPath += outlinePath;
+                }
             });
             return svgPath;
         } else {

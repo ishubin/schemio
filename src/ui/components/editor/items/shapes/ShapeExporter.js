@@ -59,11 +59,10 @@ function convertCurve(item, x0, y0, w, h) {
         };
     });
 
-    return enrichShapeItemWithArgs(item, {
+    return {
         type: 'path',
         paths
-    });
-
+    };
 }
 
 function enrichShapeItemWithArgs(item, shapeConfig) {
@@ -90,7 +89,6 @@ function convertPrimitive(item, x0, y0, w, h) {
     const pw = worldPointOnItem(item.area.w, 0, item);
     const ph = worldPointOnItem(0, item.area.h, item);
 
-
     const projectPoint = (x, y) => {
         return {
             x: (x - x0) / w,
@@ -98,14 +96,14 @@ function convertPrimitive(item, x0, y0, w, h) {
         }
     };
     
-    const itemData = enrichShapeItemWithArgs(item, {
+    const itemData = {
         type: item.shape,
         projection: {
             p0: projectPoint(p0.x, p0.y),
             pw: projectPoint(pw.x, pw.y),
             ph: projectPoint(ph.x, ph.y),
         }
-    });
+    };
 
     if (item.shape === 'rect') {
         itemData.cornerRadius = item.shapeProps.cornerRadius;
@@ -152,14 +150,16 @@ export function convertShapeToStandardCurves(rootItem) {
     traverseItems(rootItem, item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
-        if (isSupportedPrimitive(item.shape)) {
-            shapeConfig.items.push(convertPrimitive(item, p0.x, p0.y, w, h));
-        } else if (item.shape === 'path') {
-            if (item.tags && indexOf(item.tags, 'outline') >= 0) {
-                shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h).paths);
-            } else {
-                shapeConfig.items.push(convertCurve(item, p0.x, p0.y, w, h));
+        if (item.tags && indexOf(item.tags, 'outline') >= 0) {
+            if (item.shape === 'path') {
+                shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h));
+            } else if (isSupportedPrimitive(item.shape)) {
+                shapeConfig.outlines = shapeConfig.outlines.concat(convertPrimitive(item, p0.x, p0.y, w, h));
             }
+        } else if (item.shape === 'path') {
+            shapeConfig.items.push(enrichShapeItemWithArgs(item, convertCurve(item, p0.x, p0.y, w, h)));
+        } else if (isSupportedPrimitive(item.shape)) {
+            shapeConfig.items.push(enrichShapeItemWithArgs(item, convertPrimitive(item, p0.x, p0.y, w, h)));
         } else if (indexOf(item.tags, 'pin') >= 0) {
             const center = worldPointOnItem(item.area.w/2, item.area.h/2, item);
             const pin = {
