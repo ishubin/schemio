@@ -150,7 +150,7 @@ function convertCurvePointsToItemScale(area, scale, points) {
 
 function createComputeOutlineFunc(shapeConfig) {
     return (item) => {
-        if (shapeConfig.outlines) {
+        if (shapeConfig.outlines && shapeConfig.outlines.length > 0) {
             let svgPath = '';
 
             forEach(shapeConfig.outlines, outlineDef => {
