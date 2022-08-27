@@ -181,8 +181,8 @@ function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
 
 function projectPointToItemArea(x, y, item) {
     return {
-        x: x * item.area.w,
-        y: y * item.area.h
+        x: x * item.area.w / 100,
+        y: y * item.area.h / 100
     };
 }
 

@@ -91,8 +91,8 @@ function convertPrimitive(item, x0, y0, w, h) {
 
     const projectPoint = (x, y) => {
         return {
-            x: (x - x0) / w,
-            y: (y - y0) / h,
+            x: myMath.roundPrecise2(100 * (x - x0) / w),
+            y: myMath.roundPrecise2(100 * (y - y0) / h),
         }
     };
     
@@ -108,8 +108,8 @@ function convertPrimitive(item, x0, y0, w, h) {
     if (item.shape === 'rect') {
         itemData.cornerRadiusRatio = {w: 0, h: 0};
         if (item.area.w > 0 && item.area.h > 0) {
-            itemData.cornerRadiusRatio.w = item.shapeProps.cornerRadius / item.area.w;
-            itemData.cornerRadiusRatio.h = item.shapeProps.cornerRadius / item.area.h;
+            itemData.cornerRadiusRatio.w = myMath.roundPrecise2(100 * item.shapeProps.cornerRadius / item.area.w);
+            itemData.cornerRadiusRatio.h = myMath.roundPrecise2(100 * item.shapeProps.cornerRadius / item.area.h);
         }
     }
     return itemData;
