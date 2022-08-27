@@ -359,7 +359,7 @@ export default {
                 const item = this.schemeContainer.getSelectedItems()[0];
                 const shape = Shape.find(item.shape);
                 this.firstSelectedItem = item;
-                if (shape.argType('fill') === 'advanced-color') {
+                if (shape && shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
                     this.supportsFill = true;
                 } else {

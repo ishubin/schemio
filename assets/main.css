@@ -753,6 +753,22 @@ ul.pagination li a.current {
 }
 
 
+#svg_plot .missing-shape rect {
+    stroke-width: 2px;
+    stroke: #db3a3a;
+    fill: rgba(227, 120, 120, 0.3);
+}
+#svg_plot .missing-shape div {
+    color: #db3a3a;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 0px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal;
+    display: table-cell;
+    box-sizing: border-box;
+}
+
 /********** Item Cursor *******************/
 #svg_plot .item-cursor-pointer {
     cursor: pointer;

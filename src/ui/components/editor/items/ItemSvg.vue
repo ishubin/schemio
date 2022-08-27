@@ -39,6 +39,15 @@
                     :fill="curve.fill"></path>
             </g>
 
+            <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
+                <rect x="0" y="0" :width="item.area.w" :height="item.area.h" />
+                <foreignObject x="0" y="0"  :width="item.area.w" :height="item.area.h">
+                    <div xmlns="http://www.w3.org/1999/xhtml" :style="{width: `${item.area.w}px`, height: `${item.area.h}px`}">
+                        <div :style="missingShapeTextStyle">Missing Shape</div>
+                    </div>
+                </foreignObject>
+            </g>
+
             <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
                 <foreignObject
                     ref="textSlots"
@@ -84,6 +93,16 @@
             :data-item-id="item.id"
             :stroke-width="hoverPathStrokeWidth"
             :style="{'cursor': item.cursor}"
+            stroke="rgba(255, 255, 255, 0)"
+            :fill="hoverPathFill" />
+
+        <rect v-if="shapeType === 'missing'"
+            class="svg-event-layer"
+            data-preview-ignore="true"
+            :data-item-id="item.id"
+            x="0" y="0"
+            :width="item.area.w"
+            :height="item.area.h"
             stroke="rgba(255, 255, 255, 0)"
             :fill="hoverPathFill" />
 
@@ -208,7 +227,7 @@ export default {
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
 
         const shape = Shape.find(this.item.shape);
-        if (shape.shapeEvents.mounted) {
+        if (shape && shape.shapeEvents.mounted) {
             shape.shapeEvents.mounted(this.$store, this.item, {
                 textSlots: this.$refs.textSlots
             });
@@ -225,7 +244,7 @@ export default {
         const shape = Shape.find(this.item.shape);
 
         const data = {
-            shapeType             : shape.shapeType,
+            shapeType             : shape ? shape.shapeType : 'missing',
             shapeComponent        : null,
             oldShape              : this.item.shape,
             itemStandardCurves    : [],
@@ -244,7 +263,7 @@ export default {
 
             strokeDashArray       : '',
 
-            supportsStrokeSize    : hasStrokeSizeProp(shape),
+            supportsStrokeSize    : shape ? hasStrokeSizeProp(shape) : false,
 
             svgFilters            : [],
             filterUrl             : '',
@@ -253,10 +272,12 @@ export default {
             svgItemTransform      : this.calculateSVGItemTransform()
         };
 
-        if (!shape.editorProps || !shape.editorProps.customTextRendering) {
-            data.textSlots = this.generateTextSlots();
-        } else {
-            data.shouldRenderText = false;
+        if (shape) {
+            if (!shape.editorProps || !shape.editorProps.customTextRendering) {
+                data.textSlots = this.generateTextSlots();
+            } else {
+                data.shouldRenderText = false;
+            }
         }
 
         const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
@@ -277,6 +298,9 @@ export default {
         switchShape(shapeId) {
             this.oldShape = this.item.shape;
             const shape = Shape.find(shapeId);
+            if (!shape) {
+                return;
+            }
             this.shapeType = shape.shapeType;
             this.supportsStrokeSize = hasStrokeSizeProp(shape);
 
@@ -299,6 +323,9 @@ export default {
 
         onItemChanged(propertyPath) {
             const shape = Shape.find(this.item.shape);
+            if (!shape) {
+                return;
+            }
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
             } else if (shape) {
@@ -342,6 +369,9 @@ export default {
 
         generateTextSlots() {
             const shape = Shape.find(this.item.shape);
+            if (!shape) {
+                return [];
+            }
             const slots = utils.clone(shape.getTextSlots(this.item));
             
             const filteredSlots = [];
@@ -443,6 +473,14 @@ export default {
                 return (parseInt(this.item.shapeProps.strokeSize) + 10)  + 'px';
             }
             return '8px';
+        },
+
+        missingShapeTextStyle() {
+            const fontSize = Math.min(this.item.area.w, this.item.area.h) / 6;
+            return {
+                'font-size': `${fontSize}px`,
+                display: 'inline-block'
+            };
         }
     }
 }

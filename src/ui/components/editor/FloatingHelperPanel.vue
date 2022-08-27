@@ -95,11 +95,11 @@ export default {
         let supportsStroke = false;
         const shape = Shape.find(this.item.shape);
 
-        if (shape.argType('fill') === 'advanced-color') {
+        if (shape && shape.argType('fill') === 'advanced-color') {
             fillColor = this.item.shapeProps.fill;
             supportsFill = true;
         }
-        if (shape.argType('strokeColor') === 'color') {
+        if (shape && shape.argType('strokeColor') === 'color') {
             supportsStroke = true;
         }
 

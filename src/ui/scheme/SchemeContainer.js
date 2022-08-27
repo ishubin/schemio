@@ -504,14 +504,6 @@ class SchemeContainer {
                 item.meta.isInHUD = true;
             }
 
-            const shape = Shape.find(item.shape);
-            if (item.text && item.text.length > 0) {
-                const textSlots = shape.getTextSlots(item);
-                if (textSlots && textSlots.length > 0) {
-                    item.textSlots[textSlots[0].name].text = item.text;
-                }
-                delete item.text;
-            }
             if (item.shape === 'component') {
                 this.componentItems.push(item);
             }
@@ -560,7 +552,10 @@ class SchemeContainer {
             }
 
             if (isIndexable) {
-                this.indexItemPins(item, shape);
+                const shape = Shape.find(item.shape);
+                if (shape) {
+                    this.indexItemPins(item, shape);
+                }
                 this.indexItemOutlinePoints(item);
             }
 
