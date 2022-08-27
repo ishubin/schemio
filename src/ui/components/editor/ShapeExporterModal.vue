@@ -182,8 +182,7 @@ export default {
         } catch(err) {
             console.error(err);
             errorMessage = 'Failed to generate shape group';
-            return null;
-        }
+        };
 
         return {
             shapeGroup,

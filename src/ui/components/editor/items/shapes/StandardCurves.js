@@ -201,9 +201,83 @@ function convertRawEllipseShapeForRender(item, shapeConfig, itemDef) {
     const Pw = projectPointToItemArea(pw.x, pw.y, item);
     const Ph = projectPointToItemArea(ph.x, ph.y, item);
 
-    const rx = Math.sqrt((Pw.x - Po.x) * (Pw.x - Po.x) + (Pw.y - Po.y) * (Pw.y - Po.y)) / 2;
-    const ry = Math.sqrt((Ph.x - Po.x) * (Ph.x - Po.x) + (Ph.y - Po.y) * (Ph.y - Po.y)) / 2;
+    const rx = myMath.distanceBetweenPoints(Pw.x, Pw.y, Po.x, Po.y) / 2;
+    const ry = myMath.distanceBetweenPoints(Ph.x, Ph.y, Po.x, Po.y) / 2;
     return `M ${Pl.x} ${Pl.y} A ${rx} ${ry} 0 1 1 ${Pr.x} ${Pr.y}  A ${rx} ${ry} 0 1 1 ${Pl.x} ${Pl.y} Z`;
+}
+
+function convertRawRectShapeForRender(item, shapeConfig, itemDef) {
+
+    /*
+        Vw
+        --->
+    Po                           Pw
+    *    P1-----------------P2  *
+       /                      \
+      /                        \
+    P0                         P3
+    |          RECT             |      |
+    |                           |      | Vh
+    P7                         P4      V
+     \                          /
+      \                        /
+    *  P6--------------------P5 *
+   Ph                            Pwh
+
+    */
+
+    const {p0, pw, ph} = itemDef.projection;
+
+    const Po = projectPointToItemArea(p0.x, p0.y, item);
+    const Pw = projectPointToItemArea(pw.x, pw.y, item);
+    const Ph = projectPointToItemArea(ph.x, ph.y, item);
+
+    const w = myMath.distanceBetweenPoints(Pw.x, Pw.y, Po.x, Po.y);
+    const h = myMath.distanceBetweenPoints(Ph.x, Ph.y, Po.x, Po.y);
+
+    const R = Math.min(itemDef.cornerRadiusRatio.w * w, itemDef.cornerRadiusRatio.h * h, w/2, h/2);
+    const Vw = myMath.normalizedVector(Pw.x - Po.x, Pw.y - Po.y);
+    const Vh = myMath.normalizedVector(Ph.x - Po.x, Ph.y - Po.y);
+
+    if (!Vw || !Vh) {
+        return '';
+    }
+
+    Vw.x = Vw.x * R;
+    Vw.y = Vw.y * R;
+
+    Vh.x = Vh.x * R;
+    Vh.y = Vh.y * R;
+
+    const Pwh =  myMath.vectorMinusVector(myMath.vectorPlusVector(Pw, Ph), Po);
+
+    const points = [
+        myMath.vectorPlusVector(Po, Vh),
+        myMath.vectorPlusVector(Po, Vw),
+        myMath.vectorMinusVector(Pw, Vw),
+        myMath.vectorPlusVector(Pw, Vh),
+        myMath.vectorMinusVector(Pwh, Vh),
+        myMath.vectorMinusVector(Pwh, Vw),
+        myMath.vectorPlusVector(Ph, Vw),
+        myMath.vectorMinusVector(Ph, Vh),
+    ];
+
+    const arc = (point) => {
+        return ` A ${R} ${R} 0 0 1 ${point.x} ${point.y}`;
+    }
+    const line = (point) => {
+        return ` L ${point.x} ${point.y}`;
+    }
+    let path = `M ${points[0].x} ${points[0].y}`;
+
+    for (let i = 1; i < points.length; i++) {
+        if (i % 2 === 0) {
+            path += line(points[i]);
+        } else {
+            path += arc(points[i]);
+        }
+    }
+    return path + line(points[0]) + ' Z';
 }
 
 function convertRawShapeToSvgPath(item, shapeConfig, itemDef) {
@@ -211,6 +285,8 @@ function convertRawShapeToSvgPath(item, shapeConfig, itemDef) {
         return convertRawPathShapeForRender(item, shapeConfig, itemDef);
     } else if (itemDef.type === 'ellipse') {
         return convertRawEllipseShapeForRender(item, shapeConfig, itemDef);
+    } else if (itemDef.type === 'rect') {
+        return convertRawRectShapeForRender(item, shapeConfig, itemDef);
     } else {
         console.error('Uknown raw shape type: ' + itemDef.type);
         return null;

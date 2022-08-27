@@ -106,7 +106,11 @@ function convertPrimitive(item, x0, y0, w, h) {
     };
 
     if (item.shape === 'rect') {
-        itemData.cornerRadius = item.shapeProps.cornerRadius;
+        itemData.cornerRadiusRatio = {w: 0, h: 0};
+        if (item.area.w > 0 && item.area.h > 0) {
+            itemData.cornerRadiusRatio.w = item.shapeProps.cornerRadius / item.area.w;
+            itemData.cornerRadiusRatio.h = item.shapeProps.cornerRadius / item.area.h;
+        }
     }
     return itemData;
 }
