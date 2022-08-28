@@ -894,6 +894,7 @@ export default {
                     }
                     return axios.get(shapeGroup.ref).then(response => {
                         registerExternalShapeGroup(this.$store, shapeGroupId, response.data);
+                        EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
                     });
                 }))
             })
@@ -1683,19 +1684,19 @@ export default {
         importScheme(scheme) {
             const newScheme = utils.clone(scheme);
             newScheme.id = this.schemeContainer.scheme.id;
-            const newSchemeContainer = new SchemeContainer(newScheme, EventBus);
-            newSchemeContainer.revision = this.schemeContainer.revision + 1;
-            this.schemeContainer = newSchemeContainer;
-            this.schemeContainer.reindexItems();
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            this.updateRevision();
-            this.commitHistory();
-            this.editorRevision++;
+            const oldRevision = this.schemeContainer.revision;
 
-            if (this.mode === 'view') {
-                this.switchToViewMode();
-            }
+            this.initSchemeContainer(scheme)
+            .then(() => {
+                this.schemeContainer.revision = oldRevision + 1;
+                this.updateRevision();
+                this.commitHistory();
+                this.editorRevision++;
+
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
+                }
+            });
         },
 
         onImportSchemeJSONClicked() {
