@@ -911,14 +911,14 @@ export default {
         collectAndLoadAllMissingShapes(items) {
             const missingShapes = collectMissingShapes(items);
             if (missingShapes && missingShapes.length > 0) {
-                this.isLoading = true;
-                this.loadingStep = 'load-shapes';
                 return this.loadAllMissingShapes(missingShapes);
             }
             return Promise.resolve();
         },
 
         initSchemeContainer(scheme) {
+            this.isLoading = true;
+            this.loadingStep = 'load-shapes';
             return this.collectAndLoadAllMissingShapes(scheme.items)
             .then(() => {
                 this.isLoading = false;
@@ -1539,6 +1539,8 @@ export default {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
                     if (items) {
+                        this.isLoading = true;
+                        this.loadingStep = 'load-shapes';
                         this.collectAndLoadAllMissingShapes(items).then(() => {
                             this.isLoading = false;
                             const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
@@ -2049,6 +2051,12 @@ export default {
                 item._childItems = [];
             }
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
+            .then(schemeDetails => {
+                return this.collectAndLoadAllMissingShapes(schemeDetails.scheme.items)
+                .then(() => {
+                    return schemeDetails;
+                });
+            })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
                 const componentSchemeContainer = new SchemeContainer(scheme);
