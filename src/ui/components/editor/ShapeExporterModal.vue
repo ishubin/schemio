@@ -44,6 +44,7 @@ import forEach from 'lodash/forEach';
 import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
 import utils from '../../utils';
 import { convertRawShapeForRender } from './items/shapes/StandardCurves';
+import myMath from '../../myMath';
 
 function createWidthAndHeight(w, h, widthToHeightRatio) {
     if (widthToHeightRatio > 1) {
@@ -107,8 +108,11 @@ function generateShapeConfigForItem(item, shapeGroupName) {
                 group: shapeGroupName,
                 name: item.name,
                 iconUrl: `data:image/svg+xml;base64,${svgPreviewBase64}`,
-                size: creationSize,
-                previewArea: {x: 0, y: 0, w: previewSize.w, h: previewSize.h, r: 0},
+                size: {
+                    w: myMath.roundPrecise1(creationSize.w),
+                    h: myMath.roundPrecise1(creationSize.h)
+                },
+                previewArea: {x: 0, y: 0, w: myMath.roundPrecise1(previewSize.w), h: myMath.roundPrecise1(previewSize.h), r: 0},
             }]
         }
     };
