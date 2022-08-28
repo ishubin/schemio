@@ -180,19 +180,15 @@ export function enrichItemWithDefaults(item) {
         fixOldCurveItem(item);
     }
 
+    enrichObjectWithDefaults(item, defaultItemDefinition);
+
     fixOldGroups(item);
     fixBehaviorEvents(item.behavior);
     forEach(item.links, idFixer);
 
-    enrichObjectWithDefaults(item, defaultItemDefinition);
-
-
     let shape = Shape.find(item.shape);
     if (!shape) {
         return;
-        // // will replace item as rect shape, otherwise everything else will break
-        // item.shape = 'rect';
-        // shape = Shape.find('rect');
     }
    
     forEach(shape.args, (arg, argName) => {
