@@ -1,4 +1,6 @@
-import StoreUtils from "../../../../store/StoreUtils";
+import axios from "axios";
+import { traverseItems } from "../../../../scheme/Item";
+import EventBus from "../../EventBus";
 import Shape from "./Shape";
 
 export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
@@ -23,4 +25,67 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
             });
         }
     });
+}
+
+function collectMissingShapes(items) {
+    const missingShapes = new Set();
+    if (Array.isArray(items)) {
+        items.forEach(rootItem => {
+            traverseItems(rootItem, item => {
+                if (!Shape.find(item.shape)) {
+                    missingShapes.add(item.shape);
+                }
+            });
+        })
+    }
+
+    return Array.from(missingShapes);
+}
+
+
+function loadAllMissingShapes(shapeIds, $store) {
+    const shapeGroupIds = new Set();
+    shapeIds.forEach(shapeId => {
+        const parts = shapeId.split(':');
+        if (parts.length === 3) {
+            shapeGroupIds.add(parts[2]);
+        }
+    });
+
+    if (shapeGroupIds.size === 0) {
+        return Promise.resolve(null);
+    }
+
+    const assetsPath = $store.state.assetsPath || '/assets';
+    const separator = assetsPath.endsWith('/') ? '' : '/';
+    return axios.get(`${assetsPath}${separator}shapes/shapes.json`)
+    .then(response => {
+        const shapeGroups = response.data;
+        if (!shapeGroups) {
+            return null;
+        }
+        const shapeGroupIndex = new Map();
+        shapeGroups.forEach(shapeGroup => {
+            shapeGroupIndex.set(shapeGroup.id, shapeGroup);
+        });
+
+        return Promise.all(Array.from(shapeGroupIds).map(shapeGroupId => {
+            const shapeGroup = shapeGroupIndex.get(shapeGroupId);
+            if (!shapeGroup) {
+                return Promise.resolve(null);
+            }
+            return axios.get(shapeGroup.ref).then(response => {
+                registerExternalShapeGroup($store, shapeGroupId, response.data);
+                EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
+            });
+        }))
+    });
+}
+
+export function collectAndLoadAllMissingShapes(items, $store) {
+    const missingShapes = collectMissingShapes(items);
+    if (missingShapes && missingShapes.length > 0) {
+        return loadAllMissingShapes(missingShapes, $store);
+    }
+    return Promise.resolve();
 }

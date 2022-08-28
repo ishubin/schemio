@@ -16,6 +16,7 @@
         </div>
         <div class="ssc-body">
             <svg-editor ref="svgEditor"
+                v-if="schemeContainer"
                 :scheme-container="schemeContainer"
                 :offset-x="offsetX"
                 :offset-y="offsetY"
@@ -52,6 +53,7 @@ import forEach from 'lodash/forEach';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';
+import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 
 
 const userEventBus = new UserEventBus();
@@ -64,8 +66,7 @@ export default {
 
     beforeMount() {
         this.$store.dispatch('setAssetsPath', '/');
-        stateInteract.schemeContainer = this.schemeContainer;
-        stateInteract.reset();
+        this.initSchemeContainer();
 
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
@@ -78,14 +79,10 @@ export default {
         EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
     },
-    mounted() {
-        if (this.autoZoom) {
-            this.zoomToScheme();
-        }
-    },
     data() {
         return {
-            schemeContainer: new SchemeContainer(this.scheme, EventBus),
+            schemeContainer: null,
+            initialized: false,
             userEventBus,
             textZoom: "" + this.zoom,
             vZoom: this.zoom,
@@ -104,24 +101,50 @@ export default {
     },
 
     methods: {
+        initSchemeContainer() {
+            collectAndLoadAllMissingShapes(this.scheme.items, this.$store)
+            .catch(err => {
+                console.error('Failed to load shapes', err);
+            })
+            .then(() => {
+                this.schemeContainer = new SchemeContainer(this.scheme, EventBus);
+                stateInteract.schemeContainer = this.schemeContainer;
+                stateInteract.reset();
+                this.initialized = true;
+                if (this.autoZoom) {
+                    this.zoomToScheme();
+                }
+            });
+        },
+
         mouseWheel(x, y, mx, my, event) {
-            stateInteract.mouseWheel(x, y, mx, my, event);
+            if (this.initialized) {
+                stateInteract.mouseWheel(x, y, mx, my, event);
+            }
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+            if (this.initialized) {
+                stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+            if (this.initialized) {
+                stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+            if (this.initialized) {
+                stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            if (this.initialized) {
+                stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         onScreenTransformUpdated(screenTransform) {
@@ -141,7 +164,9 @@ export default {
 
         onZoomSubmitted() {
             this.vZoom = parseFloat(this.textZoom);
-            this.schemeContainer.screenTransform.scale = this.vZoom / 100.0;
+            if (this.initialized) {
+                this.schemeContainer.screenTransform.scale = this.vZoom / 100.0;
+            }
         },
 
         onVoidClicked() {

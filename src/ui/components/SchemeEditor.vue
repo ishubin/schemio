@@ -468,8 +468,7 @@ import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
-import axios from 'axios';
-import { registerExternalShapeGroup } from './editor/items/shapes/ExtraShapes.js';
+import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -555,20 +554,6 @@ const drawColorPallete = [
     "rgba(228, 156, 247, 1)",
 ];
 
-function collectMissingShapes(items) {
-    const missingShapes = new Set();
-    if (Array.isArray(items)) {
-        items.forEach(rootItem => {
-            traverseItems(rootItem, item => {
-                if (!Shape.find(item.shape)) {
-                    missingShapes.add(item.shape);
-                }
-            });
-        })
-    }
-
-    return Array.from(missingShapes);
-}
 
 export default {
     components: {
@@ -868,58 +853,14 @@ export default {
             this.initSchemeContainer(scheme);
         },
 
-        loadAllMissingShapes(shapeIds) {
-            const shapeGroupIds = new Set();
-            shapeIds.forEach(shapeId => {
-                const parts = shapeId.split(':');
-                if (parts.length === 3) {
-                    shapeGroupIds.add(parts[2]);
-                }
-            });
-
-            if (shapeGroupIds.size === 0) {
-                return Promise.resolve(null);
-            }
-
-            return this.$store.state.apiClient.getExternalShapes()
-            .then(shapeGroups => {
-                if (!shapeGroups) {
-                    return null;
-                }
-                const shapeGroupIndex = new Map();
-                shapeGroups.forEach(shapeGroup => {
-                    shapeGroupIndex.set(shapeGroup.id, shapeGroup);
-                });
-
-                return Promise.all(Array.from(shapeGroupIds).map(shapeGroupId => {
-                    const shapeGroup = shapeGroupIndex.get(shapeGroupId);
-                    if (!shapeGroup) {
-                        return Promise.resolve(null);
-                    }
-                    return axios.get(shapeGroup.ref).then(response => {
-                        registerExternalShapeGroup(this.$store, shapeGroupId, response.data);
-                        EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
-                    });
-                }))
-            })
-            .catch(err => {
-                console.error(err);
-                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-            });
-        },
-
-        collectAndLoadAllMissingShapes(items) {
-            const missingShapes = collectMissingShapes(items);
-            if (missingShapes && missingShapes.length > 0) {
-                return this.loadAllMissingShapes(missingShapes);
-            }
-            return Promise.resolve();
-        },
-
         initSchemeContainer(scheme) {
             this.isLoading = true;
             this.loadingStep = 'load-shapes';
-            return this.collectAndLoadAllMissingShapes(scheme.items)
+            return collectAndLoadAllMissingShapes(scheme.items, this.$store)
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+            })
             .then(() => {
                 this.isLoading = false;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
@@ -1541,7 +1482,12 @@ export default {
                     if (items) {
                         this.isLoading = true;
                         this.loadingStep = 'load-shapes';
-                        this.collectAndLoadAllMissingShapes(items).then(() => {
+                        collectAndLoadAllMissingShapes(items, this.$store)
+                        .catch(err => {
+                            console.error(err);
+                            StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                        })
+                        .then(() => {
                             this.isLoading = false;
                             const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
                             const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
@@ -2052,7 +1998,11 @@ export default {
             }
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
             .then(schemeDetails => {
-                return this.collectAndLoadAllMissingShapes(schemeDetails.scheme.items)
+                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
+                .catch(err => {
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                })
                 .then(() => {
                     return schemeDetails;
                 });
