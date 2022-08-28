@@ -409,7 +409,7 @@ import myMath from '../myMath';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
-import {enrichSchemeWithDefaults, prepareSchemeForSaving, traverseSchemeItems} from '../scheme/Scheme';
+import {enrichSchemeWithDefaults, prepareSchemeForSaving } from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -555,13 +555,17 @@ const drawColorPallete = [
     "rgba(228, 156, 247, 1)",
 ];
 
-function collectMissingShapes(scheme) {
+function collectMissingShapes(items) {
     const missingShapes = new Set();
-    traverseSchemeItems(scheme, item => {
-        if (!Shape.find(item.shape)) {
-            missingShapes.add(item.shape);
-        }
-    });
+    if (Array.isArray(items)) {
+        items.forEach(rootItem => {
+            traverseItems(rootItem, item => {
+                if (!Shape.find(item.shape)) {
+                    missingShapes.add(item.shape);
+                }
+            });
+        })
+    }
 
     return Array.from(missingShapes);
 }
@@ -904,17 +908,19 @@ export default {
             });
         },
 
-        initSchemeContainer(scheme) {
-            const missingShapes = collectMissingShapes(scheme);
-
-            let chain = Promise.resolve(null);
+        collectAndLoadAllMissingShapes(items) {
+            const missingShapes = collectMissingShapes(items);
             if (missingShapes && missingShapes.length > 0) {
                 this.isLoading = true;
                 this.loadingStep = 'load-shapes';
-                chain = this.loadAllMissingShapes(missingShapes);
+                return this.loadAllMissingShapes(missingShapes);
             }
+            return Promise.resolve();
+        },
 
-            chain.then(() => {
+        initSchemeContainer(scheme) {
+            return this.collectAndLoadAllMissingShapes(scheme.items)
+            .then(() => {
                 this.isLoading = false;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
@@ -964,7 +970,6 @@ export default {
             .then(() => {
                 this.isLoading = false;
             });
-            return chain;
         },
 
         toggleMode(mode) {
@@ -1534,10 +1539,13 @@ export default {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
                     if (items) {
-                        const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                        const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
-                        this.schemeContainer.pasteItems(items, centerX, centerY);
-                        EventBus.emitSchemeChangeCommited();
+                        this.collectAndLoadAllMissingShapes(items).then(() => {
+                            this.isLoading = false;
+                            const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                            const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                            this.schemeContainer.pasteItems(items, centerX, centerY);
+                            EventBus.emitSchemeChangeCommited();
+                        });
                     }
                 }
             })

@@ -32,17 +32,6 @@ export function enrichSchemeWithDefaults(scheme) {
     enrichObjectWithDefaults(scheme, defaultScheme);
 }
 
-export function traverseSchemeItems(scheme, callback) {
-    if (!scheme) {
-        return;
-    }
-    if (Array.isArray(scheme.items)) {
-        scheme.items.forEach(item => {
-            traverseItems(item, callback);
-        });
-    }
-}
-
 export function defaultifyScheme(scheme) {
     const resultedScheme = defaultifyObject(scheme, defaultScheme);
     
