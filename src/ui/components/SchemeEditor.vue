@@ -377,6 +377,10 @@
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
                     <span>Loading scheme...</span>
                 </div>
+                <div v-if="loadingStep === 'load-shapes'">
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Loading shapes...</span>
+                </div>
                 <div v-if="loadingStep === 'img-preload'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
                     <span>Preloading all images...  </span>
@@ -405,7 +409,7 @@ import myMath from '../myMath';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
-import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
+import {enrichSchemeWithDefaults, prepareSchemeForSaving, traverseSchemeItems} from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -464,6 +468,8 @@ import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
+import axios from 'axios';
+import { registerExternalShapeGroup } from './editor/items/shapes/ExtraShapes.js';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -548,6 +554,17 @@ const drawColorPallete = [
     "rgba(137, 141, 242, 1)",
     "rgba(228, 156, 247, 1)",
 ];
+
+function collectMissingShapes(scheme) {
+    const missingShapes = new Set();
+    traverseSchemeItems(scheme, item => {
+        if (!Shape.find(item.shape)) {
+            missingShapes.add(item.shape);
+        }
+    });
+
+    return Array.from(missingShapes);
+}
 
 export default {
     components: {
@@ -818,18 +835,7 @@ export default {
             this.schemeId = this.scheme.id;
 
 
-            this.initScheme(this.scheme);
-            Promise.resolve(null).then(() => {
-                this.loadingStep = 'img-preload';
-                const images = findAllImages(this.schemeContainer.getItems());
-                return Promise.race([
-                    Promise.all(map(images, imgPreload)),
-                    timeoutPromise(10000)
-                ]);
-            })
-            .then(() => {
-                this.isLoading = false;
-            });
+            this.initSchemeContainer(this.scheme);
         },
 
         initOfflineMode() {
@@ -855,44 +861,109 @@ export default {
 
             enrichSchemeWithDefaults(scheme);
             this.offlineMode = true;
-            this.initScheme(scheme);
+            this.initSchemeContainer(scheme);
         },
 
-        initScheme(scheme) {
-            this.schemeContainer = new SchemeContainer(scheme, EventBus);
-
-            forEach(states, state => {
-                state.setSchemeContainer(this.schemeContainer);
+        loadAllMissingShapes(shapeIds) {
+            const shapeGroupIds = new Set();
+            shapeIds.forEach(shapeId => {
+                const parts = shapeId.split(':');
+                if (parts.length === 3) {
+                    shapeGroupIds.add(parts[2]);
+                }
             });
 
-
-            history = new History({size: defaultHistorySize});
-            history.commit(scheme);
-            document._history = history;
-
-            if (this.mode === 'view') {
-                this.switchToViewMode();
+            if (shapeGroupIds.size === 0) {
+                return Promise.resolve(null);
             }
 
-            const schemeSettings = schemeSettingsStorage.get(this.schemeId);
-            if (schemeSettings && schemeSettings.screenPosition) {
-                // Text tab is only rendered when in place text edit is triggered
-                // therefore it does not make sense to set it as current on scheme load
-                if (schemeSettings.currentTab !== 'Text') {
-                    this.currentTab = schemeSettings.currentTab;
+            return this.$store.state.apiClient.getExternalShapes()
+            .then(shapeGroups => {
+                if (!shapeGroups) {
+                    return null;
                 }
-                this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
-                this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
-                this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
-            } else {
-                if (this.schemeContainer.selectedItems.length > 0) {
-                    const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
-                    if (area) {
-                        EventBus.emitBringToViewInstantly(area);
+                const shapeGroupIndex = new Map();
+                shapeGroups.forEach(shapeGroup => {
+                    shapeGroupIndex.set(shapeGroup.id, shapeGroup);
+                });
+
+                return Promise.all(Array.from(shapeGroupIds).map(shapeGroupId => {
+                    const shapeGroup = shapeGroupIndex.get(shapeGroupId);
+                    if (!shapeGroup) {
+                        return Promise.resolve(null);
+                    }
+                    return axios.get(shapeGroup.ref).then(response => {
+                        registerExternalShapeGroup(this.$store, shapeGroupId, response.data);
+                    });
+                }))
+            })
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+            });
+        },
+
+        initSchemeContainer(scheme) {
+            const missingShapes = collectMissingShapes(scheme);
+
+            let chain = Promise.resolve(null);
+            if (missingShapes && missingShapes.length > 0) {
+                this.isLoading = true;
+                this.loadingStep = 'load-shapes';
+                chain = this.loadAllMissingShapes(missingShapes);
+            }
+
+            chain.then(() => {
+                this.isLoading = false;
+                this.schemeContainer = new SchemeContainer(scheme, EventBus);
+
+                forEach(states, state => {
+                    state.setSchemeContainer(this.schemeContainer);
+                    state.reset();
+                });
+
+                history = new History({size: defaultHistorySize});
+                history.commit(scheme);
+                document._history = history;
+
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
+                }
+
+                const schemeSettings = schemeSettingsStorage.get(this.schemeId);
+                if (schemeSettings && schemeSettings.screenPosition) {
+                    // Text tab is only rendered when in place text edit is triggered
+                    // therefore it does not make sense to set it as current on scheme load
+                    if (schemeSettings.currentTab !== 'Text') {
+                        this.currentTab = schemeSettings.currentTab;
+                    }
+                    this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
+                    this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
+                    this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                    this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
+                } else {
+                    if (this.schemeContainer.selectedItems.length > 0) {
+                        const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
+                        if (area) {
+                            EventBus.emitBringToViewInstantly(area);
+                        }
                     }
                 }
-            }
+
+                return this.schemeContainer;
+            })
+            .then(schemeContainer => {
+                this.loadingStep = 'img-preload';
+                const images = findAllImages(schemeContainer.getItems());
+                return Promise.race([
+                    Promise.all(map(images, imgPreload)),
+                    timeoutPromise(10000)
+                ]);
+            })
+            .then(() => {
+                this.isLoading = false;
+            });
+            return chain;
         },
 
         toggleMode(mode) {
@@ -2534,6 +2605,9 @@ export default {
         },
 
         updateFloatingHelperPanel() {
+            if (!this.schemeContainer) {
+                return;
+            }
             if (this.state !== 'dragItem'
                 || !states.dragItem.shouldAllowFloatingHelperPanel()
                 || this.schemeContainer.selectedItems.length !== 1

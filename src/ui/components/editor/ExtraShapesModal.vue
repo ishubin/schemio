@@ -35,6 +35,7 @@
 import axios from 'axios';
 import Modal from '../Modal.vue';
 import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
+import EventBus from './EventBus';
 
 export default {
     components: {Modal},
@@ -79,6 +80,7 @@ export default {
             .then(response => {
                 this.isLoading = false;
                 registerExternalShapeGroup(this.$store, shapeGroup.id, response.data);
+                EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
             })
             .catch(err => {
                 this.isLoading = false;

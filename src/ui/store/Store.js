@@ -89,8 +89,6 @@ const store = new Vuex.Store({
         editorStateName: 'interact',
         editorSubStateName: null,
 
-        extraShapeGroups: [],
-
         curveEditing: {
             // item whose curve is currently edited
             item: null,
@@ -483,15 +481,6 @@ const store = new Vuex.Store({
         SET_CURRENT_CONNECTOR(state, {item}) {
             state.connecting.connectorItem = item;
         },
-
-        REGISTER_EXTRA_SHAPE_GROUP(state, shapeGroup) {
-            for (let i = 0; i < state.extraShapeGroups.length; i++) {
-                if (state.extraShapeGroups[i].id === shapeGroup.id) {
-                    return;
-                }
-            }
-            state.extraShapeGroups.push(shapeGroup);
-        }
     },
 
     actions: {
@@ -673,10 +662,6 @@ const store = new Vuex.Store({
         setCurrentConnector({commit}, item) {
             commit('SET_CURRENT_CONNECTOR', {item});
         },
-
-        registerExtraShapeGroup({commit}, shapeGroup) {
-            commit('REGISTER_EXTRA_SHAPE_GROUP', shapeGroup);
-        }
     },
 
     getters: {
@@ -723,8 +708,6 @@ const store = new Vuex.Store({
         patchDeletionsColor: state => state.patch.settings.deletionsColor,
         patchModificationsColor: state => state.patch.settings.modificationsColor,
         patchIsDiffColoringEnabled: state => state.patch.diffColoringEnabled,
-
-        extraShapeGroups: state => state.extraShapeGroups,
 
         staticExportAllowed: state => {
             if (state.apiClient && state.apiClient.submitStaticExport) {

@@ -109,7 +109,9 @@ const EventBus = new Vue({
             // used for each frame_player item to initialize it's callbacks for its own frame animation
             FRAME_PLAYER_PREPARED: 'frame-player-prepared',
 
-            CLICKABLE_MARKERS_TOGGLED: 'clickable-markers-toggled'
+            CLICKABLE_MARKERS_TOGGLED: 'clickable-markers-toggled',
+
+            EXTRA_SHAPE_GROUP_REGISTERED: 'extra-shape-group-registered'
         };
     },
     methods: {

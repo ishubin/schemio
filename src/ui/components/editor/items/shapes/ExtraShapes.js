@@ -23,10 +23,4 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
             });
         }
     });
-
-    StoreUtils.registerExtraShapeGroup($store, {
-        id: shapeGroupId,
-        name: shapeGroup.group,
-        items: menuItems
-    });
 }

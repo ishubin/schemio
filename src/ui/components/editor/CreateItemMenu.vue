@@ -186,6 +186,11 @@ export default {
     beforeMount() {
         this.reloadArt();
         this.filterItemPanels();
+        EventBus.$on(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
+    },
+
+    beforeDestroy() {
+        EventBus.$off(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
     },
     data() {
         return {
@@ -235,6 +240,11 @@ export default {
         }
     },
     methods: {
+        updateAllPanels() {
+            this.itemPanels = this.generateItemPanels();
+            this.filterItemPanels();
+        },
+
         generateItemPanels() {
             const panelsMap = {};
             forEach(Shape.getRegistry(), (shape, shapeId) => {

@@ -126,8 +126,4 @@ export default {
     setCurrentConnector(store, item) {
         store.dispatch('setCurrentConnector', item)
     },
-
-    registerExtraShapeGroup(store, shapeGroup) {
-        store.dispatch('registerExtraShapeGroup', shapeGroup);
-    }
 }
