@@ -6,23 +6,29 @@
 
         <div v-if="errorMessage" class="msg msg-danger">{{errorMessage}}</div>
 
-        <div v-if="shapes" class="external-shapes">
+        <div v-if="entries" class="external-shapes">
             <div class="external-shapes-list">
                 <ul>
-                    <li v-for="(shape, shapeIdx) in shapes"
-                        :class="{selected: selectedShapeIdx === shapeIdx}"
-                        @click="selectShape(shape, shapeIdx)">
-                         {{shape.group}} 
+                    <li v-for="(entry, entryIdx) in entries"
+                        :class="{selected: selectedEntryIdx === entryIdx}"
+                        @click="selectEntry(entry, entryIdx)">
+                        {{entry.name}} 
+                        <span v-if="entry.used" class="added">added</span>
                     </li>
                 </ul>
             </div>
-            <div class="external-shape-preview" v-if="selectedShapeGroup">
-                <div class="title">{{selectedShapeGroup.group}}</div>
-                <div class="preview">
-                    <img :src="selectedShapeGroup.preview" />
+            <div class="external-shape-preview" v-if="selectedEntry">
+                <div class="title">{{selectedEntry.name}}</div>
+                <div class="preview" v-if="selectedEntry.preview">
+                    <img :src="selectedEntry.preview" />
+                </div>
+                <div class="preview" v-if="selectedEntry.previewImages">
+                    <div class="preview-icon" v-for="imageUrl in selectedEntry.previewImages">
+                        <img class="large" :src="imageUrl" />
+                    </div>
                 </div>
                 <div class="buttons">
-                    <span class="btn btn-primary" @click="registerSelectedShapeGroup()">Use it</span>
+                    <span v-if="!selectedEntry.used" class="btn btn-primary" @click="registerSelectedShapeGroup()">Add</span>
                 </div>
             </div>
             <div v-else class="external-shape-preview">
@@ -36,44 +42,99 @@ import axios from 'axios';
 import Modal from '../Modal.vue';
 import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
 import EventBus from './EventBus';
+import StoreUtils from '../../store/StoreUtils';
+import Shape from './items/shapes/Shape';
 
 export default {
     components: {Modal},
 
     beforeCreate() {
-        if (this.$store.state.apiClient && this.$store.state.apiClient.getExternalShapes) {
-            this.isLoading = true;
-            this.$store.state.apiClient.getExternalShapes()
-            .then(shapes => {
-                this.isLoading = false;
-                this.shapes = shapes;
-            })
-            .catch(err => {
-                this.isLoading = false;
-                this.errorMessage = 'Failed to load external shapes';
-                console.error(err);
+        this.isLoading = true;
+        const assetsPath = this.$store.state.assetsPath || '/assets';
+        const separator = assetsPath.endsWith('/') ? '' : '/';
+
+        Promise.all([
+            axios.get(`${assetsPath}${separator}shapes/shapes.json`).then(response => response.data),
+            axios.get(`${assetsPath}${separator}art/art.json`).then(response => response.data),
+        ])
+        .then(([shapes, artEntries]) => {
+            this.isLoading = false;
+            if (!Array.isArray(shapes)) {
+                shapes = [];
+            }
+            if (!Array.isArray(artEntries)) {
+                artEntries = [];
+            }
+            const convertedShapes = shapes.map(shapeGroup => {
+                return {
+                    type: 'shape',
+                    used: this.$store.state.itemMenu.shapeGroupIds.has(shapeGroup.id),
+                    ...shapeGroup
+                };
             });
-        }
+            const convertedArt = artEntries.map(artEntry => {
+                return {
+                    type: 'art',
+                    used: this.$store.state.itemMenu.artPackIds.has(artEntry.ref),
+                    ...artEntry
+                };
+            });
+            const entries = convertedShapes.concat(convertedArt);
+            entries.sort((a,b) => {
+                if ( a.name < b.name ){ return -1; }
+                if ( a.name > b.name ){ return 1; }
+                return 0;
+            });
+            this.entries = entries;
+        })
+        .catch(err => {
+            this.isLoading = false;
+            this.errorMessage = 'Failed to load all shapes';
+            console.error(err);
+        });
     },
 
     data() {
         return {
             isLoading: false,
-            shapes: [],
-            selectedShapeGroup: null,
-            selectedShapeIdx: -1,
+            entries: null,
+            selectedEntry: null,
+            selectedEntryIdx: -1,
             errorMessage: null
         };
     },
 
     methods: {
-        selectShape(shapeGroup, shapeIdx) {
-            this.selectedShapeIdx = shapeIdx;
-            this.selectedShapeGroup = shapeGroup;
+        selectEntry(entry, entryIdx) {
+            this.selectedEntryIdx = entryIdx;
+            this.selectedEntry = entry;
         },
 
         registerSelectedShapeGroup() {
-            const shapeGroup = this.selectedShapeGroup;
+            if (this.selectedEntry.type === 'shape') {
+                this.registerShapeGroup(this.selectedEntry);
+            } else if (this.selectedEntry.type === 'art') {
+                this.registerArtPack(this.selectedEntry);
+            }
+        },
+
+        registerArtPack(artPackEntry) {
+            this.isLoading = true;
+            axios.get(artPackEntry.ref)
+            .then(response => {
+                const artPack = response.data;
+                this.isLoading = false;
+                StoreUtils.addArtPack(this.$store, artPackEntry.ref, artPack);
+                EventBus.$emit(EventBus.ART_PACK_ADDED, artPack);
+                artPackEntry.used = true;
+            })
+            .catch(err => {
+                this.isLoading = false;
+                console.error(err);
+            });
+        },
+
+        registerShapeGroup(shapeGroup) {
             const url = shapeGroup.ref;
             this.isLoading = true;
             axios.get(url)
@@ -81,6 +142,7 @@ export default {
                 this.isLoading = false;
                 registerExternalShapeGroup(this.$store, shapeGroup.id, response.data);
                 EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
+                shapeGroup.used = true;
             })
             .catch(err => {
                 this.isLoading = false;

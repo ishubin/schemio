@@ -89,6 +89,12 @@ const store = new Vuex.Store({
         editorStateName: 'interact',
         editorSubStateName: null,
 
+        itemMenu: {
+            artPackIds: new Set(),
+            artPacks: [],
+            shapeGroupIds: new Set()
+        },
+
         curveEditing: {
             // item whose curve is currently edited
             item: null,
@@ -481,6 +487,17 @@ const store = new Vuex.Store({
         SET_CURRENT_CONNECTOR(state, {item}) {
             state.connecting.connectorItem = item;
         },
+
+        ADD_ART_PACK(state, {artPack, artPackId}) {
+            if (!state.itemMenu.artPackIds.has(artPackId)) {
+                state.itemMenu.artPacks.push(artPack);
+                state.itemMenu.artPackIds.add(artPackId);
+            }
+        },
+
+        REGISTER_SHAPE_GROUP_ID(state, id) {
+            state.itemMenu.shapeGroupIds.add(id);
+        }
     },
 
     actions: {
@@ -662,6 +679,14 @@ const store = new Vuex.Store({
         setCurrentConnector({commit}, item) {
             commit('SET_CURRENT_CONNECTOR', {item});
         },
+
+        addArtPack({commit}, {artPack, artPackId}) {
+            commit('ADD_ART_PACK', {artPack, artPackId});
+        },
+
+        registerShapeGroupId({commit}, shapeGroupId) {
+            commit('REGISTER_SHAPE_GROUP_ID', shapeGroupId);
+        }
     },
 
     getters: {

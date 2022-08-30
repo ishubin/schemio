@@ -60,11 +60,6 @@
                     </div>
                 </div>
             </panel>
-
-            <div class="section">
-                <span class="btn btn-secondary btn-block" @click="extraShapesModal.shown = true">More shapes &#8230;</span>
-            </div>
-
             <panel v-if="projectArtEnabled" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
@@ -101,6 +96,11 @@
                     </div>
                 </div>
             </panel>
+
+            <div class="section">
+                <span class="btn btn-secondary btn-block" @click="extraShapesModal.shown = true">More shapes &#8230;</span>
+            </div>
+
         </div>
 
         <create-image-modal v-if="imageCreation.popupShown" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited(arguments[0])"></create-image-modal>
@@ -184,13 +184,14 @@ export default {
     components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
-        this.reloadArt();
         this.filterItemPanels();
         EventBus.$on(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
+        EventBus.$on(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
+        EventBus.$off(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
     },
     data() {
         return {
@@ -290,10 +291,15 @@ export default {
             });
         },
 
+        updateAllArtPacks() {
+            this.filterArtPacks();
+            this.$forceUpdate();
+        },
+
         filterArtPacks() {
             const searchKeyword = this.searchKeyword.toLowerCase();
 
-            this.filteredArtPacks = map(this.artPacks, artPack => {
+            this.filteredArtPacks = map(this.$store.state.itemMenu.artPacks, artPack => {
                 const artPackName = artPack.name.toLowerCase();
                 let packMatches = artPackName.indexOf(searchKeyword) >= 0;
 
@@ -332,31 +338,6 @@ export default {
                 enrichItemWithDefaultShapeProps(menuEntry.item);
             }
             return menuEntry;
-        },
-
-        reloadArt() {
-            this.artPacks = [];
-            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
-                this.$store.state.apiClient.getAllArt().then(artList => {
-                    this.artList = artList;
-                });
-            }
-            if (this.$store.state.apiClient && this.$store.state.apiClient.getGlobalArt) {
-                this.$store.state.apiClient.getGlobalArt().then(globalArt => {
-                    forEach(globalArt, artPack => {
-                        forEach(artPack.icons, icon => {
-                            if (!icon.name) {
-                                icon.name = 'Unnamed';
-                            }
-                            if (!icon.description) {
-                                icon.description = '';
-                            }
-                        })
-                    });
-                    this.artPacks = globalArt;
-                    this.filterArtPacks();
-                });
-            }
         },
 
         showExtraShapePreviewItem(menuEntry, shapeId) {
@@ -663,7 +644,7 @@ export default {
 
         extraShapeGroups() {
             return this.$store.getters.extraShapeGroups;
-        }
+        },
     }
 }
 </script>

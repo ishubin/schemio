@@ -111,7 +111,9 @@ const EventBus = new Vue({
 
             CLICKABLE_MARKERS_TOGGLED: 'clickable-markers-toggled',
 
-            EXTRA_SHAPE_GROUP_REGISTERED: 'extra-shape-group-registered'
+            EXTRA_SHAPE_GROUP_REGISTERED: 'extra-shape-group-registered',
+
+            ART_PACK_ADDED: 'art-pack-added'
         };
     },
     methods: {

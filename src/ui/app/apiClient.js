@@ -9,17 +9,6 @@ function unwrapAxios(response) {
     return response.data;
 }
 
-function getGlobalArt() {
-    return axios.get('/assets/art/art.json').then(unwrapAxios);
-}
-
-
-function getExternalShapes() {
-    const version = new Date().getTime();
-    return axios.get(`/assets/shapes/shapes.json?v=${version}`).then(unwrapAxios);
-}
-
-
 function getExportHTMLResources() {
     const version = __BUILD_VERSION__;
     return Promise.all([
@@ -96,8 +85,6 @@ function createApiClient() {
         getAllArt() {
             return axios.get('/v1/fs/art').then(unwrapAxios);
         },
-
-        getGlobalArt,
 
         saveArt(artId, art) {
             return axios.put(`/v1/fs/art/${artId}`, art).then(unwrapAxios);
@@ -179,8 +166,6 @@ function createApiClient() {
         getStaticExportStatus() {
             return axios.get('/v1/static-export/status').then(unwrapAxios);
         },
-
-        getExternalShapes
     };
 }
 
@@ -284,8 +269,6 @@ function createStaticClient() {
         },
 
         getExportHTMLResources,
-        getGlobalArt,
-        getExternalShapes
     };
 }
 
@@ -636,8 +619,6 @@ function createGoogleDriveClient() {
 
             },
             getExportHTMLResources,
-            getGlobalArt,
-            getExternalShapes
         };
     })
     .catch(err => {
@@ -649,7 +630,6 @@ function createGoogleDriveClient() {
 function createOfflineApiClient() {
     return {
         getExportHTMLResources,
-        getExternalShapes
     };
 }
 

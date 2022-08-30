@@ -1,7 +1,12 @@
 import axios from "axios";
 import { traverseItems } from "../../../../scheme/Item";
+import StoreUtils from "../../../../store/StoreUtils";
 import EventBus from "../../EventBus";
 import Shape from "./Shape";
+
+export function generateShapeId(shapeGroupId, shapeDef) {
+    return `ext:${shapeDef.shapeConfig.id}:${shapeGroupId}`
+}
 
 export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
     //TODO validate shapeGroup JSON schema
@@ -13,7 +18,7 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
     const menuItems = [];
     
     shapeGroup.shapes.forEach(shapeDef => {
-        const shapeId = `ext:${shapeDef.shapeConfig.id}:${shapeGroupId}`;
+        const shapeId = generateShapeId(shapeGroupId, shapeDef);
         Shape.registerRawShape(shapeId, shapeDef.shapeConfig);
 
         if (Array.isArray(shapeDef.shapeConfig.menuItems)) {
@@ -25,6 +30,8 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
             });
         }
     });
+
+    StoreUtils.registerShapeGroupId($store, shapeGroupId);
 }
 
 function collectMissingShapes(items) {

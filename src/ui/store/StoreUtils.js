@@ -126,4 +126,12 @@ export default {
     setCurrentConnector(store, item) {
         store.dispatch('setCurrentConnector', item)
     },
+
+    addArtPack(store, artPackId, artPack) {
+        store.dispatch('addArtPack', {artPack, artPackId});
+    },
+
+    registerShapeGroupId(store, shapeGroupId) {
+        store.dispatch('registerShapeGroupId', shapeGroupId);
+    }
 }
