@@ -42,9 +42,9 @@ function convertCurve(item, x0, y0, w, h) {
                     x2: myMath.roundPrecise2(100*point.x2/w),
                     y2: myMath.roundPrecise2(100*point.y2/h),
                 };
-            } else if (point.t === 'A') {
+            } else if (point.t === 'A' || point.t === 'E') {
                 return {
-                    t: 'A',
+                    t: point.t,
                     x, y,
                     x1: myMath.roundPrecise2(100*point.x1/w),
                     y1: myMath.roundPrecise2(100*point.y1/h),

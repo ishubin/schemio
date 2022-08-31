@@ -939,5 +939,13 @@ export default {
             x: centerX + bx,
             y: centerY + by
         };
-    }
+    },
+
+    rotateVector90Clockwise(x, y) {
+        return {x: -y, y: x};
+    },
+
+    rotateVector90CounterClockwise(x, y) {
+        return {x: y, y: -x};
+    },
 }

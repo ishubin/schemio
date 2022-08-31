@@ -26,7 +26,7 @@ function createCurvePointConverter(item) {
         convertedPoint.x = p.x;
         convertedPoint.y = p.y;
 
-        if (point.t === 'B' || point.t === 'A') {
+        if (point.t === 'B' || point.t === 'A' || point.t === 'E') {
             const p1 = myMath.transformPoint(completeTransform, point.x + point.x1, point.y + point.y1);
             convertedPoint.x1 = p1.x - p.x;
             convertedPoint.y1 = p1.y - p.y;

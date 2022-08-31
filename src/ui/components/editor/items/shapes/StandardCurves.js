@@ -20,6 +20,30 @@ function round(value) {
  * @param {*} x3 
  * @param {*} y3 
  */
+function connectEllipticArc(x1, y1, x2, y2, x3, y3) {
+    const line = myMath.createLineEquation(x1, y1, x3, y3);
+    const d1 = myMath.distanceBetweenPoints(x1, y1, x3, y3);
+    const d2 = myMath.distanceFromPointToLine(x2, y2, line);
+
+    if (myMath.tooSmall(d1) || myMath.tooSmall(d2)) {
+        return `L ${x3} ${y3} `;
+    }
+
+    const V = {
+        x: (x3 - x1) / d1,
+        y: (y3 - y1) / d1
+    };
+
+    const side1 = myMath.identifyPointSideAgainstLine(x2, y2, line);
+    const sweepFlag = side1 > 0 ? 0 : 1;
+
+    const N = side1 > 0 ? myMath.rotateVector90Clockwise(V.x, V.y) : myMath.rotateVector90CounterClockwise(V.x, V.y);
+
+    const angle = myMath.fullAngleForNormalizedVector(N.x, N.y) * 180 / Math.PI;
+
+    return `A ${d2} ${d1/2} ${angle} 0 ${sweepFlag} ${x3} ${y3} `;
+}
+
 function connectArc(x1, y1, x2, y2, x3, y3) {
     const x12 = x1 - x2;
     const x13 = x1 - x3;
@@ -82,6 +106,8 @@ function connectArc(x1, y1, x2, y2, x3, y3) {
 function connectPoints(p1, p2) {
     if (p1.t === 'A') {
         return connectArc(p1.x, p1.y, p1.x + p1.x1, p1.y + p1.y1, p2.x, p2.y);
+    } else if (p1.t === 'E') {
+        return connectEllipticArc(p1.x, p1.y, p1.x + p1.x1, p1.y + p1.y1, p2.x, p2.y);
     }
     else if (p1.t === 'L' && p2.t === 'B') {
         return `Q ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;

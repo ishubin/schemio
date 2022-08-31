@@ -138,7 +138,7 @@ function readjustItemArea(item, precision) {
         updateBounds(p.x, p.y);
 
 
-        if (p.t === 'B' || p.t === 'A') {
+        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
             updateBounds(p.x + p.x1, p.y + p.y1);
         }
         if (p.t === 'B') {
@@ -152,7 +152,7 @@ function readjustItemArea(item, precision) {
             y: p.y - bounds.y1,
             t: p.t
         };
-        if (p.t === 'B' || p.t === 'A') {
+        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
             itemPoint.x1 = p.x1;
             itemPoint.y1 = p.y1;
         }

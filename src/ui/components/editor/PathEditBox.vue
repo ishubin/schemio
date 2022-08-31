@@ -47,7 +47,7 @@
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
                 </g>
 
-                <g v-if="point.t === 'A'">
+                <g v-if="point.t === 'A' || point.t === 'E'">
                     <circle 
                         data-type="path-control-point"
                         :data-path-point-index="pointId"

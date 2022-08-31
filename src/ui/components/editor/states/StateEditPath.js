@@ -528,6 +528,9 @@ export default class StateEditPath extends State {
             }, {
                 name: 'Convert to arc',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.pathId, p.pointId))
+            }, {
+                name: 'Convert to elliptic arc',
+                clicked: () => selectedPoints.forEach(p => this.convertPointToEllipticArc(p.pathId, p.pointId))
             }];
             if (selectedPoints.length === 2) {
                 menuOptions.push({
@@ -586,6 +589,13 @@ export default class StateEditPath extends State {
                 menuOptions.push({
                     name: 'Convert to arc point',
                     clicked: () => this.convertPointToArc(object.pathIndex, object.pointIndex)
+                });
+            }
+
+            if (point.t !== 'E') {
+                menuOptions.push({
+                    name: 'Convert to elliptic arc point',
+                    clicked: () => this.convertPointToEllipticArc(object.pathIndex, object.pointIndex)
                 });
             }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
@@ -907,26 +917,36 @@ export default class StateEditPath extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
+    convertPointToEllipticArc(pathId, pointIndex) {
+        this._convertPointToArc(pathId, pointIndex, 'E');
+    }
+
     convertPointToArc(pathId, pointIndex) {
+        this._convertPointToArc(pathId, pointIndex, 'A');
+    }
+
+    _convertPointToArc(pathId, pointIndex, pointType) {
         const point = this.item.shapeProps.paths[pathId].points[pointIndex];
-        let x1 = 10;
-        let y1 = 10;
-        if (pointIndex <  this.item.shapeProps.paths[pathId].points.length - 1) {
-            const nextPoint = this.item.shapeProps.paths[pathId].points[pointIndex + 1];
-            const xm = (nextPoint.x + point.x) / 2;
-            const ym = (nextPoint.y + point.y) / 2;
-            const vx = xm - point.x;
-            const vy = ym - point.y;
-            const vpx = vy;
-            const vpy = -vx;
+        if (point.t !== 'A' && point.t !== 'E') {
+            let x1 = 10;
+            let y1 = 10;
+            if (pointIndex < this.item.shapeProps.paths[pathId].points.length - 1) {
+                const nextPoint = this.item.shapeProps.paths[pathId].points[pointIndex + 1];
+                const xm = (nextPoint.x + point.x) / 2;
+                const ym = (nextPoint.y + point.y) / 2;
+                const vx = xm - point.x;
+                const vy = ym - point.y;
+                const vpx = vy;
+                const vpy = -vx;
 
-            x1 = vpx + xm - point.x;
-            y1 = vpy + ym - point.y;
+                x1 = vpx + xm - point.x;
+                y1 = vpy + ym - point.y;
+            }
+
+            point.x1 = x1;
+            point.y1 = y1;
         }
-
-        point.x1 = x1;
-        point.y1 = y1;
-        point.t = 'A';
+        point.t = pointType;
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
