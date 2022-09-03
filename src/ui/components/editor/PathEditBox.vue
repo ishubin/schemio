@@ -65,7 +65,7 @@
 <script>
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import EventBus from './EventBus';
-import { computeCurvePath } from './items/shapes/StandardCurves';
+import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 
 function convertPathPointToWorld(p, item) {
     const wp = worldPointOnItem(p.x, p.y, item);
@@ -115,12 +115,12 @@ export default {
                 }
                 for (let i = 0; i < ending; i++) {
                     const j = (i + 1) % path.points.length;
-                    const p1 = convertPathPointToWorld(path.points[i], this.item);
-                    const p2 = convertPathPointToWorld(path.points[j], this.item);
+                    const p1 = convertPathPointToWorld(convertCurvePointToItemScale(path.points[i], this.item.area.w, this.item.area.h), this.item);
+                    const p2 = convertPathPointToWorld(convertCurvePointToItemScale(path.points[j], this.item.area.w, this.item.area.h), this.item);
                     segments.push({
                         pathId,
                         segmentId: i,
-                        path: computeCurvePath(this.item.area.w, this.item.area.h, [p1, p2], false)
+                        path: computeCurvePath(PATH_POINT_CONVERSION_SCALE, PATH_POINT_CONVERSION_SCALE, [p1, p2], false)
                     });
                 }
             });

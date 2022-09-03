@@ -35,7 +35,7 @@ function forAllPoints(item, callback) {
     });
 }
 
-// this function is used when state is cancel
+// this function is used when state is canceled
 // since points could be moved out of the item area we need to readjust item area together with the points
 // so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
 function readjustItemAreaAndPoints(item) {
@@ -305,20 +305,36 @@ class DragObjectState extends SubState {
         return this.parentState.snapCurvePoint(pathId, pointId, x, y);
     }
 
+    _cx(x) {
+        return x * PATH_POINT_CONVERSION_SCALE / this.item.area.w;
+    }
+
+    _cy(y) {
+        return y * PATH_POINT_CONVERSION_SCALE / this.item.area.h;
+    }
+
+    cx_(x) {
+        return x * this.item.area.w / PATH_POINT_CONVERSION_SCALE;
+    }
+
+    cy_(y) {
+        return y * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
+    }
+
     handleCurvePointDrag(x, y, pathIndex, pointIndex) {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.paths[pathIndex].points[pointIndex];
 
         const snappedLocalCurvePoint = this.snapCurvePoint(
             pathIndex,
             pointIndex,
-            this.originalCurvePaths[pathIndex].points[pointIndex].x + localPoint.x - localOriginalPoint.x,
-            this.originalCurvePaths[pathIndex].points[pointIndex].y + localPoint.y - localOriginalPoint.y
+            this.cx_(this.originalCurvePaths[pathIndex].points[pointIndex].x) + localPoint.x - localOriginalPoint.x,
+            this.cy_(this.originalCurvePaths[pathIndex].points[pointIndex].y) + localPoint.y - localOriginalPoint.y
         );
 
-        curvePoint.x = snappedLocalCurvePoint.x;
-        curvePoint.y = snappedLocalCurvePoint.y;
+        const curvePoint = this.item.shapeProps.paths[pathIndex].points[pointIndex];
+        curvePoint.x = this._cx(snappedLocalCurvePoint.x);
+        curvePoint.y = this._cy(snappedLocalCurvePoint.y);
 
         const dx = curvePoint.x - this.originalCurvePaths[pathIndex].points[pointIndex].x;
         const dy = curvePoint.y - this.originalCurvePaths[pathIndex].points[pointIndex].y;

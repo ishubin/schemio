@@ -231,7 +231,7 @@ const store = new Vuex.Store({
             }
 
             const pointConverter = createCurvePointConverter(item);
-            const convertedPoint = pointConverter(point);
+            const convertedPoint = pointConverter(convertCurvePointToItemScale(point, item.area.w, item.area.h));
 
             forEach(convertedPoint, (value, field) => {
                 state.curveEditing.paths[pathId].points[pointId][field] = value;
