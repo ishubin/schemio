@@ -1226,10 +1226,20 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 /******************* Panel *********************/
 .panel {
+    position: relative;
     border-top: 1px solid #fff;
     box-shadow: 0 -1px 0 #ddd;
     margin: 2px;
     padding-top: 2px;
+}
+.panel-close {
+    position: absolute;
+    right: 5px;
+    top: 2px;
+    cursor: pointer;
+}
+.panel-close:hover {
+    color: var(--accent-strong);
 }
 .panel-title {
     position: relative;

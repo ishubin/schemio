@@ -490,8 +490,23 @@ const store = new Vuex.Store({
 
         ADD_ART_PACK(state, {artPack, artPackId}) {
             if (!state.itemMenu.artPackIds.has(artPackId)) {
-                state.itemMenu.artPacks.push(artPack);
+                state.itemMenu.artPacks.push({
+                    ...artPack,
+                    id: artPackId
+                });
                 state.itemMenu.artPackIds.add(artPackId);
+            }
+        },
+
+        REMOVE_ART_PACK(state, artPackId) {
+            if (state.itemMenu.artPackIds.has(artPackId)) {
+                state.itemMenu.artPackIds.delete(artPackId);
+                for (let i = 0; i < state.itemMenu.artPacks.length; i++) {
+                    if (state.itemMenu.artPacks[i].id === artPackId) {
+                        state.itemMenu.artPacks.splice(i, 1);
+                        return;
+                    }
+                }
             }
         },
 
@@ -682,6 +697,10 @@ const store = new Vuex.Store({
 
         addArtPack({commit}, {artPack, artPackId}) {
             commit('ADD_ART_PACK', {artPack, artPackId});
+        },
+
+        removeArtPack({commit}, artPackId) {
+            commit('REMOVE_ART_PACK', artPackId);
         },
 
         registerShapeGroupId({commit}, shapeGroupId) {

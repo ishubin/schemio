@@ -78,7 +78,7 @@
                 </div>
             </panel>
 
-            <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name">
+            <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
                 <div class="art-pack">
                     <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
                     <div class="item-menu">
@@ -167,6 +167,7 @@ import recentPropsChanges from '../../history/recentPropsChanges';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps, defaultItem} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
+import StoreUtils from '../../store/StoreUtils.js';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -304,6 +305,7 @@ export default {
                 let packMatches = artPackName.indexOf(searchKeyword) >= 0;
 
                 return {
+                    id    : artPack.id,
                     name  : artPack.name,
                     link  : artPack.link,
                     author: artPack.author,
@@ -618,6 +620,11 @@ export default {
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
         },
+
+        closeArtPack(artPack) {
+            StoreUtils.removeArtPack(this.$store, artPack.id);
+            this.filterArtPacks();
+        }
     },
 
     watch: {

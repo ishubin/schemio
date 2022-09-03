@@ -131,6 +131,10 @@ export default {
         store.dispatch('addArtPack', {artPack, artPackId});
     },
 
+    removeArtPack(store, artPackId) {
+        store.dispatch('removeArtPack', artPackId);
+    },
+
     registerShapeGroupId(store, shapeGroupId) {
         store.dispatch('registerShapeGroupId', shapeGroupId);
     }

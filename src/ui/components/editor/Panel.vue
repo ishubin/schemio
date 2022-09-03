@@ -6,7 +6,10 @@
     <div class="panel">
         <div class="panel-title text-nonselectable"
             :class="{'panel-expanded': isOpen, 'panel-collapsed': !isOpen}"
-            @click="togglePanel">{{name}}</div>
+            @click="togglePanel">
+            {{name}}
+        </div>
+        <span v-if="closable" class="panel-close" @click="$emit('close')"><i class="fas fa-times"/></span>
         <div class="panel-body" v-if="isOpen">
             <slot></slot>
         </div>
@@ -21,7 +24,11 @@ const panelSettingsStorage = new createSettingStorageFromLocalStorage('panel-sta
 export default {
     props: {
         name: String,
-        uid: String
+        uid: String,
+        closable: {
+            type: Boolean,
+            default: false
+        }
     },
     data() {
         return {
