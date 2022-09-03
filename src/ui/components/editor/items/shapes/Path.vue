@@ -43,7 +43,7 @@ function worldPointOnItem(x, y, item) {
 function computePath(item) {
     let svgPath = '';
     item.shapeProps.paths.forEach(path => {
-        const segmentPath = computeCurvePath(path.points, path.closed);
+        const segmentPath = computeCurvePath(item.area.w, item.area.h, path.points, path.closed);
         if (segmentPath) {
             svgPath += segmentPath + ' ';
         }
@@ -103,75 +103,10 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
     if (!isSoft) {
-        readjustItemArea(item, precision);
+        // readjustItemArea(item, precision);
     }
 
     return true;
-}
-
-function forAllPoints(item, callback) {
-    item.shapeProps.paths.forEach((path, pathIndex) => {
-        path.points.forEach((point, pointIndex) => {
-            callback(point, pathIndex, pointIndex);
-        });
-    });
-}
-
-function readjustItemArea(item, precision) {
-    let bounds = null;
-
-    const updateBounds = (x, y) => {
-        bounds.x1 = Math.min(bounds.x1, x);
-        bounds.y1 = Math.min(bounds.y1, y);
-        bounds.x2 = Math.max(bounds.x2, x);
-        bounds.y2 = Math.max(bounds.y2, y);
-    };
-    forAllPoints(item, (p) => {
-        if (!bounds) {
-            bounds = {
-                x1: p.x,
-                y1: p.y,
-                x2: p.x,
-                y2: p.y
-            };
-        }
-        updateBounds(p.x, p.y);
-
-
-        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
-            updateBounds(p.x + p.x1, p.y + p.y1);
-        }
-        if (p.t === 'B') {
-            updateBounds(p.x + p.x2, p.y + p.y2);
-        }
-    });
-
-    forAllPoints(item, (p, pathIndex, pointIndex) => {
-        const itemPoint = {
-            x: p.x - bounds.x1,
-            y: p.y - bounds.y1,
-            t: p.t
-        };
-        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
-            itemPoint.x1 = p.x1;
-            itemPoint.y1 = p.y1;
-        }
-        if (p.t === 'B') {
-            itemPoint.x2 = p.x2;
-            itemPoint.y2 = p.y2;
-        }
-
-        item.shapeProps.paths[pathIndex].points[pointIndex] = itemPoint;
-    });
-
-    const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
-
-    item.area.w = Math.max(0, bounds.x2 - bounds.x1);
-    item.area.h = Math.max(0, bounds.y2 - bounds.y1);
-
-    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, 0, 0, item.area, item.meta.transformMatrix);
-    item.area.x = position.x;
-    item.area.y = position.y;
 }
 
 function getSnappers(item) {

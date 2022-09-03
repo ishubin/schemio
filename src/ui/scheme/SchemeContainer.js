@@ -33,8 +33,6 @@ const log = new Logger('SchemeContainer');
 // Therefore we need to compensate for that and use this const value as the minimum search range
 const minSpatialIndexDistance = 20;
 
-const DIVISION_BY_ZERO_THRESHOLD = 0.0001;
-
 const IGNORE_PARENT = true;
 
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
@@ -2000,10 +1998,6 @@ class SchemeContainer {
 
                 this.updateChildTransforms(item);
 
-                if (item.shape === 'path') {
-                    this.readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision);
-                }
-
                 // changing item revision so that its shape gets recomputed
                 updateItemRevision(item);
 
@@ -2014,36 +2008,6 @@ class SchemeContainer {
         });
 
         if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
-    }
-
-    readjustCurveItemPointsInMultiItemEditBox(item, multiItemEditBox, precision) {
-        const originalArea = multiItemEditBox.itemData[item.id].originalArea;
-        const originalCurvePaths = multiItemEditBox.itemData[item.id].originalCurvePaths;
-
-        if (!originalCurvePaths) {
-            return;
-        }
-
-        originalCurvePaths.forEach((path, pathIndex) => {
-            path.points.forEach((point, pointIndex) => {
-                if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.paths[pathIndex].points[pointIndex].x = myMath.roundPrecise(point.x * item.area.w / originalArea.w, precision);
-                }
-                if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                    item.shapeProps.paths[pathIndex].points[pointIndex].y = myMath.roundPrecise(point.y * item.area.h / originalArea.h, precision);
-                }
-                if (point.t === 'B') {
-                    if (originalArea.w > DIVISION_BY_ZERO_THRESHOLD) {
-                        item.shapeProps.paths[pathIndex].points[pointIndex].x1 = myMath.roundPrecise(point.x1 * item.area.w / originalArea.w, precision);
-                        item.shapeProps.paths[pathIndex].points[pointIndex].x2 = myMath.roundPrecise(point.x2 * item.area.w / originalArea.w, precision);
-                    }
-                    if (originalArea.h > DIVISION_BY_ZERO_THRESHOLD) {
-                        item.shapeProps.paths[pathIndex].points[pointIndex].y1 = myMath.roundPrecise(point.y1 * item.area.h / originalArea.h, precision);
-                        item.shapeProps.paths[pathIndex].points[pointIndex].y2 = myMath.roundPrecise(point.y2 * item.area.h / originalArea.h, precision);
-                    }
-                }
-            });
-        });
     }
 
     /**
@@ -2156,10 +2120,19 @@ class SchemeContainer {
                     p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
                     p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
 
+            // angle has to be calculated with taking width inot account
+            // if the width is too small (e.g. vertical path line), then the computed angle will be incorrect
+            let angle = 0;
+            if (myMath.tooSmall(items[0].area.w)) {
+                angle = myMath.fullAngleForVector(p3.x - p0.x, p3.y - p0.y) * 180 / Math.PI - 90;
+            } else {
+                angle = myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI;
+            }
+
             area = {
                 x: p0.x,
                 y: p0.y,
-                r: myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI,
+                r: angle,
                 w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
                 h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
                 px: 0,

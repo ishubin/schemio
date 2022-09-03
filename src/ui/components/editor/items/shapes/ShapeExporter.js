@@ -132,7 +132,6 @@ export function convertShapeToStandardCurves(rootItem) {
     
     const shapeConfig = {
         shapeType: 'raw',
-        scale: 100, // specifies the scale of the points so that they are correctly converted
         pins: [],
         textSlots: [],
         items: [],

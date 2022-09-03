@@ -63,7 +63,6 @@
     </g>
 </template>
 <script>
-import myMath from '../../myMath';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import EventBus from './EventBus';
 import { computeCurvePath } from './items/shapes/StandardCurves';
@@ -121,7 +120,7 @@ export default {
                     segments.push({
                         pathId,
                         segmentId: i,
-                        path: computeCurvePath([p1, p2], false)
+                        path: computeCurvePath(this.item.area.w, this.item.area.h, [p1, p2], false)
                     });
                 }
             });

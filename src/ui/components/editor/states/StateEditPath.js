@@ -10,6 +10,7 @@ import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -23,6 +24,83 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 
 function isValidObject(object) {
     return object && (object.type === 'path-point' || object.type === 'path-control-point' || object.type === 'path-segment');
+}
+
+
+function forAllPoints(item, callback) {
+    item.shapeProps.paths.forEach((path, pathIndex) => {
+        path.points.forEach((point, pointIndex) => {
+            callback(point, pathIndex, pointIndex);
+        });
+    });
+}
+
+// this function is used when state is cancel
+// since points could be moved out of the item area we need to readjust item area together with the points
+// so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
+function readjustItemAreaAndPoints(item) {
+    const {w, h} = item.area;
+
+    let bounds = null;
+
+    const _cx = x => myMath.tooSmall(w) ? 0 : x * PATH_POINT_CONVERSION_SCALE/w;
+    const _cy = y => myMath.tooSmall(h) ? 0 : y * PATH_POINT_CONVERSION_SCALE/h;
+    const cx_ = x => x * w / PATH_POINT_CONVERSION_SCALE;
+    const cy_ = y => y * h / PATH_POINT_CONVERSION_SCALE;
+
+    const updateBounds = (x, y) => {
+        bounds.x1 = Math.min(bounds.x1, x);
+        bounds.y1 = Math.min(bounds.y1, y);
+        bounds.x2 = Math.max(bounds.x2, x);
+        bounds.y2 = Math.max(bounds.y2, y);
+    };
+    forAllPoints(item, (p) => {
+        if (!bounds) {
+            bounds = {
+                x1: cx_(p.x),
+                y1: cy_(p.y),
+                x2: cx_(p.x),
+                y2: cy_(p.y)
+            };
+        }
+        updateBounds(cx_(p.x), cy_(p.y));
+
+
+        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
+            updateBounds(cx_(p.x + p.x1), cy_(p.y + p.y1));
+        }
+        if (p.t === 'B') {
+            updateBounds(cx_(p.x + p.x2), cy_(p.y + p.y2));
+        }
+    });
+
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        const itemPoint = {
+            x: _cx(cx_(p.x) - bounds.x1),
+            y: _cy(cy_(p.y) - bounds.y1),
+            t: p.t
+        };
+        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
+            itemPoint.x1 = p.x1;
+            itemPoint.y1 = p.y1;
+        }
+        if (p.t === 'B') {
+            itemPoint.x2 = p.x2;
+            itemPoint.y2 = p.y2;
+        }
+
+        item.shapeProps.paths[pathIndex].points[pointIndex] = itemPoint;
+    });
+
+    const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
+
+    item.area.w = Math.max(0, bounds.x2 - bounds.x1);
+    item.area.h = Math.max(0, bounds.y2 - bounds.y1);
+
+    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, 0, 0, item.area, item.meta.transformMatrix);
+    item.area.x = position.x;
+    item.area.y = position.y;
 }
 
 const MOUSE_MOVE_THRESHOLD = 3;
@@ -90,16 +168,18 @@ class CreatingPathState extends SubState {
 
         const points = this.item.shapeProps.paths[this.pathId].points;
 
+        const convertedCurvePoint = convertCurvePointToRelative({
+            x: snappedCurvePoint.x,
+            y: snappedCurvePoint.y,
+            t: 'L'
+        }, this.item.area.w, this.item.area.h);
+
         if (points.length === 0) {
-            points.push({
-                x: snappedCurvePoint.x,
-                y: snappedCurvePoint.y,
-                t: 'L'
-            });
+            points.push(convertedCurvePoint);
         } else {
             const pointId = points.length - 1;
-            points[pointId].x = snappedCurvePoint.x;
-            points[pointId].y = snappedCurvePoint.y;
+            points[pointId].x = convertedCurvePoint.x;
+            points[pointId].y = convertedCurvePoint.y;
 
             this.snapToFirstPoint(points[pointId]);
         }
@@ -111,8 +191,8 @@ class CreatingPathState extends SubState {
     snapToFirstPoint(point) {
         if (this.item.shapeProps.paths[this.pathId].points.length > 2) {
             const firstPoint = this.item.shapeProps.paths[this.pathId].points[0];
-            const dx = point.x - firstPoint.x;
-            const dy = point.y - firstPoint.y;
+            const dx = (point.x - firstPoint.x) * this.item.area.w / PATH_POINT_CONVERSION_SCALE;
+            const dy = (point.y - firstPoint.y) * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
             
             if (Math.sqrt(dx * dx + dy * dy) * this.getSchemeContainer().screenTransform.scale <= 5) {
                 point.x = firstPoint.x;
@@ -137,9 +217,14 @@ class CreatingPathState extends SubState {
             } else {
                 const localPoint = localPointOnItem(x, y, this.item);
                 const snappedCurvePoint = this.parentState.snapCurvePoint(this.pathId, pointId, localPoint.x, localPoint.y);
+                const convertedCurvePoint = convertCurvePointToRelative({
+                    x: snappedCurvePoint.x,
+                    y: snappedCurvePoint.y,
+                    t: 'L'
+                }, this.item.area.w, this.item.area.h);
 
-                point.x = snappedCurvePoint.x;
-                point.y = snappedCurvePoint.y;
+                point.x = convertedCurvePoint.x;
+                point.y = convertedCurvePoint.y;
 
                 this.snapToFirstPoint(point);
 
@@ -160,11 +245,13 @@ class CreatingPathState extends SubState {
         }
 
         const localPoint = localPointOnItem(x, y, this.item);
-        this.item.shapeProps.paths[this.pathId].points.push({
+        const convertedCurvePoint = convertCurvePointToRelative({
             x: localPoint.x,
             y: localPoint.y,
             t: 'L'
-        });
+        }, this.item.area.w, this.item.area.h);
+
+        this.item.shapeProps.paths[this.pathId].points.push(convertedCurvePoint);
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
@@ -463,6 +550,7 @@ export default class StateEditPath extends State {
                         childWorldPositions.push(worldPointOnItem(0, 0, childItem));
                     });
                 }
+                readjustItemAreaAndPoints(this.item);
                 this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
                 if (this.item.childItems) {
@@ -660,7 +748,6 @@ export default class StateEditPath extends State {
         this.item.shapeProps.paths.splice(pathId, 1);
         this.cancel();
         const item = this.schemeContainer.addItem(newItem);
-        this.schemeContainer.readjustItem(item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.selectItem(item);
     }
 
@@ -711,7 +798,6 @@ export default class StateEditPath extends State {
         path.points.pop();
         path.closed = true;
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
@@ -765,7 +851,6 @@ export default class StateEditPath extends State {
             this.item.shapeProps.paths.splice(pathId2, 1);
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
@@ -779,7 +864,6 @@ export default class StateEditPath extends State {
             this.breakPathIntoTwo(path, pointIndex);
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();

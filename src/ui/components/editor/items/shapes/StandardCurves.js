@@ -10,6 +10,8 @@ function round(value) {
     return myMath.roundPrecise2(value);
 }
 
+export const PATH_POINT_CONVERSION_SCALE = 100;
+
 
 /**
  * Generates SVG arc path based on 3 points of the circle
@@ -119,15 +121,27 @@ function connectPoints(p1, p2) {
     return `L ${round(p2.x)} ${round(p2.y)} `;
 }
 
-export function computeCurvePath(points, closed) {
+/**
+ * Computes a SVG path for given points and item area. All points should be relative to item width and height.
+ * @param {*} areaWidth - width of item area
+ * @param {*} areaHeight - height of item area
+ * @param {*} points 
+ * @param {*} closed 
+ * @returns 
+ */
+export function computeCurvePath(areaWidth, areaHeight, points, closed) {
     if (points.length < 2) {
         return null;
     }
     let path = '';
 
     let prevPoint = null;
-
-    forEach(points, point => {
+    let firstPoint = null;
+    forEach(points, rawPoint => {
+        const point = convertCurvePointToItemScale(rawPoint, areaWidth, areaHeight);
+        if (!firstPoint) {
+            firstPoint = point;
+        }
         if (!prevPoint) {
             path += `M ${round(point.x)} ${round(point.y)} `;
         } else  {
@@ -136,42 +150,77 @@ export function computeCurvePath(points, closed) {
         prevPoint = point;
     });
 
-    if (closed && points.length) {
-        path += connectPoints(points[points.length - 1], points[0]);
+    if (closed && prevPoint && firstPoint) {
+        path += connectPoints(prevPoint, firstPoint);
         path += ' Z';
     }
 
     return path;
 };
 
-function convertCurvePointsToItemScale(area, scale, points) {
-    return map(points, point => {
-        if (point.t === 'B') {
-            return {
-                t: 'B',
-                x: area.w * point.x / scale,
-                y: area.h * point.y / scale,
-                x1: area.w * point.x1 / scale,
-                y1: area.h * point.y1 / scale,
-                x2: area.w * point.x2 / scale,
-                y2: area.h * point.y2 / scale,
-            }
-        } else if (point.t === 'A') {
-            return {
-                t: 'A',
-                x: area.w * point.x / scale,
-                y: area.h * point.y / scale,
-                x1: area.w * point.x1 / scale,
-                y1: area.h * point.y1 / scale,
-            }
-        } else {
-            return {
-                t: 'L',
-                x: area.w * point.x / scale,
-                y: area.h * point.y / scale,
-            }
+export function convertCurvePointToRelative(point, w, h) {
+    let W = 1, H = 1;
+    if (myMath.tooSmall(w)) {
+        w = 1;
+        W = 0;
+    }
+    if (myMath.tooSmall(h)) {
+        h = 1;
+        H = 0;
+    }
+    if (point.t === 'B') {
+        return {
+            t: 'B',
+            x: point.x * PATH_POINT_CONVERSION_SCALE * W / w,
+            y: point.y * PATH_POINT_CONVERSION_SCALE * H / h,
+            x1: point.x1 * PATH_POINT_CONVERSION_SCALE * W/ w,
+            y1: point.y1 * PATH_POINT_CONVERSION_SCALE * H / h,
+            x2: point.x2 * PATH_POINT_CONVERSION_SCALE * W / w,
+            y2: point.y2 * PATH_POINT_CONVERSION_SCALE * H / h,
         }
-    });
+    } else if (point.t === 'A' || point.t === 'E') {
+        return {
+            t: point.t,
+            x: point.x * PATH_POINT_CONVERSION_SCALE * W / w,
+            y: point.y * PATH_POINT_CONVERSION_SCALE * H / h,
+            x1: point.x1 * PATH_POINT_CONVERSION_SCALE * W / w,
+            y1: point.y1 * PATH_POINT_CONVERSION_SCALE * H / h,
+        }
+    } else {
+        return {
+            t: 'L',
+            x: point.x * PATH_POINT_CONVERSION_SCALE * W / w,
+            y: point.y * PATH_POINT_CONVERSION_SCALE * H / h,
+        }
+    }
+}
+
+export function convertCurvePointToItemScale(point, w, h) {
+    if (point.t === 'B') {
+        return {
+            t: 'B',
+            x: w * point.x / PATH_POINT_CONVERSION_SCALE,
+            y: h * point.y / PATH_POINT_CONVERSION_SCALE,
+            x1: w * point.x1 / PATH_POINT_CONVERSION_SCALE,
+            y1: h * point.y1 / PATH_POINT_CONVERSION_SCALE,
+            x2: w * point.x2 / PATH_POINT_CONVERSION_SCALE,
+            y2: h * point.y2 / PATH_POINT_CONVERSION_SCALE,
+        }
+    } else if (point.t === 'A' || point.t === 'E') {
+        return {
+            t: point.t,
+            x: w * point.x / PATH_POINT_CONVERSION_SCALE,
+            y: h * point.y / PATH_POINT_CONVERSION_SCALE,
+            x1: w * point.x1 / PATH_POINT_CONVERSION_SCALE,
+            y1: h * point.y1 / PATH_POINT_CONVERSION_SCALE,
+        }
+    } else {
+        return {
+            t: 'L',
+            x: w * point.x / PATH_POINT_CONVERSION_SCALE,
+            y: h * point.y / PATH_POINT_CONVERSION_SCALE,
+        }
+    }
 }
 
 function createComputeOutlineFunc(shapeConfig) {
@@ -197,8 +246,7 @@ function createComputeOutlineFunc(shapeConfig) {
 function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
     let svgPath = '';
     forEach(itemDef.paths, pathDef => {
-        const points = convertCurvePointsToItemScale(item.area, shapeConfig.scale, pathDef.points);
-        const svgSegmentPath = computeCurvePath(points, pathDef.closed);
+        const svgSegmentPath = computeCurvePath(item.area.w, item.area.h, pathDef.points, pathDef.closed);
         svgPath += svgSegmentPath + ' ';
     });
 

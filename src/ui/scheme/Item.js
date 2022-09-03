@@ -8,6 +8,7 @@ import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
 import shortid from 'shortid';
+import { convertCurvePointToRelative } from '../components/editor/items/shapes/StandardCurves.js';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -151,6 +152,23 @@ function fixOldCurveItem(item) {
     }
 }
 
+
+
+function fixPathToRelativePlacement(item) {
+    if (Array.isArray(item.shapeProps.paths)) {
+        item.shapeProps.paths.forEach(path => {
+            if (path.pos !== 'relative') {
+                path.pos = 'relative';
+                if (Array.isArray(path.points)) {
+                    path.points = path.points.map(point =>{
+                        return convertCurvePointToRelative(point, item.area.w, item.area.h);
+                    });
+                }
+            }
+        });
+    }
+}
+
 /**
  * Used for backwards compatibilty and it merges "groups" array with "tags"
  */
@@ -178,6 +196,9 @@ export function enrichItemWithDefaults(item) {
     // fixing old documents before curves were moved into multi-path shapes
     if (item.shape === 'curve') {
         fixOldCurveItem(item);
+    }
+    if (item.shape === 'path') {
+        fixPathToRelativePlacement(item);
     }
 
     enrichObjectWithDefaults(item, defaultItemDefinition);

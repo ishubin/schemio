@@ -478,6 +478,7 @@ export default {
         initiateCurveCreation() {
             const item = {
                 name: this.makeUniqueName('Path'),
+                area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
                 shape: 'path',
                 shapeProps: {
                     paths: []

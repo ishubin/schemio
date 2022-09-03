@@ -9,6 +9,7 @@ import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 import { itemCompleteTransform } from '../scheme/SchemeContainer';
 import myMath from '../myMath';
+import { convertCurvePointToItemScale } from '../components/editor/items/shapes/StandardCurves';
 
 Vue.use(Vuex);
 
@@ -537,7 +538,7 @@ const store = new Vuex.Store({
                 item.shapeProps.paths.forEach((path, pathId) => {
                     const points = [];
                     path.points.forEach((point, pointId) => {
-                        const p = utils.clone(point);
+                        const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
                         p.id = pointId;
                         p.selected = false;
                         enrichCurvePoint(p);
