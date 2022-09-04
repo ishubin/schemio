@@ -462,6 +462,7 @@ import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
 import StateEditPath from './editor/states/StateEditPath.js';
+import { readjustItemAreaAndPoints } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
@@ -469,6 +470,7 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
+import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -2240,10 +2242,12 @@ export default {
             for (let i = 0; i < allItems.length; i++) {
                 allItems[i].shapeProps.paths.forEach(path => {
                     const newPath = {
+                        pos: 'relative',
                         closed: path.closed,
                         points: []
                     };
-                    path.points.forEach(point => {
+                    path.points.forEach(relativePoint => {
+                        const point = convertCurvePointToItemScale(relativePoint, allItems[i].area.w, allItems[i].area.h);
                         const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
                         p.t = point.t;
                         if (point.hasOwnProperty('x1')) {
@@ -2256,11 +2260,12 @@ export default {
                             p.x2 = p2.x - p.x;
                             p.y2 = p2.y - p.y;
                         }
-                        newPath.points.push(p);
+                        newPath.points.push(convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h));
                     });
                     mainItem.shapeProps.paths.push(newPath);
                 });
             }
+            readjustItemAreaAndPoints(mainItem);
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);

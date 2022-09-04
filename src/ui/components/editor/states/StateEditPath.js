@@ -38,7 +38,7 @@ function forAllPoints(item, callback) {
 // this function is used when state is canceled
 // since points could be moved out of the item area we need to readjust item area together with the points
 // so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
-function readjustItemAreaAndPoints(item) {
+export function readjustItemAreaAndPoints(item) {
     const {w, h} = item.area;
     let bounds = null;
 
@@ -763,23 +763,28 @@ export default class StateEditPath extends State {
         newItem.childItems = [];
         newItem._childItems = [];
         newItem.shapeProps.paths = [{
+            pos: 'relative',
             closed: path.closed,
-            points: path.points.map(point => {
-                const wp = worldPointOnItem(point.x, point.y, this.item);
-                wp.t = point.t;
-                if (point.hasOwnProperty('x1')) {
-                    const wp1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, this.item);
+            points: path.points.map(relativePoint => {
+                const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+
+                const wp = worldPointOnItem(lp.x, lp.y, this.item);
+                wp.t = lp.t;
+                if (lp.hasOwnProperty('x1')) {
+                    const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, this.item);
                     wp.x1 = wp1.x - wp.x;
                     wp.y1 = wp1.y - wp.y;
                 }
-                if (point.hasOwnProperty('x2')) {
-                    const wp2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, this.item);
+                if (lp.hasOwnProperty('x2')) {
+                    const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, this.item);
                     wp.x2 = wp2.x - wp.x;
                     wp.y2 = wp2.y - wp.y;
                 }
-                return wp;
+                return convertCurvePointToRelative(wp, newItem.area.w, newItem.area.h);
             })
         }];
+
+        readjustItemAreaAndPoints(newItem);
 
         this.item.shapeProps.paths.splice(pathId, 1);
         this.cancel();
