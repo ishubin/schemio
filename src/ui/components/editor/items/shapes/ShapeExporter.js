@@ -7,6 +7,7 @@ import indexOf from 'lodash/indexOf';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
 import { traverseItems } from '../../../../scheme/Item';
+import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 
 export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
     const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
@@ -28,30 +29,16 @@ export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
  */
 function convertCurve(item, x0, y0, w, h) {
     const paths = map(item.shapeProps.paths, path => {
-        const points = map(path.points, point => {
+        const points = map(path.points, relativePoint => {
+            const point = convertCurvePointToItemScale(relativePoint, item.area.w, item.area.h);
             const worldPoint = worldPointOnItem(point.x, point.y, item);
 
-            const x = myMath.roundPrecise2(100*(worldPoint.x - x0)/w);
-            const y = myMath.roundPrecise2(100*(worldPoint.y - y0)/h);
-            if (point.t === 'B') {
-                return {
-                    t: 'B',
-                    x, y,
-                    x1: myMath.roundPrecise2(100*point.x1/w),
-                    y1: myMath.roundPrecise2(100*point.y1/h),
-                    x2: myMath.roundPrecise2(100*point.x2/w),
-                    y2: myMath.roundPrecise2(100*point.y2/h),
-                };
-            } else if (point.t === 'A' || point.t === 'E') {
-                return {
-                    t: point.t,
-                    x, y,
-                    x1: myMath.roundPrecise2(100*point.x1/w),
-                    y1: myMath.roundPrecise2(100*point.y1/h),
-                };
-            } else {
-                return { t: 'L', x, y };
-            }
+            const localPointInRoot = {
+                x: worldPoint.x - x0,
+                y: worldPoint.y - y0,
+            };
+
+            return convertCurvePointToRelative(localPointInRoot, w, h);
         });
         return {
             points,

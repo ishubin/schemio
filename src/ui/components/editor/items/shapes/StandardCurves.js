@@ -417,8 +417,8 @@ function createGetPinsFunc(shapeConfig) {
             const h = item.area.h;
             return map(shapeConfig.pins, pin => {
                 const calculatedPin = {
-                    x: pin.x * w / shapeConfig.scale, 
-                    y: pin.y * h / shapeConfig.scale, 
+                    x: pin.x * w / 100,
+                    y: pin.y * h / 100,
                 };
 
                 if (pin.hasOwnProperty('nx') && pin.hasOwnProperty('ny')) {
