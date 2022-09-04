@@ -967,7 +967,7 @@ export default class StateEditPath extends State {
     }
 
     insertPointAtCoords(x, y, pathId, segmentId) {
-        const p = localPointOnItem(x, y, this.item);
+        const p = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         this.item.shapeProps.paths[pathId].points.splice(segmentId + 1, 0, {
             x: p.x,
             y: p.y,
