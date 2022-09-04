@@ -41,8 +41,6 @@ function forAllPoints(item, callback) {
 function readjustItemAreaAndPoints(item) {
     const {w, h} = item.area;
     let bounds = null;
-    const cx_ = x => x * w / PATH_POINT_CONVERSION_SCALE;
-    const cy_ = y => y * h / PATH_POINT_CONVERSION_SCALE;
 
     const updateBounds = (x, y) => {
         if (!bounds) {
@@ -60,9 +58,12 @@ function readjustItemAreaAndPoints(item) {
         }
     };
 
-    const worldPoints = new Map();
+    const worldPoints = [];
 
     forAllPoints(item, (p, pathIndex, pointIndex) => {
+        if (pointIndex === 0) {
+            worldPoints[pathIndex] = [];
+        }
         const lp = convertCurvePointToItemScale(p, w, h);
         updateBounds(lp.x, lp.y);
 
@@ -82,7 +83,7 @@ function readjustItemAreaAndPoints(item) {
             wp.x2 = wp2.x;
             wp.y2 = wp2.y;
         }
-        worldPoints.set(`${pathIndex}-${pointIndex}`, wp);
+        worldPoints[pathIndex][pointIndex] = wp;
     });
 
 
@@ -96,7 +97,7 @@ function readjustItemAreaAndPoints(item) {
     item.area.y = position.y;
 
     forAllPoints(item, (p, pathIndex, pointIndex) => {
-        const wp = worldPoints.get(`${pathIndex}-${pointIndex}`);
+        const wp = worldPoints[pathIndex][pointIndex];
         const lp = localPointOnItem(wp.x, wp.y, item);
         lp.t = wp.t;
         if (lp.t === 'B' || lp.t === 'A' || lp.t === 'E') {
@@ -170,7 +171,8 @@ class CreatingPathState extends SubState {
         if (this.pathId >= this.item.shapeProps.paths.length) {
             this.item.shapeProps.paths.push({
                 closed: false,
-                points: []
+                points: [],
+                pos: 'relative'
             });
         }
 
