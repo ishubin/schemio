@@ -6,6 +6,8 @@ import myMath from '../../../myMath.js';
 import EventBus from '../EventBus.js';
 import State from './State.js';
 import {simplifyPathPoints} from '../items/shapes/Path.vue';
+import { readjustItemAreaAndPoints } from './StateEditPath.js';
+import { convertCurvePointToRelative } from '../items/shapes/StandardCurves.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -38,12 +40,13 @@ export default class StateDraw extends State {
             this.initFirstClick(x, y);
         } else {
             this.item.shapeProps.paths.push({
+                pos: 'relative',
                 closed: false,
-                points: [{
+                points: [ convertCurvePointToRelative({
                     x: this.round(x),
                     y: this.round(y),
                     t: 'L'
-                }]
+                }, this.item.area.w, this.item.area.h)]
             });
             this.currentPathId = this.item.shapeProps.paths.length - 1;
         }
@@ -54,10 +57,12 @@ export default class StateDraw extends State {
     initFirstClick(x, y) {
         this.currentPathId = 0;
         const item = {
+            area: {x: 0, y: 0, w: 100, h: 100, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
             name: this.schemeContainer.generateUniqueName('Drawing'),
             shape: 'path',
             shapeProps: {
                 paths: [{
+                    pos: 'relative',
                     closed: false,
                     points: []
                 }],
@@ -75,11 +80,11 @@ export default class StateDraw extends State {
 
         this.item = item;
 
-        this.item.shapeProps.paths[0].points.push({
+        this.item.shapeProps.paths[0].points.push(convertCurvePointToRelative({
             x: this.round(x),
             y: this.round(y),
             t: 'L'
-        });
+        }, this.item.area.w, this.item.area.h));
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -100,7 +105,7 @@ export default class StateDraw extends State {
                     y: py,
                     t: 'L'
                 };
-                this.item.shapeProps.paths[this.currentPathId].points.push(point);
+                this.item.shapeProps.paths[this.currentPathId].points.push(convertCurvePointToRelative(point, this.item.area.w, this.item.area.h));
                 
                 EventBus.emitItemChanged(this.item.id, `shapeProps.paths`);
             }
@@ -141,6 +146,7 @@ export default class StateDraw extends State {
             this.item.shapeProps.paths.forEach(path => {
                 path.points = simplifyPathPoints(path.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
             });
+            readjustItemAreaAndPoints(this.item);
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
             return this.item;
