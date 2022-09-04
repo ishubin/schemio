@@ -10,7 +10,7 @@ import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
-import { convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
+import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -40,58 +40,51 @@ function forAllPoints(item, callback) {
 // so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
 function readjustItemAreaAndPoints(item) {
     const {w, h} = item.area;
-
     let bounds = null;
-
-    const _cx = x => myMath.tooSmall(w) ? 0 : x * PATH_POINT_CONVERSION_SCALE/w;
-    const _cy = y => myMath.tooSmall(h) ? 0 : y * PATH_POINT_CONVERSION_SCALE/h;
     const cx_ = x => x * w / PATH_POINT_CONVERSION_SCALE;
     const cy_ = y => y * h / PATH_POINT_CONVERSION_SCALE;
 
     const updateBounds = (x, y) => {
-        bounds.x1 = Math.min(bounds.x1, x);
-        bounds.y1 = Math.min(bounds.y1, y);
-        bounds.x2 = Math.max(bounds.x2, x);
-        bounds.y2 = Math.max(bounds.y2, y);
-    };
-    forAllPoints(item, (p) => {
         if (!bounds) {
             bounds = {
-                x1: cx_(p.x),
-                y1: cy_(p.y),
-                x2: cx_(p.x),
-                y2: cy_(p.y)
+                x1: x,
+                y1: y,
+                x2: x,
+                y2: y
             };
+        } else {
+            bounds.x1 = Math.min(bounds.x1, x);
+            bounds.y1 = Math.min(bounds.y1, y);
+            bounds.x2 = Math.max(bounds.x2, x);
+            bounds.y2 = Math.max(bounds.y2, y);
         }
-        updateBounds(cx_(p.x), cy_(p.y));
+    };
 
-
-        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
-            updateBounds(cx_(p.x + p.x1), cy_(p.y + p.y1));
-        }
-        if (p.t === 'B') {
-            updateBounds(cx_(p.x + p.x2), cy_(p.y + p.y2));
-        }
-    });
-
+    const worldPoints = new Map();
 
     forAllPoints(item, (p, pathIndex, pointIndex) => {
-        const itemPoint = {
-            x: _cx(cx_(p.x) - bounds.x1),
-            y: _cy(cy_(p.y) - bounds.y1),
-            t: p.t
-        };
+        const lp = convertCurvePointToItemScale(p, w, h);
+        updateBounds(lp.x, lp.y);
+
+        const wp = worldPointOnItem(lp.x, lp.y, item);
+        wp.t = p.t;
+
         if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
-            itemPoint.x1 = p.x1;
-            itemPoint.y1 = p.y1;
+            updateBounds(lp.x + lp.x1, lp.y + lp.y1);
+
+            const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, item);
+            wp.x1 = wp1.x;
+            wp.y1 = wp1.y;
         }
         if (p.t === 'B') {
-            itemPoint.x2 = p.x2;
-            itemPoint.y2 = p.y2;
+            updateBounds(lp.x + lp.x2, lp.y + lp.y2);
+            const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, item);
+            wp.x2 = wp2.x;
+            wp.y2 = wp2.y;
         }
-
-        item.shapeProps.paths[pathIndex].points[pointIndex] = itemPoint;
+        worldPoints.set(`${pathIndex}-${pointIndex}`, wp);
     });
+
 
     const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
 
@@ -101,6 +94,23 @@ function readjustItemAreaAndPoints(item) {
     const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, 0, 0, item.area, item.meta.transformMatrix);
     item.area.x = position.x;
     item.area.y = position.y;
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        const wp = worldPoints.get(`${pathIndex}-${pointIndex}`);
+        const lp = localPointOnItem(wp.x, wp.y, item);
+        lp.t = wp.t;
+        if (lp.t === 'B' || lp.t === 'A' || lp.t === 'E') {
+            const lp1 = localPointOnItem(wp.x1, wp.y1, item);
+            lp.x1 = lp1.x - lp.x;
+            lp.y1 = lp1.y - lp.y;
+        }
+        if (lp.t === 'B') {
+            const lp2 = localPointOnItem(wp.x2, wp.y2, item);
+            lp.x2 = lp2.x - lp.x;
+            lp.y2 = lp2.y - lp.y;
+        }
+        item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, item.area.w, item.area.h);
+    });
 }
 
 const MOUSE_MOVE_THRESHOLD = 3;
@@ -119,10 +129,11 @@ class BeizerConversionState extends SubState {
     }
 
     updateBeizerPoint(x, y) {
-        const localPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
+        const lp = this.schemeContainer.localPointOnItem(x, y, this.item);
+        const relativePoint = convertCurvePointToRelative(this.parentState.snapCurvePoint(-1, -1, lp.x, lp.y), this.item.area.w, this.item.area.h);
         this.point.t = 'B';
-        this.point.x2 = this.round(localPoint.x - this.point.x);
-        this.point.y2 = this.round(localPoint.y - this.point.y);
+        this.point.x2 = this.round(relativePoint.x - this.point.x);
+        this.point.y2 = this.round(relativePoint.y - this.point.y);
 
         this.point.x1 = -this.point.x2;
         this.point.y1 = -this.point.y2;
@@ -500,7 +511,8 @@ class IdleState extends SubState {
 
         this.parentState.item.shapeProps.paths.forEach((path, pathId) => {
             path.points.forEach((point, pointId) => {
-                const wolrdPoint = this.parentState.schemeContainer.worldPointOnItem(point.x, point.y, this.parentState.item);
+                const localPoint = convertCurvePointToItemScale(point, this.parentState.item.area.w, this.parentState.item.area.h);
+                const wolrdPoint = this.parentState.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, this.parentState.item);
                 if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
                     StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
                 }
