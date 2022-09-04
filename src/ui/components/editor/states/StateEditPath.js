@@ -119,7 +119,7 @@ class BeizerConversionState extends SubState {
     }
 
     updateBeizerPoint(x, y) {
-        const localPoint = localPointOnItem(x, y, this.item);
+        const localPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         this.point.t = 'B';
         this.point.x2 = this.round(localPoint.x - this.point.x);
         this.point.y2 = this.round(localPoint.y - this.point.y);
@@ -133,7 +133,7 @@ class BeizerConversionState extends SubState {
     
     mouseUp(x, y, mx, my, object, event) {
         this.updateBeizerPoint(x, y);
-        const newPoint = localPointOnItem(x, y, this.item);
+        const newPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         newPoint.t = 'L';
         this.item.shapeProps.paths[this.pathId].points.push(newPoint);
         this.migrate(new CreatingPathState(this.parentState, this.pathId));
@@ -368,12 +368,12 @@ class DragObjectState extends SubState {
         const snappedLocalAbsoluteCurvePoint = this.snapCurvePoint(
             -1,
             -1,
-            curvePoint.x + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
-            curvePoint.y + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
+            this.cx_(curvePoint.x + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`x${index}`]) + localPoint.x - localOriginalPoint.x,
+            this.cy_(curvePoint.y + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`y${index}`]) + localPoint.y - localOriginalPoint.y,
         );
 
-        curvePoint[`x${index}`] = snappedLocalAbsoluteCurvePoint.x - curvePoint.x;
-        curvePoint[`y${index}`] = snappedLocalAbsoluteCurvePoint.y - curvePoint.y;
+        curvePoint[`x${index}`] = this._cx(snappedLocalAbsoluteCurvePoint.x) - curvePoint.x;
+        curvePoint[`y${index}`] = this._cy(snappedLocalAbsoluteCurvePoint.y) - curvePoint.y;
         
         if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
@@ -387,8 +387,14 @@ class DragObjectState extends SubState {
     handleCurvePathDrag(x, y, pathIndex) {
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const dx = localPoint.x - localOriginalPoint.x;
-        const dy = localPoint.y - localOriginalPoint.y;
+
+        const convertedPoint = convertCurvePointToRelative({
+            x: localPoint.x - localOriginalPoint.x,
+            y: localPoint.y - localOriginalPoint.y
+        }, this.item.area.w, this.item.area.h);
+
+        const dx = convertedPoint.x;
+        const dy = convertedPoint.y;
 
         this.item.shapeProps.paths[pathIndex].points.forEach((point, pointIndex) => {
             point.x = this.originalCurvePaths[pathIndex].points[pointIndex].x + dx;
