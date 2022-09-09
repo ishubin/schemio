@@ -103,7 +103,7 @@ export function convertCurvePointToRelative(point, w, h) {
             t: point.t,
             x: point.x * PATH_POINT_CONVERSION_SCALE * W / w,
             y: point.y * PATH_POINT_CONVERSION_SCALE * H / h,
-            h: point.h
+            h: point.h || 50 // this is needed to not generate an error for arcs from previous versions of schemio
         }
     } else {
         return {
