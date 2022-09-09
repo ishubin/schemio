@@ -47,14 +47,14 @@
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
                 </g>
 
-                <g v-if="point.t === 'A' && pointId < path.points.length - 1">
+                <g v-if="point.t === 'A'">
                     <circle 
                         data-type="path-control-point"
                         :data-path-point-index="pointId"
                         :data-path-index="pathId"
                         data-path-control-point-index="1"
-                        :cx="point.h * (path.points[pointId+1].y - point.y) / 100 + (path.points[pointId+1].x + point.x) / 2"
-                        :cy="point.h * (point.x - path.points[pointId+1].x) / 100 + (path.points[pointId+1].y + point.y) / 2"
+                        :cx="point.h * (path.points[(pointId+1)%path.points.length].y - point.y) / 100 + (path.points[(pointId+1)%path.points.length].x + point.x) / 2"
+                        :cy="point.h * (point.x - path.points[(pointId+1)%path.points.length].x) / 100 + (path.points[(pointId+1)%path.points.length].y + point.y) / 2"
                         :r="5/safeZoom"
                         fill="rgba(255, 255, 255, 0.1)" :stroke="point.selected ? controlPointsColor : boundaryBoxColor" :stroke-width="3/safeZoom"/>
                 </g>

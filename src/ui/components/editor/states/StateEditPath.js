@@ -409,10 +409,13 @@ class DragObjectState extends SubState {
 
     handleArcControlPointDrag(x, y, event) {
         const point = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+
+        let nextPoint = null;
         if (this.draggedObject.pointIndex >= this.item.shapeProps.paths[this.draggedObject.pathIndex].points.length - 1) {
-            return;
+            nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[0];
+        } else {
+            nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex + 1];
         }
-        const nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex + 1];
 
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
 
@@ -1069,9 +1072,6 @@ export default class StateEditPath extends State {
     }
 
     convertPointToArc(pathId, pointIndex) {
-        if (pointIndex >= this.item.shapeProps.paths[pathId].points.length - 1) {
-            return;
-        }
         const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         if (point.t !== 'A') {
             point.h = 50;
