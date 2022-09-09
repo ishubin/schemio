@@ -70,7 +70,8 @@ export function readjustItemAreaAndPoints(item) {
         const wp = worldPointOnItem(lp.x, lp.y, item);
         wp.t = p.t;
 
-        if (p.t === 'B' || p.t === 'A' || p.t === 'E') {
+        //TODO circle
+        if (p.t === 'B') {
             updateBounds(lp.x + lp.x1, lp.y + lp.y1);
 
             const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, item);
@@ -100,7 +101,7 @@ export function readjustItemAreaAndPoints(item) {
         const wp = worldPoints[pathIndex][pointIndex];
         const lp = localPointOnItem(wp.x, wp.y, item);
         lp.t = wp.t;
-        if (lp.t === 'B' || lp.t === 'A' || lp.t === 'E') {
+        if (lp.t === 'B') {
             const lp1 = localPointOnItem(wp.x1, wp.y1, item);
             lp.x1 = lp1.x - lp.x;
             lp.y1 = lp1.y - lp.y;
@@ -109,6 +110,9 @@ export function readjustItemAreaAndPoints(item) {
             const lp2 = localPointOnItem(wp.x2, wp.y2, item);
             lp.x2 = lp2.x - lp.x;
             lp.y2 = lp2.y - lp.y;
+        }
+        if (p.t === 'A') {
+            lp.h = p.h;
         }
         item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, item.area.w, item.area.h);
     });
@@ -369,9 +373,15 @@ class DragObjectState extends SubState {
     }
 
     handleCurveControlPointDrag(x, y, event) {
+        const curvePoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+        if (curvePoint.t === 'A') {
+            this.handleArcControlPointDrag(x, y, event);
+            return;
+        }
+
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+
         const index = this.draggedObject.controlPointIndex;
         const oppositeIndex = index === 1 ? 2: 1;
 
@@ -388,12 +398,37 @@ class DragObjectState extends SubState {
         curvePoint[`x${index}`] = this._cx(snappedLocalAbsoluteCurvePoint.x) - curvePoint.x;
         curvePoint[`y${index}`] = this._cy(snappedLocalAbsoluteCurvePoint.y) - curvePoint.y;
         
-        if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
+        if (curvePoint.t === 'B' && !(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pathIndex, this.draggedObject.pointIndex, curvePoint);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+    }
+
+    handleArcControlPointDrag(x, y, event) {
+        const point = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+        if (this.draggedObject.pointIndex >= this.item.shapeProps.paths[this.draggedObject.pathIndex].points.length - 1) {
+            return;
+        }
+        const nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex + 1];
+
+        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
+
+        const p2 = convertCurvePointToItemScale(nextPoint, this.item.area.w, this.item.area.h);
+        const p1 = convertCurvePointToItemScale(point, this.item.area.w, this.item.area.h);
+
+        const chordLength = myMath.distanceBetweenPoints(p1.x, p1.y, p2.x, p2.y);
+        const line = myMath.createLineEquation(p1.x, p1.y, p2.x, p2.y);
+
+        const H = myMath.distanceFromPointToLine(localPoint.x, localPoint.y, line);
+        if (!myMath.tooSmall(chordLength)) {
+            point.h = -H / chordLength * 100 * myMath.identifyPointSideAgainstLine(localPoint.x, localPoint.y, line);
+        }
+
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pathIndex, this.draggedObject.pointIndex, point);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
@@ -652,9 +687,6 @@ export default class StateEditPath extends State {
             }, {
                 name: 'Convert to arc',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.pathId, p.pointId))
-            }, {
-                name: 'Convert to elliptic arc',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToEllipticArc(p.pathId, p.pointId))
             }];
             if (selectedPoints.length === 2) {
                 menuOptions.push({
@@ -716,12 +748,6 @@ export default class StateEditPath extends State {
                 });
             }
 
-            if (point.t !== 'E') {
-                menuOptions.push({
-                    name: 'Convert to elliptic arc point',
-                    clicked: () => this.convertPointToEllipticArc(object.pathIndex, object.pointIndex)
-                });
-            }
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
 
         } else if (object && object.type === 'path-segment') {
@@ -1042,36 +1068,15 @@ export default class StateEditPath extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    convertPointToEllipticArc(pathId, pointIndex) {
-        this._convertPointToArc(pathId, pointIndex, 'E');
-    }
-
     convertPointToArc(pathId, pointIndex) {
-        this._convertPointToArc(pathId, pointIndex, 'A');
-    }
-
-    _convertPointToArc(pathId, pointIndex, pointType) {
-        const point = this.item.shapeProps.paths[pathId].points[pointIndex];
-        if (point.t !== 'A' && point.t !== 'E') {
-            let x1 = 10;
-            let y1 = 10;
-            if (pointIndex < this.item.shapeProps.paths[pathId].points.length - 1) {
-                const nextPoint = this.item.shapeProps.paths[pathId].points[pointIndex + 1];
-                const xm = (nextPoint.x + point.x) / 2;
-                const ym = (nextPoint.y + point.y) / 2;
-                const vx = xm - point.x;
-                const vy = ym - point.y;
-                const vpx = vy;
-                const vpy = -vx;
-
-                x1 = vpx + xm - point.x;
-                y1 = vpy + ym - point.y;
-            }
-
-            point.x1 = x1;
-            point.y1 = y1;
+        if (pointIndex >= this.item.shapeProps.paths[pathId].points.length - 1) {
+            return;
         }
-        point.t = pointType;
+        const point = this.item.shapeProps.paths[pathId].points[pointIndex];
+        if (point.t !== 'A') {
+            point.h = 50;
+        }
+        point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);

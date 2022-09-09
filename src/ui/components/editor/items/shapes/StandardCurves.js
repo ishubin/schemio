@@ -13,103 +13,23 @@ function round(value) {
 export const PATH_POINT_CONVERSION_SCALE = 100;
 
 
-/**
- * Generates SVG arc path based on 3 points of the circle
- * @param {*} x1 
- * @param {*} y1 
- * @param {*} x2 
- * @param {*} y2 
- * @param {*} x3 
- * @param {*} y3 
- */
-function connectEllipticArc(x1, y1, x2, y2, x3, y3) {
-    const line = myMath.createLineEquation(x1, y1, x3, y3);
-    const d1 = myMath.distanceBetweenPoints(x1, y1, x3, y3);
-    const d2 = myMath.distanceFromPointToLine(x2, y2, line);
+function connectArc(x1, y1, x2, y2, h) {
+    const L = myMath.distanceBetweenPoints(x1, y1, x2, y2);
+    const H = L * h / 100;
 
-    if (myMath.tooSmall(d1) || myMath.tooSmall(d2)) {
-        return `L ${x3} ${y3} `;
+    if (myMath.tooSmall(H) || myMath.tooSmall(L)) {
+        return `L ${round(x2)} ${round(y2)} `;
     }
 
-    const V = {
-        x: (x3 - x1) / d1,
-        y: (y3 - y1) / d1
-    };
-
-    const side1 = myMath.identifyPointSideAgainstLine(x2, y2, line);
-    const sweepFlag = side1 > 0 ? 0 : 1;
-
-    const N = side1 > 0 ? myMath.rotateVector90Clockwise(V.x, V.y) : myMath.rotateVector90CounterClockwise(V.x, V.y);
-
-    const angle = myMath.fullAngleForNormalizedVector(N.x, N.y) * 180 / Math.PI;
-
-    return `A ${d2} ${d1/2} ${angle} 0 ${sweepFlag} ${x3} ${y3} `;
-}
-
-function connectArc(x1, y1, x2, y2, x3, y3) {
-    const x12 = x1 - x2;
-    const x13 = x1 - x3;
- 
-    const y12 = y1 - y2;
-    const y13 = y1 - y3;
- 
-    const y31 = y3 - y1;
-    const y21 = y2 - y1;
- 
-    const x31 = x3 - x1;
-    const x21 = x2 - x1;
- 
-    const sx13 = x1*x1 - x3*x3;
- 
-    const sy13 = y1*y1 - y3*y3;
- 
-    const sx21 = x2*x2 - x1*x1;
-    const sy21 = y2*y2 - y1*y1;
- 
-    const f = ((sx13) * (x12) + (sy13) * (x12) + (sx21) * (x13) + (sy21) * (x13)) / (2 * ((y31) * (x12) - (y21) * (x13)));
-    const g = ((sx13) * (y12) + (sy13) * (y12) + (sx21) * (y13) + (sy21) * (y13)) / (2 * ((x31) * (y12) - (x21) * (y13)));
- 
-    const c = -x1*x1 - y1*y1 - 2 * g * x1 - 2 * f * y1;
- 
-    const cx = -g;
-    const cy = -f;
-    const rSquared = cx * cx + cy * cy - c;
- 
-    const xa = x2 - x1;
-    const ya = y2 - y1;
-    const xb = x3 - x1;
-    const yb = y3 - y1;
-    const d1 = xa * xa + ya * ya;
-    const d2 = xb * xb + yb * yb;
-    if (d2 > 0.01 && d1 > 0.01 && rSquared > 0 && rSquared !== Infinity) {
-        const r = Math.sqrt(rSquared);
-
-        let sweepFlag = 1;
-        const sina = (xa*yb - ya*xb)/ (Math.sqrt(d1) * Math.sqrt(d2));
-        if (sina < 0) {
-            sweepFlag = 0;
-        }
-
-        let largeArcFlag = 0;
-
-        const line = myMath.createLineEquation(x1, y1, x3, y3);
-        const side1 = myMath.identifyPointSideAgainstLine(cx, cy, line);
-        const side2 = myMath.identifyPointSideAgainstLine(x2, y2, line);
-        if (side1 === side2) {
-            largeArcFlag = 1;
-        }
-
-        return `A ${round(r)} ${round(r)} 0 ${largeArcFlag} ${sweepFlag} ${round(x3)} ${round(y3)}`;
-    }
-
-    return `L ${round(x3)} ${round(y3)} `;
+    const r = Math.abs(H / 2 + L * L / (8 * H));
+    let largeArcFlag = Math.abs(H) > L / 2 ? 1: 0;
+    let sweepFlag = h > 0? 1 : 0;
+    return `A ${round(r)} ${round(r)} 0 ${largeArcFlag} ${sweepFlag} ${round(x2)} ${round(y2)}`;
 }
 
 function connectPoints(p1, p2) {
     if (p1.t === 'A') {
-        return connectArc(p1.x, p1.y, p1.x + p1.x1, p1.y + p1.y1, p2.x, p2.y);
-    } else if (p1.t === 'E') {
-        return connectEllipticArc(p1.x, p1.y, p1.x + p1.x1, p1.y + p1.y1, p2.x, p2.y);
+        return connectArc(p1.x, p1.y, p2.x, p2.y, p1.h);
     }
     else if (p1.t === 'L' && p2.t === 'B') {
         return `Q ${round(p2.x1+p2.x)} ${round(p2.y1+p2.y)} ${round(p2.x)} ${round(p2.y)} `;
@@ -178,13 +98,12 @@ export function convertCurvePointToRelative(point, w, h) {
             x2: point.x2 * PATH_POINT_CONVERSION_SCALE * W / w,
             y2: point.y2 * PATH_POINT_CONVERSION_SCALE * H / h,
         }
-    } else if (point.t === 'A' || point.t === 'E') {
+    } else if (point.t === 'A') {
         return {
             t: point.t,
             x: point.x * PATH_POINT_CONVERSION_SCALE * W / w,
             y: point.y * PATH_POINT_CONVERSION_SCALE * H / h,
-            x1: point.x1 * PATH_POINT_CONVERSION_SCALE * W / w,
-            y1: point.y1 * PATH_POINT_CONVERSION_SCALE * H / h,
+            h: point.h
         }
     } else {
         return {
@@ -198,7 +117,7 @@ export function convertCurvePointToRelative(point, w, h) {
 export function convertCurvePointToItemScale(point, w, h) {
     if (point.t === 'B') {
         return {
-            t: 'B',
+            t: point.t,
             x: w * point.x / PATH_POINT_CONVERSION_SCALE,
             y: h * point.y / PATH_POINT_CONVERSION_SCALE,
             x1: w * point.x1 / PATH_POINT_CONVERSION_SCALE,
@@ -206,13 +125,12 @@ export function convertCurvePointToItemScale(point, w, h) {
             x2: w * point.x2 / PATH_POINT_CONVERSION_SCALE,
             y2: h * point.y2 / PATH_POINT_CONVERSION_SCALE,
         }
-    } else if (point.t === 'A' || point.t === 'E') {
+    } else if (point.t === 'A') {
         return {
             t: point.t,
             x: w * point.x / PATH_POINT_CONVERSION_SCALE,
             y: h * point.y / PATH_POINT_CONVERSION_SCALE,
-            x1: w * point.x1 / PATH_POINT_CONVERSION_SCALE,
-            y1: h * point.y1 / PATH_POINT_CONVERSION_SCALE,
+            h: point.h
         }
     } else {
         return {
