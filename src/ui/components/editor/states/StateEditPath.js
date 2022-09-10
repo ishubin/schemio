@@ -35,6 +35,11 @@ function forAllPoints(item, callback) {
 }
 
 function findCubicBezierExtremumValues(a, b, c, d) {
+    // the idea here is to take a cubic bezier formula for 4 values
+    // and then create a differential of it.
+    // if differential is equal zero - then that is the extremum point
+    // so we need to find such t values that dF(t) gives 0
+    // where dF(t) is a differential of the cubic bezier function
     const k1 = d + 3*(b - c) - a,
           k2 = 3 * (a - 2*b + c),
           k3 = 3 * (b - a);
@@ -62,6 +67,9 @@ function findCubicBezierExtremumValues(a, b, c, d) {
 }
 
 function findQuadraticBezierExtremumValues(a, b, c) {
+    // the idea is the same as in cubic bezier function above
+    // but since it is only 3 values, we have to take a quadratic bezier function.
+    // a quadratic bezier function can only generate one extremum value
     const denom = a - 2*b + c;
     if (myMath.tooSmall(denom)) {
         return [];
@@ -147,6 +155,11 @@ export function readjustItemAreaAndPoints(item) {
             }
         }
         if (p.t === 'A' && lp2) {
+            // the idea here is to calculate bounding points ot a circle
+            // first we calculate its radius and then its center
+            // once we know radius and a center, we calculate north/west/east/south side points of the circle
+            // We then draw an imaginary line that goes from points P1 and P2 and divides the space into two zones
+            // We only take those side points into account that lie in the same zone towards the line as the control point of the circle
             wp.h = p.h;
             const L = myMath.distanceBetweenPoints(lp.x, lp.y, lp2.x, lp2.y);
             const H = L * p.h / 100;
