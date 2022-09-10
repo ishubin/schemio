@@ -12,7 +12,6 @@ import EventBus from '../EventBus.js';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 
-const IS_NOT_SOFT = false;
 const IS_SOFT = true;
 
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -35,12 +34,62 @@ function forAllPoints(item, callback) {
     });
 }
 
+function findCubicBezierExtremumValues(a, b, c, d) {
+    const k1 = d + 3*(b - c) - a,
+          k2 = 3 * (a - 2*b + c),
+          k3 = 3 * (b - a);
+
+    const D = (4*k2*k2) - 12 * k1 * k3;
+    if (D <= 0) {
+        return [];
+    }
+    const sqrtD = Math.sqrt(D);
+
+    const t1 = (-2 * k2 + sqrtD) / (6*k1);
+    const t2 = (-2 * k2 - sqrtD) / (6*k1);
+
+    const extremums = [];
+    const bezierValue = (t) => {
+        return a*(1-t)*(1-t)*(1-t) + b*3*t*(1-t)*(1-t) + 3*c*t*t*(1-t) + t*t*t*d;
+    }
+    if (t1 >=0 && t1 <= 1) {
+        extremums.push(bezierValue(t1));
+    }
+    if (t2 >=0 && t2 <= 1) {
+        extremums.push(bezierValue(t2));
+    }
+    return extremums;
+}
+
+function findQuadraticBezierExtremumValues(a, b, c) {
+    const denom = a - 2*b + c;
+    if (myMath.tooSmall(denom)) {
+        return [];
+    }
+
+    const t = (c - b) / denom;
+    if (t >= 0 && t <= 1) {
+        return [a*t*t + 2*b*t*(1-t) + c*(1 - t)*(1 - t)];
+    }
+    return [];
+}
+
 // this function is used when state is canceled
 // since points could be moved out of the item area we need to readjust item area together with the points
 // so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
 export function readjustItemAreaAndPoints(item) {
     const {w, h} = item.area;
     let bounds = null;
+
+    const updateBoundsX = (x) => {
+        bounds.x1 = Math.min(bounds.x1, x);
+        bounds.x2 = Math.max(bounds.x2, x);
+    }
+
+    const updateBoundsY = (y) => {
+        bounds.y1 = Math.min(bounds.y1, y);
+        bounds.y2 = Math.max(bounds.y2, y);
+    }
 
     const updateBounds = (x, y) => {
         if (!bounds) {
@@ -51,10 +100,8 @@ export function readjustItemAreaAndPoints(item) {
                 y2: y
             };
         } else {
-            bounds.x1 = Math.min(bounds.x1, x);
-            bounds.y1 = Math.min(bounds.y1, y);
-            bounds.x2 = Math.max(bounds.x2, x);
-            bounds.y2 = Math.max(bounds.y2, y);
+            updateBoundsX(x);
+            updateBoundsY(y);
         }
     };
 
@@ -70,7 +117,16 @@ export function readjustItemAreaAndPoints(item) {
         const wp = worldPointOnItem(lp.x, lp.y, item);
         wp.t = p.t;
 
-        if (p.t === 'B') {
+        let lp2 = null;
+        if (pointIndex === item.shapeProps.paths[pathIndex].points.length - 1) {
+            if (item.shapeProps.paths[pathIndex].closed) {
+                lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[0], w, h);
+            }
+        } else {
+            lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[pointIndex+1], w, h);
+        }
+
+        if (p.t === 'B' || (lp2 && lp2.t === 'B')) {
             const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, item);
             wp.x1 = wp1.x;
             wp.y1 = wp1.y;
@@ -78,14 +134,20 @@ export function readjustItemAreaAndPoints(item) {
             const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, item);
             wp.x2 = wp2.x;
             wp.y2 = wp2.y;
-            updateBounds(lp.x + lp.x1, lp.y + lp.y1);
-            updateBounds(lp.x + lp.x2, lp.y + lp.y2);
-        }
-        if (p.t === 'A') {
-            wp.h = p.h;
-            const nextPointIndex = (pointIndex + 1) % item.shapeProps.paths[pathIndex].points.length
-            const lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[nextPointIndex], w, h);
 
+            if (p.t === 'B' && lp2 && lp2.t === 'B') {
+                findCubicBezierExtremumValues(lp.x, lp.x + lp.x2, lp2.x + lp2.x1, lp2.x).forEach(updateBoundsX);
+                findCubicBezierExtremumValues(lp.y, lp.y + lp.y2, lp2.y + lp2.y1, lp2.y).forEach(updateBoundsY);
+            } else if (p.t === 'B' && lp2) {
+                findQuadraticBezierExtremumValues(lp.x, lp.x + lp.x2, lp2.x).forEach(updateBoundsX);
+                findQuadraticBezierExtremumValues(lp.y, lp.y + lp.y2, lp2.y).forEach(updateBoundsY);
+            } else if (p.t !== 'B' && lp2 && lp2.t === 'B') {
+                findQuadraticBezierExtremumValues(lp.x, lp2.x + lp2.x1, lp2.x).forEach(updateBoundsX);
+                findQuadraticBezierExtremumValues(lp.y, lp2.y + lp2.y1, lp2.y).forEach(updateBoundsY);
+            }
+        }
+        if (p.t === 'A' && lp2) {
+            wp.h = p.h;
             const L = myMath.distanceBetweenPoints(lp.x, lp.y, lp2.x, lp2.y);
             const H = L * p.h / 100;
 
