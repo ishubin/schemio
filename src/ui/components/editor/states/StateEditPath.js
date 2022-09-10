@@ -70,19 +70,62 @@ export function readjustItemAreaAndPoints(item) {
         const wp = worldPointOnItem(lp.x, lp.y, item);
         wp.t = p.t;
 
-        //TODO circle
         if (p.t === 'B') {
-            updateBounds(lp.x + lp.x1, lp.y + lp.y1);
-
             const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, item);
             wp.x1 = wp1.x;
             wp.y1 = wp1.y;
-        }
-        if (p.t === 'B') {
-            updateBounds(lp.x + lp.x2, lp.y + lp.y2);
+
             const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, item);
             wp.x2 = wp2.x;
             wp.y2 = wp2.y;
+            updateBounds(lp.x + lp.x1, lp.y + lp.y1);
+            updateBounds(lp.x + lp.x2, lp.y + lp.y2);
+        }
+        if (p.t === 'A') {
+            wp.h = p.h;
+            const nextPointIndex = (pointIndex + 1) % item.shapeProps.paths[pathIndex].points.length
+            const lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[nextPointIndex], w, h);
+
+            const L = myMath.distanceBetweenPoints(lp.x, lp.y, lp2.x, lp2.y);
+            const H = L * p.h / 100;
+
+            if (!myMath.tooSmall(H) && !myMath.tooSmall(L)) {
+                const r = Math.abs(H / 2 + L * L / (8 * H));
+                const extremumPoints = [
+                    {x: 0, y: r},
+                    {x: 0, y: -r},
+                    {x: r, y: 0},
+                    {x: -r, y: 0},
+                ];
+                const line = myMath.createLineEquation(lp.x, lp.y, lp2.x, lp2.y);
+                const c1 = {
+                    x: (lp2.x + lp.x) / 2,
+                    y: (lp2.y + lp.y) / 2,
+                };
+
+                const v = myMath.rotateVector90CounterClockwise((lp2.x - lp.x) / L, (lp2.y - lp.y) / L);
+                const p3 = {
+                    x: c1.x + v.x * H,
+                    y: c1.y + v.y * H,
+                };
+
+                if (H < 0) {
+                    v.x = -v.x;
+                    v.y = -v.y;
+                }
+                const cx = c1.x + v.x * (Math.abs(H) - r);
+                const cy = c1.y + v.y * (Math.abs(H) - r);
+
+                const sideP3 = myMath.identifyPointSideAgainstLine(p3.x, p3.y, line);
+
+                extremumPoints.forEach(ep => {
+                    ep.x += cx;
+                    ep.y += cy;
+                    if (sideP3 * myMath.identifyPointSideAgainstLine(ep.x, ep.y, line) > 0) {
+                        updateBounds(ep.x, ep.y);
+                    }
+                });
+            }
         }
         worldPoints[pathIndex][pointIndex] = wp;
     });
