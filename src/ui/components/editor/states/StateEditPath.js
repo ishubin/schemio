@@ -120,9 +120,9 @@ export function readjustItemAreaAndPoints(item) {
 
 const MOUSE_MOVE_THRESHOLD = 3;
 
-class BeizerConversionState extends SubState {
+class BezierConversionState extends SubState {
     constructor(parentState, point, pathId, pointId) {
-        super(parentState, 'beizer-conversion');
+        super(parentState, 'bezier-conversion');
         this.point = point;
         this.pathId = pathId;
         this.pointId = pointId;
@@ -130,10 +130,10 @@ class BeizerConversionState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        this.updateBeizerPoint(x, y);
+        this.updateBezierPoint(x, y);
     }
 
-    updateBeizerPoint(x, y) {
+    updateBezierPoint(x, y) {
         const lp = this.schemeContainer.localPointOnItem(x, y, this.item);
         const relativePoint = convertCurvePointToRelative(this.parentState.snapCurvePoint(-1, -1, lp.x, lp.y), this.item.area.w, this.item.area.h);
         this.point.t = 'B';
@@ -148,7 +148,7 @@ class BeizerConversionState extends SubState {
     }
     
     mouseUp(x, y, mx, my, object, event) {
-        this.updateBeizerPoint(x, y);
+        this.updateBezierPoint(x, y);
         const newPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         newPoint.t = 'L';
         this.item.shapeProps.paths[this.pathId].points.push(newPoint);
@@ -229,7 +229,7 @@ class CreatingPathState extends SubState {
             const point = this.item.shapeProps.paths[this.pathId].points[pointId];
 
             if (this.mouseIsDown && Math.max(Math.abs(mx - this.originalMouseX), Math.abs(my - this.originalMouseY)) > MOUSE_MOVE_THRESHOLD) {
-                this.migrate(new BeizerConversionState(this.parentState, point, this.pathId, pointId));
+                this.migrate(new BezierConversionState(this.parentState, point, this.pathId, pointId));
                 return;
             } else {
                 const localPoint = localPointOnItem(x, y, this.item);
@@ -682,8 +682,8 @@ export default class StateEditPath extends State {
                 name: 'Delete points',
                 clicked: () => this.deleteSelectedPoints()
             }, {
-                name: 'Convert to beizer',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.pathId, p.pointId))
+                name: 'Convert to bezier',
+                clicked: () => selectedPoints.forEach(p => this.convertPointToBezier(p.pathId, p.pointId))
             }, {
                 name: 'Convert to simple',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToSimple(p.pathId, p.pointId))
@@ -739,8 +739,8 @@ export default class StateEditPath extends State {
             }
             if (point.t !== 'B') {
                 menuOptions.push({
-                    name: 'Convert to beizer point',
-                    clicked: () => this.convertPointToBeizer(object.pathIndex, object.pointIndex)
+                    name: 'Convert to bezier point',
+                    clicked: () => this.convertPointToBezier(object.pathIndex, object.pointIndex)
                 });
             }
 
@@ -774,8 +774,8 @@ export default class StateEditPath extends State {
         this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToSimple(pathId, pointId));
     }
 
-    convertSelectedPointsToBeizer() {
-        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToBeizer(pathId, pointId));
+    convertSelectedPointsToBezier() {
+        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToBezier(pathId, pointId));
     }
 
     extractPath(pathId) {
@@ -1010,7 +1010,7 @@ export default class StateEditPath extends State {
             t: 'L'
         });
         if (this.item.shapeProps.paths[pathId].points[segmentId].t === 'B') {
-            this.convertPointToBeizer(pathId, segmentId + 1);
+            this.convertPointToBezier(pathId, segmentId + 1);
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
@@ -1038,7 +1038,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
-    convertPointToBeizer(pathId, pointIndex) {
+    convertPointToBezier(pathId, pointIndex) {
         const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         if (!point) {
             return;

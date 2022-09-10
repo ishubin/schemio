@@ -169,8 +169,8 @@
                         </span>
                     </li>
                     <li v-if="firstSelectedPathEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-beizer')">
-                            <img src="/assets/images/helper-panel/path-point-beizer.svg"/>
+                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-bezier')">
+                            <img src="/assets/images/helper-panel/path-point-bezier.svg"/>
                         </span>
                     </li>
                     <li>

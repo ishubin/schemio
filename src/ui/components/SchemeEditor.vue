@@ -23,7 +23,7 @@
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
-            @convert-path-points-to-beizer="convertCurvePointToBeizer()"
+            @convert-path-points-to-bezier="convertCurvePointToBezier()"
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
@@ -1912,9 +1912,9 @@ export default {
             }
         },
 
-        convertCurvePointToBeizer() {
+        convertCurvePointToBezier() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToBeizer();
+                states[this.state].convertSelectedPointsToBezier();
             }
         },
 
