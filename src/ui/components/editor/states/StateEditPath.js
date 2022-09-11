@@ -236,6 +236,23 @@ export function readjustItemAreaAndPoints(item) {
     });
 }
 
+function ensureCorrectArea(item) {
+    if (item.area.w > 100 && item.area.h > 100) {
+        return;
+    }
+
+    const w = Math.max(100, item.area.w);
+    const h = Math.max(100, item.area.h);
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        const lp = convertCurvePointToItemScale(p, item.area.w, item.area.h);
+        item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, w, h);
+    });
+
+    item.area.w = w;
+    item.area.h = h;
+}
+
 const MOUSE_MOVE_THRESHOLD = 3;
 
 class BezierConversionState extends SubState {
@@ -772,6 +789,7 @@ export default class StateEditPath extends State {
 
     setItem(item) {
         this.item = item;
+        ensureCorrectArea(item);
     }
 
     getSelectedPoints() {
