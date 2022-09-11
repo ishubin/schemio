@@ -223,8 +223,6 @@ export function readjustItemAreaAndPoints(item) {
             const lp1 = localPointOnItem(wp.x1, wp.y1, item);
             lp.x1 = lp1.x - lp.x;
             lp.y1 = lp1.y - lp.y;
-        }
-        if (lp.t === 'B') {
             const lp2 = localPointOnItem(wp.x2, wp.y2, item);
             lp.x2 = lp2.x - lp.x;
             lp.y2 = lp2.y - lp.y;
@@ -1153,6 +1151,7 @@ export default class StateEditPath extends State {
             path.points.splice(pointIndex, 2);
         } else {
             const secondPath = {
+                pos: 'relative',
                 closed: false,
                 points: path.points.splice(pointIndex+1, path.points.length - pointIndex - 1)
             };
