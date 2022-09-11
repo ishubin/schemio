@@ -65,8 +65,14 @@ function generateItemSVGLayer(shapeDef, x, y, w, h) {
 
     forEach(shapeDef.shapeConfig.items, itemDef => {
         const path = convertRawShapeForRender(fakeItem, shapeDef.shapeConfig, itemDef);
+        let fill = 'none';
+        if (itemDef.fillArg === 'fill') {
+            fill = '#ffffff';
+        } else if (itemDef.fillArg === 'strokeColor') {
+            fill = '#111111';
+        }
         if (path) {
-            svg += `<path d="${path.path}" fill="white" stroke="#111111" stroke-width="2px" stroke-linejoin="round"/>`;
+            svg += `<path d="${path.path}" fill="${fill}" stroke="#111111" stroke-width="${itemDef.strokeSize}px" stroke-linejoin="round"/>`;
         }
     });
     return svg + '</g>';
@@ -119,8 +125,8 @@ function generateShapeConfigForItem(item, shapeGroupName) {
 }
 
 function generateShapeGroupPreview(shapeGroup) {
-    const maxRows = 8;
-    const maxColumns = 10;
+    const maxRows = 4;
+    const maxColumns = 5;
     let row = 0;
     let col = 0;
 
