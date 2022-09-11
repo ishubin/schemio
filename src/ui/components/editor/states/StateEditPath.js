@@ -285,6 +285,12 @@ class CreatingPathState extends SubState {
         this.originalMouseY = 0;
     }
 
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrate(new DragScreenState(this.parentState));
+        }
+    }
+
     mouseDown(x, y, mx, my, object, event) {
         this.originalMouseX = mx;
         this.originalMouseY = my;
