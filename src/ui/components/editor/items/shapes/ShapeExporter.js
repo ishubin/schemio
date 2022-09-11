@@ -150,7 +150,7 @@ export function convertShapeToStandardCurves(rootItem) {
     traverseItems(rootItem, item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
-        if (item.tags && indexOf(item.tags, 'outline') >= 0) {
+        if (item.name === 'outline' || (item.tags && indexOf(item.tags, 'outline') >= 0)) {
             if (item.shape === 'path') {
                 shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h));
             } else if (isSupportedPrimitive(item.shape)) {
