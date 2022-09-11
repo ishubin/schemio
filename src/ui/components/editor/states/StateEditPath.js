@@ -9,7 +9,7 @@ import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
-import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 
 const IS_SOFT = true;
@@ -236,7 +236,7 @@ export function readjustItemAreaAndPoints(item) {
     });
 }
 
-function ensureCorrectArea(item) {
+function ensureCorrectAreaOfPathItem(item) {
     if (item.area.w > 100 && item.area.h > 100) {
         return;
     }
@@ -251,6 +251,43 @@ function ensureCorrectArea(item) {
 
     item.area.w = w;
     item.area.h = h;
+}
+
+export function mergeAllItemPaths(mainItem, otherItems) {
+    otherItems.sort((a, b) => {
+        return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
+    });
+
+    ensureCorrectAreaOfPathItem(mainItem);
+
+    for (let i = 0; i < otherItems.length; i++) {
+        ensureCorrectAreaOfPathItem(otherItems[i]);
+        otherItems[i].shapeProps.paths.forEach(path => {
+            const newPath = {
+                pos: 'relative',
+                closed: path.closed,
+                points: []
+            };
+            path.points.forEach(relativePoint => {
+                const point = convertCurvePointToItemScale(relativePoint, otherItems[i].area.w, otherItems[i].area.h);
+                const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, otherItems[i], mainItem);
+                p.t = point.t;
+                if (point.hasOwnProperty('x1')) {
+                    const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, otherItems[i], mainItem);
+                    p.x1 = p1.x - p.x;
+                    p.y1 = p1.y - p.y;
+                }
+                if (point.hasOwnProperty('x2')) {
+                    const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, otherItems[i], mainItem);
+                    p.x2 = p2.x - p.x;
+                    p.y2 = p2.y - p.y;
+                }
+                newPath.points.push(convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h));
+            });
+            mainItem.shapeProps.paths.push(newPath);
+        });
+    }
+    readjustItemAreaAndPoints(mainItem);
 }
 
 const MOUSE_MOVE_THRESHOLD = 3;
@@ -789,7 +826,7 @@ export default class StateEditPath extends State {
 
     setItem(item) {
         this.item = item;
-        ensureCorrectArea(item);
+        ensureCorrectAreaOfPathItem(item);
     }
 
     getSelectedPoints() {

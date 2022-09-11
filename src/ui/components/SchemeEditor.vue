@@ -417,7 +417,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem, localPointOnItemToLocalPointOnOtherItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -462,7 +462,7 @@ import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
 import StateEditPath from './editor/states/StateEditPath.js';
-import { readjustItemAreaAndPoints } from './editor/states/StateEditPath.js';
+import { mergeAllItemPaths } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
@@ -470,7 +470,6 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
-import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -2101,7 +2100,7 @@ export default {
                 if (allCurves) {
                     this.customContextMenu.menuOptions.push({
                         name: 'Merge paths',
-                        clicked: () => this.mergeCurves(this.schemeContainer.multiItemEditBox.items)
+                        clicked: () => this.mergePaths(this.schemeContainer.multiItemEditBox.items)
                     })
                 }
             }
@@ -2232,40 +2231,10 @@ export default {
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
         },
 
-        mergeCurves(allItems) {
-            allItems.sort((a, b) => {
-                return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
-            });
-
-            const mainItem = allItems.shift();
-
-            for (let i = 0; i < allItems.length; i++) {
-                allItems[i].shapeProps.paths.forEach(path => {
-                    const newPath = {
-                        pos: 'relative',
-                        closed: path.closed,
-                        points: []
-                    };
-                    path.points.forEach(relativePoint => {
-                        const point = convertCurvePointToItemScale(relativePoint, allItems[i].area.w, allItems[i].area.h);
-                        const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
-                        p.t = point.t;
-                        if (point.hasOwnProperty('x1')) {
-                            const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
-                            p.x1 = p1.x - p.x;
-                            p.y1 = p1.y - p.y;
-                        }
-                        if (point.hasOwnProperty('x2')) {
-                            const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
-                            p.x2 = p2.x - p.x;
-                            p.y2 = p2.y - p.y;
-                        }
-                        newPath.points.push(convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h));
-                    });
-                    mainItem.shapeProps.paths.push(newPath);
-                });
-            }
-            readjustItemAreaAndPoints(mainItem);
+        mergePaths(allItems) {
+            const mainItem = allItems[0];
+            allItems.shift();
+            mergeAllItemPaths(mainItem, allItems);
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
