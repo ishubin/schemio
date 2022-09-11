@@ -30,13 +30,23 @@ export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
 function convertCurve(item, x0, y0, w, h) {
     const paths = map(item.shapeProps.paths, path => {
         const points = map(path.points, relativePoint => {
-            const point = convertCurvePointToItemScale(relativePoint, item.area.w, item.area.h);
-            const worldPoint = worldPointOnItem(point.x, point.y, item);
+            const p = convertCurvePointToItemScale(relativePoint, item.area.w, item.area.h);
+            const worldPoint = worldPointOnItem(p.x, p.y, item);
 
             const localPointInRoot = {
+                ...p,
                 x: worldPoint.x - x0,
                 y: worldPoint.y - y0,
             };
+
+            if (p.t === 'B') {
+                const wp1 = worldPointOnItem(p.x + p.x1, p.y + p.y1, item);
+                const wp2 = worldPointOnItem(p.x + p.x2, p.y + p.y2, item);
+                localPointInRoot.x1 = wp1.x - worldPoint.x;
+                localPointInRoot.y1 = wp1.y - worldPoint.y;
+                localPointInRoot.x2 = wp2.x - worldPoint.x;
+                localPointInRoot.y2 = wp2.y - worldPoint.y;
+            }
 
             return convertCurvePointToRelative(localPointInRoot, w, h);
         });
