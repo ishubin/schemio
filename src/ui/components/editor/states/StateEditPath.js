@@ -982,6 +982,9 @@ export default class StateEditPath extends State {
             }, {
                 name: 'Invert path',
                 clicked: () => this.invertPath(object.pathIndex)
+            }, {
+                name: 'Duplicate path',
+                clicked: () => this.duplicatePath(object.pathIndex)
             }]);
         }
     }
@@ -1055,6 +1058,18 @@ export default class StateEditPath extends State {
                 p.y2 = yt;
             }
         });
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
+    duplicatePath(pathId) {
+        const newPath = utils.clone(this.item.shapeProps.paths[pathId]);
+        newPath.points.forEach(p => {
+            p.x += 10;
+            p.y += 10;
+        });
+        this.item.shapeProps.paths.push(newPath);
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
