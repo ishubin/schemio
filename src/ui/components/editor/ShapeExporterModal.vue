@@ -51,6 +51,9 @@ function createWidthAndHeight(w, h, widthToHeightRatio) {
         h = w / widthToHeightRatio;
     } else if (widthToHeightRatio < 1) {
         w = h * widthToHeightRatio;
+    } else {
+        w = Math.min(w, h);
+        h = w;
     }
     return {w, h};
 }
