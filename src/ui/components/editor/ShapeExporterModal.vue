@@ -75,7 +75,7 @@ function generateItemSVGLayer(shapeDef, x, y, w, h) {
             fill = '#111111';
         }
         if (path) {
-            svg += `<path d="${path.path}" fill="${fill}" stroke="#111111" stroke-width="${itemDef.strokeSize}px" stroke-linejoin="round"/>`;
+            svg += `<path d="${path.path}" fill="${fill}" stroke="#111111" stroke-width="${itemDef.strokeSize*2}px" stroke-linejoin="round"/>`;
         }
     });
     return svg + '</g>';
@@ -92,9 +92,12 @@ function buildSvgPreview(shapeDef, widthToHeightRatio) {
 
 
 function generateShapeConfigForItem(item, shapeGroupName) {
-    const shapeId = getTagValueByPrefixKey(item.tags, 'shape-id=');
-    if (item.shape !== 'dummy' && !shapeId) {
+    if (item.shape !== 'dummy') {
         return null;
+    }
+    let shapeId = getTagValueByPrefixKey(item.tags, 'shape-id=');
+    if (!shapeId) {
+        shapeId = item.name.toLowerCase().replaceAll(/[\W_]+/g, '-');
     }
 
     let widthToHeightRatio = 1;
