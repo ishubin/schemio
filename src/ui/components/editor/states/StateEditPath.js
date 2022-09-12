@@ -243,13 +243,25 @@ function ensureCorrectAreaOfPathItem(item) {
     const w = Math.max(100, item.area.w);
     const h = Math.max(100, item.area.h);
 
-    forAllPoints(item, (p, pathIndex, pointIndex) => {
-        const lp = convertCurvePointToItemScale(p, item.area.w, item.area.h);
-        item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, w, h);
-    });
+    if (item.shapeProps.paths.length > 0 && item.shapeProps.paths[0].points.length > 0) {
+        const firstLocalPoint = convertCurvePointToItemScale(item.shapeProps.paths[0].points[0], item.area.w, item.area.h);
+        const worldPoint = worldPointOnItem(firstLocalPoint.x, firstLocalPoint.y, item);
 
-    item.area.w = w;
-    item.area.h = h;
+        forAllPoints(item, (p, pathIndex, pointIndex) => {
+            const lp = convertCurvePointToItemScale(p, item.area.w, item.area.h);
+            item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, w, h);
+        });
+
+        item.area.w = w;
+        item.area.h = h;
+
+        // the following is need for rotation compensation. if an item is rotated and we change its width and height, then all points will be displaced
+        // since they were adjusted already relatively for item area
+        const firstConvertedLocalPoint = convertCurvePointToItemScale(item.shapeProps.paths[0].points[0], item.area.w, item.area.h);
+        const pos = myMath.findTranslationMatchingWorldPoint(worldPoint.x, worldPoint.y, firstConvertedLocalPoint.x, firstConvertedLocalPoint.y, item.area, item.meta.transformMatrix);
+        item.area.x = pos.x;
+        item.area.y = pos.y;
+    }
 }
 
 export function mergeAllItemPaths(mainItem, otherItems) {

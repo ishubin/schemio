@@ -7,8 +7,7 @@ import forEach from 'lodash/forEach';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
-import { itemCompleteTransform } from '../scheme/SchemeContainer';
-import myMath from '../myMath';
+import { worldPointOnItem } from '../scheme/SchemeContainer';
 import { convertCurvePointToItemScale } from '../components/editor/items/shapes/StandardCurves';
 
 Vue.use(Vuex);
@@ -18,22 +17,20 @@ const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 function createCurvePointConverter(item) {
-    const completeTransform = itemCompleteTransform(item);
-
     return (point)  => {
         const convertedPoint = utils.clone(point);
-        const p = myMath.transformPoint(completeTransform, point.x, point.y);
+        const p = worldPointOnItem(point.x, point.y, item);
 
         convertedPoint.x = p.x;
         convertedPoint.y = p.y;
 
         if (point.t === 'B') {
-            const p1 = myMath.transformPoint(completeTransform, point.x + point.x1, point.y + point.y1);
+            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
             convertedPoint.x1 = p1.x - p.x;
             convertedPoint.y1 = p1.y - p.y;
         }
         if (point.t === 'B') {
-            const p2 = myMath.transformPoint(completeTransform, point.x + point.x2, point.y + point.y2);
+            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
             convertedPoint.x2 = p2.x - p.x;
             convertedPoint.y2 = p2.y - p.y;
         }
