@@ -940,6 +940,7 @@ export default {
                 this.state = 'interact';
             }
             states[this.state].reset();
+            this.updateHistoryState();
         },
 
         switchStateDragItem() {
@@ -1533,7 +1534,9 @@ export default {
         },
 
         historyUndo() {
-            if (history.undoable() && this.historyEditAllowed()) {
+            if (this.state === 'editPath') {
+                states.editPath.undo();
+            } else if (history.undoable() && this.historyEditAllowed()) {
                 const scheme = history.undo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
@@ -1548,7 +1551,9 @@ export default {
         },
 
         historyRedo() {
-            if (history.redoable() && this.historyEditAllowed()) {
+            if (this.state === 'editPath') {
+                states.editPath.redo();
+            } else if (history.redoable() && this.historyEditAllowed()) {
                 const scheme = history.redo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
