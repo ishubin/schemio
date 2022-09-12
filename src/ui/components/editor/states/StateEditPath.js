@@ -380,6 +380,7 @@ class CreatingPathState extends SubState {
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.parentState.historyCommit();
     }
 
     snapToFirstPoint(point) {
