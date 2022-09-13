@@ -36,9 +36,13 @@ class StateInteract extends State {
         this.userEventBus = userEventBus;
     }
 
-    reset() {
+    softReset() {
         this.initialClickPoint = null;
         this.startedDragging = false;
+    }
+
+    reset() {
+        this.softReset();
         this.hoveredItemIds = new Set();
     }
 
@@ -76,7 +80,7 @@ class StateInteract extends State {
                     }
                 }
             }
-            this.reset();
+            this.softReset();
         }
     }
 
@@ -85,7 +89,7 @@ class StateInteract extends State {
             event.preventDefault();
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
-                this.reset();
+                this.softReset();
             } else {
                 this.dragScreen(mx, my);
             }
@@ -107,20 +111,20 @@ class StateInteract extends State {
         }
     }
 
-    handleItemHoverEvents(object) {
-        const sendItemEventById = (itemId, event) => {
-            const item = this.schemeContainer.findItemById(itemId);
-            if (item) {
-                this.emit(item, event);
-            }
-        };
+    sendItemEventById(itemId, event) {
+        const item = this.schemeContainer.findItemById(itemId);
+        if (item) {
+            this.emit(item, event);
+        }
+    }
 
+    handleItemHoverEvents(object) {
         if (object && object.type === 'item') {
             if (!this.currentHoveredItem) {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
                     object.item.meta.ancestorIds.forEach(itemId => {
-                        sendItemEventById(itemId, MOUSE_IN);
+                        this.sendItemEventById(itemId, MOUSE_IN);
                     });
                 } else {
                     this.hoveredItemIds = new Set([object.item.id]);
@@ -138,21 +142,21 @@ class StateInteract extends State {
                 this.hoveredItemIds.forEach(itemId => {
                     if (!allNewIds.has(itemId)) {
                         this.hoveredItemIds.delete(itemId);
-                        sendItemEventById(itemId, MOUSE_OUT);
+                        this.sendItemEventById(itemId, MOUSE_OUT);
                     }
                 });
                 
                 allNewIds.forEach(itemId => {
                     if (!this.hoveredItemIds.has(itemId)) {
                         this.hoveredItemIds.add(itemId);
-                        sendItemEventById(itemId, MOUSE_IN);
+                        this.sendItemEventById(itemId, MOUSE_IN);
                     }
                 });
                 this.currentHoveredItem = object.item;
             }
         } else {
             this.hoveredItemIds.forEach(itemId => {
-                sendItemEventById(itemId, MOUSE_OUT);
+                this.sendItemEventById(itemId, MOUSE_OUT);
             });
             this.hoveredItemIds.clear();
             this.currentHoveredItem = null;
