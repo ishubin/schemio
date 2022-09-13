@@ -34,6 +34,33 @@ function copy_standard_assets() {
     copy_project_file assets/webfonts
 }
 
+function review_and_edit_release_notes() {
+    vim .release-notes
+
+    echo "-------------------"
+    echo "Release notes"
+    echo "-------------------"
+    cat .release-notes
+    echo ""
+    echo ""
+    echo -n "Are you ok with release notes [Y/n] ? "
+    read ANSWER
+
+    if echo "$ANSWER" | grep -iq '[Nn]o*'; then
+        echo -n "Do you want to edit release notes (if not then it will exit) [Y/n] ? "
+        read ANSWER2
+        if echo "$ANSWER2" | grep -iq '[Nn]o*'; then
+            exit 0
+        fi
+        review_and_edit_release_notes
+    fi
+}
+
+echo "Generating release notes"
+
+./release-notes-generator.sh > .release-notes
+
+review_and_edit_release_notes
 
 CURRENT_VERSION=$(cat package.json | jq -r .version)
 
@@ -127,7 +154,7 @@ git push origin --tags
 
 echo_section "Publishing release on GitHub"
 
-gh release create $NEW_TAG dist/release/*.zip --title "Released version $NEW_VERSION"
+gh release create $NEW_TAG dist/release/*.zip --title "Released version $NEW_VERSION" --notes-file .release-notes
 
 
 echo_section "Done"
