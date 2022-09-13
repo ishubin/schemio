@@ -483,7 +483,52 @@ class DragObjectState extends SubState {
             x: originalX,
             y: originalY
         };
+        this.worldSelectedPoints = null;
         this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
+        if (this.draggedObject.type === 'path-point' || this.draggedObject.type === 'path-segment') {
+            this.worldSelectedPoints = this.createWorldSelectedBoundsPoints();
+        }
+    }
+
+    forEachSelectedPoint(callback) {
+        StoreUtils.getCurveEditPaths(this.store).forEach((path, pathIndex) => {
+            path.points.forEach(storePoint => {
+                if (storePoint.selected) {
+                    callback(this.item.shapeProps.paths[pathIndex].points[storePoint.id], pathIndex, storePoint.id);
+                }
+            });
+        });
+    }
+
+    createWorldSelectedBoundsPoints() {
+        const xBounds = [];
+        const yBounds = [];
+
+        const updateBounds = (axis, value) => {
+            if (axis.length === 0) {
+                axis.push(value);
+                axis.push(value);
+            } else {
+                axis[0] = Math.min(axis[0], value);
+                axis[1] = Math.max(axis[1], value);
+            }
+        }
+
+        this.forEachSelectedPoint((point) => {
+            const localPoint = convertCurvePointToItemScale(point, this.item.area.w, this.item.area.h);
+            const worldPoint = worldPointOnItem(localPoint.x, localPoint.y, this.item);
+            updateBounds(xBounds, worldPoint.x);
+            updateBounds(yBounds, worldPoint.y);
+        });
+        return [{
+            x: xBounds[0], y: yBounds[0]
+        }, {
+            x: xBounds[1], y: yBounds[0]
+        }, {
+            x: xBounds[1], y: yBounds[1]
+        }, {
+            x: xBounds[0], y: yBounds[1]
+        }];
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -494,11 +539,9 @@ class DragObjectState extends SubState {
 
         StoreUtils.clearItemSnappers(this.store);
 
-        if (this.draggedObject && this.draggedObject.type === 'path-point') {
-            this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
-            this.handleCurvePathDrag(x, y, this.draggedObject.pathIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-control-point') {
+        if (this.draggedObject.type === 'path-point' || this.draggedObject.type === 'path-segment') {
+            this.handleAllSelectedPoints(x, y);
+        } else if (this.draggedObject.type === 'path-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         }
     }
@@ -527,40 +570,6 @@ class DragObjectState extends SubState {
 
     cy_(y) {
         return y * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
-    }
-
-    handleCurvePointDrag(x, y, pathIndex, pointIndex) {
-        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
-        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-
-        const snappedLocalCurvePoint = this.snapCurvePoint(
-            pathIndex,
-            pointIndex,
-            this.cx_(this.originalCurvePaths[pathIndex].points[pointIndex].x) + localPoint.x - localOriginalPoint.x,
-            this.cy_(this.originalCurvePaths[pathIndex].points[pointIndex].y) + localPoint.y - localOriginalPoint.y
-        );
-
-        const curvePoint = this.item.shapeProps.paths[pathIndex].points[pointIndex];
-        curvePoint.x = this._cx(snappedLocalCurvePoint.x);
-        curvePoint.y = this._cy(snappedLocalCurvePoint.y);
-
-        const dx = curvePoint.x - this.originalCurvePaths[pathIndex].points[pointIndex].x;
-        const dy = curvePoint.y - this.originalCurvePaths[pathIndex].points[pointIndex].y;
-
-        // dragging the rest of selected points
-        StoreUtils.getCurveEditPaths(this.store).forEach((path, _pathIndex) => {
-            path.points.forEach(storePoint => {
-                if (storePoint.selected && !(storePoint.id === pointIndex && pathIndex === _pathIndex)) {
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].x = this.originalCurvePaths[_pathIndex].points[storePoint.id].x + dx;
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].y = this.originalCurvePaths[_pathIndex].points[storePoint.id].y + dy;
-                    StoreUtils.updateCurveEditPoint(this.store, this.item, _pathIndex, storePoint.id, this.item.shapeProps.paths[_pathIndex].points[storePoint.id]);
-                }
-            });
-        });
-        
-        this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, curvePoint);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
     handleCurveControlPointDrag(x, y, event) {
@@ -626,35 +635,30 @@ class DragObjectState extends SubState {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
-    handleCurvePathDrag(x, y, pathIndex) {
-        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
-        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
+    handleAllSelectedPoints(x, y) {
+        StoreUtils.clearItemSnappers(this.store);
+        if (!this.worldSelectedPoints || this.worldSelectedPoints.length === 0) {
+            return;
+        }
 
-        const convertedPoint = convertCurvePointToRelative({
-            x: localPoint.x - localOriginalPoint.x,
-            y: localPoint.y - localOriginalPoint.y
-        }, this.item.area.w, this.item.area.h);
+        const offset = this.parentState.snapPoints({
+            vertical: this.worldSelectedPoints,
+            horizontal: this.worldSelectedPoints
+            },
+            new Set(),
+            x - this.originalClickPoint.x, y - this.originalClickPoint.y
+        );
+        this.forEachSelectedPoint((point, pathIndex, pointIndex) => {
+            const originLocalPoint = convertCurvePointToItemScale(this.originalCurvePaths[pathIndex].points[pointIndex], this.item.area.w, this.item.area.h);
+            const originWorldPoint = worldPointOnItem(originLocalPoint.x, originLocalPoint.y, this.item);
+            const newLocalPoint = localPointOnItem(originWorldPoint.x + offset.dx, originWorldPoint.y + offset.dy, this.item);
+            const convertedPoint = convertCurvePointToRelative(newLocalPoint, this.item.area.w, this.item.area.h);
+            point.x = convertedPoint.x;
+            point.y = convertedPoint.y;
 
-        const dx = convertedPoint.x;
-        const dy = convertedPoint.y;
-
-        this.item.shapeProps.paths[pathIndex].points.forEach((point, pointIndex) => {
-            point.x = this.originalCurvePaths[pathIndex].points[pointIndex].x + dx;
-            point.y = this.originalCurvePaths[pathIndex].points[pointIndex].y + dy;
             StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, point);
-        })
-
-        // dragging the rest of points of other path in case they are selected
-        StoreUtils.getCurveEditPaths(this.store).forEach((path, _pathIndex) => {
-            path.points.forEach(storePoint => {
-                if (storePoint.selected && pathIndex !== _pathIndex) {
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].x = this.originalCurvePaths[_pathIndex].points[storePoint.id].x + dx;
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].y = this.originalCurvePaths[_pathIndex].points[storePoint.id].y + dy;
-                    StoreUtils.updateCurveEditPoint(this.store, this.item, _pathIndex, storePoint.id, this.item.shapeProps.paths[_pathIndex].points[storePoint.id]);
-                }
-            });
         });
-        
+
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
@@ -1330,7 +1334,7 @@ export default class StateEditPath extends State {
 
 
     snapCurvePoint(pathId, pointId, localX, localY) {
-        const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
+        const worldCurvePoint = worldPointOnItem(localX, localY, this.item);
 
         let bestSnappedHorizontalProximity = 100000;
         let bestSnappedVerticalProximity = 100000;
