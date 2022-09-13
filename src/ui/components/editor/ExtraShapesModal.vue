@@ -20,11 +20,11 @@
             <div class="external-shape-preview" v-if="selectedEntry">
                 <div class="title">{{selectedEntry.name}}</div>
                 <div class="preview" v-if="selectedEntry.preview">
-                    <img :src="selectedEntry.preview" />
+                    <img class="large" :src="selectedEntry.preview" />
                 </div>
                 <div class="preview" v-if="selectedEntry.previewImages">
                     <div class="preview-icon" v-for="imageUrl in selectedEntry.previewImages">
-                        <img class="large" :src="imageUrl" />
+                        <img :src="imageUrl" />
                     </div>
                 </div>
                 <div class="buttons">
