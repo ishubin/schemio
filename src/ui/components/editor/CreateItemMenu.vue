@@ -43,6 +43,23 @@
                 </div>
             </panel>
 
+            <panel v-for="panel in extraShapeGroups" :name="panel.name">
+                <div class="item-menu">
+                    <div v-for="item in panel.items"
+                        class="item-container"
+                        :title="item.name"
+                        @mouseleave="stopPreviewItem(item)"
+                        @mouseover="showExtraShapePreviewItem(item, item.id)"
+                        @mousedown="onItemMouseDown($event, item)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        >
+
+                        <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
+                        <svg v-else-if="item.iconSVG" width="42px" height="32px" v-html="item.iconSVG"></svg>
+                    </div>
+                </div>
+            </panel>
             <panel v-if="projectArtEnabled" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
@@ -61,7 +78,7 @@
                 </div>
             </panel>
 
-            <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name">
+            <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
                 <div class="art-pack">
                     <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
                     <div class="item-menu">
@@ -79,6 +96,11 @@
                     </div>
                 </div>
             </panel>
+
+            <div class="section">
+                <span class="btn btn-secondary btn-block" @click="extraShapesModal.shown = true">More shapes &#8230;</span>
+            </div>
+
         </div>
 
         <create-image-modal v-if="imageCreation.popupShown" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited(arguments[0])"></create-image-modal>
@@ -89,6 +111,8 @@
         <modal title="Error" v-if="errorMessage" @close="errorMessage = null">
             {{errorMessage}}
         </modal>
+
+        <ExtraShapesModal v-if="extraShapesModal.shown" @close="extraShapesModal.shown = false"/>
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
@@ -142,6 +166,8 @@ import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps, defaultItem} from '../../scheme/Item';
 import ItemSvg from './items/ItemSvg.vue';
+import ExtraShapesModal from './ExtraShapesModal.vue';
+import StoreUtils from '../../store/StoreUtils.js';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -156,11 +182,17 @@ export default {
         projectArtEnabled: {type: Boolean, default: true},
     },
 
-    components: {Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg},
+    components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
-        this.reloadArt();
         this.filterItemPanels();
+        EventBus.$on(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
+        EventBus.$on(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
+    },
+
+    beforeDestroy() {
+        EventBus.$off(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
+        EventBus.$off(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
     },
     data() {
         return {
@@ -202,10 +234,19 @@ export default {
                 pageX: 0,
                 pageY: 0,
                 imageProperty: null
+            },
+
+            extraShapesModal: {
+                shown: false
             }
         }
     },
     methods: {
+        updateAllPanels() {
+            this.itemPanels = this.generateItemPanels();
+            this.filterItemPanels();
+        },
+
         generateItemPanels() {
             const panelsMap = {};
             forEach(Shape.getRegistry(), (shape, shapeId) => {
@@ -251,14 +292,20 @@ export default {
             });
         },
 
+        updateAllArtPacks() {
+            this.filterArtPacks();
+            this.$forceUpdate();
+        },
+
         filterArtPacks() {
             const searchKeyword = this.searchKeyword.toLowerCase();
 
-            this.filteredArtPacks = map(this.artPacks, artPack => {
+            this.filteredArtPacks = map(this.$store.state.itemMenu.artPacks, artPack => {
                 const artPackName = artPack.name.toLowerCase();
                 let packMatches = artPackName.indexOf(searchKeyword) >= 0;
 
                 return {
+                    id    : artPack.id,
                     name  : artPack.name,
                     link  : artPack.link,
                     author: artPack.author,
@@ -294,29 +341,13 @@ export default {
             }
             return menuEntry;
         },
-        reloadArt() {
-            this.artPacks = [];
-            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
-                this.$store.state.apiClient.getAllArt().then(artList => {
-                    this.artList = artList;
-                });
+
+        showExtraShapePreviewItem(menuEntry, shapeId) {
+            if (!menuEntry.item) {
+                const shape = Shape.find(shapeId);
+                this.prepareItemForMenu(menuEntry, shape, shapeId);
             }
-            if (this.$store.state.apiClient && this.$store.state.apiClient.getGlobalArt) {
-                this.$store.state.apiClient.getGlobalArt().then(globalArt => {
-                    forEach(globalArt, artPack => {
-                        forEach(artPack.icons, icon => {
-                            if (!icon.name) {
-                                icon.name = 'Unnamed';
-                            }
-                            if (!icon.description) {
-                                icon.description = '';
-                            }
-                        })
-                    });
-                    this.artPacks = globalArt;
-                    this.filterArtPacks();
-                });
-            }
+            this.showPreviewItem(menuEntry);
         },
 
         showPreviewItem(item) {
@@ -447,6 +478,7 @@ export default {
         initiateCurveCreation() {
             const item = {
                 name: this.makeUniqueName('Path'),
+                area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
                 shape: 'path',
                 shapeProps: {
                     paths: []
@@ -588,6 +620,11 @@ export default {
 
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
+        },
+
+        closeArtPack(artPack) {
+            StoreUtils.removeArtPack(this.$store, artPack.id);
+            this.filterArtPacks();
         }
     },
 
@@ -611,7 +648,11 @@ export default {
                 return this.previewItem.item.item.area.h + this.previewItem.item.item.area.y + 10;
             }
             return 150;
-        }
+        },
+
+        extraShapeGroups() {
+            return this.$store.getters.extraShapeGroups;
+        },
     }
 }
 </script>

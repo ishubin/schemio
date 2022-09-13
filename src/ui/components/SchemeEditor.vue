@@ -23,7 +23,7 @@
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
-            @convert-path-points-to-beizer="convertCurvePointToBeizer()"
+            @convert-path-points-to-bezier="convertCurvePointToBezier()"
             @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
@@ -246,6 +246,7 @@
                             <scheme-properties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
+                                @export-all-shapes="openExportAllShapesModal"
                                 @delete-diagram-requested="deleteSchemeWarningShown = true"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
@@ -354,7 +355,7 @@
             :scheme-container="schemeContainer"
         />
 
-        <shape-exporter-modal v-if="exportShapeModal.shown" :item="exportShapeModal.item" @close="exportShapeModal.shown = false"/>
+        <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
         <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
             <p>
@@ -375,6 +376,10 @@
                 <div v-if="loadingStep === 'load'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
                     <span>Loading scheme...</span>
+                </div>
+                <div v-if="loadingStep === 'load-shapes'">
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Loading shapes...</span>
                 </div>
                 <div v-if="loadingStep === 'img-preload'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
@@ -404,7 +409,7 @@ import myMath from '../myMath';
 import { Keys } from '../events';
 
 import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
-import {enrichSchemeWithDefaults, prepareSchemeForSaving} from '../scheme/Scheme';
+import {enrichSchemeWithDefaults, prepareSchemeForSaving } from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -412,7 +417,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem, localPointOnItemToLocalPointOnOtherItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -457,12 +462,14 @@ import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
 import StateEditPath from './editor/states/StateEditPath.js';
+import { mergeAllItemPaths } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
+import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -547,6 +554,7 @@ const drawColorPallete = [
     "rgba(137, 141, 242, 1)",
     "rgba(228, 156, 247, 1)",
 ];
+
 
 export default {
     components: {
@@ -745,7 +753,7 @@ export default {
             exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
-                item: null
+                scheme: null
             },
             importSchemeFileShown: false,
             importSchemeModal: {
@@ -817,18 +825,7 @@ export default {
             this.schemeId = this.scheme.id;
 
 
-            this.initScheme(this.scheme);
-            Promise.resolve(null).then(() => {
-                this.loadingStep = 'img-preload';
-                const images = findAllImages(this.schemeContainer.getItems());
-                return Promise.race([
-                    Promise.all(map(images, imgPreload)),
-                    timeoutPromise(10000)
-                ]);
-            })
-            .then(() => {
-                this.isLoading = false;
-            });
+            this.initSchemeContainer(this.scheme);
         },
 
         initOfflineMode() {
@@ -854,44 +851,67 @@ export default {
 
             enrichSchemeWithDefaults(scheme);
             this.offlineMode = true;
-            this.initScheme(scheme);
+            this.initSchemeContainer(scheme);
         },
 
-        initScheme(scheme) {
-            this.schemeContainer = new SchemeContainer(scheme, EventBus);
+        initSchemeContainer(scheme) {
+            this.isLoading = true;
+            this.loadingStep = 'load-shapes';
+            return collectAndLoadAllMissingShapes(scheme.items, this.$store)
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+            })
+            .then(() => {
+                this.isLoading = false;
+                this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
-            forEach(states, state => {
-                state.setSchemeContainer(this.schemeContainer);
-            });
+                forEach(states, state => {
+                    state.setSchemeContainer(this.schemeContainer);
+                    state.reset();
+                });
 
+                history = new History({size: defaultHistorySize});
+                history.commit(scheme);
+                document._history = history;
 
-            history = new History({size: defaultHistorySize});
-            history.commit(scheme);
-            document._history = history;
-
-            if (this.mode === 'view') {
-                this.switchToViewMode();
-            }
-
-            const schemeSettings = schemeSettingsStorage.get(this.schemeId);
-            if (schemeSettings && schemeSettings.screenPosition) {
-                // Text tab is only rendered when in place text edit is triggered
-                // therefore it does not make sense to set it as current on scheme load
-                if (schemeSettings.currentTab !== 'Text') {
-                    this.currentTab = schemeSettings.currentTab;
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
                 }
-                this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
-                this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
-                this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
-            } else {
-                if (this.schemeContainer.selectedItems.length > 0) {
-                    const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
-                    if (area) {
-                        EventBus.emitBringToViewInstantly(area);
+
+                const schemeSettings = schemeSettingsStorage.get(this.schemeId);
+                if (schemeSettings && schemeSettings.screenPosition) {
+                    // Text tab is only rendered when in place text edit is triggered
+                    // therefore it does not make sense to set it as current on scheme load
+                    if (schemeSettings.currentTab !== 'Text') {
+                        this.currentTab = schemeSettings.currentTab;
+                    }
+                    this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
+                    this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
+                    this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                    this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
+                } else {
+                    if (this.schemeContainer.selectedItems.length > 0) {
+                        const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
+                        if (area) {
+                            EventBus.emitBringToViewInstantly(area);
+                        }
                     }
                 }
-            }
+
+                return this.schemeContainer;
+            })
+            .then(schemeContainer => {
+                this.loadingStep = 'img-preload';
+                const images = findAllImages(schemeContainer.getItems());
+                return Promise.race([
+                    Promise.all(map(images, imgPreload)),
+                    timeoutPromise(10000)
+                ]);
+            })
+            .then(() => {
+                this.isLoading = false;
+            });
         },
 
         toggleMode(mode) {
@@ -920,6 +940,7 @@ export default {
                 this.state = 'interact';
             }
             states[this.state].reset();
+            this.updateHistoryState();
         },
 
         switchStateDragItem() {
@@ -1461,25 +1482,23 @@ export default {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
                     if (items) {
-                        const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                        const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
-                        this.schemeContainer.pasteItems(items, centerX, centerY);
-                        EventBus.emitSchemeChangeCommited();
+                        this.isLoading = true;
+                        this.loadingStep = 'load-shapes';
+                        collectAndLoadAllMissingShapes(items, this.$store)
+                        .catch(err => {
+                            console.error(err);
+                            StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                        })
+                        .then(() => {
+                            this.isLoading = false;
+                            const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                            const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                            this.schemeContainer.pasteItems(items, centerX, centerY);
+                            EventBus.emitSchemeChangeCommited();
+                        });
                     }
                 }
             })
-        },
-
-        openShapeExporterForItem() {
-            if (!this.schemeContainer.multiItemEditBox) {
-                return;
-            }
-            const box = this.schemeContainer.multiItemEditBox;
-            if (box.items.length === 0 || box.items.length > 1) {
-                return;
-            }
-            this.exportShapeModal.item = box.items[0];
-            this.exportShapeModal.shown = true;
         },
 
         onBrowseClose() {
@@ -1515,7 +1534,9 @@ export default {
         },
 
         historyUndo() {
-            if (history.undoable() && this.historyEditAllowed()) {
+            if (this.state === 'editPath') {
+                states.editPath.undo();
+            } else if (history.undoable() && this.historyEditAllowed()) {
                 const scheme = history.undo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
@@ -1530,7 +1551,9 @@ export default {
         },
 
         historyRedo() {
-            if (history.redoable() && this.historyEditAllowed()) {
+            if (this.state === 'editPath') {
+                states.editPath.redo();
+            } else if (history.redoable() && this.historyEditAllowed()) {
                 const scheme = history.redo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
@@ -1623,19 +1646,19 @@ export default {
         importScheme(scheme) {
             const newScheme = utils.clone(scheme);
             newScheme.id = this.schemeContainer.scheme.id;
-            const newSchemeContainer = new SchemeContainer(newScheme, EventBus);
-            newSchemeContainer.revision = this.schemeContainer.revision + 1;
-            this.schemeContainer = newSchemeContainer;
-            this.schemeContainer.reindexItems();
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            this.updateRevision();
-            this.commitHistory();
-            this.editorRevision++;
+            const oldRevision = this.schemeContainer.revision;
 
-            if (this.mode === 'view') {
-                this.switchToViewMode();
-            }
+            this.initSchemeContainer(scheme)
+            .then(() => {
+                this.schemeContainer.revision = oldRevision + 1;
+                this.updateRevision();
+                this.commitHistory();
+                this.editorRevision++;
+
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
+                }
+            });
         },
 
         onImportSchemeJSONClicked() {
@@ -1893,9 +1916,9 @@ export default {
             }
         },
 
-        convertCurvePointToBeizer() {
+        convertCurvePointToBezier() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToBeizer();
+                states[this.state].convertSelectedPointsToBezier();
             }
         },
 
@@ -1980,6 +2003,16 @@ export default {
                 item._childItems = [];
             }
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
+            .then(schemeDetails => {
+                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
+                .catch(err => {
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                })
+                .then(() => {
+                    return schemeDetails;
+                });
+            })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
                 const componentSchemeContainer = new SchemeContainer(scheme);
@@ -2072,7 +2105,7 @@ export default {
                 if (allCurves) {
                     this.customContextMenu.menuOptions.push({
                         name: 'Merge paths',
-                        clicked: () => this.mergeCurves(this.schemeContainer.multiItemEditBox.items)
+                        clicked: () => this.mergePaths(this.schemeContainer.multiItemEditBox.items)
                     })
                 }
             }
@@ -2146,13 +2179,6 @@ export default {
                 });
             }
 
-            if (item.shape === 'dummy' && item.childItems && item.childItems.length > 0) {
-                this.customContextMenu.menuOptions.push({
-                    name: 'Export as a shape...',
-                    clicked: () => { this.openShapeExporterForItem(); }
-                });
-            }
-
             if (item.shape === 'path') {
                 this.customContextMenu.menuOptions.push({
                     name: 'Edit Path',
@@ -2210,37 +2236,10 @@ export default {
             EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
         },
 
-        mergeCurves(allItems) {
-            allItems.sort((a, b) => {
-                return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
-            });
-
-            const mainItem = allItems.shift();
-
-            for (let i = 0; i < allItems.length; i++) {
-                allItems[i].shapeProps.paths.forEach(path => {
-                    const newPath = {
-                        closed: path.closed,
-                        points: []
-                    };
-                    path.points.forEach(point => {
-                        const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, allItems[i], mainItem);
-                        p.t = point.t;
-                        if (point.hasOwnProperty('x1')) {
-                            const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, allItems[i], mainItem);
-                            p.x1 = p1.x - p.x;
-                            p.y1 = p1.y - p.y;
-                        }
-                        if (point.hasOwnProperty('x2')) {
-                            const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, allItems[i], mainItem);
-                            p.x2 = p2.x - p.x;
-                            p.y2 = p2.y - p.y;
-                        }
-                        newPath.points.push(p);
-                    });
-                    mainItem.shapeProps.paths.push(newPath);
-                });
-            }
+        mergePaths(allItems) {
+            const mainItem = allItems[0];
+            allItems.shift();
+            mergeAllItemPaths(mainItem, allItems);
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
@@ -2552,6 +2551,9 @@ export default {
         },
 
         updateFloatingHelperPanel() {
+            if (!this.schemeContainer) {
+                return;
+            }
             if (this.state !== 'dragItem'
                 || !states.dragItem.shouldAllowFloatingHelperPanel()
                 || this.schemeContainer.selectedItems.length !== 1
@@ -2621,6 +2623,12 @@ export default {
             })
             .build();
         },
+
+        openExportAllShapesModal() {
+            this.exportShapeModal.scheme = this.schemeContainer.scheme;
+            this.exportShapeModal.shown = true;
+        },
+
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },

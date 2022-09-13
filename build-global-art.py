@@ -44,6 +44,12 @@ def scan_art(path, art):
     return icons
 
 
+
+def write_json_to_file(data, file_path):
+    with open(file_path, 'w') as f:
+        json.dump(data, f)
+
+
 def scan_all_art():
     asset_art_path = 'assets/art'
 
@@ -56,8 +62,15 @@ def scan_all_art():
                 art_def = load_json_from_file(art_json_path)
                 icons = scan_art(art_folder, art_def)
                 if len(icons) > 0:
-                    art_def['icons'] = icons
-                    full_art_index.append(art_def)
+                    full_art_index.append({
+                        'name': art_def['name'],
+                        'ref': '/' + art_json_path,
+                        'author': art_def['author'],
+                        'link': art_def['link'],
+                        'previewImages': list(map(lambda x: x['url'], icons[0:12]))
+                    })
+                art_def['icons'] = icons
+                write_json_to_file(art_def, art_json_path)
 
     print(json.dumps(full_art_index))
 

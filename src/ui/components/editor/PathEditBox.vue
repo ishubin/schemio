@@ -53,7 +53,8 @@
                         :data-path-point-index="pointId"
                         :data-path-index="pathId"
                         data-path-control-point-index="1"
-                        :cx="point.x + point.x1" :cy="point.y + point.y1"
+                        :cx="point.h * (path.points[(pointId+1)%path.points.length].y - point.y) / 100 + (path.points[(pointId+1)%path.points.length].x + point.x) / 2"
+                        :cy="point.h * (point.x - path.points[(pointId+1)%path.points.length].x) / 100 + (path.points[(pointId+1)%path.points.length].y + point.y) / 2"
                         :r="5/safeZoom"
                         fill="rgba(255, 255, 255, 0.1)" :stroke="point.selected ? controlPointsColor : boundaryBoxColor" :stroke-width="3/safeZoom"/>
                 </g>
@@ -63,10 +64,9 @@
     </g>
 </template>
 <script>
-import myMath from '../../myMath';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import EventBus from './EventBus';
-import { computeCurvePath } from './items/shapes/StandardCurves';
+import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 
 function convertPathPointToWorld(p, item) {
     const wp = worldPointOnItem(p.x, p.y, item);
@@ -80,6 +80,9 @@ function convertPathPointToWorld(p, item) {
         const p1 = worldPointOnItem(p.x + p.x2, p.y + p.y2, item);
         wp.x2 = p1.x - wp.x;
         wp.y2 = p1.y - wp.y;
+    }
+    if (p.hasOwnProperty('h')) {
+        wp.h = p.h;
     }
     return wp;
 }
@@ -116,12 +119,12 @@ export default {
                 }
                 for (let i = 0; i < ending; i++) {
                     const j = (i + 1) % path.points.length;
-                    const p1 = convertPathPointToWorld(path.points[i], this.item);
-                    const p2 = convertPathPointToWorld(path.points[j], this.item);
+                    const p1 = convertPathPointToWorld(convertCurvePointToItemScale(path.points[i], this.item.area.w, this.item.area.h), this.item);
+                    const p2 = convertPathPointToWorld(convertCurvePointToItemScale(path.points[j], this.item.area.w, this.item.area.h), this.item);
                     segments.push({
                         pathId,
                         segmentId: i,
-                        path: computeCurvePath([p1, p2], false)
+                        path: computeCurvePath(PATH_POINT_CONVERSION_SCALE, PATH_POINT_CONVERSION_SCALE, [p1, p2], false)
                     });
                 }
             });

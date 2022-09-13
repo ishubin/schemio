@@ -987,6 +987,32 @@ export default {
             }
         }, {
             group: groupName,
+            name: 'Step Connector',
+            iconUrl: '/assets/images/items/connector-step.svg',
+            item: {
+                shapeProps: {
+                    fat: false,
+                    sourceCap: 'empty',
+                    destinationCap: 'empty',
+                    smoothing: 'step',
+                    points: [{x: 4, y: 88}, {x: 70, y: 51}, {x: 136, y: 4}],
+                }
+            }
+        }, {
+            group: groupName,
+            name: 'Step Connector',
+            iconUrl: '/assets/images/items/connector-step-smooth.svg',
+            item: {
+                shapeProps: {
+                    fat: false,
+                    sourceCap: 'empty',
+                    destinationCap: 'empty',
+                    smoothing: 'step-smooth',
+                    points: [{x: 4, y: 88}, {x: 70, y: 51}, {x: 136, y: 4}],
+                }
+            }
+        }, {
+            group: groupName,
             name: 'Triangle Connector',
             iconUrl: '/assets/images/items/connector-triangle.svg',
             item: {

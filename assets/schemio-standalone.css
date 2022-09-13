@@ -124,3 +124,19 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
 .ssc-side-panel-right .ssc-side-panel-content {
     padding: 10px;
 }
+
+.missing-shape rect {
+    stroke-width: 2px;
+    stroke: #db3a3a;
+    fill: rgba(227, 120, 120, 0.3);
+}
+.missing-shape div {
+    color: #db3a3a;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 0px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal;
+    display: table-cell;
+    box-sizing: border-box;
+}

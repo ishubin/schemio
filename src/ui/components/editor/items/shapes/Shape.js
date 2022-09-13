@@ -1,7 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import Vue from 'vue';
 import forEach from 'lodash/forEach';
 import keys from 'lodash/keys';
 import myMath from '../../../../myMath.js';
@@ -202,10 +201,16 @@ function registerShape(shape) {
     }
 
     if (shape.shapeConfig.shapeType === 'raw') {
-        shape = convertStandardCurveShape(shape);
+        registerRawShape(shape.shapeConfig.id, shape.shapeConfig);
+    } else {
+        shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
     }
+}
 
-    shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
+function registerRawShape(shapeId, shapeConfig) {
+    const shape = convertStandardCurveShape(shapeConfig);
+    shape.shapeConfig.id = shapeId;
+    shapeRegistry[shapeId] = enrichShape(shape);
 }
 
 forEach(_shapes, registerShape);
@@ -263,5 +268,6 @@ export default {
     getShapePropDescriptor,
     getRegistry,
     computeStandardCurves,
-    getShapeArgs
+    getShapeArgs,
+    registerRawShape
 };

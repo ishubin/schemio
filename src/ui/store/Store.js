@@ -7,8 +7,8 @@ import forEach from 'lodash/forEach';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
-import { itemCompleteTransform } from '../scheme/SchemeContainer';
-import myMath from '../myMath';
+import { worldPointOnItem } from '../scheme/SchemeContainer';
+import { convertCurvePointToItemScale } from '../components/editor/items/shapes/StandardCurves';
 
 Vue.use(Vuex);
 
@@ -17,22 +17,20 @@ const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 function createCurvePointConverter(item) {
-    const completeTransform = itemCompleteTransform(item);
-
     return (point)  => {
         const convertedPoint = utils.clone(point);
-        const p = myMath.transformPoint(completeTransform, point.x, point.y);
+        const p = worldPointOnItem(point.x, point.y, item);
 
         convertedPoint.x = p.x;
         convertedPoint.y = p.y;
 
-        if (point.t === 'B' || point.t === 'A') {
-            const p1 = myMath.transformPoint(completeTransform, point.x + point.x1, point.y + point.y1);
+        if (point.t === 'B') {
+            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
             convertedPoint.x1 = p1.x - p.x;
             convertedPoint.y1 = p1.y - p.y;
         }
         if (point.t === 'B') {
-            const p2 = myMath.transformPoint(completeTransform, point.x + point.x2, point.y + point.y2);
+            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
             convertedPoint.x2 = p2.x - p.x;
             convertedPoint.y2 = p2.y - p.y;
         }
@@ -88,6 +86,12 @@ const store = new Vuex.Store({
 
         editorStateName: 'interact',
         editorSubStateName: null,
+
+        itemMenu: {
+            artPackIds: new Set(),
+            artPacks: [],
+            shapeGroupIds: new Set()
+        },
 
         curveEditing: {
             // item whose curve is currently edited
@@ -224,7 +228,7 @@ const store = new Vuex.Store({
             }
 
             const pointConverter = createCurvePointConverter(item);
-            const convertedPoint = pointConverter(point);
+            const convertedPoint = pointConverter(convertCurvePointToItemScale(point, item.area.w, item.area.h));
 
             forEach(convertedPoint, (value, field) => {
                 state.curveEditing.paths[pathId].points[pointId][field] = value;
@@ -480,6 +484,32 @@ const store = new Vuex.Store({
 
         SET_CURRENT_CONNECTOR(state, {item}) {
             state.connecting.connectorItem = item;
+        },
+
+        ADD_ART_PACK(state, {artPack, artPackId}) {
+            if (!state.itemMenu.artPackIds.has(artPackId)) {
+                state.itemMenu.artPacks.push({
+                    ...artPack,
+                    id: artPackId
+                });
+                state.itemMenu.artPackIds.add(artPackId);
+            }
+        },
+
+        REMOVE_ART_PACK(state, artPackId) {
+            if (state.itemMenu.artPackIds.has(artPackId)) {
+                state.itemMenu.artPackIds.delete(artPackId);
+                for (let i = 0; i < state.itemMenu.artPacks.length; i++) {
+                    if (state.itemMenu.artPacks[i].id === artPackId) {
+                        state.itemMenu.artPacks.splice(i, 1);
+                        return;
+                    }
+                }
+            }
+        },
+
+        REGISTER_SHAPE_GROUP_ID(state, id) {
+            state.itemMenu.shapeGroupIds.add(id);
         }
     },
 
@@ -505,7 +535,7 @@ const store = new Vuex.Store({
                 item.shapeProps.paths.forEach((path, pathId) => {
                     const points = [];
                     path.points.forEach((point, pointId) => {
-                        const p = utils.clone(point);
+                        const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
                         p.id = pointId;
                         p.selected = false;
                         enrichCurvePoint(p);
@@ -661,6 +691,18 @@ const store = new Vuex.Store({
 
         setCurrentConnector({commit}, item) {
             commit('SET_CURRENT_CONNECTOR', {item});
+        },
+
+        addArtPack({commit}, {artPack, artPackId}) {
+            commit('ADD_ART_PACK', {artPack, artPackId});
+        },
+
+        removeArtPack({commit}, artPackId) {
+            commit('REMOVE_ART_PACK', artPackId);
+        },
+
+        registerShapeGroupId({commit}, shapeGroupId) {
+            commit('REGISTER_SHAPE_GROUP_ID', shapeGroupId);
         }
     },
 
@@ -708,7 +750,6 @@ const store = new Vuex.Store({
         patchDeletionsColor: state => state.patch.settings.deletionsColor,
         patchModificationsColor: state => state.patch.settings.modificationsColor,
         patchIsDiffColoringEnabled: state => state.patch.diffColoringEnabled,
-
 
         staticExportAllowed: state => {
             if (state.apiClient && state.apiClient.submitStaticExport) {

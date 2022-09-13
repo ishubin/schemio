@@ -186,6 +186,20 @@ export default {
         return Math.sqrt(x*x + y*y);
     },
 
+    vectorPlusVector(v1, v2) {
+        return {
+            x: v1.x + v2.x,
+            y: v1.y + v2.y
+        };
+    },
+
+    vectorMinusVector(v1, v2) {
+        return {
+            x: v1.x - v2.x,
+            y: v1.y - v2.y
+        };
+    },
+
     distanceBetweenPoints(x1, y1, x2, y2) {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
@@ -925,5 +939,13 @@ export default {
             x: centerX + bx,
             y: centerY + by
         };
-    }
+    },
+
+    rotateVector90Clockwise(x, y) {
+        return {x: -y, y: x};
+    },
+
+    rotateVector90CounterClockwise(x, y) {
+        return {x: y, y: -x};
+    },
 }

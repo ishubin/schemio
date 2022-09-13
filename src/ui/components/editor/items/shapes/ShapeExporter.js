@@ -7,6 +7,7 @@ import indexOf from 'lodash/indexOf';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
 import { traverseItems } from '../../../../scheme/Item';
+import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 
 export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
     const tag = find(tags, tag => tag.indexOf(keyPrefix) === 0);
@@ -28,37 +29,40 @@ export function getTagValueByPrefixKey(tags, keyPrefix, defaultValue) {
  */
 function convertCurve(item, x0, y0, w, h) {
     const paths = map(item.shapeProps.paths, path => {
-        const points = map(path.points, point => {
-            const worldPoint = worldPointOnItem(point.x, point.y, item);
+        const points = map(path.points, relativePoint => {
+            const p = convertCurvePointToItemScale(relativePoint, item.area.w, item.area.h);
+            const worldPoint = worldPointOnItem(p.x, p.y, item);
 
-            const x = myMath.roundPrecise2(100*(worldPoint.x - x0)/w);
-            const y = myMath.roundPrecise2(100*(worldPoint.y - y0)/h);
-            if (point.t === 'B') {
-                return {
-                    t: 'B',
-                    x, y,
-                    x1: myMath.roundPrecise2(100*point.x1/w),
-                    y1: myMath.roundPrecise2(100*point.y1/h),
-                    x2: myMath.roundPrecise2(100*point.x2/w),
-                    y2: myMath.roundPrecise2(100*point.y2/h),
-                };
-            } else if (point.t === 'A') {
-                return {
-                    t: 'A',
-                    x, y,
-                    x1: myMath.roundPrecise2(100*point.x1/w),
-                    y1: myMath.roundPrecise2(100*point.y1/h),
-                };
-            } else {
-                return { t: 'L', x, y };
+            const localPointInRoot = {
+                ...p,
+                x: worldPoint.x - x0,
+                y: worldPoint.y - y0,
+            };
+
+            if (p.t === 'B') {
+                const wp1 = worldPointOnItem(p.x + p.x1, p.y + p.y1, item);
+                const wp2 = worldPointOnItem(p.x + p.x2, p.y + p.y2, item);
+                localPointInRoot.x1 = wp1.x - worldPoint.x;
+                localPointInRoot.y1 = wp1.y - worldPoint.y;
+                localPointInRoot.x2 = wp2.x - worldPoint.x;
+                localPointInRoot.y2 = wp2.y - worldPoint.y;
             }
+
+            return convertCurvePointToRelative(localPointInRoot, w, h);
         });
         return {
             points,
             closed: path.closed
         };
     });
-    
+
+    return {
+        type: 'path',
+        paths
+    };
+}
+
+function enrichShapeItemWithArgs(item, shapeConfig) {
     let fillArg = 'fill';
     if (item.shapeProps.fill.type === 'none') {
         fillArg = 'none';
@@ -71,11 +75,45 @@ function convertCurve(item, x0, y0, w, h) {
     }
 
     return {
-        type: 'path',
-        paths,
+        ...shapeConfig,
         fillArg, // can be 'none', 'fill', 'strokeColor' or any other args name that is of type 'advanced-color' or 'color'
         strokeSize: item.shapeProps.strokeSize, // this will be used as a multiplier for the user defined strokeSize argument. If set to 0 - that means there is no stroke
     };
+}
+
+function convertPrimitive(item, x0, y0, w, h) {
+    const p0 = worldPointOnItem(0, 0, item);
+    const pw = worldPointOnItem(item.area.w, 0, item);
+    const ph = worldPointOnItem(0, item.area.h, item);
+
+    const projectPoint = (x, y) => {
+        return {
+            x: myMath.roundPrecise2(100 * (x - x0) / w),
+            y: myMath.roundPrecise2(100 * (y - y0) / h),
+        }
+    };
+    
+    const itemData = {
+        type: item.shape,
+        projection: {
+            p0: projectPoint(p0.x, p0.y),
+            pw: projectPoint(pw.x, pw.y),
+            ph: projectPoint(ph.x, ph.y),
+        }
+    };
+
+    if (item.shape === 'rect') {
+        itemData.cornerRadiusRatio = {w: 0, h: 0};
+        if (item.area.w > 0 && item.area.h > 0) {
+            itemData.cornerRadiusRatio.w = myMath.roundPrecise2(100 * item.shapeProps.cornerRadius / item.area.w);
+            itemData.cornerRadiusRatio.h = myMath.roundPrecise2(100 * item.shapeProps.cornerRadius / item.area.h);
+        }
+    }
+    return itemData;
+}
+
+function isSupportedPrimitive(shape) {
+    return shape === 'ellipse' || shape === 'rect';
 }
 
 /**
@@ -91,7 +129,6 @@ export function convertShapeToStandardCurves(rootItem) {
     
     const shapeConfig = {
         shapeType: 'raw',
-        scale: 100, // specifies the scale of the points so that they are correctly converted
         pins: [],
         textSlots: [],
         items: [],
@@ -113,12 +150,16 @@ export function convertShapeToStandardCurves(rootItem) {
     traverseItems(rootItem, item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
-        if (item.shape === 'path') {
-            if (item.tags && indexOf(item.tags, 'outline') >= 0) {
-                shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h).paths);
-            } else {
-                shapeConfig.items.push(convertCurve(item, p0.x, p0.y, w, h));
+        if (item.name === 'outline' || (item.tags && indexOf(item.tags, 'outline') >= 0)) {
+            if (item.shape === 'path') {
+                shapeConfig.outlines = shapeConfig.outlines.concat(convertCurve(item, p0.x, p0.y, w, h));
+            } else if (isSupportedPrimitive(item.shape)) {
+                shapeConfig.outlines = shapeConfig.outlines.concat(convertPrimitive(item, p0.x, p0.y, w, h));
             }
+        } else if (item.shape === 'path') {
+            shapeConfig.items.push(enrichShapeItemWithArgs(item, convertCurve(item, p0.x, p0.y, w, h)));
+        } else if (isSupportedPrimitive(item.shape)) {
+            shapeConfig.items.push(enrichShapeItemWithArgs(item, convertPrimitive(item, p0.x, p0.y, w, h)));
         } else if (indexOf(item.tags, 'pin') >= 0) {
             const center = worldPointOnItem(item.area.w/2, item.area.h/2, item);
             const pin = {

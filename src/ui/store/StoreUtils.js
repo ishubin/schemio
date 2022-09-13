@@ -125,5 +125,17 @@ export default {
     // used in connecting state and set the current connector item that is being created
     setCurrentConnector(store, item) {
         store.dispatch('setCurrentConnector', item)
+    },
+
+    addArtPack(store, artPackId, artPack) {
+        store.dispatch('addArtPack', {artPack, artPackId});
+    },
+
+    removeArtPack(store, artPackId) {
+        store.dispatch('removeArtPack', artPackId);
+    },
+
+    registerShapeGroupId(store, shapeGroupId) {
+        store.dispatch('registerShapeGroupId', shapeGroupId);
     }
 }

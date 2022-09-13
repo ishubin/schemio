@@ -5,6 +5,7 @@ import utils from '../utils.js';
 
 export default class History {
     constructor(options) {
+        options = options || {};
         this.checkpoints = [];
         this.size = options.size || 30;
         this.currentPosition = 0;

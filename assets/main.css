@@ -312,6 +312,9 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     padding: 10px 15px 10px 15px;
     font-size: 20px;
 }
+.btn.btn-block {
+    display: block;
+}
 .btn.btn-primary, .btn.btn-primary.disabled:hover {
     background: var(--accent-strong);
     color: var(--base-weak);
@@ -749,6 +752,22 @@ ul.pagination li a.current {
     opacity: 1;
 }
 
+
+#svg_plot .missing-shape rect {
+    stroke-width: 2px;
+    stroke: #db3a3a;
+    fill: rgba(227, 120, 120, 0.3);
+}
+#svg_plot .missing-shape div {
+    color: #db3a3a;
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 0px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal;
+    display: table-cell;
+    box-sizing: border-box;
+}
 
 /********** Item Cursor *******************/
 #svg_plot .item-cursor-pointer {
@@ -1207,10 +1226,20 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 /******************* Panel *********************/
 .panel {
+    position: relative;
     border-top: 1px solid #fff;
     box-shadow: 0 -1px 0 #ddd;
     margin: 2px;
     padding-top: 2px;
+}
+.panel-close {
+    position: absolute;
+    right: 5px;
+    top: 2px;
+    cursor: pointer;
+}
+.panel-close:hover {
+    color: var(--accent-strong);
 }
 .panel-title {
     position: relative;
@@ -1529,6 +1558,13 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .create-item-menu .preview-item .preview-item-description {
     font-size: 12px;
+}
+.create-item-menu .section {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+.create-item-menu .btn.btn-block {
+    text-align: center;
 }
 
 /*************** File upload **********************/
@@ -2293,15 +2329,20 @@ ul.shape-styles-preview > li > div.shape-style .link-remove-style:hover {
 
 
 /******************** Shape Exporter Modal ********************/
-.shape-exporter-modal-body .shape-exporter-preview-container {
-    display: flex;
-    justify-content: space-evenly;
+.shape-exporter-modal-body {
+    max-height: 500px;
+    overflow: auto;
 }
-.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon {
-    text-align: center;
+.shape-exporter-modal-body .shape-exporter-shapes table {
+    margin-top: 10px;
+    border-collapse: collapse;
+    background: var(--base-weak);
+    width: 100%;
 }
-.shape-exporter-modal-body .shape-exporter-preview-container .shape-exporter-preview-icon h5 {
-    text-align: center;
+.shape-exporter-modal-body .shape-exporter-shapes table th,
+.shape-exporter-modal-body .shape-exporter-shapes table td {
+    border: 1px solid var(--faint-strong-up);
+    padding: 5px 10px;
 }
 
 /************************** Consent banner ********************/
@@ -3549,4 +3590,78 @@ ul.patch-field-list {
     100% {
         background-position: 6000%
     }
+}
+
+
+/*******************************************/
+
+.external-shapes {
+    display: flex;
+    flex-direction: row;
+}
+.external-shapes .external-shapes-list {
+    flex: 1;
+    background: var(--base-weak);
+}
+.external-shapes .external-shapes-list li {
+    position: relative;
+}
+.external-shapes .external-shapes-list li .added {
+    position: absolute;
+    right: 10px;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--faint-strong-down);
+}
+.external-shapes .external-shape-preview {
+    padding: 10px;
+    height: 100%;
+    flex: 1;
+    min-height: 400px;
+    height: 100%;
+	display: flex;
+    flex-direction: column;
+}
+.external-shapes .external-shape-preview .title {
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 20px;
+}
+.external-shapes .external-shape-preview .preview {
+    flex: 1;
+}
+.external-shapes .external-shape-preview .buttons {
+    padding-top: 10px;
+}
+.external-shapes .external-shape-preview .preview img.large {
+    max-width: 90%;
+    max-height: 100%;
+    height: 300px;
+}
+.external-shapes .external-shape-preview .preview .preview-icon {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+    margin: 10px;
+}
+.external-shapes .external-shape-preview .preview .preview-icon img {
+    width: 100%;
+    height: 100%;
+}
+.external-shapes .external-shapes-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.external-shapes .external-shapes-list ul li {
+    padding: 7px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--faint-weak);
+}
+.external-shapes .external-shapes-list ul li.selected {
+    background: var(--faint-strong-up);
+}
+.external-shapes .external-shapes-list ul li:hover {
+    background: var(--faint-strong-up-up);
 }

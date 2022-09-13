@@ -36,6 +36,9 @@ import StrokePattern from './items/StrokePattern';
 import EventBus from './EventBus';
 
 function shapeHasArgument(shape, argName, argType) {
+    if (!shape) {
+        return false;
+    }
     const argDef = Shape.getShapePropDescriptor(shape, argName);
     return argDef !== null && argDef.type === argType;
 }

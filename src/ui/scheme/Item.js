@@ -8,6 +8,7 @@ import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
 import shortid from 'shortid';
+import { convertCurvePointToRelative } from '../components/editor/items/shapes/StandardCurves.js';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -151,6 +152,23 @@ function fixOldCurveItem(item) {
     }
 }
 
+
+
+function fixPathToRelativePlacement(item) {
+    if (Array.isArray(item.shapeProps.paths)) {
+        item.shapeProps.paths.forEach(path => {
+            if (path.pos !== 'relative') {
+                path.pos = 'relative';
+                if (Array.isArray(path.points)) {
+                    path.points = path.points.map(point =>{
+                        return convertCurvePointToRelative(point, item.area.w, item.area.h);
+                    });
+                }
+            }
+        });
+    }
+}
+
 /**
  * Used for backwards compatibilty and it merges "groups" array with "tags"
  */
@@ -179,16 +197,19 @@ export function enrichItemWithDefaults(item) {
     if (item.shape === 'curve') {
         fixOldCurveItem(item);
     }
-
-    fixOldGroups(item);
+    if (item.shape === 'path') {
+        fixPathToRelativePlacement(item);
+    }
 
     enrichObjectWithDefaults(item, defaultItemDefinition);
 
+    fixOldGroups(item);
+    fixBehaviorEvents(item.behavior);
+    forEach(item.links, idFixer);
+
     let shape = Shape.find(item.shape);
     if (!shape) {
-        // will replace item as rect shape, otherwise everything else will break
-        item.shape = 'rect';
-        shape = Shape.find('rect');
+        return;
     }
    
     forEach(shape.args, (arg, argName) => {
@@ -215,8 +236,6 @@ export function enrichItemWithDefaults(item) {
         });
     }
 
-    fixBehaviorEvents(item.behavior);
-    forEach(item.links, idFixer);
 }
 
 

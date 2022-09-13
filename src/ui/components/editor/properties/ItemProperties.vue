@@ -286,7 +286,7 @@ export default {
             oldShape: this.item.shape,
             knownBlendModes: utils.clone(knownBlendModes),
 
-            shapePropsControlStates: mapValues(shapeComponent.args, () => {return {shown: true};}),
+            shapePropsControlStates: shapeComponent ? mapValues(shapeComponent.args, () => {return {shown: true};}) : {},
             knownInteractionModes: ItemInteractionMode.values(),
 
             behaviorPanelRevision: 1,
@@ -330,6 +330,9 @@ export default {
         },
 
         updateShapePropsDependencies() {
+            if (!this.shapeComponent) {
+                return;
+            }
             forEach(this.shapeComponent.args, (argConfig, argName) => {
                 if (argConfig.depends) {
                     forEach(argConfig.depends, (depArgValue, depArgName) => {

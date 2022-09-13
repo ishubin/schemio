@@ -169,8 +169,8 @@
                         </span>
                     </li>
                     <li v-if="firstSelectedPathEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-beizer')">
-                            <img src="/assets/images/helper-panel/path-point-beizer.svg"/>
+                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-bezier')">
+                            <img src="/assets/images/helper-panel/path-point-bezier.svg"/>
                         </span>
                     </li>
                     <li>
@@ -359,7 +359,7 @@ export default {
                 const item = this.schemeContainer.getSelectedItems()[0];
                 const shape = Shape.find(item.shape);
                 this.firstSelectedItem = item;
-                if (shape.argType('fill') === 'advanced-color') {
+                if (shape && shape.argType('fill') === 'advanced-color') {
                     this.fillColor = item.shapeProps.fill;
                     this.supportsFill = true;
                 } else {

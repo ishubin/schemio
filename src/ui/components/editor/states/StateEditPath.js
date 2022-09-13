@@ -9,9 +9,10 @@ import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import EventBus from '../EventBus.js';
-import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
+import History from '../../../history/History.js';
 
-const IS_NOT_SOFT = false;
 const IS_SOFT = true;
 
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -25,11 +26,286 @@ function isValidObject(object) {
     return object && (object.type === 'path-point' || object.type === 'path-control-point' || object.type === 'path-segment');
 }
 
+
+function forAllPoints(item, callback) {
+    item.shapeProps.paths.forEach((path, pathIndex) => {
+        path.points.forEach((point, pointIndex) => {
+            callback(point, pathIndex, pointIndex);
+        });
+    });
+}
+
+function findCubicBezierExtremumValues(a, b, c, d) {
+    // the idea here is to take a cubic bezier formula for 4 values
+    // and then create a differential of it.
+    // if differential is equal zero - then that is the extremum point
+    // so we need to find such t values that dF(t) gives 0
+    // where dF(t) is a differential of the cubic bezier function
+    const k1 = d + 3*(b - c) - a,
+          k2 = 3 * (a - 2*b + c),
+          k3 = 3 * (b - a);
+
+    const D = (4*k2*k2) - 12 * k1 * k3;
+    if (D <= 0) {
+        return [];
+    }
+    const sqrtD = Math.sqrt(D);
+
+    const t1 = (-2 * k2 + sqrtD) / (6*k1);
+    const t2 = (-2 * k2 - sqrtD) / (6*k1);
+
+    const extremums = [];
+    const bezierValue = (t) => {
+        return a*(1-t)*(1-t)*(1-t) + b*3*t*(1-t)*(1-t) + 3*c*t*t*(1-t) + t*t*t*d;
+    }
+    if (t1 >=0 && t1 <= 1) {
+        extremums.push(bezierValue(t1));
+    }
+    if (t2 >=0 && t2 <= 1) {
+        extremums.push(bezierValue(t2));
+    }
+    return extremums;
+}
+
+function findQuadraticBezierExtremumValues(a, b, c) {
+    // the idea is the same as in cubic bezier function above
+    // but since it is only 3 values, we have to take a quadratic bezier function.
+    // a quadratic bezier function can only generate one extremum value
+    const denom = a - 2*b + c;
+    if (myMath.tooSmall(denom)) {
+        return [];
+    }
+
+    const t = (c - b) / denom;
+    if (t >= 0 && t <= 1) {
+        return [a*t*t + 2*b*t*(1-t) + c*(1 - t)*(1 - t)];
+    }
+    return [];
+}
+
+// this function is used when state is canceled
+// since points could be moved out of the item area we need to readjust item area together with the points
+// so that when we select its item - its edit box is displayed correctly (all points should fit in the edit box)
+export function readjustItemAreaAndPoints(item) {
+    const {w, h} = item.area;
+    let bounds = null;
+
+    const updateBoundsX = (x) => {
+        bounds.x1 = Math.min(bounds.x1, x);
+        bounds.x2 = Math.max(bounds.x2, x);
+    }
+
+    const updateBoundsY = (y) => {
+        bounds.y1 = Math.min(bounds.y1, y);
+        bounds.y2 = Math.max(bounds.y2, y);
+    }
+
+    const updateBounds = (x, y) => {
+        if (!bounds) {
+            bounds = {
+                x1: x,
+                y1: y,
+                x2: x,
+                y2: y
+            };
+        } else {
+            updateBoundsX(x);
+            updateBoundsY(y);
+        }
+    };
+
+    const worldPoints = [];
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        if (pointIndex === 0) {
+            worldPoints[pathIndex] = [];
+        }
+        const lp = convertCurvePointToItemScale(p, w, h);
+        updateBounds(lp.x, lp.y);
+
+        const wp = worldPointOnItem(lp.x, lp.y, item);
+        wp.t = p.t;
+
+        let lp2 = null;
+        if (pointIndex === item.shapeProps.paths[pathIndex].points.length - 1) {
+            if (item.shapeProps.paths[pathIndex].closed) {
+                lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[0], w, h);
+            }
+        } else {
+            lp2 = convertCurvePointToItemScale(item.shapeProps.paths[pathIndex].points[pointIndex+1], w, h);
+        }
+
+        if (p.t === 'B' || (lp2 && lp2.t === 'B')) {
+            const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, item);
+            wp.x1 = wp1.x;
+            wp.y1 = wp1.y;
+
+            const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, item);
+            wp.x2 = wp2.x;
+            wp.y2 = wp2.y;
+
+            if (p.t === 'B' && lp2 && lp2.t === 'B') {
+                findCubicBezierExtremumValues(lp.x, lp.x + lp.x2, lp2.x + lp2.x1, lp2.x).forEach(updateBoundsX);
+                findCubicBezierExtremumValues(lp.y, lp.y + lp.y2, lp2.y + lp2.y1, lp2.y).forEach(updateBoundsY);
+            } else if (p.t === 'B' && lp2) {
+                findQuadraticBezierExtremumValues(lp.x, lp.x + lp.x2, lp2.x).forEach(updateBoundsX);
+                findQuadraticBezierExtremumValues(lp.y, lp.y + lp.y2, lp2.y).forEach(updateBoundsY);
+            } else if (p.t !== 'B' && lp2 && lp2.t === 'B') {
+                findQuadraticBezierExtremumValues(lp.x, lp2.x + lp2.x1, lp2.x).forEach(updateBoundsX);
+                findQuadraticBezierExtremumValues(lp.y, lp2.y + lp2.y1, lp2.y).forEach(updateBoundsY);
+            }
+        }
+        if (p.t === 'A' && lp2) {
+            // the idea here is to calculate bounding points ot a circle
+            // first we calculate its radius and then its center
+            // once we know radius and a center, we calculate north/west/east/south side points of the circle
+            // We then draw an imaginary line that goes from points P1 and P2 and divides the space into two zones
+            // We only take those side points into account that lie in the same zone towards the line as the control point of the circle
+            wp.h = p.h;
+            const L = myMath.distanceBetweenPoints(lp.x, lp.y, lp2.x, lp2.y);
+            const H = L * p.h / 100;
+
+            if (!myMath.tooSmall(H) && !myMath.tooSmall(L)) {
+                const r = Math.abs(H / 2 + L * L / (8 * H));
+                const extremumPoints = [
+                    {x: 0, y: r},
+                    {x: 0, y: -r},
+                    {x: r, y: 0},
+                    {x: -r, y: 0},
+                ];
+                const line = myMath.createLineEquation(lp.x, lp.y, lp2.x, lp2.y);
+                const c1 = {
+                    x: (lp2.x + lp.x) / 2,
+                    y: (lp2.y + lp.y) / 2,
+                };
+
+                const v = myMath.rotateVector90CounterClockwise((lp2.x - lp.x) / L, (lp2.y - lp.y) / L);
+                const p3 = {
+                    x: c1.x + v.x * H,
+                    y: c1.y + v.y * H,
+                };
+
+                if (H < 0) {
+                    v.x = -v.x;
+                    v.y = -v.y;
+                }
+                const cx = c1.x + v.x * (Math.abs(H) - r);
+                const cy = c1.y + v.y * (Math.abs(H) - r);
+
+                const sideP3 = myMath.identifyPointSideAgainstLine(p3.x, p3.y, line);
+
+                extremumPoints.forEach(ep => {
+                    ep.x += cx;
+                    ep.y += cy;
+                    if (sideP3 * myMath.identifyPointSideAgainstLine(ep.x, ep.y, line) > 0) {
+                        updateBounds(ep.x, ep.y);
+                    }
+                });
+            }
+        }
+        worldPoints[pathIndex][pointIndex] = wp;
+    });
+
+
+    const boundsWorldPoint = worldPointOnItem(bounds.x1, bounds.y1, item);
+
+    item.area.w = Math.max(0, bounds.x2 - bounds.x1);
+    item.area.h = Math.max(0, bounds.y2 - bounds.y1);
+
+    const position = myMath.findTranslationMatchingWorldPoint(boundsWorldPoint.x, boundsWorldPoint.y, 0, 0, item.area, item.meta.transformMatrix);
+    item.area.x = position.x;
+    item.area.y = position.y;
+
+    forAllPoints(item, (p, pathIndex, pointIndex) => {
+        const wp = worldPoints[pathIndex][pointIndex];
+        const lp = localPointOnItem(wp.x, wp.y, item);
+        lp.t = wp.t;
+        if (lp.t === 'B') {
+            const lp1 = localPointOnItem(wp.x1, wp.y1, item);
+            lp.x1 = lp1.x - lp.x;
+            lp.y1 = lp1.y - lp.y;
+            const lp2 = localPointOnItem(wp.x2, wp.y2, item);
+            lp.x2 = lp2.x - lp.x;
+            lp.y2 = lp2.y - lp.y;
+        }
+        if (p.t === 'A') {
+            lp.h = p.h;
+        }
+        item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, item.area.w, item.area.h);
+    });
+}
+
+function ensureCorrectAreaOfPathItem(item) {
+    if (item.area.w > 100 && item.area.h > 100) {
+        return;
+    }
+
+    const w = Math.max(100, item.area.w);
+    const h = Math.max(100, item.area.h);
+
+    if (item.shapeProps.paths.length > 0 && item.shapeProps.paths[0].points.length > 0) {
+        const firstLocalPoint = convertCurvePointToItemScale(item.shapeProps.paths[0].points[0], item.area.w, item.area.h);
+        const worldPoint = worldPointOnItem(firstLocalPoint.x, firstLocalPoint.y, item);
+
+        forAllPoints(item, (p, pathIndex, pointIndex) => {
+            const lp = convertCurvePointToItemScale(p, item.area.w, item.area.h);
+            item.shapeProps.paths[pathIndex].points[pointIndex] = convertCurvePointToRelative(lp, w, h);
+        });
+
+        item.area.w = w;
+        item.area.h = h;
+
+        // the following is need for rotation compensation. if an item is rotated and we change its width and height, then all points will be displaced
+        // since they were adjusted already relatively for item area
+        const firstConvertedLocalPoint = convertCurvePointToItemScale(item.shapeProps.paths[0].points[0], item.area.w, item.area.h);
+        const pos = myMath.findTranslationMatchingWorldPoint(worldPoint.x, worldPoint.y, firstConvertedLocalPoint.x, firstConvertedLocalPoint.y, item.area, item.meta.transformMatrix);
+        item.area.x = pos.x;
+        item.area.y = pos.y;
+    }
+}
+
+export function mergeAllItemPaths(mainItem, otherItems) {
+    otherItems.sort((a, b) => {
+        return a.meta.ancestorIds.length - b.meta.ancestorIds.length;
+    });
+
+    ensureCorrectAreaOfPathItem(mainItem);
+
+    for (let i = 0; i < otherItems.length; i++) {
+        ensureCorrectAreaOfPathItem(otherItems[i]);
+        otherItems[i].shapeProps.paths.forEach(path => {
+            const newPath = {
+                pos: 'relative',
+                closed: path.closed,
+                points: []
+            };
+            path.points.forEach(relativePoint => {
+                const point = convertCurvePointToItemScale(relativePoint, otherItems[i].area.w, otherItems[i].area.h);
+                const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, otherItems[i], mainItem);
+                p.t = point.t;
+                if (point.hasOwnProperty('x1')) {
+                    const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, otherItems[i], mainItem);
+                    p.x1 = p1.x - p.x;
+                    p.y1 = p1.y - p.y;
+                }
+                if (point.hasOwnProperty('x2')) {
+                    const p2 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x2, point.y + point.y2, otherItems[i], mainItem);
+                    p.x2 = p2.x - p.x;
+                    p.y2 = p2.y - p.y;
+                }
+                newPath.points.push(convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h));
+            });
+            mainItem.shapeProps.paths.push(newPath);
+        });
+    }
+    readjustItemAreaAndPoints(mainItem);
+}
+
 const MOUSE_MOVE_THRESHOLD = 3;
 
-class BeizerConversionState extends SubState {
+class BezierConversionState extends SubState {
     constructor(parentState, point, pathId, pointId) {
-        super(parentState, 'beizer-conversion');
+        super(parentState, 'bezier-conversion');
         this.point = point;
         this.pathId = pathId;
         this.pointId = pointId;
@@ -37,14 +313,15 @@ class BeizerConversionState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        this.updateBeizerPoint(x, y);
+        this.updateBezierPoint(x, y);
     }
 
-    updateBeizerPoint(x, y) {
-        const localPoint = localPointOnItem(x, y, this.item);
+    updateBezierPoint(x, y) {
+        const lp = this.schemeContainer.localPointOnItem(x, y, this.item);
+        const relativePoint = convertCurvePointToRelative(this.parentState.snapCurvePoint(-1, -1, lp.x, lp.y), this.item.area.w, this.item.area.h);
         this.point.t = 'B';
-        this.point.x2 = this.round(localPoint.x - this.point.x);
-        this.point.y2 = this.round(localPoint.y - this.point.y);
+        this.point.x2 = this.round(relativePoint.x - this.point.x);
+        this.point.y2 = this.round(relativePoint.y - this.point.y);
 
         this.point.x1 = -this.point.x2;
         this.point.y1 = -this.point.y2;
@@ -54,8 +331,8 @@ class BeizerConversionState extends SubState {
     }
     
     mouseUp(x, y, mx, my, object, event) {
-        this.updateBeizerPoint(x, y);
-        const newPoint = localPointOnItem(x, y, this.item);
+        this.updateBezierPoint(x, y);
+        const newPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         newPoint.t = 'L';
         this.item.shapeProps.paths[this.pathId].points.push(newPoint);
         this.migrate(new CreatingPathState(this.parentState, this.pathId));
@@ -73,6 +350,12 @@ class CreatingPathState extends SubState {
         this.originalMouseY = 0;
     }
 
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE) {
+            this.migrate(new DragScreenState(this.parentState));
+        }
+    }
+
     mouseDown(x, y, mx, my, object, event) {
         this.originalMouseX = mx;
         this.originalMouseY = my;
@@ -81,7 +364,8 @@ class CreatingPathState extends SubState {
         if (this.pathId >= this.item.shapeProps.paths.length) {
             this.item.shapeProps.paths.push({
                 closed: false,
-                points: []
+                points: [],
+                pos: 'relative'
             });
         }
 
@@ -90,29 +374,32 @@ class CreatingPathState extends SubState {
 
         const points = this.item.shapeProps.paths[this.pathId].points;
 
+        const convertedCurvePoint = convertCurvePointToRelative({
+            x: snappedCurvePoint.x,
+            y: snappedCurvePoint.y,
+            t: 'L'
+        }, this.item.area.w, this.item.area.h);
+
         if (points.length === 0) {
-            points.push({
-                x: snappedCurvePoint.x,
-                y: snappedCurvePoint.y,
-                t: 'L'
-            });
+            points.push(convertedCurvePoint);
         } else {
             const pointId = points.length - 1;
-            points[pointId].x = snappedCurvePoint.x;
-            points[pointId].y = snappedCurvePoint.y;
+            points[pointId].x = convertedCurvePoint.x;
+            points[pointId].y = convertedCurvePoint.y;
 
             this.snapToFirstPoint(points[pointId]);
         }
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.parentState.historyCommit();
     }
 
     snapToFirstPoint(point) {
         if (this.item.shapeProps.paths[this.pathId].points.length > 2) {
             const firstPoint = this.item.shapeProps.paths[this.pathId].points[0];
-            const dx = point.x - firstPoint.x;
-            const dy = point.y - firstPoint.y;
+            const dx = (point.x - firstPoint.x) * this.item.area.w / PATH_POINT_CONVERSION_SCALE;
+            const dy = (point.y - firstPoint.y) * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
             
             if (Math.sqrt(dx * dx + dy * dy) * this.getSchemeContainer().screenTransform.scale <= 5) {
                 point.x = firstPoint.x;
@@ -132,14 +419,19 @@ class CreatingPathState extends SubState {
             const point = this.item.shapeProps.paths[this.pathId].points[pointId];
 
             if (this.mouseIsDown && Math.max(Math.abs(mx - this.originalMouseX), Math.abs(my - this.originalMouseY)) > MOUSE_MOVE_THRESHOLD) {
-                this.migrate(new BeizerConversionState(this.parentState, point, this.pathId, pointId));
+                this.migrate(new BezierConversionState(this.parentState, point, this.pathId, pointId));
                 return;
             } else {
                 const localPoint = localPointOnItem(x, y, this.item);
                 const snappedCurvePoint = this.parentState.snapCurvePoint(this.pathId, pointId, localPoint.x, localPoint.y);
+                const convertedCurvePoint = convertCurvePointToRelative({
+                    x: snappedCurvePoint.x,
+                    y: snappedCurvePoint.y,
+                    t: 'L'
+                }, this.item.area.w, this.item.area.h);
 
-                point.x = snappedCurvePoint.x;
-                point.y = snappedCurvePoint.y;
+                point.x = convertedCurvePoint.x;
+                point.y = convertedCurvePoint.y;
 
                 this.snapToFirstPoint(point);
 
@@ -160,11 +452,13 @@ class CreatingPathState extends SubState {
         }
 
         const localPoint = localPointOnItem(x, y, this.item);
-        this.item.shapeProps.paths[this.pathId].points.push({
+        const convertedCurvePoint = convertCurvePointToRelative({
             x: localPoint.x,
             y: localPoint.y,
             t: 'L'
-        });
+        }, this.item.area.w, this.item.area.h);
+
+        this.item.shapeProps.paths[this.pathId].points.push(convertedCurvePoint);
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
@@ -189,7 +483,52 @@ class DragObjectState extends SubState {
             x: originalX,
             y: originalY
         };
+        this.worldSelectedPoints = null;
         this.originalCurvePaths = utils.clone(this.item.shapeProps.paths);
+        if (this.draggedObject.type === 'path-point' || this.draggedObject.type === 'path-segment') {
+            this.worldSelectedPoints = this.createWorldSelectedBoundsPoints();
+        }
+    }
+
+    forEachSelectedPoint(callback) {
+        StoreUtils.getCurveEditPaths(this.store).forEach((path, pathIndex) => {
+            path.points.forEach(storePoint => {
+                if (storePoint.selected) {
+                    callback(this.item.shapeProps.paths[pathIndex].points[storePoint.id], pathIndex, storePoint.id);
+                }
+            });
+        });
+    }
+
+    createWorldSelectedBoundsPoints() {
+        const xBounds = [];
+        const yBounds = [];
+
+        const updateBounds = (axis, value) => {
+            if (axis.length === 0) {
+                axis.push(value);
+                axis.push(value);
+            } else {
+                axis[0] = Math.min(axis[0], value);
+                axis[1] = Math.max(axis[1], value);
+            }
+        }
+
+        this.forEachSelectedPoint((point) => {
+            const localPoint = convertCurvePointToItemScale(point, this.item.area.w, this.item.area.h);
+            const worldPoint = worldPointOnItem(localPoint.x, localPoint.y, this.item);
+            updateBounds(xBounds, worldPoint.x);
+            updateBounds(yBounds, worldPoint.y);
+        });
+        return [{
+            x: xBounds[0], y: yBounds[0]
+        }, {
+            x: xBounds[1], y: yBounds[0]
+        }, {
+            x: xBounds[1], y: yBounds[1]
+        }, {
+            x: xBounds[0], y: yBounds[1]
+        }];
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -200,16 +539,15 @@ class DragObjectState extends SubState {
 
         StoreUtils.clearItemSnappers(this.store);
 
-        if (this.draggedObject && this.draggedObject.type === 'path-point') {
-            this.handleCurvePointDrag(x, y, this.draggedObject.pathIndex, this.draggedObject.pointIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-segment') {
-            this.handleCurvePathDrag(x, y, this.draggedObject.pathIndex);
-        } else if (this.draggedObject && this.draggedObject.type === 'path-control-point') {
+        if (this.draggedObject.type === 'path-point' || this.draggedObject.type === 'path-segment') {
+            this.handleAllSelectedPoints(x, y);
+        } else if (this.draggedObject.type === 'path-control-point') {
             this.handleCurveControlPointDrag(x, y, event);
         }
     }
     
     mouseUp(x, y, mx, my, object, event) {
+        this.parentState.historyCommit();
         StoreUtils.clearItemSnappers(this.store);
         this.migrateToPreviousSubState();
     }
@@ -218,44 +556,32 @@ class DragObjectState extends SubState {
         return this.parentState.snapCurvePoint(pathId, pointId, x, y);
     }
 
-    handleCurvePointDrag(x, y, pathIndex, pointIndex) {
-        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
-        const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.paths[pathIndex].points[pointIndex];
+    _cx(x) {
+        return x * PATH_POINT_CONVERSION_SCALE / this.item.area.w;
+    }
 
-        const snappedLocalCurvePoint = this.snapCurvePoint(
-            pathIndex,
-            pointIndex,
-            this.originalCurvePaths[pathIndex].points[pointIndex].x + localPoint.x - localOriginalPoint.x,
-            this.originalCurvePaths[pathIndex].points[pointIndex].y + localPoint.y - localOriginalPoint.y
-        );
+    _cy(y) {
+        return y * PATH_POINT_CONVERSION_SCALE / this.item.area.h;
+    }
 
-        curvePoint.x = snappedLocalCurvePoint.x;
-        curvePoint.y = snappedLocalCurvePoint.y;
+    cx_(x) {
+        return x * this.item.area.w / PATH_POINT_CONVERSION_SCALE;
+    }
 
-        const dx = curvePoint.x - this.originalCurvePaths[pathIndex].points[pointIndex].x;
-        const dy = curvePoint.y - this.originalCurvePaths[pathIndex].points[pointIndex].y;
-
-        // dragging the rest of selected points
-        StoreUtils.getCurveEditPaths(this.store).forEach((path, _pathIndex) => {
-            path.points.forEach(storePoint => {
-                if (storePoint.selected && !(storePoint.id === pointIndex && pathIndex === _pathIndex)) {
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].x = this.originalCurvePaths[_pathIndex].points[storePoint.id].x + dx;
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].y = this.originalCurvePaths[_pathIndex].points[storePoint.id].y + dy;
-                    StoreUtils.updateCurveEditPoint(this.store, this.item, _pathIndex, storePoint.id, this.item.shapeProps.paths[_pathIndex].points[storePoint.id]);
-                }
-            });
-        });
-        
-        this.eventBus.emitItemChanged(this.item.id);
-        StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, curvePoint);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+    cy_(y) {
+        return y * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
     }
 
     handleCurveControlPointDrag(x, y, event) {
+        const curvePoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+        if (curvePoint.t === 'A') {
+            this.handleArcControlPointDrag(x, y, event);
+            return;
+        }
+
         const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const curvePoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+
         const index = this.draggedObject.controlPointIndex;
         const oppositeIndex = index === 1 ? 2: 1;
 
@@ -265,14 +591,14 @@ class DragObjectState extends SubState {
         const snappedLocalAbsoluteCurvePoint = this.snapCurvePoint(
             -1,
             -1,
-            curvePoint.x + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`x${index}`] + localPoint.x - localOriginalPoint.x,
-            curvePoint.y + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`y${index}`] + localPoint.y - localOriginalPoint.y,
+            this.cx_(curvePoint.x + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`x${index}`]) + localPoint.x - localOriginalPoint.x,
+            this.cy_(curvePoint.y + this.originalCurvePaths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex][`y${index}`]) + localPoint.y - localOriginalPoint.y,
         );
 
-        curvePoint[`x${index}`] = snappedLocalAbsoluteCurvePoint.x - curvePoint.x;
-        curvePoint[`y${index}`] = snappedLocalAbsoluteCurvePoint.y - curvePoint.y;
+        curvePoint[`x${index}`] = this._cx(snappedLocalAbsoluteCurvePoint.x) - curvePoint.x;
+        curvePoint[`y${index}`] = this._cy(snappedLocalAbsoluteCurvePoint.y) - curvePoint.y;
         
-        if (!(event.metaKey || event.ctrlKey || event.shiftKey)) {
+        if (curvePoint.t === 'B' && !(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
         }
@@ -281,29 +607,58 @@ class DragObjectState extends SubState {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
 
-    handleCurvePathDrag(x, y, pathIndex) {
-        const localOriginalPoint = this.schemeContainer.localPointOnItem(this.originalClickPoint.x, this.originalClickPoint.y, this.item);
+    handleArcControlPointDrag(x, y, event) {
+        const point = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex];
+
+        let nextPoint = null;
+        if (this.draggedObject.pointIndex >= this.item.shapeProps.paths[this.draggedObject.pathIndex].points.length - 1) {
+            nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[0];
+        } else {
+            nextPoint = this.item.shapeProps.paths[this.draggedObject.pathIndex].points[this.draggedObject.pointIndex + 1];
+        }
+
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
-        const dx = localPoint.x - localOriginalPoint.x;
-        const dy = localPoint.y - localOriginalPoint.y;
 
-        this.item.shapeProps.paths[pathIndex].points.forEach((point, pointIndex) => {
-            point.x = this.originalCurvePaths[pathIndex].points[pointIndex].x + dx;
-            point.y = this.originalCurvePaths[pathIndex].points[pointIndex].y + dy;
+        const p2 = convertCurvePointToItemScale(nextPoint, this.item.area.w, this.item.area.h);
+        const p1 = convertCurvePointToItemScale(point, this.item.area.w, this.item.area.h);
+
+        const chordLength = myMath.distanceBetweenPoints(p1.x, p1.y, p2.x, p2.y);
+        const line = myMath.createLineEquation(p1.x, p1.y, p2.x, p2.y);
+
+        const H = myMath.distanceFromPointToLine(localPoint.x, localPoint.y, line);
+        if (!myMath.tooSmall(chordLength)) {
+            point.h = -H / chordLength * 100 * myMath.identifyPointSideAgainstLine(localPoint.x, localPoint.y, line);
+        }
+
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateCurveEditPoint(this.store, this.item, this.draggedObject.pathIndex, this.draggedObject.pointIndex, point);
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+    }
+
+    handleAllSelectedPoints(x, y) {
+        StoreUtils.clearItemSnappers(this.store);
+        if (!this.worldSelectedPoints || this.worldSelectedPoints.length === 0) {
+            return;
+        }
+
+        const offset = this.parentState.snapPoints({
+            vertical: this.worldSelectedPoints,
+            horizontal: this.worldSelectedPoints
+            },
+            new Set(),
+            x - this.originalClickPoint.x, y - this.originalClickPoint.y
+        );
+        this.forEachSelectedPoint((point, pathIndex, pointIndex) => {
+            const originLocalPoint = convertCurvePointToItemScale(this.originalCurvePaths[pathIndex].points[pointIndex], this.item.area.w, this.item.area.h);
+            const originWorldPoint = worldPointOnItem(originLocalPoint.x, originLocalPoint.y, this.item);
+            const newLocalPoint = localPointOnItem(originWorldPoint.x + offset.dx, originWorldPoint.y + offset.dy, this.item);
+            const convertedPoint = convertCurvePointToRelative(newLocalPoint, this.item.area.w, this.item.area.h);
+            point.x = convertedPoint.x;
+            point.y = convertedPoint.y;
+
             StoreUtils.updateCurveEditPoint(this.store, this.item, pathIndex, pointIndex, point);
-        })
-
-        // dragging the rest of points of other path in case they are selected
-        StoreUtils.getCurveEditPaths(this.store).forEach((path, _pathIndex) => {
-            path.points.forEach(storePoint => {
-                if (storePoint.selected && pathIndex !== _pathIndex) {
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].x = this.originalCurvePaths[_pathIndex].points[storePoint.id].x + dx;
-                    this.item.shapeProps.paths[_pathIndex].points[storePoint.id].y = this.originalCurvePaths[_pathIndex].points[storePoint.id].y + dy;
-                    StoreUtils.updateCurveEditPoint(this.store, this.item, _pathIndex, storePoint.id, this.item.shapeProps.paths[_pathIndex].points[storePoint.id]);
-                }
-            });
         });
-        
+
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
     }
@@ -391,7 +746,8 @@ class IdleState extends SubState {
 
         this.parentState.item.shapeProps.paths.forEach((path, pathId) => {
             path.points.forEach((point, pointId) => {
-                const wolrdPoint = this.parentState.schemeContainer.worldPointOnItem(point.x, point.y, this.parentState.item);
+                const localPoint = convertCurvePointToItemScale(point, this.parentState.item.area.w, this.parentState.item.area.h);
+                const wolrdPoint = this.parentState.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, this.parentState.item);
                 if (myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box)) {
                     StoreUtils.selectCurveEditPoint(this.store, pathId, pointId, true);
                 }
@@ -431,13 +787,42 @@ export default class StateEditPath extends State {
         super(eventBus, store);
         this.name = 'editPath';
         this.item = null;
+        this.history = new History();
     }
 
     reset() {
         this.eventBus.emitItemsHighlighted([]);
         this.item = null;
+        this.history = new History({size: 100});
+        this.updateHistoryState();
         this.migrateSubState(new IdleState(this, (x, y, mx, my, object, event) => this.contextMenuHandler(x, y, mx, my, object, event)));
         this.resetPreviousSubStates();
+    }
+
+    historyCommit() {
+        this.history.commit(this.item.shapeProps.paths);
+        this.updateHistoryState();
+    }
+
+    updateHistoryState() {
+        this.store.dispatch('setHistoryUndoable', this.history.undoable());
+        this.store.dispatch('setHistoryRedoable', this.history.redoable());
+    }
+
+    undo() {
+        const paths = this.history.undo();
+        this.item.shapeProps.paths = paths;
+        EventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.updateHistoryState();
+    }
+
+    redo() {
+        const paths = this.history.redo();
+        this.item.shapeProps.paths = paths;
+        EventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.updateHistoryState();
     }
 
     cancel() {
@@ -463,6 +848,7 @@ export default class StateEditPath extends State {
                         childWorldPositions.push(worldPointOnItem(0, 0, childItem));
                     });
                 }
+                readjustItemAreaAndPoints(this.item);
                 this.schemeContainer.readjustItem(this.item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
                 if (this.item.childItems) {
@@ -486,6 +872,8 @@ export default class StateEditPath extends State {
 
     setItem(item) {
         this.item = item;
+        ensureCorrectAreaOfPathItem(item);
+        this.historyCommit();
     }
 
     getSelectedPoints() {
@@ -520,8 +908,8 @@ export default class StateEditPath extends State {
                 name: 'Delete points',
                 clicked: () => this.deleteSelectedPoints()
             }, {
-                name: 'Convert to beizer',
-                clicked: () => selectedPoints.forEach(p => this.convertPointToBeizer(p.pathId, p.pointId))
+                name: 'Convert to bezier',
+                clicked: () => selectedPoints.forEach(p => this.convertPointToBezier(p.pathId, p.pointId))
             }, {
                 name: 'Convert to simple',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToSimple(p.pathId, p.pointId))
@@ -577,8 +965,8 @@ export default class StateEditPath extends State {
             }
             if (point.t !== 'B') {
                 menuOptions.push({
-                    name: 'Convert to beizer point',
-                    clicked: () => this.convertPointToBeizer(object.pathIndex, object.pointIndex)
+                    name: 'Convert to bezier point',
+                    clicked: () => this.convertPointToBezier(object.pathIndex, object.pointIndex)
                 });
             }
 
@@ -588,6 +976,7 @@ export default class StateEditPath extends State {
                     clicked: () => this.convertPointToArc(object.pathIndex, object.pointIndex)
                 });
             }
+
             this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
 
         } else if (object && object.type === 'path-segment') {
@@ -597,6 +986,9 @@ export default class StateEditPath extends State {
             }, {
                 name: 'Invert path',
                 clicked: () => this.invertPath(object.pathIndex)
+            }, {
+                name: 'Duplicate path',
+                clicked: () => this.duplicatePath(object.pathIndex)
             }]);
         }
     }
@@ -611,8 +1003,8 @@ export default class StateEditPath extends State {
         this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToSimple(pathId, pointId));
     }
 
-    convertSelectedPointsToBeizer() {
-        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToBeizer(pathId, pointId));
+    convertSelectedPointsToBezier() {
+        this.getSelectedPoints().forEach(({pathId, pointId}) => this.convertPointToBezier(pathId, pointId));
     }
 
     extractPath(pathId) {
@@ -629,28 +1021,32 @@ export default class StateEditPath extends State {
         newItem.childItems = [];
         newItem._childItems = [];
         newItem.shapeProps.paths = [{
+            pos: 'relative',
             closed: path.closed,
-            points: path.points.map(point => {
-                const wp = worldPointOnItem(point.x, point.y, this.item);
-                wp.t = point.t;
-                if (point.hasOwnProperty('x1')) {
-                    const wp1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, this.item);
+            points: path.points.map(relativePoint => {
+                const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+
+                const wp = worldPointOnItem(lp.x, lp.y, this.item);
+                wp.t = lp.t;
+                if (lp.hasOwnProperty('x1')) {
+                    const wp1 = worldPointOnItem(lp.x + lp.x1, lp.y + lp.y1, this.item);
                     wp.x1 = wp1.x - wp.x;
                     wp.y1 = wp1.y - wp.y;
                 }
-                if (point.hasOwnProperty('x2')) {
-                    const wp2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, this.item);
+                if (lp.hasOwnProperty('x2')) {
+                    const wp2 = worldPointOnItem(lp.x + lp.x2, lp.y + lp.y2, this.item);
                     wp.x2 = wp2.x - wp.x;
                     wp.y2 = wp2.y - wp.y;
                 }
-                return wp;
+                return convertCurvePointToRelative(wp, newItem.area.w, newItem.area.h);
             })
         }];
+
+        readjustItemAreaAndPoints(newItem);
 
         this.item.shapeProps.paths.splice(pathId, 1);
         this.cancel();
         const item = this.schemeContainer.addItem(newItem);
-        this.schemeContainer.readjustItem(item.id, false, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.selectItem(item);
     }
 
@@ -671,12 +1067,25 @@ export default class StateEditPath extends State {
         this.eventBus.emitSchemeChangeCommited();
     }
 
+    duplicatePath(pathId) {
+        const newPath = utils.clone(this.item.shapeProps.paths[pathId]);
+        newPath.points.forEach(p => {
+            p.x += 10;
+            p.y += 10;
+        });
+        this.item.shapeProps.paths.push(newPath);
+        this.eventBus.emitItemChanged(this.item.id);
+        StoreUtils.updateAllCurveEditPoints(this.store, this.item);
+        this.eventBus.emitSchemeChangeCommited();
+    }
+
     mergePoints(pref1, pref2) {
         if (pref1.pathId === pref2.pathId) {
             this.mergePointsInSamePath(this.item.shapeProps.paths[pref1.pathId], pref1.pointId, pref2.pointId);
         } else {
             this.mergePointsOfTwoPaths(pref1.pathId, pref1.pointId, pref2.pathId, pref2.pointId);
         }
+        this.historyCommit();
     }
 
     mergePointsInSamePath(path, pId1, pId2) {
@@ -701,7 +1110,6 @@ export default class StateEditPath extends State {
         path.points.pop();
         path.closed = true;
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
@@ -755,7 +1163,6 @@ export default class StateEditPath extends State {
             this.item.shapeProps.paths.splice(pathId2, 1);
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
@@ -769,10 +1176,10 @@ export default class StateEditPath extends State {
             this.breakPathIntoTwo(path, pointIndex);
         }
 
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
     breakClosedPath(path, pointIndex) {
@@ -810,6 +1217,7 @@ export default class StateEditPath extends State {
             path.points.splice(pointIndex, 2);
         } else {
             const secondPath = {
+                pos: 'relative',
                 closed: false,
                 points: path.points.splice(pointIndex+1, path.points.length - pointIndex - 1)
             };
@@ -836,22 +1244,24 @@ export default class StateEditPath extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
     insertPointAtCoords(x, y, pathId, segmentId) {
-        const p = localPointOnItem(x, y, this.item);
+        const p = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         this.item.shapeProps.paths[pathId].points.splice(segmentId + 1, 0, {
             x: p.x,
             y: p.y,
             t: 'L'
         });
         if (this.item.shapeProps.paths[pathId].points[segmentId].t === 'B') {
-            this.convertPointToBeizer(pathId, segmentId + 1);
+            this.convertPointToBezier(pathId, segmentId + 1);
         }
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
     convertPointToSimple(pathId, pointIndex) {
@@ -872,9 +1282,10 @@ export default class StateEditPath extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
-    convertPointToBeizer(pathId, pointIndex) {
+    convertPointToBezier(pathId, pointIndex) {
         const point = this.item.shapeProps.paths[pathId].points[pointIndex];
         if (!point) {
             return;
@@ -905,37 +1316,25 @@ export default class StateEditPath extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
     convertPointToArc(pathId, pointIndex) {
         const point = this.item.shapeProps.paths[pathId].points[pointIndex];
-        let x1 = 10;
-        let y1 = 10;
-        if (pointIndex <  this.item.shapeProps.paths[pathId].points.length - 1) {
-            const nextPoint = this.item.shapeProps.paths[pathId].points[pointIndex + 1];
-            const xm = (nextPoint.x + point.x) / 2;
-            const ym = (nextPoint.y + point.y) / 2;
-            const vx = xm - point.x;
-            const vy = ym - point.y;
-            const vpx = vy;
-            const vpy = -vx;
-
-            x1 = vpx + xm - point.x;
-            y1 = vpy + ym - point.y;
+        if (point.t !== 'A') {
+            point.h = 50;
         }
-
-        point.x1 = x1;
-        point.y1 = y1;
         point.t = 'A';
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
         this.eventBus.emitSchemeChangeCommited();
+        this.historyCommit();
     }
 
 
     snapCurvePoint(pathId, pointId, localX, localY) {
-        const worldCurvePoint = this.schemeContainer.worldPointOnItem(localX, localY, this.item);
+        const worldCurvePoint = worldPointOnItem(localX, localY, this.item);
 
         let bestSnappedHorizontalProximity = 100000;
         let bestSnappedVerticalProximity = 100000;
