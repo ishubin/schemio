@@ -8,7 +8,9 @@ import { convertStandardCurveShape } from './StandardCurves.js';
 import utils from '../../../../utils.js';
 import AdvancedFill from '../AdvancedFill.vue';
 
-const _shapes = [
+const basicShapeGroup = require('./basic/basic-shapes.js').default;
+
+let _shapes = [
     require('./Rect.js').default,
     require('./NoneShape.js').default,
     require('./Ellipse.js').default,
@@ -26,7 +28,6 @@ const _shapes = [
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,
-    require('./basic/cloud.js').default,
 
     require('./StickyNote.vue').default,
     require('./Component.vue').default,
@@ -52,6 +53,8 @@ const _shapes = [
     require('./uml/UMLActor.vue').default,
     require('./uml/UMLSwimLane.js').default,
 ];
+
+_shapes = _shapes.concat(basicShapeGroup.shapes);
 
 function defaultGetEventsFunc(item) {
     return [];
