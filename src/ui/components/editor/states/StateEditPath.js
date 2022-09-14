@@ -867,6 +867,7 @@ export default class StateEditPath extends State {
             }
             this.schemeContainer.updateMultiItemEditBox();
         }
+        this.eventBus.emitSchemeChangeCommited();
         super.cancel();
     }
 

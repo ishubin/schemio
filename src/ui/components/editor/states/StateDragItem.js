@@ -653,6 +653,9 @@ class IdleState extends SubState {
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
             this.eventBus.$emit(EventBus.VOID_DOUBLE_CLICKED, x, y, mx, my);
+        } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1 && object.multiItemEditBox.items[0].shape === 'path') {
+            // if user double clicks on the path but hits its edit box instead
+            this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
         }
     }
     
