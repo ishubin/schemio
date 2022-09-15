@@ -39,7 +39,7 @@ function collectMissingShapes(items) {
     if (Array.isArray(items)) {
         items.forEach(rootItem => {
             traverseItems(rootItem, item => {
-                if (!Shape.find(item.shape)) {
+                if (item.shape && !Shape.find(item.shape)) {
                     missingShapes.add(item.shape);
                 }
             });
