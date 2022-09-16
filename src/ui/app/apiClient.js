@@ -486,7 +486,7 @@ function createGoogleDriveClient() {
                     metadata.parents = [{id: parentId}];
                 }
 
-                const base64Data = btoa(JSON.stringify(scheme));
+                const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(scheme))))
                 const multipartRequestBody =
                     delimiter +
                     'Content-Type: application/json\r\n\r\n' +
@@ -555,7 +555,7 @@ function createGoogleDriveClient() {
                 const close_delim = "\r\n--" + boundary + "--";
 
                 var contentType = 'application/json';
-                var base64Data = btoa(JSON.stringify(scheme));
+                var base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(scheme))))
                 
                 const metadata = {
                     title:  `${scheme.name}${schemioExtension}`,
