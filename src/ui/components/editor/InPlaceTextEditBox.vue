@@ -91,6 +91,8 @@ export default {
 
         createEditor(text) {
             const editor = new Editor({
+                disablePasteRules: true,
+                disableInputRules: true,
                 extensions: [
                     new Blockquote(), new CodeBlock(), new HardBreak(), new Heading({ levels: [1, 2, 3] }), new BulletList(), new OrderedList(), new ListItem(),
                     new TodoItem(), new TodoList(), new Bold(), new Code(), new Italic(), new Strike(), new Underline(), new History(), ],

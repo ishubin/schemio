@@ -131,6 +131,8 @@ export default {
 
     beforeMount() {
         this.editor = new Editor({
+            disablePasteRules: true,
+            disableInputRules: true,
             extensions: [
                 new Blockquote(),
                 new CodeBlock(),
@@ -164,6 +166,8 @@ export default {
         });
 
         this.editorLarge = new Editor({
+            disablePasteRules: true,
+            disableInputRules: true,
             extensions: [
                 new Blockquote(),
                 new CodeBlock(),
