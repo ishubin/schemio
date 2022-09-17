@@ -23,6 +23,7 @@ import UntoggleFunction from './UntoggleFunction';
 import PlayFramesFunction from './PlayFramesFunction';
 import StopFramePlayerFunction from './StopFramePlayerFunction';
 import LoadComponentFunction from './LoadComponentFunction';
+import DestroyComponentFunction from './DestroyComponentFunction';
 import ToggleGroupFunction from './ToggleGroupFunction';
 import SendEventToParentFuction from './SendEventToParentFuction';
 import SendEventToChildrenFunction from './SendEventToChildrenFunction';
@@ -37,6 +38,7 @@ export default {
         crawlEffect         : CrawlEffectFunction,
         blinkEffect         : BlinkEffectFunction,
         loadComponent       : LoadComponentFunction,
+        destroyComponent    : DestroyComponentFunction,
         move                : MoveFunction,
         moveAlongPath       : MoveAlongPathFunction,
         moveToItem          : MoveToItemFunction,
