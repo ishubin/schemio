@@ -2106,14 +2106,17 @@ ul.button-group > li.disabled > .icon-button:hover,
 /******************** Item Tooltip ***************/
 .item-tooltip {
     position: fixed;
+    display: flex;
+    flex-direction: column;
     box-shadow: 2px 2px 10px var(--shadow-color);
-    overflow: auto;
     user-select: text;
+}
+.item-tooltip .item-tooltip-header {
+    position: relative;
 }
 .item-tooltip h3 {
     margin-top: 0;
 }
-
 .item-tooltip .item-tooltip-close {
     position: absolute;
     font-size: 20px;
@@ -2126,9 +2129,9 @@ ul.button-group > li.disabled > .icon-button:hover,
     opacity: 1.0;
 }
 
-.item-tooltip h2 {
-    margin-top: 0px;
-    margin-bottom: 10px;
+.item-tooltip .item-tooltip-body {
+    overflow: auto;
+    flex: 1;
 }
 
 /***************** Item Selector *********************/

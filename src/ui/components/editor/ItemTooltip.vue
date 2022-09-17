@@ -3,9 +3,11 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="item-tooltip" :id="domId" :style="tooltipStyle" data-type="item-tooltip">
-        <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}">&times;</span>
-        <h3 :style="{'color': tooltipColor}">{{item.name}}</h3>
-        <div v-html="sanitizedItemDescription"></div>
+        <div class="tooltip-header">
+            <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}">&times;</span>
+            <h3 :style="{'color': tooltipColor}">{{item.name}}</h3>
+        </div>
+        <div class="item-tooltip-body" v-html="sanitizedItemDescription"></div>
     </div>
 </template>
 
