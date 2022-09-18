@@ -5,8 +5,8 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import {mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
-import { getEntityFromIndex, indexScheme, reindex, searchIndexEntities, unindexScheme } from './searchIndex';
+import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
+import { getDocumentFromIndex, indexFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listEntitiesInFolder, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -52,14 +52,14 @@ export function fsMoveScheme(config) {
             return;
         }
 
-        const entity = getEntityFromIndex(schemeId);
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId);
+        if (!doc) {
             res.$apiNotFound('Scheme was not found');
             return;
         }
 
         const fileName = schemeId + schemioExtension;
-        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
         const safeDst = safePath(req.query.dst);
         const relativeDstPath = path.join(safeDst, fileName);
@@ -99,13 +99,13 @@ export function fsPatchScheme(config) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const entity = getEntityFromIndex(schemeId)
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId)
+        if (!doc) {
             res.$apiNotFound('Scheme was not found');
         }
         const patchRequest = req.body;
         
-        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
         fs.readFile(fullPath).then(content => {
             const scheme = JSON.parse(content);
@@ -118,7 +118,7 @@ export function fsPatchScheme(config) {
 
                 scheme.name = newName;
                 return fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
-                    indexScheme(schemeId, scheme, entity.fsPath);
+                    indexScheme(schemeId, scheme, doc.fsPath);
                 });
             }
         })
@@ -128,7 +128,7 @@ export function fsPatchScheme(config) {
             });
         })
         .catch(err => {
-            console.error('Failed to patch scheme', entity.fsPath, err);
+            console.error('Failed to patch scheme', doc.fsPath, err);
             res.$serverError('Failed to patch scheme')
         })
     };
@@ -138,12 +138,12 @@ export function fsDeleteScheme(config) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const entity = getEntityFromIndex(schemeId)
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId)
+        if (!doc) {
             res.$apiNotFound('Scheme was not found');
         }
         
-        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
         fs.stat(fullPath).then(stat => {
             if (!stat.isFile()) {
@@ -176,7 +176,7 @@ function toPageNumber(text) {
 
 export function fsSearchSchemes(config) {
     return (req, res) => {
-        const entities = searchIndexEntities(req.query.q || '');
+        const entities = searchIndexDocuments(req.query.q || '');
         const page = toPageNumber(req.query.page);
         
         let start = (page - 1) * resultsPerPage;
@@ -187,16 +187,16 @@ export function fsSearchSchemes(config) {
         const totalResults = entities.length;
         const filtered = entities.slice(start, end);
 
-        const schemes = _.map(filtered, entity => {
+        const schemes = _.map(filtered, doc => {
             let previewURL = null;
-            if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${entity.id}.svg`))) {
-                previewURL = `/media/previews/${entity.id}.svg`;
+            if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${doc.id}.svg`))) {
+                previewURL = `/media/previews/${doc.id}.svg`;
             }
             return {
-                name: entity.name,
-                publicLink: `/docs/${entity.id}`,
-                id: entity.id,
-                modifiedTime: entity.modifiedTime,
+                name: doc.name,
+                publicLink: `/docs/${doc.id}`,
+                id: doc.id,
+                modifiedTime: doc.modifiedTime,
                 previewURL
             };
         });
@@ -215,18 +215,18 @@ export function fsGetScheme(config) {
     return (req, res) => {
         const schemeId = req.params.docId;
 
-        const entity = getEntityFromIndex(schemeId);
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId);
+        if (!doc) {
             res.$apiNotFound('Scheme was not found');
             return;
         }
-        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
-        let idx = entity.fsPath.lastIndexOf('/');
+        let idx = doc.fsPath.lastIndexOf('/');
         if (idx < 0) {
             idx = 0;
         }
-        const folderPath = entity.fsPath.substring(0, idx);
+        const folderPath = doc.fsPath.substring(0, idx);
         
         fs.readFile(fullPath, 'utf-8').then(content => {
             const scheme = JSON.parse(content);
@@ -252,8 +252,8 @@ export function fsSaveScheme(config) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const entity = getEntityFromIndex(schemeId)
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId)
+        if (!doc) {
             res.$apiNotFound('Scheme was not found');
         }
 
@@ -262,7 +262,7 @@ export function fsSaveScheme(config) {
         scheme.modifiedTime = new Date();
         scheme.publicLink = `/docs/${schemeId}`;
 
-        const fullPath = path.join(config.fs.rootPath, entity.fsPath);
+        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
         fs.stat(fullPath)
         .then(stat => {
@@ -272,7 +272,7 @@ export function fsSaveScheme(config) {
             return fs.writeFile(fullPath, JSON.stringify(scheme));
         })
         .then(() => {
-            indexScheme(schemeId, scheme, entity.fsPath);
+            indexUpdateScheme(schemeId, scheme);
             res.json(scheme);
         })
         .catch(err => {
@@ -431,10 +431,12 @@ export function fsCreateDirectory(config) {
         }
 
         const publicPath = safePath(decodeURI(dirBody.path));
+        const relativePath = path.join(publicPath, dirBody.name);
+        const realPath = path.join(config.fs.rootPath, relativePath);
 
-        const realPath = path.join(config.fs.rootPath, publicPath, dirBody.name);
 
         fs.mkdir(realPath).then(() => {
+            indexFolder(relativePath, dirBody.name, publicPath);
             res.json({
                 kind: 'dir',
                 name: dirBody.name,
@@ -462,86 +464,43 @@ export function fsListFilesRoute(config) {
             publicPath = publicPath.substring(1);
         }
 
-        const realPath = path.join(config.fs.rootPath, publicPath);
-
-        fs.readdir(realPath).then(files => {
-            
-            const entries = [];
-
-            _.forEach(files, file => {
-                if (file.startsWith('.')) {
-                    return;
-                }
-                const stat = fs.statSync(`${realPath}/${file}`);
-
-
-                let entryPath = file;
-                if (publicPath) {
-                    entryPath = path.join(publicPath, file);
-                }
-
-                if (stat.isDirectory()) {
-                    entries.push({
-                        kind: 'dir',
-                        name: file,
-                        path: entryPath,
-                        modifiedTime: stat.mtime,
-                    });
-                } else if (file.endsWith(schemioExtension)) {
-                    try {
-                        const content = fs.readFileSync(`${realPath}/${file}`, 'utf-8');
-                        const scheme = JSON.parse(content);
-
-                        let idx = entryPath.lastIndexOf('/');
-                        if (idx < 0) {
-                            idx = 0;
-                        }
-
-                        const schemeId = file.substring(0, file.length - schemioExtension.length);
-                        const entry = {
-                            kind: 'scheme',
-                            id: schemeId,
-                            name: scheme.name || '',
-                            path: entryPath.substring(0, idx),
-                            modifiedTime: scheme.modifiedTime,
-                        };
-
-                        if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
-                            entry.previewURL = `/media/previews/${schemeId}.svg`;
-                        }
-
-                        entries.push(entry);
-                    } catch(err) {
-                        console.error('Failed to parse scheme file', entryPath, err);
-                    }
-                }
-            });
-
-            if (publicPath.length > 0) {
-                const pathDirs = publicPath.split('/');
-                if (pathDirs.length === 0) {
-                    entries.splice(0, 0, {
-                        kind: 'dir',
-                        name: '..',
-                        path: ''
-                    });
-                } else {
-                    pathDirs.pop();
-                    entries.splice(0, 0, {
-                        kind: 'dir',
-                        name: '..',
-                        path: pathDirs.join('/')
-                    });
-                }
+        const entries = [];
+        if (publicPath) {
+            let parentFolder = folderPathFromPath(publicPath);
+            if (!parentFolder) {
+                parentFolder = '';
             }
-            res.json({
-                path: publicPath,
-                viewOnly: config.viewOnlyMode,
-                entries 
+
+            entries.push({
+                kind: 'dir',
+                name: '..',
+                path: parentFolder
             });
-        }).catch(err => {
-            console.error('Could not find files in ', publicPath, err);
-            res.$apiNotFound('Such path does not exist');
+        }
+        listIndexFoldersByParent(publicPath).forEach(folder => {
+            entries.push({
+                kind: 'dir',
+                name: fileNameFromPath(folder),
+                path: folder
+            });
+        });
+
+        const docs = listIndexDocumentsByFolder(publicPath);
+        docs.forEach(doc => {
+            entries.push({
+                kind: 'scheme',
+                id: doc.id,
+                name: doc.name,
+                path: publicPath,
+                previewURL: doc.previewURL,
+                modifiedTime: doc.modifiedTime
+            });
+        });
+
+        res.json({
+            path: publicPath,
+            viewOnly: config.viewOnlyMode,
+            entries
         });
     }
 }
@@ -562,13 +521,13 @@ export function fsCreateSchemePreview(config) {
         
         schemeId = schemeId.replace(/(\/|\\)/g, '');
 
-        const entity = getEntityFromIndex(schemeId);
-        if (!entity) {
+        const doc = getDocumentFromIndex(schemeId);
+        if (!doc) {
             res.$apiNotFound('Such scheme does not exist');
             return;
         }
 
-        const folderPath = path.join(config.fs.rootPath, '.media', 'previews');
+        const folderPath = path.join(config.fs.rootPath, mediaFolder, 'previews');
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
                 throw new Error('Not a directory: ' + folderPath);
@@ -581,6 +540,7 @@ export function fsCreateSchemePreview(config) {
             return fs.writeFile(path.join(folderPath, `${schemeId}.svg`), svg);
         })
         .then(() => {
+            indexUpdatePreviewURL(schemeId, `/media/previews/${schemeId}.svg`);
             res.json({
                 status: 'ok'
             });
