@@ -215,8 +215,8 @@ export default {
 
     methods: {
         createBehaviorEventMeta(behaviorEvent) {
-            return{
-                collapsed: behaviorEvent.actions && behaviorEvent.actions.length > 0, // collapsing behaviors that do not have any actions
+            return {
+                collapsed: false
             };
         },
 
