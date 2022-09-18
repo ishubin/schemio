@@ -64,6 +64,11 @@ export function indexUpdatePreviewURL(id, previewURL) {
 export function indexFolder(folder, name, parentFolder) {
     currentIndex.indexFolder(folder, name, parentFolder);
 }
+
+export function indexMoveSchemeToFolder(id, fsPath, newFolder) {
+    currentIndex.moveDocument(id, newFolder);
+    currentIndex.updateDocument(id, {fsPath});
+}
 /**
  * 
  * @param {String} id 

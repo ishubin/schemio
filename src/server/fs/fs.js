@@ -6,7 +6,7 @@ import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
 import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
-import { getDocumentFromIndex, indexFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listEntitiesInFolder, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
+import { getDocumentFromIndex, indexFolder, indexMoveSchemeToFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listEntitiesInFolder, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -85,7 +85,7 @@ export function fsMoveScheme(config) {
             });
         })
         .then(scheme => {
-            indexScheme(schemeId, scheme, relativeDstPath);
+            indexMoveSchemeToFolder(schemeId, relativeDstPath, safeDst);
             res.json({ satus: 'ok' });
         })
         .catch(err => {

@@ -30,6 +30,22 @@ export class DocumentIndex {
         return this.docs.has(id);
     }
 
+    moveDocument(id, newFolderPath) {
+        const docEntry = this.docs.get(id);
+        if (!docEntry) {
+            return;
+        }
+        const oldFolder = this.folders.get(docEntry.folder);
+        if (oldFolder) {
+            oldFolder.docs.delete(id);
+        }
+
+        const newFolder = this.folders.get(newFolderPath);
+        if (newFolder) {
+            newFolder.docs.add(id);
+        }
+    }
+
     deleteDocument(id) {
         const doc = this.docs.get(id);
         if (!doc) {
