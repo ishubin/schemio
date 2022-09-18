@@ -6,7 +6,7 @@ import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
 import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
-import { getDocumentFromIndex, indexFolder, indexMoveSchemeToFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listEntitiesInFolder, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
+import { getDocumentFromIndex, indexFolder, indexMoveSchemeToFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -340,11 +340,13 @@ export function fsMoveDirectory(config) {
             if (idx >= 0)  {
                 name = src.substring(idx + 1);
             }
-
             return fs.move(realSrc, `${realDst}/${name}`);
         })
         .then(() => {
-            reindex(config);
+            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
+            return reindex(config);
+        })
+        .then(() => {
             res.json({ satus: 'ok' });
         })
         .catch(err => {
@@ -381,7 +383,10 @@ export function fsPatchDirectory(config) {
             return fs.move(realPath, newPath);
         })
         .then(() => {
-            reindex(config);
+            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
+            return reindex(config);
+        })
+        .then(() => {
             res.json({
                 kind: 'dir',
                 path: newPublicPath,
@@ -409,7 +414,10 @@ export function fsDeleteDirectory(config) {
             return fs.rmdir(realPath, {recursive: true});
         })
         .then(() => {
-            reindex(config);
+            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
+            return reindex(config);
+        })
+        .then(() => {
             res.json({
                 status: 'ok',
                 message: `Removed directory: ${publicPath}/${req.query.name}`
