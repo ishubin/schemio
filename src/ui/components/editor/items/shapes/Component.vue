@@ -49,10 +49,18 @@
             <div class="progress-bar" :style="progressBarStyle"></div>
         </foreignObject>
 
+        <g v-if="!isLoading && item.meta && item.meta.componentLoadFailed">
+            <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
+            <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
+                <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
+            </foreignObject>
+        </g>
+
+
         <g v-if="item.meta && item.meta.cyclicComponent">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
-                <div class="item-text-container" :style="cyclicWarningStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Cyclic dependency!</b></div>
+                <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Cyclic dependency!</b></div>
             </foreignObject>
         </g>
     </g>
@@ -294,7 +302,7 @@ export default {
             return htmlSanitize(text);
         },
 
-        cyclicWarningStyle() {
+        failureMessageStyle() {
             return {
                 color: 'rgb(255, 255, 255)',
                 'font-size': '14px',
