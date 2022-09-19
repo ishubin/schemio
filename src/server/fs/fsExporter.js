@@ -197,48 +197,54 @@ function startExporter(config) {
                 return fs.ensureDir(path.join(exporterPath, filePath));
             } else if (filePath.endsWith(schemioExtension)) {
 
-                const idx = filePath.lastIndexOf('/') + 1;
-                const schemeId = filePath.substring(idx, filePath.length - schemioExtension.length);
-
                 return fs.readFile(absoluteFilePath)
                 .then(JSON.parse)
                 .then(fixSchemeLinks)
                 .then(scheme => {
-                    if (scheme.name) {
-                        const entry = {
-                            kind: 'scheme',
-                            id: schemeId,
-                            name: scheme.name,
-                            path: filePath.substring(0, filePath.length - schemioExtension.length),
-                            modifiedTime: scheme.modifiedTime,
-                        }
-                        if (fs.statSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
-                            entry.previewURL = `media/previews/${schemeId}.svg`;
-                        }
-                        parentDir.entries.push(entry);
+                    if (!scheme.id) {
+                        const idx = filePath.lastIndexOf('/') + 1;
+                        scheme.id = filePath.substring(idx, filePath.length - schemioExtension.length);
                     }
+                    const entry = {
+                        kind: 'scheme',
+                        id: scheme.id,
+                        name: scheme.name,
+                        path: filePath.substring(0, filePath.length - schemioExtension.length),
+                        modifiedTime: scheme.modifiedTime,
+                    }
+                    return fs.stat(path.join(config.fs.rootPath, mediaFolder, 'previews', `${scheme.id}.svg`))
+                    .then(stat => {
+                        if (stat.isFile()) {
+                            entry.previewURL = `media/previews/${scheme.id}.svg`;
+                        }
+                        return {entry, scheme};
+                    });
+                }).then(({entry, scheme}) => {
+                    parentDir.entries.push(entry);
                     return fs.writeFile(path.join(exporterPath, filePath), JSON.stringify(scheme)).then(() => scheme);
                 })
                 .then(scheme => {
-                    currentExporter.schemeIndex[schemeId] = {
+                    currentExporter.schemeIndex[scheme.id] = {
                         path: filePath,
                         name: scheme.name,
                         modifiedTime: scheme.modifiedTime
                     };
                     return scheme;
                 })
-                .then(scheme => exportMediaForScheme(config, scheme, schemeId))
+                .then(scheme => exportMediaForScheme(config, scheme, scheme.id))
             }
         });
     })
     .then(copyStaticAssets(config))
+    .then(() => {
+        return fs.writeFile(exporterIndexPath, JSON.stringify(currentExporter));
+    })
     .then(archiveExportedDocs(config))
     .then((archiveVersion) => {
         lastExporter = currentExporter;
         lastExporter.finishedAt = new Date();
         lastExporter.archiveVersion = archiveVersion;
         currentExporter = null;
-        fs.writeFile(exporterIndexPath, JSON.stringify(lastExporter));
         console.log('Exporter finished');
     }).catch(err => {
         console.error('Exporter failed', err);
