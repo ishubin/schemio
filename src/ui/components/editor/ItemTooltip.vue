@@ -32,7 +32,8 @@ export default {
         document.body.removeEventListener('click', this.onBodyClick);
     },
     data() {
-        const maxWidth      = Math.min(400, window.innerWidth - 60);
+        const minWidth      = Math.min(200, window.innerWidth - 60);
+        const maxWidth      = Math.min(700, window.innerWidth - 60);
         const maxHeight     = Math.min(500, window.innerHeight - 60);
 
         return {
@@ -40,6 +41,7 @@ export default {
             timeMounted:        0,
             positionLeft:       this.x,
             positionTop:        this.y,
+            minWidth:           minWidth,
             maxWidth:           maxWidth,
             maxHeight:          maxHeight,
             tooltipBackground:  this.item.tooltipBackground || '#eeeeee',
@@ -75,7 +77,8 @@ export default {
                 'background':   this.tooltipBackground,
                 'color':        this.tooltipColor,
                 'padding':      '10px',
-                'width':        `${this.maxWidth}px`,
+                'min-width':    `${this.minWidth}px`,
+                'max-width':    `${this.maxWidth}px`,
                 'max-height':   `${this.maxHeight}px`
             };
         },
