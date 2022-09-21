@@ -43,15 +43,31 @@ function pathToSchemePreview(config, schemeId) {
 }
 
 function deleteFile(filePath, failIfNotPresent) {
-    return fs.stat(filePath).then(stat => {
-        if (stat.isFile()) {
-            return fs.unlink(filePath);
-        } else if (failIfNotPresent) {
-            throw new Error('Not a file '+ filePath);
-        }
-    });
+    if (fs.existsSync(filePath)) {
+        return fs.unlink(filePath);
+
+    } else if (failIfNotPresent) {
+        return Promise.reject('Not a file '+ filePath);
+    }
+    return Promise.resolve();
 };
 
+function genereateDocId(name) {
+    let id = name.trim();
+    if (id.length > 6) {
+        id = name.replace(/[\W_]+/g, '-');
+    }
+    if (!getDocumentFromIndex(id)) {
+        return id;
+    }
+
+    id = nanoid();
+    if (id.charAt(0) === '-'){
+        //doing this so that we don't get files that start with dash symbol
+        id = '_' + id.substr(1);
+    }
+    return id;
+}
 
 export function fsMoveScheme(config) {
     return (req, res) => {
@@ -305,12 +321,8 @@ export function fsCreateScheme(config) {
             res.$apiBadRequest('Invalid request: document name contains illegal characters');
             return;
         }
-        let id = nanoid();
-        if (id.charAt(0) === '-'){
-            //doing this so that we don't get files that start with dash symbol
-            id = '_' + id.substr(1);
-        }
 
+        const id = genereateDocId(scheme.name);
         const indexPath = path.join(publicPath, id + schemioExtension)
         const fullPath = path.join(config.fs.rootPath, indexPath);
         scheme.id = id;
