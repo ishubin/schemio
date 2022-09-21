@@ -6,7 +6,7 @@ import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
 import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from './fsUtils.js';
-import { getDocumentFromIndex, indexFolder, indexMoveSchemeToFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
+import { getAllDocumentIdsInFolder, getDocumentFromIndex, indexFolder, indexMoveSchemeToFolder, indexScheme, indexUpdatePreviewURL, indexUpdateScheme, listIndexDocumentsByFolder, listIndexFoldersByParent, reindex, searchIndexDocuments, unindexScheme } from './searchIndex';
 
 
 function isValidCharCode(code) {
@@ -42,6 +42,17 @@ function pathToSchemePreview(config, schemeId) {
     return path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`);
 }
 
+function deleteFile(filePath, failIfNotPresent) {
+    return fs.stat(filePath).then(stat => {
+        if (stat.isFile()) {
+            return fs.unlink(filePath);
+        } else if (failIfNotPresent) {
+            throw new Error('Not a file '+ filePath);
+        }
+    });
+};
+
+
 export function fsMoveScheme(config) {
     return (req, res) => {
         let schemeId = req.query.id;
@@ -52,7 +63,7 @@ export function fsMoveScheme(config) {
 
         schemeId = schemeId.replace(/\//g, '');
         if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: scheme id is empty');
+            res.$apiBadRequest('Invalid request: document id is empty');
             return;
         }
 
@@ -151,23 +162,13 @@ export function fsDeleteScheme(config) {
         
         const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
-        const deleteFile = (filePath, failIfNotPresent) => {
-            return fs.stat(fullPath).then(stat => {
-                if (stat.isFile()) {
-                    return fs.unlink(filePath);
-                } else if (failIfNotPresent) {
-                    throw new Error('Not a file '+ fullPath);
-                }
-            });
-        };
-
         Promise.all([
             deleteFile(fullPath, true),
             deleteFile(pathToSchemePreview(config, schemeId), false)
         ])
         .then(() => {
             unindexScheme(schemeId);
-            res.$success('Removed scheme ' + schemeId);
+            res.$success('Removed document ' + schemeId);
         })
         .catch(err => {
             console.error('Failed to delete diagram file', fullPath, err);
@@ -251,9 +252,9 @@ export function fsGetScheme(config) {
         })
         .catch(err => {
             if (err.code === 'ENOENT') {
-                res.$apiNotFound('Such scheme does not exist');
+                res.$apiNotFound('Such document does not exist');
             } else {
-                console.error('Failed to read scheme file', fullPath, err);
+                console.error('Failed to read document file', fullPath, err);
                 res.$serverError('Failed to create scheme');
             }
         });
@@ -301,7 +302,7 @@ export function fsCreateScheme(config) {
         const scheme = req.body;
 
         if (!validateFileName(scheme.name)) {
-            res.$apiBadRequest('Invalid request: scheme name contains illegal characters');
+            res.$apiBadRequest('Invalid request: document name contains illegal characters');
             return;
         }
         let id = nanoid();
@@ -323,7 +324,7 @@ export function fsCreateScheme(config) {
             res.json(scheme);
         })
         .catch(err => {
-            res.$serverError('Failed to create scheme');
+            res.$serverError('Failed to create document');
         });
     };
 }
@@ -424,6 +425,14 @@ export function fsDeleteDirectory(config) {
         })
         .then(() => {
             return fs.rmdir(realPath, {recursive: true});
+        })
+        .then(() => {
+            const docIds = getAllDocumentIdsInFolder(publicPath);
+            let chain = Promise.resolve(null);
+            docIds.forEach(docId => {
+                chain = chain.then(deleteFile(pathToSchemePreview(config, docId)));
+            });
+            return chain;
         })
         .then(() => {
             //TODO optimize it. we should not reindex all documents, but only the parts that were updated
@@ -543,7 +552,7 @@ export function fsCreateSchemePreview(config) {
 
         const doc = getDocumentFromIndex(schemeId);
         if (!doc) {
-            res.$apiNotFound('Such scheme does not exist');
+            res.$apiNotFound('Such document does not exist');
             return;
         }
 
@@ -567,8 +576,8 @@ export function fsCreateSchemePreview(config) {
             });
         })
         .catch(err => {
-            console.error('Failed to save scheme preview', err);
-            res.$serverError('Failed to save scheme preview');
+            console.error('Failed to save document preview', err);
+            res.$serverError('Failed to save document preview');
         });
     };
 }

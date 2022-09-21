@@ -46,6 +46,24 @@ export class DocumentIndex {
         }
     }
 
+    traverseDocumentsInFolder(folderPath, callback) {
+        const folder = this.folders.get(folderPath);
+        if (!folder) {
+            return;
+        }
+
+        folder.docs.forEach(docId => {
+            const doc = this.getDocument(docId);
+            if (doc) {
+                callback(doc, docId);
+            }
+        });
+
+        folder.folders.forEach(subFolderPath => {
+            this.traverseFolder(subFolderPath, callback);
+        });
+    }
+
     deleteDocument(id) {
         const doc = this.docs.get(id);
         if (!doc) {

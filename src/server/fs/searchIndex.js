@@ -153,6 +153,20 @@ export function createIndex(config) {
     return _createIndexFromScratch(currentIndex, config);
 }
 
+
+/**
+ * Searches through all sub-folders in given folder and collects documen ids
+ * @param {*} folderPath 
+ * @returns {Array<String>} document ids in specified folderPath
+ */
+export function getAllDocumentIdsInFolder(folderPath) {
+    const ids = [];
+    currentIndex.traverseDocumentsInFolder(folderPath, (doc, docId) => {
+        ids.push(docId);
+    });
+    return ids;
+}
+
 //TODO implement a better version of indexing and do only partial reindex of changed items (e.g. when renaming directories or moving schemes)
 export function reindex(config) {
     const newIndex = new DocumentIndex();
