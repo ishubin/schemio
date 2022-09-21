@@ -38,6 +38,10 @@ function safePath(path) {
     return path;
 }
 
+function pathToSchemePreview(config, schemeId) {
+    return path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`);
+}
+
 export function fsMoveScheme(config) {
     return (req, res) => {
         let schemeId = req.query.id;
@@ -102,6 +106,7 @@ export function fsPatchScheme(config) {
         const doc = getDocumentFromIndex(schemeId)
         if (!doc) {
             res.$apiNotFound('Scheme was not found');
+            return;
         }
         const patchRequest = req.body;
         
@@ -141,18 +146,25 @@ export function fsDeleteScheme(config) {
         const doc = getDocumentFromIndex(schemeId)
         if (!doc) {
             res.$apiNotFound('Scheme was not found');
+            return;
         }
         
         const fullPath = path.join(config.fs.rootPath, doc.fsPath);
 
-        fs.stat(fullPath).then(stat => {
-            if (!stat.isFile()) {
-                throw new Error('Not a file '+ fullPath);
-            }
-        })
-        .then(() => {
-            return fs.unlink(fullPath);
-        })
+        const deleteFile = (filePath, failIfNotPresent) => {
+            return fs.stat(fullPath).then(stat => {
+                if (stat.isFile()) {
+                    return fs.unlink(filePath);
+                } else if (failIfNotPresent) {
+                    throw new Error('Not a file '+ fullPath);
+                }
+            });
+        };
+
+        Promise.all([
+            deleteFile(fullPath, true),
+            deleteFile(pathToSchemePreview(config, schemeId), false)
+        ])
         .then(() => {
             unindexScheme(schemeId);
             res.$success('Removed scheme ' + schemeId);
@@ -189,7 +201,7 @@ export function fsSearchSchemes(config) {
 
         const schemes = _.map(filtered, doc => {
             let previewURL = null;
-            if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${doc.id}.svg`))) {
+            if (fs.existsSync(pathToSchemePreview(config, doc.id))) {
                 previewURL = `/media/previews/${doc.id}.svg`;
             }
             return {
@@ -535,7 +547,8 @@ export function fsCreateSchemePreview(config) {
             return;
         }
 
-        const folderPath = path.join(config.fs.rootPath, mediaFolder, 'previews');
+        const fullPathToPreview = pathToSchemePreview(config, schemeId);
+        const folderPath = folderPathFromPath(fullPathToPreview);
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
                 throw new Error('Not a directory: ' + folderPath);
@@ -545,7 +558,7 @@ export function fsCreateSchemePreview(config) {
             return fs.mkdirs(folderPath);
         })
         .then(() => {
-            return fs.writeFile(path.join(folderPath, `${schemeId}.svg`), svg);
+            return fs.writeFile(fullPathToPreview, svg);
         })
         .then(() => {
             indexUpdatePreviewURL(schemeId, `/media/previews/${schemeId}.svg`);
