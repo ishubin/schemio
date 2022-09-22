@@ -175,11 +175,11 @@ function createStaticClient() {
 
     let cachedIndex = null;
 
-    function traverseEntries(entries, callback) {
+    function traverseEntries(entries, callback, parentEntry) {
         for (let i = 0; i < entries.length; i++) {
-            callback(entries[i]);
-            if (entries[i].kind === 'dir' && entries[i].entries) {
-                traverseEntries(entries[i].entries, callback);
+            callback(entries[i], parentEntry);
+            if (entries[i] && entries[i].kind === 'dir' && entries[i].name !== '..' && entries[i].entries) {
+                traverseEntries(entries[i].entries, callback, entries[i]);
             }
         }
     }
@@ -193,14 +193,14 @@ function createStaticClient() {
             entries: index.entries || []
         });
 
-        traverseEntries(index.entries, entry => {
+        traverseEntries(index.entries, (entry, parentEntry) => {
             if (entry.kind === 'dir') {
                 dirLookup.set(entry.path, {
                     path: entry.path,
                     viewOnly: true,
-                    entries: entry.entries || []
+                    entries: entry.entries || [],
+                    parentPath: parentEntry ? parentEntry.path : ''
                 });
-               dirLookup.set(entry.path, entry);
             }
         });
 
@@ -225,11 +225,20 @@ function createStaticClient() {
     return {
         listEntries(path) {
             return getIndex().then(index => {
-                if (index.dirLookup.has(path)) {
+                const dirEntry = index.dirLookup.get(path);
+                if (dirEntry) {
+                    let entries = [];
+                    if (dirEntry.hasOwnProperty('parentPath') && dirEntry.parentPath !== null) {
+                        entries.push({
+                            kind: 'dir',
+                            name: '..',
+                            path: dirEntry.parentPath
+                        });
+                    }
                     return {
                         path: path,
                         viewOnly: true,
-                        entries: index.dirLookup.get(path).entries
+                        entries: entries.concat(dirEntry.entries)
                     }
                 } else {
                     return Promise.reject({

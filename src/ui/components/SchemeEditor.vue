@@ -2002,6 +2002,8 @@ export default {
             if (item._childItems && item._childItems.length > 0) {
                 item._childItems = [];
             }
+            item.meta.componentLoadFailed = false;
+
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
             .then(schemeDetails => {
                 return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
@@ -2034,7 +2036,8 @@ export default {
                     EventBus.emitItemChanged(item.id);
                 }
                 console.error(err);
-                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load scheme', 'scheme-component-load');
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
+                item.meta.componentLoadFailed = true;
                 EventBus.emitComponentLoadFailed(item);
             });
         },

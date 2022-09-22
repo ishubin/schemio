@@ -29,66 +29,69 @@ const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 const cwd = process.cwd();
 const config = loadConfig();
 
-createIndex(config);
+createIndex(config).then((index) => {
+    const app = express();
+    const modification = false;
+    const deletion = true;
 
-const app = express();
-const modification = false;
-const deletion = true;
+    app.use(fileUpload({
+        limits: {
+            fileSize: config.fileUploadMaxSize,
+            safeFileNames: true
+        },
+    }));
 
-app.use(fileUpload({
-    limits: {
-        fileSize: config.fileUploadMaxSize,
-        safeFileNames: true
-    },
-}));
+    app.use(bodyParser.urlencoded({ extended: false }));
+    app.use('/assets', express.static('assets'));
+    app.use('/v1', apiMiddleware);
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use('/assets', express.static('assets'));
-app.use('/v1', apiMiddleware);
+    app.get('/v1/fs/list',   fsListFilesRoute(config));
+    app.get('/v1/fs/list/*', fsListFilesRoute(config));
+    app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config));
+    app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config));
 
-app.get('/v1/fs/list',   fsListFilesRoute(config));
-app.get('/v1/fs/list/*', fsListFilesRoute(config));
-app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config));
-app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config));
+    if (!config.viewOnlyMode) {
+        app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
+        app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config));
+        app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config));
 
-if (!config.viewOnlyMode) {
-    app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config));
-    app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config));
-    app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config));
+        app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
+        app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
 
-    app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config));
-    app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config));
+        app.post('/v1/fs/docs', jsonBodyParser, fsCreateScheme(config));
+        app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config));
+        app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config));
+        app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config));
+        app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config));
+        app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
 
-    app.post('/v1/fs/docs', jsonBodyParser, fsCreateScheme(config));
-    app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config));
-    app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config));
-    app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config));
-    app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config));
-    app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
+        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
+        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
 
-    app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
-    app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
+        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
+        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
 
-    app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
-    app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
+        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
+        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
+        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
-    app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
-    app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
-    app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
+        app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
+        app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config));
+        app.get('/v1/static-export/download/:archiveVersion', fsExportDownloadArchive(config));
+    }
 
-    app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
-    app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config));
-    app.get('/v1/static-export/download/:archiveVersion', fsExportDownloadArchive(config));
-}
-
-app.get('/media/*', fsDownloadMediaFile(config));
+    app.get('/media/*', fsDownloadMediaFile(config));
 
 
-app.get('*', (req, res) => {
-    res.sendFile(`${cwd}/html/index.html`)
+    app.get('*', (req, res) => {
+        res.sendFile(`${cwd}/html/index.html`)
+    });
+
+    app.listen(config.serverPort, () => {
+        console.log(`Example app listening at http://localhost:${config.serverPort}`)
+    });
+
+}).catch(err => {
+    console.error('Failed to create index for all documents', err);
 });
 
-
-app.listen(config.serverPort, () => {
-    console.log(`Example app listening at http://localhost:${config.serverPort}`)
-});

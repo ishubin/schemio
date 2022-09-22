@@ -2,7 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import fs from 'fs-extra';
-import { schemioExtension } from './fsUtils';
+import path from 'path';
+import { DocumentIndex } from './documentIndex';
+import { fileNameFromPath, folderPathFromPath, mediaFolder, removePrefix, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
 /**
@@ -14,93 +16,128 @@ import { walk } from './walk';
  * 
  */
 
+let currentIndex = new DocumentIndex();
 
-class Index {
-    constructor() {
-        this.entities = new Map();
-    }
-
-    register(id, entity) {
-        this.entities.set(id, entity);
-    }
-
-    deregister(id) {
-        if (this.entities.has(id)) {
-            this.entities.delete(id);
-        }
-    }
-
-    search(conditionCallback) {
-        const searchResults = [];
-        this.entities.forEach((entity, id) => {
-            if (conditionCallback(entity, id)) {
-                searchResults.push(entity);
-            }
-        });
-        return searchResults;
-    }
-}
-
-let currentIndex = new Index();
-
-function _indexScheme(index, schemeId, scheme, fsPath) {
+function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
     if (!scheme.name) {
         scheme.name = '';
     }
-    index.register(schemeId, {
+    index.indexDocument(schemeId, {
         id: schemeId,
         fsPath,
         name: scheme.name,
         lowerName: scheme.name.toLowerCase(),
-        modifiedTime: scheme.modifiedTime
-    });
+        modifiedTime: scheme.modifiedTime,
+        previewURL
+    }, folderPathFromPath(fsPath));
 }
 
+/**
+ * 
+ * @param {DocumentIndex} index 
+ * @param {*} id 
+ */
 function _unindexScheme(index, id) {
-    index.deregister(id);
+    index.deleteDocument(id);
 }
 
-export function indexScheme(id, scheme, fsPath) {
-    _indexScheme(currentIndex, id, scheme, fsPath);
+export function indexScheme(id, scheme, fsPath, previewURL) {
+    _indexScheme(currentIndex, id, scheme, fsPath, previewURL);
 }
 
 export function unindexScheme(id) {
     _unindexScheme(currentIndex, id);
 }
 
+export function indexUpdateScheme(id, scheme) {
+    currentIndex.updateDocument(id, {
+        name: scheme.name,
+        lowerName: scheme.name.toLowerCase(),
+        modifiedTime: scheme.modifiedTime,
+    });
+}
+
+export function indexUpdatePreviewURL(id, previewURL) {
+    currentIndex.updateDocument(id, { previewURL });
+}
+
+export function indexFolder(folder, name, parentFolder) {
+    currentIndex.indexFolder(folder, name, parentFolder);
+}
+
+export function indexMoveSchemeToFolder(id, fsPath, newFolder) {
+    currentIndex.moveDocument(id, newFolder);
+    currentIndex.updateDocument(id, {fsPath});
+}
 /**
  * 
  * @param {String} id 
  * @returns {IndexEntity} entity in index
  */
-export function getEntityFromIndex(id) {
-    return currentIndex.entities.get(id);
+export function getDocumentFromIndex(id) {
+    return currentIndex.getDocument(id);
 }
 
-export function searchIndexEntities(query) {
+export function searchIndexDocuments(query) {
     const lowerQuery = query.toLowerCase();
-    const indexResults = currentIndex.search(entity => entity.lowerName.indexOf(lowerQuery) >= 0);
+    const indexResults = currentIndex.search(doc => doc.lowerName.indexOf(lowerQuery) >= 0);
     return indexResults;  
 }
 
+export function listIndexDocumentsByFolder(folderPath) {
+    return currentIndex.getDocumentsInFolder(folderPath);
+}
+
+export function listIndexFoldersByParent(parentFolder) {
+    return currentIndex.getFoldersByParent(parentFolder);
+}
+
+/**
+ * 
+ * @param {DocumentIndex} index 
+ * @param {*} config 
+ * @returns 
+ */
 function _createIndexFromScratch(index, config) {
     const rootPath = config.fs.rootPath;
 
-    console.log('Starting reindex...');
+    console.log('Starting reindex in ', config.fs.rootPath);
 
     return walk(config.fs.rootPath, (filePath, isDirectory) => {
-        if (isDirectory) {
-            return;
+        let relativeFilePath = removePrefix(filePath, config.fs.rootPath);
+        if (relativeFilePath.charAt(0) === '/') {
+            relativeFilePath = relativeFilePath.substring(1);
         }
 
-        if (filePath.endsWith(schemioExtension)) {
+        if (isDirectory) {
+            index.indexFolder(relativeFilePath, fileNameFromPath(relativeFilePath), folderPathFromPath(relativeFilePath));
+        } else if (filePath.endsWith(schemioExtension)) {
             return fs.readFile(filePath).then(content => {
                 const scheme = JSON.parse(content);
-                const fsPath = filePath.substring(rootPath.length);
-                const idx = fsPath.lastIndexOf('/') + 1;
-                const schemeId = fsPath.substring(idx, fsPath.length - schemioExtension.length);
+                let fsPath = filePath.substring(rootPath.length);
+                if (fsPath.charAt(0) === '/') {
+                    fsPath = fsPath.substring(1);
+                }
+                let schemeId = scheme.id;
 
-                _indexScheme(index, schemeId, scheme, fsPath);
+                if (!schemeId) {
+                    schemeId = fsPath.substring(0, fsPath.length - schemioExtension.length).replace(/[\W_]+/g,"-");
+                    if (schemeId.charAt(0) === '-') {
+                        schemeId = schemeId.substring(1);
+                    }
+                }
+
+                if (!index.hasDocument(schemeId)) {
+                    let previewURL = null;
+                    if (fs.existsSync(path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
+                        previewURL = `/media/previews/${schemeId}.svg`;
+                    }
+                    _indexScheme(index, schemeId, scheme, fsPath, previewURL);
+                } else {
+                    const existingDocument = index.getDocument(schemeId);
+                    console.warn(`WARNING: Could not index document "${fsPath}" since its id is clashing with "${existingDocument.fsPath}"`);
+                }
+
             })
             .catch(err => {
                 console.error('Failed to index scheme file:' + filePath, err);
@@ -108,18 +145,34 @@ function _createIndexFromScratch(index, config) {
         }
     }).then(() => {
         console.log('Finished indexing');
+        return index;
     });
 }
 
 export function createIndex(config) {
-    _createIndexFromScratch(currentIndex, config);
+    return _createIndexFromScratch(currentIndex, config);
+}
+
+
+/**
+ * Searches through all sub-folders in given folder and collects documen ids
+ * @param {*} folderPath 
+ * @returns {Array<String>} document ids in specified folderPath
+ */
+export function getAllDocumentIdsInFolder(folderPath) {
+    const ids = [];
+    currentIndex.traverseDocumentsInFolder(folderPath, (doc, docId) => {
+        ids.push(docId);
+    });
+    return ids;
 }
 
 //TODO implement a better version of indexing and do only partial reindex of changed items (e.g. when renaming directories or moving schemes)
 export function reindex(config) {
-    const newIndex = new Index();
-    _createIndexFromScratch(newIndex, config).then(() => {
+    const newIndex = new DocumentIndex();
+    return _createIndexFromScratch(newIndex, config).then(() => {
         currentIndex = newIndex;
-    })
+        return newIndex;
+    });
 }
 

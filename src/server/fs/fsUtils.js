@@ -20,3 +20,23 @@ export function fileNameFromPath(filePath) {
     }
     return filePath;
 }
+
+export function folderPathFromPath(filePath) {
+    const idx = filePath.lastIndexOf('/');
+    if (idx >= 0) {
+        return filePath.substring(0, idx);
+    } else if (idx === 0) {
+        return '/';
+    }
+    return null;
+}
+
+export function removePrefix(text, prefix) {
+    let i = 0;
+    for (i = 0; i < text.length && i < prefix.length; i++) {
+        if (text.charAt(i) !== prefix.charAt(i)) {
+            break;
+        }
+    }
+    return text.substring(i);
+}
