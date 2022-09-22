@@ -100,16 +100,19 @@
                 </div>
 
                 <div class="behavior-event-operations">
-                    <span class="btn btn-secondary" @click="addActionToEvent(eventIndex)">+ Action</span>
-                    <span class="btn btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate</span>
-                    <span class="btn btn-secondary" v-if="eventIndex > 0" @click="moveEventInOrder(eventIndex, eventIndex - 1)" title="Move event up"><i class="fas fa-caret-up"></i></span>
-                    <span class="btn btn-secondary" v-if="eventIndex < item.behavior.events.length - 1" @click="moveEventInOrder(eventIndex, eventIndex + 1)" title="Move event down"><i class="fas fa-caret-down"></i></span>
-                    <span class="btn btn-danger" @click="removeBehaviorEvent(eventIndex)">Delete</span>
+                    <span class="btn btn-small btn-secondary" @click="addActionToEvent(eventIndex)">+ Action</span>
+                    <span class="btn btn-small btn-secondary" @click="duplicateBehavior(eventIndex)">Duplicate</span>
+                    <span class="btn btn-small btn-secondary" @click="copyEvent(eventIndex)">Copy Event</span>
+                    <span class="btn btn-small btn-secondary" v-if="eventIndex > 0" @click="moveEventInOrder(eventIndex, eventIndex - 1)" title="Move event up"><i class="fas fa-caret-up"></i></span>
+                    <span class="btn btn-small btn-secondary" v-if="eventIndex < item.behavior.events.length - 1" @click="moveEventInOrder(eventIndex, eventIndex + 1)" title="Move event down"><i class="fas fa-caret-down"></i></span>
+                    <span class="btn btn-small btn-danger" @click="removeBehaviorEvent(eventIndex)">Delete</span>
                 </div>
             </div>
         </div>
 
         <span class="btn btn-secondary" @click="addBehaviorEvent()">+ Event</span>
+        <span class="btn btn-secondary" @click="copyAllEvents()">Copy all events</span>
+        <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
 
         <function-arguments-editor v-if="functionArgumentsEditor.shown"
             :function-description="functionArgumentsEditor.functionDescription"
@@ -146,14 +149,25 @@ import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties} from '../../../scheme/Item';
+import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
+import StoreUtils from '../../../store/StoreUtils.js';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = createSettingStorageFromLocalStorage('behavior-collapse', 400);
 
-
-
+function sanitizeAction(action) {
+    const newAction = {...action};
+    delete newAction.id;
+    return newAction;
+}
+function sanitizeEvent(event) {
+    return {
+        event: event.event,
+        actions: map(event.actions, sanitizeAction)
+    };
+}
 
 export default {
     props: {
@@ -398,6 +412,33 @@ export default {
             this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
             this.emitChangeCommited();
             this.$forceUpdate();
+        },
+
+        copyAllEvents() {
+            copyObjectToClipboard('behavior-events', map(this.item.behavior.events, sanitizeEvent)).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, 'Copied all events');
+            });
+        },
+
+        copyEvent(eventIndex) {
+            const event = this.item.behavior.events[eventIndex];
+            copyObjectToClipboard('behavior-events', [sanitizeEvent(event)]).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${event.event}" event`);
+            });
+        },
+
+        pasteEvents() {
+            getObjectFromClipboard('behavior-events').then(events => {
+                if (events && events.length > 0) {
+                    forEach(events, event => {
+                        event.id = shortid.generate();
+                        forEach(event.actions, action => {
+                            action.id = shortid.generate();
+                        });
+                        this.item.behavior.events.push(event);
+                    });
+                }
+            });
         },
 
         removeBehaviorEvent(eventIndex) {

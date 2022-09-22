@@ -21,3 +21,32 @@ export function getTextFromClipboard() {
         return fallbackCopyBuffer;
     });
 }
+
+/**
+ * 
+ * @param {String} kind 
+ * @param {Object} data 
+ * @returns {Promise}
+ */
+export function copyObjectToClipboard(kind, data) {
+    return copyToClipboard(JSON.stringify({kind, data}));
+}
+
+/**
+ * 
+ * @param {String} kind 
+ * @returns {Promise}
+ */
+export function getObjectFromClipboard(kind) {
+    return getTextFromClipboard().then(text => {
+        try {
+            const obj = JSON.parse(text);
+            if (obj && obj.kind === kind && obj.hasOwnProperty('data')) {
+                return obj.data;
+            }
+        }
+        catch(err) {
+            return null;
+        }
+    });
+}
