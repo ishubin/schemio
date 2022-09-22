@@ -55,7 +55,7 @@ function deleteFile(filePath, failIfNotPresent) {
 function genereateDocId(name) {
     let id = name.trim();
     if (id.length > 6) {
-        id = name.replace(/[\W_]+/g, '-');
+        id = name.replace(/[\W_]+/g, '-').toLowerCase();
     }
     if (!getDocumentFromIndex(id)) {
         return id;
