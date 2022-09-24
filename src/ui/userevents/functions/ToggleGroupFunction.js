@@ -19,7 +19,11 @@ export default {
     },
 
     argsToShortString(args) {
-        return args.group;
+        if (args.group) {
+            return args.group;
+        } else {
+            return '...';
+        }
     },
 
     // Means that this function is always expected to get array of items and in cases when it is applied

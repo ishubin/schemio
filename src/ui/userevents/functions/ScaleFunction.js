@@ -91,10 +91,7 @@ export default {
     },
 
     argsToShortString(args) {
-        if (args.animated) {
-            return `animated, ${args.animationDuration} sec`
-        }
-        return `x: ${args.x}, y: ${args.y} ` + (args.animate ? 'animated' : '');
+        return `x: ${args.scaleX}, y: ${args.scaleY}` + (args.animate ? ', animated' : '');
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
