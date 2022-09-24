@@ -106,7 +106,7 @@
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
                         <ItemSvg
-                            :key="`${item.id}-${item.shape}-${schemeContainer.revision}`"
+                            :key="`${item.id}-${item.shape}`"
                             :item="item"
                             :patchIndex="patchIndex"
                             :mode="mode"
