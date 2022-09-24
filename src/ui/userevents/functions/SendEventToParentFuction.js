@@ -10,6 +10,10 @@ It can be used for cross-component communication`,
         event: {name: 'Event', type: 'string', value: 'Unknown event...'},
     },
 
+    argsToShortString(args) {
+        return args.event;
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.meta && item.meta.parentId) {
             userEventBus.emitItemEvent(item.meta.parentId, args.event);

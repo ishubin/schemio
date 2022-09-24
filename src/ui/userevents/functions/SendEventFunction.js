@@ -8,6 +8,10 @@ export default {
         event: {name: 'Event', type: 'string', value: 'Unknown event...'},
     },
 
+    argsToShortString(args) {
+        return args.event;
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         userEventBus.emitItemEvent(item.id, args.event);
         resultCallback();

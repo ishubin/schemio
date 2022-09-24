@@ -81,7 +81,7 @@
                                 class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
                                 title="Edit function arguments"
-                                >(...)</span>
+                                >{{action | toPrettyActionArgs}}</span>
                         </div>
 
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
@@ -437,6 +437,7 @@ export default {
                         });
                         this.item.behavior.events.push(event);
                     });
+                    EventBus.emitSchemeChangeCommited();
                 }
             });
         },
@@ -723,6 +724,15 @@ export default {
             }
         },
 
+        toPrettyActionArgs(action) {
+            if (Functions.main[action.method]) {
+                const func = Functions.main[action.method];
+                if (func.argsToShortString) {
+                    return `( ${func.argsToShortString(action.args)} )`;
+                }
+            }
+            return '(...)';
+        },
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
             //TODO cache all item properties instead of fetching them over and over again

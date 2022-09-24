@@ -11,6 +11,10 @@ Using this function you can send event into dynamic component`,
         event: {name: 'Event', type: 'string', value: 'Unknown event...'},
     },
 
+    argsToShortString(args) {
+        return args.event;
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.shape === 'component') {
             if (Array.isArray(item._childItems)) {

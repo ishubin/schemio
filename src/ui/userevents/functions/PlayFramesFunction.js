@@ -17,6 +17,11 @@ export default {
         stopFrame : {type: 'number', value: 1, min: 1, name: 'Stop frame', depends: {partial: true}}
     },
 
+    argsToShortString(args) {
+        return `from ${args.startFrame} `
+        + (args.partial ? `till ${args.stopFrame}` : 'till end');
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (!item) {
             resultCallback();

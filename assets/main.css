@@ -1961,6 +1961,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     padding: 2px 4px;
     margin: 1px;
     cursor: pointer;
+    font-size: 12px;
 }
 .behavior-action-container .action-method-arguments-expand:hover {
     margin: 0;

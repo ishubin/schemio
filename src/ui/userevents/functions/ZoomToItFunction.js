@@ -134,6 +134,13 @@ export default {
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
+    argsToShortString(args) {
+        if (args.animated) {
+            return `animated, ${args.animationDuration} sec`
+        }
+        return 'instant'
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         // it doesn't make sense to zoom into HUD items since they are supposed to be rendered in viewport transform
         if (!item || !item.area || isInsideHUD(item, schemeContainer)) {

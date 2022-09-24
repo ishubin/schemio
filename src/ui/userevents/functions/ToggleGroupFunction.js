@@ -18,6 +18,10 @@ export default {
         group: { name: 'Tag', type: 'element', description: 'Tag representing a group of items that will be hidden instead of the toggled item'},
     },
 
+    argsToShortString(args) {
+        return args.group;
+    },
+
     // Means that this function is always expected to get array of items and in cases when it is applied
     // to a group of items - it will only be invoked once with array of those items as a first argument
     multiItem: true,

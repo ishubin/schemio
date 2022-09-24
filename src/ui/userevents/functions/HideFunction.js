@@ -16,6 +16,13 @@ export default {
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
+    argsToShortString(args) {
+        if (args.animated) {
+            return `animated, ${args.animationDuration} sec`
+        }
+        return 'instant'
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (!item) {
             resultCallback();
