@@ -664,7 +664,7 @@ export default {
     data() {
         return {
             // this is used to trigger full reload of SvgEditor component
-            // it is needed only when scheme is imported from file
+            // it is needed only when scheme is imported from file and if history is undone/redone
             editorRevision: 0,
 
             state: 'interact',
@@ -1542,6 +1542,7 @@ export default {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
                     this.updateRevision();
+                    this.editorRevision++;
                     this.restoreItemSelection();
                     this.restoreCurveEditing();
                     EventBus.$emit(EventBus.HISTORY_UNDONE);
@@ -1558,6 +1559,7 @@ export default {
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
+                    this.editorRevision++;
                     this.updateRevision();
                     this.restoreItemSelection();
                     this.restoreCurveEditing();
