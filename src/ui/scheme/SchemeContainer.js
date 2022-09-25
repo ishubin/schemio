@@ -2229,11 +2229,12 @@ class SchemeContainer {
 
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
-     * @param {Area} area  - area that it needs to fit into another parent item (should be in world transform)
+     * @param {Item} area  - item that it needs to fit into another parent item (should be in world transform)
      * @param {Function} itemConsiderCallback - callback function which should return true for specified item if it should be considered
      * @returns {Item}
      */
-    findItemSuitableForParent(area, itemConsiderCallback) {
+    findItemSuitableForParent(item, itemConsiderCallback) {
+        const area = this.calculateItemWorldArea(item);
         const items = this.getItems();
 
         // doing backwards search as getItems() returns a list of all items ordered by their layering position on screen

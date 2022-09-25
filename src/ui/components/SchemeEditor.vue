@@ -2462,7 +2462,7 @@ export default {
             this.schemeContainer.addItem(item);
 
             if (this.$store.state.autoRemount) {
-                const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item.area, x => x.id !== item.id);
+                const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item, x => x.id !== item.id);
                 if (proposedItemForMounting) {
                     this.schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, proposedItemForMounting.id);
                 }

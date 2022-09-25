@@ -512,7 +512,8 @@ class DragEditBoxState extends EditBoxState {
 
         // checking if it can fit into another item
         if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
-            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(this.multiItemEditBox.area, item => !this.multiItemEditBox.itemIds.has(item.id));
+            const fakeItem = {meta: {}, area: this.multiItemEditBox.area};
+            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => !this.multiItemEditBox.itemIds.has(item.id));
         } else {
             this.proposedItemForMounting = null;
         }

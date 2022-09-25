@@ -80,7 +80,7 @@ export default class StateCreateItem extends State {
         this.schemeContainer.setActiveBoundaryBox(null);
         
         if (this.store.state.autoRemount && this.item.shape !== 'hud') {
-            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item.area, candidateItem => candidateItem.id !== this.item.id);
+            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item, candidateItem => candidateItem.id !== this.item.id);
             this.schemeContainer.deselectAllItems();
             if (parentItem) {
                 this.schemeContainer.remountItemInsideOtherItem(this.item.id, parentItem.id);
