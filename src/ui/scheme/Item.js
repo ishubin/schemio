@@ -7,6 +7,7 @@ import {getDefaultFont, getAllFonts} from './Fonts';
 import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
+import find from 'lodash/find';
 import shortid from 'shortid';
 import { convertCurvePointToRelative } from '../components/editor/items/shapes/StandardCurves.js';
 
@@ -97,6 +98,13 @@ const defaultArea = {
     px: 0.5, py: 0.5, // pivot point coords relative to items width and height
     sx: 1.0,
     sy: 1.0
+};
+
+export const coreItemPropertyTypes = {
+    opacity    : {type: 'number'},
+    selfOpacity: {type: 'number'},
+    visible    : {type: 'boolean'},
+    clip       : {type: 'boolean'},
 };
 
 export const defaultItemDefinition = {
@@ -382,4 +390,29 @@ export function applyStyleFromAnotherItem(referenceItem, dstItem) {
             dstItem.shapeProps[propName] = utils.clone(value);
         }
     });
+}
+
+export function getItemPropertyDescriptionForShape(shape, propertyPath) {
+    const corePropType = coreItemPropertyTypes[propertyPath];
+    if (corePropType) {
+        return corePropType;
+    }
+    if (shape && propertyPath.indexOf('shapeProps.') === 0) {
+        const shapeArgName = propertyPath.substr('shapeProps.'.length);
+
+        if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
+            return Shape.standardShapeProps[shapeArgName];
+        }
+        if (shape.args.hasOwnProperty(shapeArgName)) {
+            return shape.args[shapeArgName];
+        }
+    } else if (propertyPath.indexOf('textSlots.') === 0) {
+        const secondDotPosition = propertyPath.indexOf('.', 'textSlots.'.length + 1);
+        const textSlotField = propertyPath.substr(secondDotPosition + 1);
+        const argumentDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+        if (argumentDescription) {
+            return argumentDescription;
+        }
+    }
+    return null;
 }

@@ -90,6 +90,7 @@
                             :key="action.args.field"
                             :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                             :argument-value="action.args.value"
+                            :args="action.args"
                             @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
                             />
                     </div>
@@ -148,7 +149,7 @@ import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties} from '../../../scheme/Item';
+import {textSlotProperties, coreItemPropertyTypes, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 
@@ -505,7 +506,11 @@ export default {
                 action.method = methodOption.method;
                 const args = {
                     field: methodOption.fieldPath,
-                    value: ''
+                    value: '',
+                    animated: false,
+                    animationDuration: 0.5,
+                    transition: 'ease-in-out',
+                    inBackground: false
                 };
 
                 const element = this.findElement(action.element);
@@ -542,29 +547,14 @@ export default {
         },
 
         getArgumentDescriptionForElement(element, propertyPath) {
-            if (propertyPath.indexOf('shapeProps.') === 0) {
-                const entity = this.findElement(element);
-                if (entity && entity.shape) {
-                    const shape = Shape.find(entity.shape);
-                    if (shape) {
-                        const shapeArgName = propertyPath.substr('shapeProps.'.length);
-
-                        if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
-                            return Shape.standardShapeProps[shapeArgName];
-                        }
-                        if (shape.args.hasOwnProperty(shapeArgName)) {
-                            return shape.args[shapeArgName];
-                        }
-                    }
-                }
-            } else if (propertyPath.indexOf('textSlots.') === 0) {
-                const secondDotPosition = propertyPath.indexOf('.', 'textSlots.'.length + 1);
-                const textSlotField = propertyPath.substr(secondDotPosition + 1);
-                const argumentDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
-                if (argumentDescription) {
-                    return argumentDescription;
+            const entity = this.findElement(element);
+            if (entity && entity.shape) {
+                const descriptor = getItemPropertyDescriptionForShape(Shape.find(entity.shape), propertyPath);
+                if (descriptor) {
+                    return descriptor;
                 }
             }
+            
             return {type: 'string'};
         },
 

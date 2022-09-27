@@ -1937,8 +1937,22 @@ ul.button-group > li.disabled > .icon-button:hover,
 .behavior-action-container:hover .icon-container .icon-move {
     display: inline-block;
 }
-.behavior-action-container .set-argument-editor {
+.behavior-action-container .set-argument-editor, 
+.behavior-action-container .set-argument-editor > div {
     display: inline-block;
+}
+.behavior-action-container .set-argument-editor .set-argument-options > span {
+    display: inline-block;
+    padding: 2px;
+    font-size: 12px;
+    opacity: 0.6;
+    cursor: pointer;
+}
+.behavior-action-container .set-argument-editor .set-argument-options > span.set-instant {
+    opacity: 0.3;
+}
+.behavior-action-container .set-argument-editor .set-argument-options > span:hover {
+    opacity: 1.0;
 }
 .behavior-action-container .set-argument-editor .number-textfield-container {
     width: 50px;
