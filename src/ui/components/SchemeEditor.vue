@@ -168,7 +168,7 @@
                 >
                 <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="animationEditorCurrentFramePlayer"></div>
                 <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" v-if="sidePanelLeftExpanded"></div>
+                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
                         <FrameAnimatorPanel
                             v-if="animationEditorCurrentFramePlayer"
@@ -188,28 +188,28 @@
                             @animation-editor-opened="onAnimatiorEditorOpened"
                             />
                     </div>
-                    <div class="side-panel-filler-right" v-if="sidePanelRightExpanded"></div>
+                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
                 </div>
             </div>
 
-            <div class="side-panel side-panel-left" v-if="mode === 'edit' && schemeContainer" :class="{expanded: sidePanelLeftExpanded}">
-                <span class="side-panel-expander" @click="sidePanelLeftExpanded = !sidePanelLeftExpanded">
-                    <i v-if="sidePanelLeftExpanded" class="fas fa-angle-left"></i>
+            <div class="side-panel side-panel-left" ref="sidePanelLeft" v-if="mode === 'edit' && schemeContainer" :style="{width: `${sidePanelLeftWidth}px`}">
+                <span class="side-panel-expander" @mousedown="onLeftSidePanelExpanderMouseDown">
+                    <i v-if="sidePanelLeftWidth > 0" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
                 </span>
-                <div class="side-panel-overflow" v-if="sidePanelLeftExpanded">
+                <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
                         <create-item-menu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"/>
                     </div>
                 </div>
             </div>
 
-            <div class="side-panel side-panel-right" v-if="schemeContainer" :class="{expanded: sidePanelRightExpanded && !itemTooltip.shown}">
-                <span class="side-panel-expander" @click="sidePanelRightExpanded = !sidePanelRightExpanded">
-                    <i v-if="sidePanelRightExpanded" class="fas fa-angle-right"></i>
+            <div class="side-panel side-panel-right" ref="sidePanelRight" v-if="schemeContainer" :style="{width: `${sidePanelRightWidth}px`}">
+                <span class="side-panel-expander" @mousedown="onRightSidePanelExpanderMouseDown">
+                    <i v-if="sidePanelRightWidth > 0" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
-                <div class="side-panel-overflow" v-if="sidePanelRightExpanded">
+                <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
                     <ul v-if="inPlaceTextEditor.item" class="tabs text-nonselectable">
                         <li><span class="tab active">Text</span></li>
                     </ul>
@@ -705,8 +705,10 @@ export default {
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
             sidePanelItemForViewMode: null,
-            sidePanelRightExpanded: true,
-            sidePanelLeftExpanded: true,
+            sidePanelRightWidth: 400,
+            sidePanelRightWidthLastUsed: 400,
+            sidePanelLeftWidth: 220,
+            sidePanelLeftWidthLastUsed: 220,
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
@@ -921,10 +923,10 @@ export default {
 
             this.mode = mode;
             if (mode === 'view') {
-                this.sidePanelRightExpanded = false;
+                this.hideSidePanelRight();
                 this.switchStateInteract();
             } else if (mode === 'edit') {
-                this.sidePanelRightExpanded = true;
+                this.showSidePanelRight();
                 this.switchStateDragItem();
             }
         },
@@ -1387,12 +1389,12 @@ export default {
 
         onAnyItemClicked(item) {
             this.sidePanelItemForViewMode = null;
-            this.sidePanelRightExpanded = false;
+            this.hideSidePanelRight();
         },
 
         onVoidClicked() {
             if (this.mode === 'view') {
-                this.sidePanelRightExpanded = false;
+                this.hideSidePanelRight();
                 this.sidePanelItemForViewMode = null;
             }
         },
@@ -1519,7 +1521,7 @@ export default {
 
         onItemSidePanelTriggered(item) {
             this.sidePanelItemForViewMode = item;
-            this.sidePanelRightExpanded = true;
+            this.showSidePanelRight();
             this.currentTab = 'Item';
         },
 
@@ -2632,6 +2634,72 @@ export default {
         openExportAllShapesModal() {
             this.exportShapeModal.scheme = this.schemeContainer.scheme;
             this.exportShapeModal.shown = true;
+        },
+
+        hideSidePanelRight() {
+            this.sidePanelRightWidth = 0;
+        },
+
+        showSidePanelRight() {
+            this.sidePanelRightWidth = 0;
+        },
+
+        onRightSidePanelExpanderMouseDown(originalEvent) {
+            this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
+                onValue: value => {
+                    this.sidePanelRightWidth = value;
+                    if (value > 0) {
+                        this.sidePanelRightWidthLastUsed = value;
+                    }
+                },
+                onToggle: () => {
+                    if (this.sidePanelRightWidth > 0) {
+                        this.sidePanelRightWidth = 0;
+                    } else {
+                        this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+                    }
+                },
+            });
+        },
+
+        onLeftSidePanelExpanderMouseDown(originalEvent) {
+            this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
+                onValue: value => {
+                    this.sidePanelLeftWidth = value;
+                    if (value > 0) {
+                        this.sidePanelLeftWidthLastUsed = value;
+                    }
+                },
+                onToggle: () => {
+                    if (this.sidePanelLeftWidth > 0) {
+                        this.sidePanelLeftWidth = 0;
+                    } else {
+                        this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
+                    }
+                },
+            });
+        },
+
+        onSidePanelExpanderMouseDown(originalEvent, element, direction, callbacks) {
+            const minWidth = 80;
+            const originalWidth = element.getBoundingClientRect().width;
+            const originalPageX = originalEvent.pageX;
+
+            dragAndDropBuilder(originalEvent)
+            .onDrag(event => {
+                const dx = event.pageX - originalPageX;
+
+                const newWidth = myMath.clamp(originalWidth - dx * direction, 0, window.innerWidth/2.5);
+                if (newWidth < minWidth) {
+                    callbacks.onValue(0);
+                } else {
+                    callbacks.onValue(newWidth);
+                }
+            })
+            .onSimpleClick(() => {
+                callbacks.onToggle();
+            })
+            .build();
         },
 
 

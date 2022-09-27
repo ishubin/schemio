@@ -1119,7 +1119,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 /***************************/
 .scheme-editor-view .side-panel {
     height: 100%;
-    width: 0px;
     position: absolute;
     top: 0;
     background: var(--faint-weak-up);
@@ -1128,14 +1127,8 @@ ul.button-group > li.disabled > .icon-button:hover,
 .scheme-editor-view .side-panel.side-panel-right {
     right: 0;
 }
-.scheme-editor-view .side-panel.side-panel-right.expanded {
-    width: 400px;
-}
 .scheme-editor-view .side-panel.side-panel-left {
     left: 0;
-}
-.scheme-editor-view .side-panel.side-panel-left.expanded {
-    width: 220px;
 }
 .scheme-editor-view .side-panel .side-panel-overflow {
     height: 100%;
@@ -1155,6 +1148,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     color: var(--base-strong-up);
     height: 40px;
     width: 12px;
+    user-select: none;
 }
 .scheme-editor-view .side-panel-right .side-panel-expander {
     border-left: 1px solid var(--faint-strong);
@@ -1200,9 +1194,6 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .scheme-editor-view .bottom-panel .side-panel-filler-left {
     width: 220px;
-}
-.scheme-editor-view .bottom-panel .side-panel-filler-right {
-    width: 400px;
 }
 .scheme-editor-view .bottom-panel .bottom-panel-content {
     flex: 1;
