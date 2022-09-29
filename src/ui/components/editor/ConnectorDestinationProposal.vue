@@ -17,7 +17,7 @@ import forEach from 'lodash/forEach';
 import Shape from './items/shapes/Shape';
 import ItemSvg from './items/ItemSvg.vue';
 
-import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/Item';
+import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/ItemFixer';
 
 export default {
     props: {

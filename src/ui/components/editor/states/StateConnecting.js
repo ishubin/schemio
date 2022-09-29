@@ -6,7 +6,7 @@ import State from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
-import {enrichItemWithDefaults} from '../../../scheme/Item';
+import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';

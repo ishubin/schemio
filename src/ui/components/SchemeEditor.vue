@@ -408,7 +408,8 @@ import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys } from '../events';
 
-import {enrichItemWithDefaults, applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
+import {enrichItemWithDefaults} from '../scheme/ItemFixer';
 import {enrichSchemeWithDefaults, prepareSchemeForSaving } from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -2641,7 +2642,7 @@ export default {
         },
 
         showSidePanelRight() {
-            this.sidePanelRightWidth = 0;
+            this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
         },
 
         onRightSidePanelExpanderMouseDown(originalEvent) {

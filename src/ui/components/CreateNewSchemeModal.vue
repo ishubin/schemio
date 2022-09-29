@@ -40,7 +40,7 @@
 <script>
 import RichTextEditor from './RichTextEditor.vue';
 import Modal from './Modal.vue';
-import {enrichItemWithDefaults} from '../scheme/Item';
+import {enrichItemWithDefaults} from '../scheme/ItemFixer';
 import StoreUtils from '../store/StoreUtils.js';
 
 export default {

@@ -8,8 +8,6 @@ import forEach from 'lodash/forEach';
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import map from 'lodash/map';
 import find from 'lodash/find';
-import shortid from 'shortid';
-import { convertCurvePointToRelative } from '../components/editor/items/shapes/StandardCurves.js';
 
 export const ItemInteractionMode = {
     NONE:       'none',
@@ -75,21 +73,12 @@ const defaultTextSlotProps = {
 };
 
 
-export function enrichItemTextSlotWithDefaults(textSlot) {
-    return enrichObjectWithDefaults(textSlot, defaultTextSlotProps);
-}
-
-const STANDARD_SHAPE_PROPS = {
+export const STANDARD_SHAPE_PROPS = {
     fill         : {type: 'solid', color: 'rgba(240,240,240,1.0)'},
     strokeColor  : 'rgba(30,30,30,1.0)',
     strokeSize   : 2,
     strokePattern: 'solid'
 };
-
-function enrichItemWithStandardShapeProps(item) {
-    enrichObjectWithDefaults(item.shapeProps, STANDARD_SHAPE_PROPS);
-}
-
 
 const defaultArea = {
     x:0, y: 0, 
@@ -126,126 +115,10 @@ export const defaultItemDefinition = {
     behavior: {
         events: []
     },
-    shapeProps: {}
+    shapeProps: {},
+    tooltipBackground: 'rgba(230,230,230,1.0)',
+    tooltipColor: 'rgba(30,30,30,1.0)',
 };
-
-function idFixer(obj) {
-    if (!obj.id) {
-        obj.id = shortid.generate();
-    }
-}
-
-
-function fixBehaviorEvents(behavior) {
-    forEach(behavior.events, event => {
-        idFixer(event);
-
-        forEach(event.actions, idFixer);
-    });
-}
-
-/**
- * This function is needed since curves were changed to support multiple paths in a single curve item
- * Also the shape id changed from "curve" to "path"
- * @param {*} item 
- */
-function fixOldCurveItem(item) {
-    item.shape = 'path';
-    if (!Array.isArray(item.shapeProps.paths) && Array.isArray(item.shapeProps.points)) {
-        item.shapeProps.paths = [{
-            points: item.shapeProps.points,
-            closed: item.shapeProps.closed
-        }];
-        delete item.shapeProps.points;
-    }
-}
-
-
-
-function fixPathToRelativePlacement(item) {
-    if (Array.isArray(item.shapeProps.paths)) {
-        item.shapeProps.paths.forEach(path => {
-            if (path.pos !== 'relative') {
-                path.pos = 'relative';
-                if (Array.isArray(path.points)) {
-                    path.points = path.points.map(point =>{
-                        return convertCurvePointToRelative(point, item.area.w, item.area.h);
-                    });
-                }
-            }
-        });
-    }
-}
-
-/**
- * Used for backwards compatibilty and it merges "groups" array with "tags"
- */
-function fixOldGroups(item) {
-    if (Array.isArray(item.groups)) {
-        const tags = new Set(item.groups);
-        if (Array.isArray(item.tags)) {
-            item.tags.forEach(tag => tags.add(tag));
-        }
-        item.tags = Array.from(tags);
-
-        delete item.groups;
-    }
-}
-
-export function enrichItemWithDefaults(item) {
-    if (!item.textSlots)  {
-        item.textSlots = {};
-    }
-
-    if (!item.shape) {
-        item.shape = 'none';
-    }
-
-    // fixing old documents before curves were moved into multi-path shapes
-    if (item.shape === 'curve') {
-        fixOldCurveItem(item);
-    }
-    if (item.shape === 'path') {
-        fixPathToRelativePlacement(item);
-    }
-
-    enrichObjectWithDefaults(item, defaultItemDefinition);
-
-    fixOldGroups(item);
-    fixBehaviorEvents(item.behavior);
-    forEach(item.links, idFixer);
-
-    let shape = Shape.find(item.shape);
-    if (!shape) {
-        return;
-    }
-   
-    forEach(shape.args, (arg, argName) => {
-        if (!item.shapeProps.hasOwnProperty(argName)) {
-            item.shapeProps[argName] = utils.clone(arg.value);
-        } else if (typeof item.shapeProps[argName] === 'object') {
-            enrichObjectWithDefaults(item.shapeProps[argName], shape.args[argName].value);
-        }
-    });
-
-    if (shape.shapeType === 'standard') {
-        enrichItemWithStandardShapeProps(item);
-    }
-
-    // Some getTextSlots functions in some shapes rely on specific fields in shapeProps
-    // that is why it is important to enrich all shapeProps before we call getTextSlots function
-    const textSlots = shape.getTextSlots(item);
-    if (textSlots) {
-        forEach(textSlots, textSlot => {
-            if (!item.textSlots.hasOwnProperty(textSlot.name)) {
-                item.textSlots[textSlot.name] = {};
-                enrichItemTextSlotWithDefaults(item.textSlots[textSlot.name]);
-            }
-        });
-    }
-
-}
-
 
 export const defaultItem = {
     cursor: 'default',
@@ -303,23 +176,6 @@ export function defaultifyItem(item) {
     return resultedItem;
 }
 
-export function enrichItemWithDefaultShapeProps(item) {
-    const shape = Shape.find(item.shape);
-    if (!shape) {
-        return;
-    }
-    if (shape.args) {
-        if (!item.shapeProps) {
-            item.shapeProps = {};
-        }
-        forEach(shape.args, (shapeArg, shapeArgName) => {
-            if (!item.shapeProps.hasOwnProperty(shapeArgName)) {
-                item.shapeProps[shapeArgName] = shapeArg.value;
-            }
-        });
-    }
-}
-
 export function traverseItems(rootItem, callback) {
     callback(rootItem);
     if (rootItem.childItems) {
@@ -333,15 +189,6 @@ export function traverseItems(rootItem, callback) {
         });
     }
 }
-
-export function createDefaultRectItem() {
-    const item = utils.clone(defaultItem);
-    item.shape = 'rect';
-
-    enrichItemWithDefaults(item);
-    return item;
-}
-
 
 /**
  * 

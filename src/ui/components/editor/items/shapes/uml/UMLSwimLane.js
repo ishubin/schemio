@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../../myMath';
 import AdvancedFill from '../../AdvancedFill.vue';
-import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/Item';
+import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/ItemFixer';
 
 function swimLaneWidth(item) {
     if (item.shapeProps.vertical) {

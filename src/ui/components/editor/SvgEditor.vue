@@ -171,7 +171,8 @@ import find from 'lodash/find';
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {ItemInteractionMode, defaultItem, enrichItemWithDefaults, traverseItems, hasItemDescription} from '../../scheme/Item';
+import {ItemInteractionMode, defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
+import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import EventBus from './EventBus.js';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
