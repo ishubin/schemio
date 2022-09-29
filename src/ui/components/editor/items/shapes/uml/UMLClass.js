@@ -25,8 +25,8 @@ export default {
             item: {
                 textSlots: {
                     title: {text: '<b>Class</b>', fontSize: 16, halign: 'center', valign: 'middle', paddingLeft: 0, paddingTop: 0, paddingRight: 0, paddingBottom: 0},
-                    section1: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'},
-                    section2: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top'}
+                    section1: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top', paddingLeft: 5, paddingTop: 5, paddingRight: 5, paddingBottom: 5},
+                    section2: {text: '', fontSize: 14, font: 'Courier New', halign: 'left', valign: 'top', paddingLeft: 5, paddingTop: 5, paddingRight: 5, paddingBottom: 5}
                 },
             },
             size: {w: 140, h: 100}
