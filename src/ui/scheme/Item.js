@@ -58,7 +58,7 @@ export function prettyTextSlotProperty(propertyName) {
 
 
 
-const defaultTextSlotProps = {
+export const defaultTextSlotProps = {
     text         : '',
     color        : 'rgba(0,0,0,1.0)',
     halign       : 'center',            // can be: left, center, right
