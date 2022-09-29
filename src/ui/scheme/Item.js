@@ -5,7 +5,7 @@ import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
 import {getDefaultFont, getAllFonts} from './Fonts';
 import forEach from 'lodash/forEach';
-import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
+import { defaultifyObject } from '../../defaultify';
 import map from 'lodash/map';
 import find from 'lodash/find';
 
@@ -28,11 +28,6 @@ export const textWhiteSpaceOptions = [{
 }, {
     name: 'Preserved + Wrap', value: 'pre-wrap'
 }];
-
-export const knownBlendModes = ['normal', 'multiply', 'screen', 'overlay', 'darken', 
-                    'lighten', 'color-dodge', 'color-burn', 'difference',
-                    'exclusion', 'hue', 'saturation', 'color', 'luminosity'
-];
 
 export const textSlotProperties = [
     {field: 'color', name: 'Color', type: 'color'},

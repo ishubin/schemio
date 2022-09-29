@@ -8,7 +8,7 @@ import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
 import Animation from './Animation';
-import { knownBlendModes } from '../scheme/Item';
+import { knownBlendModes } from '../scheme/ItemConst';
 import AnimationFunctions from './functions/AnimationFunctions';
 
 
