@@ -322,6 +322,9 @@ export default {
         },
 
         onItemChanged(propertyPath) {
+            this.svgItemTransform = this.calculateSVGItemTransform();
+            this.revision += 1;
+
             const shape = Shape.find(this.item.shape);
             if (!shape) {
                 return;
@@ -336,10 +339,6 @@ export default {
                 }
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
-
-            this.svgItemTransform = this.calculateSVGItemTransform();
-
-            this.revision += 1;
 
             if (!shape.editorProps || !shape.editorProps.customTextRendering) {
                 this.textSlots = this.generateTextSlots();
