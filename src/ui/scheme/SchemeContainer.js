@@ -34,8 +34,6 @@ const log = new Logger('SchemeContainer');
 // Therefore we need to compensate for that and use this const value as the minimum search range
 const minSpatialIndexDistance = 20;
 
-const IGNORE_PARENT = true;
-
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
     moved: true,
@@ -358,7 +356,11 @@ class SchemeContainer {
                     set.add(item.id)
                 });
 
-                this.attachItemsToComponentItem(item, [referenceItem], IGNORE_PARENT);
+                this.attachItemsToComponentItem(item, [{
+                    ...referenceItem,
+                    shape: 'none',
+                    shapeProps: {}
+                }]);
                 this.eventBus.emitItemChanged(item.id);
             }
         }
@@ -399,26 +401,14 @@ class SchemeContainer {
         });
     }
 
-    attachItemsToComponentItem(componentItem, referenceItems, ignoreParent) {
-        const preserveOriginalNames = true;
-        const shouldIndexClones = true;
-        let childItems = null;
-        if (ignoreParent && referenceItems.length > 0) {
-            childItems = [];
-            if (referenceItems[0].childItems) {
-                childItems = childItems.concat(this.cloneItems(referenceItems[0].childItems, preserveOriginalNames, shouldIndexClones));
-            }
-            if (referenceItems[0]._childItems) {
-                childItems = childItems.concat(this.cloneItems(referenceItems[0]._childItems, preserveOriginalNames, shouldIndexClones));
-            }
-        }
-        else {
-            childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
-        }
-
-        if (!childItems) {
+    attachItemsToComponentItem(componentItem, referenceItems) {
+        if (!referenceItems) {
             return;
         }
+        const preserveOriginalNames = true;
+        const shouldIndexClones = true;
+
+        const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
 
         const bBox = this.getBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
