@@ -76,7 +76,7 @@
             >
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible"
-                :key="`${childItem.id}-${childItem.shape}`"
+                :key="`${childItem.id}-${childItem.shape}-${item.meta.revision}`"
                 :item="childItem"
                 :patchIndex="patchIndex"
                 :mode="mode"
@@ -323,10 +323,10 @@ export default {
 
         onItemChanged(propertyPath) {
             this.svgItemTransform = this.calculateSVGItemTransform();
-            this.revision += 1;
 
             const shape = Shape.find(this.item.shape);
             if (!shape) {
+                this.revision += 1;
                 return;
             }
             if (this.oldShape !== this.item.shape) {
@@ -351,6 +351,7 @@ export default {
             this.backgroundEffects = backgroundEffects;
             this.foregroundEffects = foregroundEffects;
 
+            this.revision += 1;
             this.$forceUpdate();
         },
 

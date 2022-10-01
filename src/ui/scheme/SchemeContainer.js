@@ -235,7 +235,7 @@ class SchemeContainer {
         this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
-        this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the componented from the reference item
+        this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the component from the reference item
 
         this._itemTagsToIds = {}; // used for quick access to item ids via item tags
         this.itemTags = []; // stores tags from all items
@@ -359,6 +359,7 @@ class SchemeContainer {
                 });
 
                 this.attachItemsToComponentItem(item, [referenceItem], IGNORE_PARENT);
+                this.eventBus.emitItemChanged(item.id);
             }
         }
     }
@@ -391,7 +392,6 @@ class SchemeContainer {
                 const item = this.findItemById(componentId);
                 if (item.shape === 'component') {
                     item._childItems = [];
-                    //TODO find a way to render an error message about cyclic dependency. Perhaps with the help of 'meta' field
                     item.meta.cyclicComponent = true;
                 }
             }
@@ -1752,13 +1752,17 @@ class SchemeContainer {
      */
     setPropertyForItem(item, setter) {
         setter(item);
+        this.updatePropertyForClones(item, setter);
+    }
 
+    updatePropertyForClones(item, setter) {
         const cloneIds = this.getItemCloneIds(item.id);
         if (cloneIds) {
             cloneIds.forEach(cloneId => {
                 const clonedItem = this.findItemById(cloneId);
                 if (clonedItem) {
                     this.setPropertyForItem(clonedItem, setter);
+                    this.eventBus.emitItemChanged(clonedItem.id);
                 }
             });
         }
@@ -1800,6 +1804,8 @@ class SchemeContainer {
                 }
             });
         });
+
+        //TODO OPTIMIZE: we don't need to execute code below for a scheme container in edit mode
 
         // recreates element selector in case the source or destination was also copied together with it
         const rebuildElementSelector = (elementSelector) => {
@@ -2014,6 +2020,15 @@ class SchemeContainer {
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
                 if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
 
+                this.updatePropertyForClones(item, clone => {
+                    clone.area.x = item.area.x;
+                    clone.area.y = item.area.y;
+                    clone.area.w = item.area.w;
+                    clone.area.h = item.area.h;
+                    clone.area.r = item.area.r;
+                    clone.area.px = item.area.px;
+                    clone.area.py = item.area.py;
+                });
             }
         });
 

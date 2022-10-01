@@ -622,7 +622,7 @@ class IdleState extends SubState {
         if (object && object.type !== 'void') {
             this.clickedObject = object;
 
-            if (object.type === 'item') {
+            if (object.type === 'item' && object.item) {
                 if (!this.schemeContainer.isItemSelected(object.item)) {
                     this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
                 }
