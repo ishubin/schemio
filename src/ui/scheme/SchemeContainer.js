@@ -17,7 +17,7 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import { Item, traverseItems, defaultItemDefinition} from './Item';
+import { Item, traverseItems, defaultItemDefinition, defaultItem} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
