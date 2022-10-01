@@ -356,11 +356,20 @@ class SchemeContainer {
                     set.add(item.id)
                 });
 
-                this.attachItemsToComponentItem(item, [{
+                const rootItem = {
                     ...referenceItem,
+                    meta: {
+                        ...referenceItem.meta,
+                        componentRoot: true
+                    },
                     shape: 'none',
+                    opacity: 100,
+                    selfOpacity: 100,
+                    visible: true,
                     shapeProps: {}
-                }]);
+                };
+
+                this.attachItemsToComponentItem(item, [rootItem]);
                 this.eventBus.emitItemChanged(item.id);
             }
         }
@@ -1750,7 +1759,7 @@ class SchemeContainer {
         if (cloneIds) {
             cloneIds.forEach(cloneId => {
                 const clonedItem = this.findItemById(cloneId);
-                if (clonedItem) {
+                if (clonedItem && !clonedItem.meta.componentRoot) {
                     this.setPropertyForItem(clonedItem, setter);
                     this.eventBus.emitItemChanged(clonedItem.id);
                 }
@@ -1778,6 +1787,10 @@ class SchemeContainer {
                 newItem.area.x = worldPoint.x;
                 newItem.area.y = worldPoint.y;
                 newItem.area.r = worldAngle;
+
+                if (item.meta.componentRoot){
+                    newItem.meta.componentRoot = true;
+                }
 
                 copiedItems.push(newItem);
             }
