@@ -234,6 +234,7 @@ class SchemeContainer {
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
 
         this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the component from the reference item
+        this.itemCloneReferenceIds = new Map(); // stores ids of reference items that were used for cloned items
 
         this._itemTagsToIds = {}; // used for quick access to item ids via item tags
         this.itemTags = []; // stores tags from all items
@@ -321,6 +322,7 @@ class SchemeContainer {
         this.pinSpatialIndex = new SpatialIndex();
         this.dependencyItemMap = {};
         this.itemCloneIds = new Map();
+        this.itemCloneReferenceIds = new Map();
         this.framePlayers = [];
 
         this.componentItems = [];
@@ -426,19 +428,17 @@ class SchemeContainer {
         });
 
         let scale = 1.0, dx = 0, dy = 0;
-        let sx = componentItem.area.w / bBox.w;
-        let sy = componentItem.area.h / bBox.h;
-        let w = bBox.w;
-        let h = bBox.h;
+        let w = Math.max(bBox.w, 0.00001);
+        let h = Math.max(bBox.h, 0.00001);
+        let sx = componentItem.area.w / w;
+        let sy = componentItem.area.h / h;
 
         if (componentItem.shapeProps.placement === 'centered') {
-            if (bBox.w > 0 && bBox.h > 0) {
-                scale = Math.min(sx, sy);
-                sx = scale;
-                sy = scale;
-                dx = (componentItem.area.w - w * sx) / 2;
-                dy = (componentItem.area.h - h * sy) / 2;
-            }
+            scale = Math.min(sx, sy);
+            sx = scale;
+            sy = scale;
+            dx = (componentItem.area.w - w * sx) / 2;
+            dy = (componentItem.area.h - h * sy) / 2;
         }
 
         const rectItem = createDefaultRectItem();
@@ -460,6 +460,47 @@ class SchemeContainer {
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
         const nonIndexable = false;
         this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
+    }
+
+    readjustComponentContainerRect(componentItem) {
+        if (!componentItem._childItems || componentItem._childItems.length === 0) {
+            return;
+        }
+
+        if (!componentItem._childItems[0]._childItems || componentItem._childItems[0]._childItems.length === 0) {
+            return;
+        }
+
+        //TODO optimize this code. It is executed only during resizing of edit box. The following data can be cached since there is only one edit box at a time.
+        const referenceItems = [];
+        componentItem._childItems[0]._childItems.forEach(cloneItem => {
+            const referenceItemId = this.itemCloneReferenceIds.get(cloneItem.id);
+            if (referenceItemId) {
+                referenceItems.push(this.findItemById(referenceItemId));
+            }
+        });
+
+        const bBox = this.getBoundingBoxOfItems(referenceItems);
+        let scale = 1.0, dx = 0, dy = 0;
+        let w = Math.max(bBox.w, 0.00001);
+        let h = Math.max(bBox.h, 0.00001);
+        let sx = componentItem.area.w / w;
+        let sy = componentItem.area.h / h;
+
+        if (componentItem.shapeProps.placement === 'centered') {
+            scale = Math.min(sx, sy);
+            sx = scale;
+            sy = scale;
+            dx = (componentItem.area.w - w * sx) / 2;
+            dy = (componentItem.area.h - h * sy) / 2;
+        }
+
+        componentItem._childItems[0].area.x = dx;
+        componentItem._childItems[0].area.y = dy;
+        componentItem._childItems[0].area.w = w;
+        componentItem._childItems[0].area.h = h;
+        componentItem._childItems[0].area.sx = sx;
+        componentItem._childItems[0].area.sy = sy;
     }
 
     reindexChildItems(mainItem) {
@@ -592,7 +633,7 @@ class SchemeContainer {
             set = new Set();
             this.itemCloneIds.set(referenceItemId, set);
         }
-        
+        this.itemCloneReferenceIds.set(clonedItemId, referenceItemId);
         set.add(clonedItemId);
     }
 
@@ -2003,6 +2044,10 @@ class SchemeContainer {
                     const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
                     item.area.w = Math.max(0, localBottomRight.x);
                     item.area.h = Math.max(0, localBottomRight.y);
+                }
+
+                if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+                    this.readjustComponentContainerRect(item);
                 }
 
                 this.updateChildTransforms(item);
