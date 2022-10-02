@@ -1226,17 +1226,17 @@ class SchemeContainer {
             otherItemWorldAngle = worldAngleOfItem(otherItem);
         }
 
-        let parentItem = null;
-        let parentId = null;
+        let previousParent = null;
+        let previousParentId = null;
         let itemsArray = this.scheme.items;
         if (item.meta.parentId) {
-            parentItem = this.findItemById(item.meta.parentId);
-            if (!parentItem) {
+            previousParent = this.findItemById(item.meta.parentId);
+            if (!previousParent) {
                 return;
             }
-            parentId = parentItem.id;
-            itemsArray = parentItem.childItems;
-            previousParentWorldAngle = worldAngleOfItem(parentItem);
+            previousParentId = previousParent.id;
+            itemsArray = previousParent.childItems;
+            previousParentWorldAngle = worldAngleOfItem(previousParent);
         }
 
         const index = findIndex(itemsArray, it => it.id === itemId);
@@ -1258,7 +1258,7 @@ class SchemeContainer {
         }
 
         let positionCorrection = 0;
-        if (parentId === newParentId && index < position) {
+        if (previousParentId === newParentId && index < position) {
             // if item was located in the same parent and was above destination we need to correct its new position
             positionCorrection = -1;
         }
@@ -1273,7 +1273,17 @@ class SchemeContainer {
             item.area.y = newLocalPoint.y;
         }
  
-        if (this.eventBus) this.eventBus.emitSchemeChangeCommited();
+        if (this.eventBus) {
+            if (previousParentId) {
+                this.eventBus.emitItemChanged(previousParentId);
+            }
+            if (newParentId) {
+                this.eventBus.emitItemChanged(newParentId);
+            }
+            this.eventBus.emitSchemeChangeCommited();
+        }
+
+
 
         this.reindexItems();
         this.updateMultiItemEditBox();
