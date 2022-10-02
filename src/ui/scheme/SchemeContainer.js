@@ -425,6 +425,17 @@ class SchemeContainer {
         forEach(childItems, item => {
             item.area.x -= bBox.x;
             item.area.y -= bBox.y;
+            // resetting the visiblity of component root items
+            // so that the reference item can be hidden and not effect the component
+            item.opacity = 100;
+            item.selfOpacity = 100;
+            item.visible = true;
+
+            // also clearing item tags for root items
+            // This is needed because reference items can have tags,
+            // which could be used to hide multiple items in a single event
+            // We don't want that event to get triggered for cloned component root items
+            item.tags = [];
         });
 
         let scale = 1.0, dx = 0, dy = 0;
