@@ -1811,7 +1811,7 @@ export default {
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
 
-                    if (item.shape === 'component' && name === 'referenceItem') {
+                    if (item.shape === 'component' && (name === 'referenceItem' || name === 'placement')) {
                         this.schemeContainer.reindexSpecifiedItems([item]);
                         reindexingNeeded = true;
                     }
@@ -2022,7 +2022,7 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme);
+                const componentSchemeContainer = new SchemeContainer(scheme, EventBus);
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
                 EventBus.emitItemChanged(item.id);

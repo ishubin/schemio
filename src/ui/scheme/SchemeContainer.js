@@ -426,26 +426,18 @@ class SchemeContainer {
         });
 
         let scale = 1.0, dx = 0, dy = 0;
-        const sx = componentItem.area.w / bBox.w;
-        const sy = componentItem.area.h / bBox.h;
+        let sx = componentItem.area.w / bBox.w;
+        let sy = componentItem.area.h / bBox.h;
         let w = bBox.w;
         let h = bBox.h;
 
-        if (bBox.w > 0 && bBox.h > 0) {
-            scale = Math.min(sx, sy, 1.0);
-            
-            if (sx > 1) {
-                dx = (componentItem.area.w - bBox.w) / 2;
-            } else if (sx > sy) {
-                dx = (componentItem.area.w - bBox.w * scale) / 2;
-                w = bBox.w / Math.max(0.00001, sx);
-            }
-
-            if (sy > 1) {
-                dy = (componentItem.area.h - bBox.h) / 2;
-            } else if (sx < sy) {
-                dy = (componentItem.area.h - bBox.h * scale) / 2;
-                h = bBox.h / Math.max(0.00001, sy);
+        if (componentItem.shapeProps.placement === 'centered') {
+            if (bBox.w > 0 && bBox.h > 0) {
+                scale = Math.min(sx, sy);
+                sx = scale;
+                sy = scale;
+                dx = (componentItem.area.w - w * sx) / 2;
+                dy = (componentItem.area.h - h * sy) / 2;
             }
         }
 
@@ -454,12 +446,10 @@ class SchemeContainer {
         rectItem.meta = {isComponentContainer: true};
         rectItem.area.x = dx;
         rectItem.area.y = dy;
-
         rectItem.area.w = w;
         rectItem.area.h = h;
-
-        rectItem.area.sx = scale;
-        rectItem.area.sy = scale;
+        rectItem.area.sx = sx;
+        rectItem.area.sy = sy;
         rectItem.shapeProps.fill = {type: 'none'};
         rectItem.shapeProps.strokeSize = 0;
 

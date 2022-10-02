@@ -151,6 +151,7 @@ export default {
             schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID', depends: {kind: 'external'}},
             referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}},
 
+            placement             : {type: 'choice', value: 'centered', options: ['centered', 'stretch'], name: 'Placement'},
             autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded', depends: {kind: 'external'}},
             showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode', depends: {kind: 'external'}},
             buttonFill            : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.15)'}, name: 'Button Fill', depends: {showButton: true, kind: 'external'}},
