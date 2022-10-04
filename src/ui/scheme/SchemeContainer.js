@@ -246,6 +246,10 @@ class SchemeContainer {
         // contains mapping of frame player id to its compiled animations
         this.framesAnimations = {};
 
+        this.componentItems = [];
+        // map of component id to reference item id
+        this.componentCyclicIndex = new Map();
+
         this.outlinePointsCache = new Map(); // stores points of item outlines so that it doesn't have to recompute it for items that were not changed
 
         this.svgOutlinePathCache = new ItemCache((item) => {
@@ -326,9 +330,7 @@ class SchemeContainer {
         this.framePlayers = [];
 
         this.componentItems = [];
-
-        // index of items that are referenced by components
-        this.componentDependencyIndex = new Map();
+        this.componentCyclicIndex = new Map();
 
         if (!this.scheme.items) {
             return;
@@ -350,13 +352,7 @@ class SchemeContainer {
         if (item.shapeProps.kind === 'embedded' && item.shapeProps.referenceItem) {
             const referenceItem = this.findFirstElementBySelector(item.shapeProps.referenceItem);
             if (referenceItem) {
-                if (!this.componentDependencyIndex.has(item.id)) {
-                    this.componentDependencyIndex.set(item.id, new Set());
-                }
-                const set = this.componentDependencyIndex.get(item.id);
-                traverseItems(referenceItem, item => {
-                    set.add(item.id)
-                });
+                this.componentCyclicIndex.set(item.id, referenceItem.id);
 
                 const rootItem = {
                     ...referenceItem,
@@ -378,37 +374,38 @@ class SchemeContainer {
     }
 
     fixComponentCyclicDependencies() {
-        this.componentDependencyIndex.forEach((dependencies, componentId) => {
-            const visitedIds = new Set();
+        const visitedIds = new Set();
 
-            const isCyclic = (id) => {
-                if (visitedIds.has(id)) {
-                    return true;
+        const traverseReferenceItem = (item) => {
+            forEach(item.childItems, childItem => {
+                if (childItem.shape === 'component') {
+                    visitComponent(childItem);
+                } else {
+                    traverseReferenceItem(childItem);
                 }
-                visitedIds.add(id);
-                let result = false;
-                if (this.componentDependencyIndex.has(id)) {
-                    const set = this.componentDependencyIndex.get(id)
-                    
-                    set.forEach(subId => {
-                        if (!result) {
-                            result = isCyclic(subId);
-                        }
-                    });
-                }
-                return result;
-            };
+            });
+        };
 
-            if (isCyclic(componentId)) {
+        const visitComponent = (componentItem) => {
+            if (visitedIds.has(componentItem.id)) {
                 // this is dirty code. We waste time on enriching components and only later check their dependecies 
                 // and clean up in case a cyclic dependency is detected
-                const item = this.findItemById(componentId);
-                if (item.shape === 'component') {
-                    item._childItems = [];
-                    item.meta.cyclicComponent = true;
-                }
+                componentItem._childItems = [];
+                componentItem.meta.cyclicComponent = true;
+                return false;
             }
+            visitedIds.add(componentItem.id);
 
+            const referenceItem = this.findItemById(this.componentCyclicIndex.get(componentItem.id));
+            if (referenceItem) {
+                traverseReferenceItem(referenceItem);
+            }
+            return true;
+        };
+
+        this.componentItems.forEach(componentItem => {
+            visitedIds.clear();
+            visitComponent(componentItem);
         });
     }
 

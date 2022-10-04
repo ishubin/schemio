@@ -586,7 +586,7 @@ export default {
                                 itemsForInit[item.id] = 1;
                             }
                             this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
-                        })
+                        });
                     }
                 });
             });
