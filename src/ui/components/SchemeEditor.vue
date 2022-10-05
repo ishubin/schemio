@@ -1229,7 +1229,7 @@ export default {
             })
             .catch(err => {
                 this.isSaving = false;
-                this.$store.dispatch('setErrorStatusMessage', 'Failed to save scheme, please try again');
+                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
                 this.markSchemeAsModified();
             });
         },
@@ -1932,7 +1932,7 @@ export default {
          * Invoked when user selects an item from ConnectorDestinationProposal panel during creation of a connector
          */
         onConnectorDestinationItemSelected(item) {
-            if (this.state === 'editPath') {
+            if (this.state === 'connecting') {
                 states[this.state].submitConnectorDestinationItem(item);
             }
         },
