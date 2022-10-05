@@ -27,6 +27,7 @@ import DestroyComponentFunction from './DestroyComponentFunction';
 import ToggleGroupFunction from './ToggleGroupFunction';
 import SendEventToParentFuction from './SendEventToParentFuction';
 import SendEventToChildrenFunction from './SendEventToChildrenFunction';
+import CopyEventsFunction from './CopyEventsFunction';
 
 export default {
     main: {
@@ -55,7 +56,8 @@ export default {
         wait                : WaitFunction,
         toggle              : ToggleFunction,
         untoggle            : UntoggleFunction,
-        toggleGroup         : ToggleGroupFunction
+        toggleGroup         : ToggleGroupFunction,
+        copyEvents          : CopyEventsFunction
     },
     scheme: {
     }

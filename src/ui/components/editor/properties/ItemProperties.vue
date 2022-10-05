@@ -14,7 +14,11 @@
             </li>
         </ul>
 
-        <general-panel v-if="currentTab === 'description'" :key="`general-panel-${item.id}`" :item="item" :schemeContainer="schemeContainer"/>
+        <general-panel v-if="currentTab === 'description'"
+            :key="`general-panel-${item.id}`"
+            :item="item"
+            :schemeContainer="schemeContainer"
+            @tags-changed="emitItemFieldChange('tags', arguments[0])"/>
         <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">

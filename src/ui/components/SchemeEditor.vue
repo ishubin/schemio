@@ -1260,9 +1260,6 @@ export default {
                     this.zoomToItems(this.schemeContainer.getItems());
                 }
             } else if (this.mode === 'view') {
-                // Doing a reindex only in view mode, since the state of items could have been changed
-                // due to 'init' events in items behavior.
-                this.interactiveSchemeContainer.reindexItems();
                 this.zoomToItems(this.interactiveSchemeContainer.getItems());
             }
         },

@@ -61,7 +61,9 @@ export default {
 
     methods: {
         onItemTagChange(newTags) {
-            this.item.tags = map(newTags, tag => tag.text);
+            // this.item.tags = map(newTags, tag => tag.text);
+
+            this.$emit('tags-changed', map(newTags, tag => tag.text));
         },
 
         commitSchemeChange(propertyName) {
