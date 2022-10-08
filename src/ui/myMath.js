@@ -709,10 +709,10 @@ export default {
         */
         // return this.multiplyMatrices(
         //     parentTransform,
-        //     this.translationMatrix(x + xr, y + yr),
+        //     this.translationMatrix(area.x + xr, area.y + yr),
         //     this.rotationMatrixInDegrees(area.r),
+        //     this.scaleMatrix(area.sx, area.sy),
         //     this.translationMatrix(-xr, -yr),
-        //     this.scaleMatrix(area.sx, area.sy)
         // );
 
         /*
@@ -720,13 +720,17 @@ export default {
         */
 
         const s = [[0,0,0],[0,0,0],[0,0,0]];
-        const dx = area.x + xr * (1 - cosa) + yr*sina;
-        const dy = area.y + yr * (1 - cosa) - xr*sina;
+        const x1 = area.x + xr;
+        const y1 = area.y + yr;
+        const x2 = -xr;
+        const y2 = -yr;
+
+        const A = parentTransform;
 
         for (let i = 0; i < 3; i++) {
-            s[i][0] = area.sx * (parentTransform[i][0]*cosa + parentTransform[i][1]*sina);
-            s[i][1] = area.sy * (parentTransform[i][1]*cosa - parentTransform[i][0]*sina);
-            s[i][2] = parentTransform[i][0] * dx + parentTransform[i][1] * dy + parentTransform[i][2];
+            s[i][0] = area.sx * (A[i][0]*cosa + A[i][1]*sina);
+            s[i][1] = area.sy * (A[i][1]*cosa - A[i][0]*sina);
+            s[i][2] = s[i][0] * x2 + s[i][1] * y2 + A[i][0]*x1 + A[i][1]*y1 + A[i][2];
         }
         return s;
     },
@@ -813,7 +817,7 @@ export default {
         // But the translation matrix is unknown (At). And that is actually what this function is supposed to calculate
         // Based on this we can write the following equation:
         //
-        //      Pw = Ap * At * Ac1 * Ar * Ac2 * As * P0
+        //      Pw = Ap * At * Ac1 * Ar * As * Ac2 * P0
         //
         // where
         //      Pw  - world point
@@ -822,8 +826,8 @@ export default {
         //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy). 
         //            This matrix is needed so that item is rotated around pivot point
         //      Ar  - rotation matrix. Rotates item by its area.r value
-        //      Ac2 - translation matrix for items pivot point. It moves item back by (-rpx, -rpy)
         //      As  - scale matrix
+        //      Ac2 - translation matrix for items pivot point. It moves item back by (-rpx, -rpy)
         //      P0  - local point
         //
         // We can move Ap to the left if we inverse it. Lets also group all matrices
@@ -833,7 +837,7 @@ export default {
         // 
         // where
         //      Ap-1 = is inverse of Ap matrix
-        //      A = Ac1 * Ar * Ac2 * As
+        //      A = Ac1 * Ar * As * Ac2
         // 
         // lets call matrix Ap-1 as B to make it easier to distinguish between the two matrices:
         //
@@ -869,8 +873,8 @@ export default {
             const A = this.multiplyMatrices(
                 this.translationMatrix(rpx, rpy),
                 this.rotationMatrixInDegrees(area.r),
+                this.scaleMatrix(area.sx, area.sy),
                 this.translationMatrix(-rpx, -rpy),
-                this.scaleMatrix(area.sx, area.sy)
             );
 
             const d = x0 * A[2][0] + y0 * A[2][1] + A[2][2];

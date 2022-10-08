@@ -5,7 +5,6 @@ import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
-import myMath from '../../myMath';
 import utils from '../../utils';
 
 
@@ -45,14 +44,6 @@ class ScaleAnimation extends Animation {
 
             this.item.area.sx = this.originalArea.sx * (1.0 - convertedT) + this.destinationScale.sx * convertedT;
             this.item.area.sy = this.originalArea.sy * (1.0 - convertedT) + this.destinationScale.sy * convertedT;
-
-            const wp = myMath.worldPointInArea(this.originalArea.w * this.originalArea.px, this.originalArea.h * this.originalArea.py, this.originalArea, this.item.meta.transformMatrix);
-            const p = myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w * this.item.area.px, this.item.area.h * this.item.area.py, this.item.area, this.item.meta.transformMatrix);
-            if (p) {
-                this.item.area.x = p.x;
-                this.item.area.y = p.y;
-            }
-
 
             EventBus.emitItemChanged(this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);

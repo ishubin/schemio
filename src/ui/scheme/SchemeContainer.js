@@ -456,6 +456,8 @@ class SchemeContainer {
         rectItem.area.y = dy;
         rectItem.area.w = w;
         rectItem.area.h = h;
+        rectItem.area.px = 0;
+        rectItem.area.py = 0;
         rectItem.area.sx = sx;
         rectItem.area.sy = sy;
         rectItem.shapeProps.fill = {type: 'none'};
