@@ -1203,9 +1203,6 @@ class SchemeContainer {
     }
 
     remountItemInsideOtherItem(itemId, otherItemId, position) {
-        if (!position) {
-            position = 0;
-        }
         const item = this.findItemById(itemId);
         if (!item) {
             return;
@@ -1216,6 +1213,13 @@ class SchemeContainer {
             otherItem = this.findItemById(otherItemId);
             if (!otherItem) {
                 return;
+            }
+        }
+
+        if (!position) {
+            position = 0;
+            if (otherItem.childItems) {
+                position = otherItem.childItems.length;
             }
         }
 
