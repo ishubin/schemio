@@ -66,7 +66,7 @@
                 <div class="item-menu">
                     <div class="item-container"
                         v-for="art in artList"
-                        v-if="!searchKeyword || art.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0"
+                        v-if="!searchKeyword || safeTextMatchKeyword(art.name)"
                         @mouseover="showPreviewArt(art)"
                         @mouseleave="stopPreviewArt(art)"
                         @mousedown="onArtMouseDown($event, art)"
@@ -84,7 +84,7 @@
                     <div class="item-menu">
                         <div class="item-container"
                             v-for="icon in artPack.icons"
-                            v-if="!searchKeyword || icon.name.toLowerCase().indexOf(searchKeyword.toLowerCase()) >=0 || icon.description.toLowerCase().indexOf(searchKeyword.toLowerCase()) >= 0"
+                            v-if="!searchKeyword || safeTextMatchKeyword(icon.name) || safeTextMatchKeyword(icon.description)"
                             @mouseover="showPreviewArt(icon)"
                             @mouseleave="stopPreviewArt(icon)"
                             @mousedown="onArtMouseDown($event, icon)"
@@ -298,12 +298,16 @@ export default {
             this.$forceUpdate();
         },
 
-        filterArtPacks() {
+        safeTextMatchKeyword(text) {
+            let safeText = text || '';
             const searchKeyword = this.searchKeyword.toLowerCase();
+            return safeText.toLowerCase().indexOf(searchKeyword) >= 0;
+        },
+
+        filterArtPacks() {
 
             this.filteredArtPacks = map(this.$store.state.itemMenu.artPacks, artPack => {
-                const artPackName = artPack.name.toLowerCase();
-                let packMatches = artPackName.indexOf(searchKeyword) >= 0;
+                let packMatches = this.safeTextMatchKeyword(artPack.name);
 
                 return {
                     id    : artPack.id,
@@ -312,7 +316,7 @@ export default {
                     author: artPack.author,
                     icons : filter(artPack.icons, icon => {
                         if (this.searchKeyword) {
-                            return packMatches || icon.name.toLowerCase().indexOf(searchKeyword) >= 0 || icon.description.toLowerCase().indexOf(searchKeyword) >= 0;
+                            return packMatches || this.safeTextMatchKeyword(icon.name) || this.safeTextMatchKeyword(icon.description);
                         }
                         return true;
                     })
