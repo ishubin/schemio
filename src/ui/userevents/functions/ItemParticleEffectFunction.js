@@ -117,8 +117,8 @@ class ItemParticle extends Particle {
         }
         const worldPoint = worldPointOnItem(this.position.x, this.position.y, this.item);
         this.particleItem.visible = true;
-        this.particleItem.area.x = worldPoint.x - this.particleItem.area.px * this.particleItem.area.w * this.scale;
-        this.particleItem.area.y = worldPoint.y - this.particleItem.area.py * this.particleItem.area.h * this.scale;
+        this.particleItem.area.x = worldPoint.x - this.particleItem.area.px * this.particleItem.area.w;
+        this.particleItem.area.y = worldPoint.y - this.particleItem.area.py * this.particleItem.area.h;
         this.particleItem.area.sx = this.scale;
         this.particleItem.area.sy = this.scale;
         this.particleItem.area.r = this.angle;
