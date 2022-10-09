@@ -57,7 +57,8 @@ export default class Compiler {
             }
         });
 
-        return (userEventBus, revision) => {
+        return (userEventBus, revision, subscribedItemId, eventName) => {
+            const subscribedItem = schemeContainer.findItemById(subscribedItemId);
             if (funcs.length < 1) {
                 return;
             }
@@ -71,12 +72,12 @@ export default class Compiler {
 
                 let f = funcs[index];
                 if (userEventBus.isActionAllowed(revision)) {
-                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, resultCallback);
+                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
                 } else {
                 }
             };
             if (userEventBus.isActionAllowed(revision)) {
-                funcs[0].func.execute(funcs[0].element, funcs[0].args, schemeContainer, userEventBus, resultCallback);
+                funcs[0].func.execute(funcs[0].element, funcs[0].args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
             }
         };
     }

@@ -28,6 +28,8 @@ import ToggleGroupFunction from './ToggleGroupFunction';
 import SendEventToParentFuction from './SendEventToParentFuction';
 import SendEventToChildrenFunction from './SendEventToChildrenFunction';
 import CopyEventsFunction from './CopyEventsFunction';
+import RepeaterFunction from './RepeaterFunction';
+import StopRepeaterFunction from './StopRepeaterFunction';
 
 export default {
     main: {
@@ -57,7 +59,9 @@ export default {
         toggle              : ToggleFunction,
         untoggle            : UntoggleFunction,
         toggleGroup         : ToggleGroupFunction,
-        copyEvents          : CopyEventsFunction
+        copyEvents          : CopyEventsFunction,
+        repeater            : RepeaterFunction,
+        stopRepeater        : StopRepeaterFunction
     },
     scheme: {
     }

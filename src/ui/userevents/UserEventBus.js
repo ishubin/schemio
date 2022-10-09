@@ -41,7 +41,7 @@ export default class UserEventBus {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             forEach(itemSubs[eventName], subscriber => {
-                subscriber.callback.apply(null, [this, this.revision]);
+                subscriber.callback.apply(null, [this, this.revision, itemId, eventName]);
             });
         }
     }

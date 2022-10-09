@@ -27,6 +27,10 @@ describe('UserEvents Compiler', () => {
                     return [ abcItem ];
                 }
                 throw new Error('Unknown selector');
+            },
+
+            findItemById(itemId) {
+                return null;
             }
         };
 
@@ -81,6 +85,10 @@ describe('UserEvents Compiler', () => {
                     return [items[2]];
                 }
                 return [];
+            },
+
+            findItemById(itemId) {
+                return null;
             }
         };
 
