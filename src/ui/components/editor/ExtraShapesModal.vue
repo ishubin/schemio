@@ -43,7 +43,6 @@ import Modal from '../Modal.vue';
 import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
 import EventBus from './EventBus';
 import StoreUtils from '../../store/StoreUtils';
-import Shape from './items/shapes/Shape';
 
 export default {
     components: {Modal},
