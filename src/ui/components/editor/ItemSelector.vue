@@ -338,7 +338,7 @@ export default {
                         };
                     } else if (this.dragging.dropInside) {
                         handler = (item) => {
-                            this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId);
+                            this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId, 0);
                         };
                     } else {
                         handler = (item) => {

@@ -1216,7 +1216,7 @@ class SchemeContainer {
             }
         }
 
-        if (!position) {
+        if (isNaN(position)) {
             position = 0;
             if (otherItem.childItems) {
                 position = otherItem.childItems.length;
