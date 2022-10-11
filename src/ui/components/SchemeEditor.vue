@@ -117,7 +117,7 @@
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
-                    :key="`${schemeContainer.scheme.id}-view-${textSelectionEnabled}-${editorRevision}`"
+                    :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"

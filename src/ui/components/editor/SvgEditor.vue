@@ -22,7 +22,7 @@
                         v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
                         <ItemSvg 
-                            :key="`${item.id}-${item.shape}`"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
@@ -72,8 +72,9 @@
                         <ItemSvg 
                             v-for="item in hud.childItems"
                             v-if="item.visible"
-                            :key="`${item.id}-${item.shape}`"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
+                            :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
                             @custom-event="onItemCustomEvent"
@@ -1017,6 +1018,12 @@ export default {
             } else {
                 return link.url;
             }
+        }
+    },
+    watch: {
+        textSelectionEnabled(isEnabled) {
+            this.mouseEventsEnabled = !(this.mode === 'view' && isEnabled);
+            this.$forceUpdate();
         }
     }
 }

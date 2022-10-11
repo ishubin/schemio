@@ -85,7 +85,7 @@
                 />
         </g>
 
-        <path v-if="itemSvgOutlinePath && shouldDrawEventLayer"
+        <path v-if="itemSvgOutlinePath && shouldDrawEventLayer && !textSelectionEnabled"
             class="svg-event-layer"
             data-preview-ignore="true"
             :id="`item-svg-path-${item.id}`"
@@ -133,8 +133,9 @@
             >
             <ItemSvg v-for="childItem in item.childItems"
                 v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
-                :key="`${childItem.id}-${childItem.shape}`"
+                :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :textSelectionEnabled="textSelectionEnabled"
                 :patchIndex="patchIndex"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
@@ -147,8 +148,9 @@
             >
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible && childItem.shape !== 'hud'"
-                :key="`${childItem.id}-${childItem.shape}`"
+                :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :textSelectionEnabled="textSelectionEnabled"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
