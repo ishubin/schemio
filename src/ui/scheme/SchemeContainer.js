@@ -1454,8 +1454,9 @@ class SchemeContainer {
             this.outlinePointsCache.delete(item.id);
         }
         let itemsArray = this.scheme.items;
+        let parentItem = null;
         if (item.meta.parentId) {
-            const parentItem = this.findItemById(item.meta.parentId);
+            parentItem = this.findItemById(item.meta.parentId);
             if (!parentItem || !parentItem.childItems) {
                 return;
             }
@@ -1468,6 +1469,9 @@ class SchemeContainer {
         }
 
         itemsArray.splice(index, 1);
+        if (parentItem) {
+            this.eventBus.emitItemChanged(parentItem.id);
+        }
     }
 
     deleteNonIndexableItems(items) {
