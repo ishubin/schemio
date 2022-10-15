@@ -145,6 +145,7 @@
                 <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
                     :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.slotName}`"
                     :item="inPlaceTextEditor.item"
+                    :slotName="inPlaceTextEditor.slotName"
                     :area="inPlaceTextEditor.area"
                     :css-style="inPlaceTextEditor.style"
                     :text="inPlaceTextEditor.text"
@@ -1141,6 +1142,7 @@ export default {
             if (item.shape === 'none') {
                 item.area.w = width;
                 item.area.h = height;
+                this.schemeContainer.updateMultiItemEditBox();
             }
         },
 

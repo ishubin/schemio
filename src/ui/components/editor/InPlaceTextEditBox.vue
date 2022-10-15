@@ -30,6 +30,7 @@ import {
 export default {
     props: {
         item           : {type: Object},
+        slotName       : {type: String},
         area           : {type: Object},
         text           : {type: String},
         cssStyle       : {type: Object},
@@ -84,7 +85,14 @@ export default {
             // in case user clicks void - we don't want to limit the typing area
             if (!this.creatingNewItem) {
                 editorCssStyle.width = `${this.area.w/scale}px`;
-                editorCssStyle.height = `${this.area.h/scale}px`;
+
+                // for simple labels we want to be able to reduce the editor height in case we delete some lines from the text
+                // but we want to make sure that text slot editor rect is correctly positioned for other shapes
+                // Also, in case label has valign middle or bottom, the height should be limited, otherwise text will "jump up"
+                const valign = this.item.textSlots[this.slotName] ? this.item.textSlots[this.slotName].valign : 'top';
+                if (this.item.shape !== 'none' || (this.item.shape === 'none' && valign !== 'top')) {
+                    editorCssStyle.height = `${this.area.h/scale}px`;
+                }
             }
             return editorCssStyle;
         },
@@ -153,9 +161,8 @@ export default {
                             name = name.substring(0, 20);
                         }
                         this.$emit('item-renamed', this.item, name);
-
-                        this.$emit('item-area-changed', this.item, rect.width + 2, rect.height + 2);
                     }
+                    this.$emit('item-area-changed', this.item, (rect.width + 2)/this.zoom, (rect.height + 2)/this.zoom);
                 } else {
                     this.$emit('item-text-cleared', this.item);
                 }
@@ -167,8 +174,8 @@ export default {
     computed: {
         cssStyle2() {
             return {
-                left: `${this.area.x}px`,
-                top: `${this.area.y}px`,
+                left: `${this.area.x + 1/this.zoom}px`,
+                top: `${this.area.y + 1/this.zoom}px`,
                 transform: `scale(${this.scalingVector.x}, ${this.scalingVector.y})`
             };
         }
