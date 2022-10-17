@@ -25,6 +25,9 @@ FROM node:17-bullseye-slim
 
 WORKDIR /usr/bin/app
 
+COPY docker-entry.sh /usr/bin/app/entry.sh
+RUN chmod +x /usr/bin/app/entry.sh
+
 RUN groupadd  app && useradd --gid app --shell /bin/bash --create-home app
 
 USER app
@@ -35,4 +38,4 @@ COPY --from=build /usr/src/app/node_modules /usr/bin/app/node_modules
 COPY --from=build /usr/src/app/dist/assets/*.js /usr/bin/app/assets/
 COPY --from=build /usr/src/app/dist/server /usr/bin/app/server
 
-ENTRYPOINT [ "node", "server/server.js" ]
+ENTRYPOINT [ "/usr/bin/app/entry.sh" ]
