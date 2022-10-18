@@ -1,6 +1,6 @@
 {
   "name": "schemio",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "in browser app for creating interactive diagrams",
   "scripts": {
     "build": "babel src/server -d dist/server",
