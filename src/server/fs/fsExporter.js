@@ -36,7 +36,7 @@ function exportMediaFile(config, mediaURL) {
     const relativeFilePath = mediaURL.substring(mediaPrefix.length);
 
     const absoluteFilePath = path.join(config.fs.rootPath, '.media', relativeFilePath);
-    const absoluteDstFilePath = path.join(config.fs.rootPath, exporterFolder, 'data', 'media', relativeFilePath);
+    const absoluteDstFilePath = path.join(config.fs.rootPath, exporterFolder, 'media', relativeFilePath);
 
     return fs.stat(absoluteFilePath)
     .then(stat => {
@@ -129,6 +129,8 @@ const assetFiles = [
     {file: 'css', isDir: true},
     {file: 'images', isDir: true},
     {file: 'art', isDir: true},
+    {file: 'custom-fonts', isDir: true},
+    {file: 'shapes', isDir: true},
     {file: 'webfonts', isDir: true},
 ];
 
@@ -170,7 +172,7 @@ function startExporter(config) {
         }
         return filePath;
     }
-    
+
     const directoryLookup = new Map();
 
     fs.ensureDir(exporterPath).then(() => {

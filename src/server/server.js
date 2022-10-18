@@ -5,15 +5,15 @@
 import express  from  'express';
 import bodyParser  from 'body-parser';
 
-import { 
+import {
     fsCreateArt, fsCreateDirectory, fsCreateScheme,
-    fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme, 
-    fsDeleteStyle, 
-    fsDownloadMediaFile, fsGetArt, 
-    fsGetScheme, fsGetStyles, fsListFilesRoute, 
-    fsMoveDirectory, fsMoveScheme, fsPatchDirectory, 
-    fsPatchScheme, fsSaveDeleteArt, fsSaveScheme, 
-    fsSaveStyle, fsSearchSchemes, fsUploadMediaFile 
+    fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme,
+    fsDeleteStyle,
+    fsDownloadMediaFile, fsGetArt,
+    fsGetScheme, fsGetStyles, fsListFilesRoute,
+    fsMoveDirectory, fsMoveScheme, fsPatchDirectory,
+    fsPatchScheme, fsSaveDeleteArt, fsSaveScheme,
+    fsSaveStyle, fsSearchSchemes, fsUploadMediaFile
 } from './fs/fs.js';
 
 import {fsExportDownloadArchive, fsExportStatic, fsExportStatus} from './fs/fsExporter';
@@ -88,7 +88,7 @@ createIndex(config).then((index) => {
     });
 
     app.listen(config.serverPort, () => {
-        console.log(`Example app listening at http://localhost:${config.serverPort}`)
+        console.log(`Listening at http://localhost:${config.serverPort}`)
     });
 
 }).catch(err => {
