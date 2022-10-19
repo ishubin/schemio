@@ -30,6 +30,8 @@ import SendEventToChildrenFunction from './SendEventToChildrenFunction';
 import CopyEventsFunction from './CopyEventsFunction';
 import RepeaterFunction from './RepeaterFunction';
 import StopRepeaterFunction from './StopRepeaterFunction';
+import CopyLinksFunction from './CopyLinksFunction';
+import CopyDescriptionFunction from './CopyDescriptionFunction';
 
 export default {
     main: {
@@ -60,6 +62,8 @@ export default {
         untoggle            : UntoggleFunction,
         toggleGroup         : ToggleGroupFunction,
         copyEvents          : CopyEventsFunction,
+        copyLinks           : CopyLinksFunction,
+        copyDescription     : CopyDescriptionFunction,
         repeater            : RepeaterFunction,
         stopRepeater        : StopRepeaterFunction
     },
