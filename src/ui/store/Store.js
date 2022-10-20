@@ -78,6 +78,9 @@ function findFirstSelectedCurveEditPoint(paths) {
 
 const store = new Vuex.Store({
     state: {
+
+        //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages the we cannot use '/' as root path
+        rootPath: '/',
         assetsPath: '/assets',
 
         apiClient: null,
@@ -187,6 +190,10 @@ const store = new Vuex.Store({
         }
     },
     mutations: {
+        SET_ROOT_PATH(state, path) {
+            state.rootPath = path;
+        },
+
         SET_ASSESTS_PATH(state, path) {
             state.assetsPath = path;
         },
@@ -514,6 +521,10 @@ const store = new Vuex.Store({
     },
 
     actions: {
+        setRootPath({commit}, path) {
+            commit('SET_ROOT_PATH', path);
+        },
+
         setAssetsPath({commit}, path) {
             commit('SET_ASSESTS_PATH', path);
         },
@@ -756,7 +767,10 @@ const store = new Vuex.Store({
                 return true;
             }
             return false;
-        }
+        },
+
+        rootPath: state => state.rootPath,
+        assetsPath: state => state.assetsPath,
     }
 });
 

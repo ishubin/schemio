@@ -16,7 +16,7 @@
                     </li>
                 </ul>
                 <div class="scheme-title" v-if="scheme">
-                    <img class="icon" src="/assets/images/schemio-logo-white.small.png" height="20"/> 
+                    <img class="icon" :src="`${assetsPath}/images/schemio-logo-white.small.png`" height="20"/>
                     <span>{{scheme.name}}</span>
                 </div>
             </div>
@@ -140,7 +140,7 @@ export default {
             is404: false,
             errorMessage: null,
             isLoading: false,
-            
+
             originScheme: null,
             modifiedScheme: null,
             createPatchModalShown: false,
@@ -152,7 +152,7 @@ export default {
     methods: {
         buildBreadcrumbs(path) {
             const folders = path.split('/');
-            
+
             const breadcrumbs = [];
 
             let folderPath = '';
@@ -182,7 +182,7 @@ export default {
             this.breadcrumbs = breadcrumbs;
         },
 
-    
+
         onNewSchemeSubmitted(scheme, callback, errorCallback) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (callback) {
@@ -244,6 +244,10 @@ export default {
                 return this.originScheme;
             }
             return null;
+        },
+
+        assetsPath() {
+            return this.$store.getters.assetsPath;
         }
     }
 }

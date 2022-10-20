@@ -24,6 +24,7 @@ window.createSchemioStaticApp = function (options) {
         }
     }
 
+    store.dispatch('setRootPath', './');
     store.dispatch('setAssetsPath', './assets');
 
     Vue.use(VueRouter);

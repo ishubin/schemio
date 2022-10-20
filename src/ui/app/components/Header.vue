@@ -4,8 +4,8 @@
 <template>
     <div class="header">
         <div class="header-body">
-            <a href="/" class="header-caption">
-                <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
+            <a :href="rootPath" class="header-caption">
+                <img :src="`${assetsPath}/images/schemio-logo-white.small.png`" height="25"/> <span>Schemio</span>
             </a>
             <div class="header-middle-section">
                 <slot name="middle-section"></slot>
@@ -46,7 +46,15 @@ export default {
     computed: {
         staticExportAllowed() {
             return this.$store.getters.staticExportAllowed;
-        }
+        },
+
+        rootPath() {
+            return this.$store.getters.rootPath;
+        },
+
+        assetsPath() {
+            return this.$store.getters.assetsPath;
+        },
     }
 }
 </script>
