@@ -7,7 +7,7 @@
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <menu-dropdown 
+                        <menu-dropdown
                             name=""
                             icon-class="fas fa-bars"
                             :options="menuDropdownOptions"
@@ -55,7 +55,7 @@
                 <ul class="button-group">
                     <li>
                         <span title="Toggle clickable items" class="toggle-button" :class="{toggled: showClickableMarkers}" @click="toggleClickableMarkers(!showClickableMarkers)">
-                            <i class="schemio-icon schemio-icon-iterm-marker"></i>
+                            <i class="fa-solid fa-hand-pointer"></i>
                         </span>
                     </li>
                     <li>
@@ -130,7 +130,7 @@
                             />
                     </li>
                     <li v-if="shouldShowPathCaps">
-                        <path-cap-dropdown 
+                        <path-cap-dropdown
                             :key="`qhp-path-cap-source-${firstSelectedItem.meta.revision}`"
                             :value="pathSourceCap"
                             :is-source="true"
@@ -140,7 +140,7 @@
                             @selected="emitShapePropChange('sourceCap', 'path-cap', arguments[0])"/>
                     </li>
                     <li v-if="shouldShowPathCaps">
-                        <path-cap-dropdown 
+                        <path-cap-dropdown
                             :key="`qhp-path-cap-destination-${firstSelectedItem.meta.revision}`"
                             :value="pathDestinationCap"
                             :is-source="false"
@@ -380,7 +380,7 @@ export default {
         setConnectorSmoothing(smoothingType) {
             this.currentConnectorSmoothing = smoothingType;
             StoreUtils.setDefaultConnectorSmoothing(this.$store, smoothingType);
-            
+
             if (this.isCreatingConnector()) {
                 this.$store.state.connecting.connectorItem.shapeProps.smoothing = smoothingType;
                 EventBus.emitItemChanged(this.$store.state.connecting.connectorItem.id);
@@ -406,7 +406,7 @@ export default {
         stopDrawing() {
             EventBus.$emit(EventBus.STOP_DRAWING);
         },
-        
+
         removeSelectedItems() {
             if (this.selectedItemsCount === 0) {
                 return;
@@ -446,7 +446,7 @@ export default {
             }
 
             this.$store.dispatch('setItemSurroundPadding', padding);
-            
+
             let parentItem = null;
             if (item.meta.parentId) {
                 parentItem = this.schemeContainer.findItemById(item.meta.parentId);
@@ -549,11 +549,11 @@ export default {
 
             const sx = cx - nz * (cx - xo) / schemeContainer.screenTransform.scale;
             const sy = cy - nz * (cy - yo) / schemeContainer.screenTransform.scale;
-            
+
             schemeContainer.screenTransform.scale = nz;
 
             schemeContainer.screenTransform.x = sx;
-            schemeContainer.screenTransform.y = sy; 
+            schemeContainer.screenTransform.y = sy;
             this.$emit('zoom-changed', newZoom);
         },
 

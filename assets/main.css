@@ -2884,11 +2884,6 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 .schemio-icon-valign-bottom {
     background: url('/assets/images/icons/valign-bottom.svg') no-repeat;
 }
-.schemio-icon-iterm-marker {
-    background: url('/assets/images/icons/item-marker.svg') no-repeat;
-    width: 20px;
-    height: 18px;
-}
 
 
 
