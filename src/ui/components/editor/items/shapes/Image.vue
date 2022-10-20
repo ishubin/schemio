@@ -21,12 +21,12 @@
             :fill="svgFill"/>
 
         <g :transform="`translate(0 ${imageY})`">
-            
+
 
             <defs v-if="item.shapeProps.image">
                 <clipPath :id="`image-crop-clip-path-${item.id}`">
-                    <path 
-                        :d="`M 0 0  L ${item.area.w} 0   L ${item.area.w} ${item.area.h}  L 0 ${item.area.h} Z`" 
+                    <path
+                        :d="`M 0 0  L ${item.area.w} 0   L ${item.area.w} ${item.area.h}  L 0 ${item.area.h} Z`"
                         :data-item-id="item.id"
                         stroke-width="0px"
                         stroke="rgba(255, 255, 255, 0)"
@@ -103,10 +103,6 @@ export default {
             strokeSize  : {type: 'number', value: 0, name: 'Stroke size'},
             showTitle   : {type: 'boolean', value: false, name: 'Title'},
             crop        : {type: 'crop-area', value: {x: 0, y: 0, w: 0, h: 0}, name: 'Crop', hidden: true},
-            // cropLeft    : {type: 'number', value: 0, name: 'Crop Left'},
-            // cropTop     : {type: 'number', value: 0, name: 'Crop Top'},
-            // cropRight   : {type: 'number', value: 0, name: 'Crop Right'},
-            // cropBottom  : {type: 'number', value: 0, name: 'Crop Bottom'},
             titleHeight : {type: 'number', value: 36, name: 'Title height', min: 0, depends: {showTitle: true}},
             titleFill   : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Title Background', depends: {showTitle: true}},
             fill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(240,240,240,1.0)'}, name: 'Background', depends: {showTitle: true}},

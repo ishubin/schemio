@@ -99,7 +99,7 @@ const store = new Vuex.Store({
             paths: [],
             firstSelectedPoint: null
         },
-        
+
         // used in "connecting" state
         connecting: {
             connectorItem: null
@@ -156,7 +156,7 @@ const store = new Vuex.Store({
             vertical: null,
         },
 
-        // used to display proposed new items 
+        // used to display proposed new items
         connectorProposedDestination: {
             shown: false,
             connectorItemId: null,
@@ -211,7 +211,7 @@ const store = new Vuex.Store({
             state.showClickableMarkers = show;
         },
 
-        /* Curve Editing */ 
+        /* Curve Editing */
         SET_CURVE_EDIT_ITEM(state, {item, paths}) {
             state.curveEditing.item = item;
             state.curveEditing.paths.length = 0;
@@ -559,11 +559,11 @@ const store = new Vuex.Store({
             commit('SELECT_CURVE_EDIT_POINT', { pathId, pointId, inclusive });
         },
 
-        
+
         setHistoryUndoable({commit}, isUndoable) {
             commit('SET_HISTORY_UNDOABLE', isUndoable);
         },
-        
+
         setHistoryRedoable({commit}, isRedoable) {
             commit('SET_HISTORY_REDOABLE', isRedoable);
         },
@@ -586,7 +586,7 @@ const store = new Vuex.Store({
         setEditorSubStateName({commit}, stateName) {
             commit('SET_EDITOR_SUB_STATE_NAME', stateName);
         },
-        
+
         setItemSurroundPadding({commit}, padding) {
             commit('SET_ITEM_SURROUND_PADDING', padding);
         },
@@ -680,7 +680,7 @@ const store = new Vuex.Store({
         copyItemStyle({commit}, item) {
             commit('COPY_ITEM_STYLE', item);
         },
-    
+
         setPatchDiffColoringEnabled({commit}, enabled) {
             commit('SET_PATCH_DIFF_COLORING_ENABLED', enabled);
         },
@@ -710,9 +710,9 @@ const store = new Vuex.Store({
         apiClient: state => state.apiClient,
 
         schemeModified: state => state.schemeModified,
-        
+
         itemControlPointsList: state => state.itemControlPoints,
-        
+
         curveEditPaths: state => state.curveEditing.paths,
 
         firstSelectedCurveEditPoint: state => state.curveEditing.firstSelectedPoint,

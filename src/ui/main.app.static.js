@@ -24,6 +24,8 @@ window.createSchemioStaticApp = function (options) {
         }
     }
 
+    store.dispatch('setAssetsPath', './assets');
+
     Vue.use(VueRouter);
     applyVueFilters(Vue);
 

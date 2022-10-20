@@ -7,6 +7,7 @@ import fs from 'fs-extra';
 import path from 'path'
 import forEach from 'lodash/forEach';
 import archiver from 'archiver';
+import _ from "lodash";
 
 
 let currentExporter = null;
@@ -52,6 +53,8 @@ function exportMediaFile(config, mediaURL) {
     })
     .then(() => {
         return fs.copyFile(absoluteFilePath, absoluteDstFilePath);
+    }).then(() => {
+        return '.' + mediaURL;
     });
 }
 
@@ -66,17 +69,23 @@ function exportMediaForScheme(config, scheme, schemeId) {
         if (item.shapeProps) {
             if (item.shape === 'image' && doesReferenceMedia(item.shapeProps.image)) {
                 chain = chain.then(() => exportMediaFile(config, item.shapeProps.image))
-                .then(mediaURL => {
-                    item.shapeProps.image = mediaURL;
-                })
                 .catch(mediaFailCatcher);
             } else if (item.shapeProps.fill && typeof item.shapeProps.fill === 'object' && doesReferenceMedia(item.shapeProps.fill.image)) {
                 chain = chain.then(() => exportMediaFile(config, item.shapeProps.fill.image))
-                .then(mediaURL => {
-                    item.shapeProps.fill.image = mediaURL;
-                })
                 .catch(mediaFailCatcher);
             }
+        }
+        if (item.behavior && item.behavior.events) {
+            _.forEach(item.behavior.events, behaviorEvent => {
+                _.forEach(behaviorEvent.actions, action => {
+                    _.forEach(action.args, (arg, argName) => {
+                        if (argName === 'fill' && typeof arg === 'object' && doesReferenceMedia(arg.image)) {
+                            chain = chain.then(() => exportMediaFile(config, arg.image))
+                            .catch(mediaFailCatcher);
+                        }
+                    });
+                });
+            });
         }
     });
 
@@ -94,6 +103,9 @@ function exportMediaForScheme(config, scheme, schemeId) {
         .catch(err => {
             console.error('Could not cope scheme preview', err);
         })
+        .then(() => {
+            return scheme;
+        })
     });
 }
 
@@ -101,7 +113,22 @@ function referencesOtherScheme(url) {
     return typeof url === 'string' && url.startsWith('/docs/');
 }
 
-function fixSchemeLinks(scheme) {
+/**
+ * Fixes scheme links and image urls
+ * @param {*} scheme
+ * @returns
+ */
+function fixSchemeURLs(scheme) {
+    const fixURLs = (props) => {
+        _.forEach(props, (prop, propName) => {
+            if (propName === 'image' && typeof prop === 'string' && prop.startsWith('/')) {
+                props[propName] = '.' + props[propName];
+            } else if (typeof prop === 'object') {
+                fixURLs(prop);
+            }
+        });
+    };
+
     traverseItems(scheme.items, item => {
         if (item.shape === 'link' && referencesOtherScheme(item.shapeProps.url)) {
             item.shapeProps.url = '#' + item.shapeProps.url;
@@ -111,6 +138,17 @@ function fixSchemeLinks(scheme) {
             forEach(item.links, link => {
                 if (referencesOtherScheme(link.url)) {
                     link.url = '#' + link.url;
+                }
+            });
+        }
+        fixURLs(item.shapeProps);
+
+        if (item.behavior && item.behavior.events) {
+            _.forEach(item.behavior.events, behaviorEvent => {
+                if (behaviorEvent.actions) {
+                    _.forEach(behaviorEvent.actions, action => {
+                        fixURLs(action.args);
+                    });
                 }
             });
         }
@@ -201,7 +239,8 @@ function startExporter(config) {
 
                 return fs.readFile(absoluteFilePath)
                 .then(JSON.parse)
-                .then(fixSchemeLinks)
+                .then(scheme => exportMediaForScheme(config, scheme, scheme.id))
+                .then(fixSchemeURLs)
                 .then(scheme => {
                     if (!scheme.id) {
                         const idx = filePath.lastIndexOf('/') + 1;
@@ -233,7 +272,6 @@ function startExporter(config) {
                     };
                     return scheme;
                 })
-                .then(scheme => exportMediaForScheme(config, scheme, scheme.id))
             }
         });
     })

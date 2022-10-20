@@ -16,7 +16,7 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
     }
 
     const menuItems = [];
-    
+
     shapeGroup.shapes.forEach(shapeDef => {
         const shapeId = generateShapeId(shapeGroupId, shapeDef);
         Shape.registerRawShape(shapeId, shapeDef.shapeConfig);
