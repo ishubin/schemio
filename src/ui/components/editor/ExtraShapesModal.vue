@@ -12,7 +12,7 @@
                     <li v-for="(entry, entryIdx) in entries"
                         :class="{selected: selectedEntryIdx === entryIdx}"
                         @click="selectEntry(entry, entryIdx)">
-                        {{entry.name}} 
+                        {{entry.name}}
                         <span v-if="entry.used" class="added">added</span>
                     </li>
                 </ul>
@@ -44,12 +44,24 @@ import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
 import EventBus from './EventBus';
 import StoreUtils from '../../store/StoreUtils';
 
+const ASSETS_PREFIX = '/assets';
+
+/**
+ * Used for fixing assets path for static app version
+ */
+function fixAssetsPath($store, path) {
+    if (path && path.startsWith(ASSETS_PREFIX)) {
+        path = $store.state.assetsPath + path.substring(ASSETS_PREFIX.length);
+    }
+    return path;
+}
+
 export default {
     components: {Modal},
 
     beforeCreate() {
         this.isLoading = true;
-        const assetsPath = this.$store.state.assetsPath || '/assets';
+        const assetsPath = this.$store.state.assetsPath || ASSETS_PREFIX;
         const separator = assetsPath.endsWith('/') ? '' : '/';
 
         Promise.all([
@@ -72,6 +84,10 @@ export default {
                 };
             });
             const convertedArt = artEntries.map(artEntry => {
+                artEntry.ref = fixAssetsPath(this.$store, artEntry.ref);
+                if (Array.isArray(artEntry.previewImages)) {
+                    artEntry.previewImages = artEntry.previewImages.map(path => fixAssetsPath(this.$store, path));
+                }
                 return {
                     type: 'art',
                     used: this.$store.state.itemMenu.artPackIds.has(artEntry.ref),
@@ -122,6 +138,11 @@ export default {
             axios.get(artPackEntry.ref)
             .then(response => {
                 const artPack = response.data;
+                if (Array.isArray(artPack.icons)) {
+                    artPack.icons.forEach(icon => {
+                        icon.url = fixAssetsPath(this.$store, icon.url);
+                    });
+                }
                 this.isLoading = false;
                 StoreUtils.addArtPack(this.$store, artPackEntry.ref, artPack);
                 EventBus.$emit(EventBus.ART_PACK_ADDED, artPack);

@@ -9,19 +9,19 @@
 
             <div class="item-menu">
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
-                    <img src="/assets/images/icons/select.svg" width="35" height="30"/>
+                    <img :src="`${assetsPath}/images/icons/select.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiateCurveCreation()" title="Create Path"
                     @mouseover="showPreviewGif('create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
-                    <img src="/assets/images/icons/create-curve.svg" width="35" height="30"/>
+                    <img :src="`${assetsPath}/images/icons/create-curve.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiateDrawing()" title="Draw"
                     @mouseover="showPreviewGif('draw')"
                     @mouseleave="stopPreviewGif('draw')"
                     >
-                    <img src="/assets/images/icons/draw.svg" width="35" height="30"/>
+                    <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
                 </div>
             </div>
 
@@ -120,7 +120,7 @@
             <div  class="item-container">
                 <div v-if="previewItem.item">
                     <h4>{{previewItem.item.name}}</h4>
-                    
+
                     <svg v-if="previewItem.item.item" :width="previewWidth + 'px'" :height="previewHeight + 'px'">
                         <item-svg :item="previewItem.item.item" mode="edit"/>
                     </svg>
@@ -206,7 +206,7 @@ export default {
             errorMessage                : null,
 
             editArtModalShown           : false,
-            
+
             itemPanels: this.generateItemPanels(),
             filteredItemPanels: [],
 
@@ -253,6 +253,10 @@ export default {
             forEach(Shape.getRegistry(), (shape, shapeId) => {
                 if (shape.menuItems) {
                     forEach(shape.menuItems, menuEntry => {
+                        // this is a dirty hack to fix it for static version of schemio app
+                        if (menuEntry.iconUrl && menuEntry.iconUrl.startsWith('/assets')) {
+                            menuEntry.iconUrl = this.$store.state.assetsPath + menuEntry.iconUrl.substring(7);
+                        }
                         let group = menuEntry.group || 'Ungrouped';
                         if (!panelsMap[group]) {
                             panelsMap[group] = {
@@ -455,7 +459,7 @@ export default {
             newItem.id = shortid.generate();
             newItem.area = { x: 0, y: 0, w: 100, h: 100};
             utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
-            
+
             if (this.imageCreation.withMouse) {
                 EventBus.$emit(EventBus.START_CREATING_ITEM, newItem);
             } else {
@@ -658,6 +662,10 @@ export default {
         extraShapeGroups() {
             return this.$store.getters.extraShapeGroups;
         },
+
+        assetsPath() {
+            return this.$store.getters.assetsPath;
+        }
     }
 }
 </script>
