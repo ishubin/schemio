@@ -22,6 +22,15 @@ Features of Schemio:
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot-2.png?raw=true)
 
+
+Demo: What happens when you open a website in your browser
+----------------------------------------------------------
+
+There is a demo, built with Schemio that contains interactive diagrams that answer a popular interview question: "What happens when you open a website in your browser".
+Demo: https://ishubin.github.io/sre-knowledge-base/#/docs/what-happens-when.
+Source code: https://github.com/ishubin/sre-knowledge-base
+
+
 Configuration
 ---------------
 
