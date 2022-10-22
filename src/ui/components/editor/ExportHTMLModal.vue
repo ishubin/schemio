@@ -33,7 +33,7 @@ export default {
 
             zip.file('scheme.json', JSON.stringify(scheme));
 
-            this.$store.state.apiClient.getExportHTMLResources().then(resources => {
+            this.$store.state.apiClient.getExportHTMLResources(this.$store.state.assetsPath).then(resources => {
                 zip.file('schemio-standalone.css', resources.css);
                 zip.file('index.html', resources.html);
                 zip.file('schemio-standalone.js', resources.js);

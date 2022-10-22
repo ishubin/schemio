@@ -9,14 +9,17 @@ function unwrapAxios(response) {
     return response.data;
 }
 
-function getExportHTMLResources() {
+function getExportHTMLResources(assetsPath) {
+    if (!assetsPath) {
+        assetsPath = '/assets';
+    }
     const version = __BUILD_VERSION__;
     return Promise.all([
-        axios.get(`/assets/schemio-standalone.css?v=${version}`),
-        axios.get(`/assets/schemio-standalone.html?v=${version}`),
-        axios.get(`/assets/schemio-standalone.js?v=${version}`),
-        axios.get(`/assets/syntax-highlight-worker.js?v=${version}`),
-        axios.get(`/assets/syntax-highlight.css?v=${version}`)
+        axios.get(`${assetsPath}/schemio-standalone.css?v=${version}`),
+        axios.get(`${assetsPath}/schemio-standalone.html?v=${version}`),
+        axios.get(`${assetsPath}/schemio-standalone.js?v=${version}`),
+        axios.get(`${assetsPath}/syntax-highlight-worker.js?v=${version}`),
+        axios.get(`${assetsPath}/syntax-highlight.css?v=${version}`)
     ]).then(values => {
         const css = values[0].data;
         const html = values[1].data;

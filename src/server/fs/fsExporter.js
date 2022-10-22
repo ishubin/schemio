@@ -164,6 +164,8 @@ const assetFiles = [
     {file: 'schemio-standalone.html'},
     {file: 'schemio-standalone.js'},
     {file: 'schemio-standalone.css'},
+    {file: 'syntax-highlight-worker.js'},
+    {file: 'syntax-highlight.css'},
     {file: 'css', isDir: true},
     {file: 'images', isDir: true},
     {file: 'art', isDir: true},
