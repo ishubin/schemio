@@ -53,7 +53,7 @@ Dockerized version of Schemio is available here: https://hub.docker.com/reposito
 You can run it like this:
 
 ```
-docker run -v /opt/schemio:/opt/schemio \
+docker run -v "$(pwd):/opt/schemio" \
     -p 4010:4010 \
     -e FS_ROOT_PATH=/opt/schemio \
     -e SERVER_PORT=4010 \

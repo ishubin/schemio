@@ -28,10 +28,6 @@ WORKDIR /usr/bin/app
 COPY docker-entry.sh /usr/bin/app/entry.sh
 RUN chmod +x /usr/bin/app/entry.sh
 
-RUN groupadd  app && useradd --gid app --shell /bin/bash --create-home app
-
-USER app
-
 COPY assets /usr/bin/app/assets
 COPY html /usr/bin/app/html
 COPY --from=build /usr/src/app/node_modules /usr/bin/app/node_modules
