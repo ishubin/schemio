@@ -89,7 +89,7 @@
             class="svg-event-layer"
             data-preview-ignore="true"
             :id="`item-svg-path-${item.id}`"
-            :d="itemSvgOutlinePath" 
+            :d="itemSvgOutlinePath"
             :data-item-id="item.id"
             :stroke-width="hoverPathStrokeWidth"
             :style="{'cursor': item.cursor}"
@@ -111,7 +111,7 @@
             <clipPath :id="`item-clip-path-${item.id}`">
                 <path v-if="itemSvgOutlinePath"
                     class="svg-event-layer"
-                    :d="itemSvgOutlinePath" 
+                    :d="itemSvgOutlinePath"
                     :data-item-id="item.id"
                     stroke-width="0px"
                     stroke="rgba(255, 255, 255, 0)"
@@ -122,7 +122,7 @@
 
         <path v-if="itemSvgOutlinePath && patchOutline && patchIsDiffColoringEnabled"
             data-preview-ignore="true"
-            :d="itemSvgOutlinePath" 
+            :d="itemSvgOutlinePath"
             :data-item-id="item.id"
             :stroke-width="patchOutlineStrokeSize"
             :stroke="patchOutline"
@@ -375,7 +375,7 @@ export default {
                 return [];
             }
             const slots = utils.clone(shape.getTextSlots(this.item));
-            
+
             const filteredSlots = [];
             forEach(slots, slot => {
                 const itemTextSlot = this.item.textSlots[slot.name];

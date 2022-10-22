@@ -93,7 +93,7 @@
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
                         <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
-                            <PathEditBox 
+                            <PathEditBox
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
                                 :item="curveEditItem"
                                 :zoom="schemeContainer.screenTransform.scale"
@@ -162,7 +162,7 @@
 
             </div>
 
-            
+
             <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)"
                 class="bottom-panel"
                 :style="{height: animationEditorCurrentFramePlayer ? `${bottomPanelHeight}px`: null}"
@@ -263,7 +263,7 @@
                                     :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
                                     :item="schemeContainer.selectedItems[0]"
                                     :revision="schemeRevision"
-                                    :schemeContainer="schemeContainer" 
+                                    :schemeContainer="schemeContainer"
                                     :userStylesEnabled="userStylesEnabled"
                                     @shape-prop-changed="onItemShapePropChanged"
                                     @item-field-changed="onItemFieldChanged"
@@ -451,7 +451,7 @@ import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
-import {copyToClipboard, getTextFromClipboard} from '../clipboard';   
+import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
@@ -999,7 +999,7 @@ export default {
         setCurveEditItem(item) {
             this.$store.dispatch('setCurveEditItem', item);
         },
-        
+
         onStartCurveEditing(item) {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
@@ -1077,7 +1077,7 @@ export default {
             EventBus.emitItemsHighlighted([]);
             states[this.state].cancel();
             this.state = 'cropImage';
-            
+
             states[this.state].schemeContainer = this.schemeContainer;
             states.cropImage.reset();
             this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
@@ -1155,7 +1155,7 @@ export default {
                 return;
             }
             if (item.childItems && item.childItems.length > 0) {
-                return;   
+                return;
             }
             this.schemeContainer.deleteItem(item);
         },
@@ -1971,7 +1971,7 @@ export default {
             AnimationRegistry.enableAnimations();
             this.switchStateInteract();
         },
-        
+
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
             AnimationRegistry.stopAllAnimations();
@@ -2010,6 +2010,9 @@ export default {
 
             this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
             .then(schemeDetails => {
+                if (!schemeDetails || !schemeDetails.scheme) {
+                    return Promise.reject('Empty document');
+                }
                 return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
                 .catch(err => {
                     console.error(err);
@@ -2053,7 +2056,7 @@ export default {
             const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
 
             this.customContextMenu.menuOptions = [{
-                name: 'Bring to Front', 
+                name: 'Bring to Front',
                 clicked: () => {this.bringSelectedItemsToFront();}
             }, {
                 name: 'Bring to Back',
@@ -2165,8 +2168,8 @@ export default {
                 name: 'Align',
                 subOptions: alignSubOptions
             });
-            
-            
+
+
             if (selectedOnlyOne) {
                 this.customContextMenu.menuOptions.push({
                     name: 'Events',

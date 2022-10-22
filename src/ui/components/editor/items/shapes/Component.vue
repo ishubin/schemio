@@ -2,12 +2,15 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g>
+    <g @click="$emit('custom-event', 'clicked')"
+       @mouseover="$emit('custom-event', 'mousein')"
+       @mouseleave="$emit('custom-event', 'mouseout')"
+       >
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-button-${item.id}`" :fill="item.shapeProps.buttonFill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-button-hovered-${item.id}`" :fill="item.shapeProps.buttonHoverFill" :area="item.area"/>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
@@ -34,8 +37,8 @@
                     <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
                 </foreignObject>
             </g>
-            <rect 
-                data-preview-ignore="true" 
+            <rect
+                data-preview-ignore="true"
                 fill="rgba(255,255,255,0)"
                 :x="buttonArea.x" :y="buttonArea.y"
                 :width="buttonArea.w" :height="buttonArea.h"
@@ -113,7 +116,7 @@ export default {
             name: 'Component',
             iconUrl: '/assets/images/items/component.svg',
             description: `
-                Lets you embed other schemes into this item. 
+                Lets you embed other schemes into this item.
             `,
             item: {
                 textSlots: {
@@ -148,8 +151,8 @@ export default {
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
 
             kind                  : {type: 'choice', value: 'external', name: 'Kind', options: ['external', 'embedded'],  description: 'External - allows to fetch other documents and render them inside the component. Embedded - uses the items in the same document'},
-            schemeId              : {type: 'scheme-ref', value: '', name: 'Scheme ID', depends: {kind: 'external'}},
-            referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}},
+            schemeId              : {type: 'scheme-ref', value: '', name: 'Doc ID', depends: {kind: 'external'}, description: 'ID of the document that this component should load'},
+            referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}, description: 'Reference item that this component should render'},
 
             placement             : {type: 'choice', value: 'centered', options: ['centered', 'stretch'], name: 'Placement'},
             autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded', depends: {kind: 'external'}},

@@ -63,6 +63,9 @@ function createApiClient() {
         },
 
         getScheme(schemeId) {
+            if (!schemeId) {
+                return Promise.reject('Invalid empty document ID');
+            }
             return axios.get(this._getSchemeUrl(schemeId)).then(unwrapAxios);
         },
 
@@ -121,7 +124,7 @@ function createApiClient() {
                 url += isFirst ? '?' : '&';
                 url += name + '=';
                 url += encodeURIComponent(value);
-                
+
                 isFirst = false;
             });
 
@@ -253,6 +256,9 @@ function createStaticClient() {
         },
 
         getScheme(schemeId) {
+            if (!schemeId) {
+                return Promise.reject('Invalid empty document ID');
+            }
             return getIndex().then(index => {
                 const schemeEntry = index.schemeIndex[schemeId];
                 if (!schemeEntry) {
@@ -294,8 +300,8 @@ function createGoogleDriveClient() {
     }
 
     /**
-     * 
-     * @param {String} title 
+     *
+     * @param {String} title
      */
     function convertSchemioFileTitle(title) {
         if (title.endsWith(schemioExtension)) {
@@ -360,7 +366,7 @@ function createGoogleDriveClient() {
                 if (filters && filters.nextPageToken) {
                     params.pageToken = filters.nextPageToken;
                 }
-                
+
                 return buildFileBreadCrumbs(path).then(breadcrumbs => {
                     return gapi.client.drive.files.list(params).then(results => {
                         const entries = [  ];
@@ -526,6 +532,9 @@ function createGoogleDriveClient() {
             },
 
             getScheme(schemeId) {
+                if (!schemeId) {
+                    return Promise.reject('Invalid empty document ID');
+                }
                 return gapi.client.drive.files.get({
                     fileId: schemeId
                 }).then(response => {
@@ -568,7 +577,7 @@ function createGoogleDriveClient() {
 
                 var contentType = 'application/json';
                 var base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(scheme))))
-                
+
                 const metadata = {
                     title:  `${scheme.name}${schemioExtension}`,
                     mimeType: 'application/json'
