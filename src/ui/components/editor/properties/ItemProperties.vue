@@ -31,7 +31,7 @@
                 @jumped-to-item="onJumpedToItem"
                 />
         </div>
-        
+
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :userStylesEnabled="userStylesEnabled" :item="item" @style-applied="onStyleApplied"/>
         </div>
@@ -159,7 +159,7 @@
                             <td class="label" width="50%">
                                 Interaction Mode
                                 <tooltip>
-                                    Specifies item default behavior on click. 
+                                    Specifies item default behavior on click.
                                     "side-panel" or "tooltip" modes are only used in case item has a non-empty description
                                 </tooltip>
                             </td>
@@ -246,7 +246,7 @@ const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 1
 
 export default {
     props: {
-        item: { type: Object }, 
+        item: { type: Object },
         schemeContainer: { type: Object },
         userStylesEnabled: { type: Boolean, default: false}
     },

@@ -11,10 +11,10 @@
         <div v-if="item.links && item.links.length > 0">
             <h5>Links</h5>
             <ul class="links">
-                <li v-for="(link, linkId) in item.links">
+                <li v-for="link in item.links">
                     <a class="link" :href="link.url" target="_blank">
                        <i :class="getLinkCssClass(link)"></i>
-                        {{link.title}}
+                        {{link | formatLinkTitle}}
                     </a>
                 </li>
             </ul>
@@ -34,10 +34,19 @@ export default {
             return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
         }
     },
-    
+
     computed: {
         sanitizedItemDescription() {
             return htmlSanitize(this.item.description);
+        }
+    },
+    filters: {
+        formatLinkTitle(link) {
+            if (link.title) {
+                return link.title;
+            } else {
+                return link.url;
+            }
         }
     }
 }
