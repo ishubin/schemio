@@ -111,9 +111,6 @@ export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-const BUTTON_LOADMORE_MAX_WIDTH = 180;
-const BUTTON_LOADMORE_MAX_HEIGHT = 40;
-
 export function generateComponentGoBackButton(componentItem, containerArea, maxZoomBack) {
     if (!maxZoomBack) {
         maxZoomBack = 100;
@@ -248,7 +245,7 @@ export default {
         },
 
         getTextSlots(item) {
-            const btnArea = calculateButtonArea(item, BUTTON_LOADMORE_MAX_WIDTH, BUTTON_LOADMORE_MAX_HEIGHT);
+            const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
             let h = item.area.h;
             let hasButton = false;
             if (item.shapeProps.kind === 'external' && item.shapeProps.showButton) {
@@ -281,7 +278,7 @@ export default {
                 };
 
                 if (item.shapeProps.kind === 'external' && item.shapeProps.showButton) {
-                    const btnArea = calculateButtonArea(item, BUTTON_LOADMORE_MAX_WIDTH, BUTTON_LOADMORE_MAX_HEIGHT);
+                    const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
                     points['buttonCornerRadius'] = {
                         x: btnArea.x + btnArea.w - Math.min(item.shapeProps.buttonCornerRadius, btnArea.w / 2, btnArea.h / 2),
                         y: btnArea.y
@@ -293,7 +290,7 @@ export default {
                 if (controlPointName === 'cornerRadius') {
                     item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
                 } else if (controlPointName === 'buttonCornerRadius') {
-                    const btnArea = calculateButtonArea(item, BUTTON_LOADMORE_MAX_WIDTH, BUTTON_LOADMORE_MAX_HEIGHT);
+                    const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
                     item.shapeProps.buttonCornerRadius = Math.min(btnArea.h / 2, btnArea.w / 2, Math.max(0, myMath.roundPrecise(btnArea.x + btnArea.w - originalX - dx)));
                 }
             }
@@ -319,6 +316,8 @@ export default {
             buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true, kind: 'external'}},
             buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}},
             buttonCornerRadius    : {type: 'number', value: 0, name: 'Button Corner radius', min: 0, depends: {showButton: true, kind: 'external'}},
+            buttonWidth           : {type: 'number', value: 180, name: 'Button width', depends: {showButton: true, kind: 'external'}},
+            buttonHeight          : {type: 'number', value: 40, name: 'Button height', depends: {showButton: true, kind: 'external'}},
             showProgressBar       : {type: 'boolean', value: true, name: 'Show progress bar'},
             progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1', depends: {showProgressBar: true}},
             progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2', depends: {showProgressBar: true}},
@@ -397,7 +396,7 @@ export default {
             let style = {};
             if (this.item.textSlots && this.item.textSlots.body) {
                 style = generateTextStyle(this.item.textSlots.body);
-                const btnArea = calculateButtonArea(this.item, 180, 40);
+                const btnArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
                 style.width = `${this.item.area.w}px`;
                 let h = this.item.area.h;
                 if (this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton) {
@@ -411,7 +410,7 @@ export default {
             let style = {};
             if (this.item.textSlots && this.item.textSlots.button) {
                 style = generateTextStyle(this.item.textSlots.button);
-                const textArea = calculateButtonArea(this.item, 180, 40);
+                const textArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
                 style.width = `${textArea.w}px`;
                 style.height = `${textArea.h}px`;
             }
@@ -472,11 +471,11 @@ export default {
         },
 
         buttonArea() {
-            return calculateButtonArea(this.item, BUTTON_LOADMORE_MAX_WIDTH, BUTTON_LOADMORE_MAX_HEIGHT);
+            return calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
         },
 
         bodyTextSlotHeight() {
-            const btnArea = calculateButtonArea(this.item, BUTTON_LOADMORE_MAX_WIDTH, BUTTON_LOADMORE_MAX_HEIGHT);
+            const btnArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
             if (this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton) {
                 return btnArea.y;
             }
