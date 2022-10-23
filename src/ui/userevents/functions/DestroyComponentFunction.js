@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import EventBus from "../../components/editor/EventBus";
+
 export default {
     name: 'Destroy component',
 
@@ -13,6 +15,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         item._childItems = {};
         schemeContainer.reindexItems();
+        EventBus.emitItemChanged(item.id);
     }
 };
 

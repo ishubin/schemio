@@ -119,7 +119,7 @@ class StateInteract extends State {
     }
 
     handleItemHoverEvents(object) {
-        if (object && object.type === 'item') {
+        if (object && object.type === 'item' && object.item) {
             if (!this.currentHoveredItem) {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
