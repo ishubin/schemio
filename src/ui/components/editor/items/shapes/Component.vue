@@ -109,11 +109,15 @@ function calculateButtonArea(item, maxWidth, maxHeight) {
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
+export const COMPONENT_DESTROYED = 'Component Destroyed';
 
 const BUTTON_LOADMORE_MAX_WIDTH = 180;
 const BUTTON_LOADMORE_MAX_HEIGHT = 40;
 
-export function generateComponentGoBackButton(componentItem, containerArea) {
+export function generateComponentGoBackButton(componentItem, containerArea, maxZoomBack) {
+    if (!maxZoomBack) {
+        maxZoomBack = 100;
+    }
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
@@ -153,7 +157,7 @@ export function generateComponentGoBackButton(componentItem, containerArea) {
                         animated: true,
                         animationDuration: 0.5,
                         minZoom: 0,
-                        maxZoom: 100,
+                        maxZoom: maxZoomBack,
                         inBackground: false
                     }
                 }]
@@ -191,19 +195,6 @@ export function generateComponentGoBackButton(componentItem, containerArea) {
                 }]
             }]
         },
-        // effects: [ {
-        //     id: shortid.generate(),
-        //     effect: 'drop-shadow',
-        //     name: 'Drop Shadow',
-        //     args: {
-        //         color: 'rgba(0,0,0,1.0)',
-        //         dx: 3,
-        //         dy: 3,
-        //         blur: 5,
-        //         opacity: 40,
-        //         inside: false
-        //     }
-        // }],
     }
 }
 
@@ -344,6 +335,8 @@ export default {
                 name: COMPONENT_LOADED_EVENT
             }, {
                 name: COMPONENT_FAILED
+            }, {
+                name: COMPONENT_DESTROYED
             }];
         },
     },

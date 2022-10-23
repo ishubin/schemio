@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import EventBus from "../../components/editor/EventBus";
+import {COMPONENT_DESTROYED} from '../../components/editor/items/shapes/Component.vue';
 
 export default {
     name: 'Destroy component',
@@ -16,6 +17,7 @@ export default {
         try {
             item._childItems = {};
             schemeContainer.reindexItems();
+            userEventBus.emitItemEvent(item.id, COMPONENT_DESTROYED);
             EventBus.emitItemChanged(item.id);
         }
         catch(err) {
