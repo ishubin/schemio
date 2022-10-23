@@ -13,9 +13,15 @@ export default {
     supportedShapes: ['component'],
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        item._childItems = {};
-        schemeContainer.reindexItems();
-        EventBus.emitItemChanged(item.id);
+        try {
+            item._childItems = {};
+            schemeContainer.reindexItems();
+            EventBus.emitItemChanged(item.id);
+        }
+        catch(err) {
+            console.error(err);
+        }
+        resultCallback();
     }
 };
 
