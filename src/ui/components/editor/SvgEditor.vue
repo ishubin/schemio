@@ -21,7 +21,7 @@
                     <g v-for="item in schemeContainer.worldItems" class="item-container"
                         v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
-                        <ItemSvg 
+                        <ItemSvg
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
                             :mode="mode"
@@ -69,7 +69,7 @@
                     <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
                         :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
                         >
-                        <ItemSvg 
+                        <ItemSvg
                             v-for="item in hud.childItems"
                             v-if="item.visible"
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
@@ -89,7 +89,7 @@
 
             <g v-if="mode === 'edit'">
                 <g class="grid" data-preview-ignore="true" :transform="gridTransform" data-void="true">
-                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height + 2 * gridStep" 
+                    <line v-for="index in gridCount.x" :x1="index * gridStep" y1="0" :x2="index * gridStep" :y2="height + 2 * gridStep"
                         :stroke="schemeContainer.scheme.style.gridColor"
                         :class="{'grid-line-zero': index === gridCount.x0}"
                         data-void="true"
@@ -158,7 +158,7 @@
                 <rect class="state-hover-layer" v-if="stateLayerShown"  x="0" y="0" :width="width" :height="height" fill="rgba(255, 255, 255, 0.0)"/>
             </g>
         </svg>
-        
+
         <slot name="overlay"></slot>
     </div>
 </template>
@@ -370,9 +370,12 @@ export default {
 
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
-                    return {
-                        type: 'item',
-                        item: this.schemeContainer.findItemById(itemId)
+                    const item = this.schemeContainer.findItemById(itemId);
+                    if (item) {
+                        return {
+                            type: 'item',
+                            item
+                        };
                     }
                 }
 
@@ -543,7 +546,7 @@ export default {
                     }
                 }
 
-            
+
 
                 const itemHighlight = {
                     id: itemId,
@@ -572,8 +575,8 @@ export default {
         },
 
         /**
-         * 
-         * @param {Array} items 
+         *
+         * @param {Array} items
          * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
          */
         indexUserEventsInItems(items, itemsForInit) {
@@ -765,7 +768,7 @@ export default {
                         this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
                         this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
                         this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
-                    }, 
+                    },
                     destroy: () => {
                         this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
                     }
@@ -870,7 +873,7 @@ export default {
 
         onItemCustomEvent(event) {
             if (event.eventName === 'clicked') {
-                // handling links and toolip/side-panel appearance 
+                // handling links and toolip/side-panel appearance
                 const item = this.schemeContainer.findItemById(event.itemId);
                 if (item.links && item.links.length > 0) {
                     this.onShowItemLinks(item);

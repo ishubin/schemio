@@ -2,6 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import EventBus from "../../components/editor/EventBus";
+import {COMPONENT_DESTROYED} from '../../components/editor/items/shapes/Component.vue';
+
 export default {
     name: 'Destroy component',
 
@@ -11,8 +14,16 @@ export default {
     supportedShapes: ['component'],
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        item._childItems = {};
-        schemeContainer.reindexItems();
+        try {
+            item._childItems = {};
+            schemeContainer.reindexItems();
+            userEventBus.emitItemEvent(item.id, COMPONENT_DESTROYED);
+            EventBus.emitItemChanged(item.id);
+        }
+        catch(err) {
+            console.error(err);
+        }
+        resultCallback();
     }
 };
 

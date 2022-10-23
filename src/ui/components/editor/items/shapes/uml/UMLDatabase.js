@@ -27,7 +27,7 @@ export default {
                     d = s / 2,
                     k = item.area.w / 4,
                     cx = w / 2;
-            
+
             return `M ${w} ${s} L ${w} ${h-s} C ${w} ${h-d}  ${w-k} ${h} ${cx} ${h} C ${k} ${h} 0 ${h-d} ${0} ${h-s} L ${0} ${s}`
                  + `C ${0} ${d} ${k} 0 ${cx} 0  C ${w-k} 0 ${w} ${d} ${w} ${s}`
                  + `C ${w} ${s+d} ${w-k} ${2*s} ${cx} ${2*s} C ${k} ${2*s} ${0} ${s+d} ${0} ${s}`;
@@ -45,7 +45,7 @@ export default {
                     d = s / 2,
                     k = item.area.w / 4,
                     cx = w / 2;
-            
+
             return `M ${w} ${s} L ${w} ${h-s} C ${w} ${h-d}  ${w-k} ${h} ${cx} ${h} C ${k} ${h} ${0} ${h-d} ${0} ${h-s} L ${0} ${s}`
                  + `C ${0} ${d} ${k} 0 ${cx} 0  C ${w-k} 0 ${w} ${d} ${w} ${s}`;
         },

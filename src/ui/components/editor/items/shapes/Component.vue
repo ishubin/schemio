@@ -21,26 +21,30 @@
             <rect v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
                 :x="buttonArea.x" :y="buttonArea.y"
+                :rx="item.shapeProps.buttonCornerRadius"
                 :width="buttonArea.w" :height="buttonArea.h"
                 :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
                 :stroke="item.shapeProps.buttonStrokeColor"
                 />
             <rect v-else :fill="svgButtonFill"
                 :x="buttonArea.x" :y="buttonArea.y"
+                :rx="item.shapeProps.buttonCornerRadius"
                 :width="buttonArea.w" :height="buttonArea.h"
                 :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
                 :stroke="item.shapeProps.buttonHoverStrokeColor"
                 />
 
-            <g v-if="!hideTextSlot">
-                <foreignObject :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
-                    <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
-                </foreignObject>
-            </g>
+            <foreignObject v-if="hideTextSlot !== 'body'" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
+            </foreignObject>
+            <foreignObject v-if="hideTextSlot !== 'button'" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
+            </foreignObject>
             <rect
                 data-preview-ignore="true"
                 fill="rgba(255,255,255,0)"
                 :x="buttonArea.x" :y="buttonArea.y"
+                :rx="item.shapeProps.buttonCornerRadius"
                 :width="buttonArea.w" :height="buttonArea.h"
                 @click="onLoadSchemeClick"
                 @mouseover="onButtonMouseOver"
@@ -76,13 +80,17 @@ import AdvancedFill from '../AdvancedFill.vue';
 import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
 import htmlSanitize from '../../../../../htmlSanitize';
+import myMath from '../../../../myMath';
+import shortid from 'shortid';
 
 
 const computePath = (item) => {
     const W = item.area.w;
     const H = item.area.h;
 
-    return `M ${W} ${H}  L 0 ${H}   L 0 ${0}   L ${W} 0  L ${W} ${H} Z`;
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/2, item.area.h/2);
+
+    return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
 function calculateButtonArea(item, maxWidth, maxHeight) {
@@ -94,13 +102,105 @@ function calculateButtonArea(item, maxWidth, maxHeight) {
     const h = Math.min(maxHeight, itemMaxHeight);
 
     const x = (item.area.w - w) / 2;
-    const y = (item.area.h - h) / 2;
+    const y = Math.max(minPadding, item.area.h - h - 10);
 
     return { x, y, w, h };
 }
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
+export const COMPONENT_DESTROYED = 'Component Destroyed';
+
+export function generateComponentGoBackButton(componentItem, containerArea, maxZoomBack) {
+    if (!maxZoomBack) {
+        maxZoomBack = 100;
+    }
+    if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
+        return null;
+    }
+    const btnWidth = 95;
+    const btnHeight = 30;
+    return {
+        id: componentItem.id + '-go-back-btn',
+        shape: 'rect',
+        area: {
+            x: containerArea.w - btnWidth - componentItem.shapeProps.backButtonHPad,
+            y: componentItem.shapeProps.backButtonVPad,
+            w: btnWidth, h: btnHeight,
+            sx: 1, sy: 1, r: 0, px: 0.5, py: 0.5
+        },
+        textSlots: {
+            body: {
+                text: '<b>go back</b>',
+                color: componentItem.shapeProps.backButtonTextColor
+            }
+        },
+        opacity: 70,
+        visibile: true,
+        cursor: 'pointer',
+        shapeProps: {
+            cornerRadius: 15,
+            strokeSize: 0,
+            fill: componentItem.shapeProps.backButtonFill
+        },
+        behavior: {
+            events: [ {
+                id: shortid.generate(),
+                event: 'clicked',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: '#' + componentItem.id,
+                    method: 'destroyComponent',
+                    args: { }
+                }, {
+                    id: shortid.generate(),
+                    element: '#' + componentItem.id,
+                    method: 'zoomToIt',
+                    args: {
+                        closeEnough: false,
+                        animated: true,
+                        animationDuration: 0.5,
+                        minZoom: 0,
+                        maxZoom: maxZoomBack,
+                        inBackground: false
+                    }
+                }]
+            }, {
+                id: shortid.generate(),
+                event: 'mousein',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: 'self',
+                    method: 'set',
+                    args: {
+                        field: 'selfOpacity',
+                        value: 100,
+                        animated: true,
+                        animationDuration: 0.2,
+                        transition: 'ease-in-out',
+                        inBackground: false
+                    }
+                }]
+            }, {
+                id: shortid.generate(),
+                event: 'mouseout',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: 'self',
+                    method: 'set',
+                    args: {
+                        field: 'selfOpacity',
+                        value: 70,
+                        animated: true,
+                        animationDuration: 0.2,
+                        transition: 'ease-in-out',
+                        inBackground: false
+                    }
+                }]
+            }]
+        },
+    }
+}
 
 export default {
     props: ['item'],
@@ -120,6 +220,15 @@ export default {
             `,
             item: {
                 textSlots: {
+                    body: {
+                        text: 'Component',
+                        valign: 'middle',
+                        halign: 'center',
+                        paddingLeft  : 0,
+                        paddingRight : 0,
+                        paddingTop   : 0,
+                        paddingBottom: 0
+                    },
                     button: {
                         text: 'Load more',
                         paddingLeft  : 0,
@@ -136,13 +245,56 @@ export default {
         },
 
         getTextSlots(item) {
-            return [{
-                name: 'button',
-                area: calculateButtonArea(item, 180, 40)
+            const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
+            let h = item.area.h;
+            let hasButton = false;
+            if (item.shapeProps.kind === 'external' && item.shapeProps.showButton) {
+                h = btnArea.h;
+                hasButton = true;
+            }
+            const textSlots = [{
+                name: 'body',
+                area: {x: 0, y: 0, w: item.area.w, h}
             }];
+
+            if (hasButton) {
+                textSlots.push({
+                    name: 'button',
+                    area: btnArea
+                });
+            }
+            return textSlots;
         },
 
         computePath,
+
+        controlPoints: {
+            make(item) {
+                const points = {
+                    cornerRadius: {
+                        x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
+                        y: 0
+                    }
+                };
+
+                if (item.shapeProps.kind === 'external' && item.shapeProps.showButton) {
+                    const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
+                    points['buttonCornerRadius'] = {
+                        x: btnArea.x + btnArea.w - Math.min(item.shapeProps.buttonCornerRadius, btnArea.w / 2, btnArea.h / 2),
+                        y: btnArea.y
+                    };
+                }
+                return points;
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
+                } else if (controlPointName === 'buttonCornerRadius') {
+                    const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
+                    item.shapeProps.buttonCornerRadius = Math.min(btnArea.h / 2, btnArea.w / 2, Math.max(0, myMath.roundPrecise(btnArea.x + btnArea.w - originalX - dx)));
+                }
+            }
+        },
 
         args: {
             fill                  : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
@@ -154,6 +306,7 @@ export default {
             schemeId              : {type: 'scheme-ref', value: '', name: 'Doc ID', depends: {kind: 'external'}, description: 'ID of the document that this component should load'},
             referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}, description: 'Reference item that this component should render'},
 
+            cornerRadius          : {type: 'number', value: 0, name: 'Corner radius', min: 0},
             placement             : {type: 'choice', value: 'centered', options: ['centered', 'stretch'], name: 'Placement'},
             autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded', depends: {kind: 'external'}},
             showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode', depends: {kind: 'external'}},
@@ -162,9 +315,17 @@ export default {
             buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill', depends: {showButton: true, kind: 'external'}},
             buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true, kind: 'external'}},
             buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}},
-            showProgressBar       : {type: 'boolean', value: true, name: 'Should progress bar'},
-            progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1'},
-            progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2'},
+            buttonCornerRadius    : {type: 'number', value: 0, name: 'Button Corner radius', min: 0, depends: {showButton: true, kind: 'external'}},
+            buttonWidth           : {type: 'number', value: 180, name: 'Button width', depends: {showButton: true, kind: 'external'}},
+            buttonHeight          : {type: 'number', value: 40, name: 'Button height', depends: {showButton: true, kind: 'external'}},
+            showProgressBar       : {type: 'boolean', value: true, name: 'Show progress bar'},
+            progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1', depends: {showProgressBar: true}},
+            progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2', depends: {showProgressBar: true}},
+            showBackButton        : {type: 'boolean', value: true, name: 'Show back button', depends: {kind: 'external'}},
+            backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
+            backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
+            backButtonVPad        : {type: 'number', value: 20, name: 'Back Button Vertical Padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonHPad        : {type: 'number', value: 20, name: 'Back Button Horizontal Padding', depends: {showBackButton: true, kind: 'external'}},
         },
 
         editorProps: {
@@ -182,6 +343,8 @@ export default {
                 name: COMPONENT_LOADED_EVENT
             }, {
                 name: COMPONENT_FAILED
+            }, {
+                name: COMPONENT_DESTROYED
             }];
         },
     },
@@ -209,8 +372,9 @@ export default {
             buttonHovered: false,
             buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !(this.item._childItems && this.item._childItems.length > 0),
             isLoading: false,
-            hideTextSlot: false,
-            textStyle: this.createTextStyle()
+            hideTextSlot: null,
+            textStyle: this.createTextStyle(),
+            bodyTextStyle: this.createBodyTextStyle()
         };
     },
 
@@ -226,12 +390,27 @@ export default {
             this.isLoading = false;
             this.buttonHovered = false;
             this.textStyle = this.createTextStyle();
+            this.bodyTextStyle = this.createBodyTextStyle();
+        },
+        createBodyTextStyle() {
+            let style = {};
+            if (this.item.textSlots && this.item.textSlots.body) {
+                style = generateTextStyle(this.item.textSlots.body);
+                const btnArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
+                style.width = `${this.item.area.w}px`;
+                let h = this.item.area.h;
+                if (this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton) {
+                    h = btnArea.y;
+                }
+                style.height = `${h}px`;
+            }
+            return style;
         },
         createTextStyle() {
             let style = {};
             if (this.item.textSlots && this.item.textSlots.button) {
                 style = generateTextStyle(this.item.textSlots.button);
-                const textArea = calculateButtonArea(this.item, 180, 40);
+                const textArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
                 style.width = `${textArea.w}px`;
                 style.height = `${textArea.h}px`;
             }
@@ -239,12 +418,12 @@ export default {
         },
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
             if (item.id === this.item.id) {
-                this.hideTextSlot = true;
+                this.hideTextSlot = slotName;
             }
         },
         onItemTextSlotEditCanceled(item, slotName) {
             if (item.id === this.item.id) {
-                this.hideTextSlot = false;
+                this.hideTextSlot = null;
             }
         },
         onButtonMouseOver() {
@@ -292,7 +471,22 @@ export default {
         },
 
         buttonArea() {
-            return calculateButtonArea(this.item, 180, 40);
+            return calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
+        },
+
+        bodyTextSlotHeight() {
+            const btnArea = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
+            if (this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton) {
+                return btnArea.y;
+            }
+            return this.item.area.h;
+        },
+
+        sanitizedBodyText() {
+            if (this.item.textSlots && this.item.textSlots.body) {
+                return htmlSanitize(this.item.textSlots.body.text);
+            }
+            return '';
         },
 
         sanitizedButtonText() {

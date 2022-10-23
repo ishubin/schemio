@@ -340,21 +340,23 @@ export default {
             }
             forEach(this.shapeComponent.args, (argConfig, argName) => {
                 if (argConfig.depends) {
+                    let shown = true;
                     forEach(argConfig.depends, (depArgValue, depArgName) => {
-                        let shown = false;
                         if (Array.isArray(depArgValue)) {
-                            for (let i = 0; i < depArgValue.length && !shown; i++) {
-                                shown = this.item.shapeProps[depArgName] === depArgValue[i];
+                            let hasMatchingValue = false;
+                            for (let i = 0; i < depArgValue.length && !hasMatchingValue; i++) {
+                                hasMatchingValue = this.item.shapeProps[depArgName] === depArgValue[i];
                             }
+                            shown = shown & hasMatchingValue;
                         } else {
-                            shown = this.item.shapeProps[depArgName] === depArgValue;
-                        }
-                        if (!this.shapePropsControlStates[argName]) {
-                            this.shapePropsControlStates[argName] = {shown: shown};
-                        } else {
-                            this.shapePropsControlStates[argName].shown = shown;
+                            shown = shown & this.item.shapeProps[depArgName] === depArgValue;
                         }
                     });
+                    if (!this.shapePropsControlStates[argName]) {
+                        this.shapePropsControlStates[argName] = {shown: shown};
+                    } else {
+                        this.shapePropsControlStates[argName].shown = shown;
+                    }
                 }
             });
         },
