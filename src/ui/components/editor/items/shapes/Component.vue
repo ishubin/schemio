@@ -81,6 +81,7 @@ import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
 import htmlSanitize from '../../../../../htmlSanitize';
 import myMath from '../../../../myMath';
+import shortid from 'shortid';
 
 
 const computePath = (item) => {
@@ -111,6 +112,100 @@ export const COMPONENT_FAILED = 'Component Failed';
 
 const BUTTON_LOADMORE_MAX_WIDTH = 180;
 const BUTTON_LOADMORE_MAX_HEIGHT = 40;
+
+export function generateComponentGoBackButton(componentItem, containerArea) {
+    if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
+        return null;
+    }
+    return {
+        id: componentItem.id + '-go-back-btn',
+        shape: 'rect',
+        area: {x: containerArea.w - 100, y: 5, w: 95, h: 30, sx: 1, sy: 1, r: 0, px: 0.5, py: 0.5},
+        textSlots: {
+            body: {
+                text: '<b>go back</b>',
+                color: componentItem.shapeProps.backButtonTextColor
+            }
+        },
+        opacity: 70,
+        visibile: true,
+        cursor: 'pointer',
+        shapeProps: {
+            cornerRadius: 15,
+            strokeSize: 0,
+            fill: componentItem.shapeProps.backButtonFill
+        },
+        behavior: {
+            events: [ {
+                id: shortid.generate(),
+                event: 'clicked',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: '#' + componentItem.id,
+                    method: 'destroyComponent',
+                    args: { }
+                }, {
+                    id: shortid.generate(),
+                    element: '#' + componentItem.id,
+                    method: 'zoomToIt',
+                    args: {
+                        closeEnough: false,
+                        animated: true,
+                        animationDuration: 0.5,
+                        minZoom: 0,
+                        maxZoom: 100,
+                        inBackground: false
+                    }
+                }]
+            }, {
+                id: shortid.generate(),
+                event: 'mousein',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: 'self',
+                    method: 'set',
+                    args: {
+                        field: 'selfOpacity',
+                        value: 100,
+                        animated: true,
+                        animationDuration: 0.2,
+                        transition: 'ease-in-out',
+                        inBackground: false
+                    }
+                }]
+            }, {
+                id: shortid.generate(),
+                event: 'mouseout',
+                actions: [ {
+                    id: shortid.generate(),
+                    element: 'self',
+                    method: 'set',
+                    args: {
+                        field: 'selfOpacity',
+                        value: 70,
+                        animated: true,
+                        animationDuration: 0.2,
+                        transition: 'ease-in-out',
+                        inBackground: false
+                    }
+                }]
+            }]
+        },
+        // effects: [ {
+        //     id: shortid.generate(),
+        //     effect: 'drop-shadow',
+        //     name: 'Drop Shadow',
+        //     args: {
+        //         color: 'rgba(0,0,0,1.0)',
+        //         dx: 3,
+        //         dy: 3,
+        //         blur: 5,
+        //         opacity: 40,
+        //         inside: false
+        //     }
+        // }],
+    }
+}
 
 export default {
     props: ['item'],
@@ -229,6 +324,9 @@ export default {
             showProgressBar       : {type: 'boolean', value: true, name: 'Should progress bar'},
             progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1'},
             progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2'},
+            showBackButton        : {type: 'boolean', value: true, name: 'Should back button', depends: {kind: 'external'}},
+            backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
+            backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
         },
 
         editorProps: {

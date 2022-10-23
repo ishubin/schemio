@@ -17,6 +17,7 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
+import {generateComponentGoBackButton} from '../components/editor/items/shapes/Component.vue';
 import { Item, traverseItems, defaultItemDefinition, defaultItem} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';
@@ -464,6 +465,12 @@ class SchemeContainer {
         rectItem.shapeProps.strokeSize = 0;
 
         rectItem._childItems = childItems;
+        if (componentItem.shapeProps.kind === 'external') {
+            const backButton = generateComponentGoBackButton(componentItem, rectItem.area);
+            if (backButton) {
+                rectItem._childItems.push(backButton);
+            }
+        }
 
         componentItem._childItems = [rectItem];
 
