@@ -87,7 +87,7 @@ export function worldVectorOnItem(x, y, item) {
  * In case item has no parents - it returns the world coords
  * @param {*} x world position x
  * @param {*} y world position y
- * @param {*} item 
+ * @param {*} item
  */
 export function relativePointForItem(x, y, item) {
     if (item.meta.parentId) {
@@ -103,7 +103,7 @@ export function relativePointForItem(x, y, item) {
 /**
  * Calculates scaling effect of the item relative to the world
  * This is needed for proper computation of control points for scaled items
- * @param {Item} item 
+ * @param {Item} item
  * @returns {Point}
  */
 export function worldScalingVectorOnItem(item) {
@@ -172,8 +172,8 @@ function visitItems(items, callback, transformMatrix, parentItem, ancestorIds, i
 // it caches paths of items and resets the cache in case the items were reindexed
 class ItemCache {
     /**
-     * 
-     * @param {Function} cacheMissFallback 
+     *
+     * @param {Function} cacheMissFallback
      */
     constructor(cacheMissFallback) {
         this.itemPaths = new Map();
@@ -181,8 +181,8 @@ class ItemCache {
     }
 
     /**
-     * 
-     * @param {Item} item 
+     *
+     * @param {Item} item
      */
     get(item) {
         const entry = this.itemPaths.get(item.id);
@@ -209,9 +209,9 @@ Providing access to scheme elements and provides modifiers for it
 */
 class SchemeContainer {
     /**
-     * 
-     * @param {Scheme} scheme 
-     * @param {EventBus} eventBus 
+     *
+     * @param {Scheme} scheme
+     * @param {EventBus} eventBus
      */
     constructor(scheme, eventBus) {
         Debugger.register('SchemioContainer', this);
@@ -279,11 +279,11 @@ class SchemeContainer {
         enrichSchemeWithDefaults(this.scheme);
         this.reindexItems();
     }
-    
+
     /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
-     * @param {Item} mainItem 
+     * @param {Item} mainItem
      */
     updateChildTransforms(mainItem) {
         if (mainItem.childItems) {
@@ -295,9 +295,9 @@ class SchemeContainer {
                     parentTransform = itemCompleteTransform(parentItem);
                 }
             }
-            
+
             const recalculatedTransform = myMath.standardTransformWithArea(parentTransform, mainItem.area);
-            
+
             const callback = (item, transformMatrix, parentItem, ancestorIds) => {
                 if (!item.meta) {
                     item.meta = {};
@@ -335,7 +335,7 @@ class SchemeContainer {
         if (!this.scheme.items) {
             return;
         }
-        
+
         this.reindexSpecifiedItems(this.scheme.items);
         this.reindexComponents();
         this.fixComponentCyclicDependencies();
@@ -388,7 +388,7 @@ class SchemeContainer {
 
         const visitComponent = (componentItem) => {
             if (visitedIds.has(componentItem.id)) {
-                // this is dirty code. We waste time on enriching components and only later check their dependecies 
+                // this is dirty code. We waste time on enriching components and only later check their dependecies
                 // and clean up in case a cyclic dependency is detected
                 componentItem._childItems = [];
                 componentItem.meta.cyclicComponent = true;
@@ -559,7 +559,7 @@ class SchemeContainer {
                 this.framePlayers.push(item);
             }
 
-            // only storing top-level items 
+            // only storing top-level items
             if (!parentItem) {
                 this.worldItems.push(item);
             }
@@ -684,7 +684,7 @@ class SchemeContainer {
                 area.h = point.y - area.y;
             }
         });
-        
+
         return area;
     }
 
@@ -746,7 +746,7 @@ class SchemeContainer {
             };
             this.outlinePointsCache.set(item.id, pointsCache);
         }
-        
+
         if (pointsCache.revision === item.meta.revision && pointsCache.points.length > 0) {
             forEach(pointsCache.points, p => {
                 this.spatialIndex.addPoint(p[0], p[1], {
@@ -772,7 +772,7 @@ class SchemeContainer {
         if (!svgPath) {
             return;
         }
-        
+
         const totalLength = svgPath.getTotalLength();
         const totalPoints = Math.max(1, Math.ceil(totalLength / minSpatialIndexDistance));
 
@@ -909,10 +909,10 @@ class SchemeContainer {
      * This function should only be called after indexing of items is finished
      * because it relies on item having its transformationAreas assigned in its 'meta' object
      * It converts the point inside the item from its local coords to world coords
-     * 
+     *
      * @param {Number} x local position x
      * @param {Number} y local position y
-     * @param {Item} item 
+     * @param {Item} item
      * @returns {Point}
      */
     worldPointOnItem(x, y, item) {
@@ -923,7 +923,7 @@ class SchemeContainer {
      * Converts world point to local item coords
      * @param {Number} x world position x
      * @param {Number} y world position y
-     * @param {Item} item 
+     * @param {Item} item
      * @returns {Point}
      */
     localPointOnItem(x, y, item) {
@@ -935,12 +935,12 @@ class SchemeContainer {
      * In case item has no parents - it returns the world coords
      * @param {*} x world position x
      * @param {*} y world position y
-     * @param {*} item 
+     * @param {*} item
      */
     relativePointForItem(x, y, item) {
         return relativePointForItem(x, y, item);
     }
-    
+
     /**
      * Finds first item that is within specified distance to path
      * @param {Number} x - x axis of world coords
@@ -976,7 +976,7 @@ class SchemeContainer {
         }
 
         const items = new Map();
-        
+
         // compensating for sparse points in the quad tree because originally,
         // when the index was created, it was using the distance of 20 between points on path
         const searchDistance = Math.max(d, minSpatialIndexDistance);
@@ -1006,7 +1006,7 @@ class SchemeContainer {
             if (item.id === excludedId) {
                 return;
             }
-            
+
             if (onlyVisibleItems && !item.meta.calculatedVisibility) {
                 return;
             }
@@ -1093,8 +1093,8 @@ class SchemeContainer {
      * This function recursively goes into all items descendants and readjusts them
      * It is needed in situation when a parent item is dragged but its children have curve items attached to them.
      * In order to keep curve readjust their shapes we need to do it with this function
-     * @param {*} itemId 
-     * @param {Boolean} isSoft 
+     * @param {*} itemId
+     * @param {Boolean} isSoft
      * @param {ItemModificationContext} context
      * @param {Number} precision - number of digits after point which it should round to
      */
@@ -1103,10 +1103,10 @@ class SchemeContainer {
     }
 
     /**
-     * 
-     * @param {*} itemId 
-     * @param {Object} visitedItems 
-     * @param {Boolean} isSoft 
+     *
+     * @param {*} itemId
+     * @param {Object} visitedItems
+     * @param {Boolean} isSoft
      * @param {ItemModificationContext} context
      * @param {Number} precision - number of digits after point which it should round to
      */
@@ -1136,8 +1136,8 @@ class SchemeContainer {
     }
 
     /**
-     * 
-     * @param {*} changedItem 
+     *
+     * @param {*} changedItem
      * @param {*} visitedItems - tracks all items that were already visited. Need in order to exclude eternal loops
      * @param {Boolean} isSoft specifies whether this is just a preview readjustment (e.g. curve items need to readjust their area, but only when user stopped dragging)
      * @param {ItemModificationContext} context
@@ -1286,7 +1286,7 @@ class SchemeContainer {
             item.area.x = newLocalPoint.x;
             item.area.y = newLocalPoint.y;
         }
- 
+
         if (this.eventBus) {
             if (previousParentId) {
                 this.eventBus.emitItemChanged(previousParentId);
@@ -1343,8 +1343,8 @@ class SchemeContainer {
     }
 
     /**
-     * 
-     * @param {Item} item 
+     *
+     * @param {Item} item
      * @returns {SVGPathElement}
      */
     getSvgOutlineOfItem(item) {
@@ -1352,9 +1352,9 @@ class SchemeContainer {
     }
 
     /**
-     * 
-     * @param {*} item 
-     * @param {Point} globalPoint 
+     *
+     * @param {*} item
+     * @param {Point} globalPoint
      * @param {Object} settings specifies whether it should calculate the normal vector on the point on specified path
      * @param {ItemClosestPoint}
      */
@@ -1385,8 +1385,8 @@ class SchemeContainer {
 
     /**
      * calculates normal of specified point on svg path
-     * @param {*} item 
-     * @param {Number} distanceOnPath 
+     * @param {*} item
+     * @param {Number} distanceOnPath
      * @param {SVGPathElement} shadowSvgPath if not specified it will try to obtain svg path from items cache
      * @returns {Point}
      */
@@ -1406,7 +1406,7 @@ class SchemeContainer {
         const pointB = shadowSvgPath.getPointAtLength((distanceOnPath + 2) % Math.max(1, shadowSvgPath.getTotalLength()));
 
         let vx = pointB.x - pointA.x;
-        let vy = pointB.y - pointA.y; 
+        let vy = pointB.y - pointA.y;
 
         // rotating vector by 90 degrees, could have done it earlier but doing it explicitly, to keep algorithm clear
         let t = vx;
@@ -1562,7 +1562,7 @@ class SchemeContainer {
 
     /**
      * Selects a specified item and deselects any other items that were selected previously
-     * @param {SchemeItem} item 
+     * @param {SchemeItem} item
      * @param {boolean} inclusive Flag that specifies whether it should deselect other items
      */
     selectItem(item, inclusive) {
@@ -1592,7 +1592,7 @@ class SchemeContainer {
     selectMultipleItems(items, inclusive) {
         if (!inclusive) {
             this.deselectAllItems();
-        } 
+        }
         forEach(items, item => {
             this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
@@ -1660,7 +1660,7 @@ class SchemeContainer {
 
     /**
      * This is a recursive functions that goes through all sub-items
-     * @param {Array} itemArray 
+     * @param {Array} itemArray
      */
     bringSelectedItemsToBack(itemArray) {
         if (!itemArray) {
@@ -1688,7 +1688,7 @@ class SchemeContainer {
 
     /**
      * This is a recursive functions that goes through all sub-items
-     * @param {Array} itemArray 
+     * @param {Array} itemArray
      */
     bringSelectedItemsToFront(itemArray) {
         if (!itemArray) {
@@ -1743,7 +1743,7 @@ class SchemeContainer {
     /**
      * Finds items that match specified selector
      * @param {String} selector contains a selector for an element
-     * @param {SchemeItem} selfItem 
+     * @param {SchemeItem} selfItem
      */
     findElementsBySelector(selector, selfItem) {
         if (selector === 'self') {
@@ -1804,9 +1804,9 @@ class SchemeContainer {
     }
 
     /**
-     * this is needed so that any changes applied to reference item gets immidiately reflected on all embedded component cloned items 
-     * @param {*} item 
-     * @param {*} setter 
+     * this is needed so that any changes applied to reference item gets immidiately reflected on all embedded component cloned items
+     * @param {*} item
+     * @param {*} setter
      */
     setPropertyForItem(item, setter) {
         setter(item);
@@ -1854,7 +1854,7 @@ class SchemeContainer {
                 copiedItems.push(newItem);
             }
         });
-        
+
         // collecting id conversions so that later it could be used for converting attached connectors
         const idOldToNewConversions = new Map();
         forEach(copiedItems, copiedItem => {
@@ -1886,7 +1886,7 @@ class SchemeContainer {
                     item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
                     item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
                 }
-                
+
                 if (item.shape === 'frame_player') {
                     forEach(item.shapeProps.animations, animation => {
                         if (animation.kind === 'item') {
@@ -1928,17 +1928,17 @@ class SchemeContainer {
     }
 
     /**
-     * 
+     *
      * @param {*} items array of items that should be copied and pasted
      * @param {*} centerX x in relative transform for which items should put pasted to
-     * @param {*} centerY y in relative transform for which items should put pasted to 
+     * @param {*} centerY y in relative transform for which items should put pasted to
      */
     pasteItems(items, centerX, centerY) {
         if (!items || items.length === 0) {
             return;
         }
         this.deselectAllItems();
-        
+
         const copiedItems = this.cloneItems(items);
         const copiedIds = new Set();
 
@@ -2009,9 +2009,9 @@ class SchemeContainer {
      * This function is used to update the area of all items inside edit box so that
      * they reflect transformations applied to edit box.
      * The way it works is by computing original projection points of items onto new area of edit box
-     * @param {MultiItemEditBox} multiItemEditBox 
-     * @param {Boolean} isSoft 
-     * @param {ItemModificationContext} context 
+     * @param {MultiItemEditBox} multiItemEditBox
+     * @param {Boolean} isSoft
+     * @param {ItemModificationContext} context
      */
     updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
         if (precision === undefined) {
@@ -2039,7 +2039,7 @@ class SchemeContainer {
             if (!item.locked && !shouldSkipItemUpdate) {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = multiItemEditBox.itemProjections[item.id];
-                
+
                 // this condition is needed becase there can be a situation when edit box is first rotated and only then resized
                 // in this case we should skip rotation of child items if their parents were already rotated.
                 if (!parentWasAlreadyUpdated) {
@@ -2049,7 +2049,7 @@ class SchemeContainer {
                 const projectBack = (point) => {
                     return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
                 };
-                
+
                 let parentTransform = myMath.identityMatrix();
                 const parent = this.findItemById(item.meta.parentId);
                 if (parent) {
@@ -2103,7 +2103,7 @@ class SchemeContainer {
 
     /**
      * Searches for all item names and adds numeric index so that it becomes unique in the scheme
-     * @param {string} name 
+     * @param {string} name
      */
     generateUniqueName(name) {
         const itemNames = map(this.getItems(), item => item.name);
@@ -2192,8 +2192,8 @@ class SchemeContainer {
     }
 
     /**
-     * 
-     * @param {Array} items 
+     *
+     * @param {Array} items
      * @returns {MultiItemEditBox}
      */
     generateMultiItemEditBox(items) {
@@ -2339,7 +2339,7 @@ class SchemeContainer {
 
                 if (worldArea &&  area.w + area.h < worldArea.w + worldArea.h) {
                     const overlap = myMath.overlappingArea(worldArea, area);
-                    
+
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
                         if ((overlap.w * overlap.h) / A >= 0.5)  {
@@ -2408,7 +2408,7 @@ class SchemeContainer {
         }
 
         const finalMargin = marginSum / Math.max(1, properMarginCount);
-        
+
         let prevWorldOffset = worldBoxes[0].bbox.x;
 
         for(let i = 0; i < worldBoxes.length; i++) {
@@ -2429,7 +2429,7 @@ class SchemeContainer {
             const correction = myMath.transformVector(parentTransform, dx, dy);
 
             prevWorldOffset = dx + worldBoxes[i].bbox.x + worldBoxes[i].bbox.w;
-            
+
             item.area.x += correction.x;
             item.area.y += correction.y;
             this.eventBus.emitItemChanged(item.id, 'area');
@@ -2470,7 +2470,7 @@ class SchemeContainer {
         }
 
         const finalMargin = marginSum / Math.max(1, properMarginCount);
-        
+
         let prevWorldOffset = worldBoxes[0].bbox.y;
 
         for(let i = 0; i < worldBoxes.length; i++) {
@@ -2491,7 +2491,7 @@ class SchemeContainer {
             const correction = myMath.transformVector(parentTransform, dx, dy);
 
             prevWorldOffset = dy + worldBoxes[i].bbox.y + worldBoxes[i].bbox.h;
-            
+
             item.area.x += correction.x;
             item.area.y += correction.y;
             this.eventBus.emitItemChanged(item.id, 'area');
@@ -2566,7 +2566,7 @@ class SchemeContainer {
     }
 
     /**
-     * @param {Array} items 
+     * @param {Array} items
      * @returns {Map}
      */
     _breakItemsByParents(items) {
