@@ -19,7 +19,7 @@
                         :value="fillColor"
                         width="18px"
                         height="18px"
-                        @changed="updateShapeProp('fill', arguments[0])" 
+                        @changed="updateShapeProp('fill', arguments[0])"
                         title="Fill"/>
                 </li>
                 <li v-if="supportsStroke">
@@ -46,6 +46,9 @@
             </ul>
 
             <modal title="Description" v-if="descriptionEditorShown" @close="descriptionEditorShown = false">
+                <h5>Name</h5>
+                <input type="text" class="textfield" v-model="item.name"/>
+
                 <h5>Tags</h5>
                 <vue-tags-input v-model="itemTag"
                     :tags="itemTags"
@@ -53,8 +56,10 @@
                     @tags-changed="onItemTagChange"
                     ></vue-tags-input>
 
-                <h5>Description of "{{item.name}}"</h5>
+                <h5>Description</h5>
                 <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+
+                <links-panel :item="item"/>
             </modal>
 
             <div class="styles-popup" v-if="stylesPopup.shown" :style="{top: `${stylesPopup.y}px`, left: `${stylesPopup.x}px`}">
@@ -75,6 +80,7 @@ import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
 import VueTagsInput from '@johmun/vue-tags-input';
 import { applyItemStyle } from './properties/ItemStyles';
+import LinksPanel from './properties/LinksPanel.vue';
 import map from 'lodash/map';
 
 export default {
@@ -82,7 +88,7 @@ export default {
 
     components: {
         AdvancedColorEditor, StrokeControl, Modal,
-        RichTextEditor, VueTagsInput, StylesMiniPalette
+        RichTextEditor, VueTagsInput, StylesMiniPalette, LinksPanel
     },
 
     mounted() {

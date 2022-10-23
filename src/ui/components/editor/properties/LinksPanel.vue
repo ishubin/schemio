@@ -5,7 +5,7 @@
 <template lang="html">
     <panel name="Links">
         <div v-if="!item.links || item.links.length === 0">There are no links</div>
-        <ul class="links">
+        <ul class="links-editor">
             <li v-for="(link, linkId) in item.links">
                 <a class="link" :href="link.url" target="_blank">
                    <i :class="getLinkCssClass(link)"></i>

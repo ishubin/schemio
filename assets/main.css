@@ -846,7 +846,7 @@ textarea.in-place-text-editor {
     animation: item-marker-blinker 3s linear infinite;
     opacity: 0.9;
 }
-@keyframes item-marker-blinker {  
+@keyframes item-marker-blinker {
     0% { opacity: 0.9; }
     50% { opacity: 0.3; }
     100% { opacity: 0.9; }
@@ -995,7 +995,7 @@ textarea.in-place-text-editor {
     width: 100%;
     height: 100%;
 }
-  
+
 /*********************** Button Group **********************/
 
 ul.button-group {
@@ -1035,7 +1035,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     max-width: 24px;
     max-height: 20px;
 }
-ul.button-group.disabled > li > .icon-button:hover, 
+ul.button-group.disabled > li > .icon-button:hover,
 ul.button-group > li.disabled > .icon-button:hover,
 .icon-button.disabled:hover {
     background: none;
@@ -1450,33 +1450,33 @@ ul.button-group > li.disabled > .icon-button:hover,
 .item-details {
     user-select: text;
 }
-.item-properties ul.links, .item-details ul.links {
+ul.links-editor, ul.links-editor {
     list-style: none;
     padding: 0px;
     margin-top: 5px;
     margin-bottom: 5px;
 }
-.item-properties ul.links li {
+ul.links-editor li {
     position: relative;
 }
-.item-properties ul.links a {
+ul.links-editor a {
     color: var(--base-strong-up-up);
 }
-.item-properties ul.links li i.fas {
+ul.links-editor li i.fas {
     font-size: 12px;
 }
-.item-properties ul.links .delete-link {
+ul.links-editor .delete-link {
     opacity: 0.1;
     color: var(--critic-strong);
 }
-.item-properties ul.links .delete-link:hover {
+ul.links-editor .delete-link:hover {
     opacity: 1.0;
 }
-.item-properties ul.links .edit-link {
+ul.links-editor .edit-link {
     opacity: 0.1;
     color: var(--base-strong-up-up);
 }
-.item-properties ul.links .edit-link:hover {
+ul.links-editor .edit-link:hover {
     opacity: 1.0;
 }
 
@@ -1928,7 +1928,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 .behavior-action-container:hover .icon-container .icon-move {
     display: inline-block;
 }
-.behavior-action-container .set-argument-editor, 
+.behavior-action-container .set-argument-editor,
 .behavior-action-container .set-argument-editor > div {
     display: inline-block;
 }
@@ -3458,7 +3458,7 @@ ul.patch-field-list {
 .floating-helper-panel-leave-to {
     opacity: 0;
 }
-.floating-helper-panel-enter-to, 
+.floating-helper-panel-enter-to,
 .floating-helper-panel-leave-from {
     opacity: 1.0;
 }
