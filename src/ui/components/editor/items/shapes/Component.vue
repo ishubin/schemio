@@ -121,10 +121,17 @@ export function generateComponentGoBackButton(componentItem, containerArea, maxZ
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
+    const btnWidth = 95;
+    const btnHeight = 30;
     return {
         id: componentItem.id + '-go-back-btn',
         shape: 'rect',
-        area: {x: containerArea.w - 100, y: 5, w: 95, h: 30, sx: 1, sy: 1, r: 0, px: 0.5, py: 0.5},
+        area: {
+            x: containerArea.w - btnWidth - componentItem.shapeProps.backButtonHPad,
+            y: componentItem.shapeProps.backButtonVPad,
+            w: btnWidth, h: btnHeight,
+            sx: 1, sy: 1, r: 0, px: 0.5, py: 0.5
+        },
         textSlots: {
             body: {
                 text: '<b>go back</b>',
@@ -318,6 +325,8 @@ export default {
             showBackButton        : {type: 'boolean', value: true, name: 'Show back button', depends: {kind: 'external'}},
             backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
             backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
+            backButtonVPad        : {type: 'number', value: 20, name: 'Back Button Vertical Padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonHPad        : {type: 'number', value: 20, name: 'Back Button Horizontal Padding', depends: {showBackButton: true, kind: 'external'}},
         },
 
         editorProps: {
