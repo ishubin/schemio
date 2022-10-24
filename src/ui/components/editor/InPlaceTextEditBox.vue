@@ -22,7 +22,7 @@ import EventBus from './EventBus';
 import { Keys, identifyKeyPress } from '../../events';
 import { Editor, EditorContent } from 'tiptap';
 import {
-    Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
+    Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem,
     TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History,
 } from 'tiptap-extensions';
 
@@ -142,7 +142,7 @@ export default {
         onTextareaInput(event) {
             this.$emit('updated', event.target.value);
         },
-        
+
         closeEditBox() {
             if (this.item.shape === 'none') {
                 const rect = this.$refs.editor.getBoundingClientRect();

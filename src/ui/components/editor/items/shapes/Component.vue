@@ -16,6 +16,10 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
+        <foreignObject v-if="hideTextSlot !== 'body'" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
+            <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
+        </foreignObject>
+
         <g style="cursor: pointer;" v-if="!(isLoading && item.shapeProps.showProgressBar) && buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
 
             <rect v-if="buttonHovered"
@@ -34,9 +38,6 @@
                 :stroke="item.shapeProps.buttonHoverStrokeColor"
                 />
 
-            <foreignObject v-if="hideTextSlot !== 'body'" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
-                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
-            </foreignObject>
             <foreignObject v-if="hideTextSlot !== 'button'" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
                 <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
             </foreignObject>
@@ -249,7 +250,7 @@ export default {
             let h = item.area.h;
             let hasButton = false;
             if (item.shapeProps.kind === 'external' && item.shapeProps.showButton) {
-                h = btnArea.h;
+                h = btnArea.y;
                 hasButton = true;
             }
             const textSlots = [{
