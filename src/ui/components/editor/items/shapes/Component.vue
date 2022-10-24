@@ -16,7 +16,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <foreignObject v-if="hideTextSlot !== 'body'" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
+        <foreignObject v-if="hideTextSlot !== 'body' && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
             <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
         </foreignObject>
 
@@ -369,9 +369,11 @@ export default {
     },
 
     data() {
+        const externalItemsMounted = this.item._childItems && this.item._childItems.length > 0;
         return {
             buttonHovered: false,
-            buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !(this.item._childItems && this.item._childItems.length > 0),
+            buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !externalItemsMounted,
+            bodyTextShown: !externalItemsMounted,
             isLoading: false,
             hideTextSlot: null,
             textStyle: this.createTextStyle(),
@@ -387,6 +389,7 @@ export default {
         onItemChanged() {
             if (this.item._childItems && this.item._childItems.length > 0) {
                 this.buttonShown = false;
+                this.bodyTextShown = false;
             }
             this.isLoading = false;
             this.buttonHovered = false;
