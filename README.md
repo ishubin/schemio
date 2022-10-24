@@ -53,6 +53,8 @@ Dockerized version of Schemio is available here: https://hub.docker.com/reposito
 You can run it like this:
 
 ```
+docker pull binshu/schemio:latest
+
 docker run -v "$(pwd):/opt/schemio" \
     -p 4010:4010 \
     -e FS_ROOT_PATH=/opt/schemio \
@@ -60,6 +62,7 @@ docker run -v "$(pwd):/opt/schemio" \
     binshu/schemio:latest
 ```
 
+Don't forget to pull latest changes as Schemio is frequently updated.
 
 License
 ---------
