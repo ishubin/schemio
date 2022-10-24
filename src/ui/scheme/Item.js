@@ -76,8 +76,8 @@ export const STANDARD_SHAPE_PROPS = {
 };
 
 const defaultArea = {
-    x:0, y: 0, 
-    w: 0, h: 0, 
+    x:0, y: 0,
+    w: 0, h: 0,
     r: 0,
     px: 0.5, py: 0.5, // pivot point coords relative to items width and height
     sx: 1.0,
@@ -186,14 +186,14 @@ export function traverseItems(rootItem, callback) {
 }
 
 /**
- * 
- * @param {Item} item 
+ *
+ * @param {Item} item
  * @returns true if item has meaningfull description
  */
 export function hasItemDescription(item) {
     /*
     This is very dirty but it is the simplest way to check if the item has a proper description
-    If would only check for non-empty strings, then it would still show side panel 
+    If would only check for non-empty strings, then it would still show side panel
     even when description is an empty paragraph like "<p></p>"
     This happens when you use rich text editor and delete the entire description.
     Obviously it would be better to check for actual text elements inside the strings but it is also an overkill.
@@ -208,7 +208,7 @@ const _supportedStyleTypes = new Set([
 /**
  * Applies item styling (shapeProps) to item based on the shapeProps of reference item
  * It only applies simple props and does not change element selectors, path-points etc.
- * @param {Item} referenceItem 
+ * @param {Item} referenceItem
  * @param {Item} dstItem
  */
 export function applyStyleFromAnotherItem(referenceItem, dstItem) {
@@ -216,7 +216,7 @@ export function applyStyleFromAnotherItem(referenceItem, dstItem) {
     if (!srcShape) {
         return;
     }
-    
+
     const dstShape = Shape.find(dstItem.shape);
     if (!dstShape) {
         return;
@@ -231,6 +231,19 @@ export function applyStyleFromAnotherItem(referenceItem, dstItem) {
             ) {
             dstItem.shapeProps[propName] = utils.clone(value);
         }
+    });
+
+    forEach(referenceItem.textSlots, (refTextSlot, slotName) => {
+        if (!dstItem.textSlots.hasOwnProperty(slotName)) {
+            return;
+        }
+
+        forEach(defaultTextSlotProps, (val, propName) => {
+            if (propName === 'text') {
+                return;
+            }
+            dstItem.textSlots[slotName][propName] = utils.clone(refTextSlot[propName]);
+        })
     });
 }
 
