@@ -57,7 +57,7 @@
             <div class="progress-bar" :style="progressBarStyle"></div>
         </foreignObject>
 
-        <g v-if="!isLoading && item.meta && item.meta.componentLoadFailed">
+        <g @click="resetFailureMessage" v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
                 <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
@@ -452,6 +452,11 @@ export default {
             if (this.item.id === item.id) {
                 this.isLoading = false;
             }
+        },
+
+        resetFailureMessage() {
+            this.item.meta.componentLoadFailed = false;
+            this.$forceUpdate();
         }
     },
 

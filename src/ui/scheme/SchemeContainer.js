@@ -451,6 +451,7 @@ class SchemeContainer {
         }
 
         const rectItem = createDefaultRectItem();
+        rectItem.shape = 'dummy';
         rectItem.id = shortid.generate();
         rectItem.meta = {isComponentContainer: true};
         rectItem.area.x = dx;
@@ -461,8 +462,6 @@ class SchemeContainer {
         rectItem.area.py = 0;
         rectItem.area.sx = sx;
         rectItem.area.sy = sy;
-        rectItem.shapeProps.fill = {type: 'none'};
-        rectItem.shapeProps.strokeSize = 0;
 
         rectItem._childItems = childItems;
         if (componentItem.shapeProps.kind === 'external') {

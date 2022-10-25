@@ -734,7 +734,8 @@ export default {
                 name: '',
                 description: '',
                 show: false,
-                parentSchemeItem: null
+                parentSchemeItem: null,
+                isExternalComponent: false
             },
 
             currentTab: 'Doc',
@@ -1318,10 +1319,15 @@ export default {
             EventBus.emitSchemeChangeCommited();
         },
 
-        startCreatingChildSchemeForItem(item) {
+        startCreatingExternalComponentForItem(item) {
+            this.startCreatingChildSchemeForItem(item, true);
+        },
+
+        startCreatingChildSchemeForItem(item, isExternalComponent) {
             this.newSchemePopup.name = item.name;
             this.newSchemePopup.parentSchemeItem = item;
             this.newSchemePopup.show = true;
+            this.newSchemePopup.isExternalComponent = isExternalComponent;
         },
 
         submitNewSchemeForCreation(scheme) {
@@ -1332,17 +1338,20 @@ export default {
                     if (publicLink) {
                         const item = this.newSchemePopup.parentSchemeItem;
                         if (item) {
-                            if (!item.links) {
-                                item.links = [];
+                            if (this.newSchemePopup.isExternalComponent && item.shape === 'component') {
+                                item.shapeProps.schemeId = createdScheme.id;
+                            } else {
+                                if (!item.links) {
+                                    item.links = [];
+                                }
+                                item.links.push({
+                                    title: `${createdScheme.name}`,
+                                    url: publicLink,
+                                    type: 'scheme'
+                                });
+                                EventBus.emitItemChanged(item.id, 'links');
                             }
-                            item.links.push({
-                                title: `${createdScheme.name}`,
-                                url: publicLink,
-                                type: 'scheme'
-                            });
-                            EventBus.emitItemChanged(item.id, 'links');
                         }
-
                         window.open(publicLink, '_blank');
                     }
 
@@ -2038,10 +2047,6 @@ export default {
                 });
             })
             .catch(err => {
-                if (item.shape === 'component') {
-                    item.textSlots.button.text = 'Loading failed';
-                    EventBus.emitItemChanged(item.id);
-                }
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
                 item.meta.componentLoadFailed = true;
@@ -2072,11 +2077,19 @@ export default {
             }];
 
             if (!this.offline && selectedOnlyOne) {
-                this.customContextMenu.menuOptions.push({
-                    name: 'Create diagram for this element...',
-                    iconClass: 'far fa-file',
-                    clicked: () => {this.startCreatingChildSchemeForItem(item); }
-                });
+                if (item.shape === 'component' && item.shapeProps.kind === 'external') {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Create external diagram for this component...',
+                        iconClass: 'far fa-file',
+                        clicked: () => {this.startCreatingExternalComponentForItem(item); }
+                    });
+                } else {
+                    this.customContextMenu.menuOptions.push({
+                        name: 'Create diagram for this element...',
+                        iconClass: 'far fa-file',
+                        clicked: () => {this.startCreatingChildSchemeForItem(item); }
+                    });
+                }
             }
 
             this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
