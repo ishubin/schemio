@@ -19,8 +19,8 @@ function enrichItemWithStandardShapeProps(item) {
 }
 
 /**
- * 
- * @param {*} action 
+ *
+ * @param {*} action
  * @returns {Boolean} true if action is valid, false if it is not valid. In such case the action will be removed
  */
 function fixAndEnrichBehaviorAction(action) {
@@ -63,7 +63,7 @@ function fixAndEnrichBehaviorEvents(behavior) {
 /**
  * This function is needed since curves were changed to support multiple paths in a single curve item
  * Also the shape id changed from "curve" to "path"
- * @param {*} item 
+ * @param {*} item
  */
 function fixOldCurveItem(item) {
     item.shape = 'path';
@@ -133,7 +133,7 @@ export function enrichItemWithDefaults(item) {
     if (!shape) {
         return;
     }
-   
+
     forEach(shape.args, (arg, argName) => {
         if (!item.shapeProps.hasOwnProperty(argName)) {
             item.shapeProps[argName] = utils.clone(arg.value);

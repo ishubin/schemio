@@ -95,7 +95,7 @@ export default class StateConnecting extends State {
                 y: this.round(sourceItem.area.h / 2)
             };
         }
-        
+
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
 
         let curveItem = {
@@ -157,9 +157,9 @@ export default class StateConnecting extends State {
     }
 
     /**
-     * 
-     * @param {Item} item 
-     * @param {Point} localPoint 
+     *
+     * @param {Item} item
+     * @param {Point} localPoint
      * @returns {ItemClosestPoint} - closest point in world transform
      */
     findAttachmentPointToItem(item, localPoint) {
@@ -324,14 +324,14 @@ export default class StateConnecting extends State {
             }
         }
     }
-    
+
     createNameFromAttachedItems(sourceSelector, destinationSelector) {
         const sourceItem = this.schemeContainer.findFirstElementBySelector(sourceSelector);
         const destinationItem = this.schemeContainer.findFirstElementBySelector(destinationSelector);
         if (sourceItem && destinationItem) {
             return `${sourceItem.name} -> ${destinationItem.name}`;
         }
-        
+
         return 'Curve';
     }
 
@@ -366,7 +366,7 @@ export default class StateConnecting extends State {
                 realY = relativePoint.y;
             }
             const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, realX, realY);
-            
+
             point.x = this.round(snappedLocalCurvePoint.x);
             point.y = this.round(snappedLocalCurvePoint.y);
 
@@ -412,7 +412,7 @@ export default class StateConnecting extends State {
         let bestSnappedVerticalProximity = 100000;
         //TODO configure snapping precision
         const maxSnapProximity = 6;
-        
+
         let horizontalSnapper = null;
         let verticalSnapper = null;
 
@@ -499,8 +499,8 @@ export default class StateConnecting extends State {
     /**
      * Handles dragging of edge point and checks whether it should stick to other item
      * This is the most time consuming function as it needs to look through all items in schemes
-     * @param {Point} curvePoint 
-     * @param {Boolean} isSource 
+     * @param {Point} curvePoint
+     * @param {Boolean} isSource
      */
     handleEdgePointDrag(curvePoint, isSource) {
         const worldCurvePoint = this.schemeContainer.worldPointOnItem(curvePoint.x, curvePoint.y, this.item);
@@ -574,7 +574,7 @@ export default class StateConnecting extends State {
 
     /**
      * Invoked when user selects an item from ConnectorDestinationProposal panel
-     * @param {Item} dstItem 
+     * @param {Item} dstItem
      */
     submitConnectorDestinationItem(item) {
         item = utils.clone(item);
@@ -587,7 +587,6 @@ export default class StateConnecting extends State {
             item.area.w = 100;
             item.area.h = 50;
         }
-
 
         const lp0 = this.item.shapeProps.points[this.item.shapeProps.points.length - 2];
         const lp1 = this.item.shapeProps.points[this.item.shapeProps.points.length - 1];
@@ -624,7 +623,7 @@ export default class StateConnecting extends State {
         // this is a hack but have to do it as when user cancels state edit curve
         // it actually deletes the last point since it is considered as not submited
         this.item.shapeProps.points.push(utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]));
-        
+
         this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
         this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
         this.item.name += destinationItem.name;
