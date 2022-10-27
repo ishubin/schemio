@@ -32,6 +32,11 @@ There is a demo, built with Schemio that contains interactive diagrams that answ
 * Source code: https://github.com/ishubin/sre-knowledge-base
 
 
+Introduction to interactive diagrams with Schemio (Youtube video)
+-------------------------------------------------
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/NM2RS1JhRkk/0.jpg)](http://www.youtube.com/watch?v=NM2RS1JhRkk "Introduction to interactive diagrams with Schemio")
+
 Configuration
 ---------------
 
