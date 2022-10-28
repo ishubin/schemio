@@ -504,6 +504,9 @@ input.textfield.missing-field-error {
 .tooltip:hover .tooltip-icon {
     opacity: 1.0;
 }
+.tooltip.disabled:hover .tooltip-icon {
+    opacity: 0.4;
+}
 
 
 /******************* Pagination *********************/

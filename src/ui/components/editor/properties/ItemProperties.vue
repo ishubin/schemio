@@ -92,7 +92,7 @@
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
                             <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
                                 {{arg.name}}
-                                <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                                <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
                             </td>
                             <td class="value" width="50%">
                                 <PropertyInput
