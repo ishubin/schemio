@@ -112,10 +112,7 @@ export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-export function generateComponentGoBackButton(componentItem, containerArea, maxZoomBack) {
-    if (!maxZoomBack) {
-        maxZoomBack = 100;
-    }
+export function generateComponentGoBackButton(componentItem, containerArea, currentScreenTransform) {
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
@@ -156,14 +153,11 @@ export function generateComponentGoBackButton(componentItem, containerArea, maxZ
                 }, {
                     id: shortid.generate(),
                     element: '#' + componentItem.id,
-                    method: 'zoomToIt',
+                    method: '_transformScreen',
                     args: {
-                        closeEnough: false,
-                        animated: true,
-                        animationDuration: 0.5,
-                        minZoom: 0,
-                        maxZoom: maxZoomBack,
-                        inBackground: false
+                        x: currentScreenTransform.x,
+                        y: currentScreenTransform.y,
+                        scale: currentScreenTransform.scale,
                     }
                 }]
             }, {

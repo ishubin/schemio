@@ -63,7 +63,7 @@ function calculateBoundingBox(item, schemeContainer, offset) {
  * @param {*} area - are in world which needs to be brought into screen
  * @param {*} width  - screen width
  * @param {*} height  - screen height
- * @param {*} screenOffset - offset in pixels from each side of the screen. This is needed in order to make it visualy more pleasant 
+ * @param {*} screenOffset - offset in pixels from each side of the screen. This is needed in order to make it visualy more pleasant
  * @param {*} oldX  - old x of screen transform
  * @param {*} oldY  - old y of screen transform
  * @param {*} oldZoom  - old scale of screen transform
@@ -80,7 +80,7 @@ function findCloseEnoughTransform(area, width, height, screenOffset, oldX, oldY,
             scale: destZoom
         };
     }
-    
+
     //testing it in the middle point
     const midX = oldX + (destX - oldX) / 2;
     const midY = oldY + (destY - oldY) / 2;
@@ -98,7 +98,7 @@ function isAreaInsideScreen(area, width, height, screenOffset, screenX, screenY,
     const y1 = area.y * scale + screenY;
     const x2 = (area.x + area.w) * scale + screenX;
     const y2 = (area.y + area.h) * scale + screenY;
-    
+
     return (x1 >= screenOffset && x1 <= width - screenOffset)
             && (x2 >= screenOffset && x2 <= width - screenOffset)
             && (y1 >= screenOffset && y1 <= height - screenOffset)
@@ -185,7 +185,7 @@ export default {
                     schemeContainer.screenTransform.scale = (oldZoom * (1.0-t) + newZoom * t);
                     schemeContainer.screenTransform.x = oldX * (1.0-t) + destX * t;
                     schemeContainer.screenTransform.y = oldY * (1.0-t) + destY * t;
-                }, 
+                },
                 destroy: () => {
                     EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                     if (!args.inBackground) {

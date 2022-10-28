@@ -32,6 +32,7 @@ import RepeaterFunction from './RepeaterFunction';
 import StopRepeaterFunction from './StopRepeaterFunction';
 import CopyLinksFunction from './CopyLinksFunction';
 import CopyDescriptionFunction from './CopyDescriptionFunction';
+import TransformScreenFunction from './TransformScreenFunction';
 
 export default {
     main: {
@@ -39,6 +40,7 @@ export default {
         show                : ShowFunction,
         set                 : SetFunction,
         zoomToIt            : ZoomToItFunction,
+        _transformScreen    : TransformScreenFunction,
         particleEffect      : ItemParticleEffectFunction,
         crawlEffect         : CrawlEffectFunction,
         blinkEffect         : BlinkEffectFunction,

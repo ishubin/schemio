@@ -466,8 +466,7 @@ class SchemeContainer {
 
         rectItem._childItems = childItems;
         if (componentItem.shapeProps.kind === 'external') {
-            const maxZoomBack = this.screenTransform.scale * 100;
-            const backButton = generateComponentGoBackButton(componentItem, rectItem.area, maxZoomBack);
+            const backButton = generateComponentGoBackButton(componentItem, rectItem.area, this.screenTransform);
             if (backButton) {
                 rectItem._childItems.push(backButton);
             }

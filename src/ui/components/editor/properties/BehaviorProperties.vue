@@ -20,7 +20,7 @@
                         <i class="fas" :class="[eventMetas[eventIndex] && eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
                     </span>
                 </div>
-                
+
                 <dropdown
                     :options="eventOptions"
                     :auto-focus-search="isStandardEvent(event.event)"
@@ -56,7 +56,7 @@
                         </div>
                         <div>
                             <element-picker
-                                :element="action.element" 
+                                :element="action.element"
                                 :scheme-container="schemeContainer"
                                 :self-item="item"
                                 :inline="true"
@@ -270,7 +270,7 @@ export default {
 
         createEventOptions() {
             let eventOptions = [];
-                
+
             const shape = Shape.find(this.item.shape);
             if (shape) {
 
@@ -297,7 +297,7 @@ export default {
             const methods = [];
 
             forEach(Functions.main, (func, funcId) => {
-                if (funcId !== 'set' && funcId !== 'sendEvent') {
+                if (funcId !== 'set' && funcId !== 'sendEvent' && !funcId.startsWith('_')) {
                     let shouldAddMethod = true;
 
                     if (func.supportedShapes) {
@@ -448,7 +448,7 @@ export default {
             this.eventMetas.splice(eventIndex, 1)
             this.emitChangeCommited();
         },
-        
+
         onBehaviorEventSelected(eventIndex, eventOption) {
             if (eventOption.id === 'custom-event') {
                 this.item.behavior.events[eventIndex].event = 'Unknown event...';
@@ -459,7 +459,7 @@ export default {
                         textfield.focus();
                     }
                 });
-                
+
             } else {
                 this.item.behavior.events[eventIndex].event = eventOption.id;
             }
@@ -554,7 +554,7 @@ export default {
                     return descriptor;
                 }
             }
-            
+
             return {type: 'string'};
         },
 
@@ -641,7 +641,7 @@ export default {
                 }
             }
             let readyToDrop = true;
-            
+
             if (this.dragging.eventIndex === this.dragging.dropTo.eventIndex) {
                 if (this.dragging.actionIndex === this.dragging.dropTo.actionIndex || this.dragging.actionIndex === this.dragging.dropTo.actionIndex - 1) {
                     readyToDrop = false;
