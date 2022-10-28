@@ -452,6 +452,7 @@ class SchemeContainer {
 
         const rectItem = createDefaultRectItem();
         rectItem.shape = 'dummy';
+        rectItem.selfOpacity = 0;
         rectItem.id = shortid.generate();
         rectItem.meta = {isComponentContainer: true};
         rectItem.area.x = dx;

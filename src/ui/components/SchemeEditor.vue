@@ -1819,9 +1819,16 @@ export default {
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
 
-                    if (item.shape === 'component' && (name === 'referenceItem' || name === 'placement')) {
-                        this.schemeContainer.reindexSpecifiedItems([item]);
-                        reindexingNeeded = true;
+                    if (item.shape === 'component') {
+                        if (item.shapeProps.kind !== 'embedded' && item._childItems) {
+                            item._childItems = [];
+                            EventBus.emitItemChanged(item.id);
+                        }
+
+                        if (name === 'kind' || name === 'referenceItem' || name === 'placement') {
+                            this.schemeContainer.reindexSpecifiedItems([item]);
+                            reindexingNeeded = true;
+                        }
                     }
                 }
 

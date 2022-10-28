@@ -298,14 +298,14 @@ export default {
         },
 
         args: {
+            kind                  : {type: 'choice', value: 'external', name: 'Kind', options: ['external', 'embedded'],  description: 'External - allows to fetch other documents and render them inside the component. Embedded - uses the items in the same document'},
+            schemeId              : {type: 'scheme-ref', value: '', name: 'External Document', depends: {kind: 'external'}, description: 'ID of the document that this component should load'},
+            referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}, description: 'Reference item that this component should render'},
+
             fill                  : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
             strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-
-            kind                  : {type: 'choice', value: 'external', name: 'Kind', options: ['external', 'embedded'],  description: 'External - allows to fetch other documents and render them inside the component. Embedded - uses the items in the same document'},
-            schemeId              : {type: 'scheme-ref', value: '', name: 'Doc ID', depends: {kind: 'external'}, description: 'ID of the document that this component should load'},
-            referenceItem         : {type: 'element', name: 'Item', depends: {kind: 'embedded'}, description: 'Reference item that this component should render'},
 
             cornerRadius          : {type: 'number', value: 0, name: 'Corner radius', min: 0},
             placement             : {type: 'choice', value: 'centered', options: ['centered', 'stretch'], name: 'Placement'},
@@ -319,9 +319,9 @@ export default {
             buttonCornerRadius    : {type: 'number', value: 0, name: 'Button Corner radius', min: 0, depends: {showButton: true, kind: 'external'}},
             buttonWidth           : {type: 'number', value: 180, name: 'Button width', depends: {showButton: true, kind: 'external'}},
             buttonHeight          : {type: 'number', value: 40, name: 'Button height', depends: {showButton: true, kind: 'external'}},
-            showProgressBar       : {type: 'boolean', value: true, name: 'Show progress bar'},
-            progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1', depends: {showProgressBar: true}},
-            progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2', depends: {showProgressBar: true}},
+            showProgressBar       : {type: 'boolean', value: true, name: 'Show progress bar', depends: {kind: 'external'}},
+            progressColor1        : {type: 'color', value: 'rgba(24,127,191,1)', name: 'Progress bar color 1', depends: {showProgressBar: true, kind: 'external'}},
+            progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2', depends: {showProgressBar: true, kind: 'external'}},
             showBackButton        : {type: 'boolean', value: true, name: 'Show back button', depends: {kind: 'external'}},
             backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
             backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
