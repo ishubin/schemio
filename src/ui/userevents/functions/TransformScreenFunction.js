@@ -24,7 +24,6 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        resultCallback();
 
         const oldX = schemeContainer.screenTransform.x;
         const oldY = schemeContainer.screenTransform.y;
@@ -40,9 +39,7 @@ export default {
             },
             destroy: () => {
                 EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
-                if (!args.inBackground) {
-                    resultCallback();
-                }
+                resultCallback();
             }
         }));
     }

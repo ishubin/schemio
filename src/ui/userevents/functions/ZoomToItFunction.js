@@ -26,7 +26,7 @@ function createItemTransform(item, schemeContainer) {
 }
 
 
-function calculateBoundingBox(item, schemeContainer, offset) {
+function calculateBoundingBox(item, schemeContainer) {
     const points = [
         { x: 0, y: 0 },
         { x: item.area.w, y: 0 },
@@ -51,10 +51,10 @@ function calculateBoundingBox(item, schemeContainer, offset) {
     })
 
     return {
-        x: minPoint.x - offset,
-        y: minPoint.y - offset,
-        w: maxPoint.x - minPoint.x + offset*2,
-        h: maxPoint.y - minPoint.y + offset*2
+        x: minPoint.x,
+        y: minPoint.y,
+        w: maxPoint.x - minPoint.x,
+        h: maxPoint.y - minPoint.y
     };
 }
 
@@ -148,7 +148,7 @@ export default {
             return;
         }
 
-        const area = calculateBoundingBox(item, schemeContainer, 10);
+        const area = calculateBoundingBox(item, schemeContainer);
 
         let newZoom = 1.0;
         const width = schemeContainer.screenSettings.width;

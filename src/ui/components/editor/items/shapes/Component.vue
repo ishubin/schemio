@@ -148,17 +148,17 @@ export function generateComponentGoBackButton(componentItem, containerArea, curr
                 actions: [ {
                     id: shortid.generate(),
                     element: '#' + componentItem.id,
-                    method: 'destroyComponent',
-                    args: { }
-                }, {
-                    id: shortid.generate(),
-                    element: '#' + componentItem.id,
                     method: '_transformScreen',
                     args: {
                         x: currentScreenTransform.x,
                         y: currentScreenTransform.y,
                         scale: currentScreenTransform.scale,
                     }
+                }, {
+                    id: shortid.generate(),
+                    element: '#' + componentItem.id,
+                    method: 'destroyComponent',
+                    args: { }
                 }]
             }, {
                 id: shortid.generate(),
