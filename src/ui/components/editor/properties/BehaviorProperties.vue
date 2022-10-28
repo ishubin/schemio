@@ -149,9 +149,10 @@ import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, coreItemPropertyTypes, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
+import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
@@ -323,6 +324,10 @@ export default {
             });
 
             forEach(this.collectAllItemCustomEvents(item), customEvent => {
+                if (item.shape === 'component' &&
+                    (customEvent === COMPONENT_LOADED_EVENT || customEvent === COMPONENT_FAILED || customEvent === COMPONENT_DESTROYED)) {
+                    return;
+                }
                 methods.push({
                     method: 'custom-event',
                     name: customEvent,
